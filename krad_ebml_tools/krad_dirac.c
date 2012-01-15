@@ -103,10 +103,10 @@ void krad_dirac_decoder_buffer_free (SchroBuffer *buf, void *priv) {
 
 void krad_dirac_test_video_open (krad_dirac_t *dirac, char *filename) {
 
-	int go;
+	//int go;
 	int it;
-	int eos = FALSE;
-	int eof = FALSE;
+	//int eos = FALSE;
+	//int eof = FALSE;
 	void *packet;
 	int size;
 	int ret;
@@ -125,7 +125,7 @@ void krad_dirac_test_video_open (krad_dirac_t *dirac, char *filename) {
 
 		//printf("packet size %d\n", size);
 		if (size == 0) {
-		  eof = TRUE;
+		  //eof = TRUE;
 		  schro_decoder_push_end_of_stream (dirac->decoder);
 		} else {
 		  dirac->buffer = schro_buffer_new_with_data (packet, size);

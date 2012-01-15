@@ -621,7 +621,7 @@ int kradebml_open_output_stream(kradebml_t *kradebml, char *host, int port, char
 void kradebml_debug(kradebml_t *kradebml);
 int kradebml_read_video(kradebml_t *kradebml, unsigned char *buffer);
 int kradebml_read_audio(kradebml_t *kradebml, unsigned char *buffer);
-int kradebml_read_audio_header(kradebml_t *kradebml, unsigned char *buffer);
+int kradebml_read_audio_header(kradebml_t *kradebml, int tracknum, unsigned char *buffer);
 int kradebml_open_input_file(kradebml_t *kradebml, char *filename);
 void kradebml_cluster(kradebml_t *kradebml, int timecode);
 void kradebml_add_audio(kradebml_t *kradebml, int track_num, unsigned char *buffer, int bufferlen, int frames);

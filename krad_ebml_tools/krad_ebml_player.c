@@ -184,7 +184,7 @@ void krad_ebml_player_play_file_blocking(krad_ebml_player_t *krad_ebml_player, c
 	
 	kradebml_debug(krad_ebml_player->ebml);
 	
-	krad_ebml_player->len = kradebml_read_audio_header(krad_ebml_player->ebml, krad_ebml_player->buffer);
+	krad_ebml_player->len = kradebml_read_audio_header(krad_ebml_player->ebml, 1, krad_ebml_player->buffer);
 	
 	krad_ebml_player->opus = kradopus_decoder_create(krad_ebml_player->buffer, krad_ebml_player->len, 44100.0f);
 

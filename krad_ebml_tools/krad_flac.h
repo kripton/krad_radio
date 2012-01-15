@@ -45,6 +45,8 @@ struct krad_flac_St {
 	int decode_buffer_len;
 	int decode_buffer_pos;
 	
+	int frames;
+	
 	float *output_buffer;
 };
 
@@ -72,7 +74,7 @@ krad_flac_t *krad_flac_encoder_create(int channels, int sample_rate, int bit_dep
 krad_flac_t *krad_flac_decoder_create();
 void krad_flac_decoder_destroy(krad_flac_t *flac);
 
-void krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float *audio);
+int krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float *audio);
 
 void krad_flac_decoder_int24_to_float_array (const int *in, float *out, int len);
 void krad_flac_decoder_int16_to_float_array (const int *in, float *out, int len);

@@ -3399,10 +3399,10 @@ int kradebml_read_audio(kradebml_t *kradebml, unsigned char *buffer) {
 
 }
 
-int kradebml_read_audio_header(kradebml_t *kradebml, unsigned char *buffer) {
+int kradebml_read_audio_header(kradebml_t *kradebml, int tracknum, unsigned char *buffer) {
 
 	printf("read audio header\n");
-	nestegg_track_codec_data(kradebml->ctx, 0, 0, &kradebml->codec_data, &kradebml->length);
+	nestegg_track_codec_data(kradebml->ctx, tracknum, 0, &kradebml->codec_data, &kradebml->length);
 	printf("read audio header end \n");
 	memcpy(buffer, kradebml->codec_data, kradebml->length);
 

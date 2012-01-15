@@ -77,6 +77,8 @@ int main (int argc, char *argv[]) {
 	unsigned char *buffer;
 	
 	int bytes;
+	float *audio_data;
+	int audio_frames;
 	
 	int i;
 	int audio_packets;
@@ -93,7 +95,8 @@ int main (int argc, char *argv[]) {
 
 	audio_packets = 0;
 	video_packets = 0;
-	
+
+	audio_data = calloc(1, 8192 * 4 * 4);
 	hudtest = calloc(1, sizeof(krad_ebml_video_player_hud_test_t));
 	
 	hud_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, hud_width);
@@ -131,12 +134,14 @@ int main (int argc, char *argv[]) {
 	
 	printf("video codec is %d and audio codec is %d\n", video_codec, audio_codec);
 	
-	if (krad_ebml_track_codec(krad_ebml, 2) == KRAD_FLAC) {
-		bytes = kradebml_read_audio_header(krad_ebml, buffer);
+	if (audio_codec == KRAD_FLAC) {
+		bytes = kradebml_read_audio_header(krad_ebml, 1, buffer);
 		printf("got flac header bytes of %d\n", bytes);
 		//exit(1);
-		krad_flac_decode(krad_flac, buffer, bytes, audio);
-	} else {
+		krad_flac_decode(krad_flac, buffer, bytes, audio_data);
+	}
+	
+	if (audio_codec == KRAD_VORBIS) {
 		krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
 	}
 
@@ -150,8 +155,11 @@ int main (int argc, char *argv[]) {
 	hudtest->audio = audio;
 	hudtest->krad_vorbis = krad_vorbis;
 	hudtest->kradgui = kradgui;
-	kradaudio_set_process_callback(audio, krad_ebml_video_player_hud_test_audio_callback, hudtest);
 	
+	if (audio_codec == KRAD_VORBIS) {
+		kradaudio_set_process_callback(audio, krad_ebml_video_player_hud_test_audio_callback, hudtest);
+	}	
+		
 	if (audio_api == JACK) {
 		krad_jack_t *jack = (krad_jack_t *)audio->api;
 		kradjack_connect_port(jack->jack_client, "Krad EBML Video HUD Test Player:Left", "desktop_recorder:input_1");
@@ -224,11 +232,19 @@ int main (int argc, char *argv[]) {
 		
 		if (krad_ebml->pkt_track == krad_ebml->audio_track) {
 			audio_packets++;
-			
-			nestegg_packet_data(krad_ebml->pkt, 0, &buffer, &krad_ebml->size);
-			krad_vorbis_decoder_decode(krad_vorbis, buffer, krad_ebml->size);
-			//printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
 
+			nestegg_packet_data(krad_ebml->pkt, 0, &buffer, &krad_ebml->size);
+			printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
+
+			if (audio_codec == KRAD_VORBIS) {
+				krad_vorbis_decoder_decode(krad_vorbis, buffer, krad_ebml->size);
+			}
+			
+			if (audio_codec == KRAD_FLAC) {
+				audio_frames = krad_flac_decode(krad_flac, buffer, krad_ebml->size, audio_data);
+				kradaudio_write (audio, 0, (char *)audio_data, audio_frames * 4 );
+				kradaudio_write (audio, 1, (char *)audio_data, audio_frames * 4 );
+			}
 		}
 		
 		printf("Timecode: %f :: Video Packets %d Audio Packets: %d\r", krad_ebml->pkt_tstamp / 1e9, video_packets, audio_packets);
@@ -298,9 +314,11 @@ int main (int argc, char *argv[]) {
 
 	// must be before vorbis
 	kradaudio_destroy(audio);
-	
-	krad_vorbis_decoder_destroy(krad_vorbis);
 
+	if (audio_codec == KRAD_VORBIS) {
+		krad_vorbis_decoder_destroy(krad_vorbis);
+	}
+	
 	krad_flac_decoder_info(krad_flac);
 	krad_flac_decoder_destroy(krad_flac);
 	
@@ -311,7 +329,7 @@ int main (int argc, char *argv[]) {
 	free(hudtest->samples[1]);
 	
 	free(hudtest);
-	
+	free(audio_data);
 	return 0;
 
 }
