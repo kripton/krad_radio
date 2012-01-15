@@ -1,0 +1,1 @@
+gcc -g -Wall -pthread -I. krad_v4l2.c krad_vpx.c krad_v4l2_vpx_ebml_test.c ../../libvpx/libvpx_g.a /usr/lib/libswscale.a /usr/lib/libavutil.a      ../../kradebml/krad_ebml.c ../../kradebml/halloc/src/halloc.c -I../../kradebml/ -I../../kradebml/halloc      -o krad_v4l2_vpx_ebml_test -lpthread -lm -ljack
