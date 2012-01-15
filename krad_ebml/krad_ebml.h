@@ -55,6 +55,13 @@ typedef enum {
 	KXPDR,
 } server_type_t;
 
+typedef enum {
+	KRAD_VORBIS,
+	KRAD_OPUS,
+	KRAD_FLAC,
+	KRAD_VP8,
+	KRAD_DIRAC,
+} krad_codec_type_t;
 
 //#define VPX_CODEC_DISABLE_COMPAT 1
 //#include "vpx/vpx_encoder.h"
@@ -597,7 +604,12 @@ struct kradebml_St {
 	unsigned char vorbis_header3[8192];
 	int vorbis_header3_len;
 	
+	krad_codec_type_t audio_codec;
+	krad_codec_type_t video_codec;
+	
 };
+
+int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track);
 
 server_t *server_create(char *host, int port, char *mount, char *password);
 void server_destroy(server_t *server);

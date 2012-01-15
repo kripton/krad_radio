@@ -47,4 +47,6 @@ krad_dirac_t *krad_dirac_encoder_create();
 krad_dirac_t *krad_dirac_decoder_create();
 void krad_dirac_decoder_destroy(krad_dirac_t *dirac);
 void krad_dirac_decoder_buffer_free (SchroBuffer *buf, void *priv);
-void krad_dirac_decode(krad_dirac_t *dirac, char *filename);
+void krad_dirac_decode(krad_dirac_t *dirac);
+
+void krad_dirac_test_video_open (krad_dirac_t *dirac, char *filename);

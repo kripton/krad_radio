@@ -100,7 +100,8 @@ void krad_dirac_decoder_buffer_free (SchroBuffer *buf, void *priv) {
 
 }
 
-void krad_dirac_decode (krad_dirac_t *dirac, char *filename) {
+
+void krad_dirac_test_video_open (krad_dirac_t *dirac, char *filename) {
 
 	int go;
 	int it;
@@ -116,7 +117,7 @@ void krad_dirac_decode (krad_dirac_t *dirac, char *filename) {
 	dirac->file = fopen (filename, "r");
 
 
-	while(!eos) {
+
 		ret = parse_packet (dirac->file, &packet, &size);
 		if (!ret) {
 		  exit(1);
@@ -135,9 +136,54 @@ void krad_dirac_decode (krad_dirac_t *dirac, char *filename) {
 		  if (it == SCHRO_DECODER_FIRST_ACCESS_UNIT) {
 			dirac->format = schro_decoder_get_video_format (dirac->decoder);
 			
-			printf("dirac video info: width: %d height %d\n", dirac->format->width, dirac->format->height);
+			dirac->width = dirac->format->width;
+			dirac->height = dirac->format->height;
 			
+			printf("dirac video info: width: %d height %d\n", dirac->format->width, dirac->format->height);
+			printf("frame rate: %d / %d\n", dirac->format->frame_rate_numerator, dirac->format->frame_rate_denominator);
 		  }
+		}
+}
+
+void krad_dirac_decode (krad_dirac_t *dirac) {
+
+	int go;
+	int it;
+	int eos = FALSE;
+	int eof = FALSE;
+	void *packet;
+	int size;
+	int ret;
+
+printf("hi!\n");
+			  if (dirac->frame) {
+				printf("frame freed\n");
+				schro_frame_unref (dirac->frame);
+				dirac->frame = NULL;
+			  }
+
+	while(!eos) {
+		ret = parse_packet (dirac->file, &packet, &size);
+		if (!ret) {
+		  exit(1);
+		}
+
+		//printf("packet size %d\n", size);
+		if (size == 0) {
+		  eof = TRUE;
+		  schro_decoder_push_end_of_stream (dirac->decoder);
+		} else {
+		  dirac->buffer = schro_buffer_new_with_data (packet, size);
+		  dirac->buffer->free = krad_dirac_decoder_buffer_free;
+		  dirac->buffer->priv = packet;
+
+		  it = schro_decoder_push (dirac->decoder, dirac->buffer);
+		  //if (it == SCHRO_DECODER_FIRST_ACCESS_UNIT) {
+		//	dirac->format = schro_decoder_get_video_format (dirac->decoder);
+			
+		//	printf("dirac video info: width: %d height %d\n", dirac->format->width, dirac->format->height);
+			
+		  //}
 		}
 
 		go = 1;
@@ -162,13 +208,15 @@ void krad_dirac_decode (krad_dirac_t *dirac, char *filename) {
 
 				printf("Frame Info: format: %d  width: %d height %d \n", dirac->frame->format, dirac->frame->width, dirac->frame->height);
 				printf("c0 %d  c1: %d c2 %d \n", dirac->frame->components[0].length, dirac->frame->components[1].length, dirac->frame->components[2].length);
-
+				
+					return;
+				
 			  if (dirac->frame) {
 				schro_frame_unref (dirac->frame);
 			  }
 			  break;
 			case SCHRO_DECODER_EOS:
-			  //printf("got eos\n");
+				printf("got eos\n");
 			  if (eof) {
 				eos = TRUE;
 			  }
@@ -181,8 +229,7 @@ void krad_dirac_decode (krad_dirac_t *dirac, char *filename) {
 		}
 	}
 
-	fclose (dirac->file);
-
+	
 }
 
 
@@ -200,6 +247,12 @@ krad_dirac_t *krad_dirac_decoder_create() {
 
 
 void krad_dirac_decoder_destroy(krad_dirac_t *dirac) {
+
+	//test only
+	if (dirac->file != NULL) {
+		fclose (dirac->file);
+	}
+
 
 	schro_decoder_free (dirac->decoder);
 	free(dirac->format);

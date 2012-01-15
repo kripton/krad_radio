@@ -40,6 +40,10 @@ struct krad_sdl_opengl_display_St {
 
 };
 
+
+// PIX_FMT_YUYV422 PIX_FMT_YUYV420 PIX_FMT_YUV444P
+void krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display_t *krad_sdl_opengl_display, enum PixelFormat format);
+
 void krad_sdl_opengl_display_destroy(krad_sdl_opengl_display_t *krad_sdl_opengl_display);
 void krad_sdl_opengl_display_test(krad_sdl_opengl_display_t *krad_sdl_opengl_display);
 krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height, int videowidth, int videoheight);

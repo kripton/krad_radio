@@ -1,7 +1,10 @@
 #include <krad_sdl_opengl_display.h>
 #include <krad_ebml.h>
 #include <krad_vpx.h>
+#include <krad_dirac.h>
+#include <krad_flac.h>
 #include <krad_vorbis.h>
+#include <krad_opus.h>
 #include <krad_gui.h>
 #include "SDL.h"
 
@@ -47,8 +50,12 @@ int main (int argc, char *argv[]) {
 	krad_ebml_video_player_hud_test_t *hudtest;
 
 
+	krad_codec_type_t audio_codec;
+	krad_codec_type_t video_codec;
+
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_vpx_decoder_t *krad_vpx_decoder;
+	krad_dirac_t *krad_dirac;
 	krad_ebml_t *krad_ebml;
 	kradgui_t *kradgui;
 	
@@ -56,7 +63,7 @@ int main (int argc, char *argv[]) {
 	krad_audio_api_t audio_api;
 	
 	krad_vorbis_t *krad_vorbis;
-	
+	krad_flac_t *krad_flac;
 	SDL_Event event;
 	
 	cairo_surface_t *cst;
@@ -68,6 +75,8 @@ int main (int argc, char *argv[]) {
 	unsigned char *hud_data;
 
 	unsigned char *buffer;
+	
+	int bytes;
 	
 	int i;
 	int audio_packets;
@@ -105,9 +114,10 @@ int main (int argc, char *argv[]) {
 	//kradgui_add_item(kradgui, PLAYBACK_STATE_STATUS);
 
 	buffer = malloc(1000000);
+	krad_dirac = krad_dirac_decoder_create();
 	krad_vpx_decoder = krad_vpx_decoder_create();
 	krad_ebml = kradebml_create();
-
+	krad_flac = krad_flac_decoder_create();
 	kradebml_open_input_file(krad_ebml, argv[1]);
 	//kradebml_open_input_stream(krad_ebml_player->ebml, "192.168.1.2", 9080, "/teststream.krado");
 	
@@ -116,12 +126,19 @@ int main (int argc, char *argv[]) {
 	kradgui_set_total_track_time_ms(kradgui, (krad_ebml->duration / 1e9) * 1000);
 	kradgui->render_timecode = 1;
 	
-	//printf("writing %d bytes of vorbis header\n", krad_ebml->vorbis_header1_len);
-	//printf("writing %d bytes of vorbis header\n", krad_ebml->vorbis_header2_len);
-	//printf("writing %d bytes of vorbis header\n", krad_ebml->vorbis_header3_len);
-		
-	krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
-	//exit(1);
+	video_codec = krad_ebml_track_codec(krad_ebml, 0);
+	audio_codec = krad_ebml_track_codec(krad_ebml, 1);
+	
+	printf("video codec is %d and audio codec is %d\n", video_codec, audio_codec);
+	
+	if (krad_ebml_track_codec(krad_ebml, 2) == KRAD_FLAC) {
+		bytes = kradebml_read_audio_header(krad_ebml, buffer);
+		printf("got flac header bytes of %d\n", bytes);
+		//exit(1);
+		krad_flac_decode(krad_flac, buffer, bytes, audio);
+	} else {
+		krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
+	}
 
 	//krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
@@ -170,21 +187,37 @@ int main (int argc, char *argv[]) {
 
 				nestegg_packet_data(krad_ebml->pkt, i, &buffer, &krad_ebml->size);
 
-				krad_vpx_decoder_decode(krad_vpx_decoder, buffer, krad_ebml->size);
+				if (video_codec == KRAD_VP8) {
+
+					krad_vpx_decoder_decode(krad_vpx_decoder, buffer, krad_ebml->size);
 				
-				if (krad_vpx_decoder->img != NULL) {
+					if (krad_vpx_decoder->img != NULL) {
 
-					//printf("vpx img: %d %d %d\n", krad_vpx_decoder->img->stride[0],  krad_vpx_decoder->img->stride[1],  krad_vpx_decoder->img->stride[2]); 
-					cr = cairo_create(cst);
-					kradgui->cr = cr;
-					kradgui_render(kradgui);
-					cairo_destroy(cr);
+						//printf("vpx img: %d %d %d\n", krad_vpx_decoder->img->stride[0],  krad_vpx_decoder->img->stride[1],  krad_vpx_decoder->img->stride[2]); 
+						//cr = cairo_create(cst);
+						//kradgui->cr = cr;
+						//kradgui_render(kradgui);
+						//cairo_destroy(cr);
 
-					//krad_sdl_opengl_display_hud_item(krad_opengl_display, hud_data);
-					krad_sdl_opengl_display_render(krad_opengl_display, krad_vpx_decoder->img->planes[0], krad_vpx_decoder->img->stride[0], krad_vpx_decoder->img->planes[1], krad_vpx_decoder->img->stride[1], krad_vpx_decoder->img->planes[2], krad_vpx_decoder->img->stride[2]);
-					krad_sdl_opengl_draw_screen( krad_opengl_display );
-					//usleep(13000);
+						//krad_sdl_opengl_display_hud_item(krad_opengl_display, hud_data);
+						krad_sdl_opengl_display_render(krad_opengl_display, krad_vpx_decoder->img->planes[0], krad_vpx_decoder->img->stride[0], krad_vpx_decoder->img->planes[1], krad_vpx_decoder->img->stride[1], krad_vpx_decoder->img->planes[2], krad_vpx_decoder->img->stride[2]);
+
+						//usleep(13000);
+					}
+				} else {
+				
+				
+				
 				}
+
+				cr = cairo_create(cst);
+				kradgui->cr = cr;
+				kradgui_render(kradgui);
+				cairo_destroy(cr);
+
+				krad_sdl_opengl_draw_screen( krad_opengl_display );
+				
+				
 			}
 		}
 		
@@ -258,6 +291,7 @@ int main (int argc, char *argv[]) {
 	printf("\n");
 	
 	krad_vpx_decoder_destroy(krad_vpx_decoder);
+	krad_dirac_decoder_destroy(krad_dirac);
 	kradebml_destroy(krad_ebml);
 	krad_sdl_opengl_display_destroy(krad_opengl_display);
 	kradgui_destroy(kradgui);
@@ -266,8 +300,10 @@ int main (int argc, char *argv[]) {
 	kradaudio_destroy(audio);
 	
 	krad_vorbis_decoder_destroy(krad_vorbis);
-	
 
+	krad_flac_decoder_info(krad_flac);
+	krad_flac_decoder_destroy(krad_flac);
+	
 	//free(buffer);
 	cairo_surface_destroy(cst);
 	

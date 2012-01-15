@@ -2977,6 +2977,38 @@ nestegg_track_codec_id(nestegg * ctx, unsigned int track)
   return -1;
 }
 
+int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track) {
+
+	char * codec_id;
+	struct track_entry * entry;
+
+	entry = ne_find_track_entry(kradebml->ctx, track);
+	if (!entry)
+	return -1;
+
+	if (ne_get_string(entry->codec_id, &codec_id) != 0)
+	return -1;
+
+	if (strcmp(codec_id, TRACK_ID_VP8) == 0)
+	return KRAD_VP8;
+
+	if (strcmp(codec_id, TRACK_ID_VORBIS) == 0)
+	return KRAD_VORBIS;
+
+	if (strcmp(codec_id, TRACK_ID_OPUS) == 0)
+	return KRAD_OPUS;
+
+	if (strcmp(codec_id, TRACK_ID_FLAC) == 0)
+	return KRAD_FLAC;
+
+	if (strcmp(codec_id, TRACK_ID_DIRAC) == 0)
+	return KRAD_DIRAC;    
+
+
+	return -1;
+
+}
+
 int
 nestegg_track_codec_data_count(nestegg * ctx, unsigned int track,
                                unsigned int * count)

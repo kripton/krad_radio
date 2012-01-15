@@ -116,8 +116,8 @@ void krad_sdl_opengl_draw_screen(krad_sdl_opengl_display_t *krad_sdl_opengl_disp
 	static float zoomrange = 1.0f;
 	static float rotaterange = 35.0f;
 	
-	static int animate_test = 1;
-	static int zoom_in = 1;
+	static int animate_test = 0;
+	static int zoom_in = 0;
 
 	k += speed;
 
@@ -307,6 +307,17 @@ void krad_sdl_opengl_init(krad_sdl_opengl_display_t *krad_sdl_opengl_display) {
 	//krad_sdl_opengl_shader_init(krad_sdl_opengl_display);
 
     
+}
+
+
+void krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display_t *krad_sdl_opengl_display, enum PixelFormat format) {
+
+	if (krad_sdl_opengl_display->sws_context != NULL) {
+		sws_freeContext (krad_sdl_opengl_display->sws_context);	
+	}
+
+	krad_sdl_opengl_display->sws_context = sws_getContext ( krad_sdl_opengl_display->videowidth, krad_sdl_opengl_display->videoheight, format, krad_sdl_opengl_display->width, krad_sdl_opengl_display->height, PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
+
 }
 
 krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height, int videowidth, int videoheight)
