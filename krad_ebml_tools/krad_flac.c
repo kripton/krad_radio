@@ -314,7 +314,7 @@ FLAC__StreamDecoderWriteStatus krad_flac_decoder_callback_write (const FLAC__Str
 
 	krad_flac_t *flac = (krad_flac_t *)client_data;
 
-	printf("flac decoder callback write with %d frames\n", frame->header.blocksize);
+	//printf("flac decoder callback write with %d frames\n", frame->header.blocksize);
 	
 	
 	flac->frames = frame->header.blocksize;
@@ -338,7 +338,7 @@ FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__Strea
 	
 	krad_flac_t *flac = (krad_flac_t *)client_data;
 
-	printf("flac decoder callback read with %zu bytes\n", *bytes);
+	//printf("flac decoder callback read with %zu bytes\n", *bytes);
 
 	if (!(*bytes <= (flac->decode_buffer_len - flac->decode_buffer_pos))) {
 		*bytes = flac->decode_buffer_len - flac->decode_buffer_pos;

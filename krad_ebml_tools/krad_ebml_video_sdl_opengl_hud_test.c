@@ -46,10 +46,8 @@ void krad_ebml_video_player_hud_test_audio_callback(int frames, void *userdata) 
 
 int main (int argc, char *argv[]) {
 
-
+	struct stat st;
 	krad_ebml_video_player_hud_test_t *hudtest;
-
-
 	krad_codec_type_t audio_codec;
 	krad_codec_type_t video_codec;
 
@@ -85,8 +83,24 @@ int main (int argc, char *argv[]) {
 	int video_packets;
 	int shutdown;
 	int packet_time_ms;
+	int last_packet_time_ms;
+	int nosleep;
 	struct timespec packet_time;
 	struct timespec sleep_time;
+	
+	int dirac_output_unset;
+	
+	dirac_output_unset = true;
+		
+	if (argc < 2) {
+		printf("specify a video file\n");
+		exit(1);
+	}
+
+	if (stat(argv[1], &st) != 0) {
+		printf("cant find file %s\n", argv[1]);
+		exit(1);
+	}
 	
 	shutdown = 0;
 	
@@ -108,7 +122,7 @@ int main (int argc, char *argv[]) {
 	hudtest->samples[0] = malloc(4 * 8192);
 	hudtest->samples[1] = malloc(4 * 8192);
 	
-	audio_api = JACK;
+	audio_api = PULSE;
 	audio = kradaudio_create("Krad EBML Video HUD Test Player", audio_api);
 	
 	kradgui = kradgui_create(hud_width, hud_height);
@@ -169,26 +183,28 @@ int main (int argc, char *argv[]) {
 	kradgui_reset_elapsed_time(kradgui);
 	
 	while (nestegg_read_packet(krad_ebml->ctx, &krad_ebml->pkt) > 0) {
-
+		
 		nestegg_packet_track(krad_ebml->pkt, &krad_ebml->pkt_track);
 		nestegg_packet_count(krad_ebml->pkt, &krad_ebml->pkt_cnt);
 		nestegg_packet_tstamp(krad_ebml->pkt, &krad_ebml->pkt_tstamp);
 
 		packet_time_ms = (krad_ebml->pkt_tstamp / 1e9) * 1000;
-
+		
 		packet_time.tv_sec = (packet_time_ms - (packet_time_ms % 1000)) / 1000;
 		packet_time.tv_nsec = (packet_time_ms % 1000) * 1000000;
-
-		kradgui_update_elapsed_time(kradgui);
-
-		sleep_time = timespec_diff(kradgui->elapsed_time, packet_time);
-
-		nanosleep(&sleep_time, NULL);
 		
-		kradgui_set_current_track_time_ms(kradgui, packet_time_ms);
-
 		if (krad_ebml->pkt_track == krad_ebml->video_track) {
 
+			//if (packet_time_ms < last_packet_time_ms) {
+			//	nosleep = true;
+			//} else {
+				nosleep = false;
+			//	last_packet_time_ms = packet_time_ms;
+			//}
+
+			printf("\npacket time ms %d :: %ld : %ld\n", packet_time_ms % 1000, packet_time.tv_sec, packet_time.tv_nsec);
+			kradgui_set_current_track_time_ms(kradgui, packet_time_ms);
+		
 			video_packets++;
 
 			for (i = 0; i < krad_ebml->pkt_cnt; ++i) {
@@ -214,16 +230,54 @@ int main (int argc, char *argv[]) {
 					}
 				} else {
 				
+					//printf("dirac packet size %zu\n", krad_ebml->size);		
+
+					krad_dirac_decode(krad_dirac, buffer, krad_ebml->size);
+
+					if ((krad_dirac->format != NULL) && (dirac_output_unset == true)) {
+						switch (krad_dirac->format->chroma_format) {
+	
+							case SCHRO_CHROMA_444:
+								krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV444P);
+							case SCHRO_CHROMA_422:
+								krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV422P);
+							case SCHRO_CHROMA_420:
+								break;
+								// default
+								//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
+
+						}
 				
-				
+						dirac_output_unset = false;				
+					}
+
+					if (krad_dirac->frame != NULL) {
+						krad_sdl_opengl_display_render(krad_opengl_display, krad_dirac->frame->components[0].data, krad_dirac->frame->components[0].stride, krad_dirac->frame->components[1].data, krad_dirac->frame->components[1].stride, krad_dirac->frame->components[2].data, krad_dirac->frame->components[2].stride);
+					}
+
 				}
+
+
 
 				cr = cairo_create(cst);
 				kradgui->cr = cr;
 				kradgui_render(kradgui);
 				cairo_destroy(cr);
 
+				if (nosleep == false) {
+					printf("hi\n");
+					kradgui_update_elapsed_time(kradgui);
+					sleep_time = timespec_diff(kradgui->elapsed_time, packet_time);
+
+//					if (sleep_time.tv_nsec > 16600000 * 1) {
+						//sleep_time.tv_nsec -= 16600000 * 1;
+						printf("\nsleep time nsec is %ld\n", sleep_time.tv_nsec);
+						nanosleep(&sleep_time, NULL);
+	//				}
+				}
+
 				krad_sdl_opengl_draw_screen( krad_opengl_display );
+//				nanosleep(&sleep_time, NULL);
 				
 				
 			}
@@ -234,7 +288,7 @@ int main (int argc, char *argv[]) {
 			audio_packets++;
 
 			nestegg_packet_data(krad_ebml->pkt, 0, &buffer, &krad_ebml->size);
-			printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
+			//printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
 
 			if (audio_codec == KRAD_VORBIS) {
 				krad_vorbis_decoder_decode(krad_vorbis, buffer, krad_ebml->size);
@@ -247,9 +301,11 @@ int main (int argc, char *argv[]) {
 			}
 		}
 		
-		printf("Timecode: %f :: Video Packets %d Audio Packets: %d\r", krad_ebml->pkt_tstamp / 1e9, video_packets, audio_packets);
-		fflush(stdout);
-
+		if (krad_ebml->pkt_track == krad_ebml->video_track) {
+			printf("Timecode: %f :: Video Packets %d Audio Packets: %d\r", krad_ebml->pkt_tstamp / 1e9, video_packets, audio_packets);
+			fflush(stdout);
+		}
+		
 		nestegg_free_packet(krad_ebml->pkt);
 
 

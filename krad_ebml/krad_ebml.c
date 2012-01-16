@@ -478,7 +478,7 @@ log_callback(nestegg * ctx, unsigned int severity, char const * fmt, ...)
 
 
 	if (severity == NESTEGG_LOG_DEBUG) {
-		//return;
+		 return;
 	}	
 
 
@@ -576,7 +576,10 @@ void kradebml_close_output(kradebml_t *kradebml) {
 
 int kradebml_write(kradebml_t *kradebml) {
 
-
+	if (kradebml->ebml->tracks_open == 1) {
+		Ebml_EndSubElement(kradebml->ebml, &kradebml->ebml->tracks);
+		kradebml->ebml->tracks_open = 0;
+	}
 
 
 	if (kradebml->server) {
@@ -661,6 +664,20 @@ void kradebml_start_segment(kradebml_t *kradebml, char *appversion) {
 
 }
 
+int kradebml_new_tracknumber(kradebml_t *kradebml) {
+
+	int current_tracknumber;
+	
+	current_tracknumber = kradebml->next_tracknumber;
+
+	kradebml->total_tracks++;
+
+	kradebml->next_tracknumber++;
+	
+	return current_tracknumber;
+
+}
+
 int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height) {
 
 
@@ -673,7 +690,7 @@ int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rat
 	glob->video_frame_rate = frame_rate;
 
 
-	unsigned int trackNumber = 1;
+	unsigned int trackNumber = kradebml_new_tracknumber(kradebml);
 	//float        frameRate   = (float)fps->num/(float)fps->den;
 
 	EbmlLoc trackstart;
@@ -681,7 +698,7 @@ int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rat
 	Ebml_SerializeUnsigned(glob, TrackNumber, trackNumber);
 	Ebml_SerializeUnsigned(glob, TrackUID, 1);
 	Ebml_SerializeUnsigned(glob, FlagLacing, 0);
-	Ebml_SerializeUnsigned(glob, FlagDefault, 1);
+	//Ebml_SerializeUnsigned(glob, FlagDefault, 1);
 	Ebml_SerializeString(glob, CodecID, codec_id);
 	//Ebml_SerializeFloat(glob, FrameRate, frameRate);
 	Ebml_SerializeUnsigned(glob, TrackType, 1); //video is always 1
@@ -693,7 +710,7 @@ int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rat
 	Ebml_StartSubElement(glob, &videoStart, Video);
 	Ebml_SerializeUnsigned(glob, PixelWidth, pixelWidth);
 	Ebml_SerializeUnsigned(glob, PixelHeight, pixelHeight);
-	Ebml_SerializeUnsigned(glob, StereoMode, STEREO_FORMAT_MONO);
+	//Ebml_SerializeUnsigned(glob, StereoMode, STEREO_FORMAT_MONO);
 	Ebml_EndSubElement(glob, &videoStart); //Video
 
 	Ebml_EndSubElement(glob, &trackstart); //Track Entry
@@ -714,7 +731,7 @@ int kradebml_add_audio_track(kradebml_t *kradebml, char *codec_id, float sample_
 	EbmlGlobal *glob = kradebml->ebml;
 
 
-	int tracknumber = 1;
+	int tracknumber = kradebml_new_tracknumber(kradebml);
 
 	EbmlLoc track;
 	
@@ -728,7 +745,7 @@ int kradebml_add_audio_track(kradebml_t *kradebml, char *codec_id, float sample_
 	Ebml_SerializeUnsigned(glob, TrackUID, tracknumber);
 	
 	Ebml_SerializeUnsigned(glob, FlagLacing, 0);
-	Ebml_SerializeUnsigned(glob, FlagDefault, 1);
+	//Ebml_SerializeUnsigned(glob, FlagDefault, 1);
 
 
 	Ebml_SerializeString(glob, CodecID, codec_id);
@@ -759,14 +776,6 @@ void kradebml_add_video(kradebml_t *kradebml, int track_num, unsigned char *buff
 
 	EbmlGlobal *glob = kradebml->ebml;
 
-
-	if (glob->tracks_open == 1) {
-		Ebml_EndSubElement(glob, &glob->tracks);
-		glob->tracks_open = 0;
-	}
-
-
-
     unsigned long block_length;
     unsigned char track_number;
     unsigned short block_timecode = 0;
@@ -778,7 +787,7 @@ void kradebml_add_video(kradebml_t *kradebml, int track_num, unsigned char *buff
 	
 	int64_t timecode = glob->total_video_frames * 1000 * (uint64_t)1 / (uint64_t)glob->video_frame_rate;
     //pts_ms = pkt->data.frame.pts * 1000 * (uint64_t)cfg->g_timebase.num / (uint64_t)cfg->g_timebase.den;
-	if (keyframe) {
+	if ((keyframe) && ((glob->total_video_frames > 0) || (kradebml->total_tracks == 1))) {
 		kradebml_cluster(kradebml, timecode);
 	}
 
@@ -815,16 +824,20 @@ void kradebml_add_video(kradebml_t *kradebml, int track_num, unsigned char *buff
 void kradebml_add_audio(kradebml_t *kradebml, int track_num, unsigned char *buffer, int bufferlen, int frames) {
 
 	EbmlGlobal *glob = kradebml->ebml;
+	int64_t timecode;
 		
-		
-	if (glob->tracks_open == 1) {
-		Ebml_EndSubElement(glob, &glob->tracks);
-		glob->tracks_open = 0;
+	if (kradebml->total_audio_frames > 0) {
+		timecode = (kradebml->total_audio_frames)/ kradebml->audio_sample_rate * 1000;
+	} else {
+		timecode = 0;
 	}
-		
 	kradebml->total_audio_frames += frames;
 	
-	int64_t timecode = (kradebml->total_audio_frames)/ kradebml->audio_sample_rate * 1000;
+
+	if (timecode == 0) {
+			kradebml_cluster(kradebml, timecode);
+	}	
+
 	
 	//int64_t timecode = glob->total_video_frames * 1000 * (uint64_t)1 / (uint64_t)glob->video_frame_rate;
     //pts_ms = pkt->data.frame.pts * 1000 * (uint64_t)cfg->g_timebase.num / (uint64_t)cfg->g_timebase.den;
@@ -2558,7 +2571,7 @@ ne_read_block(nestegg * ctx, uint64_t block_id, uint64_t block_size, nestegg_pac
     f->data = ne_alloc(frame_sizes[i]);
     f->length = frame_sizes[i];
     r = ne_io_read(ctx->io, f->data, frame_sizes[i]);
-    printf("wantedt ot read %d got %d track is %d \n", frame_sizes[i], r , pkt->track);
+    //printf("wantedt ot read %d got %d track is %d \n", frame_sizes[i], r , pkt->track);
     if (r != 1) {
       free(f->data);
       free(f);
@@ -2676,7 +2689,10 @@ kradebml_t *kradebml_create() {
 
 	kradebml->ebml = calloc(1, sizeof(EbmlGlobal));
 
-
+	kradebml->next_tracknumber = 1;
+	
+	kradebml->total_tracks = 0;
+	
   //int r;
   /*
   uint64_t id, version, docversion;
@@ -2763,6 +2779,8 @@ void kradebml_destroy(kradebml_t *kradebml) {
 
 
 	printf("kradebml destroy\n");
+
+	kradebml_close_output(kradebml);
 
 	if (kradebml->output_ring != NULL) {
 		kradebml->shutdown = 1;

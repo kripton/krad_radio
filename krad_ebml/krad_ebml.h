@@ -112,7 +112,7 @@ struct EbmlGlobal
        EbmlLoc tracks;
 	//kradsource_t *kradsource;
 
-	char buffer[8192 * 512];
+	char buffer[8192 * 1024 * 16];
 	uint64_t buffer_pos;
 
     FILE    *stream;
@@ -607,6 +607,8 @@ struct kradebml_St {
 	krad_codec_type_t audio_codec;
 	krad_codec_type_t video_codec;
 	
+	int next_tracknumber;
+	int total_tracks;
 };
 
 int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track);
@@ -636,7 +638,7 @@ int kradebml_read(kradebml_t *kradebml, char *buffer, int len);
 int kradebml_last_was_sync(kradebml_t *kradebml);
 char *kradebml_write_buffer(kradebml_t *kradebml, int len);
 int kradebml_wrote(kradebml_t *kradebml, int len);
-
+int kradebml_new_tracknumber(kradebml_t *kradebml);
 
 int kradebml_feedbuffer_open(void *userdata);
 int kradebml_feedbuffer_close(void *userdata);

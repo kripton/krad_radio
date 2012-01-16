@@ -27,6 +27,8 @@ static const char *fragment_source = {
 
 void krad_sdl_opengl_display_render(krad_sdl_opengl_display_t *krad_sdl_opengl_display, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs) {
 
+	//printf("krad_sdl_opengl_display_render and scale called\n");
+
 	int rgb_stride_arr[3] = {4*krad_sdl_opengl_display->width, 0, 0};
 
 	const uint8_t *yv12_arr[4];
@@ -315,6 +317,8 @@ void krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display_t *krad_sd
 	if (krad_sdl_opengl_display->sws_context != NULL) {
 		sws_freeContext (krad_sdl_opengl_display->sws_context);	
 	}
+
+	printf("set format to %d\n", format);
 
 	krad_sdl_opengl_display->sws_context = sws_getContext ( krad_sdl_opengl_display->videowidth, krad_sdl_opengl_display->videoheight, format, krad_sdl_opengl_display->width, krad_sdl_opengl_display->height, PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
 

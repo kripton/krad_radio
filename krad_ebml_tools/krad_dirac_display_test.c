@@ -4,19 +4,7 @@
 #define TEST_COUNT1 1
 #define TEST_COUNT2 1
 
-void dirac_encode_test() {
 
-	krad_dirac_t *krad_dirac;
-
-	int count;
-	
-	for (count = 0; count < TEST_COUNT1; count++) {
-		krad_dirac = krad_dirac_encoder_create(1280, 720);
-		krad_dirac_encode (krad_dirac);
-		krad_dirac_encoder_destroy(krad_dirac);
-	}
-
-}
 	
 void dirac_decode_display_test() {
 	
@@ -29,6 +17,8 @@ void dirac_decode_display_test() {
 	strcpy(filename, "/home/oneman/Videos/dirac.kw.bbc.co.uk/dirac.kw.bbc.co.uk/download/vc2-ref-streams-20090707/real-pictures/");
 	//strcat(filename, "rp-bvfi9-cs-lvl3-d13-noac-nocb-pcmp-cr422-10b.drc");
 	strcat(filename, "rp-bvfi13-cs-lvl3-d13-noac-nocb-pcmp-cr422-10b.drc");
+
+	//strcpy(filename, "/home/oneman/Videos/test_dirac_encode1.drc");
 
 	krad_dirac = krad_dirac_decoder_create();
 
@@ -53,7 +43,7 @@ void dirac_decode_display_test() {
 
 	while (1) {
 
-		krad_dirac_decode(krad_dirac);
+		krad_dirac_decode_test(krad_dirac);
 		
 		if (krad_dirac->frame == NULL) { 
 			break;
@@ -62,7 +52,7 @@ void dirac_decode_display_test() {
 		krad_sdl_opengl_display_render(krad_opengl_display, krad_dirac->frame->components[0].data, krad_dirac->frame->components[0].stride, krad_dirac->frame->components[1].data, krad_dirac->frame->components[1].stride, krad_dirac->frame->components[2].data, krad_dirac->frame->components[2].stride);
 		krad_sdl_opengl_draw_screen( krad_opengl_display );
 		
-		usleep(2000000);
+		usleep(1000000);
 	}
 
 	krad_sdl_opengl_display_destroy(krad_opengl_display);
