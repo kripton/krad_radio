@@ -604,7 +604,7 @@ GtkWidget *speed_scale;
     gtk_window_set_has_resize_grip (GTK_WINDOW(window2), FALSE);
     
     
-    gtk_widget_show (window2);
+  //  gtk_widget_show (window2);
 
 
 

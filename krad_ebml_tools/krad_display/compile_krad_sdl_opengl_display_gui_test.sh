@@ -1,0 +1,1 @@
+gcc -g -Wall krad_sdl_opengl_display_gui_test.c krad_sdl_opengl_display.c -I. -I../krad_gui/ ../krad_gui/krad_gui.c  /usr/lib/libswscale.a /usr/lib/libavutil.a -o krad_sdl_opengl_display_gui_test `sdl-config --cflags --libs` `pkg-config --cflags --libs gtk+-2.0` -lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -lSDL

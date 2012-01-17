@@ -450,6 +450,202 @@ void kradgui_render_timecode(kradgui_t *kradgui) {
 	cairo_show_text (kradgui->cr, kradgui->current_track_time_timecode_string);
 }
 
+void kradgui_render_rgb(kradgui_t *kradgui) {
+
+	int size;
+	int xoffset;
+	int yoffset;
+	
+	size = kradgui->width / 7;
+	xoffset = size;
+	yoffset = kradgui->height / 7;
+	
+	cairo_set_source_rgb (kradgui->cr, 1.0, 0.0, 0.0);
+	cairo_rectangle (kradgui->cr, xoffset, yoffset, size, size);
+	cairo_fill (kradgui->cr);
+	
+	cairo_set_source_rgb (kradgui->cr, 0.0, 1.0, 0.0);
+	cairo_rectangle (kradgui->cr, xoffset + size, yoffset, size, size);
+	cairo_fill (kradgui->cr);
+	
+	cairo_set_source_rgb (kradgui->cr, 0.0, 0.0, 1.0);
+	cairo_rectangle (kradgui->cr, xoffset + (size * 2), yoffset, size, size);
+	cairo_fill (kradgui->cr);
+		
+}
+
+
+void kradgui_test_screen(kradgui_t *kradgui, char *info) {
+
+	time_t t;
+
+	t = time(0);
+	sprintf(kradgui->test_start_time, "Test Started: %s", ctime(&t));
+	kradgui->test_start_time[strlen(kradgui->test_start_time) - 1] = '\0';
+
+	if (info != NULL) {
+		strncpy(kradgui->test_info_text, info, 510);
+	} else {
+		strcpy(kradgui->test_info_text, "No Test Information");
+	}
+	
+	
+	kradgui_go_live(kradgui);
+	kradgui->render_rgb = 1;
+	kradgui->render_test_text = 1;
+	kradgui->render_rotator = 1;
+
+}
+
+void kradgui_render_test_text(kradgui_t *kradgui) {
+
+	time_t t;
+
+	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (kradgui->cr, 62.0);
+	cairo_set_source_rgb (kradgui->cr, 1.0, 0.1, 0.1);
+	cairo_move_to (kradgui->cr, kradgui->width/10, kradgui->height - 360);
+	cairo_show_text (kradgui->cr, "KRAD TEST SIGNAL");
+
+	cairo_set_font_size (kradgui->cr, 20.0);
+	cairo_set_source_rgb (kradgui->cr, 0.9, 0.9, 0.9);
+	cairo_move_to (kradgui->cr, 50, kradgui->height - 280);
+	cairo_show_text (kradgui->cr, kradgui->test_info_text);
+
+
+	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_source_rgb (kradgui->cr, 0.8, 0.8, 0.8);
+	cairo_set_font_size (kradgui->cr, 32.0);
+
+	t = time(0);
+	sprintf(kradgui->test_text_time, "%s", ctime(&t));
+	kradgui->test_text_time[strlen(kradgui->test_text_time) - 1] = '\0';
+	cairo_move_to (kradgui->cr, kradgui->width/10.0, kradgui->height - 84.0);
+	cairo_show_text (kradgui->cr, kradgui->test_text_time);
+
+	cairo_set_source_rgb (kradgui->cr, 0.4, 0.4, 0.4);
+	cairo_set_font_size (kradgui->cr, 26.0);
+	cairo_move_to (kradgui->cr, 44, 50);
+	cairo_show_text (kradgui->cr, kradgui->test_start_time);
+
+	cairo_set_source_rgb (kradgui->cr, 0.8, 0.8, 0.8);
+	cairo_set_font_size (kradgui->cr, 32.0);
+	sprintf(kradgui->test_text, "W: %d H: %d F: %llu", kradgui->width, kradgui->height, kradgui->frame);
+	cairo_move_to (kradgui->cr, kradgui->width/2, kradgui->height - 84.0);
+	cairo_show_text (kradgui->cr, kradgui->test_text);
+
+}
+
+void kradgui_render_rotator(kradgui_t *kradgui) {
+
+	int width;
+	
+	
+	width = 16;
+	kradgui->rotator_speed = 2;
+	
+	
+	cairo_set_source_rgb (kradgui->cr, 0.5, 0.5, 0.5);
+	
+	cairo_save (kradgui->cr);
+
+	cairo_translate (kradgui->cr, kradgui->width/4 * 3, kradgui->height/5 * 3);
+	cairo_rotate (kradgui->cr, (kradgui->rotator_angle % 360) * (M_PI/180.0));
+	cairo_translate (kradgui->cr, width/2 * -1, (width * 16)/2 * -1);
+	cairo_rectangle (kradgui->cr, 0, 0, width, width * 16);
+	cairo_fill (kradgui->cr);
+	cairo_restore (kradgui->cr);
+
+	kradgui->rotator_angle += kradgui->rotator_speed;
+
+}
+
+void kradgui_render_recording(kradgui_t *kradgui) {
+
+	kradgui->recording_elapsed_time = timespec_diff(kradgui->recording_start_time, kradgui->current_time);
+	sprintf(kradgui->recording_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->recording_elapsed_time.tv_sec / 86400 % 365, kradgui->recording_elapsed_time.tv_sec / 3600 % 24, kradgui->recording_elapsed_time.tv_sec / 60 % 60, kradgui->recording_elapsed_time.tv_sec % 60, kradgui->recording_elapsed_time.tv_nsec / 1000000);
+
+	cairo_set_source_rgba (kradgui->cr, 0.7, 0.0, 0.0, 0.3);
+	cairo_rectangle (kradgui->cr, kradgui->recording_box_margin, kradgui->recording_box_margin, kradgui->recording_box_width, kradgui->recording_box_height);
+	cairo_fill (kradgui->cr);
+
+	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (kradgui->cr, kradgui->recording_box_font_size);
+	cairo_set_source_rgb (kradgui->cr, 1.0, 0.0, 0.0);
+
+	cairo_move_to (kradgui->cr, kradgui->recording_box_margin + kradgui->recording_box_padding,  kradgui->recording_box_margin + (kradgui->recording_box_height - kradgui->recording_box_padding));
+	cairo_show_text (kradgui->cr, "RECORDING");
+
+
+//	cairo_move_to (kradgui->cr, 50, 22);
+//	cairo_show_text (kradgui->cr, kradgui->recording_time_timecode_string);
+
+}
+
+void kradgui_render_live(kradgui_t *kradgui) {
+
+	kradgui->live_elapsed_time = timespec_diff(kradgui->live_start_time, kradgui->current_time);
+	sprintf(kradgui->live_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->live_elapsed_time.tv_sec / 86400 % 365, kradgui->live_elapsed_time.tv_sec / 3600 % 24, kradgui->live_elapsed_time.tv_sec / 60 % 60, kradgui->live_elapsed_time.tv_sec % 60, kradgui->live_elapsed_time.tv_nsec / 1000000);
+
+	cairo_set_source_rgba (kradgui->cr, 0.0, 0.5, 0.0, 0.1);
+	cairo_rectangle (kradgui->cr, kradgui->width - (kradgui->live_box_margin + kradgui->live_box_width), kradgui->live_box_margin, kradgui->live_box_width, kradgui->live_box_height);
+	cairo_fill (kradgui->cr);
+
+	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size);
+	cairo_set_source_rgb (kradgui->cr, GREEN);
+
+	cairo_move_to (kradgui->cr, kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_padding,  kradgui->live_box_margin + (kradgui->live_box_height - kradgui->live_box_padding));
+	cairo_show_text (kradgui->cr, "LIVE");
+
+	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size / 3);
+	cairo_move_to (kradgui->cr, kradgui->width - ((kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_margin),  kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
+	cairo_show_text (kradgui->cr, kradgui->live_time_timecode_string);
+
+}
+
+void kradgui_go_live(kradgui_t *kradgui) {
+
+	clock_gettime(CLOCK_REALTIME, &kradgui->live_start_time);
+	
+	kradgui->live_box_width = 270;
+	kradgui->live_box_height = 114;
+	kradgui->live_box_margin = 44;
+	kradgui->live_box_padding = (kradgui->live_box_height / 5);
+	kradgui->live_box_font_size = (kradgui->live_box_height / 8) * 6.5;
+	kradgui->live = 1;
+
+}
+
+void kradgui_go_off(kradgui_t *kradgui) {
+
+	kradgui->live = 0;
+
+}
+
+void kradgui_start_recording(kradgui_t *kradgui) {
+
+	clock_gettime(CLOCK_REALTIME, &kradgui->recording_start_time);
+	
+	kradgui->recording_box_width = 654;
+	kradgui->recording_box_height = 114;
+	kradgui->recording_box_margin = 44;
+	kradgui->recording_box_padding = (kradgui->recording_box_height / 5);
+	kradgui->recording_box_font_size = (kradgui->recording_box_height / 8) * 6.5;
+	
+	
+	kradgui->recording = 1;
+
+}
+
+void kradgui_stop_recording(kradgui_t *kradgui) {
+
+	kradgui->recording = 0;
+	
+}
+
+
+
 void kradgui_update_current_track_progress(kradgui_t *kradgui) {
 	
 	//printf("%zums / %zums\n", kradgui->current_track_time_ms, kradgui->total_track_time_ms);
@@ -605,16 +801,16 @@ void kradgui_set_total_track_time_ms(kradgui_t *kradgui, unsigned int total_trac
 
 void kradgui_render(kradgui_t *kradgui) {
 
-	// background color
-	//cairo_set_source_rgb (kradgui->cr, BGCOLOR);
-	//cairo_paint (kradgui->cr);
-
-	// background color
-	cairo_save (kradgui->cr);
-	cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
-	cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
-	cairo_paint (kradgui->cr);
-	cairo_restore (kradgui->cr);
+	if (kradgui->overlay) {
+		cairo_save (kradgui->cr);
+		cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
+		cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
+		cairo_paint (kradgui->cr);
+		cairo_restore (kradgui->cr);
+	} else {
+		cairo_set_source_rgb (kradgui->cr, BGCOLOR);
+		cairo_paint (kradgui->cr);
+	}
 
 	if (kradgui->reel_to_reel != NULL) {
 		kradgui_update_reel_to_reel_information(kradgui->reel_to_reel);
@@ -628,6 +824,30 @@ void kradgui_render(kradgui_t *kradgui) {
 	if (kradgui->render_timecode) {
 		kradgui_render_timecode(kradgui);
 		kradgui_render_elapsed_timecode(kradgui);
+	}
+	
+	if (kradgui->render_test_text) {
+		kradgui_update_elapsed_time(kradgui);
+	}
+	
+	if (kradgui->live) {
+		kradgui_render_live(kradgui);
+	}
+	
+	if (kradgui->recording) {
+		kradgui_render_recording(kradgui);
+	}
+	
+	if (kradgui->render_rgb) {
+		kradgui_render_rgb(kradgui);
+	}
+	
+	if (kradgui->render_rotator) {
+		kradgui_render_rotator(kradgui);
+	}
+	
+	if (kradgui->render_test_text) {
+		kradgui_render_test_text(kradgui);
 	}
 	
 	kradgui->frame++;

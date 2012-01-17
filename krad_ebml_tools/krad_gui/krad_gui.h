@@ -55,13 +55,15 @@ typedef struct kradgui_St kradgui_t;
 typedef struct kradgui_reel_to_reel_St kradgui_reel_to_reel_t;
 typedef struct kradgui_playback_state_status_St kradgui_playback_state_status_t;
 
+//typedef struct kradgui_recording_status_St kradgui_recording_status_t;
+
 struct kradgui_St {
 
 	cairo_t *cr;
 	int width;
 	int height;
 	int size;
-	int frame;
+	unsigned long long frame;
 
 	char current_track_time_timecode_string[512];
 	char total_track_time_timecode_string[512];
@@ -69,8 +71,9 @@ struct kradgui_St {
 	char playback_state_status_string[512];
 	char debugline[512];
     
-	struct timespec start_time;
 	struct timespec current_time;
+    
+	struct timespec start_time;
 	struct timespec elapsed_time;
 	
 	struct timespec total_track_time;
@@ -93,10 +96,45 @@ struct kradgui_St {
 	void (*control_speed_up_callback)(void *);
 	void *callback_pointer;
 	
+	int overlay;
 	
 	int render_timecode;
 	
+	//kradgui_recording_status_t *recording_status;
 	
+	int render_rgb;
+	
+	int recording;
+	struct timespec recording_start_time;
+	struct timespec recording_elapsed_time;
+	char recording_time_timecode_string[512];
+	
+	int recording_box_width;
+	int recording_box_height;
+	int recording_box_margin;
+	int recording_box_padding;
+	int recording_box_font_size;
+	
+	int live;
+	struct timespec live_start_time;
+	struct timespec live_elapsed_time;
+	char live_time_timecode_string[512];
+	
+	int live_box_width;
+	int live_box_height;
+	int live_box_margin;
+	int live_box_padding;
+	int live_box_font_size;
+	
+	int render_test_text;
+	char test_text[512];
+	char test_text_time[512];
+	char test_start_time[512];
+	char test_info_text[512];
+	
+	int render_rotator;
+	int rotator_angle;
+	int rotator_speed;
 	
 };
 
@@ -121,6 +159,8 @@ struct kradgui_playback_state_status_St {
 
 };
 
+
+
 void kradgui_control_speed(kradgui_t *kradgui, float value);
 void kradgui_set_control_speed_callback(kradgui_t *kradgui, void control_speed_callback(void *, float));
 void kradgui_set_control_speed_down_callback(kradgui_t *kradgui, void control_speed_down_callback(void *));
@@ -134,6 +174,19 @@ void kradgui_set_size(kradgui_t *kradgui, int width, int height);
 void kradgui_set_background_color(kradgui_t *kradgui, float r, float g, float b, float a);
 void kradgui_add_item(kradgui_t *kradgui, kradgui_item_t item);
 void kradgui_remove_item(kradgui_t *kradgui, kradgui_item_t item);
+
+void kradgui_test_screen(kradgui_t *kradgui, char *info);
+void kradgui_render_rgb(kradgui_t *kradgui);
+void kradgui_render_live(kradgui_t *kradgui);
+void kradgui_render_recording(kradgui_t *kradgui);
+void kradgui_render_rotator(kradgui_t *kradgui);
+void kradgui_test_text(kradgui_t *kradgui);
+
+void kradgui_start_recording(kradgui_t *kradgui);
+void kradgui_stop_recording(kradgui_t *kradgui);
+
+void kradgui_go_live(kradgui_t *kradgui);
+void kradgui_go_off(kradgui_t *kradgui);
 
 kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui);
 void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel);
