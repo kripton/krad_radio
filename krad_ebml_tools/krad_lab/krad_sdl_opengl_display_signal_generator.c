@@ -11,7 +11,7 @@
 #include "SDL.h"
 
 #define APPVERSION "Krad Signal Generator"
-#define TEST_COUNT 200
+#define TEST_COUNT 1200
 
 void rgb_to_yv12(struct SwsContext *sws_context, unsigned char *pRGBData, int src_w, int src_h, unsigned char *dst[4], int dst_stride_arr[4]) {
 
@@ -68,11 +68,11 @@ int main (int argc, char *argv[]) {
 	void *vpx_packet;
 	
 	test_info = "This is a test of the krad signal generator";
-	filename = "/home/oneman/Videos/krad_signal1.webm";
+	filename = "/home/oneman/Videos/krad_signal3.webm";
 	
 	width = 1280;
 	height = 720;
-	fps = 60;
+	fps = 30;
 
 	channels = 1;
 	sample_rate = 44100;
@@ -121,7 +121,10 @@ int main (int argc, char *argv[]) {
 
 	kradebml_write(krad_ebml);
 
-	kradgui_test_screen(kradgui, test_info);
+//	kradgui_test_screen(kradgui, test_info);
+
+	kradgui->render_tearbar = 1;
+
 
 		krad_tone_run(krad_tone, sample_buffer, 4096);
 		bytes = krad_flac_encode(krad_flac, sample_buffer, 4096, audio_buffer);
@@ -162,6 +165,8 @@ int main (int argc, char *argv[]) {
 
 
 		//}
+		
+		usleep( (1000 / fps) * 1000);
 
 		count++;
 

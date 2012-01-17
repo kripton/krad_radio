@@ -475,6 +475,53 @@ void kradgui_render_rgb(kradgui_t *kradgui) {
 }
 
 
+void kradgui_render_tearbar(kradgui_t *kradgui) {
+
+	int tearbar_width;
+	int movement_range;
+	int tearbar_position;
+	
+	if (kradgui->tearbar_speed == 0.0) {
+		
+		kradgui->tearbar_speed = 0.01;
+		kradgui->tearbar_speed_adj = 0.01;
+		
+	}
+	
+	
+	tearbar_width = kradgui->width / 15;
+	movement_range = kradgui->width - tearbar_width;
+
+	tearbar_position = 0 + (movement_range / 2) + round(movement_range * sin(kradgui->tearbar_positioner) / 2);
+
+	//printf("position is: %d positioner is %f\n", kradbar->bars[i].position, kradbar->bars[i].positioner);
+
+	kradgui->tearbar_positioner += kradgui->tearbar_speed;
+
+	if (kradgui->tearbar_positioner > 2 * M_PI) {
+		kradgui->tearbar_positioner = 0.0f;
+		
+		if (kradgui->tearbar_speed < 0.2) {
+			kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
+		} else {
+			kradgui->tearbar_speed_adj = -0.01;
+			kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
+		}
+	
+		if (kradgui->tearbar_speed <= 0.0) {
+			kradgui->tearbar_speed_adj = 0.01;
+			kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
+		}
+		
+	}
+	
+	cairo_set_source_rgb (kradgui->cr, 1.0, 1.0, 1.0);
+	cairo_rectangle (kradgui->cr, tearbar_position, 0, tearbar_width, kradgui->height);
+	cairo_fill (kradgui->cr);
+
+}
+
+
 void kradgui_test_screen(kradgui_t *kradgui, char *info) {
 
 	time_t t;
@@ -848,6 +895,10 @@ void kradgui_render(kradgui_t *kradgui) {
 	
 	if (kradgui->render_test_text) {
 		kradgui_render_test_text(kradgui);
+	}
+	
+	if (kradgui->render_tearbar) {
+		kradgui_render_tearbar(kradgui);
 	}
 	
 	kradgui->frame++;

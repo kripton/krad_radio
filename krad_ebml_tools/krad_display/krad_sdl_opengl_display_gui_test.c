@@ -3,7 +3,7 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 1000
+#define TEST_COUNT 8888
 
 
 int main (int argc, char *argv[]) {
@@ -23,6 +23,9 @@ int main (int argc, char *argv[]) {
 	width = 1280;
 	height = 720;
 
+	width = 1920;
+	height = 1080;
+
 	count = 0;
 	
 	cairo_surface_t *cst;
@@ -40,8 +43,10 @@ int main (int argc, char *argv[]) {
 
 	test_info = "This is a test of the krad opengl display system";
 
-	kradgui_test_screen(kradgui, test_info);
+	//kradgui_test_screen(kradgui, test_info);
 
+	kradgui->render_tearbar = 1;
+	
 	while (count < TEST_COUNT) {
 
 		cr = cairo_create(cst);
