@@ -361,7 +361,11 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height,
 
 	krad_sdl_opengl_display->video_flags = 0;
 
-	//krad_sdl_opengl_display->video_flags |= SDL_FULLSCREEN;
+
+	if ((krad_sdl_opengl_display->width == 1920) && (krad_sdl_opengl_display->height == 1080)) {
+		krad_sdl_opengl_display->video_flags |= SDL_FULLSCREEN;
+	}
+
 	krad_sdl_opengl_display->video_flags |= SDL_HWSURFACE;
 	krad_sdl_opengl_display->video_flags |= SDL_OPENGL;
 	krad_sdl_opengl_display->video_flags |= SDL_GL_DOUBLEBUFFER;

@@ -26,3 +26,4 @@ krad_dirac_test
 krad_dirac_display_test
 krad_gui_gtk_test
 krad_sdl_opengl_display_gui_test
+krad_sdl_opengl_display_signal_generator

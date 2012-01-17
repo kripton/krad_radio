@@ -22,6 +22,7 @@ int main (int argc, char *argv[]) {
 	
 	width = 1280;
 	height = 720;
+
 	count = 0;
 	
 	cairo_surface_t *cst;
