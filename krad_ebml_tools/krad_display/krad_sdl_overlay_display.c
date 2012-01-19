@@ -1,6 +1,32 @@
 #include <krad_sdl_overlay_display.h>
 
 
+
+void krad_overlay_display_render_rgb(krad_overlay_display_t *krad_overlay_display, unsigned char *pRGBData, int src_w, int src_h) {
+
+	int rgb_stride_arr[3] = {4*src_w, 0, 0};
+	const uint8_t *rgb_arr[4];
+
+	unsigned char *dst[4];
+	int dst_stride_arr[4];
+	
+	rgb_arr[0] = pRGBData;
+
+
+	dst_stride_arr[0] = krad_overlay_display->overlay->pitches[0];
+	dst_stride_arr[1] = krad_overlay_display->overlay->pitches[1];
+	dst_stride_arr[2] = krad_overlay_display->overlay->pitches[2];
+
+
+    SDL_LockYUVOverlay(krad_overlay_display->overlay);
+    
+    sws_scale(krad_overlay_display->sws_context, rgb_arr, rgb_stride_arr, 0, src_h, krad_overlay_display->overlay->pixels, dst_stride_arr);
+    
+	SDL_UnlockYUVOverlay(krad_overlay_display->overlay);
+	SDL_DisplayYUVOverlay(krad_overlay_display->overlay, &krad_overlay_display->rect);
+    
+}
+
 void krad_overlay_display_render(krad_overlay_display_t *krad_overlay_display, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs) {
 
     SDL_LockYUVOverlay(krad_overlay_display->overlay);
@@ -71,6 +97,9 @@ krad_overlay_display_t *krad_overlay_display_create(int displaywidth, int displa
 	krad_overlay_display->width = width;
 	krad_overlay_display->height = height;
 
+	krad_overlay_display->displaywidth = displaywidth;
+	krad_overlay_display->displayheight = displayheight;
+
 	krad_overlay_display->rect.x = 0;
 	krad_overlay_display->rect.y = 0;
 	krad_overlay_display->rect.w = displaywidth;
@@ -119,7 +148,9 @@ krad_overlay_display_t *krad_overlay_display_create(int displaywidth, int displa
     }
     
 	printf("Krad Display created\n");
-    
+
+	krad_overlay_display->sws_context = sws_getContext ( krad_overlay_display->width, krad_overlay_display->height, PIX_FMT_RGB32, krad_overlay_display->displaywidth, krad_overlay_display->displayheight, PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);    
+    	printf("Krad Display cre2ated\n");
 	krad_overlay_display->screen = SDL_SetVideoMode(krad_overlay_display->displaywidth, krad_overlay_display->displayheight, 32, krad_overlay_display->video_flags);
     
     return krad_overlay_display;
@@ -130,6 +161,8 @@ krad_overlay_display_t *krad_overlay_display_create(int displaywidth, int displa
 void krad_overlay_display_destroy(krad_overlay_display_t *krad_overlay_display) {
 
 	printf("Krad Display Destroy\n");
+
+	sws_freeContext (krad_overlay_display->sws_context);	
 
     SDL_FreeYUVOverlay(krad_overlay_display->overlay);
 

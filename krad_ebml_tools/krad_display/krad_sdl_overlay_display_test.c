@@ -10,8 +10,8 @@ int main (int argc, char *argv[]) {
 	
 	int width, height;
 	
-	width = 800;
-	height = 600;
+	width = 1920;
+	height = 1080;
 	
 	krad_overlay_display = krad_overlay_display_create(width, height, width, height);
 

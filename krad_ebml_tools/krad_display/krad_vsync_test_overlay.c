@@ -1,15 +1,15 @@
-#include <krad_sdl_opengl_display.h>
+#include <krad_sdl_overlay_display.h>
 #include <krad_gui.h>
 
 #include "SDL.h"
 
-#define TEST_COUNT 2666
+#define TEST_COUNT 333
 
 
 int main (int argc, char *argv[]) {
 
-
-	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
+	krad_overlay_display_t *krad_overlay_display;
+	//krad_sdl_opengl_display_t *krad_sdl_opengl_display;
 	kradgui_t *kradgui;
 	
 	int width, height;
@@ -34,11 +34,14 @@ int main (int argc, char *argv[]) {
 	gui_data = calloc (1, gui_byte_size);
 	
 	cst = cairo_image_surface_create_for_data (gui_data, CAIRO_FORMAT_ARGB32, width, height, stride);
-	
-	krad_sdl_opengl_display = krad_sdl_opengl_display_create(width, height, width, height);
+
+	krad_overlay_display = krad_overlay_display_create(width, height, width, height);
+//	krad_sdl_opengl_display = krad_sdl_opengl_display_create(width, height, width, height);
 
 	kradgui = kradgui_create(width, height);
 
+//	kradgui->render_tearbar = 1;
+	
 	kradgui->render_wheel = 1;
 	
 	while (count < TEST_COUNT) {
@@ -47,16 +50,22 @@ int main (int argc, char *argv[]) {
 		kradgui->cr = cr;
 		kradgui_render(kradgui);
 		cairo_destroy(cr);
+
+
+		krad_overlay_display_render_rgb(krad_overlay_display, gui_data, width, height);
 	
-		memcpy(krad_sdl_opengl_display->rgb_frame_data, gui_data, gui_byte_size);
+		//memcpy(krad_sdl_opengl_display->rgb_frame_data, gui_data, gui_byte_size);
 	
-		krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
+		//krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
+
+		//krad_overlay_display_test(krad_overlay_display);
 
 		count++;
 
 	}
 
-	krad_sdl_opengl_display_destroy(krad_sdl_opengl_display);
+	krad_overlay_display_destroy(krad_overlay_display);
+//	krad_sdl_opengl_display_destroy(krad_sdl_opengl_display);
 	kradgui_destroy(kradgui);
 	
 	cairo_surface_destroy(cst);

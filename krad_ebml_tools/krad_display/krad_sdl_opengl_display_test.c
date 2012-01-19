@@ -13,7 +13,7 @@ int main (int argc, char *argv[]) {
 	width = 1920;
 	height = 1080;
 	
-	krad_sdl_opengl_display = krad_sdl_opengl_display_create(width, height);
+	krad_sdl_opengl_display = krad_sdl_opengl_display_create(width, height, width, height);
 
 
 	usleep(5000000);
