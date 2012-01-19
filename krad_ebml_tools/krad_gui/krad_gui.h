@@ -141,8 +141,11 @@ struct kradgui_St {
 	float tearbar_speed;
 	float tearbar_positioner;
 	int tearbar_position;
-
 	float tearbar_speed_adj;
+	int tearbar_width;
+	int movement_range;
+	int last_tearbar_position;
+	int new_speed;
 	
 };
 

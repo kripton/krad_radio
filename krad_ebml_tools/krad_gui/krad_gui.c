@@ -477,46 +477,42 @@ void kradgui_render_rgb(kradgui_t *kradgui) {
 
 void kradgui_render_tearbar(kradgui_t *kradgui) {
 
-	int tearbar_width;
-	int movement_range;
-	int tearbar_position;
-	
-	if (kradgui->tearbar_speed == 0.0) {
-		
-		kradgui->tearbar_speed = 0.01;
+	if (kradgui->tearbar_speed == 0.0) {		
+		kradgui->tearbar_speed = 0.1;
 		kradgui->tearbar_speed_adj = 0.01;
-		
+		kradgui->tearbar_width = kradgui->width / 15;
+		kradgui->movement_range = kradgui->width - kradgui->tearbar_width;
 	}
-	
-	
-	tearbar_width = kradgui->width / 15;
-	movement_range = kradgui->width - tearbar_width;
 
-	tearbar_position = 0 + (movement_range / 2) + round(movement_range * sin(kradgui->tearbar_positioner) / 2);
+	kradgui->tearbar_position = 0 + (kradgui->movement_range / 2) + round(kradgui->movement_range * sin(kradgui->tearbar_positioner) / 2);
 
-	//printf("position is: %d positioner is %f\n", kradbar->bars[i].position, kradbar->bars[i].positioner);
+	//printf("speed is %f adj is %f position is: %d positioner is %f\n", kradgui->tearbar_speed, kradgui->tearbar_speed_adj, kradgui->tearbar_position, kradgui->tearbar_positioner);
 
 	kradgui->tearbar_positioner += kradgui->tearbar_speed;
 
-	if (kradgui->tearbar_positioner > 2 * M_PI) {
-		kradgui->tearbar_positioner = 0.0f;
-		
-		if (kradgui->tearbar_speed < 0.2) {
-			kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
-		} else {
-			kradgui->tearbar_speed_adj = -0.01;
-			kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
-		}
-	
-		if (kradgui->tearbar_speed <= 0.0) {
-			kradgui->tearbar_speed_adj = 0.01;
-			kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
-		}
-		
+	if (kradgui->tearbar_positioner >= 2 * M_PI) {
+		kradgui->tearbar_positioner -= 2 * M_PI;
+		kradgui->new_speed = 1;
 	}
 	
+	if ((kradgui->new_speed) && (kradgui->tearbar_position < kradgui->last_tearbar_position)) {
+
+		if (kradgui->tearbar_speed > 0.17) {
+			kradgui->tearbar_speed_adj = -0.01;
+		}
+	
+		if (kradgui->tearbar_speed <= 0.02) {
+			kradgui->tearbar_speed_adj = 0.01;
+		}
+		
+		kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
+		kradgui->new_speed = 0;
+	}
+	
+	kradgui->last_tearbar_position = kradgui->tearbar_position;
+	
 	cairo_set_source_rgb (kradgui->cr, 1.0, 1.0, 1.0);
-	cairo_rectangle (kradgui->cr, tearbar_position, 0, tearbar_width, kradgui->height);
+	cairo_rectangle (kradgui->cr, kradgui->tearbar_position, 0, kradgui->tearbar_width, kradgui->height);
 	cairo_fill (kradgui->cr);
 
 }

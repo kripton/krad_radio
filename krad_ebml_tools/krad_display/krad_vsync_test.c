@@ -3,7 +3,7 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 8888
+#define TEST_COUNT 10000
 
 
 int main (int argc, char *argv[]) {
@@ -17,8 +17,6 @@ int main (int argc, char *argv[]) {
 	int stride;
 	int gui_byte_size;
 	unsigned char *gui_data;
-	
-	char *test_info;
 	
 	width = 1280;
 	height = 720;
@@ -41,9 +39,7 @@ int main (int argc, char *argv[]) {
 
 	kradgui = kradgui_create(width, height);
 
-	test_info = "This is a test of the krad opengl display system";
-
-	kradgui_test_screen(kradgui, test_info);
+	kradgui->render_tearbar = 1;
 	
 	while (count < TEST_COUNT) {
 
@@ -53,8 +49,6 @@ int main (int argc, char *argv[]) {
 		cairo_destroy(cr);
 	
 		memcpy(krad_sdl_opengl_display->rgb_frame_data, gui_data, gui_byte_size);
-	
-		//usleep(20000);
 	
 		krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
 

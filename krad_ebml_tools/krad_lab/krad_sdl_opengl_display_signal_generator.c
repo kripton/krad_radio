@@ -11,7 +11,7 @@
 #include "SDL.h"
 
 #define APPVERSION "Krad Signal Generator"
-#define TEST_COUNT 1200
+#define TEST_COUNT 7200
 
 void rgb_to_yv12(struct SwsContext *sws_context, unsigned char *pRGBData, int src_w, int src_h, unsigned char *dst[4], int dst_stride_arr[4]) {
 
@@ -72,7 +72,7 @@ int main (int argc, char *argv[]) {
 	
 	width = 1280;
 	height = 720;
-	fps = 30;
+	fps = 60;
 
 	channels = 1;
 	sample_rate = 44100;
