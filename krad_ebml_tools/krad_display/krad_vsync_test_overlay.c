@@ -3,7 +3,7 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 333
+#define TEST_COUNT 500
 
 
 int main (int argc, char *argv[]) {
@@ -40,9 +40,12 @@ int main (int argc, char *argv[]) {
 
 	kradgui = kradgui_create(width, height);
 
-//	kradgui->render_tearbar = 1;
+	kradgui->render_tearbar = 1;
 	
-	kradgui->render_wheel = 1;
+//	kradgui->render_wheel = 1;
+	
+
+//	kradgui_test_screen(kradgui, "Overlay Test");
 	
 	while (count < TEST_COUNT) {
 

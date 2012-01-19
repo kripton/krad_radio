@@ -3,7 +3,7 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 10000
+#define TEST_COUNT 500
 
 
 int main (int argc, char *argv[]) {

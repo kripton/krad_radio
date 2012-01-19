@@ -17,10 +17,13 @@ void krad_overlay_display_render_rgb(krad_overlay_display_t *krad_overlay_displa
 	dst_stride_arr[1] = krad_overlay_display->overlay->pitches[1];
 	dst_stride_arr[2] = krad_overlay_display->overlay->pitches[2];
 
-
+	dst[0] = krad_overlay_display->overlay->pixels[0];
+	dst[1] = krad_overlay_display->overlay->pixels[2];
+	dst[2] = krad_overlay_display->overlay->pixels[1];
+	
     SDL_LockYUVOverlay(krad_overlay_display->overlay);
     
-    sws_scale(krad_overlay_display->sws_context, rgb_arr, rgb_stride_arr, 0, src_h, krad_overlay_display->overlay->pixels, dst_stride_arr);
+    sws_scale(krad_overlay_display->sws_context, rgb_arr, rgb_stride_arr, 0, src_h, dst, dst_stride_arr);
     
 	SDL_UnlockYUVOverlay(krad_overlay_display->overlay);
 	SDL_DisplayYUVOverlay(krad_overlay_display->overlay, &krad_overlay_display->rect);
@@ -105,8 +108,14 @@ krad_overlay_display_t *krad_overlay_display_create(int displaywidth, int displa
 	krad_overlay_display->rect.w = displaywidth;
 	krad_overlay_display->rect.h = displayheight;
     
-    krad_overlay_display->overlay_format = SDL_YV12_OVERLAY;
-
+    krad_overlay_display->colormode = 422;
+    
+    if (krad_overlay_display->colormode == 420) {
+    	krad_overlay_display->overlay_format = SDL_YV12_OVERLAY;
+    } else {
+		krad_overlay_display->overlay_format = SDL_YUY2_OVERLAY;
+	}
+	
 	krad_overlay_display->video_flags = 0;
 
 	krad_overlay_display->video_flags |= SDL_FULLSCREEN;
@@ -148,9 +157,14 @@ krad_overlay_display_t *krad_overlay_display_create(int displaywidth, int displa
     }
     
 	printf("Krad Display created\n");
+ 
+ 
+    if (krad_overlay_display->colormode == 420) {
+		krad_overlay_display->sws_context = sws_getContext ( krad_overlay_display->width, krad_overlay_display->height, PIX_FMT_RGB32, krad_overlay_display->displaywidth, krad_overlay_display->displayheight, PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);    
+	} else {
+		krad_overlay_display->sws_context = sws_getContext ( krad_overlay_display->width, krad_overlay_display->height, PIX_FMT_RGB32, krad_overlay_display->displaywidth, krad_overlay_display->displayheight, PIX_FMT_YUYV422, SWS_BILINEAR, NULL, NULL, NULL);	
+	}
 
-	krad_overlay_display->sws_context = sws_getContext ( krad_overlay_display->width, krad_overlay_display->height, PIX_FMT_RGB32, krad_overlay_display->displaywidth, krad_overlay_display->displayheight, PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);    
-    	printf("Krad Display cre2ated\n");
 	krad_overlay_display->screen = SDL_SetVideoMode(krad_overlay_display->displaywidth, krad_overlay_display->displayheight, 32, krad_overlay_display->video_flags);
     
     return krad_overlay_display;

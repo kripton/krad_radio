@@ -24,6 +24,8 @@ struct krad_overlay_display_St {
 
 	SDL_Rect rect;
 
+	int colormode;
+
 	struct SwsContext *sws_context;
 
 };
