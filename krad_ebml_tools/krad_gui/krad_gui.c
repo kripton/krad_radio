@@ -261,6 +261,63 @@ void kradgui_update_reel_to_reel_information(kradgui_reel_to_reel_t *kradgui_ree
 	
 }
 
+void kradgui_render_wheel (kradgui_t *kradgui) {
+
+	int diameter;
+	int inner_diameter;
+
+	int s;
+	int num_spokes;
+	int spoke_distance;
+	
+	num_spokes = 10;
+	spoke_distance = 360 / num_spokes;
+	
+
+	diameter = (kradgui->height/4 * 3.5) / 2;
+	inner_diameter = diameter/8;
+
+	cairo_t *cr;
+	cr = kradgui->cr;
+
+	cairo_save(cr);
+
+	// wheel
+	cairo_set_line_width(cr, 5);
+	cairo_set_source_rgb(cr, WHITE);
+	//cairo_save(cr);
+	cairo_translate (cr, kradgui->width/2, kradgui->height/2);
+	//cairo_save(cr);
+	//cairo_arc (cr, 0.0, 0.0, 3.0, 0, 2*M_PI);
+	//cairo_stroke(cr);
+	//cairo_arc (cr, 0.0, 0.0, 10.0, 0, 2*M_PI);
+	//cairo_stroke(cr);
+	cairo_arc (cr, 0.0, 0.0, inner_diameter, 0, 2*M_PI);
+	cairo_stroke(cr);
+	cairo_arc(cr, 0.0, 0.0, diameter, 0, 2 * M_PI);
+	cairo_stroke(cr);
+
+	// spokes
+	cairo_set_source_rgb(cr, WHITE);
+	cairo_set_line_width(cr, 35);
+	
+	cairo_rotate (cr, (kradgui->wheel_angle % 360) * (M_PI/180.0));
+	
+	for (s = 0; s < num_spokes; s++) {
+		cairo_rotate (cr, spoke_distance * (M_PI/180.0));
+		cairo_move_to(cr, inner_diameter,  0.0);
+		cairo_line_to (cr, diameter, 0.0);
+		cairo_move_to(cr, 0.0, 0.0);
+		cairo_stroke(cr);
+	}
+
+	kradgui->wheel_angle += 1;
+
+	cairo_restore(cr);
+
+}
+
+
 void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, int y) {
 
 
@@ -895,6 +952,10 @@ void kradgui_render(kradgui_t *kradgui) {
 	
 	if (kradgui->render_tearbar) {
 		kradgui_render_tearbar(kradgui);
+	}
+	
+	if (kradgui->render_wheel) {
+		kradgui_render_wheel(kradgui);
 	}
 	
 	kradgui->frame++;

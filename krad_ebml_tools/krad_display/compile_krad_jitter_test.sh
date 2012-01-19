@@ -1,0 +1,1 @@
+gcc -O3 -Wall krad_jitter_test.c krad_sdl_opengl_display.c -I. -I../krad_gui/ ../krad_gui/krad_gui.c  /usr/lib/libswscale.a /usr/lib/libavutil.a -o krad_jitter_test `sdl-config --cflags --libs` `pkg-config --cflags --libs gtk+-2.0` -lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -lSDL -lavutil -lswscale

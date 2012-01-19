@@ -147,6 +147,8 @@ struct kradgui_St {
 	int last_tearbar_position;
 	int new_speed;
 	
+	int render_wheel;
+	int wheel_angle;
 };
 
 struct kradgui_reel_to_reel_St {
@@ -200,6 +202,7 @@ void kradgui_go_live(kradgui_t *kradgui);
 void kradgui_go_off(kradgui_t *kradgui);
 
 void kradgui_render_tearbar(kradgui_t *kradgui);
+void kradgui_render_wheel(kradgui_t *kradgui);
 
 kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui);
 void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel);

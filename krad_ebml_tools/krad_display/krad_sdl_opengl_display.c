@@ -395,7 +395,7 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height,
 	krad_sdl_opengl_display->rgb_frame_data = calloc (1, krad_sdl_opengl_display->frame_byte_size);
 
 
-
+    krad_sdl_opengl_display->screen = SDL_SetVideoMode(krad_sdl_opengl_display->width, krad_sdl_opengl_display->height, 32, krad_sdl_opengl_display->video_flags);
     
     
     return krad_sdl_opengl_display;
