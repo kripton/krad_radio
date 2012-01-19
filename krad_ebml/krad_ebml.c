@@ -1315,6 +1315,7 @@ enum ebml_type_enum {
 /* Track Types */
 #define TRACK_TYPE_VIDEO        1
 #define TRACK_TYPE_AUDIO        2
+#define TRACK_TYPE_SUBTITLE		3
 
 /* Track IDs */
 #define TRACK_ID_VP8            "V_VP8"
@@ -2205,7 +2206,7 @@ ne_read_simple(nestegg * ctx, struct ebml_element_desc * desc, size_t length)
            desc->id, desc->name, storage, desc->offset);
 
   if (desc->id == ID_DURATION) {
-	  	printf("ahah duration is found!!!!!!!!!!!!!!!! L: %zu \n", length);
+	  	//printf("ahah duration is found!!!!!!!!!!!!!!!! L: %zu \n", length);
 		//exit(1);
   }
 
@@ -2778,7 +2779,7 @@ kradebml_t *kradebml_create() {
 void kradebml_destroy(kradebml_t *kradebml) {
 
 
-	printf("kradebml destroy\n");
+	//printf("kradebml destroy\n");
 
 	kradebml_close_output(kradebml);
 
@@ -2806,7 +2807,7 @@ void kradebml_destroy(kradebml_t *kradebml) {
 	free(kradebml->ebml);
 	free(kradebml);
 
-printf("kradebml destroyed\n");
+	//printf("kradebml destroyed\n");
 
 }
 
@@ -2954,6 +2955,9 @@ nestegg_track_type(nestegg * ctx, unsigned int track)
   if (ne_get_uint(entry->type, &type) != 0)
     return -1;
 
+  if (type & 0x10)
+    return NESTEGG_TRACK_SUBTITLE;
+
   if (type & TRACK_TYPE_VIDEO)
     return NESTEGG_TRACK_VIDEO;
 
@@ -2993,6 +2997,38 @@ nestegg_track_codec_id(nestegg * ctx, unsigned int track)
 
 
   return -1;
+}
+
+char *krad_ebml_track_codec_string(kradebml_t *kradebml, unsigned int track) {
+
+	char * codec_id;
+	struct track_entry * entry;
+
+	entry = ne_find_track_entry(kradebml->ctx, track);
+	if (!entry)
+	return "Err";
+
+	if (ne_get_string(entry->codec_id, &codec_id) != 0)
+	return "Unset";
+
+	if (strcmp(codec_id, TRACK_ID_VP8) == 0)
+	return "VP8";
+
+	if (strcmp(codec_id, TRACK_ID_VORBIS) == 0)
+	return "Vorbis";
+
+	if (strcmp(codec_id, TRACK_ID_OPUS) == 0)
+	return "Opus";
+
+	if (strcmp(codec_id, TRACK_ID_FLAC) == 0)
+	return "FLAC";
+
+	if (strcmp(codec_id, TRACK_ID_DIRAC) == 0)
+	return "Dirac";    
+
+
+	return codec_id + 2;
+
 }
 
 int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track) {
@@ -3501,6 +3537,69 @@ void kradebml_debug(kradebml_t *kradebml) {
 
 
 	}
+
+}
+
+char *kradebml_input_info(kradebml_t *kradebml) {
+
+	char *i;
+	int *p;
+	
+	int t;
+	
+	char *codec;
+	int codec_type;
+	char *doctype;
+	
+	kradebml->input_info_pos = 0;
+
+	i = kradebml->input_info;
+	p = &kradebml->input_info_pos;
+
+	*p += sprintf(i + *p, "Krad EBML File Info\n\n");
+	
+	*p += sprintf(i + *p, "Filename: \t%s\n", kradebml->filename);
+
+	nestegg_track_count(kradebml->ctx, &kradebml->tracks);
+	nestegg_duration(kradebml->ctx, &kradebml->duration);
+
+	ne_get_string(kradebml->ctx->ebml.doctype, &doctype);
+
+	*p += sprintf(i + *p, "Type:   \t%s\n", doctype);
+	*p += sprintf(i + *p, "Duration: \t%.3fs\n", kradebml->duration / 1e9);
+	*p += sprintf(i + *p, "Tracks: \t%u\n", kradebml->tracks);
+
+	for (t = 0; t < kradebml->tracks; t++) {
+
+		codec_type = nestegg_track_type(kradebml->ctx, t);
+
+		codec = krad_ebml_track_codec_string(kradebml, t);		
+
+		switch (codec_type) {
+		
+			case NESTEGG_TRACK_VIDEO:			
+				nestegg_track_video_params(kradebml->ctx, t, &kradebml->vparams);
+				*p += sprintf(i + *p, "Track %d Video: \t%d x %d %s\n", t + 1, kradebml->vparams.width, kradebml->vparams.height, codec);
+    			break;
+    			
+	    	case NESTEGG_TRACK_AUDIO:	
+				nestegg_track_audio_params(kradebml->ctx, t, &kradebml->aparams);
+				*p += sprintf(i + *p, "Track %d Audio: \t%.0fhz %u bit %u channels %s\n", t + 1, kradebml->aparams.rate, kradebml->aparams.depth, kradebml->aparams.channels, codec);
+				break;
+
+	    	case NESTEGG_TRACK_SUBTITLE:	
+				*p += sprintf(i + *p, "Track %d Subs: \t%s\n", t + 1, codec);
+				break;
+
+			default:
+				*p += sprintf(i + *p, "Track %d Unknown: \t%s\n", t + 1, codec);
+				break;
+		}
+	}
+
+	*p += sprintf(i + *p, "\n");
+	
+	return kradebml->input_info;
 
 }
 

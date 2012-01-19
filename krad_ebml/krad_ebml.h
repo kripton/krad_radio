@@ -233,6 +233,7 @@ extern "C" {
 
 #define NESTEGG_TRACK_VIDEO 0 /**< Track is of type video. */
 #define NESTEGG_TRACK_AUDIO 1 /**< Track is of type audio. */
+#define NESTEGG_TRACK_SUBTITLE 2 /**< Track is of type subtitle. */
 
 #define NESTEGG_CODEC_VP8    0 /**< Track uses Google On2 VP8 codec. */
 #define NESTEGG_CODEC_VORBIS 1 /**< Track uses Xiph Vorbis codec. */
@@ -609,8 +610,14 @@ struct kradebml_St {
 	
 	int next_tracknumber;
 	int total_tracks;
+	
+	char input_info[4096];
+	int input_info_pos;
 };
 
+
+char *kradebml_input_info(kradebml_t *kradebml);
+char *krad_ebml_track_codec_string(kradebml_t *kradebml, unsigned int track);
 int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track);
 
 server_t *server_create(char *host, int port, char *mount, char *password);
