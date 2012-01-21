@@ -8,7 +8,7 @@
 
 void feed_test(char *filename, char *header_filename) {
 
-	kradebml_t *kradebml;
+	krad_ebml_t *krad_ebml;
 	int fd, fd_h;
 	uint64_t total_bytes_read;
 	uint64_t total_bytes_wrote;
@@ -37,7 +37,7 @@ void feed_test(char *filename, char *header_filename) {
 	inbuffer = calloc(1, BUFFER_SIZE);
 	outbuffer = calloc(1, READ_BUFFER_SIZE);
 
-	kradebml = kradebml_create_feedbuffer();
+	krad_ebml = krad_ebml_create_feedbuffer();
 
 	fd = open(filename, O_RDONLY);
 
@@ -48,9 +48,9 @@ void feed_test(char *filename, char *header_filename) {
 
 	while ((ret = read(fd, inbuffer, READ_SIZE)) > 0) {
 
-		writebuffer = kradebml_write_buffer(kradebml, ret);
+		writebuffer = krad_ebml_write_buffer(krad_ebml, ret);
 		memcpy(writebuffer, inbuffer, ret);
-		wrote = kradebml_wrote(kradebml, ret);
+		wrote = krad_ebml_wrote(krad_ebml, ret);
 		
 		if (wrote != ret) {
 			printf("\nhrm wtf wrote\n");
@@ -58,7 +58,7 @@ void feed_test(char *filename, char *header_filename) {
 		
 		total_bytes_wrote += wrote;
 		
-		read_space = kradebml_read_space(kradebml);
+		read_space = krad_ebml_read_space(krad_ebml);
 
 		//if (read_space >= READ_SIZE) {
 		//	to_read = READ_SIZE;
@@ -66,7 +66,7 @@ void feed_test(char *filename, char *header_filename) {
 			to_read = read_space;
 		//}
 		
-		read_bytes = kradebml_read(kradebml, outbuffer, to_read);
+		read_bytes = krad_ebml_read(krad_ebml, outbuffer, to_read);
 
 		if (to_read != read_bytes) {
 			printf("\nWanted to read %d bytes but read %d bytes\n", to_read, read_bytes);
@@ -99,7 +99,7 @@ void feed_test(char *filename, char *header_filename) {
 		
 		total_bytes_read += read_bytes;
 
-		if (kradebml_last_was_sync(kradebml)) {
+		if (krad_ebml_last_was_sync(krad_ebml)) {
 			cluster_count++;
 		}
 
@@ -120,7 +120,7 @@ void feed_test(char *filename, char *header_filename) {
 	free(inbuffer);
 	free(outbuffer);
 	close(fd);
-	kradebml_destroy(kradebml);
+	krad_ebml_destroy(krad_ebml);
 
 }
 

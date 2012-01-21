@@ -22,9 +22,9 @@
 
 unsigned char get_next_match_byte(unsigned char match_byte, uint64_t position, uint64_t *matched_byte_num, uint64_t *winner);
 
-typedef struct kradebml_St kradebml_t;
+typedef struct krad_ebml_St krad_ebml_t;
 
-struct kradebml_St {
+struct krad_ebml_St {
 	
 	char cluster_mark[4];
 	int cluster_count;
@@ -56,10 +56,10 @@ struct kradebml_St {
 	
 };
 
-void kradebml_destroy(kradebml_t *kradebml);
-kradebml_t *kradebml_create_feedbuffer();
-size_t kradebml_read_space(kradebml_t *kradebml);
-int kradebml_read(kradebml_t *kradebml, char *buffer, int len);
-int kradebml_last_was_sync(kradebml_t *kradebml);
-char *kradebml_write_buffer(kradebml_t *kradebml, int len);
-int kradebml_wrote(kradebml_t *kradebml, int len);
+void krad_ebml_destroy(krad_ebml_t *krad_ebml);
+krad_ebml_t *krad_ebml_create_feedbuffer();
+size_t krad_ebml_read_space(krad_ebml_t *krad_ebml);
+int krad_ebml_read(krad_ebml_t *krad_ebml, char *buffer, int len);
+int krad_ebml_last_was_sync(krad_ebml_t *krad_ebml);
+char *krad_ebml_write_buffer(krad_ebml_t *krad_ebml, int len);
+int krad_ebml_wrote(krad_ebml_t *krad_ebml, int len);

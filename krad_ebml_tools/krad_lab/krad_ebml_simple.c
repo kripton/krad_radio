@@ -37,42 +37,42 @@ unsigned char get_next_match_byte(unsigned char match_byte, uint64_t position, u
 
 }
 
-void kradebml_destroy(kradebml_t *kradebml) {
+void krad_ebml_destroy(krad_ebml_t *krad_ebml) {
 
-	free(kradebml->buffer);
-	free(kradebml->header);
-	free(kradebml);
+	free(krad_ebml->buffer);
+	free(krad_ebml->header);
+	free(krad_ebml);
 
 }
 
-kradebml_t *kradebml_create_feedbuffer() {
+krad_ebml_t *krad_ebml_create_feedbuffer() {
 
-	kradebml_t *kradebml = calloc(1, sizeof(kradebml_t));
+	krad_ebml_t *krad_ebml = calloc(1, sizeof(krad_ebml_t));
 
-	kradebml->buffer = calloc(1, KRAD_EBML_BUFFER_SIZE);
-	kradebml->header = calloc(1, KRAD_EBML_HEADER_MAX_SIZE);
+	krad_ebml->buffer = calloc(1, KRAD_EBML_BUFFER_SIZE);
+	krad_ebml->header = calloc(1, KRAD_EBML_HEADER_MAX_SIZE);
 
 	
-	kradebml->cluster_mark[0] = KRAD_EBML_CLUSTER_BYTE1;
-	kradebml->cluster_mark[1] = KRAD_EBML_CLUSTER_BYTE2;
-	kradebml->cluster_mark[2] = KRAD_EBML_CLUSTER_BYTE3;
-	kradebml->cluster_mark[3] = KRAD_EBML_CLUSTER_BYTE4;
+	krad_ebml->cluster_mark[0] = KRAD_EBML_CLUSTER_BYTE1;
+	krad_ebml->cluster_mark[1] = KRAD_EBML_CLUSTER_BYTE2;
+	krad_ebml->cluster_mark[2] = KRAD_EBML_CLUSTER_BYTE3;
+	krad_ebml->cluster_mark[3] = KRAD_EBML_CLUSTER_BYTE4;
 
-	return kradebml;
+	return krad_ebml;
 
 }
 
-size_t kradebml_read_space(kradebml_t *kradebml) {
+size_t krad_ebml_read_space(krad_ebml_t *krad_ebml) {
 
 	size_t read_space;
 	
-	if (kradebml->header_read == 1) {
-		read_space = (kradebml->position - kradebml->header_size) - kradebml->read_position;
+	if (krad_ebml->header_read == 1) {
+		read_space = (krad_ebml->position - krad_ebml->header_size) - krad_ebml->read_position;
 	
 		return read_space;
 	} else {
-		if (kradebml->header_size != 0) {
-			return kradebml->header_size - kradebml->header_read_position;
+		if (krad_ebml->header_size != 0) {
+			return krad_ebml->header_size - krad_ebml->header_read_position;
 		} else {
 			return 0;
 		}
@@ -81,7 +81,7 @@ size_t kradebml_read_space(kradebml_t *kradebml) {
 
 }
 
-int kradebml_read(kradebml_t *kradebml, char *buffer, int len) {
+int krad_ebml_read(krad_ebml_t *krad_ebml, char *buffer, int len) {
 
 	size_t read_space;
 	size_t read_space_to_cluster;
@@ -93,8 +93,8 @@ int kradebml_read(kradebml_t *kradebml, char *buffer, int len) {
 		return 0;
 	}
 	
-	if (kradebml->header_read == 1) {
-		read_space = (kradebml->position - kradebml->header_size) - kradebml->read_position;
+	if (krad_ebml->header_read == 1) {
+		read_space = (krad_ebml->position - krad_ebml->header_size) - krad_ebml->read_position;
 	
 		if (read_space < 1) {
 			return 0;
@@ -106,26 +106,26 @@ int kradebml_read(kradebml_t *kradebml, char *buffer, int len) {
 			to_read = read_space;
 		}
 		
-		if (kradebml->cluster_position != 0) {
-			read_space_to_cluster = (kradebml->cluster_position - kradebml->header_size) - kradebml->read_position;
+		if (krad_ebml->cluster_position != 0) {
+			read_space_to_cluster = (krad_ebml->cluster_position - krad_ebml->header_size) - krad_ebml->read_position;
 			if ((read_space_to_cluster != 0) && (read_space_to_cluster < to_read)) {
 				to_read = read_space_to_cluster;
-				kradebml->cluster_position = 0;
-				kradebml->last_was_cluster_end = 1;
+				krad_ebml->cluster_position = 0;
+				krad_ebml->last_was_cluster_end = 1;
 			}
 		}
 	
-		memcpy(buffer, kradebml->buffer, to_read);
-		kradebml->read_position += to_read;
+		memcpy(buffer, krad_ebml->buffer, to_read);
+		krad_ebml->read_position += to_read;
 		
 
-		memmove(kradebml->buffer, kradebml->buffer + to_read, kradebml->buffer_position_internal - to_read);
-		kradebml->buffer_position_internal -= to_read;
+		memmove(krad_ebml->buffer, krad_ebml->buffer + to_read, krad_ebml->buffer_position_internal - to_read);
+		krad_ebml->buffer_position_internal -= to_read;
 		
 	} else {
-		if (kradebml->header_size != 0) {
+		if (krad_ebml->header_size != 0) {
 			
-			read_space = kradebml->header_size - kradebml->header_read_position;
+			read_space = krad_ebml->header_size - krad_ebml->header_read_position;
 	
 			if (read_space >= len ) {
 				to_read = len;
@@ -133,11 +133,11 @@ int kradebml_read(kradebml_t *kradebml, char *buffer, int len) {
 				to_read = read_space;
 			}
 	
-			memcpy(buffer, kradebml->header, to_read);
-			kradebml->header_read_position += to_read;		
+			memcpy(buffer, krad_ebml->header, to_read);
+			krad_ebml->header_read_position += to_read;		
 			
-			if (kradebml->header_read_position == kradebml->header_size) {
-				kradebml->header_read = 1;
+			if (krad_ebml->header_read_position == krad_ebml->header_size) {
+				krad_ebml->header_read = 1;
 			}
 			
 		} else {
@@ -150,15 +150,15 @@ int kradebml_read(kradebml_t *kradebml, char *buffer, int len) {
 
 }
 
-int kradebml_last_was_sync(kradebml_t *kradebml) {
+int krad_ebml_last_was_sync(krad_ebml_t *krad_ebml) {
 
-	if (kradebml->last_was_cluster_end == 1) {
-		kradebml->last_was_cluster_end = 0;
-		kradebml->this_was_cluster_start = 1;
+	if (krad_ebml->last_was_cluster_end == 1) {
+		krad_ebml->last_was_cluster_end = 0;
+		krad_ebml->this_was_cluster_start = 1;
 	}
 	
-	if (kradebml->this_was_cluster_start == 1) {
-		kradebml->this_was_cluster_start = 0;
+	if (krad_ebml->this_was_cluster_start == 1) {
+		krad_ebml->this_was_cluster_start = 0;
 		return 1;
 	}
 
@@ -166,17 +166,17 @@ int kradebml_last_was_sync(kradebml_t *kradebml) {
 
 }
 
-char *kradebml_write_buffer(kradebml_t *kradebml, int len) {
+char *krad_ebml_write_buffer(krad_ebml_t *krad_ebml, int len) {
 
-	kradebml->input_buffer = malloc(len);
+	krad_ebml->input_buffer = malloc(len);
 
-	return (char *)kradebml->input_buffer;
+	return (char *)krad_ebml->input_buffer;
 
 
 }
 
 
-int kradebml_wrote(kradebml_t *kradebml, int len) {
+int krad_ebml_wrote(krad_ebml_t *krad_ebml, int len) {
 
 	//start push
 	
@@ -185,53 +185,53 @@ int kradebml_wrote(kradebml_t *kradebml, int len) {
 	int b;
 
 	for (b = 0; b < len; b++) {
-		if ((kradebml->input_buffer[b] == kradebml->match_byte) || (kradebml->matched_byte_num > 0)) {
-			kradebml->match_byte = get_next_match_byte(kradebml->input_buffer[b], kradebml->position + b, &kradebml->matched_byte_num, &kradebml->found);
-			if (kradebml->found > 0) {
-				if (kradebml->header_size == 0) {
+		if ((krad_ebml->input_buffer[b] == krad_ebml->match_byte) || (krad_ebml->matched_byte_num > 0)) {
+			krad_ebml->match_byte = get_next_match_byte(krad_ebml->input_buffer[b], krad_ebml->position + b, &krad_ebml->matched_byte_num, &krad_ebml->found);
+			if (krad_ebml->found > 0) {
+				if (krad_ebml->header_size == 0) {
 					if (b > 0) {
-						memcpy(kradebml->header + kradebml->header_position, kradebml->input_buffer, b);
-						kradebml->header_position += b;
+						memcpy(krad_ebml->header + krad_ebml->header_position, krad_ebml->input_buffer, b);
+						krad_ebml->header_position += b;
 					}
-					kradebml->header_size = (kradebml->header_position - 4) + 1;
-					printf("\ngot header, size is %d\n", kradebml->header_size);
+					krad_ebml->header_size = (krad_ebml->header_position - 4) + 1;
+					printf("\ngot header, size is %d\n", krad_ebml->header_size);
 
 					// first cluster
-					memcpy(kradebml->buffer, kradebml->cluster_mark, 4);
-					kradebml->buffer_position_internal += 4;
+					memcpy(krad_ebml->buffer, krad_ebml->cluster_mark, 4);
+					krad_ebml->buffer_position_internal += 4;
 					if ((b + 1) < len) {
-						memcpy(kradebml->buffer + kradebml->buffer_position_internal, kradebml->input_buffer + (b + 1), len - (b + 1));
-						kradebml->buffer_position_internal += len - (b + 1);
+						memcpy(krad_ebml->buffer + krad_ebml->buffer_position_internal, krad_ebml->input_buffer + (b + 1), len - (b + 1));
+						krad_ebml->buffer_position_internal += len - (b + 1);
 					}
 					
-					printf("\nfound first cluster starting at %zu\n", kradebml->found);
-					kradebml->cluster_position = kradebml->found;
-					kradebml->position += len;
-					free(kradebml->input_buffer);
+					printf("\nfound first cluster starting at %zu\n", krad_ebml->found);
+					krad_ebml->cluster_position = krad_ebml->found;
+					krad_ebml->position += len;
+					free(krad_ebml->input_buffer);
 					return len;
 
 				}
-				printf("\nfound cluster starting at %zu\n", kradebml->found);
-				kradebml->cluster_position = kradebml->found;
+				printf("\nfound cluster starting at %zu\n", krad_ebml->found);
+				krad_ebml->cluster_position = krad_ebml->found;
 			}
 		}
 	}
 	
-	if (kradebml->header_size == 0) {
-		printf("\nadding to header header, pos is %d size is %d adding %d\n", kradebml->header_size, kradebml->header_position, len);
-		memcpy(kradebml->header + kradebml->header_position, kradebml->input_buffer, len);
-		kradebml->header_position += len;
+	if (krad_ebml->header_size == 0) {
+		printf("\nadding to header header, pos is %d size is %d adding %d\n", krad_ebml->header_size, krad_ebml->header_position, len);
+		memcpy(krad_ebml->header + krad_ebml->header_position, krad_ebml->input_buffer, len);
+		krad_ebml->header_position += len;
 	} else {
 	
-		memcpy(kradebml->buffer + kradebml->buffer_position_internal, kradebml->input_buffer, len);
-		kradebml->buffer_position_internal += len;
+		memcpy(krad_ebml->buffer + krad_ebml->buffer_position_internal, krad_ebml->input_buffer, len);
+		krad_ebml->buffer_position_internal += len;
 	}
 	
-	kradebml->position += len;
+	krad_ebml->position += len;
 
 	//end push
 
-	free(kradebml->input_buffer);
+	free(krad_ebml->input_buffer);
 
 	return len;
 }
