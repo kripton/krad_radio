@@ -465,7 +465,7 @@ cluster_at(int64_t offset, void *userdata)
 
 	kradebml->last_cluster_pos = offset;
 
-	printf("**************************************************cluster_at %ld\n", offset);
+	printf("Cluster at: %ld\n", offset);
 
 }
 
@@ -2100,8 +2100,8 @@ ne_read_master(nestegg * ctx, struct ebml_element_desc * desc)
     if (ctx->info != NULL) {
 		if (desc->id == 0x1f43b675) {
 			cluster_loc = ne_io_tell(ctx->io);
-	  		ctx->log(ctx, NESTEGG_LOG_DEBUG, "clusterbunny multi master element %llx (%s) size %zu", desc->id, desc->name, desc->size);	
-			ctx->info->cluster_at(cluster_loc - 12, ctx->info->userdata);
+	  		//ctx->log(ctx, NESTEGG_LOG_WARNING, "clusterbunny multi master element %llx (%s) size %zu", desc->id, desc->name, desc->size);	
+			//ctx->info->cluster_at(cluster_loc - 42, ctx->info->userdata);
 		}
            
     }
@@ -2246,6 +2246,9 @@ ne_parse(nestegg * ctx, struct ebml_element_desc * top_level)
 {
   int r;
   int64_t * data_offset;
+
+  int64_t data_offset2;  
+  
   uint64_t id, size;
   struct ebml_element_desc * element;
 
@@ -2280,10 +2283,13 @@ ne_parse(nestegg * ctx, struct ebml_element_desc * top_level)
       }
 
       if (element->type == TYPE_MASTER) {
-        if (element->flags & DESC_FLAG_MULTI)
+        if (element->flags & DESC_FLAG_MULTI) {
+  			data_offset2 = ne_io_tell(ctx->io);
+        	printf("master %llu %lld\n", size + 7, data_offset2 - 42);
           ne_read_master(ctx, element);
-        else
+        } else {
           ne_read_single_master(ctx, element);
+        }
         continue;
       } else {
         r = ne_read_simple(ctx, element, size);
@@ -3719,7 +3725,14 @@ int kradebml_open_input_file(kradebml_t *kradebml, char *filename) {
 	kradebml->input_type = KRADEBML_FILE;
 	
 	kradebml_stdio_open(kradebml, "r");
-  *kradebml->ctx->io = kradebml->io;
+	*kradebml->ctx->io = kradebml->io;
+
+	kradebml->info.cluster_at = cluster_at;
+	kradebml->info.userdata = kradebml;
+	
+	if (kradebml->info.cluster_at != NULL) {
+		kradebml->ctx->info = &kradebml->info;
+	}
 
 	//if (!kradebml->ctx->log)
 	//	kradebml->ctx->log = ne_null_log_callback;
