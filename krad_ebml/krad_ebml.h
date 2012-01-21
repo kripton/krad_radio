@@ -647,6 +647,7 @@ int kradebml_open_input_file(kradebml_t *kradebml, char *filename);
 void kradebml_cluster(kradebml_t *kradebml, int timecode);
 void kradebml_add_audio(kradebml_t *kradebml, int track_num, unsigned char *buffer, int bufferlen, int frames);
 kradebml_t *kradebml_create();
+int kradebml_add_subtitle_track(kradebml_t *kradebml, char *codec_id);
 int kradebml_add_audio_track(kradebml_t *kradebml, char *codec_id, float sample_rate, int channels, unsigned char *private_data, int private_data_size);
 void kradebml_start_segment(kradebml_t *kradebml, char *appversion);
 void kradebml_end_segment(kradebml_t *kradebml);

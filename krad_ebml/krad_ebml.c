@@ -780,6 +780,60 @@ int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rat
 	
 }
 
+int kradebml_add_subtitle_track(kradebml_t *kradebml, char *codec_id) {
+
+	EbmlGlobal *glob = kradebml->ebml;
+
+
+	if (kradebml->ebml->tracks_open == 0) {
+		Ebml_StartSubElement(kradebml->ebml, &kradebml->ebml->tracks, Tracks);
+		kradebml->ebml->tracks_open = 1;
+	}
+
+
+	int tracknumber = kradebml_new_tracknumber(kradebml);
+
+	EbmlLoc track;
+	
+	
+	//kradebml->audio_sample_rate = sample_rate;
+	//kradebml->audio_channels = channels;
+	
+	Ebml_StartSubElement(glob, &track, TrackEntry);
+	
+	Ebml_SerializeUnsigned(glob, TrackNumber, tracknumber);
+	Ebml_SerializeUnsigned(glob, TrackUID, tracknumber);
+	
+	Ebml_SerializeUnsigned(glob, FlagLacing, 0);
+	Ebml_SerializeUnsigned(glob, FlagDefault, 0);
+
+
+	Ebml_SerializeString(glob, CodecID, codec_id);
+	Ebml_SerializeUnsigned(glob, TrackType, 0x11); 
+
+	//EbmlLoc AudioStart;
+	//Ebml_StartSubElement(glob, &AudioStart, Audio);
+	//Ebml_SerializeUnsigned(glob, Channels, channels);
+	//Ebml_SerializeFloat(glob, SamplingFrequency, sample_rate);
+	//Ebml_SerializeUnsigned(glob, BitDepth, 16);
+	//Ebml_EndSubElement(glob, &AudioStart);
+
+
+	//if (private_data_size > 0) {
+
+	//	Ebml_SerializeData(glob, CodecPrivate, private_data, private_data_size);
+
+	//}
+
+
+    Ebml_EndSubElement(glob, &track);
+ 
+	//Ebml_EndSubElement(glob, &glob->tracks);
+
+
+	return tracknumber;
+
+}
 
 int kradebml_add_audio_track(kradebml_t *kradebml, char *codec_id, float sample_rate, int channels, unsigned char *private_data, int private_data_size) {
 
@@ -3775,6 +3829,7 @@ char *kradebml_clone_tracks(kradebml_t *kradebml, kradebml_t *kradebml_output) {
 
 	    	case NESTEGG_TRACK_SUBTITLE:	
 				*p += sprintf(i + *p, "Track %d Subs: \t%s\n", t + 1, codec);
+				kradebml_add_subtitle_track(kradebml_output, codec);
 				break;
 
 			default:
