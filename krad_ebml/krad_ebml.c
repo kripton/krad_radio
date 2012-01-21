@@ -103,12 +103,14 @@ void server_build_http_header(server_t *server) {
 		sprintf( server->auth, "source:%s", server->password );
 		base64_encode( server->auth_base64, server->auth );
 
-		sprintf( server->audio_info, "ice-samplerate=%d;ice-bitrate=%d;ice-channels=%d", 
-													 DEFAULT_SAMPLERATE, DEFAULT_BITRATE, DEFAULT_CHANNELS );
+		//sprintf( server->audio_info, "ice-samplerate=%d;ice-bitrate=%d;ice-channels=%d", 
+		//											 DEFAULT_SAMPLERATE, DEFAULT_BITRATE, DEFAULT_CHANNELS );
 
-		server->header_pos = sprintf( server->headers, "SOURCE %s ICE/1.0\n", server->mount);
-		server->header_pos += sprintf( server->headers + server->header_pos, "content-type: %s\n", server->content_type);
-		server->header_pos += sprintf( server->headers + server->header_pos, "Authorization: Basic %s\n", server->auth_base64);
+		server->header_pos = sprintf( server->headers, "SOURCE %s ICE/1.0\r\n", server->mount);
+		server->header_pos += sprintf( server->headers + server->header_pos, "content-type: %s\r\n", server->content_type);
+		server->header_pos += sprintf( server->headers + server->header_pos, "Authorization: Basic %s\r\n", server->auth_base64);
+		
+		/*
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-name: %s\n", DEFAULT_STREAMNAME);
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-url: %s\n", DEFAULT_URL);
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-genre: %s\n", "Rock");
@@ -117,6 +119,9 @@ void server_build_http_header(server_t *server) {
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-description: %s\n", DEFAULT_DESCRIPTION);
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-bitrate: %d\n", DEFAULT_BITRATE);
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-audio-info: %s\n\n", server->audio_info);
+		*/
+		
+		server->header_pos += sprintf( server->headers + server->header_pos, "\r\n\r\n");
 		
 	}
 }
