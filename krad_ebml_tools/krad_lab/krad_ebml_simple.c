@@ -108,10 +108,15 @@ int krad_ebml_read(krad_ebml_t *krad_ebml, char *buffer, int len) {
 		
 		if (krad_ebml->cluster_position != 0) {
 			read_space_to_cluster = (krad_ebml->cluster_position - krad_ebml->header_size) - krad_ebml->read_position;
+	//		printf("cluster pos %zu rstc: %zu to_read %d\n", krad_ebml->cluster_position,  read_space_to_cluster, to_read);
 			if ((read_space_to_cluster != 0) && (read_space_to_cluster <= to_read)) {
 				to_read = read_space_to_cluster;
 				krad_ebml->cluster_position = 0;
 				krad_ebml->last_was_cluster_end = 1;
+			} else {
+				if (read_space_to_cluster == 0) {
+					krad_ebml->this_was_cluster_start = 1;
+				}
 			}
 		}
 	
