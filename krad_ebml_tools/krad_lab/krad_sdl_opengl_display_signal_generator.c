@@ -11,7 +11,7 @@
 #include "SDL.h"
 
 #define APPVERSION "Krad Signal Generator"
-#define TEST_COUNT 4444444
+#define TEST_COUNT 444444444
 
 void rgb_to_yv12(struct SwsContext *sws_context, unsigned char *pRGBData, int src_w, int src_h, unsigned char *dst[4], int dst_stride_arr[4]) {
 
@@ -21,6 +21,40 @@ void rgb_to_yv12(struct SwsContext *sws_context, unsigned char *pRGBData, int sr
 	rgb_arr[0] = pRGBData;
 
     sws_scale(sws_context, rgb_arr, rgb_stride_arr, 0, src_h, dst, dst_stride_arr);
+}
+
+
+void switch_test(kradgui_t *kradgui) {
+
+	if (kradgui->render_tearbar == 1) {
+		kradgui->render_tearbar = 0;
+		kradgui->render_wheel = 0;
+		kradgui->render_rgb = 1;
+		kradgui->render_test_text = 1;
+		kradgui->render_rotator = 1;
+		return;
+	}
+
+	if (kradgui->render_wheel == 1) {
+		kradgui->render_tearbar = 1;
+		kradgui->render_wheel = 0;
+		kradgui->render_rgb = 0;
+		kradgui->render_test_text = 0;
+		kradgui->render_rotator = 0;
+		return;
+	}
+	
+	if (kradgui->render_rgb == 1) {
+		kradgui->render_tearbar = 0;
+		kradgui->render_wheel = 1;
+		kradgui->render_rgb = 0;
+		kradgui->render_test_text = 0;
+		kradgui->render_rotator = 0;
+		return;
+	}
+
+
+
 }
 
 int main (int argc, char *argv[]) {
@@ -36,12 +70,17 @@ int main (int argc, char *argv[]) {
 	
 	struct SwsContext *sws_context;
 	
+	struct timespec signal_time;
+	struct timespec sleep_time;
+	uint64_t signal_time_ms;
+	
 	int width, height;
 	int fps;
 	int count;
 	int stride;
 	int gui_byte_size;
 	unsigned char *gui_data;
+	int sleeped;
 	
 	int channels;
 	int sample_rate;
@@ -73,7 +112,8 @@ int main (int argc, char *argv[]) {
 	width = 1280;
 	height = 720;
 	fps = 30;
-
+	
+	sleeped = 0;
 	channels = 1;
 	sample_rate = 44100;
 	bit_depth = 16;
@@ -134,6 +174,9 @@ int main (int argc, char *argv[]) {
 		//	kradebml_add_audio(krad_ebml, audiotrack, audio_buffer, bytes, 4096);
 		//	kradebml_write(krad_ebml);
 		//}
+	printf("\n");
+	kradgui_reset_elapsed_time(kradgui);
+		
 	while (count < TEST_COUNT) {
 
 		cr = cairo_create(cst);
@@ -162,18 +205,36 @@ int main (int argc, char *argv[]) {
 		
 			if (bytes) {
 				kradebml_add_video(krad_ebml, videotrack, vpx_packet, bytes, keyframe);
-					kradebml_write(krad_ebml);
+				kradebml_write(krad_ebml);
 			}
 
 
 		//}
 		
-		usleep( (1000 / fps) * 1000);
-
+		kradgui_update_elapsed_time(kradgui);
+		
 		count++;
-
+		
+		signal_time_ms = count * (1000.0f / (float)fps);
+		
+		signal_time.tv_sec = (signal_time_ms - (signal_time_ms % 1000)) / 1000;
+		signal_time.tv_nsec = (signal_time_ms % 1000) * 1000000;
+		
+		sleep_time = timespec_diff(kradgui->elapsed_time, signal_time);
+		
+		if ((sleep_time.tv_sec > -1) && (sleep_time.tv_nsec > 0))  {
+			sleeped++;
+			nanosleep (&sleep_time, NULL);
+		}
+		
+		printf("Elapsed time %s Sleeped %d times\r", kradgui->elapsed_time_timecode_string, sleeped);
+		fflush(stdout);
+		
+		if ((count % 600) == 0) {
+			switch_test(kradgui);
+		}	
 	}
-
+	printf("\n");
 	krad_sdl_opengl_display_destroy(krad_sdl_opengl_display);
 	kradgui_destroy(kradgui);
 	

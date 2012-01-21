@@ -281,12 +281,12 @@ void kradgui_render_wheel (kradgui_t *kradgui) {
 	cr = kradgui->cr;
 
 	cairo_save(cr);
-
+	cairo_new_path (cr);
 	// wheel
 	cairo_set_line_width(cr, 5);
 	cairo_set_source_rgb(cr, WHITE);
 	//cairo_save(cr);
-	cairo_translate (cr, kradgui->width/2, kradgui->height/2);
+	cairo_translate (cr, kradgui->width/3, kradgui->height/2);
 	//cairo_save(cr);
 	//cairo_arc (cr, 0.0, 0.0, 3.0, 0, 2*M_PI);
 	//cairo_stroke(cr);
