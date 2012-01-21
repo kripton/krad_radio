@@ -63,11 +63,11 @@ void server_build_http_header(server_t *server) {
 
 
 	strcpy(server->content_type, "");
+	
+	//if ((strstr(krad_mkvsource->filename, ".webm") != NULL) || (strstr(krad_mkvsource->filename, ".WEBM") != NULL)) {
+		strcpy(server->content_type, "video/webm");
+	//} 
 	/*
-	if ((strstr(krad_mkvsource->filename, ".webm") != NULL) || (strstr(krad_mkvsource->filename, ".WEBM") != NULL)) {
-		strcpy(krad_mkvsource->content_type, "video/webm");
-	} 
-
 	if ((strstr(krad_mkvsource->filename, ".mkv") != NULL) || (strstr(krad_mkvsource->filename, ".MKV") != NULL)) {
 		strcpy(krad_mkvsource->content_type, "video/x-matroska");
 	}
@@ -81,7 +81,7 @@ void server_build_http_header(server_t *server) {
 	} 
 	*/
 	//if ((strstr(krad_mkvsource->filename, ".krado") != NULL) || (strstr(krad_mkvsource->filename, ".KRADO") != NULL)) {
-		strcpy(server->content_type, "audio/x-krad-opus");
+	//	strcpy(server->content_type, "audio/x-krad-opus");
 	//} 
 	/*
 	if ((strstr(krad_mkvsource->filename, ".mp3") != NULL) || (strstr(krad_mkvsource->filename, ".MP3") != NULL)) {

@@ -15,6 +15,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 		exit(1);
 	}
 	
+	kradvpx->quality = VPX_DL_REALTIME;
 
 	kradvpx->frame_byte_size = kradvpx->height * kradvpx->width * 4;
 
@@ -81,7 +82,7 @@ int krad_vpx_encoder_write(krad_vpx_encoder_t *kradvpx, unsigned char **packet, 
 
 	//kradvpx->quality = VPX_DL_GOOD_QUALITY;
 	//kradvpx->quality = VPX_DL_BEST_QUALITY;
-	kradvpx->quality = VPX_DL_REALTIME;
+	//kradvpx->quality = VPX_DL_REALTIME;
 
 	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->quality)) {
 		krad_vpx_fail(&kradvpx->encoder, "Failed to encode frame");

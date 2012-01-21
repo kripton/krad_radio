@@ -8,9 +8,10 @@ gcc -g -Wall -fPIC -shared -Wl,-soname,libkradebml.so.1 -o libkradebml.so.1.0.1 
 #gcc -g -Wall krad_ebml_test.c -lkradebml -I. -o krad_ebml_test
 
 #sudo cp krad_ebml.h /usr/local/include
-#sudo cp krad_ebml_ids.h /usr/local/include
+
+sudo cp krad_ebml_simple.h /usr/local/include/krad_ebml.h
 
 sudo cp libkradebml.so.1.0.1 /usr/local/lib
-sudo cp libkradebml.so.1.0.1 /usr/lib
-sudo ln -s /usr/lib/libkradebml.so.1.0.1 /usr/lib/libkradebml.so
+sudo ln -s /usr/local/lib/libkradebml.so.1.0.1 /usr/local/lib/libkradebml.so.1
+sudo ln -s /usr/local/lib/libkradebml.so.1.0.1 /usr/local/lib/libkradebml.so
 sudo ldconfig

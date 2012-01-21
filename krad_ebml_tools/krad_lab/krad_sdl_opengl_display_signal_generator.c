@@ -11,7 +11,7 @@
 #include "SDL.h"
 
 #define APPVERSION "Krad Signal Generator"
-#define TEST_COUNT 7200
+#define TEST_COUNT 4444444
 
 void rgb_to_yv12(struct SwsContext *sws_context, unsigned char *pRGBData, int src_w, int src_h, unsigned char *dst[4], int dst_stride_arr[4]) {
 
@@ -72,7 +72,7 @@ int main (int argc, char *argv[]) {
 	
 	width = 1280;
 	height = 720;
-	fps = 60;
+	fps = 30;
 
 	channels = 1;
 	sample_rate = 44100;
@@ -110,28 +110,30 @@ int main (int argc, char *argv[]) {
 
 	krad_ebml = kradebml_create();
 
-	kradebml_open_output_file(krad_ebml, filename);
+	//kradebml_open_output_file(krad_ebml, filename);
+	kradebml_open_output_stream(krad_ebml, "192.168.1.2", 9080, "/krad_test_signal.webm", "secretkode");
+	
 	
 	kradebml_header(krad_ebml, "matroska", APPVERSION);
 
 	videotrack = kradebml_add_video_track(krad_ebml, "V_VP8", fps, width, height);
 
 	bytes = krad_flac_encoder_read_min_header(krad_flac, audio_buffer);
-	audiotrack = kradebml_add_audio_track(krad_ebml, "A_FLAC", sample_rate, channels, audio_buffer, bytes);
+	//audiotrack = kradebml_add_audio_track(krad_ebml, "A_FLAC", sample_rate, channels, audio_buffer, bytes);
 
 	kradebml_write(krad_ebml);
 
-//	kradgui_test_screen(kradgui, test_info);
+	kradgui_test_screen(kradgui, test_info);
 
-	kradgui->render_tearbar = 1;
+	//kradgui->render_tearbar = 1;
 
 
-		krad_tone_run(krad_tone, sample_buffer, 4096);
-		bytes = krad_flac_encode(krad_flac, sample_buffer, 4096, audio_buffer);
-		if (bytes) {
-			kradebml_add_audio(krad_ebml, audiotrack, audio_buffer, bytes, 4096);
-			kradebml_write(krad_ebml);
-		}
+		//krad_tone_run(krad_tone, sample_buffer, 4096);
+		//bytes = krad_flac_encode(krad_flac, sample_buffer, 4096, audio_buffer);
+		//if (bytes) {
+		//	kradebml_add_audio(krad_ebml, audiotrack, audio_buffer, bytes, 4096);
+		//	kradebml_write(krad_ebml);
+		//}
 	while (count < TEST_COUNT) {
 
 		cr = cairo_create(cst);
@@ -145,12 +147,12 @@ int main (int argc, char *argv[]) {
 	
 		krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
 
-		krad_tone_run(krad_tone, sample_buffer, samples_per_frame);
-		bytes = krad_flac_encode(krad_flac, sample_buffer, samples_per_frame, audio_buffer);
-		if (bytes) {
-			kradebml_add_audio(krad_ebml, audiotrack, audio_buffer, bytes, 4096);
-			kradebml_write(krad_ebml);
-		}
+		//krad_tone_run(krad_tone, sample_buffer, samples_per_frame);
+		//bytes = krad_flac_encode(krad_flac, sample_buffer, samples_per_frame, audio_buffer);
+		//if (bytes) {
+		//	kradebml_add_audio(krad_ebml, audiotrack, audio_buffer, bytes, 4096);
+		//	kradebml_write(krad_ebml);
+		//}
 		
 		//if (video_codec == 1) {
 		
