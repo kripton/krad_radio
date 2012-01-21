@@ -121,7 +121,7 @@ void server_build_http_header(server_t *server) {
 		server->header_pos += sprintf( server->headers + server->header_pos, "ice-audio-info: %s\n\n", server->audio_info);
 		*/
 		
-		server->header_pos += sprintf( server->headers + server->header_pos, "\r\n\r\n");
+		server->header_pos += sprintf( server->headers + server->header_pos, "\r\n");
 		
 	}
 }
