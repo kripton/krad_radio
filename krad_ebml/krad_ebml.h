@@ -613,13 +613,25 @@ struct kradebml_St {
 	
 	char input_info[4096];
 	int input_info_pos;
+	
 };
 
+
+#define KRAD_EBML_CLUSTER_BYTE1 0x1F
+#define KRAD_EBML_CLUSTER_BYTE2 0x43
+#define KRAD_EBML_CLUSTER_BYTE3 0xB6
+#define KRAD_EBML_CLUSTER_BYTE4 0x75
+
+int krad_ebml_find_first_cluster(char *buffer, int len);
+unsigned char get_next_match_byte(unsigned char match_byte, uint64_t position, uint64_t *matched_byte_num, uint64_t *winner);
+
+char *kradebml_clone_tracks(kradebml_t *kradebml, kradebml_t *kradebml_output);
 
 char *kradebml_input_info(kradebml_t *kradebml);
 char *krad_ebml_track_codec_string(kradebml_t *kradebml, unsigned int track);
 int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track);
 
+void server_send(server_t *server, char *buffer, int length);
 server_t *server_create(char *host, int port, char *mount, char *password);
 void server_destroy(server_t *server);
 void server_disconnect(server_t *server);
@@ -667,7 +679,7 @@ int kradebml_write(kradebml_t *kradebml);
 void kradebml_destroy(kradebml_t *kradebml);
 int kradebml_kludge_init(kradebml_t *kradebml);
 int kradebml_open_output_file(kradebml_t *kradebml, char *filename);
-
+int kradebml_add_video_track_with_priv(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size);
 int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height);
 void kradebml_add_video(kradebml_t *kradebml, int track_num, unsigned char *buffer, int bufferlen, int keyframe);
 ////////////

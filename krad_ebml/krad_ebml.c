@@ -197,19 +197,23 @@ void server_send(server_t *server, char *buffer, int length) {
 
 	server->sent = 0;	
 
-	//printf("sending %d bytes\n", length);
+	int sended;
+
+	printf("sending %d bytes\n", length);
 
 	while (server->sent != length) {
 
-		server->sent += send (server->sd, 
+		sended = send (server->sd, 
 										buffer + server->sent, 
 										length - server->sent, 0);
 
-		if (server->sent <= 0) {
+		if (sended <= 0) {
 			fprintf(stderr, "Krad MKV Source: send Got Disconnected from server\n");
 				
-			
+			exit(1);
 		}
+		
+		server->sent += sended;	
 
 		server->total_bytes_sent += server->sent;
 
@@ -431,6 +435,8 @@ int kradebml_stdio_read(void *buffer, size_t length, void *userdata)
 
 	r = fread(buffer, length, 1, kradebml->fp);
 
+	kradebml->total_bytes_read += length;
+
 	if (r == 0 && feof(kradebml->fp))
 		return 0;
 		
@@ -527,7 +533,7 @@ int kradebml_open_output_stream(kradebml_t *kradebml, char *host, int port, char
 
 	printf("Krad MKV Source: Sent Headers: \n%s\n", kradebml->server->headers);
 	
-	usleep(1000000);
+	//usleep(1000000);
 
 
 
@@ -657,8 +663,8 @@ void kradebml_start_segment(kradebml_t *kradebml, char *appversion) {
 	Ebml_EndSubElement(glob, &startInfo);
 
 	// kludege possitioning
-	Ebml_StartSubElement(glob, &glob->tracks, Tracks);
-	glob->tracks_open = 1;
+	//Ebml_StartSubElement(glob, &glob->tracks, Tracks);
+	//glob->tracks_open = 1;
 	
 //    Ebml_EndSubElement(glob, &glob->tracks);
 
@@ -678,12 +684,61 @@ int kradebml_new_tracknumber(kradebml_t *kradebml) {
 
 }
 
+int kradebml_add_video_track_with_priv(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size) {
+
+	EbmlGlobal *glob = kradebml->ebml;
+
+	if (kradebml->ebml->tracks_open == 0) {
+		Ebml_StartSubElement(kradebml->ebml, &kradebml->ebml->tracks, Tracks);
+		kradebml->ebml->tracks_open = 1;
+	}
+
+	glob->total_video_frames = -1;
+
+	glob->video_frame_rate = frame_rate;
+
+
+	unsigned int trackNumber = kradebml_new_tracknumber(kradebml);
+	//float        frameRate   = (float)fps->num/(float)fps->den;
+
+	EbmlLoc trackstart;
+	Ebml_StartSubElement(glob, &trackstart, TrackEntry);
+	Ebml_SerializeUnsigned(glob, TrackNumber, trackNumber);
+	Ebml_SerializeUnsigned(glob, TrackUID, 1);
+	Ebml_SerializeUnsigned(glob, FlagLacing, 0);
+	//Ebml_SerializeUnsigned(glob, FlagDefault, 1);
+	Ebml_SerializeString(glob, CodecID, codec_id);
+	//Ebml_SerializeFloat(glob, FrameRate, frameRate);
+	Ebml_SerializeUnsigned(glob, TrackType, 1); //video is always 1
+
+	if (private_data_size > 0) {
+		Ebml_SerializeData(glob, CodecPrivate, private_data, private_data_size);
+	}
+	
+	unsigned int pixelWidth = width;
+	unsigned int pixelHeight = height;
+
+	EbmlLoc videoStart;
+	Ebml_StartSubElement(glob, &videoStart, Video);
+	Ebml_SerializeUnsigned(glob, PixelWidth, pixelWidth);
+	Ebml_SerializeUnsigned(glob, PixelHeight, pixelHeight);
+	//Ebml_SerializeUnsigned(glob, StereoMode, STEREO_FORMAT_MONO);
+	Ebml_EndSubElement(glob, &videoStart); //Video
+
+	Ebml_EndSubElement(glob, &trackstart); //Track Entry
+
+
+}
+
 int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height) {
 
 
 	EbmlGlobal *glob = kradebml->ebml;
 
-    //Ebml_StartSubElement(glob, &glob->tracks, Tracks);
+	if (kradebml->ebml->tracks_open == 0) {
+		Ebml_StartSubElement(kradebml->ebml, &kradebml->ebml->tracks, Tracks);
+		kradebml->ebml->tracks_open = 1;
+	}
 
 	glob->total_video_frames = -1;
 
@@ -731,6 +786,12 @@ int kradebml_add_audio_track(kradebml_t *kradebml, char *codec_id, float sample_
 	EbmlGlobal *glob = kradebml->ebml;
 
 
+	if (kradebml->ebml->tracks_open == 0) {
+		Ebml_StartSubElement(kradebml->ebml, &kradebml->ebml->tracks, Tracks);
+		kradebml->ebml->tracks_open = 1;
+	}
+
+
 	int tracknumber = kradebml_new_tracknumber(kradebml);
 
 	EbmlLoc track;
@@ -758,8 +819,12 @@ int kradebml_add_audio_track(kradebml_t *kradebml, char *codec_id, float sample_
 	Ebml_SerializeUnsigned(glob, BitDepth, 16);
 	Ebml_EndSubElement(glob, &AudioStart);
 
-	Ebml_SerializeData(glob, CodecPrivate, private_data, private_data_size);
 
+	if (private_data_size > 0) {
+
+		Ebml_SerializeData(glob, CodecPrivate, private_data, private_data_size);
+
+	}
 
 
     Ebml_EndSubElement(glob, &track);
@@ -2138,6 +2203,8 @@ ne_read_master(nestegg * ctx, struct ebml_element_desc * desc)
   }
 */
 
+
+
   list = (struct ebml_list *) (ctx->ancestor->data + desc->offset);
 
   node = ne_pool_alloc(sizeof(*node), ctx->alloc_pool);
@@ -2436,6 +2503,9 @@ ne_get_timecode_scale(nestegg * ctx)
 
   return scale;
 }
+
+
+
 
 static struct track_entry *
 ne_find_track_entry(nestegg * ctx, unsigned int track)
@@ -3037,6 +3107,22 @@ char *krad_ebml_track_codec_string(kradebml_t *kradebml, unsigned int track) {
 
 }
 
+char *krad_ebml_track_codec_string_orig(kradebml_t *kradebml, unsigned int track) {
+
+	char * codec_id;
+	struct track_entry * entry;
+
+	entry = ne_find_track_entry(kradebml->ctx, track);
+	if (!entry)
+	return "Err";
+
+	if (ne_get_string(entry->codec_id, &codec_id) != 0)
+	return "Unset";
+
+	return codec_id;
+
+}
+
 int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track) {
 
 	char * codec_id;
@@ -3128,15 +3214,15 @@ nestegg_track_codec_data(nestegg * ctx, unsigned int track, unsigned int item,
   if (!entry)
     return -1;
 
-	if ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_VORBIS) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_OPUS)) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_FLAC))) {
-	  return -1;
-	}
+	//if ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_VORBIS) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_OPUS)) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_FLAC))) {
+	//  return -1;
+	//}
 
 
 
-	if ((nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_OPUS) || (nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_FLAC)) {
+	//if ((nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_OPUS) || (nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_FLAC)) {
 	   if (ne_get_binary(entry->codec_private, &codec_private) != 0)
-    return -1;
+    		return -1;
 	
   if (codec_private.length < 1) {
     return -1;
@@ -3147,7 +3233,7 @@ nestegg_track_codec_data(nestegg * ctx, unsigned int track, unsigned int item,
 	
 
 	return 0;
-	}
+	//}
 
   if (ne_get_binary(entry->codec_private, &codec_private) != 0)
     return -1;
@@ -3608,6 +3694,101 @@ char *kradebml_input_info(kradebml_t *kradebml) {
 	return kradebml->input_info;
 
 }
+
+
+char *kradebml_clone_tracks(kradebml_t *kradebml, kradebml_t *kradebml_output) {
+
+	char *i;
+	int *p;
+	
+	int t;
+	
+	char *temp;
+	int templen;
+	int dem;
+	
+	char *codec;
+	int codec_type;
+	char *doctype;
+	
+	kradebml->input_info_pos = 0;
+
+	i = kradebml->input_info;
+	p = &kradebml->input_info_pos;
+
+	*p += sprintf(i + *p, "Krad EBML File Info\n\n");
+	
+	*p += sprintf(i + *p, "Filename: \t%s\n", kradebml->filename);
+
+	nestegg_track_count(kradebml->ctx, &kradebml->tracks);
+	nestegg_duration(kradebml->ctx, &kradebml->duration);
+
+	ne_get_string(kradebml->ctx->ebml.doctype, &doctype);
+
+	*p += sprintf(i + *p, "Type:   \t%s\n", doctype);
+	*p += sprintf(i + *p, "Duration: \t%.3fs\n", kradebml->duration / 1e9);
+	*p += sprintf(i + *p, "Tracks: \t%u\n", kradebml->tracks);
+
+	for (t = 0; t < kradebml->tracks; t++) {
+
+		codec_type = nestegg_track_type(kradebml->ctx, t);
+
+		codec = krad_ebml_track_codec_string_orig(kradebml, t);		
+
+		switch (codec_type) {
+		
+			case NESTEGG_TRACK_VIDEO:			
+				nestegg_track_video_params(kradebml->ctx, t, &kradebml->vparams);
+				*p += sprintf(i + *p, "Track %d Video: \t%d x %d %s\n", t + 1, kradebml->vparams.width, kradebml->vparams.height, codec);
+				//nestegg_track_codec_data(kradebml->ctx, t, 0, &kradebml->codec_data, &kradebml->length);
+
+				nestegg_track_codec_data(kradebml->ctx, t, 0, &kradebml->codec_data, &kradebml->length);
+				kradebml_add_video_track_with_priv(kradebml_output, codec, 30, kradebml->vparams.width, kradebml->vparams.height, kradebml->codec_data, kradebml->length);
+    			break;
+    			
+	    	case NESTEGG_TRACK_AUDIO:	
+				nestegg_track_audio_params(kradebml->ctx, t, &kradebml->aparams);
+				*p += sprintf(i + *p, "Track %d Audio: \t%.0fhz %u bit %u channels %s\n", t + 1, kradebml->aparams.rate, kradebml->aparams.depth, kradebml->aparams.channels, codec);
+				if (strncmp("A_VORBIS", codec, 8) == 0) {
+
+					templen = 3;
+					temp = malloc(templen + kradebml->vorbis_header1_len + kradebml->vorbis_header2_len + kradebml->vorbis_header3_len);
+	
+
+					temp[0] = 0x02;
+					dem = kradebml->vorbis_header1_len;
+					temp[1] = (char)dem;
+					dem = kradebml->vorbis_header2_len;
+					temp[2] = (char)dem;
+					memcpy(temp + templen, kradebml->vorbis_header1, kradebml->vorbis_header1_len);
+					memcpy(temp + templen + kradebml->vorbis_header1_len, kradebml->vorbis_header2, kradebml->vorbis_header2_len);
+					memcpy(temp + templen + kradebml->vorbis_header1_len + kradebml->vorbis_header2_len, kradebml->vorbis_header3, kradebml->vorbis_header3_len);
+
+					nestegg_track_codec_data(kradebml->ctx, t, 0, &kradebml->codec_data, &kradebml->length);
+					kradebml_add_audio_track(kradebml_output, codec, kradebml->aparams.rate, kradebml->aparams.channels, temp, templen + kradebml->vorbis_header1_len + kradebml->vorbis_header2_len + kradebml->vorbis_header3_len);
+					free(temp);
+				} else {
+					nestegg_track_codec_data(kradebml->ctx, t, 0, &kradebml->codec_data, &kradebml->length);
+					kradebml_add_audio_track(kradebml_output, codec, kradebml->aparams.rate, kradebml->aparams.channels, kradebml->codec_data, kradebml->length);
+				}
+				break;
+
+	    	case NESTEGG_TRACK_SUBTITLE:	
+				*p += sprintf(i + *p, "Track %d Subs: \t%s\n", t + 1, codec);
+				break;
+
+			default:
+				*p += sprintf(i + *p, "Track %d Unknown: \t%s\n", t + 1, codec);
+				break;
+		}
+	}
+
+	*p += sprintf(i + *p, "\n");
+	
+	return kradebml->input_info;
+
+}
+
 
 int kradebml_open_input_advanced(kradebml_t *kradebml) {
 
@@ -4160,6 +4341,77 @@ int kradebml_wrote(kradebml_t *kradebml, int len) {
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+unsigned char get_next_match_byte(unsigned char match_byte, uint64_t position, uint64_t *matched_byte_num, uint64_t *winner) {
+
+	if (winner != NULL) {
+		*winner = 0;
+	}
+
+	if (matched_byte_num != NULL) {
+		if (match_byte == KRAD_EBML_CLUSTER_BYTE1) {
+			if (matched_byte_num != NULL) {
+				*matched_byte_num = position;
+			}
+			return KRAD_EBML_CLUSTER_BYTE2;
+		}
+	
+		if ((*matched_byte_num == position - 1) && (match_byte == KRAD_EBML_CLUSTER_BYTE2)) {
+			return KRAD_EBML_CLUSTER_BYTE3;
+		}
+	
+		if ((*matched_byte_num == position - 2) && (match_byte == KRAD_EBML_CLUSTER_BYTE3)) {
+			return KRAD_EBML_CLUSTER_BYTE4;
+		}	
+
+		if ((*matched_byte_num == position - 3) && (match_byte == KRAD_EBML_CLUSTER_BYTE4)) {
+			if (winner != NULL) {
+				*winner = *matched_byte_num;
+			}
+			*matched_byte_num = 0;
+			return KRAD_EBML_CLUSTER_BYTE1;
+		}
+
+		*matched_byte_num = 0;
+	}
+	
+	return KRAD_EBML_CLUSTER_BYTE1;
+
+}
+
+int krad_ebml_find_first_cluster(char *buffer, int len) {
+
+	uint64_t b;
+	//uint64_t position;
+	uint64_t found;
+	uint64_t matched_byte_num;
+	unsigned char match_byte;
+	
+	for (b = 0; b < len; b++) {
+		if ((buffer[b] == match_byte) || (matched_byte_num > 0)) {
+			match_byte = get_next_match_byte(buffer[b], b, &matched_byte_num, &found);
+			if (found > 0) {
+				//return (b - 4) + 1;
+				return found;
+			}
+		}
+	}
+}
+
+
+
 
 
 
