@@ -1,9 +1,66 @@
 #include "krad_gui.h"
 #include "krad_gui_gtk.h"
 
-#define TEST_TIME 44400
+#define TEST_TIME 90
 
 
+void render_nogtk_benchmark() {
+
+	kradgui_t *kradgui;
+
+	int count = 0;
+
+	kradgui = kradgui_create_with_internal_surface(960, 540);
+
+	kradgui->update_drawtime = 1;
+	kradgui->print_drawtime = 1;
+	
+	kradgui->render_ftest = 1;
+	kradgui->render_tearbar = 1;
+	kradgui_test_screen(kradgui, "bench test");
+	
+	while (count < TEST_TIME) {
+
+		count++;
+
+		kradgui_render(kradgui);
+	}
+	
+	
+	kradgui_destroy(kradgui);
+	
+	
+}
+
+void render_ftest() {
+
+	kradgui_t *kradgui;
+
+	int count = 0;
+
+	kradgui = kradgui_create(960, 540);
+
+	kradgui->update_drawtime = 1;
+	kradgui->print_drawtime = 1;
+	
+	kradgui->render_ftest = 1;
+	kradgui->render_tearbar = 1;
+	//kradgui_test_screen(kradgui, "Gtk test");
+	
+	kradgui_gtk_start(kradgui);
+	
+	//kradgui_gtk_set_fps(kradgui, 3);
+	
+	while (count < TEST_TIME) {
+
+		count++;
+
+		usleep(50000);
+	}
+	
+	kradgui_gtk_end(kradgui);
+	kradgui_destroy(kradgui);
+}
 
 
 void render_test_screen() {
@@ -20,7 +77,7 @@ void render_test_screen() {
 
 	kradgui_gtk_start(kradgui);
 	
-	kradgui_test_screen(kradgui);
+	kradgui_test_screen(kradgui, "Gtk test");
 	
 	while (count < TEST_TIME) {
 
@@ -30,7 +87,7 @@ void render_test_screen() {
 	}
 	
 	kradgui_gtk_end(kradgui);
-	
+	kradgui_destroy(kradgui);
 }
 
 
@@ -80,7 +137,7 @@ void render_live_recording_test() {
 	}
 	
 	kradgui_gtk_end(kradgui);
-	
+	kradgui_destroy(kradgui);
 }
 
 
@@ -91,6 +148,9 @@ void render_reel_to_reel_test() {
 	int count = 0;
 
 	kradgui = kradgui_create(320, 160);
+
+	kradgui->update_drawtime = 1;
+	kradgui->print_drawtime = 1;
 
 	kradgui_add_item(kradgui, REEL_TO_REEL);
 	kradgui_add_item(kradgui, PLAYBACK_STATE_STATUS);
@@ -112,18 +172,22 @@ void render_reel_to_reel_test() {
 	}
 	
 	kradgui_gtk_end(kradgui);
-	
+	kradgui_destroy(kradgui);
 }
 
 
 
 int main (int argc, char *argv[]) {
 
+	render_nogtk_benchmark();
+
 	//render_reel_to_reel_test();
 
-//	render_live_recording_test();
+	//render_live_recording_test();
 
 	render_test_screen();
+	usleep(3*1000000);
+	render_ftest();
 
     return 0;
 }

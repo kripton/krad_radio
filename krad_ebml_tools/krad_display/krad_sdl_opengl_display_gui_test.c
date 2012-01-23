@@ -6,7 +6,7 @@
 #define TEST_COUNT 444
 
 
-int main (int argc, char *argv[]) {
+void test1() {
 
 
 	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
@@ -23,8 +23,8 @@ int main (int argc, char *argv[]) {
 	width = 1280;
 	height = 720;
 
-	width = 1920;
-	height = 1080;
+	//width = 1920;
+	//height = 1080;
 
 	count = 0;
 	
@@ -41,9 +41,13 @@ int main (int argc, char *argv[]) {
 
 	kradgui = kradgui_create(width, height);
 
-	test_info = "This is a test of the krad opengl display system";
+	test_info = "This is a test of the krad opengl display system 1";
 
 	kradgui_test_screen(kradgui, test_info);
+	
+	kradgui->update_drawtime = 1;
+	kradgui->print_drawtime = 1;
+	//kradgui->render_tearbar = 1;
 	
 	while (count < TEST_COUNT) {
 
@@ -66,6 +70,65 @@ int main (int argc, char *argv[]) {
 	kradgui_destroy(kradgui);
 	
 	cairo_surface_destroy(cst);
+	free(gui_data);
+}
+
+void test2() {
+
+
+	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
+	kradgui_t *kradgui;
+	
+	int width, height;
+	int count;
+	
+	char *test_info;
+	
+	width = 1280;
+	height = 720;
+
+	//width = 1920;
+	//height = 1080;
+
+	count = 0;
+	
+	krad_sdl_opengl_display = krad_sdl_opengl_display_create(width, height, width, height);
+
+	kradgui = kradgui_create_with_internal_surface(width, height);
+
+	test_info = "This is a test of the krad opengl display system 2";
+
+	kradgui_test_screen(kradgui, test_info);
+	
+	kradgui->update_drawtime = 1;
+	kradgui->print_drawtime = 1;
+	//kradgui->render_tearbar = 1;
+	
+	while (count < TEST_COUNT) {
+
+		kradgui_render(kradgui);
+
+	
+		memcpy(krad_sdl_opengl_display->rgb_frame_data, kradgui->data, kradgui->bytes);
+	
+		//usleep(20000);
+	
+		krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
+
+		count++;
+
+	}
+
+	krad_sdl_opengl_display_destroy(krad_sdl_opengl_display);
+	kradgui_destroy(kradgui);
+
+}
+
+int main (int argc, char *argv[]) {
+
+	test1();
+	
+	test2();
 	
 	return 0;
 

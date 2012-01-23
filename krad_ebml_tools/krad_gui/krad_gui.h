@@ -59,6 +59,12 @@ typedef struct kradgui_playback_state_status_St kradgui_playback_state_status_t;
 
 struct kradgui_St {
 
+	int stride;
+	int bytes;
+	unsigned char *data;
+	cairo_surface_t *cst;
+	int internal_surface;
+
 	cairo_t *cr;
 	int width;
 	int height;
@@ -149,6 +155,16 @@ struct kradgui_St {
 	
 	int render_wheel;
 	int wheel_angle;
+	
+	int render_ftest;
+	
+	int update_drawtime;
+	int print_drawtime;
+	char draw_time_string[192];
+	struct timespec draw_time;
+	struct timespec start_draw_time;
+	struct timespec end_draw_time;
+	
 };
 
 struct kradgui_reel_to_reel_St {
@@ -172,14 +188,21 @@ struct kradgui_playback_state_status_St {
 
 };
 
+void kradgui_start_draw_time(kradgui_t *kradgui);
+void kradgui_end_draw_time(kradgui_t *kradgui);
 
-
+void kradgui_control_speed_up(kradgui_t *kradgui);
+void kradgui_control_speed_down(kradgui_t *kradgui);
 void kradgui_control_speed(kradgui_t *kradgui, float value);
 void kradgui_set_control_speed_callback(kradgui_t *kradgui, void control_speed_callback(void *, float));
 void kradgui_set_control_speed_down_callback(kradgui_t *kradgui, void control_speed_down_callback(void *));
 void kradgui_set_control_speed_up_callback(kradgui_t *kradgui, void control_speed_up_callback(void *));
 void kradgui_set_callback_pointer(kradgui_t *kradgui, void *callback_pointer);
 
+
+void kradgui_create_internal_surface(kradgui_t *kradgui);
+void kradgui_destroy_internal_surface(kradgui_t *kradgui);
+kradgui_t *kradgui_create_with_internal_surface(int width, int height);
 kradgui_t *kradgui_create(int width, int height);
 void kradgui_destroy(kradgui_t *kradgui);
 void kradgui_render(kradgui_t *kradgui);
@@ -203,6 +226,7 @@ void kradgui_go_off(kradgui_t *kradgui);
 
 void kradgui_render_tearbar(kradgui_t *kradgui);
 void kradgui_render_wheel(kradgui_t *kradgui);
+void kradgui_render_ftest(kradgui_t *kradgui);
 
 kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui);
 void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel);

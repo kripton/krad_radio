@@ -138,6 +138,8 @@ void *do_draw(void *ptr){
 	cairo_surface_destroy(cst);
     
 	cairo_destroy(cr);
+	
+    return NULL;
     
 }
 
@@ -225,7 +227,7 @@ void *do_draw_alt (void *ptr) {
         }
     }
     
-    	printf("bye bye1\n");
+    return NULL;
     
 }
 
@@ -320,10 +322,12 @@ void *do_draw_alt2 (void *ptr) {
     }
 
 
-	printf("bye bye\n");
+	//printf("bye bye\n");
 
 	//cairo_destroy(cr_pixmap);
 	cairo_surface_destroy(cst);
+    
+    return NULL;
     
 }
 
@@ -331,15 +335,13 @@ void *do_draw_alt2 (void *ptr) {
 
 gboolean timer_exe(kradgui_gtk_t *kradgui_gtk) {
 
-
-    static int first_time = 1;
     //use a safe function to get the value of currently_drawing so
     //we don't run into the usual multithreading issues
     int drawing_status = g_atomic_int_get(&currently_drawing);
 
     //if this is the first time, create the drawing thread
 
-    if(first_time == 1){
+    if (kradgui_gtk->first_time == 1) {
         int  iret;
         iret = pthread_create( &kradgui_gtk->drawing_thread, NULL, do_draw_alt, kradgui_gtk);
         iret += 1; // just to kill a warning, does nothing
@@ -355,12 +357,12 @@ gboolean timer_exe(kradgui_gtk_t *kradgui_gtk) {
 			usleep(5000);
 			drawing_status = g_atomic_int_get(&currently_drawing);
 		}
-		    	
-		printf("hi me \n");
 	
 		pthread_join(kradgui_gtk->drawing_thread, NULL);
-		printf("hi me2 \n");
-			gtk_main_quit();
+		
+		kradgui_gtk->shutdown = 2;
+		//gtk_main_quit();
+		
 		return FALSE;
 	
 	}
@@ -378,8 +380,9 @@ gboolean timer_exe(kradgui_gtk_t *kradgui_gtk) {
     gtk_widget_queue_draw_area(kradgui_gtk->window, 0, 0, width, height);
 
 
-    first_time = 0;
-    return TRUE;
+    kradgui_gtk->first_time = 0;
+    
+    return kradgui_gtk->timeout_status;
 
 }
 
@@ -394,6 +397,8 @@ void kradgui_gtk_start(kradgui_t *kradgui) {
 	kradgui_gtk->width = kradgui->width;
 	kradgui_gtk->height = kradgui->height;
 	
+	
+	kradgui_gtk->first_time = 1;
 	pthread_create( &kradgui_gtk->gui_thread, NULL, kradgui_gtk_init, kradgui_gtk);
 
 }
@@ -404,21 +409,18 @@ void kradgui_gtk_end(kradgui_t *kradgui) {
 
 	kradgui_gtk->shutdown = 1;
 
-
-	printf("hi1\n");
-
-	pthread_join(kradgui_gtk->gui_thread, NULL);
-
-	printf("hi2\n");
-
+	//pthread_join(kradgui_gtk->gui_thread, NULL);
+	while (kradgui_gtk->shutdown == 1) {
+		usleep(5000);
+	}
+	
+	gdk_threads_enter();
+	gtk_widget_destroy(kradgui_gtk->window);
+	gtk_main_quit();
+	gdk_threads_leave();
 	free(kradgui->gui_ptr);
 	kradgui->gui_ptr = NULL;
-	
-	
-	printf("gtk stuff finni\n");
-	
-	
-	
+
 }
 
 
@@ -434,6 +436,7 @@ cb_speed_scale_changed( GtkWidget *widget,
 
 }
 
+/*
 static void speed_up( GtkWidget *widget,
                    gpointer   data )
 {
@@ -451,13 +454,36 @@ static void speed_down( GtkWidget *widget,
 
 	kradgui_control_speed_down(kradgui_gtk->kradgui);
 }
+*/
+
+void kradgui_gtk_set_fps(kradgui_t *kradgui, int fps) {
+
+	kradgui_gtk_t *kradgui_gtk = (kradgui_gtk_t *)kradgui->gui_ptr;
+
+	// (incase the thread hasn't even started. should be plenty long but ofc we should be more sure of that
+	kradgui_gtk->rest_time = 1000 / fps;
+	usleep(kradgui_gtk->rest_time * 3 * 1000 + (300000));
+
+	kradgui_gtk->timeout_status = FALSE;
+
+	// should be plenty long but ofc we should be more sure of that
+	usleep(kradgui_gtk->rest_time * 3 * 1000 + (300000));
+
+	kradgui_gtk->rest_time = 1000 / fps;
+	kradgui_gtk->timeout_status = TRUE;
+	
+	g_timeout_add(kradgui_gtk->rest_time, (GSourceFunc)timer_exe, kradgui_gtk);
+	
+	//printf("Set FPS to %d\n", fps);
+	
+}
 
 void *kradgui_gtk_init(kradgui_gtk_t *kradgui_gtk) {
 
 
-	int update_time;
+	kradgui_gtk->timeout_status = TRUE;
 	
-	update_time = 1000 / 40;
+	kradgui_gtk->rest_time = 1000 / KRADGUI_GTK_DEFAULT_FPS;
 
     //Block SIGALRM in the main thread
     sigset_t sigset;
@@ -499,18 +525,18 @@ void *kradgui_gtk_init(kradgui_gtk_t *kradgui_gtk) {
 	kradgui_gtk->window = window;
 
 
-    (void)g_timeout_add(update_time, (GSourceFunc)timer_exe, kradgui_gtk);
+	g_timeout_add(kradgui_gtk->rest_time, (GSourceFunc)timer_exe, kradgui_gtk);
 
 
 
 
  	GtkWidget *window2;
-    GtkWidget *button;
-    GtkWidget *button2;
-GtkWidget *box1;
-GtkWidget *speed_scale;
+    //GtkWidget *button;
+    //GtkWidget *button2;
+	GtkWidget *box1;
+	GtkWidget *speed_scale;
 
-  /* create a new window */
+	/* create a new window */
     window2 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     
 
@@ -524,59 +550,37 @@ GtkWidget *speed_scale;
     /* Put the box into the main window. */
     gtk_container_add (GTK_CONTAINER (window2), box1);
     
-/*
-    /* Creates a new button with the label "Hello World". 
+	/*
+ 
     button = gtk_button_new_with_label ("Speed Up");
     
-    /* When the button receives the "clicked" signal, it will call the
-     * function hello() passing it NULL as its argument.  The hello()
-     * function is defined above. 
+
     g_signal_connect (button, "clicked",
 		      G_CALLBACK (speed_up), kradgui_gtk);
     
-    /* This will cause the window to be destroyed by calling
-     * gtk_widget_destroy(window) when "clicked".  Again, the destroy
-     * signal could come from here, or the window manager. 
+
     g_signal_connect_swapped (button, "clicked",
 			      G_CALLBACK (gtk_widget_destroy),
                               window2);
-    */
-    /* This packs the button into the window (a gtk container). 
-	gtk_box_pack_start (GTK_BOX(box1), button, TRUE, TRUE, 0);
     
-    /* The final step is to display this newly created widget. 
 
- 
- 
- 
- 
- 
-    
-    /* Creates a new button with the label "Hello World". */
+	gtk_box_pack_start (GTK_BOX(box1), button, TRUE, TRUE, 0);
     button2 = gtk_button_new_with_label ("Speed Down");
     
-    /* When the button receives the "clicked" signal, it will call the
-     * function hello() passing it NULL as its argument.  The hello()
-     * function is defined above. 
     g_signal_connect (button2, "clicked",
 		      G_CALLBACK (speed_down), kradgui_gtk);
     
-    /* This will cause the window to be destroyed by calling
-     * gtk_widget_destroy(window) when "clicked".  Again, the destroy
-     * signal could come from here, or the window manager. 
+
     g_signal_connect_swapped (button, "clicked",
 			      G_CALLBACK (gtk_widget_destroy),
                               window2);
-    */
-    /* This packs the button into the window (a gtk container). 
+
 	gtk_box_pack_start (GTK_BOX(box1), button2, TRUE, TRUE, 0);
     
-    /* The final step is to display this newly created widget. 
     gtk_widget_show (button);
     gtk_widget_show (button2);
     */
-    
-    
+
 	speed_scale = gtk_hscale_new_with_range(1.0, 700.0, 1.0);
 	gtk_range_set_value(GTK_RANGE(speed_scale), 100.0);
 
@@ -590,29 +594,23 @@ GtkWidget *speed_scale;
                       G_CALLBACK( cb_speed_scale_changed ), kradgui_gtk );
     
     
-        gtk_widget_show (speed_scale);
+	gtk_widget_show (speed_scale);
     
-       gtk_widget_show (box1);
+	gtk_widget_show (box1);
     /* and the window */
     
-     
-   
-   gtk_window_move (window2, gdk_screen_width() - 1480, gdk_screen_height() - 250);
+	gtk_window_move (GTK_WINDOW(window2), gdk_screen_width() - 1480, gdk_screen_height() - 250);
    
     gtk_window_set_default_size(GTK_WINDOW(window2), 1280, 200); 
     gtk_window_set_decorated (GTK_WINDOW(window2), FALSE);
     gtk_window_set_has_resize_grip (GTK_WINDOW(window2), FALSE);
     
     
-  //  gtk_widget_show (window2);
-
-
-
-
+	//  gtk_widget_show (window2);
 
 
     gtk_main();
-    gdk_threads_leave();
+   // gdk_threads_leave();
 
     return NULL;
 }
