@@ -181,12 +181,12 @@ int main (int argc, char *argv[]) {
 
 	render_nogtk_benchmark();
 
-	//render_reel_to_reel_test();
+	render_reel_to_reel_test();
 
-	//render_live_recording_test();
+	render_live_recording_test();
 
 	render_test_screen();
-	usleep(3*1000000);
+
 	render_ftest();
 
     return 0;

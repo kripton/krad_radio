@@ -418,6 +418,7 @@ void kradgui_gtk_end(kradgui_t *kradgui) {
 	gtk_widget_destroy(kradgui_gtk->window);
 	gtk_main_quit();
 	gdk_threads_leave();
+	usleep(200000);	
 	free(kradgui->gui_ptr);
 	kradgui->gui_ptr = NULL;
 
