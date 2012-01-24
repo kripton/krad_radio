@@ -1,7 +1,7 @@
 #include "krad_gui.h"
 #include "krad_gui_gtk.h"
 
-#define TEST_TIME 90
+#define TEST_TIME 3000
 
 
 void render_nogtk_benchmark() {
@@ -42,14 +42,14 @@ void render_ftest() {
 
 	kradgui->update_drawtime = 1;
 	kradgui->print_drawtime = 1;
-	
+	//kradgui->render_wheel = 1;
 	kradgui->render_ftest = 1;
-	kradgui->render_tearbar = 1;
+	//kradgui->render_tearbar = 1;
 	//kradgui_test_screen(kradgui, "Gtk test");
 	
 	kradgui_gtk_start(kradgui);
 	
-	//kradgui_gtk_set_fps(kradgui, 3);
+	kradgui_gtk_set_fps(kradgui, 24);
 	
 	while (count < TEST_TIME) {
 
@@ -179,13 +179,13 @@ void render_reel_to_reel_test() {
 
 int main (int argc, char *argv[]) {
 
-	render_nogtk_benchmark();
+	//render_nogtk_benchmark();
 
-	render_reel_to_reel_test();
+	//render_reel_to_reel_test();
 
-	render_live_recording_test();
+	//render_live_recording_test();
 
-	render_test_screen();
+	//render_test_screen();
 
 	render_ftest();
 
