@@ -224,7 +224,7 @@ void kradgui_stop_recording(kradgui_t *kradgui);
 
 void kradgui_go_live(kradgui_t *kradgui);
 void kradgui_go_off(kradgui_t *kradgui);
-
+void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h);
 void kradgui_render_tearbar(kradgui_t *kradgui);
 void kradgui_render_wheel(kradgui_t *kradgui);
 void kradgui_render_ftest(kradgui_t *kradgui);
