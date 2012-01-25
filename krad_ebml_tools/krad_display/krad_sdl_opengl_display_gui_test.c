@@ -3,7 +3,7 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 44444
+#define TEST_COUNT 6233
 
 
 void test1() {

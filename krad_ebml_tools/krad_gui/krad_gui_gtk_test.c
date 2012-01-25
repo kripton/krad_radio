@@ -1,7 +1,7 @@
 #include "krad_gui.h"
 #include "krad_gui_gtk.h"
 
-#define TEST_TIME 3000
+#define TEST_TIME 5222
 
 
 void render_nogtk_benchmark() {

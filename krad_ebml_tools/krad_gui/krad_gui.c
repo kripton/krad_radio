@@ -312,48 +312,154 @@ void kradgui_render_grid (kradgui_t *kradgui, int x, int y, int w, int h, int li
 	cr = kradgui->cr;
 	cairo_matrix_t matrix;
 	int count;
-	
-	static float rot;
-	
-	static int rander = 0;
-	
-	int dorander = 0;
-	
-	if ((rander == 0) || (rand() % 200 > 196)) {
-	
-		rander = rand() % 90;
-		dorander = 1;
-	}
-	
+	int count2;
+//	static float rot;
+//	static float crack = 0;
+	srand(time(NULL));
 	cairo_save(cr);
 	cairo_translate (cr, x + w/2, y + h/2);
-	//
-	cairo_rotate (cr, rot * (M_PI/180.0));
-	//cairo_translate (cr, x + w/2, y + h/2);
-	rot += 0.30;
+	
+	
+
+	
+//	if ((int)rot % 90 < 45) {
+//		crack += 0.001;
+//	} else {
+//		crack -= 0.001;
+//	}
+	
+//	cairo_scale (cr, 1.0, 1.0 - crack);
+//	cairo_rotate (cr, rot * (M_PI/180.0));
+
+///	rot += 1.30;
+	
+//	if (rot > 360) {
+//		rot = 0;
+//	}
+	
 	cairo_translate (cr, -x + -w/2, -y + -h/2);
 	cairo_set_line_width(cr, 1.5);
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
+	cairo_set_source_rgb(cr, GREEN);
 	
+	//int verts[900];
+		cairo_save(cr);
+	static float pointy_positioner = 0.0f;
+	int pointy;
+	int pointy_start = 0;
+	int pointy_range = 10;
+	float pointy_final;
+	float pointy_final_adj;
+	float speed = 0.001;
+	int point1_x, point1_y, point2_x, point2_y;
+	
+	
+	cairo_translate (cr, x + w/2, y + h/2);
+	//	cairo_rotate (cr, -rot * (M_PI/180.0));
+	cairo_translate (cr, -x + -w/2, -y + -h/2);
 	for (count = 1; count != lines; count++) {
 	
 		cairo_move_to (cr, x + (w/lines) * count, y);
-	//	cairo_line_to (cr, x + (w/lines) * count, y + h);
-		cairo_curve_to (cr, (x + (w/lines) * count) - w/2 + rander, y + h/2 + rander, ((x + (w/lines) * count)) + rander, (y + h/2) + rander, x + (w/lines) * count, y + h);
+		/*
+		pointy = pointy_start + (pointy_range / 2) + round(pointy_range * sin(pointy_positioner) / 2);
 
+		pointy_positioner += speed * (rand() % 25);
+
+		if (pointy_positioner >= 2 * M_PI) {
+			pointy_positioner -= 2 * M_PI;
+			//new_speed = 1;
+		}
+	
+		pointy_final = pointy;
+	
+		pointy_final_adj = pointy_final / 3.0f;
+	
+		point1_x =  x + ((w/lines) * count);
+		point1_y =  -0.25 * h/lines;
+		point2_x =  x + ((w/lines) * count) * 1.7;
+		point2_y =  -0.75 * h/lines;
+	
+		point1_y = y + h/5;
+		point2_y = y + h/3;
+		
+		//printf("f1 %f f2 %f\n", pointy_final, pointy_final_adj);
+		
+		//cairo_curve_to (cr, point1_x, point1_y, point2_x, point2_y, x + (w/lines) * count, y + h);
+		*/
+		cairo_line_to (cr, x + (w/lines) * count, y + h);
+
+		cairo_stroke (cr);
+	}
+		cairo_restore(cr);
+	
+	for (count = 1; count != lines; count++) {
+		
 		cairo_move_to (cr, x, y + (h/lines) * count);
-		//cairo_line_to (cr, x + w, y + (h/lines) * count);	
-		cairo_curve_to (cr, x + w/6 + rander, y + (h/lines) * count/3 + rander, x + w/3 + rander, y + count + (h/lines) * count  + rander, x + w, y + (h/lines) * count);
-
-		if (dorander) {
-			rander = rand() % 190 + 1;
+		cairo_line_to (cr, x + w, y + (h/lines) * count);
+		cairo_stroke (cr);
+		
+	}
+	
+	/*
+	for (count = 1; count != lines; count++) {
+		for (count2 = 1; count2 != lines; 1 == 1) {
+		int verts[900];
 		}
 	}
-
+	*/
+	
+	
 	cairo_rectangle (cr, x, y, w, h);
 	cairo_stroke (cr);
 	
 	cairo_restore(cr);
+}
+
+void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
+
+
+	cairo_t *cr;
+	
+	static float hexrot = 0;
+	
+	cr = kradgui->cr;
+	cairo_save(cr);
+		cairo_set_line_width(cr, 3.5);
+		cairo_set_source_rgb(cr, BLUE);
+//	cairo_translate (cr, x + w/2 * sqrt(3), y + w/2 * sqrt(3));
+	cairo_translate (cr, x, y);
+	cairo_rotate (cr, hexrot * (M_PI/180.0));
+
+	cairo_translate (cr, -(w/2 * sqrt(3)) * 0.5, -(w/2 * sqrt(3)));
+
+	///cairo_translate (cr, w, w);
+	hexrot += 0.24;
+
+	cairo_move_to (cr, 0, 0);
+	cairo_rel_line_to (cr, w, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+	cairo_rel_line_to (cr, w, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+
+	cairo_rel_line_to (cr, w, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+
+	cairo_rel_line_to (cr, w, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+
+	cairo_rel_line_to (cr, w, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+
+	cairo_rel_line_to (cr, w, 0);
+
+//	cairo_stroke (cr);
+	
+	//cairo_rectangle (cr, 0, 0, w * 2, w * 2);
+	cairo_stroke (cr);
+//	cairo_fill (cr);
+	cairo_restore(cr);
+
+
 }
 
 
@@ -366,10 +472,12 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	cr = kradgui->cr;
 	
 	//kradgui_render_grid (kradgui, 300, 200, 280, 280, 17);
-	
+
+
+
 	int lines;
 	
-	lines = 35;
+	lines = 5;
 	
 	cairo_matrix_t matrix_rot;
 	cairo_matrix_t matrix_rot2;
@@ -461,16 +569,16 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	cairo_transform(cr, &matrix_scal4);
 	
 	cairo_set_source_rgba(cr, LGREEN);
-	cairo_move_to(cr, 0, 0);
-	cairo_line_to (cr, w, h);
-	cairo_stroke (cr);
+//	cairo_move_to(cr, 0, 0);
+//	cairo_line_to (cr, w, h);
+//	cairo_stroke (cr);
 	
 	cairo_set_source_rgb(cr, GREEN);
 	//kradgui_render_grid (kradgui, 0, 0, w, h, lines);
 
-	cairo_rectangle (cr, 0, 0, w, h);
+//cairo_rectangle (cr, 0, 0, w, h);
 	//cairo_fill (cr);
-	cairo_stroke (cr);
+//cairo_stroke (cr);
 
 	cairo_restore(cr);
 	cairo_save(cr);
@@ -481,15 +589,28 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	cairo_transform(cr, &matrix_scal4);
 	
 	cairo_set_source_rgba(cr, LGREEN);
-	cairo_move_to(cr, 0, 0);
-	cairo_line_to (cr, w, h);
-	cairo_stroke (cr);
+//	cairo_move_to(cr, 0, 0);
+//	cairo_line_to (cr, w, h);
+//	cairo_stroke (cr);
 	
 	
 	cairo_set_source_rgb(cr, GREEN);
 	//kradgui_render_grid (kradgui, 0, 0, w, h, lines);
-	cairo_rectangle (cr, 0, 0, w, h);
+//cairo_rectangle (cr, 0, 0, w, h);
 	//cairo_fill (cr);	
+//cairo_stroke (cr);
+	
+	cairo_close_path (cr);
+	cairo_restore(cr);
+	
+	cairo_set_source_rgb(cr, BLUE);
+	cairo_move_to (cr, (x - h) - 70, y - w/2);
+	cairo_curve_to (cr, x - h,  y + 45.5, x/2,  y + 64.5, x - h + 40, y + w	-5);
+	cairo_stroke (cr);
+	
+	cairo_set_source_rgb(cr, ORANGE);
+	cairo_move_to (cr, (x - h) - 30, y - w/2);
+	cairo_curve_to (cr, x - h, y + 48.5, x/2,  y + 68.5, x - h + 77, y +  68);
 	cairo_stroke (cr);
 	
 	cairo_restore(cr);
@@ -511,17 +632,27 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
 	
-	cairo_move_to (cr, 25, 25);
-	cairo_line_to (cr, 50, 50);
-	cairo_stroke (cr);
+	//cairo_move_to (cr, 25, 25);
+	//cairo_line_to (cr, 50, 50);
+	//cairo_stroke (cr);
+		kradgui_render_hex (kradgui, 444, 444, 33);
+
+
+	kradgui_render_hex (kradgui, 474, 444, 13);
+	kradgui_render_hex (kradgui, 484, 444, 3);
+
+	kradgui_render_hex (kradgui, 544, 444, 53);
+
+	kradgui_render_hex (kradgui, 644, 444, 63);
+
+	kradgui_render_hex (kradgui, 744, 444, 23);
 	
-	
-	kradgui_render_cube (kradgui, 150, 150, 400, 400);
+	kradgui_render_cube (kradgui, 350, 230, 100, 200);
 	
 	//kradgui_render_cube (kradgui, 450, 450, 150, 150);
 	
 	
-	cairo_move_to (cr, 0.15 * w, 0.55 * h);	
+	//cairo_move_to (cr, 0.15 * w, 0.55 * h);	
 	
 	static float pointy_positioner = 0.0f;
 	int pointy;
@@ -556,10 +687,10 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 		
 	//printf("f1 %f f2 %f\n", pointy_final, pointy_final_adj);
 		
-	cairo_curve_to (cr, point1_x, point1_y, point2_x, point2_y, 0.85 * w, 0.85 * h);
+	//cairo_curve_to (cr, point1_x, point1_y, point2_x, point2_y, 0.85 * w, 0.85 * h);
 	//cairo_close_path (cr);
 
-	cairo_stroke (cr);
+	//cairo_stroke (cr);
 
 	cairo_set_source_rgb(cr, GREEN);
 	cairo_arc (cr, 0.7 * w, 0.341 * h, 0.07 * h, 0, 2*M_PI);
