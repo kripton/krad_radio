@@ -317,42 +317,42 @@ void kradgui_render_grid (kradgui_t *kradgui, int x, int y, int w, int h, int li
 	
 
 	
-	if ((m == 1) || (m == 3)) {
+	//if ((m == 1) || (m == 3)) {
 		cairo_matrix_init(&matrix,
 		  1.0, 0.5,
 		  0.0, 1.0,
 		  0.0, 0.0);
 		  
-		  cairo_translate (cr, 0, -(y));
+		  //cairo_translate (cr, 0, -(y));
 		  
-	}
+	//}
 
 
-	if ((m == 2) || (m == 3)) {
+	//if ((m == 2) || (m == 3)) {
 
 		//x = x + w;
 		//y = y + h;
 
-		cairo_matrix_init(&matrix,
-		  1.0, -0.5,
-		  0.0, 1.0,
-		  0.0, 0.0);
+	//	cairo_matrix_init(&matrix,
+	//	  1.0, -0.5,
+	//	  0.0, 1.0,
+	//	  0.0, 0.0);
 
 		//cairo_translate (cr, 0, -(y));
 
-	}
+	//}
 
 
 	//cairo_translate (cr, (x), -(y));
 
 
-	cairo_transform(cr, &matrix);
+	//cairo_transform(cr, &matrix);
 
-	if ((m == 2) || (m == 3)) {
+	//if ((m == 2) || (m == 3)) {
 	
-		cairo_translate (cr, x, (y));
+	//	cairo_translate (cr, x, (y));
 
-	}
+	//}
 
 	
 	cairo_set_line_width(cr, 3);
@@ -383,22 +383,192 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 
 	cairo_t *cr;
 	cr = kradgui->cr;
+	cairo_matrix_t matrix_rot;
+	cairo_matrix_t matrix_rot2;
+	cairo_matrix_t matrix_rot3;
+
+	cairo_matrix_t matrix_trans;
+	cairo_matrix_t matrix_trans2;
+	cairo_matrix_t matrix_trans3;
 	
+	cairo_matrix_t matrix_sher;
+	cairo_matrix_t matrix_sher2;
+	cairo_matrix_t matrix_sher3;
+
+	cairo_matrix_t matrix_scal;
+	cairo_matrix_t matrix_scal2;
+	cairo_matrix_t matrix_scal3;
+	cairo_matrix_t matrix_scal4;
+	
+	cairo_matrix_t matrix_scal_sher;
+	cairo_matrix_t matrix_scal_sher_rot;
+	cairo_matrix_t matrix_scal_sher_rot_trans;
+
+	
+	cairo_matrix_t matrix_scal_sher2;
+	cairo_matrix_t matrix_scal_sher_rot2;
+	//cairo_matrix_t matrix_scal2_sher_rot2;
+	cairo_matrix_t matrix_scal_sher_rot_trans2;
+	
+	cairo_matrix_t matrix_scal_sher3;
+	cairo_matrix_t matrix_scal_sher_rot3;
+	//cairo_matrix_t matrix_scal2_sher_rot3;
+	cairo_matrix_t matrix_scal_sher_rot_trans3;
+	
+
+
 	int w, h;
+	static float shear = -0.579595f;
+	
+	//shear = -0.572f
+	//shear -= 0.001;
+	
+	//printf("\nshear is %f\n", shear);
 	
 	w = kradgui->width;
 	h = kradgui->height;
 	
+	cairo_matrix_init_translate(&matrix_trans, 239, 240.5);
+	cairo_matrix_init_translate(&matrix_trans2, 240, 140.0);
+	cairo_matrix_init_translate(&matrix_trans3, 241, 240.5);
+	
+	cairo_matrix_init_scale(&matrix_scal, 1.0, 0.86062);
+	
+	cairo_matrix_init_scale(&matrix_scal2, 1.0, 1.0);
+	cairo_matrix_init_scale(&matrix_scal3, 1.0, 1.0);
+	cairo_matrix_init_scale(&matrix_scal4, 1.0, 1.0);
+		
+	cairo_matrix_init_rotate(&matrix_rot, (90.0f) * (M_PI/180.0));
+	cairo_matrix_init_rotate(&matrix_rot2, (30.0f) * (M_PI/180.0));
+	cairo_matrix_init_rotate(&matrix_rot3, (-30.0f) * (M_PI/180.0));
+	
+	cairo_matrix_init(&matrix_sher, 1.0, 0.0, shear, 1.0, 0.0, 0.0);
+	cairo_matrix_init(&matrix_sher2, 1.0, 0.0, shear, 1.0, 0.0, 0.0);
+	cairo_matrix_init(&matrix_sher3, 1.0, 0.0, shear, 1.0, 0.0, 0.0);
+
+	
+	cairo_matrix_multiply (&matrix_scal_sher, &matrix_scal, &matrix_sher);
+	cairo_matrix_multiply (&matrix_scal_sher2, &matrix_scal, &matrix_sher2);
+	cairo_matrix_multiply (&matrix_scal_sher3, &matrix_scal, &matrix_sher3);
+	
+	
+	cairo_matrix_multiply (&matrix_scal_sher_rot, &matrix_scal_sher, &matrix_rot);
+	cairo_matrix_multiply (&matrix_scal_sher_rot2, &matrix_scal_sher2, &matrix_rot2);
+	cairo_matrix_multiply (&matrix_scal_sher_rot3, &matrix_scal_sher3, &matrix_rot3);	
+
+
+	//cairo_matrix_multiply (&matrix_scal2_sher_rot2, &matrix_scal2_sher_rot2, &matrix_scal2);
+	//cairo_matrix_multiply (&matrix_scal2_sher_rot3, &matrix_scal2_sher_rot3, &matrix_scal2);	
+
+
+	cairo_matrix_multiply (&matrix_scal_sher_rot_trans, &matrix_scal_sher_rot, &matrix_trans);
+	//cairo_matrix_multiply (&matrix_scal_sher_rot_trans2, &matrix_scal2_sher_rot2, &matrix_trans2);
+	//cairo_matrix_multiply (&matrix_scal_sher_rot_trans3, &matrix_scal2_sher_rot3, &matrix_trans3);
+	
+	cairo_matrix_multiply (&matrix_scal_sher_rot_trans2, &matrix_scal_sher_rot2, &matrix_trans2);
+	cairo_matrix_multiply (&matrix_scal_sher_rot_trans3, &matrix_scal_sher_rot3, &matrix_trans3);
+	
 	cairo_save(cr);
-	cairo_set_line_width(cr, 7);
-	cairo_set_source_rgb(cr, BLUE);
+	cairo_set_line_width(cr, 2);
+
+
+
+	////
+	cairo_set_source_rgb(cr, GREEN);
+	cairo_save(cr);
+	
+
+	
+	cairo_transform(cr, &matrix_scal_sher_rot_trans2);
+	cairo_transform(cr, &matrix_scal4);
+	
+	int lines = 10;
+	int count;
+	int x, y;
+	
+	x = 0;
+	y = 0;
+	
+	w = 100;
+	h = 100;
+	
+	for (count = 1; count != lines; count++) {
+	
+		cairo_move_to (cr, x + (w/lines) * count, y);
+		cairo_line_to (cr, x + (w/lines) * count, y + h);
+
+		cairo_move_to (cr, x, y + (h/lines) * count);
+		cairo_line_to (cr, x + w, y + (h/lines) * count);	
+
+	}
+	
+	
+	
+	
+	cairo_rectangle (cr, 0, 0, 100, 100);
+	//cairo_fill (cr);
+	cairo_stroke (cr);
+	
+	cairo_restore(cr);
+	cairo_save(cr);
+
+	//cairo_set_source_rgb(cr, ORANGE);
+	cairo_transform(cr, &matrix_scal_sher_rot_trans);
+	cairo_transform(cr, &matrix_scal2);
+	cairo_transform(cr, &matrix_scal4);
+	
+	cairo_set_source_rgba(cr, LGREEN);
+	cairo_move_to(cr, 0, 0);
+	cairo_line_to (cr, 100, 100);
+	cairo_stroke (cr);
+	
+	
+	cairo_set_source_rgb(cr, GREEN);
+	
+	cairo_rectangle (cr, 0, 0, 100, 100);
+	//cairo_fill (cr);
+	cairo_stroke (cr);
+
+	cairo_restore(cr);
+	cairo_save(cr);
+
+	//cairo_set_source_rgb(cr, BLUE);
+	cairo_transform(cr, &matrix_scal_sher_rot_trans3);
+	cairo_transform(cr, &matrix_scal3);
+	cairo_transform(cr, &matrix_scal4);
+	
+	cairo_set_source_rgba(cr, LGREEN);
+	cairo_move_to(cr, 0, 0);
+	cairo_line_to (cr, 100, 100);
+	cairo_stroke (cr);
+	
+	
+	cairo_set_source_rgb(cr, GREEN);
+	
+	cairo_rectangle (cr, 0, 0, 100, 100);
+	//cairo_fill (cr);	
+	cairo_stroke (cr);
+	
+
+	
+	cairo_restore(cr);
+
+
+//	cairo_set_source_rgb(cr, LGREEN);
+//	kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 1);
+
+
+	w = kradgui->width;
+	h = kradgui->height;
+	cairo_set_line_width(cr, 22);
+
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
 	
 	cairo_move_to (cr, 25, 25);
 	cairo_line_to (cr, 50, 50);
 	cairo_stroke (cr);
 	
-	cairo_move_to (cr, 0.15 * w, 0.5 * h);
+	cairo_move_to (cr, 0.15 * w, 0.55 * h);
 	//cairo_line_to (cr, 0.5 * w, 0.5 * h);
 	//cairo_line_to (cr, 0.5 * w, 0.375 * h);
 	//cairo_rel_line_to (cr, 0.25 * w, -0.125 * h);
@@ -407,11 +577,11 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	
 	static float pointy_positioner = 0.0f;
 	int pointy;
-	int pointy_start = 25;
-	int pointy_range = 93;
+	int pointy_start = 15;
+	int pointy_range = 83;
 	float pointy_final;
 	float pointy_final_adj;
-	float speed = 0.07;
+	float speed = 0.021;
 	
 	pointy = pointy_start + (pointy_range / 2) + round(pointy_range * sin(pointy_positioner) / 2);
 
@@ -438,28 +608,31 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 		
 	//printf("f1 %f f2 %f\n", pointy_final, pointy_final_adj);
 		
-	cairo_curve_to (cr, point1_x, point1_y, point2_x, point2_y, 0.85 * w, 0.50 * h);
+	cairo_curve_to (cr, point1_x, point1_y, point2_x, point2_y, 0.85 * w, 0.85 * h);
 	//cairo_close_path (cr);
 
 	cairo_stroke (cr);
 
 	cairo_set_source_rgb(cr, GREEN);
-	cairo_arc (cr, (0.50 + pointy_final_adj) * w, 0.75 * h, 0.07 * h, 0, 2*M_PI);
+	cairo_arc (cr, 0.7 * w, 0.341 * h, 0.07 * h, 0, 2*M_PI);
 	cairo_stroke (cr);
 
 
 	cairo_set_source_rgb(cr, ORANGE);
-	cairo_arc (cr, 0.7 * w, 0.75 * h, (0.07 + (pointy_final_adj/2))* h, 0, 2*M_PI);
+	cairo_arc (cr, 0.7 * w, 0.341 * h, (0.07 + (pointy_final_adj/2))* h, 0, 2*M_PI);
 	cairo_stroke (cr);
 
-	cairo_set_source_rgb(cr, GREEN);
-	kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 1);
-	cairo_set_source_rgb(cr, ORANGE);
-	kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 2);
-	cairo_set_source_rgb(cr, WHITE);
-	kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 3);
-	cairo_set_source_rgb(cr, WHITE);
-	kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 4);
+	//cairo_set_source_rgb(cr, GREEN);
+	//kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 1);
+	//cairo_set_source_rgb(cr, ORANGE);
+	//kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 2);
+	//cairo_set_source_rgb(cr, WHITE);
+	//kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 3);
+	//cairo_set_source_rgb(cr, WHITE);
+	//kradgui_render_grid (kradgui, 200, 200, 200, 200, 3, 4);
+	
+
+	
 	cairo_restore(cr);
 
 }

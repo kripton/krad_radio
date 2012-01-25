@@ -49,7 +49,7 @@ void render_ftest() {
 	
 	kradgui_gtk_start(kradgui);
 	
-	kradgui_gtk_set_fps(kradgui, 24);
+	kradgui_gtk_set_fps(kradgui, 110);
 	
 	while (count < TEST_TIME) {
 

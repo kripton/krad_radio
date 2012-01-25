@@ -3,7 +3,7 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 444
+#define TEST_COUNT 44444
 
 
 void test1() {
@@ -43,11 +43,13 @@ void test1() {
 
 	test_info = "This is a test of the krad opengl display system 1";
 
-	kradgui_test_screen(kradgui, test_info);
+	//kradgui_test_screen(kradgui, test_info);
 	
 	kradgui->update_drawtime = 1;
 	kradgui->print_drawtime = 1;
 	//kradgui->render_tearbar = 1;
+	
+	kradgui->render_ftest = 1;
 	
 	while (count < TEST_COUNT) {
 
