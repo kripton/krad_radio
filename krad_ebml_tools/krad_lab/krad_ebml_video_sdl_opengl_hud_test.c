@@ -334,7 +334,7 @@ int main (int argc, char *argv[]) {
 
 
 
-		if ( SDL_PollEvent( &event ) ){
+		while ( SDL_PollEvent( &event ) ){
 			switch( event.type ){
 				/* Look for a keypress */
 				case SDL_KEYDOWN:
@@ -371,6 +371,12 @@ int main (int argc, char *argv[]) {
 				            break;
 				    }
 				    break;
+
+				case SDL_MOUSEMOTION:
+					//printf("mouse!\n");
+					kradgui->cursor_x = event.motion.x;
+					kradgui->cursor_y = event.motion.y;
+					break;	
 				
 				default:
 				    break;
@@ -380,8 +386,6 @@ int main (int argc, char *argv[]) {
 		if (shutdown == 1) {
 			break;
 		}
-
-    
 	}
 	
 	printf("\n");

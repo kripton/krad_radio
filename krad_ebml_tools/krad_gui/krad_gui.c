@@ -42,7 +42,11 @@ kradgui_t *kradgui_create_with_internal_surface(int width, int height) {
 	kradgui = kradgui_create(width, height);
 		
 	kradgui_create_internal_surface(kradgui);
-		
+	
+	//incase calloc takes time
+	kradgui_reset_elapsed_time(kradgui);
+	clock_gettime(CLOCK_MONOTONIC, &kradgui->start_time);
+
 	return kradgui;
 
 }
@@ -833,15 +837,10 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 
 void kradgui_render_vtest (kradgui_t *kradgui) {
 
-	int mx, my;
-	
-	mx = 33;
-	my = 33;
 	
 	//#ifdef SDLGUI
 	SDL_ShowCursor(0);
-	SDL_PumpEvents();
-	SDL_GetMouseState(&mx, &my);
+
 	//#endif
 	//printf("x %d y %d\n", mx, my);
 
@@ -867,27 +866,27 @@ if (g < 0) {
 	g = 0;
 }
 
-g = (mx * 100) / kradgui->width;
+g = (kradgui->cursor_x * 100) / kradgui->width;
 
 
-	kradgui_render_hex (kradgui, mx, my, 14);
+	kradgui_render_hex (kradgui, kradgui->cursor_x, kradgui->cursor_y, 14);
 
 
 static int vposx = 0;
 static int vposy = 0;
 static int vdir = 0;
-if (mx > vposx) {
+if (kradgui->cursor_x > vposx) {
 vposx++;
 } else {
 vposx--;
 }
 
-if (my > vposy) {
+if (kradgui->cursor_y > vposy) {
 vposy++;
 } else {
 vposy--;
 }
-vdir = atan2 (my - vposy, mx - vposx) * 180 / M_PI;
+vdir = atan2 (kradgui->cursor_y - vposy, kradgui->cursor_x - vposx) * 180 / M_PI;
 
 static float vposx2 = 666;
 static float vposy2 = 666;
@@ -926,17 +925,11 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	cairo_set_line_width(cr, 22);
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
 	
-	int mx, my;
-	
-	mx = 33;
-	my = 33;
-	
 	//#ifdef SDLGUI
-	SDL_ShowCursor(0);
-	SDL_PumpEvents();
-	SDL_GetMouseState(&mx, &my);
+	//SDL_ShowCursor(0);
+
 	//#endif
-	//printf("x %d y %d\n", mx, my);
+	//printf("m x %d y %d\n", kradgui->cursor_x, kradgui->cursor_y);
 
 /*
 	kradgui_render_cube (kradgui, 590, 230, 100, 100);
@@ -960,27 +953,27 @@ if (g < 0) {
 	g = 0;
 }
 
-g = (mx * 100) / kradgui->width;
+g = (kradgui->cursor_x * 100) / kradgui->width;
 
 
-	kradgui_render_hex (kradgui, mx, my, 33);
+	kradgui_render_hex (kradgui, kradgui->cursor_x, kradgui->cursor_y, 33);
 
 
 static int vposx = 0;
 static int vposy = 0;
 static int vdir = 0;
-if (mx > vposx) {
+if (kradgui->cursor_x > vposx) {
 vposx++;
 } else {
 vposx--;
 }
 
-if (my > vposy) {
+if (kradgui->cursor_y > vposy) {
 vposy++;
 } else {
 vposy--;
 }
-vdir = atan2 (my - vposy, mx - vposx) * 180 / M_PI;
+vdir = atan2 (kradgui->cursor_y - vposy, kradgui->cursor_x - vposx) * 180 / M_PI;
 
 static float vposx2 = 666;
 static float vposy2 = 666;
@@ -1022,8 +1015,7 @@ vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 	//kradgui_render_meter (kradgui, 233, 533, 88, g);
 	
 	kradgui_render_meter (kradgui, 633, 533, 188, g);
-	
-	cairo_restore(cr);
+
 
 }
 

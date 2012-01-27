@@ -23,8 +23,8 @@ void test1(int times) {
 	width = 1280;
 	height = 720;
 
-	//width = 1920;
-	//height = 1080;
+	width = 1920;
+	height = 1080;
 
 	count = 0;
 	
@@ -82,17 +82,21 @@ void test2(int times) {
 
 	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
 	kradgui_t *kradgui;
-	
+
+	SDL_Event event;	
+
 	int width, height;
 	int count;
-	
+	int shutdown;
 	char *test_info;
 	
+	shutdown = 0;
+
 	width = 1280;
 	height = 720;
 
-	//width = 1920;
-	//height = 1080;
+//	width = 1920;
+//	height = 1080;
 
 	count = 0;
 	
@@ -102,25 +106,99 @@ void test2(int times) {
 
 	test_info = "This is a test of the krad opengl display system 2";
 
-	kradgui_test_screen(kradgui, test_info);
+	//kradgui_test_screen(kradgui, test_info);
 	
-	kradgui->update_drawtime = 1;
-	kradgui->print_drawtime = 1;
+	//kradgui->update_drawtime = 1;
+	//kradgui->print_drawtime = 1;
 	//kradgui->render_tearbar = 1;
 	
+	kradgui->render_ftest = 1;
+
 	while (count < times) {
 
+		kradgui_start_draw_time(kradgui);
+	
 		kradgui_render(kradgui);
 
 	
-		memcpy(krad_sdl_opengl_display->rgb_frame_data, kradgui->data, kradgui->bytes);
-	
-		//usleep(20000);
-	
+		memcpy(krad_sdl_opengl_display->rgb_frame_data, kradgui->data, kradgui->bytes);		
+
 		krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
+
+		kradgui_end_draw_time(kradgui);
+		printf("Frame: %llu :: %s\r", kradgui->frame, kradgui->draw_time_string);
+		fflush(stdout);
 
 		count++;
 
+		if (count % 300 == 0) {
+			kradgui_update_elapsed_time(kradgui);
+			kradgui_update_elapsed_time_timecode_string(kradgui);
+			printf("\n\n300 Frames in :: %s\n\n", kradgui->elapsed_time_timecode_string);
+			fflush(stdout);
+			kradgui_reset_elapsed_time(kradgui);
+
+		}
+
+		usleep(5500);
+
+		while ( SDL_PollEvent( &event ) ){
+			switch( event.type ){
+				/* Look for a keypress */
+				case SDL_KEYDOWN:
+				    /* Check the SDLKey values and move change the coords */
+				    switch( event.key.keysym.sym ){
+				        case SDLK_LEFT:
+				            break;
+				        case SDLK_RIGHT:
+				            break;
+				        case SDLK_UP:
+				            break;
+				        case SDLK_q:
+				        	shutdown = 1;
+				            break;
+				        case SDLK_f:
+				        	
+				            break;
+				        default:
+				            break;
+				    }
+				    break;
+
+				case SDL_KEYUP:
+				    switch( event.key.keysym.sym ) {
+				        case SDLK_LEFT:
+				            break;
+				        case SDLK_RIGHT:
+				            break;
+				        case SDLK_UP:
+				            break;
+				        case SDLK_DOWN:
+				            break;
+				        default:
+				            break;
+				    }
+				    break;
+
+				case SDL_MOUSEMOTION:
+
+					kradgui->cursor_x = event.motion.x;
+					kradgui->cursor_y = event.motion.y;
+				
+					//printf("mouse! %d %d\n", kradgui->cursor_x, kradgui->cursor_y);
+
+					break;	
+				
+				default:
+				    break;
+			}
+		}
+
+		if (shutdown == 1) {
+			break;
+		}
+
+	
 	}
 
 	krad_sdl_opengl_display_destroy(krad_sdl_opengl_display);
@@ -139,9 +217,9 @@ int main (int argc, char *argv[]) {
 	}
 
 
-	test1(times);
+//	test1(times);
 	
-//	test2(times);
+	test2(times);
 	
 	return 0;
 
