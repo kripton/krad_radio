@@ -331,10 +331,42 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 
 	cairo_save(cr);
 	cairo_translate (cr, x, y);
-
-	cairo_set_source_rgb(cr, ORANGE);
-	cairo_arc (cr, 0, 0, 0.8 * size, 0, M_PI);
+	cairo_set_line_width(cr, 2);
+	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
+	cairo_set_source_rgb(cr, GREY3);
+	cairo_arc (cr, 0, 0, 0.8 * size, M_PI, 0);
 	cairo_stroke (cr);
+	
+	cairo_set_source_rgb(cr, ORANGE);
+	cairo_arc (cr, 0, 0, 0.65 * size, 1.8 * M_PI, 0);
+	cairo_stroke (cr);
+
+	cairo_arc (cr, size - 0.61 * size, -0.15 * size, 0.07 * size, 0, 2 * M_PI);
+	cairo_fill(cr);
+
+	cairo_save(cr);
+	cairo_translate (cr, 0.05 * size, 0);
+	cairo_rotate (cr, pos * (M_PI/180.0));	
+	
+	cairo_pattern_t *pat;
+	pat = cairo_pattern_create_linear (0, 0, 0.11 * size, 0);
+	cairo_pattern_add_color_stop_rgba (pat, 0, 0, 0, 0, 0);
+	cairo_pattern_add_color_stop_rgba (pat, 0.3, 0, 0, 0, 0);	
+	cairo_pattern_add_color_stop_rgba (pat, 0.4, 0, 0, 0, 1);	
+	cairo_pattern_add_color_stop_rgba (pat, 1, 0, 0, 0, 0);
+	cairo_set_source (cr, pat);
+	cairo_rectangle (cr, 0, 0, 0.11 * size, -size);
+	cairo_fill (cr);
+	
+	cairo_set_source_rgb(cr, WHITE);
+	cairo_move_to (cr, 0, 0);
+	cairo_line_to (cr, 0, -size);
+	cairo_stroke (cr);
+	
+	cairo_restore(cr);
+	cairo_set_source_rgb(cr, WHITE);
+	cairo_arc (cr, 0.05 * size, 0, 0.1 * size, 0, 2 * M_PI);
+	cairo_fill(cr);
 	
 	cairo_restore(cr);
 	
@@ -394,7 +426,7 @@ void kradgui_render_grid (kradgui_t *kradgui, int x, int y, int w, int h, int li
 	cr = kradgui->cr;
 	int count;
 
-	srand(time(NULL));
+	//srand(time(NULL));
 	cairo_save(cr);
 	cairo_translate (cr, x + w/2, y + h/2);
 	
@@ -770,7 +802,22 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	
 	kradgui_render_circles (kradgui, mx,  my);
 
+static int g = 0;
 
+g += (rand() % 5);
+g -= (rand() % 5);
+
+if (g > 90) {
+	g = 90;
+}
+
+if (g < -90) {
+	g = -90;
+}
+
+
+
+printf("\n\ng is --%d--\n\n", g);
 
 	kradgui_render_hex (kradgui, 444, 222, 33);
 	kradgui_render_hex (kradgui, 474, 333, 13);
@@ -779,9 +826,13 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	kradgui_render_hex (kradgui, 644, 290, 63);
 	kradgui_render_hex (kradgui, 744, 410, 23);
 	
-	kradgui_render_meter (kradgui, 33, 33, 33, 66);
+	kradgui_render_meter (kradgui, 33, 33, 33, g);
 
-	kradgui_render_meter (kradgui, 233, 233, 44, 33);
+	kradgui_render_meter (kradgui, 233, 233, 44, g);
+	
+	kradgui_render_meter (kradgui, 233, 533, 88, g);
+	
+	kradgui_render_meter (kradgui, 633, 533, 188, g);
 	
 	cairo_restore(cr);
 
