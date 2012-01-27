@@ -3,10 +3,10 @@
 
 #include "SDL.h"
 
-#define TEST_COUNT 6233
+#define TEST_COUNT 433
 
 
-void test1() {
+void test1(int times) {
 
 
 	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
@@ -51,7 +51,7 @@ void test1() {
 	
 	kradgui->render_ftest = 1;
 	
-	while (count < TEST_COUNT) {
+	while (count < times) {
 
 		cr = cairo_create(cst);
 		kradgui->cr = cr;
@@ -75,7 +75,7 @@ void test1() {
 	free(gui_data);
 }
 
-void test2() {
+void test2(int times) {
 
 
 	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
@@ -106,7 +106,7 @@ void test2() {
 	kradgui->print_drawtime = 1;
 	//kradgui->render_tearbar = 1;
 	
-	while (count < TEST_COUNT) {
+	while (count < times) {
 
 		kradgui_render(kradgui);
 
@@ -128,9 +128,18 @@ void test2() {
 
 int main (int argc, char *argv[]) {
 
-	test1();
+	int times;
+
+	if (argc == 2) {
+		times = atoi(argv[1]);
+	} else {
+		times = TEST_COUNT;
+	}
+
+
+	test1(times);
 	
-	test2();
+//	test2(times);
 	
 	return 0;
 
