@@ -335,7 +335,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 
 	cairo_save(cr);
 	cairo_translate (cr, x, y);
-	cairo_set_line_width(cr, 2);
+	cairo_set_line_width(cr, 0.05 * size);
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
 	cairo_set_source_rgb(cr, GREY3);
 	cairo_arc (cr, 0, 0, 0.8 * size, M_PI, 0);
@@ -345,7 +345,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 	cairo_arc (cr, 0, 0, 0.65 * size, 1.8 * M_PI, 0);
 	cairo_stroke (cr);
 
-	cairo_arc (cr, size - 0.61 * size, -0.15 * size, 0.07 * size, 0, 2 * M_PI);
+	cairo_arc (cr, size - 0.56 * size, -0.15 * size, 0.07 * size, 0, 2 * M_PI);
 	cairo_fill(cr);
 
 	cairo_save(cr);
@@ -364,7 +364,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 	
 	cairo_set_source_rgb(cr, WHITE);
 	cairo_move_to (cr, 0, 0);
-	cairo_line_to (cr, 0, -size);
+	cairo_line_to (cr, 0, -size * 0.93);
 	cairo_stroke (cr);
 	
 	cairo_restore(cr);
@@ -464,6 +464,64 @@ void kradgui_render_grid (kradgui_t *kradgui, int x, int y, int w, int h, int li
 	cairo_stroke (cr);
 	
 	cairo_restore(cr);
+}
+
+void kradgui_render_viper (kradgui_t *kradgui, int x, int y, int size, int direction) {
+
+	cairo_t *cr;
+
+	cr = kradgui->cr;
+
+	cairo_save(cr);
+	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
+
+	cairo_set_line_width(cr, size/7);
+	cairo_set_source_rgb(cr, WHITE);
+	cairo_translate (cr, x, y);
+
+	cairo_arc (cr, 0.0, 0.0, size/2, 0, 2*M_PI);
+	cairo_stroke(cr);
+	
+	cairo_set_source_rgb(cr, GREEN);
+
+	cairo_arc (cr, 0.0, -size/5, size/14, 0, 2*M_PI);
+	cairo_stroke(cr);
+
+	cairo_rotate (cr, 40 * (M_PI/180.0));
+	cairo_arc (cr, size/3.8, 0.0, size/14, 0, 2*M_PI);
+	cairo_stroke(cr);
+	cairo_move_to(cr, size/1.8,  0.0);
+	cairo_rel_line_to (cr, size/2.3, 0.0);
+	cairo_stroke(cr);
+
+	cairo_rotate (cr, 100 * (M_PI/180.0));
+	cairo_arc (cr, size/3.8, 0.0, size/14, 0, 2*M_PI);
+	cairo_stroke(cr);
+	cairo_move_to(cr, size/1.8,  0.0);
+	cairo_rel_line_to (cr, size/2.3, 0.0);
+	cairo_stroke(cr);
+
+	cairo_rotate (cr, 130 * (M_PI/180.0));
+	cairo_move_to(cr, size/1.8,  0.0);
+	cairo_rel_line_to (cr, size/2.3, 0.0);
+	cairo_stroke(cr);
+
+	cairo_set_source_rgb(cr, WHITE);
+	cairo_rotate (cr, (180 + direction - 90) * (M_PI/180.0));
+	cairo_move_to(cr, size/1.6,  size/6);
+	cairo_rel_line_to (cr, size/6, -size/6);
+	cairo_rel_line_to (cr, -size/6, -size/6);
+	//cairo_rel_line_to(cr, size/1.6,  size/6);
+	cairo_fill(cr);
+
+	cairo_set_line_width(cr, size/7);
+	cairo_rotate (cr, 180 * (M_PI/180.0));
+	cairo_move_to(cr, size/1.6, 0.0);
+	cairo_rel_line_to (cr, size/8, 0.0);
+	cairo_stroke(cr);
+	
+	cairo_restore(cr);
+
 }
 
 void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
@@ -792,12 +850,13 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	my = 33;
 	
 	//#ifdef SDLGUI
+	SDL_ShowCursor(0);
 	SDL_PumpEvents();
 	SDL_GetMouseState(&mx, &my);
 	//#endif
 	//printf("x %d y %d\n", mx, my);
 
-
+/*
 	kradgui_render_cube (kradgui, 590, 230, 100, 100);
 	kradgui_render_cube (kradgui, 375, 260, 100, 100);
 	kradgui_render_cube (kradgui,  550,  430, 20, 20);
@@ -805,36 +864,80 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	kradgui_render_curve(kradgui, mx, my);
 	
 	kradgui_render_circles (kradgui, mx,  my);
-
-static int g = 50;
+*/
+static int g = 0;
 
 g += (rand() % 5);
 g -= (rand() % 5);
 
 if (g > 100) {
-	g = 90;
+	g = 100;
 }
 
 if (g < 0) {
 	g = 0;
 }
 
+g = (mx * 100) / kradgui->width;
 
 
-printf("\n\ng is --%d--\n\n", g);
+	kradgui_render_hex (kradgui, mx, my, 33);
 
+
+static int vposx = 0;
+static int vposy = 0;
+static int vdir = 0;
+if (mx > vposx) {
+vposx++;
+} else {
+vposx--;
+}
+
+if (my > vposy) {
+vposy++;
+} else {
+vposy--;
+}
+vdir = atan2 (my - vposy, mx - vposx) * 180 / M_PI;
+
+static float vposx2 = 666;
+static float vposy2 = 666;
+static int vdir2 = 0;
+if (vposx > vposx2) {
+vposx2 += 0.2;
+} else {
+vposx2 -= 0.2;
+}
+
+if (vposy > vposy2) {
+vposy2 += 0.3;
+} else {
+vposy2 -= 0.7;
+}
+vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
+
+
+	printf("\nvdr is --%d--\n", vdir);
+	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);
+	
+	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
+	kradgui_render_viper (kradgui, 474, 333, 13, 99);
+
+	kradgui_render_viper (kradgui, 544, 555, 53, 222);
+	
+/*
 	kradgui_render_hex (kradgui, 444, 222, 33);
 	kradgui_render_hex (kradgui, 474, 333, 13);
 	kradgui_render_hex (kradgui, mx, my, 44);
 	kradgui_render_hex (kradgui, 544, 555, 53);
 	kradgui_render_hex (kradgui, 644, 290, 63);
 	kradgui_render_hex (kradgui, 744, 410, 23);
-	
-	kradgui_render_meter (kradgui, 33, 33, 33, g);
+*/	
+	kradgui_render_meter (kradgui, 63, 33, 33, g);
 
-	kradgui_render_meter (kradgui, 233, 233, 44, g);
+	//kradgui_render_meter (kradgui, 233, 233, 44, g);
 	
-	kradgui_render_meter (kradgui, 233, 533, 88, g);
+	//kradgui_render_meter (kradgui, 233, 533, 88, g);
 	
 	kradgui_render_meter (kradgui, 633, 533, 188, g);
 	
@@ -935,7 +1038,7 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 	cairo_save(cr);
 	cairo_arc (cr, 0.0, 0.0, 3.0, 0, 2*M_PI);
 	cairo_stroke(cr);
-	cairo_arc (cr, 0.0, 0.0, 10.0, 0, 2*M_PI);
+	cairo_arc (cr, 0.0, 0.0, 9.0, 0, 2*M_PI);
 	cairo_stroke(cr);
 	cairo_arc (cr, 0.0, 0.0, reel_inner_diameter, 0, 2*M_PI);
 	cairo_stroke(cr);
@@ -964,7 +1067,8 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 	}
 	
 	// spokes
-	cairo_set_source_rgba(cr, WHITE_TRANS);
+//	cairo_set_source_rgba(cr, WHITE_TRANS);
+	cairo_set_source_rgb(cr, WHITE);
 	cairo_set_line_width(cr, 2);
 	cairo_rotate (cr, (kradgui_reel_to_reel->angle + rotation_offset % 360) * (M_PI/180.0));
 	cairo_rotate (cr, 120 * (M_PI/180.0));
@@ -1026,6 +1130,9 @@ void kradgui_render_reel_to_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel) {
 	
 	cr = kradgui_reel_to_reel->kradgui->cr;
 
+	cairo_save(cr);
+	cairo_scale(cr, 3.0, 3.0);
+
 	// reels
 	kradgui_render_reel(kradgui_reel_to_reel, 82, 57);
 	kradgui_render_reel(kradgui_reel_to_reel, 235, 57);
@@ -1050,6 +1157,8 @@ void kradgui_render_reel_to_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel) {
 	// tape head	
 	cairo_rectangle (cr, 154, 111, 14, 13);
 	cairo_stroke(cr);
+	
+	cairo_restore(cr);
 	
 }
 

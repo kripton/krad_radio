@@ -50,7 +50,7 @@ void test1(int times) {
 	//kradgui->render_tearbar = 1;
 	
 	kradgui->render_ftest = 1;
-	
+	kradgui_add_item(kradgui, REEL_TO_REEL);
 	while (count < times) {
 
 		cr = cairo_create(cst);
@@ -65,6 +65,8 @@ void test1(int times) {
 		krad_sdl_opengl_draw_screen( krad_sdl_opengl_display );
 
 		count++;
+
+		kradgui_add_current_track_time_ms(kradgui, 1000 / 60);
 
 	}
 
