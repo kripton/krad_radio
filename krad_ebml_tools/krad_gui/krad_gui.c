@@ -329,6 +329,10 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 	
 	cr = kradgui->cr;
 
+
+	pos = pos * 1.8f - 90.0f;
+
+
 	cairo_save(cr);
 	cairo_translate (cr, x, y);
 	cairo_set_line_width(cr, 2);
@@ -802,17 +806,17 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	
 	kradgui_render_circles (kradgui, mx,  my);
 
-static int g = 0;
+static int g = 50;
 
 g += (rand() % 5);
 g -= (rand() % 5);
 
-if (g > 90) {
+if (g > 100) {
 	g = 90;
 }
 
-if (g < -90) {
-	g = -90;
+if (g < 0) {
+	g = 0;
 }
 
 
