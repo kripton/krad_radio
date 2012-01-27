@@ -322,6 +322,24 @@ void kradgui_render_circles (kradgui_t *kradgui, int w, int h) {
 	
 }
 
+
+void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) {
+
+	cairo_t *cr;
+	
+	cr = kradgui->cr;
+
+	cairo_save(cr);
+	cairo_translate (cr, x, y);
+
+	cairo_set_source_rgb(cr, ORANGE);
+	cairo_arc (cr, 0, 0, 0.8 * size, 0, M_PI);
+	cairo_stroke (cr);
+	
+	cairo_restore(cr);
+	
+}
+
 void kradgui_render_curve (kradgui_t *kradgui, int w, int h) {
 
 	cairo_t *cr;
@@ -761,6 +779,9 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	kradgui_render_hex (kradgui, 644, 290, 63);
 	kradgui_render_hex (kradgui, 744, 410, 23);
 	
+	kradgui_render_meter (kradgui, 33, 33, 33, 66);
+
+	kradgui_render_meter (kradgui, 233, 233, 44, 33);
 	
 	cairo_restore(cr);
 
