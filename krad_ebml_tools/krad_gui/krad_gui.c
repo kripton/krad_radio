@@ -323,7 +323,7 @@ void kradgui_render_circles (kradgui_t *kradgui, int w, int h) {
 }
 
 
-void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) {
+void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos) {
 
 	cairo_t *cr;
 	
@@ -331,7 +331,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 
 
 	pos = pos * 1.8f - 90.0f;
-
+//	printf("peak %f %f\n", pos);
 
 	cairo_save(cr);
 	cairo_translate (cr, x, y);
@@ -351,7 +351,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 	cairo_save(cr);
 	cairo_translate (cr, 0.05 * size, 0);
 	cairo_rotate (cr, pos * (M_PI/180.0));	
-	
+	/*
 	cairo_pattern_t *pat;
 	pat = cairo_pattern_create_linear (0, 0, 0.11 * size, 0);
 	cairo_pattern_add_color_stop_rgba (pat, 0, 0, 0, 0, 0);
@@ -361,7 +361,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, int pos) 
 	cairo_set_source (cr, pat);
 	cairo_rectangle (cr, 0, 0, 0.11 * size, -size);
 	cairo_fill (cr);
-	
+	*/
 	cairo_set_source_rgb(cr, WHITE);
 	cairo_move_to (cr, 0, 0);
 	cairo_line_to (cr, 0, -size * 0.93);
@@ -831,6 +831,88 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 
 }
 
+void kradgui_render_vtest (kradgui_t *kradgui) {
+
+	int mx, my;
+	
+	mx = 33;
+	my = 33;
+	
+	//#ifdef SDLGUI
+	SDL_ShowCursor(0);
+	SDL_PumpEvents();
+	SDL_GetMouseState(&mx, &my);
+	//#endif
+	//printf("x %d y %d\n", mx, my);
+
+/*
+	kradgui_render_cube (kradgui, 590, 230, 100, 100);
+	kradgui_render_cube (kradgui, 375, 260, 100, 100);
+	kradgui_render_cube (kradgui,  550,  430, 20, 20);
+	
+	kradgui_render_curve(kradgui, mx, my);
+	
+	kradgui_render_circles (kradgui, mx,  my);
+*/
+static int g = 0;
+
+g += (rand() % 5);
+g -= (rand() % 5);
+
+if (g > 100) {
+	g = 100;
+}
+
+if (g < 0) {
+	g = 0;
+}
+
+g = (mx * 100) / kradgui->width;
+
+
+	kradgui_render_hex (kradgui, mx, my, 14);
+
+
+static int vposx = 0;
+static int vposy = 0;
+static int vdir = 0;
+if (mx > vposx) {
+vposx++;
+} else {
+vposx--;
+}
+
+if (my > vposy) {
+vposy++;
+} else {
+vposy--;
+}
+vdir = atan2 (my - vposy, mx - vposx) * 180 / M_PI;
+
+static float vposx2 = 666;
+static float vposy2 = 666;
+static int vdir2 = 0;
+if (vposx > vposx2) {
+vposx2 += 0.2;
+} else {
+vposx2 -= 0.2;
+}
+
+if (vposy > vposy2) {
+vposy2 += 0.3;
+} else {
+vposy2 -= 0.7;
+}
+vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
+
+
+	//printf("\nvdr is --%d--\n", vdir);
+	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);	
+	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
+
+	
+}
+
 void kradgui_render_ftest (kradgui_t *kradgui) {
 
 	//int w, h;
@@ -917,7 +999,7 @@ vposy2 -= 0.7;
 vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 
 
-	printf("\nvdr is --%d--\n", vdir);
+	//printf("\nvdr is --%d--\n", vdir);
 	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);
 	
 	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
@@ -1175,6 +1257,9 @@ void kradgui_render_elapsed_timecode(kradgui_t *kradgui) {
 	
 	cairo_move_to (kradgui->cr, kradgui->width/4.0, kradgui->height - 131.0);
 	cairo_show_text (kradgui->cr, kradgui->elapsed_time_timecode_string);
+	
+	cairo_stroke (kradgui->cr);
+	
 }
 
 void kradgui_render_timecode(kradgui_t *kradgui) {

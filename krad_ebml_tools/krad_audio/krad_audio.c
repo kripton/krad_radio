@@ -1,6 +1,46 @@
 #include <krad_audio.h>
 
 
+float read_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, int channel)
+{
+	float tmp;
+	
+	if (direction == KOUTPUT) {
+		tmp = kradaudio->output_peak[channel];
+		kradaudio->output_peak[channel] = 0.0f;
+	} else {
+		tmp = kradaudio->input_peak[channel];
+		kradaudio->input_peak[channel] = 0.0f;
+	}
+	
+	return tmp;
+}
+
+void compute_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, float *samples, int channel, int sample_count, int interleaved) {
+
+	int s;
+
+
+	if (direction == KOUTPUT) {
+		for(s = 0; s < sample_count; s = s + 1 + interleaved) {
+			const float sample = fabs(samples[s]);
+			if (sample > kradaudio->output_peak[channel]) {
+				kradaudio->output_peak[channel] = sample;
+			}
+		}
+	} else {
+		for(s = 0; s < sample_count; s = s + 1 + interleaved) {
+			const float sample = fabs(samples[s]);
+			if (sample > kradaudio->input_peak[channel]) {
+				kradaudio->input_peak[channel] = sample;
+			}
+		}
+	}
+
+//	printf("peak %f %f\n", kradaudio->output_peak[0], kradaudio->output_peak[1]);
+
+}
+
 void kradaudio_destroy(krad_audio_t *kradaudio) {
 
 	switch (kradaudio->audio_api) {

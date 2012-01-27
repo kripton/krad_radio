@@ -30,7 +30,7 @@
 #define BGCOLOR  0.033 / 0.255 * 1.0, 0.033 / 0.255 * 1.0, 0.033 / 0.255   * 1.0
 #define GREY3  0.103 / 0.255 * 1.0, 0.103 / 0.255 * 1.0, 0.124 / 0.255   * 1.0
 
-#define BGCOLOR_TRANS  0.033 / 0.255 * 1.0, 0.033 / 0.255 * 1.0, 0.033 / 0.255   * 1.0, 0.144 / 0.255 * 1.0
+#define BGCOLOR_TRANS  0.033 / 0.255 * 1.0, 0.033 / 0.255 * 1.0, 0.033 / 0.255 * 1.0, 0.144 / 0.255 * 1.0
 
 // ui colors
 // green 79d789
@@ -165,6 +165,11 @@ struct kradgui_St {
 	struct timespec draw_time;
 	struct timespec start_draw_time;
 	struct timespec end_draw_time;
+
+	float input_val[8];
+	float output_val[8];
+	float input_peak[8];
+	float output_peak[8];
 	
 };
 
@@ -200,6 +205,7 @@ void kradgui_set_control_speed_down_callback(kradgui_t *kradgui, void control_sp
 void kradgui_set_control_speed_up_callback(kradgui_t *kradgui, void control_speed_up_callback(void *));
 void kradgui_set_callback_pointer(kradgui_t *kradgui, void *callback_pointer);
 
+void kradgui_render_vtest (kradgui_t *kradgui);
 
 void kradgui_create_internal_surface(kradgui_t *kradgui);
 void kradgui_destroy_internal_surface(kradgui_t *kradgui);
@@ -228,6 +234,8 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h);
 void kradgui_render_tearbar(kradgui_t *kradgui);
 void kradgui_render_wheel(kradgui_t *kradgui);
 void kradgui_render_ftest(kradgui_t *kradgui);
+
+void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos);
 
 kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui);
 void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel);

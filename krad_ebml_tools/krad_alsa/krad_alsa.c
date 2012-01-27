@@ -147,6 +147,11 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 			}
 		}
 		
+
+		for (c = 0; c < 2; c++) {
+			compute_peak(kradalsa->kradaudio, KOUTPUT, kradalsa->samples[c], c, kradalsa->period_size, 0);
+		}
+		
 	
 	} else {
 	

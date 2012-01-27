@@ -44,7 +44,7 @@ int kradjack_process(jack_nframes_t nframes, void *arg) {
 
 	krad_jack_t *kradjack = (krad_jack_t *)arg;
 
-	int s;
+	int c, s;
 
 	jack_default_audio_sample_t *samples[2];
 
@@ -71,6 +71,10 @@ int kradjack_process(jack_nframes_t nframes, void *arg) {
 
 			jack_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
 			jack_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
+
+			for (c = 0; c < 2; c++) {
+				compute_peak(kradjack->kradaudio, KOUTPUT, samples[c], c, nframes, 0);
+			}
 
 		} else {
 

@@ -3279,7 +3279,7 @@ nestegg_track_codec_data(nestegg * ctx, unsigned int track, unsigned int item,
 
 
 
-	//if ((nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_OPUS) || (nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_FLAC)) {
+	if ((nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_OPUS) || (nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_FLAC)) {
 	   if (ne_get_binary(entry->codec_private, &codec_private) != 0)
     		return -1;
 	
@@ -3292,7 +3292,7 @@ nestegg_track_codec_data(nestegg * ctx, unsigned int track, unsigned int item,
 	
 
 	return 0;
-	//}
+	}
 
   if (ne_get_binary(entry->codec_private, &codec_private) != 0)
     return -1;

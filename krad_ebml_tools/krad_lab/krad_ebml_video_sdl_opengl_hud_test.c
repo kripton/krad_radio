@@ -90,6 +90,10 @@ int main (int argc, char *argv[]) {
 	
 	int dirac_output_unset;
 	
+	int c;
+	
+	float temp_peak;
+	
 	dirac_output_unset = true;
 		
 	if (argc < 2) {
@@ -104,7 +108,7 @@ int main (int argc, char *argv[]) {
 	
 	shutdown = 0;
 	
-	hud_width = 320;
+	hud_width = 720;
 	hud_height = 340;
 
 	audio_packets = 0;
@@ -122,12 +126,12 @@ int main (int argc, char *argv[]) {
 	hudtest->samples[0] = malloc(4 * 8192);
 	hudtest->samples[1] = malloc(4 * 8192);
 	
-	audio_api = PULSE;
+	audio_api = JACK;
 	audio = kradaudio_create("Krad EBML Video HUD Test Player", audio_api);
 	
 	kradgui = kradgui_create(hud_width, hud_height);
 
-	kradgui_add_item(kradgui, REEL_TO_REEL);
+	//kradgui_add_item(kradgui, REEL_TO_REEL);
 	//kradgui_add_item(kradgui, PLAYBACK_STATE_STATUS);
 
 	buffer = malloc(1000000);
@@ -156,11 +160,12 @@ int main (int argc, char *argv[]) {
 	}
 	
 	if (audio_codec == KRAD_VORBIS) {
+			printf("got vorbis header bytes of %d %d %d\n", krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3_len);
 		krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
 	}
 
-	//krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
-	krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	//krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	
 	krad_opengl_display->hud_width = hud_width;
 	krad_opengl_display->hud_height = hud_height;
@@ -202,7 +207,7 @@ int main (int argc, char *argv[]) {
 			//	last_packet_time_ms = packet_time_ms;
 			//}
 
-			printf("\npacket time ms %d :: %ld : %ld\n", packet_time_ms % 1000, packet_time.tv_sec, packet_time.tv_nsec);
+			//printf("\npacket time ms %d :: %ld : %ld\n", packet_time_ms % 1000, packet_time.tv_sec, packet_time.tv_nsec);
 			kradgui_set_current_track_time_ms(kradgui, packet_time_ms);
 		
 			video_packets++;
@@ -258,20 +263,39 @@ int main (int argc, char *argv[]) {
 				}
 
 
+				for (c = 0; c < 2; c++) {
+					temp_peak = read_peak(audio, KOUTPUT, c) * 100.0f;
+					if (temp_peak >= kradgui->output_peak[c]) {
+						kradgui->output_peak[c] = temp_peak;
+					} else {
+						kradgui->output_peak[c] -= 3.5;
+						//kradgui->output_peak[c] = kradgui->output_peak[c] * 0.95;
+					}
+				}
+
+
 
 				cr = cairo_create(cst);
 				kradgui->cr = cr;
+				kradgui->overlay = 1;
 				kradgui_render(kradgui);
+				
+				kradgui_render_meter (kradgui, 102, 122, 83, kradgui->output_peak[0]);
+				kradgui_render_meter (kradgui, 248, 122, 83, kradgui->output_peak[1]);
+				
+				kradgui_render_vtest (kradgui);
+				
+//				printf("peak %f %f\n", kradgui->output_peak[0] * 100.0f, kradgui->output_peak[1] * 100.0f);
 				cairo_destroy(cr);
 
 				if (nosleep == false) {
-					printf("hi\n");
+					//printf("hi\n");
 					kradgui_update_elapsed_time(kradgui);
 					sleep_time = timespec_diff(kradgui->elapsed_time, packet_time);
 
 //					if (sleep_time.tv_nsec > 16600000 * 1) {
 						//sleep_time.tv_nsec -= 16600000 * 1;
-						printf("\nsleep time nsec is %ld\n", sleep_time.tv_nsec);
+						//printf("\nsleep time nsec is %ld\n", sleep_time.tv_nsec);
 						nanosleep(&sleep_time, NULL);
 	//				}
 				}

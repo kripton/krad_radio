@@ -58,6 +58,10 @@ static void kradpulse_stream_request_cb(pa_stream *stream, size_t length, void *
 			}
 		}
 		
+		for (c = 0; c < 2; c++) {
+		    compute_peak(kradpulse->kradaudio, KOUTPUT, &kradpulse->interleaved_samples[c], c, length / 4 / 2 , 1);
+		}
+		
 	
 	} else {
 	
