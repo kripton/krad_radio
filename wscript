@@ -3,16 +3,15 @@
 top = '.'
 
 from waflib import Configure, Logs
-#Configure.autoconfig = True
 
-#def options(opt):
-#	opt.load('compiler_c')
-#	opt.load('gnu_dirs')
+
+subdirs = """
+krad_ebml_tools/krad_gui
+""".split()
 
 def configure(conf):
-	pass
-
-subdirs = "krad_ebml_tools/krad_gui"
-
+	conf.check_tool('gcc')
+	conf.check_tool('gnu_dirs')
+	
 def build(bld):
     bld.recurse(subdirs)
