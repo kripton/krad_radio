@@ -1,17 +1,3 @@
-#include <cairo.h>
-#include <gtk/gtk.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <fcntl.h>  
-#include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
-
 #include "krad_gui.h"
 
 kradgui_t *kradgui_create(int width, int height) {

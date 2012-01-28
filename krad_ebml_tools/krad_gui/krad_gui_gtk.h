@@ -1,4 +1,4 @@
-#include <cairo.h>
+#include <cairo/cairo.h>
 #include <gtk/gtk.h>
 #include <math.h>
 #include <stdlib.h>
