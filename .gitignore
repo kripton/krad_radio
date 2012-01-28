@@ -31,3 +31,5 @@ krad_vsync_test
 krad_jitter_test
 krad_sdl_overlay_display_test
 krad_vsync_test_overlay
+waf
+.waf*

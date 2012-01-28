@@ -1,0 +1,5 @@
+#! /usr/bin/env python
+
+sources = "krad_gui_gtk_test.c krad_gui.c krad_gui_gtk.c".split(" ")
+
+bld.krad_gui_gtk_test(source = sources, target = "krad_gui_gtk_test")

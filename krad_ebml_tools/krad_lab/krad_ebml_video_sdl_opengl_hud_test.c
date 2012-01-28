@@ -126,7 +126,7 @@ int main (int argc, char *argv[]) {
 	hudtest->samples[0] = malloc(4 * 8192);
 	hudtest->samples[1] = malloc(4 * 8192);
 	
-	audio_api = JACK;
+	audio_api = PULSE;
 	audio = kradaudio_create("Krad EBML Video HUD Test Player", audio_api);
 	
 	kradgui = kradgui_create(hud_width, hud_height);
@@ -264,7 +264,7 @@ int main (int argc, char *argv[]) {
 
 
 				for (c = 0; c < 2; c++) {
-					temp_peak = read_peak(audio, KOUTPUT, c) * 100.0f;
+					temp_peak = read_peak(audio, KOUTPUT, c);
 					if (temp_peak >= kradgui->output_peak[c]) {
 						kradgui->output_peak[c] = temp_peak;
 					} else {
