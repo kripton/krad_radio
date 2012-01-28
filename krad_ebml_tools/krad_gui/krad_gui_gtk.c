@@ -91,7 +91,7 @@ static void *kradgui_gtk_init(gpointer data) {
 
 	kradgui_gtk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
-	gtk_window_set_title (GTK_WINDOW (kradgui_gtk->window), "Drawing Area");
+	gtk_window_set_title (GTK_WINDOW (kradgui_gtk->window), "Krad GUI");
 
 	g_signal_connect (kradgui_gtk->window, "destroy", G_CALLBACK (close_window), kradgui_gtk);
 
