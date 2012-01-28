@@ -6,6 +6,7 @@ krad_gui.c
 krad_gui_gtk.c
 """.split()
 
-conf.check_cfg(package='gtk+-3.0', uselib_store='gtk+-3.0', args='--cflags --libs')
+conf.check_cfg(package='gtk+-3.0', uselib_store='GTK', args='--cflags --libs')
+conf.env.append_unique('CFLAGS', ['-g'])
 
-bld(features = 'c cprogram', source = sources, target = "krad_gui_gtk_test")
+bld(features = 'c cprogram', source = sources, target = "krad_gui_gtk_test", uselib = "GTK")

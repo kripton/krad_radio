@@ -71,6 +71,8 @@ struct kradgui_St {
 	int height;
 	int size;
 	unsigned long long frame;
+	
+	int shutdown;
 
 	char current_track_time_timecode_string[512];
 	char total_track_time_timecode_string[512];

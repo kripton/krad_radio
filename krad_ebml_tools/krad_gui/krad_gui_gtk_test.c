@@ -49,7 +49,7 @@ void render_ftest() {
 	
 	kradgui_gtk_start(kradgui);
 	
-	kradgui_gtk_set_fps(kradgui, 110);
+	//kradgui_gtk_set_fps(kradgui, 110);
 	
 	while (count < TEST_TIME) {
 
@@ -158,7 +158,7 @@ void render_reel_to_reel_test() {
 
 	kradgui_gtk_start(kradgui);
 	
-	while (count < TEST_TIME) {
+	while ((count < TEST_TIME)) {
 
 		kradgui_add_current_track_time_ms(kradgui, 6 *  5);
 	

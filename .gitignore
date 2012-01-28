@@ -33,3 +33,6 @@ krad_sdl_overlay_display_test
 krad_vsync_test_overlay
 waf
 .waf*
+.lock*
+*.webm*
+*.mkv*

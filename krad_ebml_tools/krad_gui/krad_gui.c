@@ -825,7 +825,7 @@ void kradgui_render_vtest (kradgui_t *kradgui) {
 
 	
 	//#ifdef SDLGUI
-	SDL_ShowCursor(0);
+	//SDL_ShowCursor(0);
 
 	//#endif
 	//printf("x %d y %d\n", mx, my);
