@@ -1,4 +1,4 @@
-#include <krad_sdl_opengl_display.h>
+#include "krad_sdl_opengl_display.h"
 
 
 #include "SDL.h"

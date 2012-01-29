@@ -1,0 +1,7 @@
+Thoughts on Krad V4L2
+
+This is a simple wrap around of V4L2 that makes it nicer to deal with opening/reading/closing V4L2 devices, mainly
+for use as webcam capture. It should also make dealing with multi-cam, multi-thread programs easier to make with no real
+penalty verses using V4L2 directly, and of course you can do that anyways because we are not doing anything opaque.
+
+I need to add support for motion jpeg, many cams such as my logitech c910, offer better combined resolution/framerate via motion jpeg only.

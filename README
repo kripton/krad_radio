@@ -1,4 +1,16 @@
-This is experimental software, until this readme is updated I would just hold off on trying to mess with it. 
-But that should not be too long..
+This is experimental software intended for developers only, you have been warned.
 
--David Richards 1:25pm Jan 15, 2012
+To build things, we have waf, which should be way awesome fun, because waf 
+is perfect and everything always builds everywhere, as we all know.
+
+If you have not used waf, it works like this:
+
+./waf configure
+./waf
+./waf install (but not with this project right now)
+
+It will create a subdir called build in this directory, where you will find the results of its doing.
+
+And most importantly...
+
+-David Richards Jan 29, 2012

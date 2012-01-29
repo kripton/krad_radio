@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "SDL.h"
-#include "libswscale/swscale.h"
+#include <SDL.h>
+#include <libswscale/swscale.h>
 #include <unistd.h>
 
 typedef struct krad_overlay_display_St krad_overlay_display_t;

@@ -1,29 +1,24 @@
 #!/usr/bin/env python
 
 programs = """
-krad_sdl_opengl_display_gui_test.c
-krad_sdl_opengl_display_test.c
-krad_sdl_overlay_display_test.c
-krad_vsync_test.c
-krad_jitter_test.c
+krad_v4l2_test.c
 """.split()
 
 sources = """
-krad_sdl_opengl_display.c
-krad_sdl_overlay_display.c
+krad_v4l2.c
 """.split()
 
 depsources = """
-../krad_gui/krad_gui.c 
 """.split()
 
 includedirs = """
-../krad_gui/
 """.split()
 
-libs = ["sdl", "gtk+-3.0", "gl", "glu", "libswscale", "libavutil"]
+libs = []
 
 def configure(conf):
+	
+	conf.check(header_name='linux/videodev2.h', features='c cprogram')
 	
 	for l in libs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')

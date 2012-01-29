@@ -1,0 +1,7 @@
+Thoughts on Krad Display
+
+This is just a simple wrapper using SDL to open up an opengl or overlay window. Its using SDL for now, but perhaps i'll switch to GLX or 
+whatever to open up the window, all SDL is doing is the dirty mess of opening the window. GLX is bizare in its own right, I look forward to
+wayland taking over.. Altho there is code here for overlay, that maybe passe already, I don't expect to make any use of it.
+
+Perhaps this is where I will add code for managing precision frame PTS sync.
