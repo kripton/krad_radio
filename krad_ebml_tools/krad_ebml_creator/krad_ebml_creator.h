@@ -1,9 +1,10 @@
 #include <krad_ebml.h>
-#include <krad_opus.h>
-#include <krad_vorbis.h>
-#include <krad_audio.h>
-#include <krad_vpx.h>
-#include <krad_v4l2.h>
+
+#include "krad_opus.h"
+#include "krad_vorbis.h"
+#include "krad_audio.h"
+#include "krad_vpx.h"
+#include "krad_v4l2.h"
 
 #define DEFAULT_DEVICE "/dev/video0"
 

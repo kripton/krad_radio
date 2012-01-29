@@ -1,6 +1,7 @@
 #include <krad_ebml.h>
-#include <krad_opus.h>
-#include <krad_audio.h>
+
+#include "krad_opus.h"
+#include "krad_audio.h"
 
 typedef enum {
 	STOPPED,

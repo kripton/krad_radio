@@ -1,4 +1,4 @@
-#include <krad_ebml_creator.h>
+#include "krad_ebml_creator.h"
 
 krad_ebml_creator_t *krad_ebml_creator_create(char *appname, krad_audio_api_t api) {
 
@@ -12,7 +12,7 @@ krad_ebml_creator_t *krad_ebml_creator_create(char *appname, krad_audio_api_t ap
 
 	krad_ebml_creator->audio = kradaudio_create(appname, api);
 	krad_ebml_creator->ebml = kradebml_create();
-	krad_ebml_creator->opus = kradopus_encoder_create(44100.0f, 2, 192000, OPUS_APPLICATION_AUDIO);
+	//krad_ebml_creator->opus = kradopus_encoder_create(44100.0f, 2, 192000, OPUS_APPLICATION_AUDIO);
 	krad_ebml_creator->vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);
 	strncpy(krad_ebml_creator->appname, appname, 512);
 	
@@ -36,7 +36,7 @@ void krad_ebml_creator_destroy(krad_ebml_creator_t *krad_ebml_creator) {
 	free(krad_ebml_creator->callback_samples[1]);
 	kradebml_write(krad_ebml_creator->ebml);
 	kradebml_destroy(krad_ebml_creator->ebml);
-	kradopus_encoder_destroy(krad_ebml_creator->opus);
+	//kradopus_encoder_destroy(krad_ebml_creator->opus);
 	krad_vorbis_encoder_destroy(krad_ebml_creator->vorbis);
 	free(krad_ebml_creator);
 
@@ -140,8 +140,8 @@ void krad_ebml_creator_audio_callback(int frames, void *userdata) {
 	kradaudio_read (krad_ebml_creator->audio, 0, (char *)krad_ebml_creator->samples[0], frames * 4 );
 	kradaudio_read (krad_ebml_creator->audio, 1, (char *)krad_ebml_creator->samples[1], frames * 4 );
 
-	kradopus_write_audio(krad_ebml_creator->opus, 1, (char *)krad_ebml_creator->samples[0], frames * 4);
-	kradopus_write_audio(krad_ebml_creator->opus, 2, (char *)krad_ebml_creator->samples[1], frames * 4);
+	//kradopus_write_audio(krad_ebml_creator->opus, 1, (char *)krad_ebml_creator->samples[0], frames * 4);
+	//kradopus_write_audio(krad_ebml_creator->opus, 2, (char *)krad_ebml_creator->samples[1], frames * 4);
 
 	//printf("has %d frames\n", frames);	
 	
@@ -179,6 +179,8 @@ void krad_ebml_creator_stream_blocking(krad_ebml_creator_t *krad_ebml_creator, c
 	unsigned char *vpx_packet;
 	int packet_size;
 	int videotrack;
+	
+	videotrack = 0;
 
 	device = DEFAULT_DEVICE;
 

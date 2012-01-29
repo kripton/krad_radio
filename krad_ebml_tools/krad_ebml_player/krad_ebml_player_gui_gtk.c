@@ -1,6 +1,4 @@
-#include <krad_ebml_player.h>
-
-#include "krad_gui.h"
+#include "krad_ebml_player.h"
 #include "krad_gui_gtk.h"
 
 
@@ -55,9 +53,9 @@ int main (int argc, char *argv[]) {
 	kradgui_add_item(kradgui, PLAYBACK_STATE_STATUS);
 	kradgui_set_total_track_time_ms(kradgui, 5 * 60 * 1000);
 
-	kradgui_set_control_speed_down_callback(kradgui, krad_ebml_player_speed_down);
-	kradgui_set_control_speed_up_callback(kradgui, krad_ebml_player_speed_up);
-	kradgui_set_control_speed_callback(kradgui, krad_ebml_player_set_speed);
+	kradgui_set_control_speed_down_callback((void *)kradgui, (void *)krad_ebml_player_speed_down);
+	kradgui_set_control_speed_up_callback((void *)kradgui, (void *)krad_ebml_player_speed_up);
+	kradgui_set_control_speed_callback((void *)kradgui, (void *)krad_ebml_player_set_speed);
 	kradgui_set_callback_pointer(kradgui, krad_ebml_player);
 
 

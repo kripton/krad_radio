@@ -51,7 +51,7 @@ char *kradv4l2_read_frame (krad_v4l2_t *kradv4l2) {
 				}
 			}
 
-            assert (kradv4l2->buf.index < kradv4l2->n_buffers);
+//            assert (kradv4l2->buf.index < kradv4l2->n_buffers);
 
 			return kradv4l2->buffers[kradv4l2->buf.index].start;
 //	        process_image (kradcapture, kradv4l2->buffers[buf.index].start);
@@ -89,7 +89,7 @@ char *kradv4l2_read_frame (krad_v4l2_t *kradv4l2) {
 				}
 			}
 
-			assert (i < kradv4l2->n_buffers);
+//			assert (i < kradv4l2->n_buffers);
 
 //			process_image (kradcapture, (void *) buf.m.userptr);
 

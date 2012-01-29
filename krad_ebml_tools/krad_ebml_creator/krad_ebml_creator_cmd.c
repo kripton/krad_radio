@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <krad_ebml_creator.h>
+
+#include "krad_ebml_creator.h"
 
 #define APPVERSION "Krad EBML creator cmd 0.3"
 

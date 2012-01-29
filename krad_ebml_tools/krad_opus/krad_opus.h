@@ -1,6 +1,6 @@
-#include <opus_header.h>
+#include "opus_header.h"
 
-#include <speex_resampler.h>
+#include <speex/speex_resampler.h>
 #include <opus.h>
 #include <opus_multistream.h>
 #include <ogg/ogg.h>

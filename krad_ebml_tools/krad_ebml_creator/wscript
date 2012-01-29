@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+
+programs = """
+krad_ebml_creator_cmd.c
+""".split()
+
+sources = """
+krad_ebml_creator.c
+""".split()
+
+depsources = """
+../krad_tone/krad_tone.c
+../krad_audio/krad_audio.c
+../krad_jack/krad_jack.c
+../krad_pulse/krad_pulse.c
+../krad_alsa/krad_alsa.c
+../krad_v4l2/krad_v4l2.c
+../krad_vpx/krad_vpx.c
+../krad_vorbis/krad_vorbis.c
+../krad_flac/krad_flac.c
+../krad_opus/krad_opus.c
+../krad_opus/opus_header.c
+""".split()
+
+includedirs = """
+../krad_tone/
+../krad_audio/
+../krad_jack/
+../krad_pulse/
+../krad_alsa/
+../krad_v4l2/
+../krad_vpx/
+../krad_vorbis/
+../krad_opus/
+../krad_flac/
+../../krad_ebml/
+""".split()
+
+libs = ["vorbis", "speex", "speexdsp", "opus", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+
+def configure(conf):
+	
+	conf.check(header_name='linux/videodev2.h', features='c cprogram')
+	
+	for l in libs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+
+
+def build(bld):
+
+
+	for p in programs:
+
+		bld(features = 'c cprogram', 
+			source = sources + depsources + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			use = "kradebml",
+			uselib = libs)

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <krad_ebml_player.h>
+
+#include "krad_ebml_player.h"
 
 
 int krad_shutdown;
