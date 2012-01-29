@@ -18,6 +18,29 @@ Need to add option builds currently all deps need to be met for tools.
 
 These are for the tools only, krad ebml library has no deps.
 
+ubuntu hint:
+
+sudo apt-get install libspeex-dev libspeexdsp-dev libsdl1.2-dev libasound2-dev libpulse-dev libvorbis-dev \
+gtk-3.0 libswscale-dev libflac-dev libschroedinger-dev libavutil-dev libjack-dev libvpx-dev build-essential
+
+
+And install opus from git: http://opus-codec.org/downloads/
+
+git clone http://git.xiph.org/opus.git
+sudo apt-get install build-essential autoconf git-core libtool
+./autogen.sh
+./configure
+make
+sudo make install && sudo ldconfig
+
+ubutntu vpx did not give me a pkg-config file so to compile that..
+
+git clone http://git.chromium.org/webm/libvpx.git
+sudo apt-get install yasm
+make
+sudo make install
+
+
 It will create a subdir called build in this directory, where you will find the results of its doing.
 
 And most importantly...
