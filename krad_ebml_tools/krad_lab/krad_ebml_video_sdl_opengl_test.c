@@ -1,7 +1,7 @@
-#include <krad_sdl_opengl_display.h>
-#include <krad_ebml.h>
-#include <krad_vpx.h>
-#include "SDL.h"
+#include "krad_sdl_opengl_display.h"
+#include "krad_ebml.h"
+#include "krad_vpx.h"
+
 
 int main (int argc, char *argv[]) {
 

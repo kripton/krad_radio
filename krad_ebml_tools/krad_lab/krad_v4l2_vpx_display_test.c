@@ -1,14 +1,14 @@
-#include <krad_sdl_opengl_display.h>
-#include <krad_ebml.h>
-#include <krad_dirac.h>
-#include <krad_vpx.h>
-#include <krad_vorbis.h>
-#include <krad_flac.h>
-#include <krad_gui.h>
-#include <krad_audio.h>
-#include "SDL.h"
-#include <krad_v4l2.h>
-#include "kradtimer.h"
+#include "krad_sdl_opengl_display.h"
+#include "krad_ebml.h"
+#include "krad_dirac.h"
+#include "krad_vpx.h"
+#include "krad_vorbis.h"
+#include "krad_flac.h"
+#include "krad_gui.h"
+#include "krad_audio.h"
+#include "krad_v4l2.h"
+
+//#include "kradtimer.h"
 
 #define DEFAULT_DEVICE "/dev/video0"
 #define APPVERSION "Krad V4L2 VPX EBML Display TEST 0.4"
@@ -17,7 +17,7 @@
 typedef struct krad_v4l2_vpx_display_test_St krad_v4l2_vpx_display_test_t;
 
 struct krad_v4l2_vpx_display_test_St {
-	kradtimer_t *kradtimer;
+//	kradtimer_t *kradtimer;
 	krad_audio_t *audio;
 	kradgui_t *kradgui;
 	krad_vorbis_t *krad_vorbis;
@@ -218,7 +218,7 @@ int main (int argc, char *argv[]) {
 	display_test = calloc(1, sizeof(krad_v4l2_vpx_display_test_t));
 	pthread_rwlock_init(&display_test->ebml_write_lock, NULL);
 	pthread_rwlock_rdlock(&display_test->ebml_write_lock);
-	display_test->kradtimer = kradtimer_create();
+	//display_test->kradtimer = kradtimer_create();
 	display_test->input_ringbuffer[0] = jack_ringbuffer_create (RINGBUFFER_SIZE);
 	display_test->input_ringbuffer[1] = jack_ringbuffer_create (RINGBUFFER_SIZE);
 	display_test->samples[0] = malloc(4 * 8192);
@@ -464,7 +464,7 @@ int main (int argc, char *argv[]) {
 	jack_ringbuffer_free ( display_test->input_ringbuffer[0] );
 	jack_ringbuffer_free ( display_test->input_ringbuffer[1] );
 	pthread_rwlock_destroy(&display_test->ebml_write_lock);
-	kradtimer_destroy(display_test->kradtimer);
+	//kradtimer_destroy(display_test->kradtimer);
 	free(display_test);
 	free(dbuffer);
 	free(dfbuffer);

@@ -1,6 +1,6 @@
-#include <krad_vpx.h>
-#include <krad_v4l2.h>
-#include <krad_ebml.h>
+#include "krad_vpx.h"
+#include "krad_v4l2.h"
+#include "krad_ebml.h"
 
 #define DEFAULT_DEVICE "/dev/video0"
 #define APPVERSION "Krad V4L2 VPX EBML TEST 0.2"

@@ -1,14 +1,12 @@
-#include <krad_sdl_opengl_display.h>
-#include <krad_gui.h>
-#include <krad_ebml.h>
-#include <krad_dirac.h>
-#include <krad_vpx.h>
-#include <krad_vorbis.h>
-#include <krad_flac.h>
-#include <krad_opus.h>
-#include <krad_tone.h>
-
-#include "SDL.h"
+#include "krad_sdl_opengl_display.h"
+#include "krad_gui.h"
+#include "krad_ebml.h"
+#include "krad_dirac.h"
+#include "krad_vpx.h"
+#include "krad_vorbis.h"
+#include "krad_flac.h"
+#include "krad_opus.h"
+#include "krad_tone.h"
 
 #define APPVERSION "Krad Signal Generator"
 #define TEST_COUNT 444444444

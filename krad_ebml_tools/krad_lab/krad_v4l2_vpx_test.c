@@ -1,5 +1,5 @@
-#include <krad_vpx.h>
-#include <krad_v4l2.h>
+#include "krad_vpx.h"
+#include "krad_v4l2.h"
 
 #define DEFAULT_DEVICE "/dev/video0"
 
