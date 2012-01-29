@@ -1,6 +1,13 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <math.h>
+
 #include "FLAC/stream_encoder.h"
 #include "FLAC/stream_decoder.h"
-#include <krad_audio.h>
+//#include "krad_audio.h"
 
 #define MAX_CHANNELS 8
 

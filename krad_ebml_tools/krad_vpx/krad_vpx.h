@@ -15,14 +15,12 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#include "../../libvpx/vpx/vpx_encoder.h"
-#include "../../libvpx/vpx/vp8cx.h"
+#include <vpx/vpx_encoder.h>
+#include <vpx/vp8cx.h>
 
-#include "../../libvpx/vpx/vpx_decoder.h"
-#include "../../libvpx/vpx/vp8dx.h"
-
-
-#include "libswscale/swscale.h"
+#include <vpx/vpx_decoder.h>
+#include <vpx/vp8dx.h>
+#include <libswscale/swscale.h>
 
 #define interface (vpx_codec_vp8_cx())
 

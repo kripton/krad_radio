@@ -1,5 +1,5 @@
-#include <krad_dirac.h>
-#include <krad_sdl_opengl_display.h>
+#include "krad_dirac.h"
+#include "krad_sdl_opengl_display.h"
 
 #define TEST_COUNT1 1
 #define TEST_COUNT2 1

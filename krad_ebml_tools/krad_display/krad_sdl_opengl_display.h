@@ -11,7 +11,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include "libswscale/swscale.h"
+#include <libswscale/swscale.h>
 
 typedef struct krad_sdl_opengl_display_St krad_sdl_opengl_display_t;
 

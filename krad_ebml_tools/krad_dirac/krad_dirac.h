@@ -1,13 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#define SCHRO_ENABLE_UNSTABLE_API
+
 #include <schroedinger/schro.h>
 #include <schroedinger/schrodebug.h>
+#include <schroedinger/schroparams.h>
+#include <schroedinger/schrovideoformat.h>
 
-#include <testsuite/common.h>
 
-//#include <krad_audio.h>
 
+
+/*
+#include <schroedinger/schroframe.h>
+#include <schroedinger/schrodecoder.h>
+#include <schroedinger/schroencoder.h>
+*/
 
 
 typedef struct krad_dirac_St krad_dirac_t;

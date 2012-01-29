@@ -1,5 +1,5 @@
-#include <krad_flac.h>
-#include <kradtone.h>
+#include "krad_flac.h"
+#include "krad_tone.h"
 
 #define TEST_COUNT 5
 #define TEST_COUNT2 335
@@ -11,7 +11,7 @@
 void encoding_tests() {
 
 	krad_flac_t *krad_flac;
-	kradtone_t *kradtone;
+	krad_tone_t *krad_tone;
 	
 	int count;
 
@@ -50,8 +50,8 @@ void encoding_tests() {
 
 	// Test Tone File
 
-	kradtone = kradtone_create(sample_rate);
-	kradtone_add_preset(kradtone, "dialtone");
+	krad_tone = krad_tone_create(sample_rate);
+	krad_tone_add_preset(krad_tone, "dialtone");
 
 	buffer = calloc(1, 8192 * 8);
 	audio = calloc(1, 8192 * channels * 4);
@@ -64,14 +64,14 @@ void encoding_tests() {
 	krad_flac_encode_info(krad_flac);
 	
 	for (count = 0; count < TEST_COUNT2; count++) {
-		kradtone_run(kradtone, audio, 4096);
+		krad_tone_run(krad_tone, audio, 4096);
 		bytes = krad_flac_encode(krad_flac, audio, 4096, buffer);
 		write(fd, buffer, bytes);
 		krad_flac_encode_info(krad_flac);
 	}
 	
 	krad_flac_encoder_destroy(krad_flac);
-	kradtone_destroy(kradtone);
+	krad_tone_destroy(krad_tone);
 	close(fd);
 	free(audio);
 	free(buffer);	
@@ -114,8 +114,8 @@ void encoding_tests() {
 	
 	// Test Tone File w/ seekback to update flac header
 
-	kradtone = kradtone_create(sample_rate);
-	kradtone_add_preset(kradtone, "dialtone");
+	krad_tone = krad_tone_create(sample_rate);
+	krad_tone_add_preset(krad_tone, "dialtone");
 
 	buffer = calloc(1, 8192 * 8);
 	audio = calloc(1, 8192 * channels * 4);
@@ -128,7 +128,7 @@ void encoding_tests() {
 	krad_flac_encode_info(krad_flac);
 	
 	for (count = 0; count < TEST_COUNT2; count++) {
-		kradtone_run(kradtone, audio, 4096);
+		krad_tone_run(krad_tone, audio, 4096);
 		bytes = krad_flac_encode(krad_flac, audio, 4096, buffer);
 		write(fd, buffer, bytes);
 		//krad_flac_encode_info(krad_flac);
@@ -147,7 +147,7 @@ void encoding_tests() {
 	
 	
 	krad_flac_encoder_destroy(krad_flac);
-	kradtone_destroy(kradtone);
+	krad_tone_destroy(krad_tone);
 	close(fd);
 	free(audio);
 	free(buffer);

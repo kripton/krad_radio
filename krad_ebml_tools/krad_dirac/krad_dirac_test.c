@@ -1,4 +1,4 @@
-#include <krad_dirac.h>
+#include "krad_dirac.h"
 #include <fcntl.h>
 
 #define TEST_COUNT1 450

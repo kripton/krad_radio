@@ -1,6 +1,6 @@
-#include <krad_vpx.h>
+#include "krad_vpx.h"
 
-#define TEST_COUNT 10000
+#define TEST_COUNT 100
 
 int main (int argc, char *argv[]) {
 
@@ -26,6 +26,8 @@ int main (int argc, char *argv[]) {
 		count++;
 	
 	}
+	
+	printf("it worked\n");
 	
 	return 0;
 
