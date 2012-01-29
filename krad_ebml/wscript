@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+
+KRADEBML_VERSION = '0.31'
+
+sources = """
+krad_ebml.c
+kradebml.pc.in
+""".split()
+
+depsources = """
+halloc/src/halloc.c
+""".split()
+
+includedirs = """
+halloc/
+halloc/src/
+""".split()
+
+
+def configure(conf):
+	conf.env['KRADEBML_VERSION'] = KRADEBML_VERSION
+
+def build(bld):
+
+	bld.shlib(
+		source = sources + depsources, 
+		includes = includedirs, 
+		target = "kradebml",
+		vnum = KRADEBML_VERSION)
+		
+	bld.add_post_fun(post)
+
+def post(ctx):
+        if ctx.cmd == 'install': 
+			ctx.exec_command('/sbin/ldconfig')

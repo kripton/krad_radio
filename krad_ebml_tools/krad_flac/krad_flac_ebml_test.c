@@ -1,7 +1,7 @@
 #include <krad_ebml.h>
-#include <krad_flac.h>
-#include <kradtone.h>
-#include <krad_audio.h>
+#include "krad_flac.h"
+#include "krad_tone.h"
+#include "krad_audio.h"
 
 #define TEST_COUNT1 122
 #define TEST_COUNT2 1
@@ -11,7 +11,7 @@
 void flac_ebml_encode_test() {
 	
 	krad_flac_t *krad_flac;
-	kradtone_t *kradtone;
+	krad_tone_t *krad_tone;
 	krad_ebml_t *krad_ebml;
 	//krad_audio_t *audio;
 	
@@ -35,8 +35,8 @@ void flac_ebml_encode_test() {
 	bit_depth = 16;
 	sample_rate = 44100;
 	
-	kradtone = kradtone_create(sample_rate);
-	kradtone_add_preset(kradtone, "dialtone");
+	krad_tone = krad_tone_create(sample_rate);
+	krad_tone_add_preset(krad_tone, "dialtone");
 
 	buffer = calloc(1, 8192 * 8);
 	audio = calloc(1, 8192 * channels * 4);
@@ -58,7 +58,7 @@ void flac_ebml_encode_test() {
 	kradebml_write(krad_ebml);
 		
 	for (count = 0; count < TEST_COUNT1; count++) {
-		kradtone_run(kradtone, audio, 4096);
+		krad_tone_run(krad_tone, audio, 4096);
 		bytes = krad_flac_encode(krad_flac, audio, 4096, buffer);
 	
 		if (bytes > 0) {
@@ -82,7 +82,7 @@ void flac_ebml_encode_test() {
 	kradebml_destroy(krad_ebml);
 	
 	krad_flac_encoder_destroy(krad_flac);
-	kradtone_destroy(kradtone);
+	krad_tone_destroy(krad_tone);
 
 	free(audio);
 	free(buffer);
@@ -138,7 +138,7 @@ void flac_ebml_decode_test(char *inputfile) {
 	
 		kradebml_debug(krad_ebml);
 
-		bytes = kradebml_read_audio_header(krad_ebml, buffer);
+		bytes = kradebml_read_audio_header(krad_ebml, 1, buffer);
 
 		printf("got flac header bytes of %d\n", bytes);
 		//exit(1);

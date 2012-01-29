@@ -1,28 +1,13 @@
 /*
- * Copyright © 2010 Mozilla Foundation
+ * Copyright © 2012 Mozilla Foundation
  *
  * This program is made available under an ISC-style license.  See the
  * accompanying file LICENSE for details.
  */
-#ifndef   NESTEGG_671cac2a_365d_ed69_d7a3_4491d3538d79
-#define   NESTEGG_671cac2a_365d_ed69_d7a3_4491d3538d79
 
-//////////////////
-#define DEFAULT_HOST "kradradio.com"
-#define DEFAULT_PORT 9040
-#define DEFAULT_PASSWORD "secretkode"
-#define HELP -1337
-#define DEFAULT_SAMPLERATE 44100
-#define DEFAULT_BITRATE 666
-#define DEFAULT_CHANNELS 2
-#define DEFAULT_STREAMNAME "A Krad MKV Stream"
-#define DEFAULT_URL "http://kradradio.com"
-#define DEFAULT_DESCRIPTION "Krad MKV Streaming Test"
-#define DEFAULT_PUBLIC 0
-
-#define TIMESLICE 4
-
-#define KRADEBML_VERSION "0.1"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,10 +29,58 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdarg.h>
-
 #include <limits.h>
-#include <jack/jack.h>
-#include <jack/ringbuffer.h>
+#include <stddef.h>
+#include <inttypes.h>
+
+
+#define DEFAULT_HOST "kradradio.com"
+#define DEFAULT_PORT 9040
+#define DEFAULT_PASSWORD "secretkode"
+#define HELP -1337
+#define DEFAULT_SAMPLERATE 44100
+#define DEFAULT_BITRATE 666
+#define DEFAULT_CHANNELS 2
+#define DEFAULT_STREAMNAME "A Krad EBML Stream"
+#define DEFAULT_URL "http://kradradio.com"
+#define DEFAULT_DESCRIPTION "Krad EBML Streaming Test"
+#define DEFAULT_PUBLIC 0
+#define TIMESLICE 4
+#define KRADEBML_VERSION "0.31"
+
+#define LITERALU64(n) n##LLU
+#define off_t long long
+
+#define NESTEGG_TRACK_VIDEO 0 /**< Track is of type video. */
+#define NESTEGG_TRACK_AUDIO 1 /**< Track is of type audio. */
+#define NESTEGG_TRACK_SUBTITLE 2 /**< Track is of type subtitle. */
+
+#define NESTEGG_CODEC_VP8    0 /**< Track uses Google On2 VP8 codec. */
+#define NESTEGG_CODEC_VORBIS 1 /**< Track uses Xiph Vorbis codec. */
+#define NESTEGG_CODEC_OPUS 2 /**< Track uses Xiph Opus codec. */
+#define NESTEGG_CODEC_FLAC 3 /**< Track uses Xiph FLAC codec. */
+#define NESTEGG_CODEC_DIRAC 4 /**< Track uses Dirac codec. */
+
+#define NESTEGG_VIDEO_MONO              0 /**< Track is mono video. */
+#define NESTEGG_VIDEO_STEREO_LEFT_RIGHT 1 /**< Track is side-by-side stereo video.  Left first. */
+#define NESTEGG_VIDEO_STEREO_BOTTOM_TOP 2 /**< Track is top-bottom stereo video.  Right first. */
+#define NESTEGG_VIDEO_STEREO_TOP_BOTTOM 3 /**< Track is top-bottom stereo video.  Left first. */
+#define NESTEGG_VIDEO_STEREO_RIGHT_LEFT 11 /**< Track is side-by-side stereo video.  Right first. */
+
+#define NESTEGG_SEEK_SET 0 /**< Seek offset relative to beginning of stream. */
+#define NESTEGG_SEEK_CUR 1 /**< Seek offset relative to current position in stream. */
+#define NESTEGG_SEEK_END 2 /**< Seek offset relative to end of stream. */
+
+#define NESTEGG_LOG_DEBUG    1     /**< Debug level log message. */
+#define NESTEGG_LOG_INFO     10    /**< Informational level log message. */
+#define NESTEGG_LOG_WARNING  100   /**< Warning level log message. */
+#define NESTEGG_LOG_ERROR    1000  /**< Error level log message. */
+#define NESTEGG_LOG_CRITICAL 10000 /**< Critical level log message. */
+
+#define KRAD_EBML_CLUSTER_BYTE1 0x1F
+#define KRAD_EBML_CLUSTER_BYTE2 0x43
+#define KRAD_EBML_CLUSTER_BYTE3 0xB6
+#define KRAD_EBML_CLUSTER_BYTE4 0x75
 
 
 typedef enum {
@@ -63,28 +96,226 @@ typedef enum {
 	KRAD_DIRAC,
 } krad_codec_type_t;
 
-//#define VPX_CODEC_DISABLE_COMPAT 1
-//#include "vpx/vpx_encoder.h"
-//#include "vpx/vp8cx.h"
+enum mkv
+{
+    EBML = 0x1A45DFA3,
+    EBMLVersion = 0x4286,
+    EBMLReadVersion = 0x42F7,
+    EBMLMaxIDLength = 0x42F2,
+    EBMLMaxSizeLength = 0x42F3,
+    DocType = 0x4282,
+    DocTypeVersion = 0x4287,
+    DocTypeReadVersion = 0x4285,
+//  CRC_32 = 0xBF,
+    Void = 0xEC,
+    SignatureSlot = 0x1B538667,
+    SignatureAlgo = 0x7E8A,
+    SignatureHash = 0x7E9A,
+    SignaturePublicKey = 0x7EA5,
+    Signature = 0x7EB5,
+    SignatureElements = 0x7E5B,
+    SignatureElementList = 0x7E7B,
+    SignedElement = 0x6532,
+    //segment
+    Segment = 0x18538067,
+    //Meta Seek Information
+    SeekHead = 0x114D9B74,
+    Seek = 0x4DBB,
+    SeekID = 0x53AB,
+    SeekPosition = 0x53AC,
+    //Segment Information
+    Info = 0x1549A966,
+//  SegmentUID = 0x73A4,
+//  SegmentFilename = 0x7384,
+//  PrevUID = 0x3CB923,
+//  PrevFilename = 0x3C83AB,
+//  NextUID = 0x3EB923,
+//  NextFilename = 0x3E83BB,
+//  SegmentFamily = 0x4444,
+//  ChapterTranslate = 0x6924,
+//  ChapterTranslateEditionUID = 0x69FC,
+//  ChapterTranslateCodec = 0x69BF,
+//  ChapterTranslateID = 0x69A5,
+    TimecodeScale = 0x2AD7B1,
+    Segment_Duration = 0x4489,
+    DateUTC = 0x4461,
+//  Title = 0x7BA9,
+    MuxingApp = 0x4D80,
+    WritingApp = 0x5741,
+    //Cluster
+    Cluster = 0x1F43B675,
+    Timecode = 0xE7,
+//  SilentTracks = 0x5854,
+//  SilentTrackNumber = 0x58D7,
+	Position = 0xA7,
+    PrevSize = 0xAB,
+    BlockGroup = 0xA0,
+    Block = 0xA1,
+//  BlockVirtual = 0xA2,
+//  BlockAdditions = 0x75A1,
+//  BlockMore = 0xA6,
+//  BlockAddID = 0xEE,
+//  BlockAdditional = 0xA5,
+    BlockDuration = 0x9B,
+//  ReferencePriority = 0xFA,
+    ReferenceBlock = 0xFB,
+//  ReferenceVirtual = 0xFD,
+//  CodecState = 0xA4,
+//  Slices = 0x8E,
+//  TimeSlice = 0xE8,
+    LaceNumber = 0xCC,
+//  FrameNumber = 0xCD,
+//  BlockAdditionID = 0xCB,
+//  MkvDelay = 0xCE,
+//  Cluster_Duration = 0xCF,
+    SimpleBlock = 0xA3,
+//  EncryptedBlock = 0xAF,
+    //Track
+    Tracks = 0x1654AE6B,
+    TrackEntry = 0xAE,
+    TrackNumber = 0xD7,
+    TrackUID = 0x73C5,
+    TrackType = 0x83,
+    FlagEnabled = 0xB9,
+    FlagDefault = 0x88,
+    FlagForced = 0x55AA,
+    FlagLacing = 0x9C,
+//  MinCache = 0x6DE7,
+//  MaxCache = 0x6DF8,
+    DefaultDuration = 0x23E383,
+//  TrackTimecodeScale = 0x23314F,
+//  TrackOffset = 0x537F,
+//  MaxBlockAdditionID = 0x55EE,
+    Name = 0x536E,
+    Language = 0x22B59C,
+    CodecID = 0x86,
+    CodecPrivate = 0x63A2,
+    CodecName = 0x258688,
+//  AttachmentLink = 0x7446,
+//  CodecSettings = 0x3A9697,
+//  CodecInfoURL = 0x3B4040,
+//  CodecDownloadURL = 0x26B240,
+//  CodecDecodeAll = 0xAA,
+//  TrackOverlay = 0x6FAB,
+//  TrackTranslate = 0x6624,
+//  TrackTranslateEditionUID = 0x66FC,
+//  TrackTranslateCodec = 0x66BF,
+//  TrackTranslateTrackID = 0x66A5,
+    //video
+    Video = 0xE0,
+    FlagInterlaced = 0x9A,
+    StereoMode = 0x53B8,
+    PixelWidth = 0xB0,
+    PixelHeight = 0xBA,
+    PixelCropBottom = 0x54AA,
+    PixelCropTop = 0x54BB,
+    PixelCropLeft = 0x54CC,
+    PixelCropRight = 0x54DD,
+    DisplayWidth = 0x54B0,
+    DisplayHeight = 0x54BA,
+    DisplayUnit = 0x54B2,
+    AspectRatioType = 0x54B3,
+//  ColourSpace = 0x2EB524,
+//  GammaValue = 0x2FB523,
+    FrameRate = 0x2383E3,
+    //end video
+    //audio
+    Audio = 0xE1,
+    SamplingFrequency = 0xB5,
+    OutputSamplingFrequency = 0x78B5,
+    Channels = 0x9F,
+//  ChannelPositions = 0x7D7B,
+    BitDepth = 0x6264,
+    //end audio
+    //content encoding
+//  ContentEncodings = 0x6d80,
+//  ContentEncoding = 0x6240,
+//  ContentEncodingOrder = 0x5031,
+//  ContentEncodingScope = 0x5032,
+//  ContentEncodingType = 0x5033,
+//  ContentCompression = 0x5034,
+//  ContentCompAlgo = 0x4254,
+//  ContentCompSettings = 0x4255,
+//  ContentEncryption = 0x5035,
+//  ContentEncAlgo = 0x47e1,
+//  ContentEncKeyID = 0x47e2,
+//  ContentSignature = 0x47e3,
+//  ContentSigKeyID = 0x47e4,
+//  ContentSigAlgo = 0x47e5,
+//  ContentSigHashAlgo = 0x47e6,
+    //end content encoding
+    //Cueing Data
+    Cues = 0x1C53BB6B,
+    CuePoint = 0xBB,
+    CueTime = 0xB3,
+    CueTrackPositions = 0xB7,
+    CueTrack = 0xF7,
+    CueClusterPosition = 0xF1,
+    CueBlockNumber = 0x5378,
+//  CueCodecState = 0xEA,
+//  CueReference = 0xDB,
+//  CueRefTime = 0x96,
+//  CueRefCluster = 0x97,
+//  CueRefNumber = 0x535F,
+//  CueRefCodecState = 0xEB,
+    //Attachment
+//  Attachments = 0x1941A469,
+//  AttachedFile = 0x61A7,
+//  FileDescription = 0x467E,
+//  FileName = 0x466E,
+//  FileMimeType = 0x4660,
+//  FileData = 0x465C,
+//  FileUID = 0x46AE,
+//  FileReferral = 0x4675,
+    //Chapters
+//  Chapters = 0x1043A770,
+//  EditionEntry = 0x45B9,
+//  EditionUID = 0x45BC,
+//  EditionFlagHidden = 0x45BD,
+//  EditionFlagDefault = 0x45DB,
+//  EditionFlagOrdered = 0x45DD,
+//  ChapterAtom = 0xB6,
+//  ChapterUID = 0x73C4,
+//  ChapterTimeStart = 0x91,
+//  ChapterTimeEnd = 0x92,
+//  ChapterFlagHidden = 0x98,
+//  ChapterFlagEnabled = 0x4598,
+//  ChapterSegmentUID = 0x6E67,
+//  ChapterSegmentEditionUID = 0x6EBC,
+//  ChapterPhysicalEquiv = 0x63C3,
+//  ChapterTrack = 0x8F,
+//  ChapterTrackNumber = 0x89,
+//  ChapterDisplay = 0x80,
+//  ChapString = 0x85,
+//  ChapLanguage = 0x437C,
+//  ChapCountry = 0x437E,
+//  ChapProcess = 0x6944,
+//  ChapProcessCodecID = 0x6955,
+//  ChapProcessPrivate = 0x450D,
+//  ChapProcessCommand = 0x6911,
+//  ChapProcessTime = 0x6922,
+//  ChapProcessData = 0x6933,
+    //Tagging
+//  Tags = 0x1254C367,
+//  Tag = 0x7373,
+//  Targets = 0x63C0,
+//  TargetTypeValue = 0x68CA,
+//  TargetType = 0x63CA,
+//  Tagging_TrackUID = 0x63C5,
+//  Tagging_EditionUID = 0x63C9,
+//  Tagging_ChapterUID = 0x63C4,
+//  AttachmentUID = 0x63C6,
+//  SimpleTag = 0x67C8,
+//  TagName = 0x45A3,
+//  TagLanguage = 0x447A,
+//  TagDefault = 0x4484,
+//  TagString = 0x4487,
+//  TagBinary = 0x4485,
+};
 
-//#define interface (vpx_codec_vp8_cx())
-//#define fourcc    0x30385056
-#include <stddef.h>
 typedef struct EbmlGlobal EbmlGlobal;
-#include "krad_ebml_ids.h"
-
-//#ifndef kradsource_h
-//#include "kradsource.h"
-//#endif
-
-/////////////
 typedef struct kradebml_St krad_ebml_t;
 typedef struct kradebml_St kradebml_t;
-
-
-#include <inttypes.h>
-
-#define LITERALU64(n) n##LLU
 
 typedef enum stereo_format
 {
@@ -95,7 +326,6 @@ typedef enum stereo_format
     STEREO_FORMAT_RIGHT_LEFT = 11
 } stereo_format_t;
 
-#define off_t long long
 
 typedef off_t EbmlLoc;
 
@@ -151,8 +381,7 @@ void write_webm_file_footer(EbmlGlobal *glob, long hash);
 //void write_webm_block(EbmlGlobal *glob, const vpx_codec_enc_cfg_t *cfg, const vpx_codec_cx_pkt_t  *pkt);
 //void write_webm_file_header(EbmlGlobal *glob, const vpx_codec_enc_cfg_t *cfg, const struct vpx_rational *fps, stereo_format_t stereo_fmt);
 
-void
-write_webm_header(EbmlGlobal *glob);
+void write_webm_header(EbmlGlobal *glob);
 
 void write_webm_seek_info(EbmlGlobal *ebml);
 void write_webm_seek_element(EbmlGlobal *ebml, unsigned long id, off_t pos);
@@ -172,90 +401,6 @@ void Ebml_SerializeString(EbmlGlobal *glob, unsigned long class_id, const char *
 void Ebml_SerializeData(EbmlGlobal *glob, unsigned long class_id, unsigned char *data, unsigned long data_length);
 void Ebml_SerializeData(EbmlGlobal *glob, unsigned long class_id, unsigned char *data, unsigned long data_length);
 //void write_webm_audio_block(EbmlGlobal *glob, const vpx_codec_enc_cfg_t *cfg, unsigned char *buffer, int bufferlen, int timecode_pos);
-
-
-
-
-///////////////////////////
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** @mainpage
-
-    @section intro Introduction
-
-    This is the documentation for the <tt>libnestegg</tt> C API.
-    <tt>libnestegg</tt> is a demultiplexing library for <a
-    href="http://www.webmproject.org/code/specs/container/">WebM</a>
-    media files.
-
-    @section example Example code
-
-    @code
-    nestegg * demux_ctx;
-    nestegg_init(&demux_ctx, io, NULL);
-
-    nestegg_packet * pkt;
-    while ((r = nestegg_read_packet(demux_ctx, &pkt)) > 0) {
-      unsigned int track;
-
-      nestegg_packet_track(pkt, &track);
-
-      // This example decodes the first track only.
-      if (track == 0) {
-        unsigned int chunk, chunks;
-
-        nestegg_packet_count(pkt, &chunks);
-
-        // Decode each chunk of data.
-        for (chunk = 0; chunk < chunks; ++chunk) {
-          unsigned char * data;
-          size_t data_size;
-
-          nestegg_packet_data(pkt, chunk, &data, &data_size);
-
-          example_codec_decode(codec_ctx, data, data_size);
-        }
-      }
-
-      nestegg_free_packet(pkt);
-    }
-
-    nestegg_destroy(demux_ctx);
-    @endcode
-*/
-
-
-/** @file
-    The <tt>libnestegg</tt> C API. */
-
-#define NESTEGG_TRACK_VIDEO 0 /**< Track is of type video. */
-#define NESTEGG_TRACK_AUDIO 1 /**< Track is of type audio. */
-#define NESTEGG_TRACK_SUBTITLE 2 /**< Track is of type subtitle. */
-
-#define NESTEGG_CODEC_VP8    0 /**< Track uses Google On2 VP8 codec. */
-#define NESTEGG_CODEC_VORBIS 1 /**< Track uses Xiph Vorbis codec. */
-#define NESTEGG_CODEC_OPUS 2 /**< Track uses Xiph Opus codec. */
-#define NESTEGG_CODEC_FLAC 3 /**< Track uses Xiph FLAC codec. */
-#define NESTEGG_CODEC_DIRAC 4 /**< Track uses Dirac codec. */
-
-#define NESTEGG_VIDEO_MONO              0 /**< Track is mono video. */
-#define NESTEGG_VIDEO_STEREO_LEFT_RIGHT 1 /**< Track is side-by-side stereo video.  Left first. */
-#define NESTEGG_VIDEO_STEREO_BOTTOM_TOP 2 /**< Track is top-bottom stereo video.  Right first. */
-#define NESTEGG_VIDEO_STEREO_TOP_BOTTOM 3 /**< Track is top-bottom stereo video.  Left first. */
-#define NESTEGG_VIDEO_STEREO_RIGHT_LEFT 11 /**< Track is side-by-side stereo video.  Right first. */
-
-#define NESTEGG_SEEK_SET 0 /**< Seek offset relative to beginning of stream. */
-#define NESTEGG_SEEK_CUR 1 /**< Seek offset relative to current position in stream. */
-#define NESTEGG_SEEK_END 2 /**< Seek offset relative to end of stream. */
-
-#define NESTEGG_LOG_DEBUG    1     /**< Debug level log message. */
-#define NESTEGG_LOG_INFO     10    /**< Informational level log message. */
-#define NESTEGG_LOG_WARNING  100   /**< Warning level log message. */
-#define NESTEGG_LOG_ERROR    1000  /**< Error level log message. */
-#define NESTEGG_LOG_CRITICAL 10000 /**< Critical level log message. */
 
 typedef struct nestegg nestegg;               /**< Opaque handle referencing the stream state. */
 typedef struct nestegg_packet nestegg_packet; /**< Opaque handle referencing a packet of data. */
@@ -575,8 +720,8 @@ struct kradebml_St {
 	int kludgecount;	
 	
 	
-	jack_ringbuffer_t *input_ring;
-	jack_ringbuffer_t *output_ring;
+	//jack_ringbuffer_t *input_ring;
+	//jack_ringbuffer_t *output_ring;
 	char *input_buffer;
 	pthread_t processing_thread;
 	int shutdown;
@@ -616,11 +761,7 @@ struct kradebml_St {
 	
 };
 
-
-#define KRAD_EBML_CLUSTER_BYTE1 0x1F
-#define KRAD_EBML_CLUSTER_BYTE2 0x43
-#define KRAD_EBML_CLUSTER_BYTE3 0xB6
-#define KRAD_EBML_CLUSTER_BYTE4 0x75
+char *kradebml_version();
 
 int krad_ebml_find_first_cluster(char *buffer, int len);
 unsigned char get_next_match_byte(unsigned char match_byte, uint64_t position, uint64_t *matched_byte_num, uint64_t *winner);
@@ -683,9 +824,10 @@ int kradebml_open_output_file(kradebml_t *kradebml, char *filename);
 int kradebml_add_video_track_with_priv(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size);
 int kradebml_add_video_track(kradebml_t *kradebml, char *codec_id, int frame_rate, int width, int height);
 void kradebml_add_video(kradebml_t *kradebml, int track_num, unsigned char *buffer, int bufferlen, int keyframe);
-////////////
+
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* NESTEGG_671cac2a_365d_ed69_d7a3_4491d3538d79 */
+

@@ -5,12 +5,14 @@ top = '.'
 from waflib import Configure, Logs
 import os
 
-
+klibdir = "krad_ebml"
 toolsdir = "krad_ebml_tools"
 subdirs = os.listdir('./' + toolsdir)
 
 for s in subdirs:
 	subdirs[subdirs.index(s)] = os.getcwd() + "/" + toolsdir + "/" + s
+	
+subdirs += [os.getcwd() + "/" + klibdir]
 	
 def configure(conf):
 	conf.check_tool('gcc')

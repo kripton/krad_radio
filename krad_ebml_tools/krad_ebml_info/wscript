@@ -1,37 +1,25 @@
 #!/usr/bin/env python
 
 programs = """
-krad_flac_ebml_test.c
-krad_flac_test.c
+krad_ebml_fileinfo.c
 """.split()
 
 sources = """
-krad_flac.c
 """.split()
 
 depsources = """
-../krad_tone/krad_tone.c
-../krad_audio/krad_audio.c
-../krad_jack/krad_jack.c
-../krad_pulse/krad_pulse.c
-../krad_alsa/krad_alsa.c
 """.split()
 
 includedirs = """
-../krad_tone/
-../krad_audio/
-../krad_jack/
-../krad_pulse/
-../krad_alsa/
 ../../krad_ebml/
 """.split()
 
-libs = ["flac", "libpulse", "jack", "alsa"]
+libs = []
 
 def configure(conf):
-	
-	for l in libs:
-		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+	pass
+	#for l in libs:
+	#	conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
 
 def build(bld):
@@ -45,4 +33,3 @@ def build(bld):
 			target = p.replace(".c", ""),
 			use = "kradebml",
 			uselib = libs)
-

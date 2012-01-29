@@ -13,6 +13,13 @@
 
 #include "krad_ebml.h"
 
+
+char *kradebml_version() {
+
+	return KRADEBML_VERSION;
+
+}
+
 void base64_encode(char *dest, char *src) {
 
 	base64_t *base64 = calloc(1, sizeof(base64_t));
@@ -278,7 +285,7 @@ int kradebml_feedbuffer_read(void *buffer, size_t length, void *userdata)
 		}
 
 
-		bytes += jack_ringbuffer_read(kradebml->input_ring, buffer + bytes, length - bytes);
+		//bytes += jack_ringbuffer_read(kradebml->input_ring, buffer + bytes, length - bytes);
 
 		if (bytes != length) {
 			//printf("waiting for moar bytes\n");
@@ -2411,7 +2418,7 @@ ne_parse(nestegg * ctx, struct ebml_element_desc * top_level)
       if (element->type == TYPE_MASTER) {
         if (element->flags & DESC_FLAG_MULTI) {
   			data_offset2 = ne_io_tell(ctx->io);
-        	printf("master %llu %lld\n", size + 7, data_offset2 - 42);
+        	printf("master %lu %ld\n", size + 7, data_offset2 - 42);
           ne_read_master(ctx, element);
         } else {
           ne_read_single_master(ctx, element);
@@ -2918,12 +2925,12 @@ void kradebml_destroy(kradebml_t *kradebml) {
 
 	kradebml_close_output(kradebml);
 
-	if (kradebml->output_ring != NULL) {
-		kradebml->shutdown = 1;
-		pthread_cancel (kradebml->processing_thread);
-		printf("kradebml pthread_cancel\n");
-		jack_ringbuffer_free (kradebml->output_ring);
-	}
+	//if (kradebml->output_ring != NULL) {
+	//	kradebml->shutdown = 1;
+	//	pthread_cancel (kradebml->processing_thread);
+	//	printf("kradebml pthread_cancel\n");
+	//	//jack_ringbuffer_free (kradebml->output_ring);
+	//}
 
 
   while (kradebml->ctx->ancestor)
@@ -2934,9 +2941,9 @@ void kradebml_destroy(kradebml_t *kradebml) {
 
 
 
-	if (kradebml->input_ring != NULL) {
-		jack_ringbuffer_free (kradebml->input_ring);
-	}
+	//if (kradebml->input_ring != NULL) {
+		//jack_ringbuffer_free (kradebml->input_ring);
+	///}
 
 
 	free(kradebml->ebml);
@@ -3286,7 +3293,7 @@ nestegg_track_codec_data(nestegg * ctx, unsigned int track, unsigned int item,
   if (codec_private.length < 1) {
     return -1;
 	}
-	printf("zzlength is %d\n", codec_private.length);
+	printf("zzlength is %zu\n", codec_private.length);
 		*length = codec_private.length;
 		*data = codec_private.data;
 	
@@ -4187,7 +4194,7 @@ void *processing_thread(void *arg) {
 
 	if (id != ID_EBML) {
 		//nestegg_destroy(kradebml->ctx);
-		return -1;
+		return NULL;
 	}
 
 	kradebml->ctx->log(kradebml->ctx, NESTEGG_LOG_DEBUG, "ctx %p", kradebml->ctx);
@@ -4198,14 +4205,14 @@ void *processing_thread(void *arg) {
 
 	if (r != 1) {
 		//nestegg_destroy(kradebml->ctx);
-		return -1;
+		return NULL;
 	}
 
 	if (ne_get_uint(kradebml->ctx->ebml.ebml_read_version, &version) != 0)
 		version = 1;
 		if (version != 1) {
 			//nestegg_destroy(kradebml->ctx);
-			return -1;
+			return NULL;
 	}
 
 	//if (ne_get_string(ctx->ebml.doctype, &doctype) != 0)
@@ -4219,12 +4226,12 @@ void *processing_thread(void *arg) {
 	docversion = 1;
 	if (docversion < 1 || docversion > 2) {
 		//nestegg_destroy(kradebml->ctx);
-		return -1;
+		return NULL;
 	}
 
 	if (!kradebml->ctx->segment.tracks.track_entry.head) {
 		//nestegg_destroy(kradebml->ctx);
-		return -1;
+		return NULL;
 	}
 
 	track = kradebml->ctx->segment.tracks.track_entry.head;
@@ -4277,8 +4284,8 @@ kradebml_t *kradebml_create_feedbuffer() {
   //  return -1;
 
 
-	kradebml->input_ring = jack_ringbuffer_create(5000000);
-	kradebml->output_ring = jack_ringbuffer_create(5000000);
+//	kradebml->input_ring = jack_ringbuffer_create(5000000);
+//	kradebml->output_ring = jack_ringbuffer_create(5000000);
   
   		kradebml->io.read = kradebml_feedbuffer_read;
 		kradebml->io.seek = kradebml_feedbuffer_seek;
@@ -4305,7 +4312,7 @@ kradebml_t *kradebml_create_feedbuffer() {
     kradebml->ctx->log = ne_null_log_callback;
 
 
-	pthread_create(&kradebml->processing_thread, NULL, processing_thread, (void *)kradebml);
+//	pthread_create(&kradebml->processing_thread, NULL, processing_thread, (void *)kradebml);
 
 
 	return kradebml;
@@ -4317,7 +4324,7 @@ size_t kradebml_read_space(kradebml_t *kradebml) {
 	size_t x;
 	int space;
 	
-	space = jack_ringbuffer_read_space(kradebml->output_ring);
+	//space = jack_ringbuffer_read_space(kradebml->output_ring);
 	
 	space = space - 8192;
 	
@@ -4358,8 +4365,8 @@ int kradebml_read(kradebml_t *kradebml, char *buffer, int len) {
 		printf("Bypassed cluster at %lu, currently at %lu\n", kradebml->last_cluster_pos, kradebml->total_bytes_wrote);
 	}
 	
-	
-	return jack_ringbuffer_read(kradebml->output_ring, buffer, len);
+	return 0;
+	//return jack_ringbuffer_read(kradebml->output_ring, buffer, len);
 
 
 }
@@ -4394,8 +4401,8 @@ int kradebml_wrote(kradebml_t *kradebml, int len) {
 
 
 
-	jack_ringbuffer_write(kradebml->input_ring, kradebml->input_buffer, len);
-	jack_ringbuffer_write(kradebml->output_ring, kradebml->input_buffer, len);
+	//jack_ringbuffer_write(kradebml->input_ring, kradebml->input_buffer, len);
+	//jack_ringbuffer_write(kradebml->output_ring, kradebml->input_buffer, len);
 
 	free(kradebml->input_buffer);
 

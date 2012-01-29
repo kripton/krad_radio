@@ -1,0 +1,13 @@
+# kradebml installed pkg-config file
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: kradebml
+Description: EBML Transducer
+Version: @KRADEBML_VERSION@
+Conflicts:
+Libs: -L${libdir} -lkradebml
+Cflags: -I${includedir}

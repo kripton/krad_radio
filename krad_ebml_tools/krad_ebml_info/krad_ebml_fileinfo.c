@@ -6,6 +6,9 @@ int main (int argc, char *argv[]) {
 
 	char *info;
 
+
+	printf("Krad EBML %s\n", kradebml_version());
+
 	if (argc != 2) {
 		printf("Please specify a file\n");
 		exit(1);
