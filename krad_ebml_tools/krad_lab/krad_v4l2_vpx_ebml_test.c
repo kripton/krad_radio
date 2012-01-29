@@ -11,7 +11,7 @@ int main (int argc, char *argv[]) {
 
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	//krad_vpx_decoder_t *krad_vpx_decoder;
-	krad_ebml_t *ebml;
+	kradebml_t *ebml;
 
 	char *filename = "/home/oneman/kode/testfilex.webm";
 	char *device;

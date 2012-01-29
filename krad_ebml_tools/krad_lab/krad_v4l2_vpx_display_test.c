@@ -22,7 +22,7 @@ struct krad_v4l2_vpx_display_test_St {
 	kradgui_t *kradgui;
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
-	krad_ebml_t *ebml;
+	kradebml_t *ebml;
 	float *samples[2];
 	
 	jack_ringbuffer_t *input_ringbuffer[2];
@@ -157,7 +157,7 @@ int main (int argc, char *argv[]) {
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	//krad_vpx_decoder_t *krad_vpx_decoder;
 	kradgui_t *kradgui;
-	krad_ebml_t *ebml;
+	kradebml_t *ebml;
 	cairo_surface_t *cst;
 	cairo_t *cr;
 	char *filename = "/home/oneman/kode/new_testfile4.webm";

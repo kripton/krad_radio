@@ -8,7 +8,7 @@ int main (int argc, char *argv[]) {
 
 	krad_overlay_display_t *krad_overlay_display;
 	krad_vpx_decoder_t *krad_vpx_decoder;
-	krad_ebml_t *krad_ebml;
+	kradebml_t *krad_ebml;
 	
 	int width, height;
 	

@@ -1,4 +1,4 @@
-#include <krad_ebml_simple.h>
+#include <krad_ebml.h>
 
 #define HEADER_MAX_SIZE 8192 * 4
 #define BUFFER_SIZE 4096

@@ -22,7 +22,7 @@ struct krad_ebml_player_St {
 	int stop;
 
 	krad_audio_t *audio;
-	krad_ebml_t *ebml;
+	kradebml_t *ebml;
 	krad_opus_t *opus;
 	int len;
 	int callback_len;

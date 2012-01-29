@@ -7,7 +7,16 @@ If you have not used waf, it works like this:
 
 ./waf configure
 ./waf
-./waf install (but not with this project right now)
+sudo ./waf install
+
+./waf clean and ./waf distclean can be usefull
+
+Need to add option builds currently all deps need to be met for tools.
+
+["vorbis", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", 
+ "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+
+These are for the tools only, krad ebml library has no deps.
 
 It will create a subdir called build in this directory, where you will find the results of its doing.
 

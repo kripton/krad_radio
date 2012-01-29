@@ -12,7 +12,7 @@ void flac_ebml_encode_test() {
 	
 	krad_flac_t *krad_flac;
 	krad_tone_t *krad_tone;
-	krad_ebml_t *krad_ebml;
+	kradebml_t *krad_ebml;
 	//krad_audio_t *audio;
 	
 	char *filename = "/home/oneman/kode/flacrox.mkv";
@@ -93,7 +93,7 @@ void flac_ebml_encode_test() {
 void flac_ebml_decode_test(char *inputfile) {
 
 	krad_flac_t *krad_flac;
-	krad_ebml_t *krad_ebml;
+	kradebml_t *krad_ebml;
 	krad_audio_t *krad_audio;
 	krad_audio_api_t audio_api;
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 programs = """
+krad_ebml_cluster_test.c
 krad_ebml_video_sdl_overlay_test.c
 krad_v4l2_vpx_display_test.c
 krad_ebml_file_broadcast.c

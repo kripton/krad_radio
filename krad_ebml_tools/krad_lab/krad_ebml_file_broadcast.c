@@ -56,8 +56,8 @@ int main (int argc, char *argv[]) {
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_vpx_decoder_t *krad_vpx_decoder;
 	krad_dirac_t *krad_dirac;
-	krad_ebml_t *krad_ebml;
-	krad_ebml_t *krad_ebml_output;
+	kradebml_t *krad_ebml;
+	kradebml_t *krad_ebml_output;
 	kradgui_t *kradgui;
 	
 	krad_audio_t *audio;

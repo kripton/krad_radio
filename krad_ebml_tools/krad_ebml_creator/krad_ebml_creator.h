@@ -23,7 +23,7 @@ typedef struct krad_ebml_creator_St krad_ebml_creator_t;
 struct krad_ebml_creator_St {
 
 	krad_audio_t *audio;
-	krad_ebml_t *ebml;
+	kradebml_t *ebml;
 
 	krad_opus_t *opus;
 	krad_vorbis_t *vorbis;
