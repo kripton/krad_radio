@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include "krad_gui.h"
 
 typedef struct kradgui_gtk_St kradgui_gtk_t;
 

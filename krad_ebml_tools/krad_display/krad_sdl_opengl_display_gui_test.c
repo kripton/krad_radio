@@ -1,7 +1,6 @@
-#include <krad_sdl_opengl_display.h>
+#include "krad_sdl_opengl_display.h"
 #include <krad_gui.h>
 
-#include "SDL.h"
 
 #define TEST_COUNT 433
 

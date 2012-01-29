@@ -1,4 +1,3 @@
-#include "krad_gui.h"
 #include "krad_gui_gtk.h"
 
 static void *kradgui_gtk_init(gpointer data);

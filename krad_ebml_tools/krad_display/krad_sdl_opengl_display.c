@@ -1,4 +1,4 @@
-#include <krad_sdl_opengl_display.h>
+#include "krad_sdl_opengl_display.h"
 
 GLuint   program_object;  // a handler to the GLSL program used to update
 GLuint   vertex_shader;   // a handler to vertex shader. This is used internally 

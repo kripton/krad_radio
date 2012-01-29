@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "SDL.h"
 #include <pthread.h>
 #include <unistd.h>
+
+#include <SDL/SDL.h>
+
 #define GL_GLEXT_PROTOTYPES
 
 #include <GL/glut.h>

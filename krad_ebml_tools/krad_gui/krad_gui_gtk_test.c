@@ -1,4 +1,3 @@
-#include "krad_gui.h"
 #include "krad_gui_gtk.h"
 
 #define TEST_TIME 5222
