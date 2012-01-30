@@ -1696,6 +1696,7 @@ enum ebml_type_enum {
 #define TRACK_ID_OPUS        	"A_KRAD_OPUS"
 #define TRACK_ID_FLAC         	"A_FLAC"
 #define TRACK_ID_DIRAC         	"V_DIRAC"
+#define TRACK_ID_THEORA         "V_THEORA"
 
 enum vint_mask {
   MASK_NONE,
@@ -3379,6 +3380,8 @@ nestegg_track_codec_id(nestegg * ctx, unsigned int track)
   if (strcmp(codec_id, TRACK_ID_DIRAC) == 0)
     return NESTEGG_CODEC_DIRAC;    
 
+  if (strcmp(codec_id, TRACK_ID_THEORA) == 0)
+    return NESTEGG_CODEC_THEORA;
 
   return -1;
 }
@@ -3410,6 +3413,8 @@ char *krad_ebml_track_codec_string(kradebml_t *kradebml, unsigned int track) {
 	if (strcmp(codec_id, TRACK_ID_DIRAC) == 0)
 	return "Dirac";    
 
+	if (strcmp(codec_id, TRACK_ID_THEORA) == 0)
+	return "Theora";
 
 	return codec_id + 2;
 
@@ -3458,6 +3463,8 @@ int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track) {
 	if (strcmp(codec_id, TRACK_ID_DIRAC) == 0)
 	return KRAD_DIRAC;    
 
+	if (strcmp(codec_id, TRACK_ID_THEORA) == 0)
+	return KRAD_THEORA;    
 
 	return -1;
 
@@ -3478,7 +3485,7 @@ nestegg_track_codec_data_count(nestegg * ctx, unsigned int track,
     return -1;
 
 
-	if ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_VORBIS) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_OPUS)) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_FLAC))) {
+	if ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_VORBIS) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_OPUS)) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_FLAC)) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_THEORA))) {
 	  return -1;
 	}
 
@@ -3898,6 +3905,36 @@ void kradebml_debug(kradebml_t *kradebml) {
               kradebml->vparams.width, kradebml->vparams.height,
               kradebml->vparams.display_width, kradebml->vparams.display_height,
               kradebml->vparams.crop_top, kradebml->vparams.crop_left, kradebml->vparams.crop_bottom, kradebml->vparams.crop_right);
+
+
+
+	// the kl
+
+
+		nestegg_track_codec_data(kradebml->ctx, i, 0, &kradebml->codec_data, &kradebml->length);
+      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+      	
+      	kradebml->theora_header1_len = kradebml->length;
+      	memcpy(kradebml->theora_header1, kradebml->codec_data, kradebml->theora_header1_len);
+  
+  
+		nestegg_track_codec_data(kradebml->ctx, i, 1, &kradebml->codec_data, &kradebml->length);
+      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+      	
+      	kradebml->theora_header2_len = kradebml->length;
+      	memcpy(kradebml->theora_header2, kradebml->codec_data, kradebml->theora_header2_len);
+      	      	
+		nestegg_track_codec_data(kradebml->ctx, i, 2, &kradebml->codec_data, &kradebml->length);
+      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+
+      	kradebml->theora_header3_len = kradebml->length;      	
+      	memcpy(kradebml->theora_header3, kradebml->codec_data, kradebml->theora_header3_len);
+
+
+
+
+	// th kl
+
 
     } else if (kradebml->type == NESTEGG_TRACK_AUDIO) {
       nestegg_track_audio_params(kradebml->ctx, i, &kradebml->aparams);

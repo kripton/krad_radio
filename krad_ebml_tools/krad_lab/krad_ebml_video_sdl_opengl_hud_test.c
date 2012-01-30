@@ -2,6 +2,7 @@
 #include "krad_ebml.h"
 #include "krad_vpx.h"
 #include "krad_dirac.h"
+#include "krad_theora.h"
 #include "krad_flac.h"
 #include "krad_vorbis.h"
 #include "krad_opus.h"
@@ -54,6 +55,7 @@ int main (int argc, char *argv[]) {
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_vpx_decoder_t *krad_vpx_decoder;
 	krad_dirac_t *krad_dirac;
+	krad_theora_decoder_t *krad_theora_decoder;
 	kradebml_t *krad_ebml;
 	kradgui_t *kradgui;
 	
@@ -160,12 +162,19 @@ int main (int argc, char *argv[]) {
 	}
 	
 	if (audio_codec == KRAD_VORBIS) {
-			printf("got vorbis header bytes of %d %d %d\n", krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3_len);
+		printf("got vorbis header bytes of %d %d %d\n", krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3_len);
 		krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
 	}
+	
+	if (video_codec == KRAD_THEORA) {
+		printf("got theora header bytes of %d %d %d\n", krad_ebml->theora_header1_len, krad_ebml->theora_header2_len, krad_ebml->theora_header3_len);
+		krad_theora_decoder = krad_theora_decoder_create(krad_ebml->theora_header1, krad_ebml->theora_header1_len, krad_ebml->theora_header2, krad_ebml->theora_header2_len, krad_ebml->theora_header3, krad_ebml->theora_header3_len);
+	} else {
+		krad_theora_decoder = NULL;
+	}
 
-	krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
-	//krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	//krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	
 	krad_opengl_display->hud_width = hud_width;
 	krad_opengl_display->hud_height = hud_height;
@@ -233,7 +242,29 @@ int main (int argc, char *argv[]) {
 
 						//usleep(13000);
 					}
-				} else {
+				}
+				
+				if (video_codec == KRAD_THEORA) {
+
+					krad_theora_decoder_decode(krad_theora_decoder, buffer, krad_ebml->size);
+				
+					//if (krad_vpx_decoder->img != NULL) {
+
+						//printf("vpx img: %d %d %d\n", krad_vpx_decoder->img->stride[0],  krad_vpx_decoder->img->stride[1],  krad_vpx_decoder->img->stride[2]); 
+						//cr = cairo_create(cst);
+						//kradgui->cr = cr;
+						//kradgui_render(kradgui);
+						//cairo_destroy(cr);
+
+						//krad_sdl_opengl_display_hud_item(krad_opengl_display, hud_data);
+					krad_sdl_opengl_display_render(krad_opengl_display, krad_theora_decoder->ycbcr[0].data, krad_theora_decoder->ycbcr[0].stride, krad_theora_decoder->ycbcr[1].data, krad_theora_decoder->ycbcr[1].stride, krad_theora_decoder->ycbcr[2].data, krad_theora_decoder->ycbcr[2].stride);
+
+						//usleep(13000);
+					//}
+				}
+
+							
+				if (video_codec == KRAD_DIRAC) {
 				
 					//printf("dirac packet size %zu\n", krad_ebml->size);		
 
@@ -414,6 +445,11 @@ int main (int argc, char *argv[]) {
 	
 	free(hudtest);
 	free(audio_data);
+	
+	if (krad_theora_decoder != NULL) {
+		krad_theora_decoder_destroy(krad_theora_decoder);
+	}
+	
 	return 0;
 
 }

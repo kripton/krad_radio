@@ -60,6 +60,7 @@ extern "C" {
 #define NESTEGG_CODEC_OPUS 2 /**< Track uses Xiph Opus codec. */
 #define NESTEGG_CODEC_FLAC 3 /**< Track uses Xiph FLAC codec. */
 #define NESTEGG_CODEC_DIRAC 4 /**< Track uses Dirac codec. */
+#define NESTEGG_CODEC_THEORA 5 /**< Track uses Xiph Theora codec. */
 
 #define NESTEGG_VIDEO_MONO              0 /**< Track is mono video. */
 #define NESTEGG_VIDEO_STEREO_LEFT_RIGHT 1 /**< Track is side-by-side stereo video.  Left first. */
@@ -94,6 +95,7 @@ typedef enum {
 	KRAD_FLAC,
 	KRAD_VP8,
 	KRAD_DIRAC,
+	KRAD_THEORA,
 } krad_codec_type_t;
 
 enum mkv
@@ -749,6 +751,15 @@ struct kradebml_St {
 	
 	unsigned char vorbis_header3[8192];
 	int vorbis_header3_len;
+	
+	unsigned char theora_header1[8192];
+	int theora_header1_len;
+
+	unsigned char theora_header2[8192];
+	int theora_header2_len;
+	
+	unsigned char theora_header3[8192];
+	int theora_header3_len;
 	
 	krad_codec_type_t audio_codec;
 	krad_codec_type_t video_codec;

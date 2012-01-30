@@ -24,6 +24,7 @@ depsources = """
 ../krad_alsa/krad_alsa.c
 ../krad_vpx/krad_vpx.c
 ../krad_dirac/krad_dirac.c
+../krad_theora/krad_theora.c
 ../krad_vorbis/krad_vorbis.c
 ../krad_flac/krad_flac.c
 ../krad_opus/krad_opus.c
@@ -39,6 +40,7 @@ includedirs = """
 ../krad_tone/
 ../krad_audio/
 ../krad_dirac/
+../krad_theora/
 ../krad_jack/
 ../krad_pulse/
 ../krad_alsa/
@@ -52,7 +54,7 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = ["vorbis", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["theora", "theoraenc", "theoradec", "vorbis", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
 
 def configure(conf):
 	
