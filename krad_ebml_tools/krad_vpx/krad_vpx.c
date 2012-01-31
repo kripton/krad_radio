@@ -15,7 +15,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 		exit(1);
 	}
 	
-	kradvpx->quality = VPX_DL_REALTIME;
+	kradvpx->quality = VPX_DL_BEST_QUALITY;
 
 	kradvpx->frame_byte_size = kradvpx->height * kradvpx->width * 4;
 

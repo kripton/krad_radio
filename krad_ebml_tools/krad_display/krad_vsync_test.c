@@ -33,7 +33,7 @@ int main (int argc, char *argv[]) {
 	
 	cst = cairo_image_surface_create_for_data (gui_data, CAIRO_FORMAT_ARGB32, width, height, stride);
 	
-	krad_sdl_opengl_display = krad_sdl_opengl_display_create(width, height, width, height);
+	krad_sdl_opengl_display = krad_sdl_opengl_display_create("Krad VSYNC Test", width, height, width, height);
 
 	kradgui = kradgui_create(width, height);
 

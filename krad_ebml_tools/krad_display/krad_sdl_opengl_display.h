@@ -13,9 +13,13 @@
 
 #include <libswscale/swscale.h>
 
+#define debug printf
+
 typedef struct krad_sdl_opengl_display_St krad_sdl_opengl_display_t;
 
 struct krad_sdl_opengl_display_St {
+
+	char title[512];
 
 	int width;
 	int height;
@@ -48,7 +52,7 @@ void krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display_t *krad_sd
 
 void krad_sdl_opengl_display_destroy(krad_sdl_opengl_display_t *krad_sdl_opengl_display);
 void krad_sdl_opengl_display_test(krad_sdl_opengl_display_t *krad_sdl_opengl_display);
-krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height, int videowidth, int videoheight);
+krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(char *title, int width, int height, int videowidth, int videoheight);
 void krad_sdl_opengl_display_render(krad_sdl_opengl_display_t *krad_sdl_opengl_display, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs);
 void krad_sdl_opengl_draw_screen(krad_sdl_opengl_display_t *krad_sdl_opengl_display);
 

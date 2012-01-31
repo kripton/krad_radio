@@ -176,6 +176,8 @@ struct kradgui_St {
 	int cursor_x;
 	int cursor_y;
 	
+	int clear;
+	
 };
 
 struct kradgui_reel_to_reel_St {

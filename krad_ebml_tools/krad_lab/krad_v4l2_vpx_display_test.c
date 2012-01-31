@@ -12,7 +12,7 @@
 
 #define DEFAULT_DEVICE "/dev/video0"
 #define APPVERSION "Krad V4L2 VPX EBML Display TEST 0.4"
-#define TEST_COUNT 100
+#define TEST_COUNT 300
 
 typedef struct krad_v4l2_vpx_display_test_St krad_v4l2_vpx_display_test_t;
 
@@ -160,7 +160,7 @@ int main (int argc, char *argv[]) {
 	kradebml_t *ebml;
 	cairo_surface_t *cst;
 	cairo_t *cr;
-	char *filename = "/home/oneman/kode/new_testfile4.webm";
+	char *filename = "/home/oneman/kode/testmedia/capture/new_testfile4.webm";
 	int hud_width, hud_height;
 	int hud_stride;
 	int hud_byte_size;
@@ -191,8 +191,8 @@ int main (int argc, char *argv[]) {
 	read_composited = 1;
 	//first_frame = 1;
 	
-	width = 1280;
-	height = 720;
+	width = 640;
+	height = 480;
 	count = 0;
 	int keyframe;
 	void *frame = NULL;
@@ -204,8 +204,8 @@ int main (int argc, char *argv[]) {
 	int framenum;
 	int bytes;
 	
-	video_codec = 2;
-	audio_codec = 2;
+	video_codec = 1;
+	audio_codec = 1;
 		
 	if (argc < 2) {
 		device = DEFAULT_DEVICE;
@@ -244,7 +244,7 @@ int main (int argc, char *argv[]) {
 		kradebml_header(ebml, "matroska", APPVERSION);
 	}
 	if (video_codec == 1) {
-		videotrack = kradebml_add_video_track(ebml, "V_VP8", 10, width, height);
+		videotrack = kradebml_add_video_track(ebml, "V_VP8", 30, width, height);
 	}
 	if (video_codec == 2) {
 		videotrack = kradebml_add_video_track(ebml, "V_DIRAC", 10, width, height);
@@ -259,8 +259,8 @@ int main (int argc, char *argv[]) {
 	}	
 	kradebml_write(ebml);
 
-	krad_opengl_display = krad_sdl_opengl_display_create(width, height, width, height);
-	//krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, width, height);
+	krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, width, height, width, height);
+	//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, width, height);
 	
 	krad_vpx_encoder = krad_vpx_encoder_create(width, height);
 	krad_dirac = krad_dirac_encoder_create(width, height);

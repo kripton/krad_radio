@@ -23,7 +23,7 @@ int main (int argc, char *argv[]) {
 	
 	kradebml_debug(krad_ebml);
 
-	krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	krad_opengl_display = krad_sdl_opengl_display_create("Krad TEST", 1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	
 	while ((len = kradebml_read_video(krad_ebml, buffer)) > 0) {
 		

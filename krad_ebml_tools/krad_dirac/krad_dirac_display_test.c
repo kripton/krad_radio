@@ -25,7 +25,7 @@ void dirac_decode_display_test() {
 
 	krad_dirac_test_video_open (krad_dirac, filename);
 
-	krad_opengl_display = krad_sdl_opengl_display_create(krad_dirac->width, krad_dirac->height, krad_dirac->width, krad_dirac->height);
+	krad_opengl_display = krad_sdl_opengl_display_create("Krad Test", krad_dirac->width, krad_dirac->height, krad_dirac->width, krad_dirac->height);
 
 
 	switch (krad_dirac->format->chroma_format) {

@@ -23,8 +23,30 @@ void kradv4l2_frame_done (krad_v4l2_t *kradv4l2) {
 	}
 }
 			
-			
+char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2) {
+		
 
+			kradv4l2->buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			kradv4l2->buf.memory = V4L2_MEMORY_MMAP;
+
+			if (-1 == xioctl (kradv4l2->fd, VIDIOC_DQBUF, &kradv4l2->buf)) {
+				switch (errno) {
+		    		case EAGAIN:
+		            	return 0;
+
+					case EIO:
+		
+					default:
+						errno_exit ("VIDIOC_DQBUF");
+				}
+			}
+
+			kradv4l2->timestamp = kradv4l2->buf.timestamp;
+			
+		//	printf("\n\ntimestamp %zu %zu \n\n", kradv4l2->timestamp.tv_sec, kradv4l2->timestamp.tv_usec);
+			
+			return kradv4l2->buffers[kradv4l2->buf.index].start;
+}
 
 char *kradv4l2_read_frame (krad_v4l2_t *kradv4l2) {
 		
@@ -163,6 +185,38 @@ void kradv4l2_read_frames (krad_v4l2_t *kradv4l2) {
 	}
 }
 
+char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2) {
+
+    fd_set fds;
+    struct timeval tv;
+    int r;
+
+    FD_ZERO (&fds);
+    FD_SET (kradv4l2->fd, &fds);
+
+    /* Timeout. */
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
+
+    r = select (kradv4l2->fd + 1, &fds, NULL, NULL, &tv);
+
+    if (-1 == r) {
+        if (EINTR == errno) {
+        	// retry?
+        	return NULL;
+        }
+
+		errno_exit ("select");
+	}
+
+    if (0 == r) {
+		fprintf (stderr, "select timeout\n");
+		exit (EXIT_FAILURE);
+    }
+
+	return kradv4l2_read_frame_adv (kradv4l2);
+
+}
 
 char *kradv4l2_read_frame_wait (krad_v4l2_t *kradv4l2) {
 

@@ -177,7 +177,7 @@ int main (int argc, char *argv[]) {
 	//}
 
 	//krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
-	krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	
 	krad_opengl_display->hud_width = hud_width;
 	krad_opengl_display->hud_height = hud_height;

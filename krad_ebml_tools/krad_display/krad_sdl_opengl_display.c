@@ -119,7 +119,7 @@ void krad_sdl_opengl_draw_screen(krad_sdl_opengl_display_t *krad_sdl_opengl_disp
 	static float rotaterange = 35.0f;
 	
 	static int animate_test = 0;
-	static int zoom_in = 0;
+	static int zoom_in = 1;
 
 	k += speed;
 
@@ -324,7 +324,7 @@ void krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display_t *krad_sd
 
 }
 
-krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height, int videowidth, int videoheight)
+krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(char *title, int width, int height, int videowidth, int videoheight)
 {
 
 	krad_sdl_opengl_display_t *krad_sdl_opengl_display;
@@ -333,6 +333,8 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height,
 		fprintf(stderr, "mem alloc fail\n");
         exit(1);
 	}
+	
+	strncpy(krad_sdl_opengl_display->title, title, sizeof(krad_sdl_opengl_display->title));
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
@@ -362,7 +364,7 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height,
 	krad_sdl_opengl_display->video_flags = 0;
 
 
-	if ((krad_sdl_opengl_display->width == 1920) && (krad_sdl_opengl_display->height == 1080)) {
+	if (((krad_sdl_opengl_display->width == 1920) || (krad_sdl_opengl_display->width == 1440)) && (krad_sdl_opengl_display->height == 1080)) {
 		krad_sdl_opengl_display->video_flags |= SDL_FULLSCREEN;
 	}
 
@@ -376,17 +378,14 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height,
         exit(1);
     }
 
-    printf("Set%s %dx%dx%d mode\n",
-           krad_sdl_opengl_display->screen->flags & SDL_FULLSCREEN ? " fullscreen" : "",
-           krad_sdl_opengl_display->screen->w, krad_sdl_opengl_display->screen->h, krad_sdl_opengl_display->screen->format->BitsPerPixel);
-
-    printf("(video surface located in %s memory)\n", (krad_sdl_opengl_display->screen->flags & SDL_HWSURFACE) ? "video" : "system");
-
-    SDL_WM_SetCaption("Krad OpenGL Display", "kradod");
+    SDL_WM_SetCaption(krad_sdl_opengl_display->title, "kradod");
     
 	krad_sdl_opengl_init(krad_sdl_opengl_display);
-
-	printf("Krad Display created\n");
+    
+    debug("Krad Display \"%s\" Created %s %dx%dx%d mode (in %s memory)\n",
+           krad_sdl_opengl_display->title, krad_sdl_opengl_display->screen->flags & SDL_FULLSCREEN ? " fullscreen" : "",
+           krad_sdl_opengl_display->screen->w, krad_sdl_opengl_display->screen->h, krad_sdl_opengl_display->screen->format->BitsPerPixel,
+           (krad_sdl_opengl_display->screen->flags & SDL_HWSURFACE) ? "video" : "system");
     
 	pthread_rwlock_init(&krad_sdl_opengl_display->frame_lock, NULL);
 	pthread_rwlock_wrlock(&krad_sdl_opengl_display->frame_lock);
@@ -405,8 +404,6 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(int width, int height,
 
 void krad_sdl_opengl_display_destroy(krad_sdl_opengl_display_t *krad_sdl_opengl_display) {
 
-	printf("Krad Display Destroy\n");
-
 
   	pthread_rwlock_wrlock(&krad_sdl_opengl_display->frame_lock);
 
@@ -422,7 +419,10 @@ void krad_sdl_opengl_display_destroy(krad_sdl_opengl_display_t *krad_sdl_opengl_
 
     SDL_Quit();
     
+    
     free(krad_sdl_opengl_display);
+
+	debug("Krad Display Destroyed\n");
 
 }
 

@@ -20,6 +20,7 @@
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
+typedef struct krad_v4l2_ret_buffer_St krad_v4l2_ret_buffer_t;
 typedef struct krad_v4l2_buffer_St krad_v4l2_buffer_t;
 typedef struct krad_v4l2_St krad_v4l2_t;
 
@@ -34,6 +35,11 @@ struct krad_v4l2_buffer_St {
 	size_t length;
 };
 
+struct krad_v4l2_ret_buffer_St {
+	void *data;
+	size_t length;
+	struct timeval timestamp;
+};
 
 struct krad_v4l2_St {
 
@@ -43,6 +49,9 @@ struct krad_v4l2_St {
 	int frames;
 	
 	int fd;
+	
+	struct timeval timestamp;
+	krad_v4l2_ret_buffer_t ret_buffer;
 	
 	krad_v4l2_buffer_t *buffers;
 	unsigned int n_buffers;
@@ -67,8 +76,8 @@ void kradv4l2_start_capturing (krad_v4l2_t *kradv4l2);
 char *kradv4l2_read_frame_wait (krad_v4l2_t *kradv4l2);
 char *kradv4l2_read_frame (krad_v4l2_t *kradv4l2);
 void kradv4l2_read_frames (krad_v4l2_t *kradv4l2);
-
-
+char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2);
+char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2);
 void kradv4l2_frame_done (krad_v4l2_t *kradv4l2);
 
 /* private */

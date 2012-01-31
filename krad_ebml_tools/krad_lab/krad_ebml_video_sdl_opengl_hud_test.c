@@ -8,6 +8,7 @@
 #include "krad_opus.h"
 #include "krad_gui.h"
 
+#define APPVERSION "Krad EBML VIDEO SDL OPENGL DISPLAY HUD TEST 0.1"
 
 typedef struct krad_ebml_video_player_hud_test_St krad_ebml_video_player_hud_test_t;
 
@@ -91,11 +92,12 @@ int main (int argc, char *argv[]) {
 	struct timespec sleep_time;
 	
 	int dirac_output_unset;
-	
+	int render_hud;
 	int c;
 	
 	float temp_peak;
 	
+	render_hud = 1;
 	dirac_output_unset = true;
 		
 	if (argc < 2) {
@@ -128,7 +130,7 @@ int main (int argc, char *argv[]) {
 	hudtest->samples[0] = malloc(4 * 8192);
 	hudtest->samples[1] = malloc(4 * 8192);
 	
-	audio_api = PULSE;
+	audio_api = JACK;
 	audio = kradaudio_create("Krad EBML Video HUD Test Player", audio_api);
 	
 	kradgui = kradgui_create(hud_width, hud_height);
@@ -173,8 +175,8 @@ int main (int argc, char *argv[]) {
 		krad_theora_decoder = NULL;
 	}
 
-	//krad_opengl_display = krad_sdl_opengl_display_create(1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
-	krad_opengl_display = krad_sdl_opengl_display_create(krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	
 	krad_opengl_display->hud_width = hud_width;
 	krad_opengl_display->hud_height = hud_height;
@@ -305,20 +307,27 @@ int main (int argc, char *argv[]) {
 				}
 
 
-
-				cr = cairo_create(cst);
-				kradgui->cr = cr;
-				kradgui->overlay = 1;
-				kradgui_render(kradgui);
+				if (render_hud == 1) {
 				
-				kradgui_render_meter (kradgui, 102, 122, 83, kradgui->output_peak[0]);
-				kradgui_render_meter (kradgui, 248, 122, 83, kradgui->output_peak[1]);
+					krad_opengl_display->hud_data = hud_data;
 				
-				kradgui_render_vtest (kradgui);
+					cr = cairo_create(cst);
+					kradgui->cr = cr;
+					kradgui->overlay = 1;
+					kradgui_render(kradgui);
 				
-//				printf("peak %f %f\n", kradgui->output_peak[0] * 100.0f, kradgui->output_peak[1] * 100.0f);
-				cairo_destroy(cr);
-
+					kradgui_render_meter (kradgui, 102, 122, 83, kradgui->output_peak[0]);
+					kradgui_render_meter (kradgui, 248, 122, 83, kradgui->output_peak[1]);
+				
+					kradgui_render_vtest (kradgui);
+				
+	//				printf("peak %f %f\n", kradgui->output_peak[0] * 100.0f, kradgui->output_peak[1] * 100.0f);
+					cairo_destroy(cr);
+				} else {
+					krad_opengl_display->hud_data = NULL;
+				
+				}
+				
 				if (nosleep == false) {
 					//printf("hi\n");
 					kradgui_update_elapsed_time(kradgui);
@@ -376,6 +385,12 @@ int main (int argc, char *argv[]) {
 				        case SDLK_RIGHT:
 				            break;
 				        case SDLK_UP:
+				            break;
+				        case SDLK_j:
+				        	render_hud = 0;
+				            break;
+				        case SDLK_h:
+				        	render_hud = 1;
 				            break;
 				        case SDLK_q:
 				        	shutdown = 1;

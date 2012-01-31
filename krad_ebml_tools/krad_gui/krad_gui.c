@@ -9,6 +9,7 @@ kradgui_t *kradgui_create(int width, int height) {
 		exit (1);
 	}
 	
+	kradgui->clear = 1;
 	kradgui->width = width;
 	kradgui->height = height;
 	kradgui_set_playback_state(kradgui, KRADGUI_PLAYING);
@@ -1665,15 +1666,17 @@ void kradgui_render(kradgui_t *kradgui) {
 		kradgui_start_draw_time(kradgui);
 	}
 
-	if (kradgui->overlay) {
-		cairo_save (kradgui->cr);
-		cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
-		cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
-		cairo_paint (kradgui->cr);
-		cairo_restore (kradgui->cr);
-	} else {
-		cairo_set_source_rgb (kradgui->cr, BGCOLOR);
-		cairo_paint (kradgui->cr);
+	if (kradgui->clear == 1) {
+		if (kradgui->overlay) {
+			cairo_save (kradgui->cr);
+			cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
+			cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
+			cairo_paint (kradgui->cr);
+			cairo_restore (kradgui->cr);
+		} else {
+			cairo_set_source_rgb (kradgui->cr, BGCOLOR);
+			cairo_paint (kradgui->cr);
+		}
 	}
 
 	if (kradgui->reel_to_reel != NULL) {
@@ -1690,7 +1693,7 @@ void kradgui_render(kradgui_t *kradgui) {
 		kradgui_render_elapsed_timecode(kradgui);
 	}
 	
-	if (kradgui->render_test_text) {
+	if ((kradgui->render_test_text) || (kradgui->live)) {
 		kradgui_update_elapsed_time(kradgui);
 	}
 	

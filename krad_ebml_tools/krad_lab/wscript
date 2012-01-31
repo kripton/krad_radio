@@ -11,6 +11,7 @@ krad_v4l2_vpx_ebml_test.c
 krad_ebml_video_sdl_opengl_test.c
 krad_sdl_opengl_display_signal_generator.c
 krad_v4l2_vpx_test.c
+krad_cam.c
 """.split()
 
 sources = """
