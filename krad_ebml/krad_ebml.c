@@ -818,7 +818,7 @@ void kradebml_close_output(kradebml_t *kradebml) {
 	}
 
 
-	kradebml_end_segment(kradebml);
+	//kradebml_end_segment(kradebml);
 
 	kradebml_write(kradebml);
 
@@ -1277,7 +1277,11 @@ void kradebml_cluster(kradebml_t *kradebml, int timecode) {
 //    if (is_keyframe) {
 
         if(glob->cluster_open) {
-            Ebml_EndSubElement(glob, &glob->startCluster);	
+        
+        	//printf("\n\ncluster end buffer size is %zu\n\n", glob->buffer_pos);
+        
+            Ebml_EndSubElement(glob, &glob->startCluster);
+            kradebml_write(kradebml);
 		}
 
         /* Open the new cluster */

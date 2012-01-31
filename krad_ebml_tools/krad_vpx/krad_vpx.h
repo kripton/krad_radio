@@ -45,7 +45,7 @@ struct krad_vpx_encoder_St {
 
     int flags;
 	int frames;
-	int quality;
+	unsigned long quality;
 	
 	int frame_byte_size;
 	unsigned char *rgb_frame_data;
@@ -83,6 +83,8 @@ struct krad_vpx_decoder_St {
 };
 
 /* public */
+
+void krad_vpx_encoder_finish(krad_vpx_encoder_t *kradvpx);
 
 krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height);
 void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx);

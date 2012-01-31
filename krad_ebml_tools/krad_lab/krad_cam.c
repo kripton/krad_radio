@@ -37,6 +37,9 @@ struct krad_cam_St {
 	int encoding_height;
 	int encoding_fps;
 
+	int capture_buffer_frames;
+	int encoding_buffer_frames;
+
 	unsigned char *current_encoding_frame;
 	unsigned char *current_frame;
 	
@@ -66,8 +69,12 @@ void *video_capture_thread(void *arg) {
 	int dupe_frame = 0;
 	int first = 1;
 	int frames = 1;
+	unsigned long long expected_time_ns;
+	unsigned long long expected_time_ms;
 	struct timespec start_time;
 	struct timespec current_time;
+	struct timespec elapsed_time;
+	struct timespec expected_time;
 	struct timespec diff_time;
 	void *captured_frame = NULL;
 	unsigned char *captured_frame_rgb = malloc(krad_cam->composited_frame_byte_size); 
@@ -86,19 +93,36 @@ void *video_capture_thread(void *arg) {
 	
 		if (first == 1) {
 			first = 0;
-			frames = 1;
+			frames = 0;
 			clock_gettime(CLOCK_MONOTONIC, &start_time);
-		}	
-		clock_gettime(CLOCK_MONOTONIC, &current_time);
-	
-		diff_time = timespec_diff(start_time, current_time);
-	
-		if (diff_time.tv_nsec > (((1000 / krad_cam->capture_fps) * 1000000) * frames)) {
-			first = 1;
-			dupe_frame = 1;
-		
 		} else {
-			dupe_frame = 0;
+			clock_gettime(CLOCK_MONOTONIC, &current_time);
+	
+			elapsed_time = timespec_diff(start_time, current_time);
+	
+			expected_time_ns = (1000000000 / krad_cam->capture_fps) * (unsigned long long)frames;
+			expected_time_ms = expected_time_ns / 1000000;
+			expected_time.tv_sec = (expected_time_ms - (expected_time_ms % 1000)) / 1000;
+			expected_time.tv_nsec = (expected_time_ms % 1000) * 1000000;
+	
+			diff_time = timespec_diff(expected_time, elapsed_time);
+	
+			if (diff_time.tv_sec == 0) {
+	
+				if (diff_time.tv_nsec > ((unsigned long long)1000000000 / (unsigned long long)krad_cam->capture_fps)) {
+					first = 1;
+					dupe_frame = 1;
+		
+				} else {
+					dupe_frame = 0;
+				}
+				//printf("\n\ndiff time %zu %zu \n\n", diff_time.tv_sec, diff_time.tv_nsec);
+			}
+			
+				//printf("\n\nelapsed time %zu %zu \n", elapsed_time.tv_sec, elapsed_time.tv_nsec);
+				//printf("\n\nexpected_time_ms %llu \n", expected_time_ms);
+				//printf("\n\nexpected time %zu %zu \n", expected_time.tv_sec, expected_time.tv_nsec);	
+	
 		}
 	
 		frames++;
@@ -143,7 +167,9 @@ void *video_capture_thread(void *arg) {
 									 krad_cam->composited_frame_byte_size );
 
 			}
-		
+			
+
+			dupe_frame = 0;
 		}
 
 	
@@ -171,7 +197,13 @@ void *video_encoding_thread(void *arg) {
 	int keyframe;
 	int packet_size;
 
+	int first = 1;
+
 	krad_cam->krad_vpx_encoder = krad_vpx_encoder_create(krad_cam->encoding_width, krad_cam->encoding_height);
+
+
+	krad_cam->krad_vpx_encoder->quality = 1000000 / krad_cam->encoding_fps;
+
 
 	while ((krad_cam->encoding == 1) || (jack_ringbuffer_read_space(krad_cam->composited_frames_buffer) >= krad_cam->composited_frame_byte_size)) {
 
@@ -181,7 +213,19 @@ void *video_encoding_thread(void *arg) {
 								 (char *)krad_cam->current_encoding_frame, 
 								 krad_cam->composited_frame_byte_size );
 								 
-								 
+						
+						
+			if (jack_ringbuffer_read_space(krad_cam->composited_frames_buffer) >= (krad_cam->composited_frame_byte_size * (krad_cam->encoding_buffer_frames / 2)) ) {
+			
+				krad_cam->krad_vpx_encoder->quality = krad_cam->krad_vpx_encoder->quality / 2LLU;
+			
+			}
+						
+			if (jack_ringbuffer_read_space(krad_cam->composited_frames_buffer) >= (krad_cam->composited_frame_byte_size * (krad_cam->encoding_buffer_frames / 4)) ) {
+			
+				krad_cam->krad_vpx_encoder->quality = krad_cam->krad_vpx_encoder->quality / 2LLU;
+			
+			}						 
 								 
 			int rgb_stride_arr[3] = {4*krad_cam->composite_width, 0, 0};
 			const uint8_t *rgb_arr[4];
@@ -198,18 +242,27 @@ void *video_encoding_thread(void *arg) {
 			
 	
 			if (packet_size) {
-				//pthread_rwlock_wrlock(&display_test->ebml_write_lock);
+
 				kradebml_add_video(krad_cam->krad_ebml, krad_cam->video_track, vpx_packet, packet_size, keyframe);
-				//kradebml_write(krad_cam->krad_ebml);
-				//pthread_rwlock_unlock (&display_test->ebml_write_lock);		
+				if (first == 1) {				
+					first = 0;
+				}
+				
 			}
 	
 		} else {
+		
+			krad_cam->krad_vpx_encoder->quality = 1000000 / krad_cam->encoding_fps;
 		
 			usleep(5000);
 		
 		}
 		
+	}
+	
+	while (packet_size) {
+		krad_vpx_encoder_finish(krad_cam->krad_vpx_encoder);
+		packet_size = krad_vpx_encoder_write(krad_cam->krad_vpx_encoder, (unsigned char **)&vpx_packet, &keyframe);
 	}
 
 	krad_vpx_encoder_destroy(krad_cam->krad_vpx_encoder);
@@ -230,11 +283,10 @@ void *ebml_output_thread(void *arg) {
 
 	krad_cam->krad_ebml = kradebml_create();
 	
+//	kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 9080, "/teststream.webm", "secretkode");
 	kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
 	kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
-	kradebml_write(krad_cam->krad_ebml);
-	
-	
+		
 	//KKKKKKKKKKKKKKKK
 	
 	//krad_cam->encoding_fps = 24;
@@ -253,7 +305,7 @@ void *ebml_output_thread(void *arg) {
 		usleep(100000);
 	
 	}
-	
+		
 	kradebml_destroy(krad_cam->krad_ebml);
 	
 	printf("\n\nmuxing thread ends\n\n");
@@ -308,6 +360,9 @@ krad_cam_t *krad_cam_create(char *device, char *output, int capture_width, int c
 	krad_cam->encoding_height = encoding_height;
 	krad_cam->encoding_fps = encoding_fps;
 	
+	krad_cam->capture_buffer_frames = 5;
+	krad_cam->encoding_buffer_frames = 10;
+	
 	strncpy(krad_cam->device, device, sizeof(krad_cam->device));
 	strncpy(krad_cam->output, output, sizeof(krad_cam->output)); 
 
@@ -331,8 +386,8 @@ krad_cam_t *krad_cam_create(char *device, char *output, int capture_width, int c
 														 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
 														 SWS_BICUBIC, NULL, NULL, NULL);
 	
-	krad_cam->captured_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * 30);
-	krad_cam->composited_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * 150);
+	krad_cam->captured_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->capture_buffer_frames);
+	krad_cam->composited_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
 
 	krad_cam->krad_gui = kradgui_create_with_internal_surface(krad_cam->composite_width, krad_cam->composite_height);
 
@@ -344,6 +399,7 @@ krad_cam_t *krad_cam_create(char *device, char *output, int capture_width, int c
 	krad_cam->krad_gui->clear = 0;
 	//kradgui_test_screen(krad_cam->krad_gui, "Krad Cam Test");
 
+	printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
 
 	krad_cam->encoding = 1;
 	krad_cam->capturing = 1;
@@ -378,6 +434,10 @@ int main (int argc, char *argv[]) {
 	cam_started = 0;
 	read_composited = 0;	
 	shutdown = 0;
+	capture_width = 1280;
+	capture_height = 720;
+	capture_fps = 10;
+
 	capture_width = 640;
 	capture_height = 360;
 	capture_fps = 24;
@@ -385,14 +445,14 @@ int main (int argc, char *argv[]) {
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
 
-	composite_width = capture_width * 2;
-	composite_height = capture_height * 2;
+	composite_width = capture_width;
+	composite_height = capture_height;
 
 	encoding_width = capture_width;
 	encoding_height = capture_height;
 
-	display_width = capture_width * 2;
-	display_height = capture_height * 2;
+	display_width = capture_width;
+	display_height = capture_height;
 	
 	device = DEFAULT_DEVICE;
 

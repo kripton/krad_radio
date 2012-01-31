@@ -15,7 +15,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 		exit(1);
 	}
 	
-	kradvpx->quality = VPX_DL_GOOD_QUALITY;
+	kradvpx->quality = 33 * 1000000;
 
 	kradvpx->frame_byte_size = kradvpx->height * kradvpx->width * 4;
 
@@ -29,7 +29,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 		exit(1);
     }
 
-	kradvpx->cfg.rc_target_bitrate = 250 * 4;
+	kradvpx->cfg.rc_target_bitrate = 250 * 8;
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
 	kradvpx->cfg.g_threads = 8;
@@ -56,12 +56,26 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 
 void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx) {
 
-	vpx_img_free(kradvpx->image);
+	if (kradvpx->image != NULL) {
+		vpx_img_free(kradvpx->image);
+		kradvpx->image = NULL;
+	}
 	vpx_codec_destroy(&kradvpx->encoder);
 	sws_freeContext (kradvpx->sws_context);
 	sws_freeContext (kradvpx->rgb_sws_context);
 	free(kradvpx->rgb_frame_data);
 	free(kradvpx);
+
+}
+
+void krad_vpx_encoder_finish(krad_vpx_encoder_t *kradvpx) {
+
+	if (kradvpx->image != NULL) {
+		vpx_img_free(kradvpx->image);
+		kradvpx->image = NULL;
+	}
+
+
 
 }
 
