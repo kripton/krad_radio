@@ -18,6 +18,9 @@ struct krad_cam_St {
 
 	kradgui_t *krad_gui;
 	krad_vpx_encoder_t *krad_vpx_encoder;
+	krad_audio_t *krad_audio;
+	krad_audio_api_t audio_api;
+	krad_vorbis_t *krad_vorbis;
 	kradebml_t *krad_ebml;
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;
@@ -46,6 +49,12 @@ struct krad_cam_St {
 	int encoding;
 	int capturing;
 	
+	int start_audio;
+	int stop_audio;
+	jack_ringbuffer_t *audio_input_ringbuffer[2];
+	float *samples[2];
+	int audio_encoder_ready;
+	
 	int composited_frame_byte_size;
 	jack_ringbuffer_t *captured_frames_buffer;
 	jack_ringbuffer_t *composited_frames_buffer;
@@ -55,10 +64,16 @@ struct krad_cam_St {
 	struct SwsContext *display_frame_converter;
 	
 	int video_track;
+	int audio_track;
+	
+	krad_audio_api_t krad_audio_api;
 	
 	pthread_t video_capture_thread;
 	pthread_t video_encoding_thread;
+	pthread_t audio_encoding_thread;
 	pthread_t ebml_output_thread;
+	
+	pthread_rwlock_t ebml_write_lock;
 
 };
 
@@ -94,6 +109,7 @@ void *video_capture_thread(void *arg) {
 		if (first == 1) {
 			first = 0;
 			frames = 0;
+			krad_cam->start_audio = 1;
 			clock_gettime(CLOCK_MONOTONIC, &start_time);
 		} else {
 			clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -242,8 +258,9 @@ void *video_encoding_thread(void *arg) {
 			
 	
 			if (packet_size) {
-
+				pthread_rwlock_wrlock(&krad_cam->ebml_write_lock);
 				kradebml_add_video(krad_cam->krad_ebml, krad_cam->video_track, vpx_packet, packet_size, keyframe);
+				pthread_rwlock_unlock(&krad_cam->ebml_write_lock);
 				if (first == 1) {				
 					first = 0;
 				}
@@ -275,6 +292,89 @@ void *video_encoding_thread(void *arg) {
 	
 }
 
+
+void krad_cam_audio_callback(int frames, void *userdata) {
+
+	krad_cam_t *krad_cam = (krad_cam_t *)userdata;
+	
+	kradaudio_read (krad_cam->krad_audio, 0, (char *)krad_cam->samples[0], frames * 4 );
+	kradaudio_read (krad_cam->krad_audio, 1, (char *)krad_cam->samples[1], frames * 4 );
+
+	if (krad_cam->start_audio == 1) {
+		jack_ringbuffer_write(krad_cam->audio_input_ringbuffer[0], (char *)krad_cam->samples[0], frames * 4);
+		jack_ringbuffer_write(krad_cam->audio_input_ringbuffer[1], (char *)krad_cam->samples[1], frames * 4);
+	}
+}
+
+void *audio_encoding_thread(void *arg) {
+
+	krad_cam_t *krad_cam = (krad_cam_t *)arg;
+	
+	krad_cam->krad_audio = kradaudio_create("Krad Cam", krad_cam->krad_audio_api);
+	
+	krad_cam->krad_vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);
+	
+	int framecnt = 1470;
+	int bytes;
+	float *audio = calloc(1, 1000000);
+	unsigned char *buffer = calloc(1, 1000000);
+	ogg_packet *op;
+
+	krad_cam->audio_input_ringbuffer[0] = jack_ringbuffer_create (1000000);
+	krad_cam->audio_input_ringbuffer[1] = jack_ringbuffer_create (1000000);
+
+	krad_cam->samples[0] = malloc(4 * 8192);
+	krad_cam->samples[1] = malloc(4 * 8192);
+
+	kradaudio_set_process_callback(krad_cam->krad_audio, krad_cam_audio_callback, krad_cam);
+
+	if (krad_cam->audio_api == JACK) {
+		krad_jack_t *jack = (krad_jack_t *)krad_cam->krad_audio->api;
+		kradjack_connect_port(jack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "Krad Cam:InputLeft");
+		kradjack_connect_port(jack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "Krad Cam:InputRight");
+	}
+	
+	krad_cam->audio_encoder_ready = 1;
+	
+	while (!(krad_cam->stop_audio)) {
+
+		while (jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) > framecnt * 4) {
+			
+			op = krad_vorbis_encode(krad_cam->krad_vorbis, framecnt, krad_cam->audio_input_ringbuffer[0], krad_cam->audio_input_ringbuffer[1]);
+
+			if (op != NULL) {
+
+				printf("bytes is %ld\n", op->bytes);
+				pthread_rwlock_wrlock(&krad_cam->ebml_write_lock);
+				kradebml_add_audio(krad_cam->krad_ebml, krad_cam->audio_track, op->packet, op->bytes, framecnt);
+				pthread_rwlock_unlock(&krad_cam->ebml_write_lock);
+			}
+		}
+	
+		while (jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) < framecnt * 4) {
+	
+			usleep(10000);
+	
+			if (krad_cam->stop_audio) {
+				break;
+			}
+	
+		}
+	}
+	
+	
+	free(krad_cam->samples[0]);
+	free(krad_cam->samples[1]);
+
+	jack_ringbuffer_free ( krad_cam->audio_input_ringbuffer[0] );
+	jack_ringbuffer_free ( krad_cam->audio_input_ringbuffer[1] );
+	
+	free(audio);
+	free(buffer);
+	return NULL;
+	
+}
+
 void *ebml_output_thread(void *arg) {
 
 	krad_cam_t *krad_cam = (krad_cam_t *)arg;
@@ -291,8 +391,18 @@ void *ebml_output_thread(void *arg) {
 										 			 krad_cam->encoding_width, krad_cam->encoding_height);
 	
 	
+	while ( krad_cam->audio_encoder_ready != 1) {
+	
+		usleep(10000);
+	
+	}
+	
+	krad_cam->audio_track = kradebml_add_audio_track(krad_cam->krad_ebml, "A_VORBIS", 44100, 2, krad_cam->krad_vorbis->header, 
+													 krad_cam->krad_vorbis->headerpos);
+	
 	kradebml_write(krad_cam->krad_ebml);
 	
+	pthread_rwlock_init(&krad_cam->ebml_write_lock, NULL);
 	
 	printf("\n\nebml thread waiting..\n\n");
 	
@@ -301,8 +411,10 @@ void *ebml_output_thread(void *arg) {
 		usleep(100000);
 	
 	}
-		
+	pthread_rwlock_wrlock(&krad_cam->ebml_write_lock);
 	kradebml_destroy(krad_cam->krad_ebml);
+	pthread_rwlock_unlock(&krad_cam->ebml_write_lock);
+	pthread_rwlock_destroy(&krad_cam->ebml_write_lock);
 	
 	printf("\n\nmuxing thread ends\n\n");
 	
@@ -327,6 +439,10 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 	sws_freeContext ( krad_cam->encoding_frame_converter );
 	sws_freeContext ( krad_cam->display_frame_converter );
 	
+	// must be before vorbis
+	kradaudio_destroy(krad_cam->krad_audio);
+	krad_vorbis_encoder_destroy(krad_cam->krad_vorbis);
+	
 	jack_ringbuffer_free( krad_cam->captured_frames_buffer );
 
 	free(krad_cam->current_encoding_frame);
@@ -336,7 +452,7 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 }
 
 
-krad_cam_t *krad_cam_create(char *device, char *output, int capture_width, int capture_height, int capture_fps, int composite_width, 
+krad_cam_t *krad_cam_create(char *device, char *output, krad_audio_api_t audio_api, int capture_width, int capture_height, int capture_fps, int composite_width, 
 							int composite_height, int composite_fps, int display_width, int display_height, int encoding_width, 
 							int encoding_height, int encoding_fps) {
 
@@ -355,6 +471,8 @@ krad_cam_t *krad_cam_create(char *device, char *output, int capture_width, int c
 	krad_cam->encoding_width = encoding_width;
 	krad_cam->encoding_height = encoding_height;
 	krad_cam->encoding_fps = encoding_fps;
+	
+	krad_cam->krad_audio_api = audio_api;
 	
 	krad_cam->capture_buffer_frames = 5;
 	krad_cam->encoding_buffer_frames = 10;
@@ -402,7 +520,8 @@ krad_cam_t *krad_cam_create(char *device, char *output, int capture_width, int c
 
 	pthread_create(&krad_cam->video_capture_thread, NULL, video_capture_thread, (void *)krad_cam);
 	pthread_create(&krad_cam->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_cam);
-	pthread_create(&krad_cam->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_cam);
+	pthread_create(&krad_cam->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_cam);
+	pthread_create(&krad_cam->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_cam);	
 
 	return krad_cam;
 
@@ -454,7 +573,7 @@ int main (int argc, char *argv[]) {
 
 	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	krad_cam = krad_cam_create( device, output, capture_width, capture_height, capture_fps, composite_width, composite_height, 
+	krad_cam = krad_cam_create( device, output, JACK, capture_width, capture_height, capture_fps, composite_width, composite_height, 
 								composite_fps, display_width, display_height, encoding_width, encoding_height, encoding_fps );
 
 	while (1) {
@@ -464,6 +583,7 @@ int main (int argc, char *argv[]) {
 			jack_ringbuffer_read(krad_cam->captured_frames_buffer, 
 								 (char *)krad_cam->current_frame, 
 								 krad_cam->composited_frame_byte_size );
+
 			if (cam_started == 0) {
 				cam_started = 1;
 				kradgui_go_live(krad_cam->krad_gui);
@@ -506,9 +626,7 @@ int main (int argc, char *argv[]) {
 		
 		}
 		
-				
 		krad_sdl_opengl_draw_screen( krad_cam->krad_opengl_display );
-
 
 		if (read_composited) {
 			krad_sdl_opengl_read_screen( krad_cam->krad_opengl_display, krad_cam->krad_opengl_display->rgb_frame_data);
@@ -523,9 +641,7 @@ int main (int argc, char *argv[]) {
 		} else {
 		
 			if ((cam_started == 1) && (new_capture_frame == 1)) {
-			
-				printf("overflow!\n");
-			
+				printf("encoding to slow! overflow!\n");
 			}
 		
 		}
@@ -594,13 +710,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	krad_cam_destroy( krad_cam );
-		
-	//if (read_composited) {
-	//	krad_sdl_opengl_read_screen( krad_opengl_display, read_screen_buffer);
-	//	rgb_to_yv12(sws_context, read_screen_buffer, width, height, krad_vpx_encoder->image->planes, krad_vpx_encoder->image->stride);
-	//	vpx_img_flip(krad_vpx_encoder->image);
-	//}
-	
+
 	
 	return 0;
 

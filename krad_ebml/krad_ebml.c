@@ -1160,7 +1160,7 @@ void kradebml_add_video(kradebml_t *kradebml, int track_num, unsigned char *buff
 	
 	int64_t timecode = glob->total_video_frames * 1000 * (uint64_t)1 / (uint64_t)glob->video_frame_rate;
     //pts_ms = pkt->data.frame.pts * 1000 * (uint64_t)cfg->g_timebase.num / (uint64_t)cfg->g_timebase.den;
-	if ((keyframe) && ((glob->total_video_frames > 0) || (kradebml->total_tracks == 1))) {
+	if (keyframe) { //&& ((glob->total_video_frames > 0) || (kradebml->total_tracks == 1))) {
 		kradebml_cluster(kradebml, timecode);
 	}
 
