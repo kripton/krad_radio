@@ -217,13 +217,13 @@ void *video_encoding_thread(void *arg) {
 						
 			if (jack_ringbuffer_read_space(krad_cam->composited_frames_buffer) >= (krad_cam->composited_frame_byte_size * (krad_cam->encoding_buffer_frames / 2)) ) {
 			
-				krad_cam->krad_vpx_encoder->quality = krad_cam->krad_vpx_encoder->quality / 2LLU;
+				krad_cam->krad_vpx_encoder->quality = (1000000 / krad_cam->encoding_fps) / 2LU;
 			
 			}
 						
 			if (jack_ringbuffer_read_space(krad_cam->composited_frames_buffer) >= (krad_cam->composited_frame_byte_size * (krad_cam->encoding_buffer_frames / 4)) ) {
 			
-				krad_cam->krad_vpx_encoder->quality = krad_cam->krad_vpx_encoder->quality / 2LLU;
+				krad_cam->krad_vpx_encoder->quality = (1000000 / krad_cam->encoding_fps) / 4LU;
 			
 			}						 
 								 
@@ -283,13 +283,9 @@ void *ebml_output_thread(void *arg) {
 
 	krad_cam->krad_ebml = kradebml_create();
 	
-//	kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 9080, "/teststream.webm", "secretkode");
+	//	kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 9080, "/teststream.webm", "secretkode");
 	kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
 	kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
-		
-	//KKKKKKKKKKKKKKKK
-	
-	//krad_cam->encoding_fps = 24;
 	
 	krad_cam->video_track = kradebml_add_video_track(krad_cam->krad_ebml, "V_VP8", krad_cam->encoding_fps,
 										 			 krad_cam->encoding_width, krad_cam->encoding_height);
