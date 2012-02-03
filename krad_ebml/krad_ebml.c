@@ -1215,7 +1215,7 @@ void kradebml_add_audio(kradebml_t *kradebml, int track_num, unsigned char *buff
 	//int64_t timecode = glob->total_video_frames * 1000 * (uint64_t)1 / (uint64_t)glob->video_frame_rate;
     //pts_ms = pkt->data.frame.pts * 1000 * (uint64_t)cfg->g_timebase.num / (uint64_t)cfg->g_timebase.den;
 
-	printf("timecode is %ld and buffer len is %d\n", timecode, bufferlen);
+	//printf("timecode is %ld and buffer len is %d\n", timecode, bufferlen);
 	
 	unsigned long  block_length;
     unsigned char  track_number;

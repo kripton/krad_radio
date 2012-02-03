@@ -58,6 +58,7 @@ struct krad_cam_St {
 	jack_ringbuffer_t *audio_input_ringbuffer[2];
 	float *samples[2];
 	int audio_encoder_ready;
+	int audio_frames_captured;
 	int audio_frames_encoded;
 	
 	int video_frames_encoded;
@@ -333,6 +334,7 @@ void krad_cam_audio_callback(int frames, void *userdata) {
 	kradaudio_read (krad_cam->krad_audio, 1, (char *)krad_cam->samples[1], frames * 4 );
 
 	if (krad_cam->start_audio == 1) {
+		krad_cam->audio_frames_captured += frames;
 		jack_ringbuffer_write(krad_cam->audio_input_ringbuffer[0], (char *)krad_cam->samples[0], frames * 4);
 		jack_ringbuffer_write(krad_cam->audio_input_ringbuffer[1], (char *)krad_cam->samples[1], frames * 4);
 	}
@@ -346,14 +348,14 @@ void *audio_encoding_thread(void *arg) {
 	
 	krad_cam->krad_vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);
 	
-	int framecnt = 44100 / krad_cam->capture_fps / 4;
+	int framecnt = 1024;
 	int bytes;
 	float *audio = calloc(1, 1000000);
 	unsigned char *buffer = calloc(1, 1000000);
 	ogg_packet *op;
 
-	krad_cam->audio_input_ringbuffer[0] = jack_ringbuffer_create (1000000);
-	krad_cam->audio_input_ringbuffer[1] = jack_ringbuffer_create (1000000);
+	krad_cam->audio_input_ringbuffer[0] = jack_ringbuffer_create (2000000);
+	krad_cam->audio_input_ringbuffer[1] = jack_ringbuffer_create (2000000);
 
 	krad_cam->samples[0] = malloc(4 * 8192);
 	krad_cam->samples[1] = malloc(4 * 8192);
@@ -370,31 +372,30 @@ void *audio_encoding_thread(void *arg) {
 	
 	while (!(krad_cam->stop_audio)) {
 
-		while (jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) > framecnt * 4) {
+		while ((jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) > framecnt * 4) || (op != NULL)) {
 			
 			op = krad_vorbis_encode(krad_cam->krad_vorbis, framecnt, krad_cam->audio_input_ringbuffer[0], krad_cam->audio_input_ringbuffer[1]);
 
 			if (op != NULL) {
 			
-				while (krad_cam->audio_frames_encoded > framecnt * 4 * (krad_cam->video_frames_encoded - 1)) {
+				//while (krad_cam->audio_frames_encoded > ((44100 / krad_cam->capture_fps) * (krad_cam->video_frames_encoded - 1))) {
 	
-					usleep(10000);
+				//	usleep(10000);
 	
-					if (krad_cam->stop_audio) {
-						break;
-					}
+				//	if (krad_cam->stop_audio) {
+				//		break;
+				//	}
 	
-				}
+				//}
 
 				pthread_rwlock_wrlock(&krad_cam->ebml_write_lock);
 				kradebml_add_audio(krad_cam->krad_ebml, krad_cam->audio_track, op->packet, op->bytes, op->granulepos - krad_cam->audio_frames_encoded);
 				pthread_rwlock_unlock(&krad_cam->ebml_write_lock);
-			printf("new shit %d\n", op->granulepos - krad_cam->audio_frames_encoded);
 				krad_cam->audio_frames_encoded = op->granulepos;
 			
 			
-				printf("frames encoded: %d video frames %d blah %d\n", krad_cam->audio_frames_encoded, krad_cam->video_frames_encoded, framecnt * (krad_cam->video_frames_encoded - 1));
-			
+				printf("frames encoded: %d frames captured: %d\r", krad_cam->audio_frames_encoded, krad_cam->audio_frames_captured);
+				fflush(stdout);
 			
 			}
 		}
@@ -553,8 +554,8 @@ krad_cam_t *krad_cam_create(char *device, char *output, krad_audio_api_t audio_a
 
 	krad_cam->krad_gui = kradgui_create_with_internal_surface(krad_cam->composite_width, krad_cam->composite_height);
 
-	krad_cam->krad_gui->update_drawtime = 1;
-	krad_cam->krad_gui->print_drawtime = 1;
+	//krad_cam->krad_gui->update_drawtime = 1;
+	//krad_cam->krad_gui->print_drawtime = 1;
 	
 	//krad_cam->krad_gui->render_ftest = 1;
 	//krad_cam->krad_gui->render_tearbar = 1;
@@ -600,7 +601,7 @@ int main (int argc, char *argv[]) {
 	shutdown = 0;
 	capture_width = 1280;
 	capture_height = 720;
-	capture_fps = 15;
+	capture_fps = 30;
 
 //	capture_width = 640;
 //	capture_height = 480;

@@ -102,25 +102,28 @@ ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, jack_ringbuffe
 
 	}
 
-	vorbis->buffer = vorbis_analysis_buffer(&vorbis->vdsp, frames);
+	if ((jack_ringbuffer_read_space(ring0) > frames * 4) && (jack_ringbuffer_read_space(ring1) > frames * 4)) {
+
+		vorbis->buffer = vorbis_analysis_buffer(&vorbis->vdsp, frames);
 			
-	jack_ringbuffer_read(ring0, (char *)&vorbis->buffer[0][0], frames * 4);
-	jack_ringbuffer_read(ring1, (char *)&vorbis->buffer[1][0], frames * 4);
+		jack_ringbuffer_read(ring0, (char *)&vorbis->buffer[0][0], frames * 4);
+		jack_ringbuffer_read(ring1, (char *)&vorbis->buffer[1][0], frames * 4);
 	
-	vorbis->ret = vorbis_analysis_wrote(&vorbis->vdsp, frames);
+		vorbis->ret = vorbis_analysis_wrote(&vorbis->vdsp, frames);
 
-	while (vorbis_analysis_blockout(&vorbis->vdsp, &vorbis->vblock)) {
+		while (vorbis_analysis_blockout(&vorbis->vdsp, &vorbis->vblock)) {
 	
-		vorbis_analysis(&vorbis->vblock, NULL);
-		vorbis_bitrate_addblock(&vorbis->vblock);
-	}
+			vorbis_analysis(&vorbis->vblock, NULL);
+			vorbis_bitrate_addblock(&vorbis->vblock);
+		}
 		
-	if (vorbis_bitrate_flushpacket(&vorbis->vdsp, &vorbis->op)) {
+		if (vorbis_bitrate_flushpacket(&vorbis->vdsp, &vorbis->op)) {
 
-		return &vorbis->op;
+			return &vorbis->op;
+
+		}
 
 	}
-
 	
 	return NULL;
 		
