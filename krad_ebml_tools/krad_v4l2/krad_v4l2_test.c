@@ -18,7 +18,7 @@ int main (int argc, char *argv[]) {
 
 	kradv4l2 = kradv4l2_create();
 
-	kradv4l2_open(kradv4l2, device, 640, 480);
+	kradv4l2_open(kradv4l2, device, 640, 480, 30);
 
 	//usleep(2000000);
 

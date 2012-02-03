@@ -560,6 +560,40 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 		errno_exit ("VIDIOC_S_FMT");
 	}
 
+	char fourcc[5];
+	fourcc[4] = '\0';
+	memcpy(&fourcc, (char *)&fmt.fmt.pix.pixelformat, 4);
+
+	printf("V4L2: %ux%u FMT# %s Stride: %u Size: %u\n", fmt.fmt.pix.width, fmt.fmt.pix.height, fourcc, 
+														fmt.fmt.pix.bytesperline, fmt.fmt.pix.sizeimage);
+
+	struct v4l2_streamparm stream_parameters;
+
+	CLEAR (stream_parameters);
+	stream_parameters.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	if (-1 == xioctl (kradv4l2->fd, VIDIOC_G_PARM, &stream_parameters)) {
+		errno_exit ("VIDIOC_G_PARM");
+	}
+
+	printf("V4L2: G Frameinterval %u/%u\n", stream_parameters.parm.capture.timeperframe.numerator, 
+										  stream_parameters.parm.capture.timeperframe.denominator);
+	
+	stream_parameters.parm.capture.timeperframe.numerator = 1;
+	stream_parameters.parm.capture.timeperframe.denominator = kradv4l2->fps;
+
+
+	if (-1 == xioctl (kradv4l2->fd, VIDIOC_S_PARM, &stream_parameters)) {
+		errno_exit ("VIDIOC_S_PARM");
+	}
+
+	printf("V4L2: S Frameinterval %u/%u\n", stream_parameters.parm.capture.timeperframe.numerator, 
+										  stream_parameters.parm.capture.timeperframe.denominator);
+										  
+	if (stream_parameters.parm.capture.timeperframe.denominator != kradv4l2->fps) {
+		printf("failed to get proper capture fps!\n");
+	}									  
+
 	/* Note VIDIOC_S_FMT may change width and height. */
 
 	/* Buggy driver paranoia. */
@@ -622,7 +656,7 @@ void kradv4l2_close (krad_v4l2_t *kradv4l2) {
 
 }
 
-void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height) {
+void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height, int fps) {
 
 	struct stat st; 
 
@@ -630,6 +664,7 @@ void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height) 
 
 	kradv4l2->width = width;
 	kradv4l2->height = height;
+	kradv4l2->fps = fps;
 	
 	if (-1 == stat (kradv4l2->device, &st)) {
 		fprintf (stderr, "Cannot identify '%s': %d, %s\n", kradv4l2->device, errno, strerror (errno));

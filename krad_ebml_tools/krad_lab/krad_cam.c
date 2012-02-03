@@ -46,6 +46,8 @@ struct krad_cam_St {
 	unsigned char *current_encoding_frame;
 	unsigned char *current_frame;
 	
+	unsigned int captured_frames;
+	
 	int encoding;
 	int capturing;
 	
@@ -83,7 +85,6 @@ void *video_capture_thread(void *arg) {
 
 	int dupe_frame = 0;
 	int first = 1;
-	int frames = 1;
 	unsigned long long expected_time_ns;
 	unsigned long long expected_time_ms;
 	struct timespec start_time;
@@ -98,7 +99,7 @@ void *video_capture_thread(void *arg) {
 
 	krad_cam->krad_v4l2 = kradv4l2_create();
 
-	kradv4l2_open(krad_cam->krad_v4l2, krad_cam->device, krad_cam->capture_width, krad_cam->capture_height);
+	kradv4l2_open(krad_cam->krad_v4l2, krad_cam->device, krad_cam->capture_width, krad_cam->capture_height, krad_cam->capture_fps);
 	
 	kradv4l2_start_capturing (krad_cam->krad_v4l2);
 
@@ -106,14 +107,28 @@ void *video_capture_thread(void *arg) {
 
 		captured_frame = kradv4l2_read_frame_wait_adv (krad_cam->krad_v4l2);
 	
+		
 		if (first == 1) {
 			first = 0;
-			frames = 0;
+			krad_cam->captured_frames = 0;
 			krad_cam->start_audio = 1;
 			clock_gettime(CLOCK_MONOTONIC, &start_time);
 		} else {
-			clock_gettime(CLOCK_MONOTONIC, &current_time);
+		
+		
+			if (krad_cam->captured_frames % 300 == 0) {
+		
+				clock_gettime(CLOCK_MONOTONIC, &current_time);
+				elapsed_time = timespec_diff(start_time, current_time);
+				printf("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_cam->captured_frames, elapsed_time.tv_sec * krad_cam->capture_fps, krad_cam->capture_fps, elapsed_time.tv_sec);
 	
+			}
+			
+			krad_cam->captured_frames++;
+	
+		}
+	
+		/*	
 			elapsed_time = timespec_diff(start_time, current_time);
 	
 			expected_time_ns = (1000000000 / krad_cam->capture_fps) * (unsigned long long)frames;
@@ -132,7 +147,7 @@ void *video_capture_thread(void *arg) {
 				} else {
 					dupe_frame = 0;
 				}
-				//printf("\n\ndiff time %zu %zu \n\n", diff_time.tv_sec, diff_time.tv_nsec);
+				printf("\n\ndiff time %zu %zu \n\n", diff_time.tv_sec, diff_time.tv_nsec);
 			}
 			
 				//printf("\n\nelapsed time %zu %zu \n", elapsed_time.tv_sec, elapsed_time.tv_nsec);
@@ -140,8 +155,8 @@ void *video_capture_thread(void *arg) {
 				//printf("\n\nexpected time %zu %zu \n", expected_time.tv_sec, expected_time.tv_nsec);	
 	
 		}
-	
-		frames++;
+		
+		*/
 	
 		int rgb_stride_arr[3] = {4*krad_cam->composite_width, 0, 0};
 
@@ -542,6 +557,7 @@ int main (int argc, char *argv[]) {
 	int composite_width, composite_height, composite_fps;
 	int encoding_width, encoding_height, encoding_fps;
 	char *device;
+	krad_audio_api_t krad_audio_api;
 	char output[512];
 	
 	SDL_Event event;
@@ -554,8 +570,8 @@ int main (int argc, char *argv[]) {
 	capture_fps = 10;
 
 	capture_width = 640;
-	capture_height = 360;
-	capture_fps = 24;
+	capture_height = 480;
+	capture_fps = 30;
 
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
@@ -570,10 +586,11 @@ int main (int argc, char *argv[]) {
 	display_height = capture_height;
 	
 	device = DEFAULT_DEVICE;
+	krad_audio_api = PULSE;
 
 	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	krad_cam = krad_cam_create( device, output, JACK, capture_width, capture_height, capture_fps, composite_width, composite_height, 
+	krad_cam = krad_cam_create( device, output, PULSE, capture_width, capture_height, capture_fps, composite_width, composite_height, 
 								composite_fps, display_width, display_height, encoding_width, encoding_height, encoding_fps );
 
 	while (1) {

@@ -19,11 +19,13 @@ int main (int argc, char *argv[]) {
 
 	int width;
 	int height;
+	int fps;
 	int count;
 	int keyframe;
 	
 	width = 1280;
 	height = 720;
+	fps = 10;
 	count = 0;
 	
 	void *frame = NULL;
@@ -50,7 +52,7 @@ int main (int argc, char *argv[]) {
 
 	kradv4l2 = kradv4l2_create();
 
-	kradv4l2_open(kradv4l2, device, width, height);
+	kradv4l2_open(kradv4l2, device, width, height, fps);
 	
 	kradv4l2_start_capturing (kradv4l2);
 	

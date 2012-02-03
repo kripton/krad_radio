@@ -167,6 +167,8 @@ int main (int argc, char *argv[]) {
 	unsigned char *hud_data;
 	struct SwsContext *sws_context;
 
+	int fps;
+
 	int videotrack;
 	int audiotrack;
 	char *device;
@@ -193,6 +195,7 @@ int main (int argc, char *argv[]) {
 	
 	width = 640;
 	height = 480;
+	fps = 30;
 	count = 0;
 	int keyframe;
 	void *frame = NULL;
@@ -283,7 +286,7 @@ int main (int argc, char *argv[]) {
 
 	kradv4l2 = kradv4l2_create();
 
-	kradv4l2_open(kradv4l2, device, width, height);
+	kradv4l2_open(kradv4l2, device, width, height, fps);
 	
 	kradv4l2_start_capturing (kradv4l2);
 	

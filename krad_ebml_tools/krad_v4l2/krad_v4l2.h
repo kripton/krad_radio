@@ -45,6 +45,8 @@ struct krad_v4l2_St {
 
 	int width;
 	int height;
+	int fps;
+
 
 	int frames;
 	
@@ -68,7 +70,7 @@ krad_v4l2_t *kradv4l2_create();
 void kradv4l2_destroy(krad_v4l2_t *kradv4l2);
 
 void kradv4l2_close (krad_v4l2_t *kradv4l2);
-void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height);
+void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height, int fps);
 
 void kradv4l2_stop_capturing (krad_v4l2_t *kradv4l2);
 void kradv4l2_start_capturing (krad_v4l2_t *kradv4l2);

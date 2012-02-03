@@ -195,7 +195,7 @@ void krad_ebml_creator_stream_blocking(krad_ebml_creator_t *krad_ebml_creator, c
 
 		kradv4l2 = kradv4l2_create();
 
-		kradv4l2_open(kradv4l2, device, width, height);
+		kradv4l2_open(kradv4l2, device, width, height, fps);
 	}
 	
 
