@@ -1207,9 +1207,9 @@ void kradebml_add_audio(kradebml_t *kradebml, int track_num, unsigned char *buff
 	kradebml->total_audio_frames += frames;
 	
 
-	if (timecode == 0) {
-			kradebml_cluster(kradebml, timecode);
-	}	
+	//if (timecode == 0) {
+	//		kradebml_cluster(kradebml, timecode);
+	//}	
 
 	
 	//int64_t timecode = glob->total_video_frames * 1000 * (uint64_t)1 / (uint64_t)glob->video_frame_rate;

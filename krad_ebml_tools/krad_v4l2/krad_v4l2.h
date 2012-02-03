@@ -18,6 +18,8 @@
 #include <asm/types.h>
 #include <linux/videodev2.h>
 
+#include <turbojpeg.h>
+
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 typedef struct krad_v4l2_ret_buffer_St krad_v4l2_ret_buffer_t;
@@ -63,9 +65,21 @@ struct krad_v4l2_St {
 
 	krad_v4l2_io_method io;
 
+	tjhandle jpeg_dec;
+
+	unsigned int jpeg_size;
+
+
+	unsigned char *jpeg_buffer;
+
 };
 
+
+
 /* public */
+
+void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, unsigned char *jpeg_buffer, unsigned int jpeg_size);
+
 krad_v4l2_t *kradv4l2_create();
 void kradv4l2_destroy(krad_v4l2_t *kradv4l2);
 

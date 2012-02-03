@@ -14,7 +14,7 @@ depsources = """
 includedirs = """
 """.split()
 
-libs = []
+libs = ['turbojpeg']
 
 def configure(conf):
 	

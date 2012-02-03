@@ -95,36 +95,32 @@ krad_vorbis_t *krad_vorbis_encoder_create(int channels, int sample_rate, float q
 
 ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, jack_ringbuffer_t *ring0, jack_ringbuffer_t *ring1) {
 
+
+	if (vorbis_bitrate_flushpacket(&vorbis->vdsp, &vorbis->op)) {
+
+		return &vorbis->op;
+
+	}
+
 	vorbis->buffer = vorbis_analysis_buffer(&vorbis->vdsp, frames);
 			
 	jack_ringbuffer_read(ring0, (char *)&vorbis->buffer[0][0], frames * 4);
 	jack_ringbuffer_read(ring1, (char *)&vorbis->buffer[1][0], frames * 4);
-
-	//samples_in += frames;
 	
 	vorbis->ret = vorbis_analysis_wrote(&vorbis->vdsp, frames);
 
-	if (vorbis_analysis_blockout(&vorbis->vdsp, &vorbis->vblock) == 1) {
+	while (vorbis_analysis_blockout(&vorbis->vdsp, &vorbis->vblock)) {
 	
 		vorbis_analysis(&vorbis->vblock, NULL);
 		vorbis_bitrate_addblock(&vorbis->vblock);
-	
-		if (vorbis_bitrate_flushpacket(&vorbis->vdsp, &vorbis->op)) {
-
-
-			return &vorbis->op;
-
-			//int timecode = round(vorbis->op.granulepos / 44.1f);
-			//timecode = ((timecode * 1000) / 44100);
-	
-			//printf("timecode is: %d\n", timecode);
-
-			//write_webm_audio_block(&kradcomposite->ebml, &kradcomposite->cfg, kradcomposite->vorbis->op.packet, kradcomposite->vorbis->op.bytes, timecode);
-
-			//printf("Samples in is: %d Ganulepos is: %ld\n", samples_in, kradcomposite->vorbis->op.granulepos);
-
-		}
 	}
+		
+	if (vorbis_bitrate_flushpacket(&vorbis->vdsp, &vorbis->op)) {
+
+		return &vorbis->op;
+
+	}
+
 	
 	return NULL;
 		

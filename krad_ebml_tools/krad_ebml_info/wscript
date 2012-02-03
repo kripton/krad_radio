@@ -14,7 +14,7 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = []
+libs = ["turbojpeg"]
 
 def configure(conf):
 	pass

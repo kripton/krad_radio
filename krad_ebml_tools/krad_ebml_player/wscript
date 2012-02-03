@@ -38,7 +38,7 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = ["vorbis", "speex", "speexdsp", "opus", "sdl", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["turbojpeg", "vorbis", "speex", "speexdsp", "opus", "sdl", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
 
 def configure(conf):
 	

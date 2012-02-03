@@ -40,6 +40,8 @@ struct krad_cam_St {
 	int encoding_height;
 	int encoding_fps;
 
+	int mjpeg_mode;
+
 	int capture_buffer_frames;
 	int encoding_buffer_frames;
 
@@ -56,6 +58,9 @@ struct krad_cam_St {
 	jack_ringbuffer_t *audio_input_ringbuffer[2];
 	float *samples[2];
 	int audio_encoder_ready;
+	int audio_frames_encoded;
+	
+	int video_frames_encoded;
 	
 	int composited_frame_byte_size;
 	jack_ringbuffer_t *captured_frames_buffer;
@@ -158,23 +163,33 @@ void *video_capture_thread(void *arg) {
 		
 		*/
 	
-		int rgb_stride_arr[3] = {4*krad_cam->composite_width, 0, 0};
+		krad_cam->mjpeg_mode = 1;
+	
+		if (krad_cam->mjpeg_mode == 0) {
+	
+			int rgb_stride_arr[3] = {4*krad_cam->composite_width, 0, 0};
 
-		const uint8_t *yuv_arr[4];
-		int yuv_stride_arr[4];
+			const uint8_t *yuv_arr[4];
+			int yuv_stride_arr[4];
 		
-		yuv_arr[0] = captured_frame;
+			yuv_arr[0] = captured_frame;
 
-		yuv_stride_arr[0] = krad_cam->capture_width + (krad_cam->capture_width/2) * 2;
-		yuv_stride_arr[1] = 0;
-		yuv_stride_arr[2] = 0;
-		yuv_stride_arr[3] = 0;
+			yuv_stride_arr[0] = krad_cam->capture_width + (krad_cam->capture_width/2) * 2;
+			yuv_stride_arr[1] = 0;
+			yuv_stride_arr[2] = 0;
+			yuv_stride_arr[3] = 0;
 
-		unsigned char *dst[4];
+			unsigned char *dst[4];
 
-		dst[0] = captured_frame_rgb;
+			dst[0] = captured_frame_rgb;
 
-		sws_scale(krad_cam->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_cam->capture_height, dst, rgb_stride_arr);
+			sws_scale(krad_cam->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_cam->capture_height, dst, rgb_stride_arr);
+	
+		} else {
+		
+			kradv4l2_jpeg_to_rgb (krad_cam->krad_v4l2, captured_frame_rgb, captured_frame, krad_cam->krad_v4l2->jpeg_size);
+		
+		}
 	
 		kradv4l2_frame_done (krad_cam->krad_v4l2);
 
@@ -280,6 +295,8 @@ void *video_encoding_thread(void *arg) {
 					first = 0;
 				}
 				
+				krad_cam->video_frames_encoded++;
+				
 			}
 	
 		} else {
@@ -329,7 +346,7 @@ void *audio_encoding_thread(void *arg) {
 	
 	krad_cam->krad_vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);
 	
-	int framecnt = 1470;
+	int framecnt = 44100 / krad_cam->capture_fps / 4;
 	int bytes;
 	float *audio = calloc(1, 1000000);
 	unsigned char *buffer = calloc(1, 1000000);
@@ -358,11 +375,27 @@ void *audio_encoding_thread(void *arg) {
 			op = krad_vorbis_encode(krad_cam->krad_vorbis, framecnt, krad_cam->audio_input_ringbuffer[0], krad_cam->audio_input_ringbuffer[1]);
 
 			if (op != NULL) {
+			
+				while (krad_cam->audio_frames_encoded > framecnt * 4 * (krad_cam->video_frames_encoded - 1)) {
+	
+					usleep(10000);
+	
+					if (krad_cam->stop_audio) {
+						break;
+					}
+	
+				}
 
-				printf("bytes is %ld\n", op->bytes);
 				pthread_rwlock_wrlock(&krad_cam->ebml_write_lock);
-				kradebml_add_audio(krad_cam->krad_ebml, krad_cam->audio_track, op->packet, op->bytes, framecnt);
+				kradebml_add_audio(krad_cam->krad_ebml, krad_cam->audio_track, op->packet, op->bytes, op->granulepos - krad_cam->audio_frames_encoded);
 				pthread_rwlock_unlock(&krad_cam->ebml_write_lock);
+			printf("new shit %d\n", op->granulepos - krad_cam->audio_frames_encoded);
+				krad_cam->audio_frames_encoded = op->granulepos;
+			
+			
+				printf("frames encoded: %d video frames %d blah %d\n", krad_cam->audio_frames_encoded, krad_cam->video_frames_encoded, framecnt * (krad_cam->video_frames_encoded - 1));
+			
+			
 			}
 		}
 	
@@ -567,11 +600,11 @@ int main (int argc, char *argv[]) {
 	shutdown = 0;
 	capture_width = 1280;
 	capture_height = 720;
-	capture_fps = 10;
+	capture_fps = 15;
 
-	capture_width = 640;
-	capture_height = 480;
-	capture_fps = 30;
+//	capture_width = 640;
+//	capture_height = 480;
+//	capture_fps = 60;
 
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
@@ -586,11 +619,11 @@ int main (int argc, char *argv[]) {
 	display_height = capture_height;
 	
 	device = DEFAULT_DEVICE;
-	krad_audio_api = PULSE;
+	krad_audio_api = JACK;
 
 	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	krad_cam = krad_cam_create( device, output, PULSE, capture_width, capture_height, capture_fps, composite_width, composite_height, 
+	krad_cam = krad_cam_create( device, output, krad_audio_api, capture_width, capture_height, capture_fps, composite_width, composite_height, 
 								composite_fps, display_width, display_height, encoding_width, encoding_height, encoding_fps );
 
 	while (1) {

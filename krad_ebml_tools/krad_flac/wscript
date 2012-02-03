@@ -26,7 +26,7 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = ["flac", "libpulse", "jack", "alsa"]
+libs = ["turbojpeg", "flac", "libpulse", "jack", "alsa"]
 
 def configure(conf):
 	
