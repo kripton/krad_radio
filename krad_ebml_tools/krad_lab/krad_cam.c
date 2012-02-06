@@ -371,7 +371,7 @@ void *audio_encoding_thread(void *arg) {
 	
 	while (krad_cam->encoding) {
 
-		while ((jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) > framecnt * 4) || (op != NULL)) {
+		while ((jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) >= framecnt * 4) || (op != NULL)) {
 			
 			op = krad_vorbis_encode(krad_cam->krad_vorbis, framecnt, krad_cam->audio_input_ringbuffer[0], krad_cam->audio_input_ringbuffer[1]);
 
@@ -481,15 +481,15 @@ void *ebml_output_thread(void *arg) {
 	
 	while ( krad_cam->encoding ) {
 
-		if ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) >= 4) && (krad_cam->encoding != 3)) {
+		if ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) >= 4) && (krad_cam->encoding < 3)) {
 
 			jack_ringbuffer_read(krad_cam->encoded_video_ringbuffer, (char *)&packet_size, 4);
 		
-			while ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding != 3)) {
+			while ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding < 3)) {
 				usleep(10000);
 			}
 			
-			if ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding == 3)) {
+			if ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding > 2)) {
 				continue;
 			}
 			
@@ -526,6 +526,10 @@ void *ebml_output_thread(void *arg) {
 
 			audio_frames_muxed += frames;
 		
+		} else {
+			if (krad_cam->encoding == 4) {
+				break;
+			}
 		}
 		
 		
@@ -539,9 +543,7 @@ void *ebml_output_thread(void *arg) {
 		
 			usleep(10000);
 			
-		}
-		
-		
+		}		
 	
 	}
 
@@ -697,9 +699,9 @@ int main (int argc, char *argv[]) {
 	capture_height = 720;
 	capture_fps = 30;
 
-//	capture_width = 640;
-//	capture_height = 480;
-//	capture_fps = 60;
+	//capture_width = 640;
+	//capture_height = 360;
+	//capture_fps = 60;
 
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;

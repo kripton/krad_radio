@@ -98,7 +98,7 @@ ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, jack_ringbuffe
 
 	if (vorbis->in_blockout == 0) {
 
-		if ((jack_ringbuffer_read_space(ring0) > frames * 4) && (jack_ringbuffer_read_space(ring1) > frames * 4)) {
+		if ((jack_ringbuffer_read_space(ring0) >= frames * 4) && (jack_ringbuffer_read_space(ring1) >= frames * 4)) {
 
 			vorbis->buffer = vorbis_analysis_buffer(&vorbis->vdsp, frames);
 			
