@@ -325,6 +325,9 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos
 //	printf("peak %f %f\n", pos);
 
 	cairo_save(cr);
+	
+	cairo_new_path ( cr );
+	
 	cairo_translate (cr, x, y);
 	cairo_set_line_width(cr, 0.05 * size);
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
@@ -1446,7 +1449,7 @@ void kradgui_render_live(kradgui_t *kradgui) {
 	cairo_move_to (kradgui->cr, kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_padding,  kradgui->live_box_margin + (kradgui->live_box_height - kradgui->live_box_padding));
 	cairo_show_text (kradgui->cr, "LIVE");
 
-	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size / 3);
+	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size / 4);
 	cairo_move_to (kradgui->cr, kradgui->width - ((kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_margin),  kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
 	cairo_show_text (kradgui->cr, kradgui->live_time_timecode_string);
 

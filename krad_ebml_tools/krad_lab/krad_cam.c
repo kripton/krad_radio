@@ -565,30 +565,29 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 	pthread_join(krad_cam->video_encoding_thread, NULL);
 	pthread_join(krad_cam->audio_encoding_thread, NULL);
 	pthread_join(krad_cam->ebml_output_thread, NULL);
-	
+	printf("1\n");
 	krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
-
+	printf("2\n");
 	kradgui_destroy(krad_cam->krad_gui);
-
+	printf("3\n");
 	sws_freeContext ( krad_cam->captured_frame_converter );
 	sws_freeContext ( krad_cam->encoding_frame_converter );
 	sws_freeContext ( krad_cam->display_frame_converter );
-	
+	printf("4\n");
 	// must be before vorbis
 	kradaudio_destroy (krad_cam->krad_audio);
 	krad_vorbis_encoder_destroy (krad_cam->krad_vorbis);
-	
+	printf("5\n");
 	jack_ringbuffer_free ( krad_cam->captured_frames_buffer );
-
-
+	printf("6\n");
 	jack_ringbuffer_free ( krad_cam->encoded_audio_ringbuffer );
 	jack_ringbuffer_free ( krad_cam->encoded_video_ringbuffer );
-
+	printf("7\n");
 
 
 	free(krad_cam->current_encoding_frame);
 	free(krad_cam->current_frame);
-
+	printf("8\n");
 	free(krad_cam);
 }
 
@@ -689,6 +688,8 @@ int main (int argc, char *argv[]) {
 	char *device;
 	krad_audio_api_t krad_audio_api;
 	char output[512];
+	int c;
+	float temp_peak;
 	
 	SDL_Event event;
 
@@ -733,6 +734,7 @@ int main (int argc, char *argv[]) {
 
 			if (cam_started == 0) {
 				cam_started = 1;
+				//krad_cam->krad_gui->render_ftest = 1;
 				kradgui_go_live(krad_cam->krad_gui);
 			}
 			
@@ -744,6 +746,22 @@ int main (int argc, char *argv[]) {
 		memcpy( krad_cam->krad_gui->data, krad_cam->current_frame, krad_cam->krad_gui->bytes );
 		
 		kradgui_render( krad_cam->krad_gui );
+
+		if (krad_cam->krad_audio != NULL) {
+			for (c = 0; c < 2; c++) {
+				temp_peak = read_peak(krad_cam->krad_audio, KINPUT, c);
+				if (temp_peak >= krad_cam->krad_gui->output_peak[c]) {
+					if (temp_peak > 2.7f) {
+						krad_cam->krad_gui->output_peak[c] = temp_peak;
+					}
+				} else {
+					krad_cam->krad_gui->output_peak[c] -= 0.9;					
+				}
+			}
+		}
+
+		kradgui_render_meter (krad_cam->krad_gui, 110, 620, 96, krad_cam->krad_gui->output_peak[0]);
+		kradgui_render_meter (krad_cam->krad_gui, 320, 620, 96, krad_cam->krad_gui->output_peak[1]);
 
 		if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
 			
