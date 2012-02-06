@@ -31,6 +31,8 @@ struct krad_vorbis_St {
 	unsigned char header[8192];
 	int headerpos;
 	int demented;
+	
+	int in_blockout;
 
 };
 
