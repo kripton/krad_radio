@@ -342,8 +342,8 @@ void *audio_encoding_thread(void *arg) {
 	
 	krad_cam->krad_audio = kradaudio_create("Krad Cam", krad_cam->krad_audio_api);
 	
-	krad_cam->krad_vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);
-	krad_cam->krad_flac = krad_flac_encoder_create(2, 44100, 16);
+	krad_cam->krad_vorbis = krad_vorbis_encoder_create(2, krad_cam->krad_audio->sample_rate, 0.7);
+	//krad_cam->krad_flac = krad_flac_encoder_create(2, krad_cam->kradaudio->sample_rate, 16);
 	
 	int framecnt = 1024;
 	int bytes;
@@ -451,15 +451,19 @@ void *ebml_output_thread(void *arg) {
 	audio_frames_muxed = 0;
 	video_frames_muxed = 0;
 
-	audio_frames_per_video_frame = 44100 / krad_cam->capture_fps;
+	while (krad_cam->krad_audio == NULL) {
+		usleep(5000);
+	}
+
+	audio_frames_per_video_frame = krad_cam->krad_audio->sample_rate / krad_cam->capture_fps;
 
 	packet = malloc(2000000);
 
 
 	krad_cam->krad_ebml = kradebml_create();
 	
-	kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 8080, "/teststream.webm", "secretkode");
-	//kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
+	//kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 8080, "/teststream.webm", "secretkode");
+	kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
 	kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
 	
 	krad_cam->video_track = kradebml_add_video_track(krad_cam->krad_ebml, "V_VP8", krad_cam->encoding_fps,
@@ -472,7 +476,7 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 	
-	krad_cam->audio_track = kradebml_add_audio_track(krad_cam->krad_ebml, "A_VORBIS", 44100, 2, krad_cam->krad_vorbis->header, 
+	krad_cam->audio_track = kradebml_add_audio_track(krad_cam->krad_ebml, "A_VORBIS", krad_cam->krad_audio->sample_rate, 2, krad_cam->krad_vorbis->header, 
 													 krad_cam->krad_vorbis->headerpos);
 	
 	kradebml_write(krad_cam->krad_ebml);
@@ -717,7 +721,7 @@ int main (int argc, char *argv[]) {
 	display_height = capture_height;
 	
 	device = DEFAULT_DEVICE;
-	krad_audio_api = JACK;
+	krad_audio_api = ALSA;
 
 	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 

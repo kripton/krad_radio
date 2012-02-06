@@ -33,6 +33,8 @@ struct krad_audio_St {
 	char name[256];
 
 	void *api;
+	
+	int sample_rate;
 
 	jack_ringbuffer_t *input_ringbuffer[2];
 	jack_ringbuffer_t *output_ringbuffer[2];

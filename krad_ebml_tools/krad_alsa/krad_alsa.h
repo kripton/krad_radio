@@ -68,6 +68,8 @@ struct krad_alsa_St {
 	snd_pcm_uframes_t real_period_size;
 	unsigned int buffer_time;
 	unsigned int period_time;
+	int sample_size;
+	snd_pcm_format_t sample_format;
 	snd_pcm_format_t real_sample_format;
 	snd_pcm_access_t real_access;
 	struct device_parameters capture_device_params;
@@ -75,6 +77,10 @@ struct krad_alsa_St {
 	float *samples[8];
 	float *interleaved_samples;
 	int *integer_samples;
+    
+    int capture;
+    int playback;
+    int stream;
     
 };
 

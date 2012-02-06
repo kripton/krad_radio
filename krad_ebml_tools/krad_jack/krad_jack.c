@@ -143,6 +143,9 @@ krad_jack_t *kradjack_create(krad_audio_t *kradaudio) {
 		fprintf(stderr, "unique name `%s' assigned\n", kradjack->client_name);
 	}
 
+
+	kradaudio->sample_rate = jack_get_sample_rate ( kradjack->jack_client );
+
 	// Set up Callbacks
 
 	jack_set_process_callback (kradjack->jack_client, kradjack_process, kradjack);
