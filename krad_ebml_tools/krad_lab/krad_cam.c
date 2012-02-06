@@ -458,8 +458,8 @@ void *ebml_output_thread(void *arg) {
 
 	krad_cam->krad_ebml = kradebml_create();
 	
-	//kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 8080, "/teststream.webm", "secretkode");
-	kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
+	kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 8080, "/teststream.webm", "secretkode");
+	//kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
 	kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
 	
 	krad_cam->video_track = kradebml_add_video_track(krad_cam->krad_ebml, "V_VP8", krad_cam->encoding_fps,
@@ -481,7 +481,7 @@ void *ebml_output_thread(void *arg) {
 	
 	while ( krad_cam->encoding ) {
 
-		if (jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) >= 4) {
+		if ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) >= 4) && (krad_cam->encoding != 3)) {
 
 			jack_ringbuffer_read(krad_cam->encoded_video_ringbuffer, (char *)&packet_size, 4);
 		
