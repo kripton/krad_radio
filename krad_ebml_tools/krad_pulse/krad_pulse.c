@@ -29,7 +29,53 @@ void kradpulse_state_cb(pa_context *c, void *userdata) {
 	}
 }
 
-static void kradpulse_stream_request_cb(pa_stream *stream, size_t length, void *userdata) {
+static void kradpulse_capture_cb(pa_stream *stream, size_t length, void *userdata) {
+
+	krad_pulse_t *kradpulse = (krad_pulse_t *)userdata;
+
+	pa_usec_t usec;
+	int neg;
+	const void *samples;
+	int c, s;
+	
+	pa_stream_get_latency(stream, &usec, &neg);
+	
+	//printf("  latency %8d us wanted %d frames\n", (int)usec, length / 4 / 2 );
+	 
+	pa_stream_peek(stream, &samples, &length);
+	 
+	if ((jack_ringbuffer_write_space (kradpulse->kradaudio->input_ringbuffer[1]) >= length / 2 ) && (jack_ringbuffer_write_space (kradpulse->kradaudio->input_ringbuffer[0]) >= length / 2 )) {
+
+
+		memcpy(kradpulse->capture_interleaved_samples, samples, length);
+
+		pa_stream_drop(stream);
+
+		for (s = 0; s < length / 4 / 2; s++) {
+			for (c = 0; c < 2; c++) {
+				kradpulse->capture_samples[c][s] = kradpulse->capture_interleaved_samples[s * 2 + c];
+			}
+		}
+
+		for (c = 0; c < 2; c++) {
+			jack_ringbuffer_write (kradpulse->kradaudio->input_ringbuffer[c], (char *)kradpulse->capture_samples[c], (length / 2) );
+		}
+
+		
+		for (c = 0; c < 2; c++) {
+		    compute_peak(kradpulse->kradaudio, KINPUT, &kradpulse->capture_interleaved_samples[c], c, length / 4 / 2 , 1);
+		}
+		
+	
+	}
+
+	if (kradpulse->kradaudio->process_callback != NULL) {
+		kradpulse->kradaudio->process_callback(length / 4 / 2, kradpulse->kradaudio->userdata);
+	}
+
+}
+
+static void kradpulse_playback_cb(pa_stream *stream, size_t length, void *userdata) {
 
 	krad_pulse_t *kradpulse = (krad_pulse_t *)userdata;
 
@@ -128,6 +174,11 @@ void kradpulse_destroy(krad_pulse_t *kradpulse) {
 
 	free(kradpulse->interleaved_samples);
 	
+	free(kradpulse->capture_samples[0]);
+	free(kradpulse->capture_samples[1]);
+
+	free(kradpulse->capture_interleaved_samples);
+	
 	free(kradpulse);
 
 }
@@ -149,6 +200,10 @@ krad_pulse_t *kradpulse_create(krad_audio_t *kradaudio) {
 	kradpulse->samples[0] = malloc(24 * 8192);
 	kradpulse->samples[1] = malloc(24 * 8192);
 	kradpulse->interleaved_samples = malloc(48 * 8192);
+
+	kradpulse->capture_samples[0] = malloc(24 * 8192);
+	kradpulse->capture_samples[1] = malloc(24 * 8192);
+	kradpulse->capture_interleaved_samples = malloc(48 * 8192);
 
 	kradpulse->latency = 20000; // start latency in micro seconds
 	kradpulse->underflows = 0;
@@ -181,35 +236,65 @@ krad_pulse_t *kradpulse_create(krad_audio_t *kradaudio) {
 		exit(1);
 	}
 
-	kradpulse->ss.rate = 44100;
+	kradpulse->ss.rate = 48000;
 	kradpulse->ss.channels = 2;
 	kradpulse->ss.format = PA_SAMPLE_FLOAT32LE;
 	
-	kradpulse->playstream = pa_stream_new(kradpulse->pa_ctx, "Playback", &kradpulse->ss, NULL);
-	
-	if (!kradpulse->playstream) {
-		printf("pa_stream_new failed\n");
-		exit(1);
-	}
-	
-	pa_stream_set_write_callback(kradpulse->playstream, kradpulse_stream_request_cb, kradpulse);
-	pa_stream_set_underflow_callback(kradpulse->playstream, kradpulse_stream_underflow_cb, kradpulse);
-
 	kradpulse->bufattr.fragsize = (uint32_t)-1;
 	kradpulse->bufattr.maxlength = pa_usec_to_bytes(kradpulse->latency, &kradpulse->ss);
 	kradpulse->bufattr.minreq = pa_usec_to_bytes(0, &kradpulse->ss);
 	kradpulse->bufattr.prebuf = (uint32_t)-1;
 	kradpulse->bufattr.tlength = pa_usec_to_bytes(kradpulse->latency, &kradpulse->ss);
- 
-	kradpulse->r = pa_stream_connect_playback(kradpulse->playstream, NULL, &kradpulse->bufattr, 
-								 			  PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
 	
-	if (kradpulse->r < 0) {
-		printf("pa_stream_connect_playback failed\n");
-		kradpulse->retval = -1;
-		printf("pulseaudio fail\n");
-		exit(1);
+	if ((kradaudio->direction == KOUTPUT) || (kradaudio->direction == KDUPLEX)) {
+		kradpulse->playstream = pa_stream_new(kradpulse->pa_ctx, "Playback", &kradpulse->ss, NULL);
+	
+		if (!kradpulse->playstream) {
+			printf("playback pa_stream_new failed\n");
+			exit(1);
+		}
+	
+		pa_stream_set_write_callback(kradpulse->playstream, kradpulse_playback_cb, kradpulse);
+		pa_stream_set_underflow_callback(kradpulse->playstream, kradpulse_stream_underflow_cb, kradpulse);
+	 
+		kradpulse->r = pa_stream_connect_playback(kradpulse->playstream, NULL, &kradpulse->bufattr, 
+									 			  PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
+
+		if (kradpulse->r < 0) {
+			printf("pa_stream_connect_playback failed\n");
+			kradpulse->retval = -1;
+			printf("pulseaudio fail\n");
+			exit(1);
+		}
+	
 	}
+	
+	if ((kradaudio->direction == KINPUT) || (kradaudio->direction == KDUPLEX)) {
+		kradpulse->capturestream = pa_stream_new(kradpulse->pa_ctx, "Capture", &kradpulse->ss, NULL);
+	
+		if (!kradpulse->capturestream) {
+			printf("capture pa_stream_new failed\n");
+			exit(1);
+		}
+		
+	
+		pa_stream_set_read_callback(kradpulse->capturestream, kradpulse_capture_cb, kradpulse);
+		pa_stream_set_underflow_callback(kradpulse->capturestream, kradpulse_stream_underflow_cb, kradpulse);
+	 
+		kradpulse->r = pa_stream_connect_record(kradpulse->capturestream, NULL, &kradpulse->bufattr, PA_STREAM_NOFLAGS );
+
+		if (kradpulse->r < 0) {
+			printf("pa_stream_connect_capture failed\n");
+			kradpulse->retval = -1;
+			printf("pulseaudio fail\n");
+			exit(1);
+		}
+		
+	}
+	
+	
+	kradaudio->sample_rate = kradpulse->ss.rate;
+	
 
 	pthread_create( &kradpulse->loop_thread, NULL, kradpulse_loop_thread, kradpulse);
 

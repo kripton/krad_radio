@@ -22,6 +22,8 @@ struct krad_pulse_St {
 	pa_context *pa_ctx;
 	pa_stream *playstream;
 
+	pa_stream *capturestream;
+
 	int underflows;
 	int latency;
 	int r;
@@ -34,6 +36,9 @@ struct krad_pulse_St {
 	
 	float *samples[8];
 	float *interleaved_samples;
+	
+	float *capture_samples[8];
+	float *capture_interleaved_samples;
 	
 	pthread_t loop_thread;
 	
