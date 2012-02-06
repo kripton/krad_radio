@@ -117,7 +117,7 @@ void flac_ebml_decode_test(char *inputfile) {
 	
 	
 	audio_api = PULSE;
-	krad_audio = kradaudio_create("Krad EBML Video HUD Test Player", audio_api);
+	krad_audio = kradaudio_create("Krad EBML Video HUD Test Player", KOUTPUT, audio_api);
 
 	if (audio_api == JACK) {
 		krad_jack_t *jack = (krad_jack_t *)krad_audio->api;

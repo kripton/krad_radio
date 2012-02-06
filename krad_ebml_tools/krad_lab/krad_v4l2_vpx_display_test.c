@@ -293,7 +293,7 @@ int main (int argc, char *argv[]) {
 	kradgui_reset_elapsed_time(kradgui);
 	kradgui->render_timecode = 1;
 	
-	audio = kradaudio_create("krad v4l2 vpx display test", audio_api);
+	audio = kradaudio_create("krad v4l2 vpx display test", KINPUT, audio_api);
 	display_test->audio = audio;
 	pthread_create(&display_test->audio_encoding_thread, NULL, audio_encoding_thread, (void *)display_test);
 	

@@ -340,7 +340,7 @@ void *audio_encoding_thread(void *arg) {
 	
 	printf("\n\naudio encoding thread begins\n\n");
 	
-	krad_cam->krad_audio = kradaudio_create("Krad Cam", krad_cam->krad_audio_api);
+	krad_cam->krad_audio = kradaudio_create("Krad Cam", KINPUT, krad_cam->krad_audio_api);
 	
 	krad_cam->krad_vorbis = krad_vorbis_encoder_create(2, krad_cam->krad_audio->sample_rate, 0.7);
 	//krad_cam->krad_flac = krad_flac_encoder_create(2, krad_cam->kradaudio->sample_rate, 16);
@@ -694,6 +694,7 @@ int main (int argc, char *argv[]) {
 	char output[512];
 	int c;
 	float temp_peak;
+	float kick;
 	
 	SDL_Event event;
 
@@ -722,6 +723,22 @@ int main (int argc, char *argv[]) {
 	
 	device = DEFAULT_DEVICE;
 	krad_audio_api = ALSA;
+
+	while ((c = getopt (argc, argv, "ajp")) != -1) {
+		switch (c) {
+			case 'a':
+				krad_audio_api = ALSA;
+				break;
+			case 'j':
+				krad_audio_api = JACK;
+				break;
+			case 'p':
+				krad_audio_api = PULSE;
+				break;
+			default:			
+				break;
+		}
+	}
 
 	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
@@ -757,15 +774,32 @@ int main (int argc, char *argv[]) {
 				if (temp_peak >= krad_cam->krad_gui->output_peak[c]) {
 					if (temp_peak > 2.7f) {
 						krad_cam->krad_gui->output_peak[c] = temp_peak;
+						kick = ((krad_cam->krad_gui->output_peak[c] - krad_cam->krad_gui->output_current[c]) / 300.0);
 					}
 				} else {
-					krad_cam->krad_gui->output_peak[c] -= 0.9;					
+					if (krad_cam->krad_gui->output_peak[c] == krad_cam->krad_gui->output_current[c]) {
+						krad_cam->krad_gui->output_peak[c] -= 0.9;
+						if (krad_cam->krad_gui->output_peak[c] < 0.0f) {
+							krad_cam->krad_gui->output_peak[c] = 0.0f;
+						}
+						krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
+					}
 				}
+				
+				if (krad_cam->krad_gui->output_peak[c] > krad_cam->krad_gui->output_current[c]) {
+					krad_cam->krad_gui->output_current[c] = (krad_cam->krad_gui->output_current[c] + 1.4) * (1.3 + kick); ;
+				}
+			
+				if (krad_cam->krad_gui->output_peak[c] < krad_cam->krad_gui->output_current[c]) {
+					krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
+				}
+				
+				
 			}
 		}
 
-		kradgui_render_meter (krad_cam->krad_gui, 110, 620, 96, krad_cam->krad_gui->output_peak[0]);
-		kradgui_render_meter (krad_cam->krad_gui, 320, 620, 96, krad_cam->krad_gui->output_peak[1]);
+		kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[0]);
+		kradgui_render_meter (krad_cam->krad_gui, krad_cam->display_width - 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[1]);
 
 		if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
 			

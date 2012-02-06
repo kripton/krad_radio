@@ -94,7 +94,7 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 }
 
 
-krad_audio_t *kradaudio_create(char *name, krad_audio_api_t api) {
+krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, krad_audio_api_t api) {
 
 	krad_audio_t *kradaudio;
 	
@@ -113,7 +113,7 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_api_t api) {
 	kradaudio->name[127] = '\0';
 	
 	kradaudio->audio_api = api;
-
+	kradaudio->direction = direction;
 
 	switch (kradaudio->audio_api) {
 	

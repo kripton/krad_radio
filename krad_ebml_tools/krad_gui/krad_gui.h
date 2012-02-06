@@ -172,6 +172,9 @@ struct kradgui_St {
 	float output_val[8];
 	float input_peak[8];
 	float output_peak[8];
+	float input_current[8];
+	float output_current[8];
+
 
 	int cursor_x;
 	int cursor_y;

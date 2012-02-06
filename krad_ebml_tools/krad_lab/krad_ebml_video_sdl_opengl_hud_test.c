@@ -131,7 +131,7 @@ int main (int argc, char *argv[]) {
 	hudtest->samples[1] = malloc(4 * 8192);
 	
 	audio_api = JACK;
-	audio = kradaudio_create("Krad EBML Video HUD Test Player", audio_api);
+	audio = kradaudio_create("Krad EBML Video HUD Test Player", KOUTPUT, audio_api);
 	
 	kradgui = kradgui_create(hud_width, hud_height);
 

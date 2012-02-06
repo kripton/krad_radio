@@ -502,8 +502,14 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
 	kradalsa->buffer_size = 8192;
 	kradalsa->period_size = 512;
 
-	kradalsa->playback = 0;
-	kradalsa->capture = 1;
+
+	if ((kradaudio->direction == KINPUT) || (kradaudio->direction == KDUPLEX)) {
+		kradalsa->capture = 1;
+	}
+
+	if ((kradaudio->direction == KOUTPUT) || (kradaudio->direction == KDUPLEX)) {
+		kradalsa->playback = 1;
+	}
 	
 	if (kradalsa->playback) {
 	

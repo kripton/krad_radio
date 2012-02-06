@@ -10,7 +10,7 @@ krad_ebml_creator_t *krad_ebml_creator_create(char *appname, krad_audio_api_t ap
 	krad_ebml_creator->callback_samples[0] = malloc(4 * 8192);
 	krad_ebml_creator->callback_samples[1] = malloc(4 * 8192);
 
-	krad_ebml_creator->audio = kradaudio_create(appname, api);
+	krad_ebml_creator->audio = kradaudio_create(appname, KINPUT, api);
 	krad_ebml_creator->ebml = kradebml_create();
 	//krad_ebml_creator->opus = kradopus_encoder_create(44100.0f, 2, 192000, OPUS_APPLICATION_AUDIO);
 	krad_ebml_creator->vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);

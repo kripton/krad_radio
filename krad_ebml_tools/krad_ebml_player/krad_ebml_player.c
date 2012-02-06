@@ -10,7 +10,7 @@ krad_ebml_player_t *krad_ebml_player_create(krad_audio_api_t api) {
 	krad_ebml_player->callback_samples[0] = malloc(4 * 8192);
 	krad_ebml_player->callback_samples[1] = malloc(4 * 8192);
 
-	krad_ebml_player->audio = kradaudio_create("Krad EBML Player", api);
+	krad_ebml_player->audio = kradaudio_create("Krad EBML Player", KOUTPUT, api);
 	krad_ebml_player->ebml = kradebml_create();
 	
 	krad_ebml_player->speed = 100.0f;

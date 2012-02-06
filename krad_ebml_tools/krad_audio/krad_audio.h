@@ -22,6 +22,7 @@ typedef enum {
 typedef enum {
 	KOUTPUT,
 	KINPUT,
+	KDUPLEX,
 } krad_audio_direction_t;
 
 typedef struct krad_audio_St krad_audio_t;
@@ -29,7 +30,7 @@ typedef struct krad_audio_St krad_audio_t;
 struct krad_audio_St {
 
 	krad_audio_api_t audio_api;
-
+	krad_audio_direction_t direction;
 	char name[256];
 
 	void *api;
@@ -52,7 +53,7 @@ void compute_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, flo
 
 void kradaudio_set_process_callback(krad_audio_t *kradaudio, void kradaudio_process_callback(int, void *), void *userdata);
 void kradaudio_destroy(krad_audio_t *kradaudio);
-krad_audio_t *kradaudio_create(char *name, krad_audio_api_t api);
+krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, krad_audio_api_t api);
 void kradaudio_write(krad_audio_t *kradaudio,  int channel, char *data, int len);
 void kradaudio_read(krad_audio_t *kradaudio,  int channel, char *data, int len);
 size_t kradaudio_buffered_frames(krad_audio_t *kradaudio);
