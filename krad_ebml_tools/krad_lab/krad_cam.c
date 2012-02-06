@@ -54,8 +54,7 @@ struct krad_cam_St {
 	int encoding;
 	int capturing;
 	
-	int start_audio;
-	int stop_audio;
+	int capture_audio;
 	jack_ringbuffer_t *audio_input_ringbuffer[2];
 	float *samples[2];
 	int audio_encoder_ready;
@@ -105,7 +104,7 @@ void *video_capture_thread(void *arg) {
 	void *captured_frame = NULL;
 	unsigned char *captured_frame_rgb = malloc(krad_cam->composited_frame_byte_size); 
 	
-	printf("\n\ncapture thread begins\n\n");
+	printf("\n\nvideo capture thread begins\n\n");
 
 	krad_cam->krad_v4l2 = kradv4l2_create();
 
@@ -121,7 +120,7 @@ void *video_capture_thread(void *arg) {
 		if (first == 1) {
 			first = 0;
 			krad_cam->captured_frames = 0;
-			krad_cam->start_audio = 1;
+			krad_cam->capture_audio = 1;
 			clock_gettime(CLOCK_MONOTONIC, &start_time);
 		} else {
 		
@@ -130,43 +129,13 @@ void *video_capture_thread(void *arg) {
 		
 				clock_gettime(CLOCK_MONOTONIC, &current_time);
 				elapsed_time = timespec_diff(start_time, current_time);
-				printf("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_cam->captured_frames, elapsed_time.tv_sec * krad_cam->capture_fps, krad_cam->capture_fps, elapsed_time.tv_sec);
+				//printf("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_cam->captured_frames, elapsed_time.tv_sec * krad_cam->capture_fps, krad_cam->capture_fps, elapsed_time.tv_sec);
 	
 			}
 			
 			krad_cam->captured_frames++;
 	
 		}
-	
-		/*	
-			elapsed_time = timespec_diff(start_time, current_time);
-	
-			expected_time_ns = (1000000000 / krad_cam->capture_fps) * (unsigned long long)frames;
-			expected_time_ms = expected_time_ns / 1000000;
-			expected_time.tv_sec = (expected_time_ms - (expected_time_ms % 1000)) / 1000;
-			expected_time.tv_nsec = (expected_time_ms % 1000) * 1000000;
-	
-			diff_time = timespec_diff(expected_time, elapsed_time);
-	
-			if (diff_time.tv_sec == 0) {
-	
-				if (diff_time.tv_nsec > ((unsigned long long)1000000000 / (unsigned long long)krad_cam->capture_fps)) {
-					first = 1;
-					dupe_frame = 1;
-		
-				} else {
-					dupe_frame = 0;
-				}
-				printf("\n\ndiff time %zu %zu \n\n", diff_time.tv_sec, diff_time.tv_nsec);
-			}
-			
-				//printf("\n\nelapsed time %zu %zu \n", elapsed_time.tv_sec, elapsed_time.tv_nsec);
-				//printf("\n\nexpected_time_ms %llu \n", expected_time_ms);
-				//printf("\n\nexpected time %zu %zu \n", expected_time.tv_sec, expected_time.tv_nsec);	
-	
-		}
-		
-		*/
 	
 		krad_cam->mjpeg_mode = 1;
 	
@@ -209,7 +178,7 @@ void *video_capture_thread(void *arg) {
 		
 		if (dupe_frame == 1) {
 
-			printf("\n\nduping a frame\n\n");
+			printf("\n\nduping a frame *********** bad should not happen\n\n");
 
 			if (jack_ringbuffer_write_space(krad_cam->captured_frames_buffer) >= krad_cam->composited_frame_byte_size) {
 
@@ -232,7 +201,9 @@ void *video_capture_thread(void *arg) {
 
 	free(captured_frame_rgb);
 
-	printf("\n\ncapture thread ends\n\n");
+	krad_cam->capture_audio = 2;
+	krad_cam->encoding = 2;
+	printf("\n\nvideo capture thread ends\n\n");
 
 	return NULL;
 	
@@ -242,7 +213,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_cam_t *krad_cam = (krad_cam_t *)arg;
 	
-	printf("\n\nencoding thread begins\n\n");
+	printf("\n\nvideo encoding thread begins\n\n");
 	
 	void *vpx_packet;
 	int keyframe;
@@ -334,9 +305,9 @@ void *video_encoding_thread(void *arg) {
 
 	krad_vpx_encoder_destroy(krad_cam->krad_vpx_encoder);
 	
-	krad_cam->encoding = 2;
+	krad_cam->encoding = 3;
 	
-	printf("\n\nencoding thread ends\n\n");
+	printf("\n\nvideo encoding thread ends\n\n");
 	
 	return NULL;
 	
@@ -350,16 +321,24 @@ void krad_cam_audio_callback(int frames, void *userdata) {
 	kradaudio_read (krad_cam->krad_audio, 0, (char *)krad_cam->samples[0], frames * 4 );
 	kradaudio_read (krad_cam->krad_audio, 1, (char *)krad_cam->samples[1], frames * 4 );
 
-	if (krad_cam->start_audio == 1) {
+	if (krad_cam->capture_audio == 1) {
 		krad_cam->audio_frames_captured += frames;
 		jack_ringbuffer_write(krad_cam->audio_input_ringbuffer[0], (char *)krad_cam->samples[0], frames * 4);
 		jack_ringbuffer_write(krad_cam->audio_input_ringbuffer[1], (char *)krad_cam->samples[1], frames * 4);
 	}
+	
+	if (krad_cam->capture_audio == 2) {
+		krad_cam->capture_audio = 3;
+	}
+	
+	
 }
 
 void *audio_encoding_thread(void *arg) {
 
 	krad_cam_t *krad_cam = (krad_cam_t *)arg;
+	
+	printf("\n\naudio encoding thread begins\n\n");
 	
 	krad_cam->krad_audio = kradaudio_create("Krad Cam", krad_cam->krad_audio_api);
 	
@@ -390,7 +369,7 @@ void *audio_encoding_thread(void *arg) {
 	
 	krad_cam->audio_encoder_ready = 1;
 	
-	while (!(krad_cam->stop_audio)) {
+	while (krad_cam->encoding) {
 
 		while ((jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) > framecnt * 4) || (op != NULL)) {
 			
@@ -409,8 +388,8 @@ void *audio_encoding_thread(void *arg) {
 				
 				krad_cam->audio_frames_encoded = op->granulepos;
 			
-				printf("frames encoded: %d frames captured: %d alt %d\n", krad_cam->audio_frames_encoded, krad_cam->audio_frames_captured, altframecount);
-//				fflush(stdout);
+				printf("frames encoded: %d frames captured: %d alt %d\r", krad_cam->audio_frames_encoded, krad_cam->audio_frames_captured, altframecount);
+				fflush(stdout);
 			
 			}
 		}
@@ -419,13 +398,23 @@ void *audio_encoding_thread(void *arg) {
 	
 			usleep(10000);
 	
-			if (krad_cam->stop_audio) {
+			if (krad_cam->encoding == 3) {
 				break;
 			}
 	
 		}
+		
+		if ((krad_cam->encoding == 3) && (jack_ringbuffer_read_space(krad_cam->audio_input_ringbuffer[1]) < framecnt * 4)) {
+				break;
+		}
+		
 	}
 	
+	krad_cam->encoding = 4;
+	
+	while (krad_cam->capture_audio != 3) {
+		usleep(5000);
+	}
 	
 	free(krad_cam->samples[0]);
 	free(krad_cam->samples[1]);
@@ -435,6 +424,9 @@ void *audio_encoding_thread(void *arg) {
 	
 	free(audio);
 	free(buffer);
+	
+	printf("\n\naudio encoding thread ends\n\n");
+	
 	return NULL;
 	
 }
@@ -454,6 +446,8 @@ void *ebml_output_thread(void *arg) {
 	int audio_frames_muxed;
 	int audio_frames_per_video_frame;
 
+	printf("\n\nebml muxing thread begins\n\n");
+
 	audio_frames_muxed = 0;
 	video_frames_muxed = 0;
 
@@ -461,7 +455,6 @@ void *ebml_output_thread(void *arg) {
 
 	packet = malloc(2000000);
 
-	printf("\n\nmuxing thread begins\n\n");
 
 	krad_cam->krad_ebml = kradebml_create();
 	
@@ -484,20 +477,20 @@ void *ebml_output_thread(void *arg) {
 	
 	kradebml_write(krad_cam->krad_ebml);
 	
-	printf("\n\nebml thread waiting..\n\n");
+	printf("\n\nebml muxing thread waiting..\n\n");
 	
-	while ( krad_cam->encoding != 2) {
+	while ( krad_cam->encoding ) {
 
 		if (jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) >= 4) {
 
 			jack_ringbuffer_read(krad_cam->encoded_video_ringbuffer, (char *)&packet_size, 4);
 		
-			while ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding != 2)) {
+			while ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding != 3)) {
 				usleep(10000);
 			}
 			
-			if (krad_cam->encoding == 2) {
-				break;
+			if ((jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < packet_size + 1) && (krad_cam->encoding == 3)) {
+				continue;
 			}
 			
 			jack_ringbuffer_read(krad_cam->encoded_video_ringbuffer, keyframe_char, 1);
@@ -517,11 +510,11 @@ void *ebml_output_thread(void *arg) {
 
 			jack_ringbuffer_read(krad_cam->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 		
-			while ((jack_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < packet_size + 4) && (krad_cam->encoding != 2)) {
+			while ((jack_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < packet_size + 4) && (krad_cam->encoding != 4)) {
 				usleep(10000);
 			}
 			
-			if (krad_cam->encoding == 2) {
+			if ((jack_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < packet_size + 4) && (krad_cam->encoding == 4)) {
 				break;
 			}
 			
@@ -540,6 +533,10 @@ void *ebml_output_thread(void *arg) {
 			((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed)) && 
 		   (jack_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < 4)) {
 		
+			if (krad_cam->encoding == 4) {
+				break;
+			}
+		
 			usleep(10000);
 			
 		}
@@ -552,7 +549,7 @@ void *ebml_output_thread(void *arg) {
 	
 	free(packet);
 	
-	printf("\n\nmuxing thread ends\n\n");
+	printf("\n\nebml muxing thread ends\n\n");
 	
 	return NULL;
 	
@@ -562,9 +559,9 @@ void *ebml_output_thread(void *arg) {
 void krad_cam_destroy(krad_cam_t *krad_cam) {
 
 	krad_cam->capturing = 0;
-	krad_cam->encoding = 0;
 	pthread_join(krad_cam->video_capture_thread, NULL);
 	pthread_join(krad_cam->video_encoding_thread, NULL);
+	pthread_join(krad_cam->audio_encoding_thread, NULL);
 	pthread_join(krad_cam->ebml_output_thread, NULL);
 	
 	krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
