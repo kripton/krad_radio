@@ -462,7 +462,7 @@ void *ebml_output_thread(void *arg) {
 
 	krad_cam->krad_ebml = kradebml_create();
 	
-	//kradebml_open_output_stream(krad_cam->krad_ebml, "192.168.1.2", 8080, "/teststream.webm", "secretkode");
+	//kradebml_open_output_stream(krad_cam->krad_ebml, "ec2-23-20-46-146.compute-1.amazonaws.com", 8000, "/teststream.webm", "firefox");
 	kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
 	kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
 	
@@ -658,6 +658,9 @@ krad_cam_t *krad_cam_create(char *device, char *output, krad_audio_api_t audio_a
 	
 	//krad_cam->krad_gui->render_ftest = 1;
 	//krad_cam->krad_gui->render_tearbar = 1;
+	
+//	kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2.png", 30, 30);
+	
 	krad_cam->krad_gui->clear = 0;
 	//kradgui_test_screen(krad_cam->krad_gui, "Krad Cam Test");
 
@@ -704,6 +707,7 @@ int main (int argc, char *argv[]) {
 	capture_width = 1280;
 	capture_height = 720;
 	capture_fps = 30;
+	frames = 0;
 
 	//capture_width = 640;
 	//capture_height = 360;
@@ -851,6 +855,11 @@ int main (int argc, char *argv[]) {
 
 		frames++;
 
+		
+		if (frames == 2900) {
+			kradgui_remove_bug (krad_cam->krad_gui);
+		}
+
 		while ( SDL_PollEvent( &event ) ){
 			switch( event.type ){
 				/* Look for a keypress */
@@ -863,17 +872,39 @@ int main (int argc, char *argv[]) {
 					        break;
 					    case SDLK_UP:
 					        break;
-					    case SDLK_j:
-					    	//render_hud = 0;
+					    case SDLK_m:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
+					        break;
+					    case SDLK_x:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
 					        break;
 					    case SDLK_h:
-					    	//render_hud = 1;
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 330, 30);
+					        break;
+					    case SDLK_w:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 330, 30);
+					        break;
+					    case SDLK_0:
+							krad_cam->krad_gui->bug_alpha += 0.1f;
+							if (krad_cam->krad_gui->bug_alpha > 1.0f) {
+								krad_cam->krad_gui->bug_alpha = 1.0f;
+							}
+					        break;
+					    case SDLK_9:
+							krad_cam->krad_gui->bug_alpha -= 0.1f;
+							if (krad_cam->krad_gui->bug_alpha < 0.1f) {
+								krad_cam->krad_gui->bug_alpha = 0.1f;
+							}
 					        break;
 					    case SDLK_q:
 					    	shutdown = 1;
 					        break;
 					    case SDLK_f:
-					    	
+							if (krad_cam->krad_gui->render_ftest == 1) {
+								krad_cam->krad_gui->render_ftest = 0;
+							} else {
+								krad_cam->krad_gui->render_ftest = 1;
+							}
 					        break;
 					    default:
 					        break;

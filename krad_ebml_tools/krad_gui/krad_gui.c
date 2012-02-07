@@ -91,6 +91,10 @@ void kradgui_destroy(kradgui_t *kradgui) {
 		kradgui_playback_state_status_destroy(kradgui->playback_state_status);
 	}
 	
+	if (kradgui->bug != NULL) {
+		cairo_surface_destroy ( kradgui->bug );
+	}
+	
 	if (kradgui->internal_surface == 1) {
 		kradgui_destroy_internal_surface(kradgui);
 	}
@@ -312,6 +316,110 @@ void kradgui_render_circles (kradgui_t *kradgui, int w, int h) {
 	cairo_stroke (cr);
 	
 }
+
+void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y) {
+
+
+	if ( filename != NULL ) {
+	
+		kradgui->bug_x = x;
+		kradgui->bug_y = y;
+		//kradgui_load_bug ( kradgui, filename );
+		kradgui->render_bug = 1;
+		kradgui->next_bug = filename;
+	}
+
+}
+
+void kradgui_remove_bug (kradgui_t *kradgui) {
+
+	//kradgui_load_bug ( kradgui, NULL );
+	kradgui->next_bug = "none";
+}
+
+void kradgui_load_bug (kradgui_t *kradgui, char *filename) {
+
+	if (kradgui->bug_alpha == 0.0f) {
+		kradgui->bug_alpha = 1.0f;
+	}
+
+	
+	if (kradgui->bug != NULL) {
+		cairo_surface_destroy ( kradgui->bug );
+		kradgui->bug = NULL;
+	}
+	
+	if ( filename != NULL ) {
+		kradgui->bug = cairo_image_surface_create_from_png ( filename );
+		kradgui->bug_width = cairo_image_surface_get_width ( kradgui->bug );
+		kradgui->bug_height = cairo_image_surface_get_height ( kradgui->bug );
+		//kradgui->start_frame = kradgui->frame;
+		kradgui->bug_fade = 0;
+		kradgui->bug_fade_speed = 0.04;
+		kradgui->bug_fader = -1.3f;
+		kradgui->render_bug = 1;
+	} else {
+		kradgui->render_bug = 0;
+		kradgui->bug_x = 0;
+		kradgui->bug_y = 0;
+		kradgui->bug_width = 0;
+		kradgui->bug_height = 0;
+		kradgui->bug_fade = 0;
+		kradgui->bug = NULL;
+	}
+
+}
+
+
+void kradgui_render_bug (kradgui_t *kradgui) {
+
+	if (kradgui->next_bug != NULL) {
+		
+		if (kradgui->bug_fade <= 0.0f) {
+			//printf("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
+			kradgui->bug_fade = 0.0f;
+			if (strncmp(kradgui->next_bug, "none", 4) == 0) {
+				kradgui_load_bug (kradgui, NULL);
+			} else {
+				kradgui_load_bug (kradgui, kradgui->next_bug);
+			}
+			kradgui->next_bug = NULL;
+		} else {
+		
+			//kradgui->bug_fade -= 0.01f;
+	
+			kradgui->bug_fade = (0.5f) + 1.0f * sin(kradgui->bug_fader / 2);
+			kradgui->bug_fader -= kradgui->bug_fade_speed;
+		
+		}
+	} else {
+	
+		if (kradgui->bug_fade < kradgui->bug_alpha) {
+			//kradgui->bug_fade += 0.01f;
+			kradgui->bug_fade = (0.5f) + 1.0f * sin(kradgui->bug_fader / 2);
+			kradgui->bug_fader += kradgui->bug_fade_speed;
+		} else {
+			if (kradgui->bug_fade > kradgui->bug_alpha + 0.1f) {
+				//kradgui->bug_fade += 0.01f;
+				kradgui->bug_fade = (0.5f) + 1.0f * sin(kradgui->bug_fader / 2);
+				kradgui->bug_fader -= kradgui->bug_fade_speed;
+			} 
+		}
+	
+	}
+	
+	//printf("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
+	
+	if (kradgui->bug_fader >= 2 * M_PI) {
+		kradgui->bug_fader -= 2 * M_PI;
+	}
+
+	if (kradgui->render_bug == 1) {
+		cairo_set_source_surface ( kradgui->cr, kradgui->bug, kradgui->bug_x, kradgui->bug_y );
+		cairo_paint_with_alpha ( kradgui->cr , kradgui->bug_fade);
+	}
+}
+
 
 
 void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos) {
@@ -1450,7 +1558,7 @@ void kradgui_render_live(kradgui_t *kradgui) {
 	cairo_show_text (kradgui->cr, "LIVE");
 
 	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size / 4);
-	cairo_move_to (kradgui->cr, kradgui->width - ((kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_margin),  kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
+	cairo_move_to (kradgui->cr, (kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin)) + kradgui->live_box_padding,  kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
 	cairo_show_text (kradgui->cr, kradgui->live_time_timecode_string);
 
 }
@@ -1730,6 +1838,10 @@ void kradgui_render(kradgui_t *kradgui) {
 	
 	if (kradgui->render_ftest) {
 		kradgui_render_ftest(kradgui);
+	}
+	
+	if ( kradgui->render_bug ) {
+		kradgui_render_bug ( kradgui );
 	}
 	
 	if (kradgui->update_drawtime) {

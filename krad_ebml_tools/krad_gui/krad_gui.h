@@ -181,6 +181,22 @@ struct kradgui_St {
 	
 	int clear;
 	
+	cairo_surface_t *bug;
+	int bug_height;
+	int bug_width;
+	float bug_fade;
+	
+	float bug_alpha;
+	
+	int bug_x;
+	int bug_y;
+	int render_bug;
+	char *next_bug;
+	float bug_fade_speed;
+	float bug_fader;
+	//int start_frame;
+
+	
 };
 
 struct kradgui_reel_to_reel_St {
@@ -203,6 +219,10 @@ struct kradgui_playback_state_status_St {
 	kradgui_t *kradgui;
 
 };
+
+void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y);
+void kradgui_remove_bug (kradgui_t *kradgui);
+void kradgui_load_bug (kradgui_t *kradgui, char *filename);
 
 void kradgui_start_draw_time(kradgui_t *kradgui);
 void kradgui_end_draw_time(kradgui_t *kradgui);
