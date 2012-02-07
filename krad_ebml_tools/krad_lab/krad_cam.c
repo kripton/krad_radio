@@ -709,11 +709,43 @@ int main (int argc, char *argv[]) {
 	capture_height = 720;
 	capture_fps = 30;
 	frames = 0;
+	
+	device = DEFAULT_DEVICE;
+	krad_audio_api = ALSA;
+	
+	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	//capture_width = 640;
-	//capture_height = 360;
-	//capture_fps = 60;
-
+	while ((c = getopt (argc, argv, "ajpf:w:h:o")) != -1) {
+		switch (c) {
+			case 'a':
+				krad_audio_api = ALSA;
+				break;
+			case 'j':
+				krad_audio_api = JACK;
+				break;
+			case 'p':
+				krad_audio_api = PULSE;
+				break;
+			case 'f':
+				capture_fps = atoi(optarg);
+				break;
+			case 'w':
+				capture_width = atoi(optarg);
+				break;
+			case 'h':
+				capture_height = atoi(optarg);
+				break;
+			case 'o':
+				strncpy(output, optarg, sizeof(output));
+				break;
+			case '?':
+				printf("option argument fail\n");
+				exit(1);
+			default:			
+				break;
+		}
+	}
+	
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
 
@@ -725,27 +757,6 @@ int main (int argc, char *argv[]) {
 
 	display_width = capture_width;
 	display_height = capture_height;
-	
-	device = DEFAULT_DEVICE;
-	krad_audio_api = ALSA;
-
-	while ((c = getopt (argc, argv, "ajp")) != -1) {
-		switch (c) {
-			case 'a':
-				krad_audio_api = ALSA;
-				break;
-			case 'j':
-				krad_audio_api = JACK;
-				break;
-			case 'p':
-				krad_audio_api = PULSE;
-				break;
-			default:			
-				break;
-		}
-	}
-
-	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
 	krad_cam = krad_cam_create( device, output, krad_audio_api, capture_width, capture_height, capture_fps, composite_width, composite_height, 
 								composite_fps, display_width, display_height, encoding_width, encoding_height, encoding_fps );
