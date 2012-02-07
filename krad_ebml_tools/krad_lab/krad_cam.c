@@ -698,6 +698,9 @@ int main (int argc, char *argv[]) {
 	int c;
 	float temp_peak;
 	float kick;
+	char bug[512];
+	int bug_x;
+	int bug_y;
 	int render_meters;
 	SDL_Event event;
 
@@ -709,13 +712,16 @@ int main (int argc, char *argv[]) {
 	capture_height = 720;
 	capture_fps = 30;
 	frames = 0;
+	bug_x = 30;
+	bug_y = 30;
 	
 	device = DEFAULT_DEVICE;
 	krad_audio_api = ALSA;
 	
-	sprintf(output, "%s/kode/testmedia/capture/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
+	memset(bug, '\0', sizeof(bug));
+	sprintf(output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	while ((c = getopt (argc, argv, "ajpf:w:h:o")) != -1) {
+	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:")) != -1) {
 		switch (c) {
 			case 'a':
 				krad_audio_api = ALSA;
@@ -735,8 +741,17 @@ int main (int argc, char *argv[]) {
 			case 'h':
 				capture_height = atoi(optarg);
 				break;
+			case 'x':
+				bug_x = atoi(optarg);
+				break;
+			case 'y':
+				bug_y = atoi(optarg);
+				break;
 			case 'o':
 				strncpy(output, optarg, sizeof(output));
+				break;
+			case 'b':
+				strncpy(bug, optarg, sizeof(bug));
 				break;
 			case '?':
 				printf("option argument fail\n");
@@ -745,6 +760,8 @@ int main (int argc, char *argv[]) {
 				break;
 		}
 	}
+	
+	printf("Outputing to file: %s\n", output);
 	
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
@@ -907,6 +924,11 @@ int main (int argc, char *argv[]) {
 					        break;
 					    case SDLK_a:
 							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
+					        break;
+					    case SDLK_b:
+					    	if (bug[0] != '\0') {
+								kradgui_set_bug (krad_cam->krad_gui, bug, bug_x, bug_y);
+							}
 					        break;
 					    case SDLK_l:
 							if (krad_cam->krad_gui->live == 1) {
