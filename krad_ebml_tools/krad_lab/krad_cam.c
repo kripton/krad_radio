@@ -698,9 +698,10 @@ int main (int argc, char *argv[]) {
 	int c;
 	float temp_peak;
 	float kick;
-	
+	int render_meters;
 	SDL_Event event;
 
+	render_meters = 1;
 	cam_started = 0;
 	read_composited = 0;	
 	shutdown = 0;
@@ -802,9 +803,11 @@ int main (int argc, char *argv[]) {
 			}
 		}
 
-		kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[0]);
-		kradgui_render_meter (krad_cam->krad_gui, krad_cam->display_width - 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[1]);
-
+		if (render_meters) {
+			kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[0]);
+			kradgui_render_meter (krad_cam->krad_gui, krad_cam->display_width - 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[1]);
+		}
+		
 		if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
 			
 			memcpy( krad_cam->krad_opengl_display->rgb_frame_data, krad_cam->krad_gui->data, krad_cam->krad_gui->bytes );
@@ -855,11 +858,6 @@ int main (int argc, char *argv[]) {
 
 		frames++;
 
-		
-		if (frames == 2900) {
-			kradgui_remove_bug (krad_cam->krad_gui);
-		}
-
 		while ( SDL_PollEvent( &event ) ){
 			switch( event.type ){
 				/* Look for a keypress */
@@ -872,6 +870,9 @@ int main (int argc, char *argv[]) {
 					        break;
 					    case SDLK_UP:
 					        break;
+					    case SDLK_z:
+							kradgui_remove_bug (krad_cam->krad_gui);
+					        break;					        
 					    case SDLK_m:
 							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
 					        break;
@@ -879,10 +880,29 @@ int main (int argc, char *argv[]) {
 							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
 					        break;
 					    case SDLK_h:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 330, 30);
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 30, 30);
 					        break;
 					    case SDLK_w:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 330, 30);
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 30, 30);
+					        break;
+					    case SDLK_e:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz3.png", 30, 30);
+					        break;
+					    case SDLK_r:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz4.png", 30, 30);
+					        break;					        
+					    case SDLK_s:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz5.png", 30, 30);
+					        break;
+					    case SDLK_a:
+							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
+					        break;
+					    case SDLK_l:
+							if (krad_cam->krad_gui->live == 1) {
+								krad_cam->krad_gui->live = 0;
+							} else {
+								krad_cam->krad_gui->live = 1;
+							}
 					        break;
 					    case SDLK_0:
 							krad_cam->krad_gui->bug_alpha += 0.1f;
@@ -904,6 +924,13 @@ int main (int argc, char *argv[]) {
 								krad_cam->krad_gui->render_ftest = 0;
 							} else {
 								krad_cam->krad_gui->render_ftest = 1;
+							}
+					        break;
+					    case SDLK_v:
+							if (render_meters == 1) {
+								render_meters = 0;
+							} else {
+								render_meters = 1;
 							}
 					        break;
 					    default:

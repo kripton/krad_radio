@@ -691,7 +691,7 @@ void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
 	cairo_rotate (cr, hexrot * (M_PI/180.0));
 	cairo_translate (cr, -((w * scale)/2), -r1 * scale);
 	cairo_scale(cr, scale, scale);
-	hexrot += 0.04;
+	hexrot += 0.11;
 
 	cairo_move_to (cr, 0, 0);
 	cairo_rel_line_to (cr, w, 0);
@@ -1094,9 +1094,9 @@ vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);
 	
 	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
-	kradgui_render_viper (kradgui, 474, 333, 13, 99);
+//	kradgui_render_viper (kradgui, 474, 333, 13, 99);
 
-	kradgui_render_viper (kradgui, 544, 555, 53, 222);
+//	kradgui_render_viper (kradgui, 544, 555, 53, 222);
 	
 /*
 	kradgui_render_hex (kradgui, 444, 222, 33);
@@ -1106,13 +1106,13 @@ vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 	kradgui_render_hex (kradgui, 644, 290, 63);
 	kradgui_render_hex (kradgui, 744, 410, 23);
 */	
-	kradgui_render_meter (kradgui, 63, 33, 33, g);
+//	kradgui_render_meter (kradgui, 63, 33, 33, g);
 
 	//kradgui_render_meter (kradgui, 233, 233, 44, g);
 	
 	//kradgui_render_meter (kradgui, 233, 533, 88, g);
 	
-	kradgui_render_meter (kradgui, 633, 533, 188, g);
+//	kradgui_render_meter (kradgui, 633, 533, 188, g);
 
 
 }
