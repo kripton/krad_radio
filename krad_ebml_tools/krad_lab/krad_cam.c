@@ -8,6 +8,7 @@
 #include "krad_audio.h"
 #include "krad_v4l2.h"
 
+#define DEFAULT_ALSA_DEVICE "/dev/video0"
 #define DEFAULT_DEVICE "/dev/video0"
 #define APPVERSION "Krad Cam 0.1"
 #define TEST_COUNT 300
@@ -692,7 +693,8 @@ int main (int argc, char *argv[]) {
 	int display_width, display_height;
 	int composite_width, composite_height, composite_fps;
 	int encoding_width, encoding_height, encoding_fps;
-	char *device;
+	char device[512];
+	char alsa_device[512];
 	krad_audio_api_t krad_audio_api;
 	char output[512];
 	int c;
@@ -708,21 +710,25 @@ int main (int argc, char *argv[]) {
 	cam_started = 0;
 	read_composited = 0;	
 	shutdown = 0;
-	capture_width = 1280;
-	capture_height = 720;
-	capture_fps = 30;
+	capture_width = 640;
+	capture_height = 480;
+	capture_fps = 15;
 	frames = 0;
 	bug_x = 30;
 	bug_y = 30;
 	
-	device = DEFAULT_DEVICE;
+	strncpy(device, DEFAULT_DEVICE, sizeof(device));
+	strncpy(alsa_device, DEFAULT_ALSA_DEVICE, sizeof(alsa_device));
 	krad_audio_api = ALSA;
 	
 	memset(bug, '\0', sizeof(bug));
 	sprintf(output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:")) != -1) {
+	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:")) != -1) {
 		switch (c) {
+			case 'd':
+				strncpy(device, optarg, sizeof(device));
+				break;
 			case 'a':
 				krad_audio_api = ALSA;
 				break;
@@ -900,7 +906,8 @@ int main (int argc, char *argv[]) {
 					        break;
 					    case SDLK_z:
 							kradgui_remove_bug (krad_cam->krad_gui);
-					        break;					        
+					        break;
+					    /*			        
 					    case SDLK_m:
 							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
 					        break;
@@ -925,6 +932,7 @@ int main (int argc, char *argv[]) {
 					    case SDLK_a:
 							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
 					        break;
+					    */
 					    case SDLK_b:
 					    	if (bug[0] != '\0') {
 								kradgui_set_bug (krad_cam->krad_gui, bug, bug_x, bug_y);
