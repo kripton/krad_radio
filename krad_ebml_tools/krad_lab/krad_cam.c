@@ -114,7 +114,7 @@ void *video_capture_thread(void *arg) {
 	void *captured_frame = NULL;
 	unsigned char *captured_frame_rgb = malloc(krad_cam->composited_frame_byte_size); 
 	
-	printf("\n\nvideo capture thread begins\n\n");
+	//printf("\n\nvideo capture thread begins\n\n");
 
 	krad_cam->krad_v4l2 = kradv4l2_create();
 
@@ -188,7 +188,7 @@ void *video_capture_thread(void *arg) {
 		
 		if (dupe_frame == 1) {
 
-			printf("\n\nduping a frame *********** bad should not happen\n\n");
+			//printf("\n\nduping a frame *********** bad should not happen\n\n");
 
 			if (jack_ringbuffer_write_space(krad_cam->captured_frames_buffer) >= krad_cam->composited_frame_byte_size) {
 
@@ -213,7 +213,7 @@ void *video_capture_thread(void *arg) {
 
 	krad_cam->capture_audio = 2;
 	krad_cam->encoding = 2;
-	printf("\n\nvideo capture thread ends\n\n");
+	//printf("\n\nvideo capture thread ends\n\n");
 
 	return NULL;
 	
@@ -223,7 +223,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_cam_t *krad_cam = (krad_cam_t *)arg;
 	
-	printf("\n\nvideo encoding thread begins\n\n");
+	//printf("\n\nvideo encoding thread begins\n\n");
 	
 	void *vpx_packet;
 	int keyframe;
@@ -236,7 +236,7 @@ void *video_encoding_thread(void *arg) {
 
 
 	krad_cam->krad_vpx_encoder->quality = 1000 * ((krad_cam->encoding_fps / 4) * 3);
-	printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
+	//printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
 
 	while ((krad_cam->encoding == 1) || (jack_ringbuffer_read_space(krad_cam->composited_frames_buffer) >= krad_cam->composited_frame_byte_size)) {
 
@@ -252,7 +252,7 @@ void *video_encoding_thread(void *arg) {
 			
 				krad_cam->krad_vpx_encoder->quality = (1000 * ((krad_cam->encoding_fps / 4) * 3)) / 2LU;
 				
-				printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
+				//printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
 			
 			}
 						
@@ -260,7 +260,7 @@ void *video_encoding_thread(void *arg) {
 			
 				krad_cam->krad_vpx_encoder->quality = (1000 * ((krad_cam->encoding_fps / 4) * 3)) / 4LU;
 			
-				printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
+				//printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
 			
 			}						 
 								 
@@ -298,7 +298,7 @@ void *video_encoding_thread(void *arg) {
 		
 			if (krad_cam->krad_vpx_encoder->quality != (1000 * ((krad_cam->encoding_fps / 4) * 3))) {
 				krad_cam->krad_vpx_encoder->quality = 1000 * ((krad_cam->encoding_fps / 4) * 3);
-				printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
+				//printf("\n\n encoding quality set to %ld\n\n", krad_cam->krad_vpx_encoder->quality);
 			}
 
 			
@@ -317,7 +317,7 @@ void *video_encoding_thread(void *arg) {
 	
 	krad_cam->encoding = 3;
 	
-	printf("\n\nvideo encoding thread ends\n\n");
+	//printf("\n\nvideo encoding thread ends\n\n");
 	
 	return NULL;
 	
@@ -348,7 +348,7 @@ void *audio_encoding_thread(void *arg) {
 
 	krad_cam_t *krad_cam = (krad_cam_t *)arg;
 	
-	printf("\n\naudio encoding thread begins\n\n");
+	//printf("\n\naudio encoding thread begins\n\n");
 	
 	krad_cam->krad_audio = kradaudio_create("Krad Cam", KINPUT, krad_cam->krad_audio_api);
 	
@@ -398,8 +398,8 @@ void *audio_encoding_thread(void *arg) {
 				
 				krad_cam->audio_frames_encoded = op->granulepos;
 			
-				printf("frames encoded: %d frames captured: %d alt %d\r", krad_cam->audio_frames_encoded, krad_cam->audio_frames_captured, altframecount);
-				fflush(stdout);
+				//printf("frames encoded: %d frames captured: %d alt %d\r", krad_cam->audio_frames_encoded, krad_cam->audio_frames_captured, altframecount);
+				//fflush(stdout);
 			
 			}
 		}
@@ -435,7 +435,7 @@ void *audio_encoding_thread(void *arg) {
 	free(audio);
 	free(buffer);
 	
-	printf("\n\naudio encoding thread ends\n\n");
+	//printf("\n\naudio encoding thread ends\n\n");
 	
 	return NULL;
 	
@@ -456,7 +456,7 @@ void *ebml_output_thread(void *arg) {
 	int audio_frames_muxed;
 	int audio_frames_per_video_frame;
 
-	printf("\n\nebml muxing thread begins\n\n");
+	//printf("\n\nebml muxing thread begins\n\n");
 
 	audio_frames_muxed = 0;
 	video_frames_muxed = 0;
@@ -495,7 +495,7 @@ void *ebml_output_thread(void *arg) {
 	
 	kradebml_write(krad_cam->krad_ebml);
 	
-	printf("\n\nebml muxing thread waiting..\n\n");
+	//printf("\n\nebml muxing thread waiting..\n\n");
 	
 	while ( krad_cam->encoding ) {
 
@@ -569,7 +569,7 @@ void *ebml_output_thread(void *arg) {
 	
 	free(packet);
 	
-	printf("\n\nebml muxing thread ends\n\n");
+	//printf("\n\nebml muxing thread ends\n\n");
 	
 	return NULL;
 	
@@ -583,31 +583,29 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 	pthread_join(krad_cam->video_encoding_thread, NULL);
 	pthread_join(krad_cam->audio_encoding_thread, NULL);
 	pthread_join(krad_cam->ebml_output_thread, NULL);
-	printf("1\n");
+
 	if (krad_cam->display_width != 0) {
 		krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
 	}
-	printf("2\n");
+
 	kradgui_destroy(krad_cam->krad_gui);
-	printf("3\n");
+
 	sws_freeContext ( krad_cam->captured_frame_converter );
 	sws_freeContext ( krad_cam->encoding_frame_converter );
 	sws_freeContext ( krad_cam->display_frame_converter );
-	printf("4\n");
+
 	// must be before vorbis
 	kradaudio_destroy (krad_cam->krad_audio);
 	krad_vorbis_encoder_destroy (krad_cam->krad_vorbis);
-	printf("5\n");
+
 	jack_ringbuffer_free ( krad_cam->captured_frames_buffer );
-	printf("6\n");
+
 	jack_ringbuffer_free ( krad_cam->encoded_audio_ringbuffer );
 	jack_ringbuffer_free ( krad_cam->encoded_video_ringbuffer );
-	printf("7\n");
-
 
 	free(krad_cam->current_encoding_frame);
 	free(krad_cam->current_frame);
-	printf("8\n");
+
 	free(krad_cam);
 }
 
@@ -665,11 +663,14 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 	krad_cam->encoding_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
 															krad_cam->encoding_width, krad_cam->encoding_height, PIX_FMT_YUV420P, 
 															SWS_BICUBIC, NULL, NULL, NULL);
+			
+	if (krad_cam->display_width != 0) {
 															
-	krad_cam->display_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
-														 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
-														 SWS_BICUBIC, NULL, NULL, NULL);
-	
+		krad_cam->display_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
+															 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
+															 SWS_BICUBIC, NULL, NULL, NULL);
+	}
+		
 	krad_cam->captured_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->capture_buffer_frames);
 	krad_cam->composited_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
 
@@ -690,7 +691,7 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 	krad_cam->krad_gui->clear = 0;
 	//kradgui_test_screen(krad_cam->krad_gui, "Krad Cam Test");
 
-	printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
+	//printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
 
 	krad_cam->encoding = 1;
 	krad_cam->capturing = 1;
@@ -704,7 +705,94 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 
 }
 
+void daemonize() {
+
+		char *daemon_name = "krad_cam";
+
+		/* Our process ID and Session ID */
+		pid_t pid, sid;
+
+        printf("Daemonizing..\n");
+ 
+        /* Fork off the parent process */
+        pid = fork();
+        if (pid < 0) {
+            exit(EXIT_FAILURE);
+        }
+        /* If we got a good PID, then
+           we can exit the parent process. */
+        if (pid > 0) {
+            exit(EXIT_SUCCESS);
+        }
+ 
+        /* Change the file mode mask */
+        umask(0);
+ 
+        /* Create a new SID for the child process */
+        sid = setsid();
+        if (sid < 0) {
+            /* Log the failure */
+            exit(EXIT_FAILURE);
+        }
+ 
+        /* Change the current working directory */
+        if ((chdir("/")) < 0) {
+            /* Log the failure */
+            exit(EXIT_FAILURE);
+        }
+ 
+        /* Close out the standard file descriptors */
+        close(STDIN_FILENO);
+        //close(STDOUT_FILENO);
+        //close(STDERR_FILENO);
+        
+        
+		char err_log_file[98] = "";
+		char log_file[98] = "";
+		char *homedir = getenv ("HOME");
+		
+		char timestamp[64];
+		
+		time_t ltime;
+    	ltime=time(NULL);
+		sprintf(timestamp, "%s",asctime( localtime(&ltime) ) );
+		
+		int i;
+		
+		for (i = 0; i< strlen(timestamp); i++) {
+			if (timestamp[i] == ' ') {
+				timestamp[i] = '_';
+			}
+			if (timestamp[i] == ':') {
+				timestamp[i] = '.';
+			}
+			if (timestamp[i] == '\n') {
+				timestamp[i] = '\0';
+			}
+		
+		}
+		
+		sprintf(err_log_file, "%s/%s_%s_err.log", homedir, daemon_name, timestamp);
+		sprintf(log_file, "%s/%s_%s.log", homedir, daemon_name, timestamp);
+		
+		FILE *fp;
+		
+		fp = freopen( err_log_file, "w", stderr );
+		if (fp == NULL) {
+			printf("ruh oh error in freopen stderr\n");
+		}
+		fp = freopen( log_file, "w", stdout );
+		if (fp == NULL) {
+			printf("ruh oh error in freopen stdout\n");
+		}
+        
+}
+
 void krad_cam_shutdown() {
+
+	if (do_shutdown == 1) {
+		exit(1);
+	}
 
 	do_shutdown = 1;
 
@@ -740,6 +828,7 @@ int main (int argc, char *argv[]) {
 	int bitrate;
 	int render_meters;
 	int display;
+	int daemon;
 	SDL_Event event;
 
 	render_meters = 1;
@@ -753,7 +842,7 @@ int main (int argc, char *argv[]) {
 	bug_x = 30;
 	bug_y = 30;
 	bitrate = 1250;
-	
+	daemon = 0;
 	display = 1;
 	
 	krad_audio_api = ALSA;	
@@ -768,7 +857,7 @@ int main (int argc, char *argv[]) {
 	port = 0;
 
 
-	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:m:v:l:n:g:z")) != -1) {
+	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:m:v:l:n:g:zc")) != -1) {
 		switch (c) {
 			case 'd':
 				strncpy(device, optarg, sizeof(device));
@@ -821,6 +910,9 @@ int main (int argc, char *argv[]) {
 			case 'b':
 				strncpy(bug, optarg, sizeof(bug));
 				break;
+			case 'c':
+				daemon = 1;
+				break;
 			case '?':
 				printf("option argument fail\n");
 				exit(1);
@@ -829,7 +921,7 @@ int main (int argc, char *argv[]) {
 		}
 	}
 	
-	if (host[0] != '\0') {
+	if (host[0] == '\0') {
 		printf("Outputing to file: %s\n", output);
 	}
 		
@@ -852,6 +944,10 @@ int main (int argc, char *argv[]) {
 	
 	signal(SIGINT, krad_cam_shutdown);
 	signal(SIGTERM, krad_cam_shutdown);
+	
+	if (daemon) {
+		daemonize();
+	}
 	
 	krad_cam = krad_cam_create( device, output, host, port, mount, password, bitrate, krad_audio_api, capture_width, capture_height, capture_fps, 
 								composite_width, composite_height, composite_fps, display_width, display_height, encoding_width, 
