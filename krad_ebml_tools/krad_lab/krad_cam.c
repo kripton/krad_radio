@@ -74,7 +74,6 @@ struct krad_cam_St {
 	jack_ringbuffer_t *encoded_audio_ringbuffer;
 	jack_ringbuffer_t *encoded_video_ringbuffer;
 	
-	
 	int video_frames_encoded;
 	
 	int composited_frame_byte_size;
@@ -96,6 +95,27 @@ struct krad_cam_St {
 	pthread_t ebml_output_thread;
 
 
+
+	int render_meters;
+	int display;
+
+
+	int new_capture_frame;
+	int cam_started;
+
+	float temp_peak;
+	float kick;
+
+	SDL_Event event;
+
+	char bug[512];
+	int bug_x;
+	int bug_y;
+	
+	int debug;
+	int *shutdown;
+	int daemon;
+
 };
 
 void *video_capture_thread(void *arg) {
@@ -104,13 +124,9 @@ void *video_capture_thread(void *arg) {
 
 	int dupe_frame = 0;
 	int first = 1;
-	unsigned long long expected_time_ns;
-	unsigned long long expected_time_ms;
 	struct timespec start_time;
 	struct timespec current_time;
 	struct timespec elapsed_time;
-	struct timespec expected_time;
-	struct timespec diff_time;
 	void *captured_frame = NULL;
 	unsigned char *captured_frame_rgb = malloc(krad_cam->composited_frame_byte_size); 
 	
@@ -135,11 +151,11 @@ void *video_capture_thread(void *arg) {
 		} else {
 		
 		
-			if (krad_cam->captured_frames % 300 == 0) {
+			if ((krad_cam->debug) && (krad_cam->captured_frames % 300 == 0)) {
 		
 				clock_gettime(CLOCK_MONOTONIC, &current_time);
 				elapsed_time = timespec_diff(start_time, current_time);
-				//printf("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_cam->captured_frames, elapsed_time.tv_sec * krad_cam->capture_fps, krad_cam->capture_fps, elapsed_time.tv_sec);
+				printf("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_cam->captured_frames, elapsed_time.tv_sec * krad_cam->capture_fps, krad_cam->capture_fps, elapsed_time.tv_sec);
 	
 			}
 			
@@ -356,7 +372,6 @@ void *audio_encoding_thread(void *arg) {
 	//krad_cam->krad_flac = krad_flac_encoder_create(2, krad_cam->kradaudio->sample_rate, 16);
 	
 	int framecnt = 1024;
-	int bytes;
 	int frames;
 	float *audio = calloc(1, 1000000);
 	unsigned char *buffer = calloc(1, 1000000);
@@ -475,6 +490,7 @@ void *ebml_output_thread(void *arg) {
 	if (krad_cam->host[0] != '\0') {
 		kradebml_open_output_stream(krad_cam->krad_ebml, krad_cam->host, krad_cam->port, krad_cam->mount, krad_cam->password);
 	} else {
+		printf("Outputing to file: %s\n", krad_cam->output);
 		kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
 	}
 
@@ -575,133 +591,264 @@ void *ebml_output_thread(void *arg) {
 	
 }
 
+void krad_cam_handle_input(krad_cam_t *krad_cam) {
 
-void krad_cam_destroy(krad_cam_t *krad_cam) {
+	while ( SDL_PollEvent( &krad_cam->event ) ){
+		switch( krad_cam->event.type ){
+			/* Look for a keypress */
+			case SDL_KEYDOWN:
+				/* Check the SDLKey values and move change the coords */
+				switch( krad_cam->event.key.keysym.sym ){
+					case SDLK_LEFT:
+						break;
+					case SDLK_RIGHT:
+						break;
+					case SDLK_UP:
+						break;
+					case SDLK_z:
+						kradgui_remove_bug (krad_cam->krad_gui);
+						break;
+					/*			        
+					case SDLK_m:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
+						break;
+					case SDLK_x:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
+						break;
+					case SDLK_h:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 30, 30);
+						break;
+					case SDLK_w:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 30, 30);
+						break;
+					case SDLK_e:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz3.png", 30, 30);
+						break;
+					case SDLK_r:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz4.png", 30, 30);
+						break;					        
+					case SDLK_s:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz5.png", 30, 30);
+						break;
+					case SDLK_a:
+						kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
+						break;
+					*/
+					case SDLK_b:
+						if (krad_cam->bug[0] != '\0') {
+							kradgui_set_bug (krad_cam->krad_gui, krad_cam->bug, krad_cam->bug_x, krad_cam->bug_y);
+						}
+						break;
+					case SDLK_l:
+						if (krad_cam->krad_gui->live == 1) {
+							krad_cam->krad_gui->live = 0;
+						} else {
+							krad_cam->krad_gui->live = 1;
+						}
+						break;
+					case SDLK_0:
+						krad_cam->krad_gui->bug_alpha += 0.1f;
+						if (krad_cam->krad_gui->bug_alpha > 1.0f) {
+							krad_cam->krad_gui->bug_alpha = 1.0f;
+						}
+						break;
+					case SDLK_9:
+						krad_cam->krad_gui->bug_alpha -= 0.1f;
+						if (krad_cam->krad_gui->bug_alpha < 0.1f) {
+							krad_cam->krad_gui->bug_alpha = 0.1f;
+						}
+						break;
+					case SDLK_q:
+						*krad_cam->shutdown = 1;
+						break;
+					case SDLK_f:
+						if (krad_cam->krad_gui->render_ftest == 1) {
+							krad_cam->krad_gui->render_ftest = 0;
+						} else {
+							krad_cam->krad_gui->render_ftest = 1;
+						}
+						break;
+					case SDLK_v:
+						if (krad_cam->render_meters == 1) {
+							krad_cam->render_meters = 0;
+						} else {
+							krad_cam->render_meters = 1;
+						}
+						break;
+					default:
+						break;
+				}
+				break;
 
-	krad_cam->capturing = 0;
-	pthread_join(krad_cam->video_capture_thread, NULL);
-	pthread_join(krad_cam->video_encoding_thread, NULL);
-	pthread_join(krad_cam->audio_encoding_thread, NULL);
-	pthread_join(krad_cam->ebml_output_thread, NULL);
+			case SDL_KEYUP:
+				switch( krad_cam->event.key.keysym.sym ) {
+					case SDLK_LEFT:
+						break;
+					case SDLK_RIGHT:
+						break;
+					case SDLK_UP:
+						break;
+					case SDLK_DOWN:
+						break;
+					default:
+						break;
+				}
+				break;
 
-	if (krad_cam->display_width != 0) {
-		krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
+			case SDL_MOUSEMOTION:
+				//printf("mouse!\n");
+				krad_cam->krad_gui->cursor_x = krad_cam->event.motion.x;
+				krad_cam->krad_gui->cursor_y = krad_cam->event.motion.y;
+				break;
+	
+			case SDL_QUIT:
+				*krad_cam->shutdown = 1;	 			
+				break;
+
+			default:
+				break;
+		}
 	}
 
-	kradgui_destroy(krad_cam->krad_gui);
+}
 
-	sws_freeContext ( krad_cam->captured_frame_converter );
-	sws_freeContext ( krad_cam->encoding_frame_converter );
-	sws_freeContext ( krad_cam->display_frame_converter );
+void krad_cam_display(krad_cam_t *krad_cam) {
 
-	// must be before vorbis
-	kradaudio_destroy (krad_cam->krad_audio);
-	krad_vorbis_encoder_destroy (krad_cam->krad_vorbis);
+	if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
 
-	jack_ringbuffer_free ( krad_cam->captured_frames_buffer );
+		memcpy( krad_cam->krad_opengl_display->rgb_frame_data, krad_cam->krad_gui->data, krad_cam->krad_gui->bytes );
 
-	jack_ringbuffer_free ( krad_cam->encoded_audio_ringbuffer );
-	jack_ringbuffer_free ( krad_cam->encoded_video_ringbuffer );
+	} else {
 
-	free(krad_cam->current_encoding_frame);
-	free(krad_cam->current_frame);
 
-	free(krad_cam);
+		int rgb_stride_arr[3] = {4*krad_cam->display_width, 0, 0};
+
+		const uint8_t *rgb_arr[4];
+		int rgb1_stride_arr[4];
+
+		rgb_arr[0] = krad_cam->krad_gui->data;
+
+		rgb1_stride_arr[0] = krad_cam->composite_width * 4;
+		rgb1_stride_arr[1] = 0;
+		rgb1_stride_arr[2] = 0;
+		rgb1_stride_arr[3] = 0;
+
+		unsigned char *dst[4];
+
+		dst[0] = krad_cam->krad_opengl_display->rgb_frame_data;
+
+		sws_scale(krad_cam->display_frame_converter, rgb_arr, rgb1_stride_arr, 0, krad_cam->display_height, dst, rgb_stride_arr);
+
+
+	}
+
+	krad_sdl_opengl_draw_screen( krad_cam->krad_opengl_display );
+
+	//if (read_composited) {
+	//	krad_sdl_opengl_read_screen( krad_cam->krad_opengl_display, krad_cam->krad_opengl_display->rgb_frame_data);
+	//}
+
+}
+
+void krad_cam_composite(krad_cam_t *krad_cam) {
+
+	int c;
+
+	if (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) >= krad_cam->composited_frame_byte_size) {
+	
+		jack_ringbuffer_read(krad_cam->captured_frames_buffer, 
+							 (char *)krad_cam->current_frame, 
+							 krad_cam->composited_frame_byte_size );
+
+		if (krad_cam->cam_started == 0) {
+			krad_cam->cam_started = 1;
+			//krad_cam->krad_gui->render_ftest = 1;
+			kradgui_go_live(krad_cam->krad_gui);
+		}
+		
+		krad_cam->new_capture_frame = 1;
+	} else {
+		krad_cam->new_capture_frame = 0;
+	}		
+	
+	memcpy( krad_cam->krad_gui->data, krad_cam->current_frame, krad_cam->krad_gui->bytes );
+	
+	kradgui_render( krad_cam->krad_gui );
+
+	if (krad_cam->new_capture_frame == 1) {
+		if (krad_cam->krad_audio != NULL) {
+			for (c = 0; c < 2; c++) {
+				krad_cam->temp_peak = read_peak(krad_cam->krad_audio, KINPUT, c);
+				if (krad_cam->temp_peak >= krad_cam->krad_gui->output_peak[c]) {
+					if (krad_cam->temp_peak > 2.7f) {
+						krad_cam->krad_gui->output_peak[c] = krad_cam->temp_peak;
+						krad_cam->kick = ((krad_cam->krad_gui->output_peak[c] - krad_cam->krad_gui->output_current[c]) / 300.0);
+					}
+				} else {
+					if (krad_cam->krad_gui->output_peak[c] == krad_cam->krad_gui->output_current[c]) {
+						krad_cam->krad_gui->output_peak[c] -= (0.9 * (60/krad_cam->capture_fps));
+						if (krad_cam->krad_gui->output_peak[c] < 0.0f) {
+							krad_cam->krad_gui->output_peak[c] = 0.0f;
+						}
+						krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
+					}
+				}
+			
+				if (krad_cam->krad_gui->output_peak[c] > krad_cam->krad_gui->output_current[c]) {
+					krad_cam->krad_gui->output_current[c] = (krad_cam->krad_gui->output_current[c] + 1.4) * (1.3 + krad_cam->kick); ;
+				}
+		
+				if (krad_cam->krad_gui->output_peak[c] < krad_cam->krad_gui->output_current[c]) {
+					krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
+				}
+			
+			
+			}
+		}
+	}
+	
+	if (krad_cam->render_meters) {
+		kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->composite_height - 30, 96, krad_cam->krad_gui->output_current[0]);
+		kradgui_render_meter (krad_cam->krad_gui, krad_cam->composite_width - 110, krad_cam->composite_height - 30, 96, krad_cam->krad_gui->output_current[1]);
+	}
+	
+	
+	if ((krad_cam->cam_started == 1) && (krad_cam->new_capture_frame == 1) && (jack_ringbuffer_write_space(krad_cam->composited_frames_buffer) >= krad_cam->composited_frame_byte_size)) {
+
+			jack_ringbuffer_write(krad_cam->composited_frames_buffer, 
+								  (char *)krad_cam->krad_gui->data, 
+								  krad_cam->composited_frame_byte_size );
+
+	} else {
+	
+		if ((krad_cam->cam_started == 1) && (krad_cam->new_capture_frame == 1)) {
+			printf("encoding to slow! overflow!\n");
+		}
+	
+	}
+		
+		
 }
 
 
-krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, char *mount, char *password, int bitrate, krad_audio_api_t audio_api, 
-							int capture_width, int capture_height, int capture_fps, int composite_width, int composite_height, 
-							int composite_fps, int display_width, int display_height, int encoding_width, int encoding_height, 
-							int encoding_fps) {
+void krad_cam_run(krad_cam_t *krad_cam) {
 
-	krad_cam_t *krad_cam;
-	
-	krad_cam = calloc(1, sizeof(krad_cam_t));
 
-	krad_cam->capture_width = capture_width;
-	krad_cam->capture_height = capture_height;
-	krad_cam->capture_fps = capture_fps;
-	krad_cam->composite_width = composite_width;
-	krad_cam->composite_height = composite_height;
-	krad_cam->composite_fps = composite_fps;
-	krad_cam->display_width = display_width;
-	krad_cam->display_height = display_height;
-	krad_cam->encoding_width = encoding_width;
-	krad_cam->encoding_height = encoding_height;
-	krad_cam->encoding_fps = encoding_fps;
-	
-	krad_cam->krad_audio_api = audio_api;
-	
-	krad_cam->capture_buffer_frames = 5;
-	krad_cam->encoding_buffer_frames = 15;
-	
-	strncpy(krad_cam->device, device, sizeof(krad_cam->device));
-	strncpy(krad_cam->output, output, sizeof(krad_cam->output)); 
+	while (!*krad_cam->shutdown) {
 
-	krad_cam->bitrate = bitrate;
+		if (!krad_cam->display) {
+			while (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) < krad_cam->composited_frame_byte_size) {
+				usleep(5000);
+			}
+		}
 
-	krad_cam->port = port;
-	strncpy(krad_cam->host, host, sizeof(krad_cam->host));
-	strncpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
-	strncpy(krad_cam->password, password, sizeof(krad_cam->password)); 
+		krad_cam_composite(krad_cam);
 
-	if (krad_cam->display_width != 0) {
-
-		krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
-															 		   krad_cam->composite_width, krad_cam->composite_height);
+		if (krad_cam->display) {
+			krad_cam_display(krad_cam);
+			krad_cam_handle_input(krad_cam);
+		}
 	}
-	
-	krad_cam->composited_frame_byte_size = krad_cam->composite_width * krad_cam->composite_height * 4;
-	krad_cam->current_frame = calloc(1, krad_cam->composited_frame_byte_size);
-	krad_cam->current_encoding_frame = calloc(1, krad_cam->composited_frame_byte_size);
-
-	krad_cam->captured_frame_converter = sws_getContext ( krad_cam->capture_width, krad_cam->capture_height, PIX_FMT_YUYV422, 
-														  krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
-														  SWS_BICUBIC, NULL, NULL, NULL);
-														  
-	krad_cam->encoding_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
-															krad_cam->encoding_width, krad_cam->encoding_height, PIX_FMT_YUV420P, 
-															SWS_BICUBIC, NULL, NULL, NULL);
-			
-	if (krad_cam->display_width != 0) {
-															
-		krad_cam->display_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
-															 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
-															 SWS_BICUBIC, NULL, NULL, NULL);
-	}
-		
-	krad_cam->captured_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->capture_buffer_frames);
-	krad_cam->composited_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
-
-	krad_cam->encoded_audio_ringbuffer = jack_ringbuffer_create (2000000);
-	krad_cam->encoded_video_ringbuffer = jack_ringbuffer_create (2000000);
-
-
-	krad_cam->krad_gui = kradgui_create_with_internal_surface(krad_cam->composite_width, krad_cam->composite_height);
-
-	//krad_cam->krad_gui->update_drawtime = 1;
-	//krad_cam->krad_gui->print_drawtime = 1;
-	
-	//krad_cam->krad_gui->render_ftest = 1;
-	//krad_cam->krad_gui->render_tearbar = 1;
-	
-//	kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2.png", 30, 30);
-	
-	krad_cam->krad_gui->clear = 0;
-	//kradgui_test_screen(krad_cam->krad_gui, "Krad Cam Test");
-
-	//printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
-
-	krad_cam->encoding = 1;
-	krad_cam->capturing = 1;
-
-	pthread_create(&krad_cam->video_capture_thread, NULL, video_capture_thread, (void *)krad_cam);
-	pthread_create(&krad_cam->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_cam);
-	pthread_create(&krad_cam->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_cam);
-	pthread_create(&krad_cam->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_cam);	
-
-	return krad_cam;
 
 }
 
@@ -798,15 +945,163 @@ void krad_cam_shutdown() {
 
 }
 
+void krad_cam_destroy(krad_cam_t *krad_cam) {
+
+	krad_cam->capturing = 0;
+	pthread_join(krad_cam->video_capture_thread, NULL);
+	pthread_join(krad_cam->video_encoding_thread, NULL);
+	pthread_join(krad_cam->audio_encoding_thread, NULL);
+	pthread_join(krad_cam->ebml_output_thread, NULL);
+
+	if (krad_cam->display) {
+		krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
+	}
+
+	kradgui_destroy(krad_cam->krad_gui);
+
+	sws_freeContext ( krad_cam->captured_frame_converter );
+	sws_freeContext ( krad_cam->encoding_frame_converter );
+	sws_freeContext ( krad_cam->display_frame_converter );
+
+	// must be before vorbis
+	kradaudio_destroy (krad_cam->krad_audio);
+	krad_vorbis_encoder_destroy (krad_cam->krad_vorbis);
+
+	jack_ringbuffer_free ( krad_cam->captured_frames_buffer );
+
+	jack_ringbuffer_free ( krad_cam->encoded_audio_ringbuffer );
+	jack_ringbuffer_free ( krad_cam->encoded_video_ringbuffer );
+
+	free(krad_cam->current_encoding_frame);
+	free(krad_cam->current_frame);
+
+	free(krad_cam);
+}
+
+
+krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, char *mount, char *password, int bitrate, krad_audio_api_t audio_api, 
+							int capture_width, int capture_height, int capture_fps, int composite_width, int composite_height, 
+							int composite_fps, int display_width, int display_height, int encoding_width, int encoding_height, 
+							int encoding_fps, int *shutdown, int daemon, char *bug, int bug_x, int bug_y) {
+
+	krad_cam_t *krad_cam;
+	
+	krad_cam = calloc(1, sizeof(krad_cam_t));
+
+	krad_cam->capture_width = capture_width;
+	krad_cam->capture_height = capture_height;
+	krad_cam->capture_fps = capture_fps;
+	krad_cam->composite_width = composite_width;
+	krad_cam->composite_height = composite_height;
+	krad_cam->composite_fps = composite_fps;
+	krad_cam->display_width = display_width;
+	krad_cam->display_height = display_height;
+	krad_cam->encoding_width = encoding_width;
+	krad_cam->encoding_height = encoding_height;
+	krad_cam->encoding_fps = encoding_fps;
+	
+	krad_cam->krad_audio_api = audio_api;
+	
+	krad_cam->capture_buffer_frames = 5;
+	krad_cam->encoding_buffer_frames = 15;
+	
+	if (krad_cam->display_width != 0) {
+		krad_cam->display = 1;		
+	} else {
+		krad_cam->display = 0;
+	}
+	
+	krad_cam->shutdown = shutdown;
+	
+	signal(SIGINT, krad_cam_shutdown);
+	signal(SIGTERM, krad_cam_shutdown);
+
+	krad_cam->daemon = daemon;
+
+	if (krad_cam->daemon) {
+		daemonize();
+	}
+
+	if (bug[0] != '\0') {
+		memcpy(krad_cam->bug, bug, sizeof(krad_cam->bug));
+		krad_cam->bug_x = bug_x;
+		krad_cam->bug_y = bug_y;
+		kradgui_set_bug (krad_cam->krad_gui, krad_cam->bug, krad_cam->bug_x, krad_cam->bug_y);
+	}
+	
+	strncpy(krad_cam->device, device, sizeof(krad_cam->device));
+	strncpy(krad_cam->output, output, sizeof(krad_cam->output)); 
+
+	krad_cam->bitrate = bitrate;
+
+	krad_cam->port = port;
+	strncpy(krad_cam->host, host, sizeof(krad_cam->host));
+	strncpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
+	strncpy(krad_cam->password, password, sizeof(krad_cam->password)); 
+
+	if (krad_cam->display) {
+
+		krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
+															 		   krad_cam->composite_width, krad_cam->composite_height);
+	}
+	
+	krad_cam->composited_frame_byte_size = krad_cam->composite_width * krad_cam->composite_height * 4;
+	krad_cam->current_frame = calloc(1, krad_cam->composited_frame_byte_size);
+	krad_cam->current_encoding_frame = calloc(1, krad_cam->composited_frame_byte_size);
+
+	krad_cam->captured_frame_converter = sws_getContext ( krad_cam->capture_width, krad_cam->capture_height, PIX_FMT_YUYV422, 
+														  krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
+														  SWS_BICUBIC, NULL, NULL, NULL);
+														  
+	krad_cam->encoding_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
+															krad_cam->encoding_width, krad_cam->encoding_height, PIX_FMT_YUV420P, 
+															SWS_BICUBIC, NULL, NULL, NULL);
+			
+	if (krad_cam->display) {
+															
+		krad_cam->display_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
+															 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
+															 SWS_BICUBIC, NULL, NULL, NULL);
+	}
+		
+	krad_cam->captured_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->capture_buffer_frames);
+	krad_cam->composited_frames_buffer = jack_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
+
+	krad_cam->encoded_audio_ringbuffer = jack_ringbuffer_create (2000000);
+	krad_cam->encoded_video_ringbuffer = jack_ringbuffer_create (2000000);
+
+
+	krad_cam->krad_gui = kradgui_create_with_internal_surface(krad_cam->composite_width, krad_cam->composite_height);
+
+	//krad_cam->krad_gui->update_drawtime = 1;
+	//krad_cam->krad_gui->print_drawtime = 1;
+	
+	//krad_cam->krad_gui->render_ftest = 1;
+	//krad_cam->krad_gui->render_tearbar = 1;
+	
+//	kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2.png", 30, 30);
+	
+	krad_cam->krad_gui->clear = 0;
+	//kradgui_test_screen(krad_cam->krad_gui, "Krad Cam Test");
+
+	//printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
+
+	krad_cam->encoding = 1;
+	krad_cam->capturing = 1;
+
+	pthread_create(&krad_cam->video_capture_thread, NULL, video_capture_thread, (void *)krad_cam);
+	pthread_create(&krad_cam->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_cam);
+	pthread_create(&krad_cam->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_cam);
+	pthread_create(&krad_cam->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_cam);	
+
+	return krad_cam;
+
+}
 
 int main (int argc, char *argv[]) {
 
 	krad_cam_t *krad_cam;
 	
-	int new_capture_frame;
-	int cam_started;
-	int read_composited;
-	int frames;
 	int capture_width, capture_height, capture_fps;
 	int display_width, display_height;
 	int composite_width, composite_height, composite_fps;
@@ -820,25 +1115,18 @@ int main (int argc, char *argv[]) {
 	char mount[512];
 	char password[512];	
 	int c;
-	float temp_peak;
-	float kick;
+
 	char bug[512];
 	int bug_x;
 	int bug_y;
 	int bitrate;
-	int render_meters;
+
 	int display;
 	int daemon;
-	SDL_Event event;
 
-	render_meters = 1;
-	cam_started = 0;
-	read_composited = 0;	
-	do_shutdown = 0;
 	capture_width = 640;
 	capture_height = 480;
 	capture_fps = 15;
-	frames = 0;
 	bug_x = 30;
 	bug_y = 30;
 	bitrate = 1250;
@@ -920,10 +1208,6 @@ int main (int argc, char *argv[]) {
 				break;
 		}
 	}
-	
-	if (host[0] == '\0') {
-		printf("Outputing to file: %s\n", output);
-	}
 		
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
@@ -941,277 +1225,18 @@ int main (int argc, char *argv[]) {
 		display_width = 0;
 		display_height = 0;
 	}
-	
-	signal(SIGINT, krad_cam_shutdown);
-	signal(SIGTERM, krad_cam_shutdown);
-	
-	if (daemon) {
-		daemonize();
-	}
+
+
 	
 	krad_cam = krad_cam_create( device, output, host, port, mount, password, bitrate, krad_audio_api, capture_width, capture_height, capture_fps, 
 								composite_width, composite_height, composite_fps, display_width, display_height, encoding_width, 
-								encoding_height, encoding_fps );
+								encoding_height, encoding_fps, &do_shutdown, daemon, bug, bug_x, bug_y );
 
-	while (!do_shutdown) {
-
-		if (!display) {
-			while (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) < krad_cam->composited_frame_byte_size) {
-				usleep(5000);
-			}
-		}
-
-		if (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) >= krad_cam->composited_frame_byte_size) {
-	
-			jack_ringbuffer_read(krad_cam->captured_frames_buffer, 
-								 (char *)krad_cam->current_frame, 
-								 krad_cam->composited_frame_byte_size );
-
-			if (cam_started == 0) {
-				cam_started = 1;
-				//krad_cam->krad_gui->render_ftest = 1;
-				kradgui_go_live(krad_cam->krad_gui);
-			}
-			
-			new_capture_frame = 1;
-		} else {
-			new_capture_frame = 0;
-		}		
-		
-		memcpy( krad_cam->krad_gui->data, krad_cam->current_frame, krad_cam->krad_gui->bytes );
-		
-		kradgui_render( krad_cam->krad_gui );
-
-		if (new_capture_frame == 1) {
-			if (krad_cam->krad_audio != NULL) {
-				for (c = 0; c < 2; c++) {
-					temp_peak = read_peak(krad_cam->krad_audio, KINPUT, c);
-					if (temp_peak >= krad_cam->krad_gui->output_peak[c]) {
-						if (temp_peak > 2.7f) {
-							krad_cam->krad_gui->output_peak[c] = temp_peak;
-							kick = ((krad_cam->krad_gui->output_peak[c] - krad_cam->krad_gui->output_current[c]) / 300.0);
-						}
-					} else {
-						if (krad_cam->krad_gui->output_peak[c] == krad_cam->krad_gui->output_current[c]) {
-							krad_cam->krad_gui->output_peak[c] -= (0.9 * (60/capture_fps));
-							if (krad_cam->krad_gui->output_peak[c] < 0.0f) {
-								krad_cam->krad_gui->output_peak[c] = 0.0f;
-							}
-							krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
-						}
-					}
-				
-					if (krad_cam->krad_gui->output_peak[c] > krad_cam->krad_gui->output_current[c]) {
-						krad_cam->krad_gui->output_current[c] = (krad_cam->krad_gui->output_current[c] + 1.4) * (1.3 + kick); ;
-					}
-			
-					if (krad_cam->krad_gui->output_peak[c] < krad_cam->krad_gui->output_current[c]) {
-						krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
-					}
-				
-				
-				}
-			}
-		}
-		
-		if (render_meters) {
-			kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->composite_height - 30, 96, krad_cam->krad_gui->output_current[0]);
-			kradgui_render_meter (krad_cam->krad_gui, krad_cam->composite_width - 110, krad_cam->composite_height - 30, 96, krad_cam->krad_gui->output_current[1]);
-		}
-		
-		if (display) {
-
-			if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
-			
-				memcpy( krad_cam->krad_opengl_display->rgb_frame_data, krad_cam->krad_gui->data, krad_cam->krad_gui->bytes );
-		
-			} else {
-		
-	
-				int rgb_stride_arr[3] = {4*krad_cam->display_width, 0, 0};
-
-				const uint8_t *rgb_arr[4];
-				int rgb1_stride_arr[4];
-		
-				rgb_arr[0] = krad_cam->krad_gui->data;
-
-				rgb1_stride_arr[0] = krad_cam->composite_width * 4;
-				rgb1_stride_arr[1] = 0;
-				rgb1_stride_arr[2] = 0;
-				rgb1_stride_arr[3] = 0;
-
-				unsigned char *dst[4];
-
-				dst[0] = krad_cam->krad_opengl_display->rgb_frame_data;
-
-				sws_scale(krad_cam->display_frame_converter, rgb_arr, rgb1_stride_arr, 0, krad_cam->display_height, dst, rgb_stride_arr);
-	
-		
-			}
-		
-			krad_sdl_opengl_draw_screen( krad_cam->krad_opengl_display );
-
-			if (read_composited) {
-				krad_sdl_opengl_read_screen( krad_cam->krad_opengl_display, krad_cam->krad_opengl_display->rgb_frame_data);
-			}
-
-		}
-
-		if ((cam_started == 1) && (new_capture_frame == 1) && (jack_ringbuffer_write_space(krad_cam->composited_frames_buffer) >= krad_cam->composited_frame_byte_size)) {
-	
-			if (display) {
-	
-				jack_ringbuffer_write(krad_cam->composited_frames_buffer, 
-									 (char *)krad_cam->krad_opengl_display->rgb_frame_data, 
-									 krad_cam->composited_frame_byte_size );
-
-			} else {
-				jack_ringbuffer_write(krad_cam->composited_frames_buffer, 
-									  (char *)krad_cam->krad_gui->data, 
-									  krad_cam->composited_frame_byte_size );
-			}
-	
-		} else {
-		
-			if ((cam_started == 1) && (new_capture_frame == 1)) {
-				printf("encoding to slow! overflow!\n");
-			}
-		
-		}
-
-		frames++;
-
-
-		if (display) {
-
-			while ( SDL_PollEvent( &event ) ){
-				switch( event.type ){
-					/* Look for a keypress */
-					case SDL_KEYDOWN:
-						/* Check the SDLKey values and move change the coords */
-						switch( event.key.keysym.sym ){
-							case SDLK_LEFT:
-								break;
-							case SDLK_RIGHT:
-								break;
-							case SDLK_UP:
-								break;
-							case SDLK_z:
-								kradgui_remove_bug (krad_cam->krad_gui);
-								break;
-							/*			        
-							case SDLK_m:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
-								break;
-							case SDLK_x:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
-								break;
-							case SDLK_h:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 30, 30);
-								break;
-							case SDLK_w:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 30, 30);
-								break;
-							case SDLK_e:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz3.png", 30, 30);
-								break;
-							case SDLK_r:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz4.png", 30, 30);
-								break;					        
-							case SDLK_s:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz5.png", 30, 30);
-								break;
-							case SDLK_a:
-								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
-								break;
-							*/
-							case SDLK_b:
-								if (bug[0] != '\0') {
-									kradgui_set_bug (krad_cam->krad_gui, bug, bug_x, bug_y);
-								}
-								break;
-							case SDLK_l:
-								if (krad_cam->krad_gui->live == 1) {
-									krad_cam->krad_gui->live = 0;
-								} else {
-									krad_cam->krad_gui->live = 1;
-								}
-								break;
-							case SDLK_0:
-								krad_cam->krad_gui->bug_alpha += 0.1f;
-								if (krad_cam->krad_gui->bug_alpha > 1.0f) {
-									krad_cam->krad_gui->bug_alpha = 1.0f;
-								}
-								break;
-							case SDLK_9:
-								krad_cam->krad_gui->bug_alpha -= 0.1f;
-								if (krad_cam->krad_gui->bug_alpha < 0.1f) {
-									krad_cam->krad_gui->bug_alpha = 0.1f;
-								}
-								break;
-							case SDLK_q:
-								do_shutdown = 1;
-								break;
-							case SDLK_f:
-								if (krad_cam->krad_gui->render_ftest == 1) {
-									krad_cam->krad_gui->render_ftest = 0;
-								} else {
-									krad_cam->krad_gui->render_ftest = 1;
-								}
-								break;
-							case SDLK_v:
-								if (render_meters == 1) {
-									render_meters = 0;
-								} else {
-									render_meters = 1;
-								}
-								break;
-							default:
-								break;
-						}
-						break;
-
-					case SDL_KEYUP:
-						switch( event.key.keysym.sym ) {
-							case SDLK_LEFT:
-								break;
-							case SDLK_RIGHT:
-								break;
-							case SDLK_UP:
-								break;
-							case SDLK_DOWN:
-								break;
-							default:
-								break;
-						}
-						break;
-
-					case SDL_MOUSEMOTION:
-						//printf("mouse!\n");
-						krad_cam->krad_gui->cursor_x = event.motion.x;
-						krad_cam->krad_gui->cursor_y = event.motion.y;
-						break;
-				
-					case SDL_QUIT:
-						do_shutdown = 1;	 			
-						break;
-
-					default:
-						break;
-				}
-			}
-		}
-		
-
-		if (do_shutdown == 1) {
-			break;
-		}
-		
-	}
+	krad_cam_run(krad_cam);
 
 	krad_cam_destroy( krad_cam );
 
-	
+
 	return 0;
 
 }

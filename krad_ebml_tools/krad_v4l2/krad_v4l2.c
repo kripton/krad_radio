@@ -496,7 +496,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 	struct v4l2_crop crop;
 	struct v4l2_format fmt;
 
-	unsigned int min;
+	//unsigned int min;
 
 
 	kradv4l2->io = IO_METHOD_MMAP;
@@ -761,7 +761,7 @@ void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, un
 	int stride;
 	int ret;
 	
-	static int count = 1;
+	//static int count = 1;
 	
 	jpeg_size_long = jpeg_size;
 	stride = kradv4l2->width * 4;
