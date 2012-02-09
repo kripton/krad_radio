@@ -109,7 +109,7 @@ int main (int argc, char *argv[]) {
 	
 	width = 1280;
 	height = 720;
-	fps = 30;
+	fps = 10;
 	
 	sleeped = 0;
 	channels = 1;
@@ -142,17 +142,17 @@ int main (int argc, char *argv[]) {
 	krad_sdl_opengl_display = krad_sdl_opengl_display_create(APPVERSION, width, height, width, height);
 	kradgui = kradgui_create(width, height);
 	krad_flac = krad_flac_encoder_create(channels, sample_rate, bit_depth);
-	krad_vpx_encoder = krad_vpx_encoder_create(width, height);
+	krad_vpx_encoder = krad_vpx_encoder_create(width, height, 100);
 	//krad_dirac = krad_dirac_encoder_create(width, height);
 	//krad_vorbis = krad_vorbis_encoder_create(2, 44100, 0.7);
 
 	krad_ebml = kradebml_create();
 
 	//kradebml_open_output_file(krad_ebml, filename);
-	kradebml_open_output_stream(krad_ebml, "192.168.1.2", 9080, "/krad_test_signal.webm", "secretkode");
+	kradebml_open_output_stream(krad_ebml, "deimos.kradradio.com", 8080, "/krad_test_signalnewest2.webm", "secretkode");
 	
 	
-	kradebml_header(krad_ebml, "matroska", APPVERSION);
+	kradebml_header(krad_ebml, "webm", APPVERSION);
 
 	videotrack = kradebml_add_video_track(krad_ebml, "V_VP8", fps, width, height);
 
@@ -203,7 +203,10 @@ int main (int argc, char *argv[]) {
 		
 			if (bytes) {
 				kradebml_add_video(krad_ebml, videotrack, vpx_packet, bytes, keyframe);
-				kradebml_write(krad_ebml);
+				//if (keyframe) {
+					kradebml_write(krad_ebml);
+				//}
+				
 			}
 
 

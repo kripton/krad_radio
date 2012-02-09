@@ -342,7 +342,7 @@ void server_build_http_header(server_t *server) {
 	}
 	*/
 	//if (strlen(krad_mkvsource->content_type) == 0) {
-	//	fprintf(stderr, "Krad MKV Source: Could not determine content type\n");
+	//	fprintf(stderr, "Krad EBML Source: Could not determine content type\n");
 	//	krad_mkvsource_fail();
 	//}
 
@@ -405,11 +405,11 @@ void server_disconnect(server_t *server) {
 
 int server_connect(server_t *server) {
 
-	printf("Krad MKV Source: Connecting to %s:%d\n", server->host, server->port);
+	printf("Krad EBML Source: Connecting to %s:%d\n", server->host, server->port);
 
 	if ((server->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		printf("Krad MKV Source: Socket Error\n");
+		printf("Krad EBML Source: Socket Error\n");
 		exit(1);
 	}
 
@@ -423,7 +423,7 @@ int server_connect(server_t *server) {
 		server->hostp = gethostbyname(server->host);
 		if(server->hostp == (struct hostent *)NULL)
 		{
-			printf("Krad MKV Source: Mount problem\n");
+			printf("Krad EBML Source: Mount problem\n");
 			close(server->sd);
 			exit(1);
 		}
@@ -433,12 +433,12 @@ int server_connect(server_t *server) {
 	// connect() to server. 
 	if((server->sent = connect(server->sd, (struct sockaddr *)&server->serveraddr, sizeof(server->serveraddr))) < 0)
 	{
-		printf("Krad MKV Source: Connect Error\n");
+		printf("Krad EBML Source: Connect Error\n");
 		exit(1);
 	} else {
 	
 		server->connected = 1;
-		printf("Krad MKV Source: Connected.\n");
+		printf("Krad EBML Source: Connected.\n");
 	}
 	
 	return server->sd;
@@ -453,7 +453,7 @@ void server_send(server_t *server, char *buffer, int length) {
 
 	int sended;
 
-	printf("sending %d bytes\n", length);
+	//printf("sending %d bytes\n", length);
 
 	while (server->sent != length) {
 
@@ -462,7 +462,7 @@ void server_send(server_t *server, char *buffer, int length) {
 										length - server->sent, 0);
 
 		if (sended <= 0) {
-			fprintf(stderr, "Krad MKV Source: send Got Disconnected from server\n");
+			fprintf(stderr, "Krad EBML Source: send Got Disconnected from server\n");
 				
 			exit(1);
 		}
@@ -611,7 +611,7 @@ int kradebml_stream_read(void *buffer, size_t length, void *userdata)
 										length - bytes, 0);
 
 		if (bytes <= 0) {
-			fprintf(stderr, "Krad MKV Source: recv Got Disconnected from server\n");
+			fprintf(stderr, "Krad EBML Source: recv Got Disconnected from server\n");
 				exit(1);
 			
 		} else {
@@ -785,7 +785,7 @@ int kradebml_open_output_stream(kradebml_t *kradebml, char *host, int port, char
 	
 	server_send(kradebml->server, kradebml->server->headers, strlen(kradebml->server->headers));
 
-	printf("Krad MKV Source: Sent Headers: \n%s\n", kradebml->server->headers);
+	//printf("Krad EBML Source: Sent Headers: \n%s\n", kradebml->server->headers);
 	
 	//usleep(1000000);
 

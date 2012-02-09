@@ -1,7 +1,7 @@
 #include "krad_vpx.h"
 
 
-krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
+krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate) {
 
 	krad_vpx_encoder_t *kradvpx;
 	
@@ -18,7 +18,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 	kradvpx->quality = 24 * 1000;
 	
 	
-	printf("\n\n encoding quality set to %ld\n\n", kradvpx->quality);
+	//printf("\n\n encoding quality set to %ld\n\n", kradvpx->quality);
 	
 
 	kradvpx->frame_byte_size = kradvpx->height * kradvpx->width * 4;
@@ -33,10 +33,10 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height) {
 		exit(1);
     }
 
-	kradvpx->cfg.rc_target_bitrate = 250 * 4;
+	kradvpx->cfg.rc_target_bitrate = bitrate;
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
-	kradvpx->cfg.g_threads = 8;
+	kradvpx->cfg.g_threads = 5;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.kf_max_dist = 45;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;

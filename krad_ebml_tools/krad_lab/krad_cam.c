@@ -30,6 +30,13 @@ struct krad_cam_St {
 	char device[512];
 	char output[512];
 	
+	char host[512];
+	int port;
+	char mount[512];
+	char password[512];
+	
+	int bitrate;
+	
 	int capture_width;
 	int capture_height;
 	int capture_fps;
@@ -223,7 +230,7 @@ void *video_encoding_thread(void *arg) {
 
 	int first = 1;
 
-	krad_cam->krad_vpx_encoder = krad_vpx_encoder_create(krad_cam->encoding_width, krad_cam->encoding_height);
+	krad_cam->krad_vpx_encoder = krad_vpx_encoder_create(krad_cam->encoding_width, krad_cam->encoding_height, krad_cam->bitrate);
 
 
 	krad_cam->krad_vpx_encoder->quality = 1000 * ((krad_cam->encoding_fps / 4) * 3);
@@ -463,8 +470,12 @@ void *ebml_output_thread(void *arg) {
 
 	krad_cam->krad_ebml = kradebml_create();
 	
-	//kradebml_open_output_stream(krad_cam->krad_ebml, "ec2-23-20-46-146.compute-1.amazonaws.com", 8000, "/teststream.webm", "firefox");
-	kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
+	if (krad_cam->host[0] != '\0') {
+		kradebml_open_output_stream(krad_cam->krad_ebml, krad_cam->host, krad_cam->port, krad_cam->mount, krad_cam->password);
+	} else {
+		kradebml_open_output_file(krad_cam->krad_ebml, krad_cam->output);
+	}
+
 	kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
 	
 	krad_cam->video_track = kradebml_add_video_track(krad_cam->krad_ebml, "V_VP8", krad_cam->encoding_fps,
@@ -597,9 +608,10 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 }
 
 
-krad_cam_t *krad_cam_create(char *device, char *output, krad_audio_api_t audio_api, int capture_width, int capture_height, int capture_fps, int composite_width, 
-							int composite_height, int composite_fps, int display_width, int display_height, int encoding_width, 
-							int encoding_height, int encoding_fps) {
+krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, char *mount, char *password, int bitrate, krad_audio_api_t audio_api, 
+							int capture_width, int capture_height, int capture_fps, int composite_width, int composite_height, 
+							int composite_fps, int display_width, int display_height, int encoding_width, int encoding_height, 
+							int encoding_fps) {
 
 	krad_cam_t *krad_cam;
 	
@@ -624,6 +636,13 @@ krad_cam_t *krad_cam_create(char *device, char *output, krad_audio_api_t audio_a
 	
 	strncpy(krad_cam->device, device, sizeof(krad_cam->device));
 	strncpy(krad_cam->output, output, sizeof(krad_cam->output)); 
+
+	krad_cam->bitrate = bitrate;
+
+	krad_cam->port = port;
+	strncpy(krad_cam->host, host, sizeof(krad_cam->host));
+	strncpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
+	strncpy(krad_cam->password, password, sizeof(krad_cam->password)); 
 
 	krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
 														 		   krad_cam->composite_width, krad_cam->composite_height);
@@ -697,12 +716,17 @@ int main (int argc, char *argv[]) {
 	char alsa_device[512];
 	krad_audio_api_t krad_audio_api;
 	char output[512];
+	char host[512];
+	int port;
+	char mount[512];
+	char password[512];	
 	int c;
 	float temp_peak;
 	float kick;
 	char bug[512];
 	int bug_x;
 	int bug_y;
+	int bitrate;
 	int render_meters;
 	SDL_Event event;
 
@@ -716,15 +740,23 @@ int main (int argc, char *argv[]) {
 	frames = 0;
 	bug_x = 30;
 	bug_y = 30;
+	bitrate = 1250;
 	
 	strncpy(device, DEFAULT_DEVICE, sizeof(device));
 	strncpy(alsa_device, DEFAULT_ALSA_DEVICE, sizeof(alsa_device));
 	krad_audio_api = ALSA;
 	
 	memset(bug, '\0', sizeof(bug));
+	
+	memset(host, '\0', sizeof(host));
+	memset(mount, '\0', sizeof(mount));
+	memset(password, '\0', sizeof(password));
+	
+	port = 0;
+	
 	sprintf(output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:")) != -1) {
+	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:m:v:l:n:g:")) != -1) {
 		switch (c) {
 			case 'd':
 				strncpy(device, optarg, sizeof(device));
@@ -752,6 +784,21 @@ int main (int argc, char *argv[]) {
 				break;
 			case 'y':
 				bug_y = atoi(optarg);
+				break;
+			case 'm':
+				strncpy(mount, optarg, sizeof(mount));
+				break;
+			case 'v':
+				strncpy(password, optarg, sizeof(password));
+				break;
+			case 'l':
+				strncpy(host, optarg, sizeof(password));
+				break;
+			case 'g':
+				bitrate = atoi(optarg);
+				break;
+			case 'n':
+				port = atoi(optarg);
 				break;
 			case 'o':
 				strncpy(output, optarg, sizeof(output));
@@ -781,8 +828,9 @@ int main (int argc, char *argv[]) {
 	display_width = capture_width;
 	display_height = capture_height;
 
-	krad_cam = krad_cam_create( device, output, krad_audio_api, capture_width, capture_height, capture_fps, composite_width, composite_height, 
-								composite_fps, display_width, display_height, encoding_width, encoding_height, encoding_fps );
+	krad_cam = krad_cam_create( device, output, host, port, mount, password, bitrate, krad_audio_api, capture_width, capture_height, capture_fps, 
+								composite_width, composite_height, composite_fps, display_width, display_height, encoding_width, 
+								encoding_height, encoding_fps );
 
 	while (1) {
 
@@ -998,8 +1046,12 @@ int main (int argc, char *argv[]) {
 					//printf("mouse!\n");
 					krad_cam->krad_gui->cursor_x = event.motion.x;
 					krad_cam->krad_gui->cursor_y = event.motion.y;
-					break;	
-			
+					break;
+					
+				case SDL_QUIT:
+					shutdown = 1;	 			
+					break;
+
 				default:
 					break;
 			}
