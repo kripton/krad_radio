@@ -859,6 +859,12 @@ int main (int argc, char *argv[]) {
 
 	while (!do_shutdown) {
 
+		if (!display) {
+			while (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) < krad_cam->composited_frame_byte_size) {
+				usleep(5000);
+			}
+		}
+
 		if (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) >= krad_cam->composited_frame_byte_size) {
 	
 			jack_ringbuffer_read(krad_cam->captured_frames_buffer, 
