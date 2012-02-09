@@ -20,6 +20,8 @@ gcc -g -Wall krad_cam.c \
 -I../krad_pulse \
 ../krad_jack/krad_jack.c \
 -I../krad_jack \
+../krad_ring/krad_ring.c \
+-I../krad_ring \
 ../krad_alsa/krad_alsa.c \
 -I../krad_alsa \
 ../../krad_ebml/krad_ebml.c \

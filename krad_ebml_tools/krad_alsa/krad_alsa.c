@@ -144,7 +144,7 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 
 	if (kradalsa->capture) {
 
-		if ((jack_ringbuffer_write_space (kradalsa->kradaudio->input_ringbuffer[1]) >= kradalsa->period_size * 4 ) && (jack_ringbuffer_write_space (kradalsa->kradaudio->input_ringbuffer[0]) >= kradalsa->period_size * 4 )) {
+		if ((krad_ringbuffer_write_space (kradalsa->kradaudio->input_ringbuffer[1]) >= kradalsa->period_size * 4 ) && (krad_ringbuffer_write_space (kradalsa->kradaudio->input_ringbuffer[0]) >= kradalsa->period_size * 4 )) {
 	
 	
 			//trying to read one entire period
@@ -171,7 +171,7 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 			}
 			
 			for (c = 0; c < 2; c++) {
-				jack_ringbuffer_write (kradalsa->kradaudio->input_ringbuffer[c], (char *)kradalsa->samples[c], (kradalsa->period_size * 4) );
+				krad_ringbuffer_write (kradalsa->kradaudio->input_ringbuffer[c], (char *)kradalsa->samples[c], (kradalsa->period_size * 4) );
 			}
 		
 
@@ -191,10 +191,10 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 
 	if (kradalsa->playback) {
 
-		if ((jack_ringbuffer_read_space (kradalsa->kradaudio->output_ringbuffer[1]) >= kradalsa->period_size * 4 ) && (jack_ringbuffer_read_space (kradalsa->kradaudio->output_ringbuffer[0]) >= kradalsa->period_size * 4 )) {
+		if ((krad_ringbuffer_read_space (kradalsa->kradaudio->output_ringbuffer[1]) >= kradalsa->period_size * 4 ) && (krad_ringbuffer_read_space (kradalsa->kradaudio->output_ringbuffer[0]) >= kradalsa->period_size * 4 )) {
 	
 			for (c = 0; c < 2; c++) {
-				jack_ringbuffer_read (kradalsa->kradaudio->output_ringbuffer[c], (char *)kradalsa->samples[c], (kradalsa->period_size * 4) );
+				krad_ringbuffer_read (kradalsa->kradaudio->output_ringbuffer[c], (char *)kradalsa->samples[c], (kradalsa->period_size * 4) );
 			}
 
 			for (s = 0; s < kradalsa->period_size; s++) {
@@ -496,7 +496,7 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
 	kradalsa->sample_size = 4;
 	kradalsa->sample_rate = 44100;
 	kradalsa->n_channels = 2;
-	kradalsa->device_name = "hw:0,0"; 
+	kradalsa->device_name = kradaudio->name;
 	
 	kradalsa->access = 2;
 	kradalsa->buffer_size = 8192;
@@ -517,11 +517,14 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
 	}
 
 	if (kradalsa->capture) {
-	
-		kradalsa->stream = SND_PCM_STREAM_CAPTURE;
-		kradalsa->sample_format = SND_PCM_FORMAT_S16_LE;
-		kradalsa->sample_rate = 32000;
-		kradalsa->device_name = "hw:1,0";
+		kradalsa->device_name = kradaudio->name;
+		
+		if (strncmp(kradalsa->device_name, "hw:1,0", 6) == 0) {
+			// likely a webcam
+			kradalsa->stream = SND_PCM_STREAM_CAPTURE;
+			kradalsa->sample_format = SND_PCM_FORMAT_S16_LE;
+			kradalsa->sample_rate = 32000;
+		}
 	}
 	
 	/************************************** opens the device *****************************************/

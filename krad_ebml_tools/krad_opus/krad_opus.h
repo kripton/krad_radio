@@ -1,17 +1,3 @@
-#include "opus_header.h"
-
-#include <speex/speex_resampler.h>
-#include <opus.h>
-#include <opus_multistream.h>
-#include <ogg/ogg.h>
-
-#define OPUS_MAX_FRAME_SIZE (960*6)
-#define OPUS_MAX_FRAME_BYTES 61295
-
-
-#include <jack/jack.h>
-#include <jack/ringbuffer.h>
-
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,6 +5,17 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <time.h>
+
+#include <speex/speex_resampler.h>
+#include <opus.h>
+#include <opus_multistream.h>
+#include <ogg/ogg.h>
+
+#include "opus_header.h"
+#include "krad_ring.h"
+
+#define OPUS_MAX_FRAME_SIZE (960*6)
+#define OPUS_MAX_FRAME_BYTES 61295
 
 #define RINGBUFFER_SIZE 3000000
 #define DEFAULT_CHANNEL_COUNT 2
@@ -41,9 +38,9 @@ struct kradopus_St {
 	float *read_samples[MAX_CHANNELS];
 	float *interleaved_samples;
 	float interleaved_resampled_samples[960 * 2];
-	jack_ringbuffer_t *resampled_ringbuf[MAX_CHANNELS];
+	krad_ringbuffer_t *resampled_ringbuf[MAX_CHANNELS];
 
-	jack_ringbuffer_t *ringbuf[MAX_CHANNELS];
+	krad_ringbuffer_t *ringbuf[MAX_CHANNELS];
 	int ret;
 	int bitrate;
 	int channels;

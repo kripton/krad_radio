@@ -83,11 +83,11 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 			break;
 	}
 	
-	jack_ringbuffer_free ( kradaudio->input_ringbuffer[0] );
-	jack_ringbuffer_free ( kradaudio->input_ringbuffer[1] );
+	krad_ringbuffer_free ( kradaudio->input_ringbuffer[0] );
+	krad_ringbuffer_free ( kradaudio->input_ringbuffer[1] );
 
-	jack_ringbuffer_free ( kradaudio->output_ringbuffer[0] );
-	jack_ringbuffer_free ( kradaudio->output_ringbuffer[1] );
+	krad_ringbuffer_free ( kradaudio->output_ringbuffer[0] );
+	krad_ringbuffer_free ( kradaudio->output_ringbuffer[1] );
 	
 	free(kradaudio);
 
@@ -103,11 +103,11 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 		exit (1);
 	}
 	
-	kradaudio->output_ringbuffer[0] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-	kradaudio->output_ringbuffer[1] = jack_ringbuffer_create (RINGBUFFER_SIZE);
+	kradaudio->output_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	kradaudio->output_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 
-	kradaudio->input_ringbuffer[0] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-	kradaudio->input_ringbuffer[1] = jack_ringbuffer_create (RINGBUFFER_SIZE);
+	kradaudio->input_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	kradaudio->input_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 
 	strncpy(kradaudio->name, name, 128);
 	kradaudio->name[127] = '\0';
@@ -143,7 +143,7 @@ void kradaudio_set_process_callback(krad_audio_t *kradaudio, void kradaudio_proc
 
 void kradaudio_write(krad_audio_t *kradaudio, int channel, char *data, int len) {
 
-	jack_ringbuffer_write (kradaudio->output_ringbuffer[channel], data, len );
+	krad_ringbuffer_write (kradaudio->output_ringbuffer[channel], data, len );
 
 }
 
@@ -151,18 +151,18 @@ void kradaudio_write(krad_audio_t *kradaudio, int channel, char *data, int len) 
 
 void kradaudio_read(krad_audio_t *kradaudio, int channel, char *data, int len) {
 
-	jack_ringbuffer_read (kradaudio->input_ringbuffer[channel], data, len );
+	krad_ringbuffer_read (kradaudio->input_ringbuffer[channel], data, len );
 
 }
 
 size_t kradaudio_buffered_input_frames(krad_audio_t *kradaudio) {
 
-	return (jack_ringbuffer_read_space(kradaudio->input_ringbuffer[1]) / 4);
+	return (krad_ringbuffer_read_space(kradaudio->input_ringbuffer[1]) / 4);
 
 }
 
 size_t kradaudio_buffered_frames(krad_audio_t *kradaudio) {
 
-	return (jack_ringbuffer_read_space(kradaudio->output_ringbuffer[1]) / 4);
+	return (krad_ringbuffer_read_space(kradaudio->output_ringbuffer[1]) / 4);
 
 }

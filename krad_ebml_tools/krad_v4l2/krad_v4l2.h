@@ -20,6 +20,8 @@
 
 #include <turbojpeg.h>
 
+#define DEFAULT_V4L2_DEVICE "/dev/video0"
+
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 typedef struct krad_v4l2_ret_buffer_St krad_v4l2_ret_buffer_t;

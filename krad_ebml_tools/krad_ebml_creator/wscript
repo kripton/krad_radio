@@ -20,6 +20,7 @@ depsources = """
 ../krad_flac/krad_flac.c
 ../krad_opus/krad_opus.c
 ../krad_opus/opus_header.c
+../krad_ring/krad_ring.c
 """.split()
 
 includedirs = """
@@ -33,6 +34,7 @@ includedirs = """
 ../krad_vorbis/
 ../krad_opus/
 ../krad_flac/
+../krad_ring/
 ../../krad_ebml/
 """.split()
 

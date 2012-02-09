@@ -1,6 +1,9 @@
 #ifndef KRAD_ALSA_H
 #define KRAD_ALSA_H
 
+#define DEFAULT_ALSA_CAPTURE_DEVICE "hw:1,0"
+#define DEFAULT_ALSA_PLAYBACK_DEVICE "hw:0,0"
+
 #include <krad_audio.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -15,6 +18,8 @@
 #include <limits.h>
 #include <endian.h>
 #define f_round(f) lrintf(f)
+
+
 
 //general configuration parameters of the device
 struct device_parameters {

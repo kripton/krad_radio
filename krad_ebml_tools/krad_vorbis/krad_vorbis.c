@@ -93,17 +93,17 @@ krad_vorbis_t *krad_vorbis_encoder_create(int channels, int sample_rate, float q
 }
 
 
-ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, jack_ringbuffer_t *ring0, jack_ringbuffer_t *ring1) {
+ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, krad_ringbuffer_t *ring0, krad_ringbuffer_t *ring1) {
 
 
 	if (vorbis->in_blockout == 0) {
 
-		if ((jack_ringbuffer_read_space(ring0) >= frames * 4) && (jack_ringbuffer_read_space(ring1) >= frames * 4)) {
+		if ((krad_ringbuffer_read_space(ring0) >= frames * 4) && (krad_ringbuffer_read_space(ring1) >= frames * 4)) {
 
 			vorbis->buffer = vorbis_analysis_buffer(&vorbis->vdsp, frames);
 			
-			jack_ringbuffer_read(ring0, (char *)&vorbis->buffer[0][0], frames * 4);
-			jack_ringbuffer_read(ring1, (char *)&vorbis->buffer[1][0], frames * 4);
+			krad_ringbuffer_read(ring0, (char *)&vorbis->buffer[0][0], frames * 4);
+			krad_ringbuffer_read(ring1, (char *)&vorbis->buffer[1][0], frames * 4);
 	
 			vorbis->ret = vorbis_analysis_wrote(&vorbis->vdsp, frames);
 
@@ -144,7 +144,7 @@ void krad_vorbis_decoder_destroy(krad_vorbis_t *vorbis) {
 	int c;
 
 	for (c = 0; c < vorbis->vinfo.channels; c++) {
-		jack_ringbuffer_free (vorbis->ringbuf[c]);
+		krad_ringbuffer_free (vorbis->ringbuf[c]);
 	}
 
 	vorbis_info_clear(&vorbis->vinfo);
@@ -200,7 +200,7 @@ krad_vorbis_t *krad_vorbis_decoder_create(unsigned char *header1, int header1len
 
 
 	for (c = 0; c < vorbis->vinfo.channels; c++) {
-		vorbis->ringbuf[c] = jack_ringbuffer_create (RINGBUFFER_SIZE);
+		vorbis->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 	}
 
 	return vorbis;
@@ -209,7 +209,7 @@ krad_vorbis_t *krad_vorbis_decoder_create(unsigned char *header1, int header1len
 
 int krad_vorbis_decoder_read_audio(krad_vorbis_t *vorbis, int channel, char *buffer, int buffer_length) {
 
-	return jack_ringbuffer_read (vorbis->ringbuf[channel], (char *)buffer, buffer_length );
+	return krad_ringbuffer_read (vorbis->ringbuf[channel], (char *)buffer, buffer_length );
 	
 }
 
@@ -228,8 +228,8 @@ void krad_vorbis_decoder_decode(krad_vorbis_t *vorbis, unsigned char *buffer, in
 	
 	//printf("got %d samples\n", x);
 	
-	jack_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], x * 4 );
-	jack_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], x * 4 );
+	krad_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], x * 4 );
+	krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], x * 4 );
 	
 	vorbis_synthesis_read(&vorbis->vdsp, x);
 

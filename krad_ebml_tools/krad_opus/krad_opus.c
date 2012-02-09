@@ -5,9 +5,9 @@ void kradopus_decoder_destroy(krad_opus_t *kradopus) {
 	int c;
 	
 	for (c = 0; c < kradopus->channels; c++) {
-		jack_ringbuffer_free ( kradopus->ringbuf[c] );
+		krad_ringbuffer_free ( kradopus->ringbuf[c] );
 		printf("Ringbuffer unlocked and freed (opus)\n");
-		jack_ringbuffer_free ( kradopus->resampled_ringbuf[c] );
+		krad_ringbuffer_free ( kradopus->resampled_ringbuf[c] );
 		printf("Ringbuffer unlocked and freed (opus resampler)\n");
 		free(kradopus->resampled_samples[c]);
 		free(kradopus->samples[c]);
@@ -28,9 +28,9 @@ void kradopus_encoder_destroy(krad_opus_t *kradopus) {
 	int c;
 	
 	for (c = 0; c < kradopus->channels; c++) {
-		jack_ringbuffer_free ( kradopus->ringbuf[c] );
+		krad_ringbuffer_free ( kradopus->ringbuf[c] );
 		printf("Ringbuffer unlocked and freed (opus)\n");
-		jack_ringbuffer_free ( kradopus->resampled_ringbuf[c] );
+		krad_ringbuffer_free ( kradopus->resampled_ringbuf[c] );
 		printf("Ringbuffer unlocked and freed (opus resampler)\n");
 		free(kradopus->resampled_samples[c]);
 		free(kradopus->samples[c]);
@@ -73,19 +73,19 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	opus->interleaved_samples = malloc(8192 * 2);
 	
 	for (c = 0; c < opus->opus_header->channels; c++) {
-		opus->ringbuf[c] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (jack_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
+		opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
 		//	printf("Kradcast ringbuffer mlock failure\n");
 		//	kradcast_fail();
 		//}
-		printf("Ringbuffer created with %5zu bytes (opus decoder)\n", jack_ringbuffer_write_space(opus->ringbuf[c]));
+		printf("Ringbuffer created with %5zu bytes (opus decoder)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
 		
-		opus->resampled_ringbuf[c] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (jack_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
+		opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
 		//	printf("Kradcast ringbuffer mlock failure\n");
 		//	kradcast_fail();
 		//}
-		printf("Ringbuffer created with %5zu bytes (opus decoder resampler)\n", jack_ringbuffer_write_space(opus->resampled_ringbuf[c]));
+		printf("Ringbuffer created with %5zu bytes (opus decoder resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
 
 		opus->samples[c] = malloc(4 * 8192);
 		printf("opus decoder malloced %d bytes\n", 8192);
@@ -131,19 +131,19 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	int c;
 	
 	for (c = 0; c < opus->channels; c++) {
-		opus->ringbuf[c] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (jack_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
+		opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
 		//	printf("Kradcast ringbuffer mlock failure\n");
 		//	kradcast_fail();
 		//}
-		printf("Ringbuffer created with %5zu bytes (opus)\n", jack_ringbuffer_write_space(opus->ringbuf[c]));
+		printf("Ringbuffer created with %5zu bytes (opus)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
 		
-		opus->resampled_ringbuf[c] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (jack_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
+		opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
 		//	printf("Kradcast ringbuffer mlock failure\n");
 		//	kradcast_fail();
 		//}
-		printf("Ringbuffer created with %5zu bytes (opus resampler)\n", jack_ringbuffer_write_space(opus->resampled_ringbuf[c]));
+		printf("Ringbuffer created with %5zu bytes (opus resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
 
 		opus->samples[c] = malloc(8192);
 		printf("opus decoder malloced %d bytes\n", 8192);
@@ -217,30 +217,30 @@ int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int bu
 	int resample_process_size = 512;
 
 
-	kradopus->ret = jack_ringbuffer_peek (kradopus->resampled_ringbuf[channel - 1], (char *)buffer, buffer_length );
+	kradopus->ret = krad_ringbuffer_peek (kradopus->resampled_ringbuf[channel - 1], (char *)buffer, buffer_length );
 
 	if (kradopus->ret >= buffer_length) {
-		jack_ringbuffer_read_advance (kradopus->resampled_ringbuf[channel - 1], buffer_length );
+		krad_ringbuffer_read_advance (kradopus->resampled_ringbuf[channel - 1], buffer_length );
 		return kradopus->ret;
 	} else {
 
-		while (jack_ringbuffer_read_space (kradopus->resampled_ringbuf[channel - 1]) < buffer_length) {
+		while (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[channel - 1]) < buffer_length) {
 
-			if (jack_ringbuffer_read_space (kradopus->ringbuf[channel - 1]) >= resample_process_size * 4 ) {
+			if (krad_ringbuffer_read_space (kradopus->ringbuf[channel - 1]) >= resample_process_size * 4 ) {
 
-				kradopus->ret = jack_ringbuffer_peek (kradopus->ringbuf[channel - 1], (char *)kradopus->read_samples[channel - 1], (resample_process_size * 4) );
+				kradopus->ret = krad_ringbuffer_peek (kradopus->ringbuf[channel - 1], (char *)kradopus->read_samples[channel - 1], (resample_process_size * 4) );
 
 				spx_uint32_t in_length = resample_process_size;
 				spx_uint32_t out_length = in_length * 2;
 
 				kradopus->err = speex_resampler_process_float(kradopus->resampler, channel - 1, kradopus->read_samples[channel - 1], &in_length, kradopus->resampled_samples[channel - 1], &out_length);
 
-				jack_ringbuffer_read_advance (kradopus->ringbuf[channel - 1], (in_length * 4) );
+				krad_ringbuffer_read_advance (kradopus->ringbuf[channel - 1], (in_length * 4) );
 
-				kradopus->ret = jack_ringbuffer_write (kradopus->resampled_ringbuf[channel - 1], (char *)kradopus->resampled_samples[channel - 1], (out_length * 4) );
+				kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[channel - 1], (char *)kradopus->resampled_samples[channel - 1], (out_length * 4) );
 
-				if (jack_ringbuffer_read_space (kradopus->resampled_ringbuf[channel - 1]) >= buffer_length ) {
-					return jack_ringbuffer_read (kradopus->resampled_ringbuf[channel - 1], buffer, buffer_length );
+				if (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[channel - 1]) >= buffer_length ) {
+					return krad_ringbuffer_read (kradopus->resampled_ringbuf[channel - 1], buffer, buffer_length );
 				}
 
 			} else {
@@ -258,7 +258,7 @@ int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int bu
 
 int kradopus_write_audio(krad_opus_t *kradopus, int channel, char *buffer, int buffer_length) {
 
-	return jack_ringbuffer_write (kradopus->ringbuf[channel - 1], buffer, buffer_length );
+	return krad_ringbuffer_write (kradopus->ringbuf[channel - 1], buffer, buffer_length );
 	
 }
 
@@ -279,8 +279,8 @@ int kradopus_write_opus(krad_opus_t *kradopus, unsigned char *buffer, int length
 	}
 
 
-	jack_ringbuffer_write (kradopus->ringbuf[0], (char *)kradopus->samples[0], (960 * 4) );
-	jack_ringbuffer_write (kradopus->ringbuf[1], (char *)kradopus->samples[1], (960 * 4) );
+	krad_ringbuffer_write (kradopus->ringbuf[0], (char *)kradopus->samples[0], (960 * 4) );
+	krad_ringbuffer_write (kradopus->ringbuf[1], (char *)kradopus->samples[1], (960 * 4) );
 
 
 	return 0;
@@ -293,10 +293,10 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 	
 	int i, j, c;
 
-	while (jack_ringbuffer_read_space (kradopus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= 960 * 4 ) {
+	while (krad_ringbuffer_read_space (kradopus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= 960 * 4 ) {
 		for (c = 0; c < kradopus->channels; c++) {
 
-			kradopus->ret = jack_ringbuffer_peek (kradopus->ringbuf[c], (char *)kradopus->samples[c], (960 * 4) );
+			kradopus->ret = krad_ringbuffer_peek (kradopus->ringbuf[c], (char *)kradopus->samples[c], (960 * 4) );
 
 			spx_uint32_t in_length = 960;
 			spx_uint32_t out_length = in_length * 2;
@@ -306,20 +306,20 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 			//printf("%d resampler error was: %d\n", c, kradopus->err);
 			//printf("%d speex resampler: in len: %d out len: %d\n", c, in_length, out_length);
 
-			jack_ringbuffer_read_advance (kradopus->ringbuf[c], (in_length * 4) );
+			krad_ringbuffer_read_advance (kradopus->ringbuf[c], (in_length * 4) );
 
 
-			kradopus->ret = jack_ringbuffer_write (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (out_length * 4) );
+			kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (out_length * 4) );
 
 		}	
 
 	}
 	
 
-	if ((jack_ringbuffer_read_space (kradopus->resampled_ringbuf[1]) >= 960 * 4 ) && (jack_ringbuffer_read_space (kradopus->resampled_ringbuf[0]) >= 960 * 4 )) {
+	if ((krad_ringbuffer_read_space (kradopus->resampled_ringbuf[1]) >= 960 * 4 ) && (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[0]) >= 960 * 4 )) {
 
 		for (c = 0; c < kradopus->channels; c++) {
-			kradopus->ret = jack_ringbuffer_read (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (960 * 4) );
+			kradopus->ret = krad_ringbuffer_read (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (960 * 4) );
 		}
 
 		for (i = 0; i < 960; i++) {

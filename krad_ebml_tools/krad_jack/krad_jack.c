@@ -53,10 +53,10 @@ int kradjack_process(jack_nframes_t nframes, void *arg) {
 		samples[0] = jack_port_get_buffer (kradjack->input_ports[0], nframes);
 		samples[1] = jack_port_get_buffer (kradjack->input_ports[1], nframes);
 	
-		if ((jack_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[0]) > (nframes * 4)) && (jack_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[1]) > (nframes * 4))) {
+		if ((krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[1]) > (nframes * 4))) {
 
-			jack_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[0], (char *)samples[0], nframes * 4);
-			jack_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[1], (char *)samples[1], nframes * 4);
+			krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[0], (char *)samples[0], nframes * 4);
+			krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[1], (char *)samples[1], nframes * 4);
 
 			for (c = 0; c < 2; c++) {
 				compute_peak(kradjack->kradaudio, KINPUT, samples[c], c, nframes, 0);
@@ -71,10 +71,10 @@ int kradjack_process(jack_nframes_t nframes, void *arg) {
 		samples[0] = jack_port_get_buffer (kradjack->output_ports[0], nframes);
 		samples[1] = jack_port_get_buffer (kradjack->output_ports[1], nframes);
 	
-		if ((jack_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[0]) > (nframes * 4)) && (jack_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[1]) > (nframes * 4))) {
+		if ((krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[1]) > (nframes * 4))) {
 
-			jack_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
-			jack_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
+			krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
+			krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
 
 			for (c = 0; c < 2; c++) {
 				compute_peak(kradjack->kradaudio, KOUTPUT, samples[c], c, nframes, 0);

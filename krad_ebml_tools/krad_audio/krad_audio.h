@@ -4,10 +4,7 @@
 #include <krad_alsa.h>
 #include <krad_jack.h>
 #include <krad_pulse.h>
-
-
-#include <jack/jack.h>
-#include <jack/ringbuffer.h>
+#include <krad_ring.h>
 
 #include <stddef.h>
 
@@ -37,8 +34,8 @@ struct krad_audio_St {
 	
 	int sample_rate;
 
-	jack_ringbuffer_t *input_ringbuffer[2];
-	jack_ringbuffer_t *output_ringbuffer[2];
+	krad_ringbuffer_t *input_ringbuffer[2];
+	krad_ringbuffer_t *output_ringbuffer[2];
 
 	float input_peak[8];
 	float output_peak[8];

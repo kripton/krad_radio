@@ -194,7 +194,7 @@ void krad_ebml_player_play_file_blocking(krad_ebml_player_t *krad_ebml_player, c
 		
 		kradopus_write_opus(krad_ebml_player->opus, krad_ebml_player->buffer, krad_ebml_player->len);
 
-		while (jack_ringbuffer_read_space (krad_ebml_player->opus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= (RINGBUFFER_SIZE - 960 * 4 * 10)) {
+		while (krad_ringbuffer_read_space (krad_ebml_player->opus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= (RINGBUFFER_SIZE - 960 * 4 * 10)) {
 			usleep(50000);
 		}
 

@@ -1,13 +1,22 @@
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <time.h>
+
 #include <vorbis/vorbisenc.h>
-#include <krad_audio.h>
+#include <krad_ring.h>
 
 #define MAX_CHANNELS 8
+#define RINGBUFFER_SIZE 3000000
 
 typedef struct krad_vorbis_St krad_vorbis_t;
 
 struct krad_vorbis_St {
 
-	jack_ringbuffer_t *ringbuf[MAX_CHANNELS];
+	krad_ringbuffer_t *ringbuf[MAX_CHANNELS];
 
 	ogg_sync_state oy;
 
@@ -36,7 +45,7 @@ struct krad_vorbis_St {
 
 };
 
-ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, jack_ringbuffer_t *ring0, jack_ringbuffer_t *ring1);
+ogg_packet *krad_vorbis_encode(krad_vorbis_t *vorbis, int frames, krad_ringbuffer_t *ring0, krad_ringbuffer_t *ring1);
 void krad_vorbis_encoder_destroy(krad_vorbis_t *vorbis);
 krad_vorbis_t *krad_vorbis_encoder_create(int channels, int sample_rate, float quality);
 

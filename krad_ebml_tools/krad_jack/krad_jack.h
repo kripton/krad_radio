@@ -5,7 +5,6 @@
 
 #include <krad_audio.h>
 #include <jack/jack.h>
-#include <jack/ringbuffer.h>
 
 #define RINGBUFFER_SIZE 3000000
 

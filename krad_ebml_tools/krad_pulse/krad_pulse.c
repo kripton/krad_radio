@@ -44,7 +44,7 @@ static void kradpulse_capture_cb(pa_stream *stream, size_t length, void *userdat
 	 
 	pa_stream_peek(stream, &samples, &length);
 	 
-	if ((jack_ringbuffer_write_space (kradpulse->kradaudio->input_ringbuffer[1]) >= length / 2 ) && (jack_ringbuffer_write_space (kradpulse->kradaudio->input_ringbuffer[0]) >= length / 2 )) {
+	if ((krad_ringbuffer_write_space (kradpulse->kradaudio->input_ringbuffer[1]) >= length / 2 ) && (krad_ringbuffer_write_space (kradpulse->kradaudio->input_ringbuffer[0]) >= length / 2 )) {
 
 
 		memcpy(kradpulse->capture_interleaved_samples, samples, length);
@@ -58,7 +58,7 @@ static void kradpulse_capture_cb(pa_stream *stream, size_t length, void *userdat
 		}
 
 		for (c = 0; c < 2; c++) {
-			jack_ringbuffer_write (kradpulse->kradaudio->input_ringbuffer[c], (char *)kradpulse->capture_samples[c], (length / 2) );
+			krad_ringbuffer_write (kradpulse->kradaudio->input_ringbuffer[c], (char *)kradpulse->capture_samples[c], (length / 2) );
 		}
 
 		
@@ -92,10 +92,10 @@ static void kradpulse_playback_cb(pa_stream *stream, size_t length, void *userda
 		kradpulse->kradaudio->process_callback(length / 4 / 2, kradpulse->kradaudio->userdata);
 	}
 	 
-	if ((jack_ringbuffer_read_space (kradpulse->kradaudio->output_ringbuffer[1]) >= length / 2 ) && (jack_ringbuffer_read_space (kradpulse->kradaudio->output_ringbuffer[0]) >= length / 2 )) {
+	if ((krad_ringbuffer_read_space (kradpulse->kradaudio->output_ringbuffer[1]) >= length / 2 ) && (krad_ringbuffer_read_space (kradpulse->kradaudio->output_ringbuffer[0]) >= length / 2 )) {
 	
 		for (c = 0; c < 2; c++) {
-			jack_ringbuffer_read (kradpulse->kradaudio->output_ringbuffer[c], (char *)kradpulse->samples[c], (length / 2) );
+			krad_ringbuffer_read (kradpulse->kradaudio->output_ringbuffer[c], (char *)kradpulse->samples[c], (length / 2) );
 		}
 
 		for (s = 0; s < length / 4 / 2; s++) {
@@ -236,7 +236,7 @@ krad_pulse_t *kradpulse_create(krad_audio_t *kradaudio) {
 		exit(1);
 	}
 
-	kradpulse->ss.rate = 48000;
+	kradpulse->ss.rate = 44100;
 	kradpulse->ss.channels = 2;
 	kradpulse->ss.format = PA_SAMPLE_FLOAT32LE;
 	

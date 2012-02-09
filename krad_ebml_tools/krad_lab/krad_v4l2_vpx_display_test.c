@@ -25,7 +25,7 @@ struct krad_v4l2_vpx_display_test_St {
 	kradebml_t *ebml;
 	float *samples[2];
 	
-	jack_ringbuffer_t *input_ringbuffer[2];
+	krad_ringbuffer_t *input_ringbuffer[2];
 	
 	pthread_rwlock_t ebml_write_lock;
 	
@@ -62,7 +62,7 @@ void *audio_encoding_thread(void *arg) {
 	
 	while (!(display_test->stop_audio_encoding)) {
 
-		while (jack_ringbuffer_read_space(display_test->input_ringbuffer[1]) > framecnt * 4) {	
+		while (krad_ringbuffer_read_space(display_test->input_ringbuffer[1]) > framecnt * 4) {	
 	
 	
 			if (display_test->audio_codec == 1) {
@@ -86,7 +86,7 @@ void *audio_encoding_thread(void *arg) {
 			
 			if (display_test->audio_codec == 2) {
 			
-					jack_ringbuffer_read(display_test->input_ringbuffer[1], (char *)audio, 4096 * 4);
+					krad_ringbuffer_read(display_test->input_ringbuffer[1], (char *)audio, 4096 * 4);
 			
 					bytes = krad_flac_encode(display_test->krad_flac, audio, 4096, buffer);
 
@@ -107,7 +107,7 @@ void *audio_encoding_thread(void *arg) {
 			
 		}
 	
-		while (jack_ringbuffer_read_space(display_test->input_ringbuffer[1]) < framecnt * 4) {
+		while (krad_ringbuffer_read_space(display_test->input_ringbuffer[1]) < framecnt * 4) {
 	
 			usleep(10000);
 	
@@ -132,8 +132,8 @@ void krad_v4l2_vpx_display_test_audio_callback(int frames, void *userdata) {
 	kradaudio_read (display_test->audio, 1, (char *)display_test->samples[1], frames * 4 );
 
 	if (display_test->start_audio == 1) {
-		jack_ringbuffer_write(display_test->input_ringbuffer[0], (char *)display_test->samples[0], frames * 4);
-		jack_ringbuffer_write(display_test->input_ringbuffer[1], (char *)display_test->samples[1], frames * 4);
+		krad_ringbuffer_write(display_test->input_ringbuffer[0], (char *)display_test->samples[0], frames * 4);
+		krad_ringbuffer_write(display_test->input_ringbuffer[1], (char *)display_test->samples[1], frames * 4);
 	}
 }
 
@@ -222,8 +222,8 @@ int main (int argc, char *argv[]) {
 	pthread_rwlock_init(&display_test->ebml_write_lock, NULL);
 	pthread_rwlock_rdlock(&display_test->ebml_write_lock);
 	//display_test->kradtimer = kradtimer_create();
-	display_test->input_ringbuffer[0] = jack_ringbuffer_create (RINGBUFFER_SIZE);
-	display_test->input_ringbuffer[1] = jack_ringbuffer_create (RINGBUFFER_SIZE);
+	display_test->input_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	display_test->input_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 	display_test->samples[0] = malloc(4 * 8192);
 	display_test->samples[1] = malloc(4 * 8192);
 	display_test->first_block = 1;
@@ -464,8 +464,8 @@ int main (int argc, char *argv[]) {
 	free(read_screen_buffer);
 	sws_freeContext (sws_context);
 	
-	jack_ringbuffer_free ( display_test->input_ringbuffer[0] );
-	jack_ringbuffer_free ( display_test->input_ringbuffer[1] );
+	krad_ringbuffer_free ( display_test->input_ringbuffer[0] );
+	krad_ringbuffer_free ( display_test->input_ringbuffer[1] );
 	pthread_rwlock_destroy(&display_test->ebml_write_lock);
 	//kradtimer_destroy(display_test->kradtimer);
 	free(display_test);
