@@ -13,6 +13,8 @@
 #define APPVERSION "Krad Cam 0.1"
 #define TEST_COUNT 300
 
+int do_shutdown;
+
 typedef struct krad_cam_St krad_cam_t;
 
 struct krad_cam_St {
@@ -582,7 +584,9 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 	pthread_join(krad_cam->audio_encoding_thread, NULL);
 	pthread_join(krad_cam->ebml_output_thread, NULL);
 	printf("1\n");
-	krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
+	if (krad_cam->display_width != 0) {
+		krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
+	}
 	printf("2\n");
 	kradgui_destroy(krad_cam->krad_gui);
 	printf("3\n");
@@ -644,10 +648,12 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 	strncpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
 	strncpy(krad_cam->password, password, sizeof(krad_cam->password)); 
 
-	krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
-														 		   krad_cam->composite_width, krad_cam->composite_height);
+	if (krad_cam->display_width != 0) {
 
-
+		krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
+															 		   krad_cam->composite_width, krad_cam->composite_height);
+	}
+	
 	krad_cam->composited_frame_byte_size = krad_cam->composite_width * krad_cam->composite_height * 4;
 	krad_cam->current_frame = calloc(1, krad_cam->composited_frame_byte_size);
 	krad_cam->current_encoding_frame = calloc(1, krad_cam->composited_frame_byte_size);
@@ -698,6 +704,12 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 
 }
 
+void krad_cam_shutdown() {
+
+	do_shutdown = 1;
+
+}
+
 
 int main (int argc, char *argv[]) {
 
@@ -707,7 +719,6 @@ int main (int argc, char *argv[]) {
 	int cam_started;
 	int read_composited;
 	int frames;
-	int shutdown;
 	int capture_width, capture_height, capture_fps;
 	int display_width, display_height;
 	int composite_width, composite_height, composite_fps;
@@ -728,12 +739,13 @@ int main (int argc, char *argv[]) {
 	int bug_y;
 	int bitrate;
 	int render_meters;
+	int display;
 	SDL_Event event;
 
 	render_meters = 1;
 	cam_started = 0;
 	read_composited = 0;	
-	shutdown = 0;
+	do_shutdown = 0;
 	capture_width = 640;
 	capture_height = 480;
 	capture_fps = 15;
@@ -742,21 +754,21 @@ int main (int argc, char *argv[]) {
 	bug_y = 30;
 	bitrate = 1250;
 	
+	display = 1;
+	
+	krad_audio_api = ALSA;	
 	strncpy(device, DEFAULT_DEVICE, sizeof(device));
 	strncpy(alsa_device, DEFAULT_ALSA_DEVICE, sizeof(alsa_device));
-	krad_audio_api = ALSA;
+	sprintf(output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 	
 	memset(bug, '\0', sizeof(bug));
-	
 	memset(host, '\0', sizeof(host));
 	memset(mount, '\0', sizeof(mount));
 	memset(password, '\0', sizeof(password));
-	
 	port = 0;
-	
-	sprintf(output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
 
-	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:m:v:l:n:g:")) != -1) {
+
+	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:m:v:l:n:g:z")) != -1) {
 		switch (c) {
 			case 'd':
 				strncpy(device, optarg, sizeof(device));
@@ -800,6 +812,9 @@ int main (int argc, char *argv[]) {
 			case 'n':
 				port = atoi(optarg);
 				break;
+			case 'z':
+				display = 0;
+				break;
 			case 'o':
 				strncpy(output, optarg, sizeof(output));
 				break;
@@ -814,8 +829,10 @@ int main (int argc, char *argv[]) {
 		}
 	}
 	
-	printf("Outputing to file: %s\n", output);
-	
+	if (host[0] != '\0') {
+		printf("Outputing to file: %s\n", output);
+	}
+		
 	composite_fps = capture_fps;
 	encoding_fps = capture_fps;
 
@@ -825,14 +842,22 @@ int main (int argc, char *argv[]) {
 	encoding_width = capture_width;
 	encoding_height = capture_height;
 
-	display_width = capture_width;
-	display_height = capture_height;
-
+	if (display) {
+		display_width = capture_width;
+		display_height = capture_height;
+	} else {
+		display_width = 0;
+		display_height = 0;
+	}
+	
+	signal(SIGINT, krad_cam_shutdown);
+	signal(SIGTERM, krad_cam_shutdown);
+	
 	krad_cam = krad_cam_create( device, output, host, port, mount, password, bitrate, krad_audio_api, capture_width, capture_height, capture_fps, 
 								composite_width, composite_height, composite_fps, display_width, display_height, encoding_width, 
 								encoding_height, encoding_fps );
 
-	while (1) {
+	while (!do_shutdown) {
 
 		if (jack_ringbuffer_read_space(krad_cam->captured_frames_buffer) >= krad_cam->composited_frame_byte_size) {
 	
@@ -855,80 +880,94 @@ int main (int argc, char *argv[]) {
 		
 		kradgui_render( krad_cam->krad_gui );
 
-		if (krad_cam->krad_audio != NULL) {
-			for (c = 0; c < 2; c++) {
-				temp_peak = read_peak(krad_cam->krad_audio, KINPUT, c);
-				if (temp_peak >= krad_cam->krad_gui->output_peak[c]) {
-					if (temp_peak > 2.7f) {
-						krad_cam->krad_gui->output_peak[c] = temp_peak;
-						kick = ((krad_cam->krad_gui->output_peak[c] - krad_cam->krad_gui->output_current[c]) / 300.0);
-					}
-				} else {
-					if (krad_cam->krad_gui->output_peak[c] == krad_cam->krad_gui->output_current[c]) {
-						krad_cam->krad_gui->output_peak[c] -= 0.9;
-						if (krad_cam->krad_gui->output_peak[c] < 0.0f) {
-							krad_cam->krad_gui->output_peak[c] = 0.0f;
+		if (new_capture_frame == 1) {
+			if (krad_cam->krad_audio != NULL) {
+				for (c = 0; c < 2; c++) {
+					temp_peak = read_peak(krad_cam->krad_audio, KINPUT, c);
+					if (temp_peak >= krad_cam->krad_gui->output_peak[c]) {
+						if (temp_peak > 2.7f) {
+							krad_cam->krad_gui->output_peak[c] = temp_peak;
+							kick = ((krad_cam->krad_gui->output_peak[c] - krad_cam->krad_gui->output_current[c]) / 300.0);
 						}
+					} else {
+						if (krad_cam->krad_gui->output_peak[c] == krad_cam->krad_gui->output_current[c]) {
+							krad_cam->krad_gui->output_peak[c] -= (0.9 * (60/capture_fps));
+							if (krad_cam->krad_gui->output_peak[c] < 0.0f) {
+								krad_cam->krad_gui->output_peak[c] = 0.0f;
+							}
+							krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
+						}
+					}
+				
+					if (krad_cam->krad_gui->output_peak[c] > krad_cam->krad_gui->output_current[c]) {
+						krad_cam->krad_gui->output_current[c] = (krad_cam->krad_gui->output_current[c] + 1.4) * (1.3 + kick); ;
+					}
+			
+					if (krad_cam->krad_gui->output_peak[c] < krad_cam->krad_gui->output_current[c]) {
 						krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
 					}
-				}
-				
-				if (krad_cam->krad_gui->output_peak[c] > krad_cam->krad_gui->output_current[c]) {
-					krad_cam->krad_gui->output_current[c] = (krad_cam->krad_gui->output_current[c] + 1.4) * (1.3 + kick); ;
-				}
-			
-				if (krad_cam->krad_gui->output_peak[c] < krad_cam->krad_gui->output_current[c]) {
-					krad_cam->krad_gui->output_current[c] = krad_cam->krad_gui->output_peak[c];
-				}
 				
 				
+				}
 			}
 		}
-
+		
 		if (render_meters) {
-			kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[0]);
-			kradgui_render_meter (krad_cam->krad_gui, krad_cam->display_width - 110, krad_cam->display_height - 30, 96, krad_cam->krad_gui->output_current[1]);
+			kradgui_render_meter (krad_cam->krad_gui, 110, krad_cam->composite_height - 30, 96, krad_cam->krad_gui->output_current[0]);
+			kradgui_render_meter (krad_cam->krad_gui, krad_cam->composite_width - 110, krad_cam->composite_height - 30, 96, krad_cam->krad_gui->output_current[1]);
 		}
 		
-		if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
+		if (display) {
+
+			if ((krad_cam->composite_width == krad_cam->display_width) && (krad_cam->composite_height == krad_cam->display_height)) {
 			
-			memcpy( krad_cam->krad_opengl_display->rgb_frame_data, krad_cam->krad_gui->data, krad_cam->krad_gui->bytes );
+				memcpy( krad_cam->krad_opengl_display->rgb_frame_data, krad_cam->krad_gui->data, krad_cam->krad_gui->bytes );
 		
-		} else {
+			} else {
 		
 	
-			int rgb_stride_arr[3] = {4*krad_cam->display_width, 0, 0};
+				int rgb_stride_arr[3] = {4*krad_cam->display_width, 0, 0};
 
-			const uint8_t *rgb_arr[4];
-			int rgb1_stride_arr[4];
+				const uint8_t *rgb_arr[4];
+				int rgb1_stride_arr[4];
 		
-			rgb_arr[0] = krad_cam->krad_gui->data;
+				rgb_arr[0] = krad_cam->krad_gui->data;
 
-			rgb1_stride_arr[0] = krad_cam->composite_width * 4;
-			rgb1_stride_arr[1] = 0;
-			rgb1_stride_arr[2] = 0;
-			rgb1_stride_arr[3] = 0;
+				rgb1_stride_arr[0] = krad_cam->composite_width * 4;
+				rgb1_stride_arr[1] = 0;
+				rgb1_stride_arr[2] = 0;
+				rgb1_stride_arr[3] = 0;
 
-			unsigned char *dst[4];
+				unsigned char *dst[4];
 
-			dst[0] = krad_cam->krad_opengl_display->rgb_frame_data;
+				dst[0] = krad_cam->krad_opengl_display->rgb_frame_data;
 
-			sws_scale(krad_cam->display_frame_converter, rgb_arr, rgb1_stride_arr, 0, krad_cam->display_height, dst, rgb_stride_arr);
+				sws_scale(krad_cam->display_frame_converter, rgb_arr, rgb1_stride_arr, 0, krad_cam->display_height, dst, rgb_stride_arr);
 	
 		
-		}
+			}
 		
-		krad_sdl_opengl_draw_screen( krad_cam->krad_opengl_display );
+			krad_sdl_opengl_draw_screen( krad_cam->krad_opengl_display );
 
-		if (read_composited) {
-			krad_sdl_opengl_read_screen( krad_cam->krad_opengl_display, krad_cam->krad_opengl_display->rgb_frame_data);
+			if (read_composited) {
+				krad_sdl_opengl_read_screen( krad_cam->krad_opengl_display, krad_cam->krad_opengl_display->rgb_frame_data);
+			}
+
 		}
 
 		if ((cam_started == 1) && (new_capture_frame == 1) && (jack_ringbuffer_write_space(krad_cam->composited_frames_buffer) >= krad_cam->composited_frame_byte_size)) {
 	
-			jack_ringbuffer_write(krad_cam->composited_frames_buffer, 
-								 (char *)krad_cam->krad_opengl_display->rgb_frame_data, 
-								 krad_cam->composited_frame_byte_size );
+			if (display) {
+	
+				jack_ringbuffer_write(krad_cam->composited_frames_buffer, 
+									 (char *)krad_cam->krad_opengl_display->rgb_frame_data, 
+									 krad_cam->composited_frame_byte_size );
+
+			} else {
+				jack_ringbuffer_write(krad_cam->composited_frames_buffer, 
+									  (char *)krad_cam->krad_gui->data, 
+									  krad_cam->composited_frame_byte_size );
+			}
 	
 		} else {
 		
@@ -940,124 +979,129 @@ int main (int argc, char *argv[]) {
 
 		frames++;
 
-		while ( SDL_PollEvent( &event ) ){
-			switch( event.type ){
-				/* Look for a keypress */
-				case SDL_KEYDOWN:
-					/* Check the SDLKey values and move change the coords */
-					switch( event.key.keysym.sym ){
-					    case SDLK_LEFT:
-					        break;
-					    case SDLK_RIGHT:
-					        break;
-					    case SDLK_UP:
-					        break;
-					    case SDLK_z:
-							kradgui_remove_bug (krad_cam->krad_gui);
-					        break;
-					    /*			        
-					    case SDLK_m:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
-					        break;
-					    case SDLK_x:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
-					        break;
-					    case SDLK_h:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 30, 30);
-					        break;
-					    case SDLK_w:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 30, 30);
-					        break;
-					    case SDLK_e:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz3.png", 30, 30);
-					        break;
-					    case SDLK_r:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz4.png", 30, 30);
-					        break;					        
-					    case SDLK_s:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz5.png", 30, 30);
-					        break;
-					    case SDLK_a:
-							kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
-					        break;
-					    */
-					    case SDLK_b:
-					    	if (bug[0] != '\0') {
-								kradgui_set_bug (krad_cam->krad_gui, bug, bug_x, bug_y);
-							}
-					        break;
-					    case SDLK_l:
-							if (krad_cam->krad_gui->live == 1) {
-								krad_cam->krad_gui->live = 0;
-							} else {
-								krad_cam->krad_gui->live = 1;
-							}
-					        break;
-					    case SDLK_0:
-							krad_cam->krad_gui->bug_alpha += 0.1f;
-							if (krad_cam->krad_gui->bug_alpha > 1.0f) {
-								krad_cam->krad_gui->bug_alpha = 1.0f;
-							}
-					        break;
-					    case SDLK_9:
-							krad_cam->krad_gui->bug_alpha -= 0.1f;
-							if (krad_cam->krad_gui->bug_alpha < 0.1f) {
-								krad_cam->krad_gui->bug_alpha = 0.1f;
-							}
-					        break;
-					    case SDLK_q:
-					    	shutdown = 1;
-					        break;
-					    case SDLK_f:
-							if (krad_cam->krad_gui->render_ftest == 1) {
-								krad_cam->krad_gui->render_ftest = 0;
-							} else {
-								krad_cam->krad_gui->render_ftest = 1;
-							}
-					        break;
-					    case SDLK_v:
-							if (render_meters == 1) {
-								render_meters = 0;
-							} else {
-								render_meters = 1;
-							}
-					        break;
-					    default:
-					        break;
-					}
-					break;
 
-				case SDL_KEYUP:
-					switch( event.key.keysym.sym ) {
-					    case SDLK_LEFT:
-					        break;
-					    case SDLK_RIGHT:
-					        break;
-					    case SDLK_UP:
-					        break;
-					    case SDLK_DOWN:
-					        break;
-					    default:
-					        break;
-					}
-					break;
+		if (display) {
 
-				case SDL_MOUSEMOTION:
-					//printf("mouse!\n");
-					krad_cam->krad_gui->cursor_x = event.motion.x;
-					krad_cam->krad_gui->cursor_y = event.motion.y;
-					break;
-					
-				case SDL_QUIT:
-					shutdown = 1;	 			
-					break;
+			while ( SDL_PollEvent( &event ) ){
+				switch( event.type ){
+					/* Look for a keypress */
+					case SDL_KEYDOWN:
+						/* Check the SDLKey values and move change the coords */
+						switch( event.key.keysym.sym ){
+							case SDLK_LEFT:
+								break;
+							case SDLK_RIGHT:
+								break;
+							case SDLK_UP:
+								break;
+							case SDLK_z:
+								kradgui_remove_bug (krad_cam->krad_gui);
+								break;
+							/*			        
+							case SDLK_m:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
+								break;
+							case SDLK_x:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
+								break;
+							case SDLK_h:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/html_5logo.png", 30, 30);
+								break;
+							case SDLK_w:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 30, 30);
+								break;
+							case SDLK_e:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz3.png", 30, 30);
+								break;
+							case SDLK_r:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz4.png", 30, 30);
+								break;					        
+							case SDLK_s:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz5.png", 30, 30);
+								break;
+							case SDLK_a:
+								kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
+								break;
+							*/
+							case SDLK_b:
+								if (bug[0] != '\0') {
+									kradgui_set_bug (krad_cam->krad_gui, bug, bug_x, bug_y);
+								}
+								break;
+							case SDLK_l:
+								if (krad_cam->krad_gui->live == 1) {
+									krad_cam->krad_gui->live = 0;
+								} else {
+									krad_cam->krad_gui->live = 1;
+								}
+								break;
+							case SDLK_0:
+								krad_cam->krad_gui->bug_alpha += 0.1f;
+								if (krad_cam->krad_gui->bug_alpha > 1.0f) {
+									krad_cam->krad_gui->bug_alpha = 1.0f;
+								}
+								break;
+							case SDLK_9:
+								krad_cam->krad_gui->bug_alpha -= 0.1f;
+								if (krad_cam->krad_gui->bug_alpha < 0.1f) {
+									krad_cam->krad_gui->bug_alpha = 0.1f;
+								}
+								break;
+							case SDLK_q:
+								do_shutdown = 1;
+								break;
+							case SDLK_f:
+								if (krad_cam->krad_gui->render_ftest == 1) {
+									krad_cam->krad_gui->render_ftest = 0;
+								} else {
+									krad_cam->krad_gui->render_ftest = 1;
+								}
+								break;
+							case SDLK_v:
+								if (render_meters == 1) {
+									render_meters = 0;
+								} else {
+									render_meters = 1;
+								}
+								break;
+							default:
+								break;
+						}
+						break;
 
-				default:
-					break;
+					case SDL_KEYUP:
+						switch( event.key.keysym.sym ) {
+							case SDLK_LEFT:
+								break;
+							case SDLK_RIGHT:
+								break;
+							case SDLK_UP:
+								break;
+							case SDLK_DOWN:
+								break;
+							default:
+								break;
+						}
+						break;
+
+					case SDL_MOUSEMOTION:
+						//printf("mouse!\n");
+						krad_cam->krad_gui->cursor_x = event.motion.x;
+						krad_cam->krad_gui->cursor_y = event.motion.y;
+						break;
+				
+					case SDL_QUIT:
+						do_shutdown = 1;	 			
+						break;
+
+					default:
+						break;
+				}
 			}
 		}
+		
 
-		if (shutdown == 1) {
+		if (do_shutdown == 1) {
 			break;
 		}
 		
