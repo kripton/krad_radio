@@ -14,6 +14,8 @@ typedef enum {
 	JACK,
 	PULSE,
 	ALSA,
+	TONE,
+	NOAUDIO,
 } krad_audio_api_t;
 
 typedef enum {
@@ -21,6 +23,13 @@ typedef enum {
 	KINPUT,
 	KDUPLEX,
 } krad_audio_direction_t;
+
+typedef enum {
+	NONE = 99,
+	VORBIS,
+	OPUS,
+	FLAC,
+} krad_audio_codec_t;
 
 typedef struct krad_audio_St krad_audio_t;
 

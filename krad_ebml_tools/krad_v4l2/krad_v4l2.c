@@ -172,7 +172,7 @@ void kradv4l2_read_frames (krad_v4l2_t *kradv4l2) {
 		    FD_SET (kradv4l2->fd, &fds);
 
 		    /* Timeout. */
-		    tv.tv_sec = 2;
+		    tv.tv_sec = 6;
 		    tv.tv_usec = 0;
 
 		    r = select (kradv4l2->fd + 1, &fds, NULL, NULL, &tv);
@@ -208,7 +208,7 @@ char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2) {
     FD_SET (kradv4l2->fd, &fds);
 
     /* Timeout. */
-    tv.tv_sec = 2;
+    tv.tv_sec = 6;
     tv.tv_usec = 0;
 
     r = select (kradv4l2->fd + 1, &fds, NULL, NULL, &tv);
@@ -241,7 +241,7 @@ char *kradv4l2_read_frame_wait (krad_v4l2_t *kradv4l2) {
     FD_SET (kradv4l2->fd, &fds);
 
     /* Timeout. */
-    tv.tv_sec = 2;
+    tv.tv_sec = 6;
     tv.tv_usec = 0;
 
     r = select (kradv4l2->fd + 1, &fds, NULL, NULL, &tv);
@@ -567,7 +567,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 	fmt.fmt.pix.height      = kradv4l2->height;
 	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 	
-	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+//	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
 	
 //	fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 

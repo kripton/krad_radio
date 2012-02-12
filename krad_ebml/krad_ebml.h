@@ -769,7 +769,9 @@ struct kradebml_St {
 	
 	char input_info[4096];
 	int input_info_pos;
-	
+
+	int audio_frames_since_cluster;
+
 };
 
 char *kradebml_version();

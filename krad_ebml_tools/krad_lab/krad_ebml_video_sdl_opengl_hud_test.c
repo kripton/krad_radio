@@ -7,6 +7,7 @@
 #include "krad_vorbis.h"
 #include "krad_opus.h"
 #include "krad_gui.h"
+#include "krad_audio.h"
 
 #define APPVERSION "Krad EBML VIDEO SDL OPENGL DISPLAY HUD TEST 0.1"
 
@@ -65,6 +66,7 @@ int main (int argc, char *argv[]) {
 	
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
+	krad_opus_t *krad_opus;
 	SDL_Event event;
 	
 	cairo_surface_t *cst;
@@ -86,6 +88,7 @@ int main (int argc, char *argv[]) {
 	int video_packets;
 	int shutdown;
 	int packet_time_ms;
+	int packet_time_offset;
 	int last_packet_time_ms;
 	int nosleep;
 	struct timespec packet_time;
@@ -144,7 +147,7 @@ int main (int argc, char *argv[]) {
 	krad_ebml = kradebml_create();
 	krad_flac = krad_flac_decoder_create();
 	kradebml_open_input_file(krad_ebml, argv[1]);
-	//kradebml_open_input_stream(krad_ebml_player->ebml, "192.168.1.2", 9080, "/teststream.krado");
+	//kradebml_open_input_stream(krad_ebml, "deimos.kradradio.com", 8080, "/teststream.krad");
 	
 	kradebml_debug(krad_ebml);
 
@@ -168,6 +171,12 @@ int main (int argc, char *argv[]) {
 		krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
 	}
 	
+	if (audio_codec == KRAD_OPUS) {
+		bytes = kradebml_read_audio_header(krad_ebml, 1, buffer);
+		printf("got opus header bytes of %d\n", bytes);
+		krad_opus = kradopus_decoder_create(buffer, bytes, 44100.0f);
+	}
+	
 	if (video_codec == KRAD_THEORA) {
 		printf("got theora header bytes of %d %d %d\n", krad_ebml->theora_header1_len, krad_ebml->theora_header2_len, krad_ebml->theora_header3_len);
 		krad_theora_decoder = krad_theora_decoder_create(krad_ebml->theora_header1, krad_ebml->theora_header1_len, krad_ebml->theora_header2, krad_ebml->theora_header2_len, krad_ebml->theora_header3, krad_ebml->theora_header3_len);
@@ -175,8 +184,8 @@ int main (int argc, char *argv[]) {
 		krad_theora_decoder = NULL;
 	}
 
-	krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
-	//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
+	krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_ebml->vparams.width, krad_ebml->vparams.height, krad_ebml->vparams.width, krad_ebml->vparams.height);
 	
 	krad_opengl_display->hud_width = hud_width;
 	krad_opengl_display->hud_height = hud_height;
@@ -206,17 +215,35 @@ int main (int argc, char *argv[]) {
 
 		packet_time_ms = (krad_ebml->pkt_tstamp / 1e9) * 1000;
 		
+		if (video_packets == 0) {
+		
+			nosleep = true;
+		
+			packet_time_offset = packet_time_ms;
+		
+			if (packet_time_offset > 0) {
+				packet_time_offset -= 1000;
+			}
+
+		}
+
+		if (video_packets == 100) {
+
+			nosleep = false;		
+		
+			if (packet_time_offset > 0) {
+				packet_time_offset += 1000;
+			}
+		}
+
+		
+		packet_time_ms -= packet_time_offset;
+		
 		packet_time.tv_sec = (packet_time_ms - (packet_time_ms % 1000)) / 1000;
 		packet_time.tv_nsec = (packet_time_ms % 1000) * 1000000;
 		
 		if (krad_ebml->pkt_track == krad_ebml->video_track) {
 
-			//if (packet_time_ms < last_packet_time_ms) {
-			//	nosleep = true;
-			//} else {
-				nosleep = false;
-			//	last_packet_time_ms = packet_time_ms;
-			//}
 
 			//printf("\npacket time ms %d :: %ld : %ld\n", packet_time_ms % 1000, packet_time.tv_sec, packet_time.tv_nsec);
 			kradgui_set_current_track_time_ms(kradgui, packet_time_ms);
@@ -352,7 +379,7 @@ int main (int argc, char *argv[]) {
 			audio_packets++;
 
 			nestegg_packet_data(krad_ebml->pkt, 0, &buffer, &krad_ebml->size);
-			//printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
+			printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
 
 			if (audio_codec == KRAD_VORBIS) {
 				krad_vorbis_decoder_decode(krad_vorbis, buffer, krad_ebml->size);
@@ -363,10 +390,30 @@ int main (int argc, char *argv[]) {
 				kradaudio_write (audio, 0, (char *)audio_data, audio_frames * 4 );
 				kradaudio_write (audio, 1, (char *)audio_data, audio_frames * 4 );
 			}
+			
+			if (audio_codec == KRAD_OPUS) {
+				kradopus_decoder_set_speed(krad_opus, 100);
+				kradopus_write_opus(krad_opus, buffer, krad_ebml->size);
+		
+				int c;
+
+				bytes = -1;			
+				while (bytes != 0) {
+					for (c = 0; c < 2; c++) {
+				
+						bytes = kradopus_read_audio(krad_opus, c + 1, (char *)audio_data, 960 * 4);
+						if (bytes) {
+							printf("\nAudio data! %zu samplers\n", bytes / 4);
+							kradaudio_write (audio, c, (char *)audio_data, bytes );
+						}
+					}
+				}
+			}
+			
 		}
 		
 		if (krad_ebml->pkt_track == krad_ebml->video_track) {
-			printf("Timecode: %f :: Video Packets %d Audio Packets: %d\r", krad_ebml->pkt_tstamp / 1e9, video_packets, audio_packets);
+			printf("Timecode: %f :: Video Packets %d Audio Packets: %d buf frames %zu\r", krad_ebml->pkt_tstamp / 1e9, video_packets, audio_packets, kradaudio_buffered_frames(audio));
 			fflush(stdout);
 		}
 		

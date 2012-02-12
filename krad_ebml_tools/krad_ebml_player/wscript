@@ -22,6 +22,7 @@ depsources = """
 ../krad_gui/krad_gui.c
 ../krad_gui/krad_gui_gtk.c
 ../krad_display/krad_sdl_opengl_display.c
+../krad_ring/krad_ring.c
 """.split()
 
 includedirs = """
@@ -35,6 +36,7 @@ includedirs = """
 ../krad_display/
 ../krad_gui/
 ../krad_opus/
+../krad_ring/
 ../../krad_ebml/
 """.split()
 

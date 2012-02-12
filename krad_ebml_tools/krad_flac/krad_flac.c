@@ -84,7 +84,7 @@ FLAC__StreamEncoderTellStatus krad_flac_encoder_tell_callback(const FLAC__Stream
 
 	*absolute_byte_offset = 666;
 
-	printf("got tell callback\n");
+	//printf("got tell callback\n");
 
 	return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
 
@@ -96,7 +96,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 
 	krad_flac_t *flac = (krad_flac_t *)client_data;
 	
-	printf("Flac write callback with %d bytes, %d samples, %d current frame \n", bytes, samples, current_frame);
+	//printf("Flac write callback with %d bytes, %d samples, %d current frame \n", bytes, samples, current_frame);
 	
 	//additional header metadata -- this code is above so we dont write streaminfo block twice..
 	if ((samples == 0) && (flac->have_min_header == 1) && (flac->total_frames == 0) && (flac->streaminfo_rewrite == 0)) {

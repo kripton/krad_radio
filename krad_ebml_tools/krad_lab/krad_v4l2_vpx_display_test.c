@@ -198,6 +198,7 @@ int main (int argc, char *argv[]) {
 	fps = 30;
 	count = 0;
 	int keyframe;
+	int bitrate;
 	void *frame = NULL;
 	void *vpx_packet;
 	int packet_size;
@@ -206,6 +207,8 @@ int main (int argc, char *argv[]) {
 	int audio_codec;
 	int framenum;
 	int bytes;
+	
+	bitrate = 1000;
 	
 	video_codec = 1;
 	audio_codec = 1;
@@ -265,7 +268,7 @@ int main (int argc, char *argv[]) {
 	krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, width, height, width, height);
 	//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, width, height);
 	
-	krad_vpx_encoder = krad_vpx_encoder_create(width, height);
+	krad_vpx_encoder = krad_vpx_encoder_create(width, height, bitrate);
 	krad_dirac = krad_dirac_encoder_create(width, height);
 	kradgui = kradgui_create(width, height);
 	kradgui_add_item(kradgui, REEL_TO_REEL);

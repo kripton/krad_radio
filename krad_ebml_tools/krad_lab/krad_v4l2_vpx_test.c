@@ -19,6 +19,9 @@ int main (int argc, char *argv[]) {
 	int fps;
 	int count;
 	int keyframe;
+	int bitrate;
+	
+	bitrate = 1000;
 	
 	width = 1280;
 	height = 720;
@@ -52,7 +55,7 @@ int main (int argc, char *argv[]) {
 	}
 	*/
 
-	krad_vpx_encoder = krad_vpx_encoder_create(width, height);
+	krad_vpx_encoder = krad_vpx_encoder_create(width, height, bitrate);
 
 	kradv4l2 = kradv4l2_create();
 

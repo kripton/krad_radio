@@ -2,6 +2,7 @@
 #include <krad_ebml.h>
 #include <krad_vpx.h>
 #include <krad_dirac.h>
+#include <krad_audio.h>
 #include <krad_flac.h>
 #include <krad_vorbis.h>
 #include <krad_opus.h>

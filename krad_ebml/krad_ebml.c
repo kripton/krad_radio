@@ -1204,13 +1204,18 @@ void kradebml_add_audio(kradebml_t *kradebml, int track_num, unsigned char *buff
 	} else {
 		timecode = 0;
 	}
-	kradebml->total_audio_frames += frames;
 	
+	kradebml->total_audio_frames += frames;
+	kradebml->audio_frames_since_cluster += frames;
 
-	//if (timecode == 0) {
-	//		kradebml_cluster(kradebml, timecode);
-	//}	
+	if ((timecode == 0) && (kradebml->total_tracks == 1)) {
+			kradebml_cluster(kradebml, timecode);
+	}
 
+	if ((kradebml->audio_frames_since_cluster >= kradebml->audio_sample_rate) && (kradebml->total_tracks == 1)) {
+			kradebml_cluster(kradebml, timecode);
+			kradebml->audio_frames_since_cluster = 0;
+	}
 	
 	//int64_t timecode = glob->total_video_frames * 1000 * (uint64_t)1 / (uint64_t)glob->video_frame_rate;
     //pts_ms = pkt->data.frame.pts * 1000 * (uint64_t)cfg->g_timebase.num / (uint64_t)cfg->g_timebase.den;
@@ -1278,7 +1283,7 @@ void kradebml_cluster(kradebml_t *kradebml, int timecode) {
 
         if(glob->cluster_open) {
         
-        	//printf("\n\ncluster end buffer size is %zu\n\n", glob->buffer_pos);
+			printf("\n\ncluster end buffer size is %zu\n\n", glob->buffer_pos);
         
             Ebml_EndSubElement(glob, &glob->startCluster);
             kradebml_write(kradebml);
@@ -1697,7 +1702,7 @@ enum ebml_type_enum {
 /* Track IDs */
 #define TRACK_ID_VP8            "V_VP8"
 #define TRACK_ID_VORBIS         "A_VORBIS"
-#define TRACK_ID_OPUS        	"A_KRAD_OPUS"
+#define TRACK_ID_OPUS        	"A_OPUS"
 #define TRACK_ID_FLAC         	"A_FLAC"
 #define TRACK_ID_DIRAC         	"V_DIRAC"
 #define TRACK_ID_THEORA         "V_THEORA"

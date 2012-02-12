@@ -15,6 +15,7 @@ depsources = """
 ../krad_jack/krad_jack.c
 ../krad_pulse/krad_pulse.c
 ../krad_alsa/krad_alsa.c
+../krad_ring/krad_ring.c
 """.split()
 
 includedirs = """
@@ -23,6 +24,7 @@ includedirs = """
 ../krad_jack/
 ../krad_pulse/
 ../krad_alsa/
+../krad_ring/
 ../../krad_ebml/
 """.split()
 

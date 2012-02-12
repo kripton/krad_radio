@@ -191,7 +191,7 @@ void krad_ebml_creator_stream_blocking(krad_ebml_creator_t *krad_ebml_creator, c
 
 	if (krad_ebml_creator->video == 1) {
 	
-		krad_vpx_encoder = krad_vpx_encoder_create(width, height);
+		krad_vpx_encoder = krad_vpx_encoder_create(width, height, 1000);
 
 		kradv4l2 = kradv4l2_create();
 

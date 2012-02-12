@@ -22,11 +22,13 @@ int main (int argc, char *argv[]) {
 	int fps;
 	int count;
 	int keyframe;
+	int bitrate;
 	
 	width = 1280;
 	height = 720;
 	fps = 10;
 	count = 0;
+	bitrate = 1000;
 	
 	void *frame = NULL;
 	unsigned char *vpx_packet;
@@ -48,7 +50,7 @@ int main (int argc, char *argv[]) {
 	videotrack = kradebml_add_video_track(ebml, "V_VP8", 10, width, height);
 	kradebml_write(ebml);
 	
-	krad_vpx_encoder = krad_vpx_encoder_create(width, height);
+	krad_vpx_encoder = krad_vpx_encoder_create(width, height, bitrate);
 
 	kradv4l2 = kradv4l2_create();
 
