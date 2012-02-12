@@ -1408,10 +1408,11 @@ void *audio_decoding_thread(void *arg) {
 
 	printf("\n\naudio decoding thread begins\n\n");
 
-	int c;
+	int s, c;
 	int bytes;
 	unsigned char *buffer;
-	unsigned char *audio;
+	float *audio;
+	float *samples[MAX_AUDIO_CHANNELS];
 	int audio_frames;
 		
 	while (krad_cam->input_ready != 1) {
@@ -1425,7 +1426,7 @@ void *audio_decoding_thread(void *arg) {
 
 	for (c = 0; c < krad_cam->audio_channels; c++) {
 		krad_cam->audio_output_ringbuffer[c] = krad_ringbuffer_create (2000000);
-		//samples[c] = malloc(4 * 8192);
+		samples[c] = malloc(4 * 8192);
 		krad_cam->samples[c] = malloc(4 * 8192);
 	}
 	
@@ -1461,9 +1462,17 @@ void *audio_decoding_thread(void *arg) {
 		}
 			
 		if (krad_cam->audio_codec == FLAC) {
-			audio_frames = krad_flac_decode(krad_cam->krad_flac, buffer, bytes, (float *)audio);
-			kradaudio_write (krad_cam->krad_audio, 0, (char *)audio, audio_frames * 4 );
-			kradaudio_write (krad_cam->krad_audio, 1, (char *)audio, audio_frames * 4 );
+			audio_frames = krad_flac_decode(krad_cam->krad_flac, buffer, bytes, samples);
+			
+			//for (s = 0; s < audio_frames; s++) {
+			//	for (c = 0; c < krad_cam->audio_channels; c++) {
+			//		samples[c][s] = audio[s * krad_cam->audio_channels + c];
+			//	}
+			//}
+			
+			for (c = 0; c < krad_cam->audio_channels; c++) {
+				kradaudio_write (krad_cam->krad_audio, c, (char *)samples[c], audio_frames * 4 );
+			}
 		}
 			
 		if (krad_cam->audio_codec == OPUS) {
@@ -1488,6 +1497,13 @@ void *audio_decoding_thread(void *arg) {
 
 	free(buffer);
 	free(audio);
+	
+	
+	for (c = 0; c < krad_cam->audio_channels; c++) {
+		free(krad_cam->samples[c]);
+		krad_ringbuffer_free ( krad_cam->audio_output_ringbuffer[c] );
+		free(samples[c]);	
+	}	
 	
 	printf("\n\naudio decoding thread ends\n\n");
 

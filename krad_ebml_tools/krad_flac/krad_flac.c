@@ -315,17 +315,19 @@ FLAC__StreamDecoderWriteStatus krad_flac_decoder_callback_write (const FLAC__Str
 	krad_flac_t *flac = (krad_flac_t *)client_data;
 
 	//printf("flac decoder callback write with %d frames\n", frame->header.blocksize);
-	
+	int c;	
 	
 	flac->frames = frame->header.blocksize;
 	flac->total_frames_input += flac->frames;
 	
 	// for each channnel
 
-	if (flac->bit_depth == 16) { // if 16bit
-		krad_flac_decoder_int16_to_float_array ((const int *)fbuffer[0], flac->output_buffer, frame->header.blocksize);
-	} else {
-		krad_flac_decoder_int24_to_float_array ((const int *)fbuffer[0], flac->output_buffer, frame->header.blocksize);
+	for (c = 0; c < flac->channels; c++) {
+		if (flac->bit_depth == 16) { // if 16bit
+			krad_flac_decoder_int16_to_float_array ((const int *)fbuffer[c], flac->output_buffer[c], frame->header.blocksize);
+		} else {
+			krad_flac_decoder_int24_to_float_array ((const int *)fbuffer[c], flac->output_buffer[c], frame->header.blocksize);
+		}
 	}
 	
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
@@ -351,7 +353,7 @@ FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__Strea
 
 }
 
-int krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float *audio) {
+int krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float **audio) {
 
 
 	flac->decode_buffer = encoded_buffer;
