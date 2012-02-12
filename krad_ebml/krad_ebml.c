@@ -616,7 +616,7 @@ int kradebml_stream_read(void *buffer, size_t length, void *userdata)
 			
 		} else {
 		
-			printf("got %d bytes\n", bytes);
+			//printf("got %d bytes\n", bytes);
 		
 		}
 
@@ -2670,7 +2670,7 @@ ne_parse(nestegg * ctx, struct ebml_element_desc * top_level)
       if (element->type == TYPE_MASTER) {
         if (element->flags & DESC_FLAG_MULTI) {
   			data_offset2 = ne_io_tell(ctx->io);
-        	printf("master %lu %ld\n", size + 7, data_offset2 - 42);
+        	//printf("master %lu %ld\n", size + 7, data_offset2 - 42);
           ne_read_master(ctx, element);
         } else {
           ne_read_single_master(ctx, element);
