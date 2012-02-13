@@ -57,7 +57,7 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
 
 def configure(conf):
 	
