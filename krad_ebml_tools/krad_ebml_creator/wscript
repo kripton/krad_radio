@@ -47,6 +47,8 @@ def configure(conf):
 	for l in libs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
+	conf.env.LIB += ['pthread']
+
 
 def build(bld):
 
