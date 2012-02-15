@@ -10,12 +10,39 @@
 #include "krad_vorbis.h"
 #include "krad_flac.h"
 
-#define APPVERSION "Krad Cam 0.2"
+#define APPVERSION "Krad Cam 0.3"
 #define MAX_AUDIO_CHANNELS 8
+
+#define HELP -1337
+#define NOWINDOW -20
 
 int do_shutdown;
 
 typedef struct krad_cam_St krad_cam_t;
+
+typedef enum {
+	CAPTURE = 200,
+	RECEIVE,
+	FAIL,
+} krad_cam_operation_mode_t;
+
+typedef enum {
+	WINDOW = 300,
+	COMMAND,
+	DAEMON,
+} krad_cam_interface_mode_t;
+
+typedef enum {
+	VP8 = 400,
+	DIRAC,
+	THEORA,
+} krad_video_codec_t;
+
+typedef enum {
+	TEST = 500,
+	V4L2,
+	NOVIDEO,
+} krad_video_source_t;
 
 struct krad_cam_St {
 
@@ -23,7 +50,6 @@ struct krad_cam_St {
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	krad_vpx_decoder_t *krad_vpx_decoder;
 	krad_audio_t *krad_audio;
-	krad_audio_api_t audio_api;
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
@@ -31,16 +57,23 @@ struct krad_cam_St {
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	
+	krad_cam_operation_mode_t operation_mode;
+	krad_cam_interface_mode_t interface_mode;
+	krad_video_source_t video_source;
+	krad_audio_api_t krad_audio_api;
+	krad_audio_codec_t audio_codec;
+	krad_video_codec_t video_codec;
+	
 	char device[512];
-	char alsa_device[512];
+	char alsa_capture_device[512];
+	char alsa_playback_device[512];
 	char output[512];
 	char input[512];
 	char host[512];
 	int port;
 	char mount[512];
 	char password[512];
-	
-	int bitrate;
+
 	
 	int capture_width;
 	int capture_height;
@@ -76,7 +109,6 @@ struct krad_cam_St {
 	int audio_frames_captured;
 	int audio_frames_encoded;
 	
-	
 	krad_ringbuffer_t *decoded_video_ringbuffer;	
 	krad_ringbuffer_t *decoded_audio_ringbuffer;
 	krad_ringbuffer_t *encoded_audio_ringbuffer;
@@ -95,10 +127,7 @@ struct krad_cam_St {
 	
 	int video_track;
 	int audio_track;
-	
-	krad_audio_api_t krad_audio_api;
-	krad_audio_codec_t audio_codec;
-	
+
 	pthread_t video_capture_thread;
 	pthread_t video_encoding_thread;
 	pthread_t audio_encoding_thread;
@@ -111,8 +140,6 @@ struct krad_cam_St {
 	int audio_channels;
 
 	int render_meters;
-	int display;
-
 
 	int new_capture_frame;
 	int cam_started;
@@ -120,29 +147,31 @@ struct krad_cam_St {
 	float temp_peak;
 	float kick;
 
+	struct timespec next_frame_time;
+	struct timespec sleep_time;
+	uint64_t next_frame_time_ms;
+
+	int decoding;
+	int input_ready;
+	int verbose;	
+	int vpx_bitrate;
+
 	SDL_Event event;
 
 	char bug[512];
 	int bug_x;
 	int bug_y;
 	
-	int debug;
 	int *shutdown;
 	int daemon;
-	
-	int video;
-	int audio;
-	
-	int video_codec;
-	
-	struct timespec next_frame_time;
-	struct timespec sleep_time;
-	uint64_t next_frame_time_ms;
 
-	int decoding;
-	int consume;
-	int input_ready;
+	struct stat file_stat;
+	
 };
+
+
+void krad_cam_activate(krad_cam_t *krad_cam);
+void krad_cam_destroy(krad_cam_t *krad_cam);
 
 void *video_capture_thread(void *arg) {
 
@@ -156,8 +185,10 @@ void *video_capture_thread(void *arg) {
 	void *captured_frame = NULL;
 	unsigned char *captured_frame_rgb = malloc(krad_cam->composited_frame_byte_size); 
 	
-	//printf("\n\nvideo capture thread begins\n\n");
-
+	if (krad_cam->verbose) {
+		printf("\n\nvideo capture thread begins\n\n");
+	}
+	
 	krad_cam->krad_v4l2 = kradv4l2_create();
 
 	kradv4l2_open(krad_cam->krad_v4l2, krad_cam->device, krad_cam->capture_width, krad_cam->capture_height, krad_cam->capture_fps);
@@ -177,7 +208,7 @@ void *video_capture_thread(void *arg) {
 		} else {
 		
 		
-			if ((krad_cam->debug) && (krad_cam->captured_frames % 300 == 0)) {
+			if ((krad_cam->verbose) && (krad_cam->captured_frames % 300 == 0)) {
 		
 				clock_gettime(CLOCK_MONOTONIC, &current_time);
 				elapsed_time = timespec_diff(start_time, current_time);
@@ -255,8 +286,11 @@ void *video_capture_thread(void *arg) {
 
 	krad_cam->capture_audio = 2;
 	krad_cam->encoding = 2;
-	//printf("\n\nvideo capture thread ends\n\n");
 
+	if (krad_cam->verbose) {
+		printf("\n\nvideo capture thread ends\n\n");
+	}
+	
 	return NULL;
 	
 }
@@ -274,7 +308,7 @@ void *video_encoding_thread(void *arg) {
 
 	int first = 1;
 
-	krad_cam->krad_vpx_encoder = krad_vpx_encoder_create(krad_cam->encoding_width, krad_cam->encoding_height, krad_cam->bitrate);
+	krad_cam->krad_vpx_encoder = krad_vpx_encoder_create(krad_cam->encoding_width, krad_cam->encoding_height, krad_cam->vpx_bitrate);
 
 
 	krad_cam->krad_vpx_encoder->quality = 1000 * ((krad_cam->encoding_fps / 4) * 3);
@@ -417,20 +451,17 @@ void *audio_encoding_thread(void *arg) {
 	unsigned char *buffer;
 	ogg_packet *op;
 	int framecnt;
-	char *audioname;
-	
-	if (krad_cam->krad_audio_api == ALSA) {
-		audioname = krad_cam->alsa_device;
-	} else {
-		audioname = "Krad Cam";
-	}
-	
-	printf("audio_encoding_thread begin!\n");
 	
 	krad_cam->audio_channels = 2;	
 	
-	krad_cam->krad_audio = kradaudio_create(audioname, KINPUT, krad_cam->krad_audio_api);
+	if (krad_cam->krad_audio_api == ALSA) {
+		krad_cam->krad_audio = kradaudio_create(krad_cam->alsa_capture_device, KINPUT, krad_cam->krad_audio_api);
+	} else {
+		krad_cam->krad_audio = kradaudio_create("Krad Link", KINPUT, krad_cam->krad_audio_api);
+	}
 	
+	printf("audio_encoding_thread begin!\n");
+		
 	switch (krad_cam->audio_codec) {
 		case VORBIS:
 			krad_cam->krad_vorbis = krad_vorbis_encoder_create(krad_cam->audio_channels, krad_cam->krad_audio->sample_rate, 0.7);
@@ -461,7 +492,7 @@ void *audio_encoding_thread(void *arg) {
 
 	kradaudio_set_process_callback(krad_cam->krad_audio, krad_cam_audio_callback, krad_cam);
 
-	if (krad_cam->audio_api == JACK) {
+	if (krad_cam->krad_audio_api == JACK) {
 		krad_jack_t *jack = (krad_jack_t *)krad_cam->krad_audio->api;
 		kradjack_connect_port(jack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "Krad Cam:InputLeft");
 		kradjack_connect_port(jack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "Krad Cam:InputRight");
@@ -629,19 +660,19 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 	
-	if (krad_cam->audio_codec == VORBIS) {
+	if ((krad_cam->audio_codec == VORBIS) && (krad_cam->video_codec == VP8)) {
 		kradebml_header(krad_cam->krad_ebml, "webm", APPVERSION);
 	} else {
 		kradebml_header(krad_cam->krad_ebml, "matroska", APPVERSION);
 	}
 	
-	if (krad_cam->video) {
+	if (krad_cam->video_source != NOVIDEO) {
 	
 		krad_cam->video_track = kradebml_add_video_track(krad_cam->krad_ebml, "V_VP8", krad_cam->encoding_fps,
 											 			 krad_cam->encoding_width, krad_cam->encoding_height);
 	}	
 	
-	if (krad_cam->audio) {
+	if (krad_cam->audio_codec != NONE) {
 	
 		switch (krad_cam->audio_codec) {
 			case VORBIS:
@@ -667,7 +698,7 @@ void *ebml_output_thread(void *arg) {
 	
 	while ( krad_cam->encoding ) {
 
-		if (krad_cam->video) {
+		if (krad_cam->video_source != NOVIDEO) {
 			if ((krad_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) >= 4) && (krad_cam->encoding < 3)) {
 
 				krad_ringbuffer_read(krad_cam->encoded_video_ringbuffer, (char *)&packet_size, 4);
@@ -694,10 +725,10 @@ void *ebml_output_thread(void *arg) {
 		}
 		
 		
-		if (krad_cam->audio) {
+		if (krad_cam->audio_codec != NONE) {
 		
 			if ((krad_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) >= 4) && 
-				((krad_cam->video == 0) || ((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed))) {
+				((krad_cam->video_source != NOVIDEO) || ((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed))) {
 
 				krad_ringbuffer_read(krad_cam->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 		
@@ -727,7 +758,7 @@ void *ebml_output_thread(void *arg) {
 		}
 		
 		
-		if ((krad_cam->audio) && (!(krad_cam->video))) {
+		if ((krad_cam->audio_codec != NONE) && (!(krad_cam->video_source))) {
 		
 			if (krad_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < 4) {
 				
@@ -741,7 +772,7 @@ void *ebml_output_thread(void *arg) {
 		
 		}
 		
-		if ((!(krad_cam->audio)) && (krad_cam->video)) {
+		if ((!(krad_cam->audio_codec != NONE)) && (krad_cam->video_source)) {
 		
 			if (krad_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < 4) {
 		
@@ -756,7 +787,7 @@ void *ebml_output_thread(void *arg) {
 		}
 
 
-		if ((krad_cam->audio) && (krad_cam->video)) {
+		if ((krad_cam->audio_codec != NONE) && (krad_cam->video_source)) {
 
 			if (((krad_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < 4) || 
 				((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed)) && 
@@ -1039,8 +1070,9 @@ void krad_cam_composite(krad_cam_t *krad_cam) {
 
 void krad_cam_run(krad_cam_t *krad_cam) {
 
+	krad_cam_activate ( krad_cam );
 
-	if (krad_cam->consume == 1) {
+	if (krad_cam->operation_mode == RECEIVE) {
 	
 		while (krad_cam->input_ready != 1) {
 			usleep(5000);
@@ -1049,7 +1081,7 @@ void krad_cam_run(krad_cam_t *krad_cam) {
 			}
 		}
 	
-		if ((!*krad_cam->shutdown) && (krad_cam->input_ready) && (krad_cam->display)) {
+		if ((!*krad_cam->shutdown) && (krad_cam->input_ready) && (krad_cam->interface_mode == WINDOW)) {
 	
 			//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
 			krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->krad_ebml->vparams.width, krad_cam->krad_ebml->vparams.height, krad_cam->krad_ebml->vparams.width, krad_cam->krad_ebml->vparams.height);
@@ -1058,7 +1090,7 @@ void krad_cam_run(krad_cam_t *krad_cam) {
 	
 		while (!*krad_cam->shutdown) {
 
-			if (!krad_cam->video) {
+			if (krad_cam->video_source == NOVIDEO) {
 	
 				usleep(60000);
 
@@ -1070,7 +1102,7 @@ void krad_cam_run(krad_cam_t *krad_cam) {
 				
 				krad_cam_composite(krad_cam);
 
-				if (krad_cam->display) {
+				if (krad_cam->interface_mode == WINDOW) {
 					krad_cam_display(krad_cam);
 					krad_cam_handle_input(krad_cam);
 				}
@@ -1103,19 +1135,15 @@ void krad_cam_run(krad_cam_t *krad_cam) {
 	
 	} else {
 
-		if (!krad_cam->video) {
-			krad_cam->capture_audio = 1;
-		}
-
 		while (!*krad_cam->shutdown) {
 
-			if (!krad_cam->video) {
+			if (krad_cam->video_source == NOVIDEO) {
 	
 				usleep(60000);
 
 			} else {
 
-				if ((krad_cam->capturing) && (!krad_cam->display)) {
+				if ((krad_cam->capturing) && (krad_cam->interface_mode != WINDOW)) {
 					while (krad_ringbuffer_read_space(krad_cam->captured_frames_buffer) < krad_cam->composited_frame_byte_size) {
 						usleep(5000);
 					}
@@ -1125,9 +1153,9 @@ void krad_cam_run(krad_cam_t *krad_cam) {
 				
 				}
 
-				krad_cam_composite(krad_cam);
+				krad_cam_composite ( krad_cam );
 
-				if (krad_cam->display) {
+				if (krad_cam->interface_mode == WINDOW) {
 					krad_cam_display(krad_cam);
 					krad_cam_handle_input(krad_cam);
 				}
@@ -1157,6 +1185,9 @@ void krad_cam_run(krad_cam_t *krad_cam) {
 			}
 		}
 	}
+
+
+	krad_cam_destroy ( krad_cam );
 
 }
 
@@ -1260,7 +1291,7 @@ void *ebml_input_thread(void *arg) {
 			usleep(10000);
 		}
 		
-		if (krad_cam->video) {
+		if (krad_cam->video_source != NOVIDEO) {
 		
 			if (krad_cam->krad_ebml->pkt_track == krad_cam->krad_ebml->video_track) {
 
@@ -1290,7 +1321,7 @@ void *ebml_input_thread(void *arg) {
 			audio_packets++;
 
 			nestegg_packet_data(krad_cam->krad_ebml->pkt, 0, &buffer, &krad_cam->krad_ebml->size);
-			//printf("\nAudio packet! %zu bytes\n", krad_cam->krad_ebml->size);
+			printf("\nAudio packet! %zu bytes\n", krad_cam->krad_ebml->size);
 
 			krad_ringbuffer_write(krad_cam->encoded_audio_ringbuffer, (char *)&krad_cam->krad_ebml->size, 4);
 			//krad_ringbuffer_write(krad_cam->encoded_audio_ringbuffer, (char *)&frames, 4);
@@ -1408,7 +1439,7 @@ void *audio_decoding_thread(void *arg) {
 
 	printf("\n\naudio decoding thread begins\n\n");
 
-	int s, c;
+	int c;
 	int bytes;
 	unsigned char *buffer;
 	float *audio;
@@ -1433,7 +1464,12 @@ void *audio_decoding_thread(void *arg) {
 	buffer = malloc(2000000);
 	audio = calloc(1, 8192 * 4 * 4);
 
-	krad_cam->krad_audio = kradaudio_create("Krad Link", KOUTPUT, krad_cam->krad_audio_api);
+
+	if (krad_cam->krad_audio_api == ALSA) {
+		krad_cam->krad_audio = kradaudio_create(krad_cam->alsa_playback_device, KOUTPUT, krad_cam->krad_audio_api);
+	} else {
+		krad_cam->krad_audio = kradaudio_create("Krad Link", KOUTPUT, krad_cam->krad_audio_api);
+	}
 
 	if (krad_cam->audio_codec == VORBIS) {
 		kradaudio_set_process_callback(krad_cam->krad_audio, krad_cam_audio_callback, krad_cam);
@@ -1455,7 +1491,7 @@ void *audio_decoding_thread(void *arg) {
 		//krad_ringbuffer_read(krad_cam->encoded_audio_ringbuffer, (char *)&frames, 4);
 		krad_ringbuffer_read(krad_cam->encoded_audio_ringbuffer, (char *)buffer, bytes);
 		
-
+			printf("deocded vorbis byteeeeeeeees %d\n", bytes);
 		if (krad_cam->audio_codec == VORBIS) {
 			krad_vorbis_decoder_decode(krad_cam->krad_vorbis, buffer, bytes);
 			printf("deocded vorbis bytes %d\n", bytes);
@@ -1487,7 +1523,7 @@ void *audio_decoding_thread(void *arg) {
 		
 					bytes = kradopus_read_audio(krad_cam->krad_opus, c + 1, (char *)audio, 960 * 4);
 					if (bytes) {
-						printf("\nAudio data! %zu samplers\n", bytes / 4);
+						printf("\nAudio data! %d samplers\n", bytes / 4);
 						kradaudio_write (krad_cam->krad_audio, c, (char *)audio, bytes );
 					}
 				}
@@ -1607,6 +1643,8 @@ void krad_cam_shutdown() {
 
 void krad_cam_destroy(krad_cam_t *krad_cam) {
 
+	printf("destroy krad cam!\n");
+
 	krad_cam->capturing = 0;
 	
 	if (krad_cam->capturing) {
@@ -1623,19 +1661,19 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 		krad_vpx_decoder_destroy(krad_cam->krad_vpx_decoder);
 	}
 	
-	if (krad_cam->video) {
+	if (krad_cam->video_source != NOVIDEO) {
 		pthread_join(krad_cam->video_encoding_thread, NULL);
 	} else {
 		krad_cam->encoding = 3;
 	}
 	
-	if (krad_cam->audio) {
+	if (krad_cam->audio_codec != NONE) {
 		pthread_join(krad_cam->audio_encoding_thread, NULL);
 	}
 	
 	pthread_join(krad_cam->ebml_output_thread, NULL);
 
-	if (krad_cam->display) {
+	if (krad_cam->interface_mode == WINDOW) {
 		krad_sdl_opengl_display_destroy(krad_cam->krad_opengl_display);
 	}
 
@@ -1671,79 +1709,65 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 	free(krad_cam);
 }
 
-
-krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, char *mount, char *password, int bitrate, krad_audio_api_t audio_api, 
-							int capture_width, int capture_height, int capture_fps, int composite_width, int composite_height, 
-							int composite_fps, int display_width, int display_height, int encoding_width, int encoding_height, 
-							int encoding_fps, int *shutdown, int daemon, char *bug, int bug_x, int bug_y, char *alsa_device) {
+krad_cam_t *krad_cam_create() {
 
 	krad_cam_t *krad_cam;
 	
 	krad_cam = calloc(1, sizeof(krad_cam_t));
-
-	krad_cam->capture_width = capture_width;
-	krad_cam->capture_height = capture_height;
-	krad_cam->capture_fps = capture_fps;
-	krad_cam->composite_width = composite_width;
-	krad_cam->composite_height = composite_height;
-	krad_cam->composite_fps = composite_fps;
-	krad_cam->display_width = display_width;
-	krad_cam->display_height = display_height;
-	krad_cam->encoding_width = encoding_width;
-	krad_cam->encoding_height = encoding_height;
-	krad_cam->encoding_fps = encoding_fps;
-	
-	krad_cam->krad_audio_api = audio_api;
-	
-	if (krad_cam->krad_audio_api != NOAUDIO) {
-		krad_cam->audio = 1;
-	}
-	
-	krad_cam->audio_codec = VORBIS;
-	krad_cam->audio_codec = FLAC;
-//	krad_cam->audio_codec = OPUS;
-	
+		
 	krad_cam->capture_buffer_frames = 5;
 	krad_cam->encoding_buffer_frames = 15;
 	
-	if (krad_cam->display_width != 0) {
-		krad_cam->display = 1;		
-	} else {
-		krad_cam->display = 0;
-	}
+	krad_cam->capture_width = 640;
+	krad_cam->capture_height = 480;
+	krad_cam->capture_fps = 15;
+
+	krad_cam->composite_fps = krad_cam->capture_fps;
+	krad_cam->encoding_fps = krad_cam->capture_fps;
+	krad_cam->composite_width = krad_cam->capture_width;
+	krad_cam->composite_height = krad_cam->capture_height;
+	krad_cam->encoding_width = krad_cam->capture_width;
+	krad_cam->encoding_height = krad_cam->capture_height;
+	krad_cam->display_width = krad_cam->capture_width;
+	krad_cam->display_height = krad_cam->capture_height;
+
+	krad_cam->vpx_bitrate = 1250;
 	
-	if (krad_cam->encoding_width != 0) {
-		krad_cam->video = 1;		
-	} else {
-		krad_cam->video = 0;
-	}
+	strncpy(krad_cam->device, DEFAULT_V4L2_DEVICE, sizeof(krad_cam->device));
+	strncpy(krad_cam->alsa_capture_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(krad_cam->alsa_capture_device));
+	strncpy(krad_cam->alsa_playback_device, DEFAULT_ALSA_PLAYBACK_DEVICE, sizeof(krad_cam->alsa_playback_device));
+	sprintf(krad_cam->output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
+
+	krad_cam->krad_audio_api = ALSA;
+	krad_cam->operation_mode = CAPTURE;
+	krad_cam->interface_mode = WINDOW;
+	krad_cam->video_codec = VP8;
+	krad_cam->audio_codec = VORBIS;
+	krad_cam->video_source = V4L2;
 	
-	krad_cam->shutdown = shutdown;
-	
+	return krad_cam;
+}
+
+void krad_cam_activate(krad_cam_t *krad_cam) {
+
+
+	krad_cam->composite_fps = krad_cam->capture_fps;
+	krad_cam->encoding_fps = krad_cam->capture_fps;
+	krad_cam->composite_width = krad_cam->capture_width;
+	krad_cam->composite_height = krad_cam->capture_height;
+	krad_cam->encoding_width = krad_cam->capture_width;
+	krad_cam->encoding_height = krad_cam->capture_height;
+	krad_cam->display_width = krad_cam->capture_width;
+	krad_cam->display_height = krad_cam->capture_height;
+
 	signal(SIGINT, krad_cam_shutdown);
 	signal(SIGTERM, krad_cam_shutdown);
-
-	krad_cam->daemon = daemon;
 
 	if (krad_cam->daemon) {
 		daemonize();
 	}
-	
-	krad_cam->bitrate = bitrate;
-	krad_cam->port = port;
-	
-	memcpy(krad_cam->device, device, sizeof(krad_cam->device));
-	memcpy(krad_cam->alsa_device, alsa_device, sizeof(krad_cam->alsa_device));
-	memcpy(krad_cam->output, output, sizeof(krad_cam->output)); 
-	memcpy(krad_cam->host, host, sizeof(krad_cam->host));
-	memcpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
-	memcpy(krad_cam->password, password, sizeof(krad_cam->password)); 
 
-	if ((strncmp(krad_cam->device, "none", 4) != 0) && (krad_cam->video == 1)) {	
-		krad_cam->capturing = 1;
-	}
-
-	if (krad_cam->display) {
+	if (krad_cam->interface_mode == WINDOW) {
 
 		krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
 															 		   krad_cam->composite_width, krad_cam->composite_height);
@@ -1754,17 +1778,19 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 	krad_cam->current_encoding_frame = calloc(1, krad_cam->composited_frame_byte_size);
 
 
-	if (krad_cam->capturing) {
+	if (krad_cam->video_source == V4L2) {
 		krad_cam->captured_frame_converter = sws_getContext ( krad_cam->capture_width, krad_cam->capture_height, PIX_FMT_YUYV422, 
 															  krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
 															  SWS_BICUBIC, NULL, NULL, NULL);
 	}
 		  
-	krad_cam->encoding_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
-															krad_cam->encoding_width, krad_cam->encoding_height, PIX_FMT_YUV420P, 
-															SWS_BICUBIC, NULL, NULL, NULL);
-			
-	if (krad_cam->display) {
+	if (krad_cam->video_source != NOVIDEO) {
+		krad_cam->encoding_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
+															  krad_cam->encoding_width, krad_cam->encoding_height, PIX_FMT_YUV420P, 
+															  SWS_BICUBIC, NULL, NULL, NULL);
+	}
+	
+	if (krad_cam->interface_mode == WINDOW) {
 															
 		krad_cam->display_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
 															 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
@@ -1773,308 +1799,269 @@ krad_cam_t *krad_cam_create(char *device, char *output, char *host, int port, ch
 		
 	krad_cam->captured_frames_buffer = krad_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->capture_buffer_frames);
 	krad_cam->composited_frames_buffer = krad_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
-
+	krad_cam->decoded_frames_buffer = krad_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
 	krad_cam->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
 	krad_cam->encoded_video_ringbuffer = krad_ringbuffer_create (2000000);
 
-
 	krad_cam->krad_gui = kradgui_create_with_internal_surface(krad_cam->composite_width, krad_cam->composite_height);
 
-	if (bug[0] != '\0') {
-		memcpy(krad_cam->bug, bug, sizeof(krad_cam->bug));
-		krad_cam->bug_x = bug_x;
-		krad_cam->bug_y = bug_y;
+	if (krad_cam->bug[0] != '\0') {
 		kradgui_set_bug (krad_cam->krad_gui, krad_cam->bug, krad_cam->bug_x, krad_cam->bug_y);
 	}
 
-	//krad_cam->krad_gui->update_drawtime = 1;
-	//krad_cam->krad_gui->print_drawtime = 1;
-	
-	//krad_cam->krad_gui->render_ftest = 1;
-	//krad_cam->krad_gui->render_tearbar = 1;
-	
-//	kradgui_set_bug (krad_cam->krad_gui, "/home/oneman/Pictures/DinoHead-r2.png", 30, 30);
-	if (krad_cam->capturing) {
-		krad_cam->krad_gui->clear = 0;
-	} else {
-		//kradgui_test_screen(krad_cam->krad_gui, "Krad Test");
+	if (krad_cam->verbose) {	
+		krad_cam->krad_gui->update_drawtime = 1;
+		krad_cam->krad_gui->print_drawtime = 1;
 	}
-	
-	//printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
 
-	krad_cam->encoding = 1;
+
+	if (krad_cam->operation_mode == CAPTURE) {
+
+		if (krad_cam->video_source == V4L2) {
+			krad_cam->krad_gui->clear = 0;
+		}
 	
+		if (krad_cam->video_source == TEST) {
+			kradgui_test_screen(krad_cam->krad_gui, "Krad Test");
+		}
 	
-	if (krad_cam->capturing) {
-		pthread_create(&krad_cam->video_capture_thread, NULL, video_capture_thread, (void *)krad_cam);
-	}
-	
-	if (krad_cam->video) {
-		
-		if ((!krad_cam->capturing) && (!krad_cam->display)) {
-			krad_cam->render_meters = 1;
+		if (krad_cam->verbose) {
+			printf("mem use approx %d MB\n", (krad_cam->composited_frame_byte_size * (krad_cam->capture_buffer_frames + krad_cam->encoding_buffer_frames + 4)) / 1000 / 1000);
 		}
 		
-		pthread_create(&krad_cam->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_cam);
-	}
-	
-	if (krad_cam->audio) {
-		pthread_create(&krad_cam->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_cam);
-	}
-	
-	pthread_create(&krad_cam->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_cam);	
-
-	return krad_cam;
-
-}
-
-krad_cam_t *krad_cam_consume(char *input, char *host, int port, char *mount, krad_audio_api_t audio_api, 
-							 int display_width, int display_height, int *shutdown, int daemon, char *alsa_device) {
-
-	krad_cam_t *krad_cam;
-	
-	krad_cam = calloc(1, sizeof(krad_cam_t));
-
-	krad_cam->consume = 1;
-
-	krad_cam->display_width = display_width;
-	krad_cam->display_height = display_height;	
-	krad_cam->krad_audio_api = audio_api;
-	
-	if (krad_cam->krad_audio_api != NOAUDIO) {
-		krad_cam->audio = 1;
-	}
-
-	krad_cam->decoding_buffer_frames = 15;
-	
-	if (krad_cam->display_width != 0) {
-		krad_cam->video = 1;
-		krad_cam->display = 1;
-	} else {
-		krad_cam->display = 0;
-		krad_cam->video = 0;
-	}
-	
-	krad_cam->shutdown = shutdown;
-	
-	signal(SIGINT, krad_cam_shutdown);
-	signal(SIGTERM, krad_cam_shutdown);
-
-	krad_cam->daemon = daemon;
-
-	if (krad_cam->daemon) {
-		daemonize();
-	}
-	
-	krad_cam->port = port;
-	
-	memcpy(krad_cam->alsa_device, alsa_device, sizeof(krad_cam->alsa_device));
-	memcpy(krad_cam->input, input, sizeof(krad_cam->input)); 
-	memcpy(krad_cam->host, host, sizeof(krad_cam->host));
-	memcpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
-
-	if (krad_cam->display) {
-
-		krad_cam->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_cam->display_width, krad_cam->display_height, 
-															 		   krad_cam->composite_width, krad_cam->composite_height);
-	}
-	
-	krad_cam->composited_frame_byte_size = krad_cam->composite_width * krad_cam->composite_height * 4;
-	krad_cam->current_frame = calloc(1, krad_cam->composited_frame_byte_size);
-	krad_cam->current_encoding_frame = calloc(1, krad_cam->composited_frame_byte_size);
-			
-	if (krad_cam->display) {
-															
-		krad_cam->display_frame_converter = sws_getContext ( krad_cam->composite_width, krad_cam->composite_height, PIX_FMT_RGB32, 
-															 krad_cam->display_width, krad_cam->display_height, PIX_FMT_RGB32, 
-															 SWS_BICUBIC, NULL, NULL, NULL);
-	}
-	
-	krad_cam->decoded_frames_buffer = krad_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
-
-	
-	
-	
-	
-	
-	krad_cam->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
-	krad_cam->encoded_video_ringbuffer = krad_ringbuffer_create (2000000);
-
-
-	krad_cam->krad_gui = kradgui_create_with_internal_surface(krad_cam->composite_width, krad_cam->composite_height);
-
-	krad_cam->decoding = 1;
-	
-	
-	pthread_create(&krad_cam->ebml_input_thread, NULL, ebml_input_thread, (void *)krad_cam);	
+		if (krad_cam->video_source != NOVIDEO) {
 		
-	if (krad_cam->video) {
-		pthread_create(&krad_cam->video_decoding_thread, NULL, video_decoding_thread, (void *)krad_cam);
+			krad_cam->capturing = 1;
+		
+			pthread_create(&krad_cam->video_capture_thread, NULL, video_capture_thread, (void *)krad_cam);
+		}
+	
+		if (krad_cam->interface_mode == WINDOW) {
+		
+			//if ((!krad_cam->capturing) && (!krad_cam->display)) {
+				krad_cam->render_meters = 1;
+			//}
+	
+		}
+	
+		if (krad_cam->video_source != NOVIDEO) {
+			krad_cam->encoding = 1;
+		
+			pthread_create(&krad_cam->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_cam);
+		}
+	
+		if (krad_cam->video_source != NOVIDEO) {
+			pthread_create(&krad_cam->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_cam);
+		}
+	
+		pthread_create(&krad_cam->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_cam);	
+
 	}
 	
-	//if (krad_cam->audio) {
-		pthread_create(&krad_cam->audio_decoding_thread, NULL, audio_decoding_thread, (void *)krad_cam);
-	//}
+	if (krad_cam->operation_mode == RECEIVE) {
 
-	return krad_cam;
+		krad_cam->composited_frame_byte_size = krad_cam->composite_width * krad_cam->composite_height * 4;
+		krad_cam->current_frame = calloc(1, krad_cam->composited_frame_byte_size);
+		krad_cam->current_encoding_frame = calloc(1, krad_cam->composited_frame_byte_size);
+		krad_cam->decoded_frames_buffer = krad_ringbuffer_create (krad_cam->composited_frame_byte_size * krad_cam->encoding_buffer_frames);
+		
+		pthread_create(&krad_cam->ebml_input_thread, NULL, ebml_input_thread, (void *)krad_cam);	
+		
+		//if (krad_cam->video) {
+			pthread_create(&krad_cam->video_decoding_thread, NULL, video_decoding_thread, (void *)krad_cam);
+		//}
+	
+		//if (krad_cam->audio) {
+			pthread_create(&krad_cam->audio_decoding_thread, NULL, audio_decoding_thread, (void *)krad_cam);
+		//}
+
+	}
 
 }
 
-int main (int argc, char *argv[]) {
+
+
+
+	
+
+
+
+
+void help() {
+
+	printf("help, coming soon!\n");
+	exit (0);
+
+}
+
+int main ( int argc, char *argv[] ) {
 
 	krad_cam_t *krad_cam;
+	int o;
+	int option_index;
 	
-	int capture_width, capture_height, capture_fps;
-	int display_width, display_height;
-	int composite_width, composite_height, composite_fps;
-	int encoding_width, encoding_height, encoding_fps;
-	char device[512];
-	char alsa_device[512];
-	krad_audio_api_t krad_audio_api;
-	char output[512];
-	char host[512];
-	int port;
-	char mount[512];
-	char password[512];	
-	int c;
-
-	char bug[512];
-	int bug_x;
-	int bug_y;
-	int bitrate;
-
-	int display;
-	int daemon;
+	do_shutdown = 0;
 	
-	int consume;
+	krad_cam = krad_cam_create ();
 
-	capture_width = 640;
-	capture_height = 480;
-	capture_fps = 15;
-	bug_x = 30;
-	bug_y = 30;
-	bitrate = 1250;
-	daemon = 0;
-	display = 1;
-	consume = 0;
+	krad_cam->shutdown = &do_shutdown;
+
+	while (1) {
+
+		static struct option long_options[] = {
+			{"verbose",			no_argument, 0, 'v'},
+			{"help",			no_argument, 0, 'h'},
 	
-	krad_audio_api = ALSA;	
-	strncpy(device, DEFAULT_V4L2_DEVICE, sizeof(device));
-	strncpy(alsa_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(alsa_device));
-	sprintf(output, "%s/Videos/krad_cam_%zu.webm", getenv ("HOME"), time(NULL));
-	
-	memset(bug, '\0', sizeof(bug));
-	memset(host, '\0', sizeof(host));
-	memset(mount, '\0', sizeof(mount));
-	memset(password, '\0', sizeof(password));
-	port = 0;
+			{"window",			no_argument, 0, WINDOW},
+			{"nowindow",		no_argument, 0, COMMAND},
+			{"daemon",			no_argument, 0, DAEMON},
+			
+			{"novideo",			no_argument, 0, NOVIDEO},
+			{"noaudio",			no_argument, 0, NOAUDIO},
+			
+			{"testscreen",		no_argument, 0, 't'},
+			
+			{"width",			required_argument, 0, 'w'},
+			{"height",			required_argument, 0, 'h'},
+			{"fps",				required_argument, 0, 'f'},
+			{"mjpeg",			no_argument, 0, 'm'},
+			{"yuv",				no_argument, 0, 'y'},
 
+			{"alsa",			optional_argument, 0, ALSA},
+			{"jack",			optional_argument, 0, JACK},
+			{"pulse",			optional_argument, 0, PULSE},
+			{"tone",			optional_argument, 0, TONE},
+				
+			{"flac",			optional_argument, 0, FLAC},
+			{"opus",			optional_argument, 0, OPUS},
+			{"vorbis",			optional_argument, 0, VORBIS},
+						
+			{"bitrate",			no_argument, 0, 'b'},
+			{"keyframes",		no_argument, 0, 'k'},
+			
+			{"password",		no_argument, 0, 'p'},
+			
+			{0, 0, 0, 0}
+		};
 
-	while ((c = getopt (argc, argv, "ajpf:w:h:o:b:x:y:d:m:v:l:n:g:zcq:e")) != -1) {
-		switch (c) {
-			case 'd':
-				strncpy(device, optarg, sizeof(device));
-				break;
-			case 'a':
-				krad_audio_api = ALSA;
-				break;
-			case 'j':
-				krad_audio_api = JACK;
+		option_index = 0;
+
+		o = getopt_long ( argc, argv, "vhpbwh", long_options, &option_index );
+
+		if (o == -1) {
+			break;
+		}
+
+		switch ( o ) {
+			case 'v':
+				krad_cam->verbose = 1;
 				break;
 			case 'p':
-				krad_audio_api = PULSE;
-				break;
-			case 'f':
-				capture_fps = atoi(optarg);
+				strncpy(krad_cam->password, optarg, sizeof(krad_cam->password));
+				krad_cam->operation_mode = CAPTURE;
 				break;
 			case 'w':
-				capture_width = atoi(optarg);
+				krad_cam->capture_width = atoi(optarg);
 				break;
 			case 'h':
-				capture_height = atoi(optarg);
-				break;
-			case 'x':
-				bug_x = atoi(optarg);
-				break;
-			case 'y':
-				bug_y = atoi(optarg);
-				break;
-			case 'm':
-				strncpy(mount, optarg, sizeof(mount));
-				break;
-			case 'v':
-				strncpy(password, optarg, sizeof(password));
-				break;
-			case 'l':
-				strncpy(host, optarg, sizeof(password));
-				break;
-			case 'g':
-				bitrate = atoi(optarg);
-				break;
-			case 'n':
-				port = atoi(optarg);
-				break;
-			case 'z':
-				display = 0;
-				break;
-			case 'o':
-				strncpy(output, optarg, sizeof(output));
-				break;
+				if (optarg != NULL) {
+					krad_cam->capture_height = atoi(optarg);
+					break;
+				} else {
+					help ();
+				}
+		//memcpy(krad_cam->bug, bug, sizeof(krad_cam->bug));
+		//krad_cam->bug_x = bug_x;
+		//krad_cam->bug_y = bug_y;
 			case 'b':
-				strncpy(bug, optarg, sizeof(bug));
+				krad_cam->vpx_bitrate = atoi(optarg);
 				break;
-			case 'c':
-				daemon = 1;
+			case 'k':
+				//
 				break;
-			case 'q':
-				strncpy(alsa_device, optarg, sizeof(alsa_device));
+			case NOVIDEO:
+				krad_cam->video_source = NOVIDEO;
 				break;
-			case 'e':
-				consume = 1;
+			case FLAC:
+				krad_cam->audio_codec = FLAC;
 				break;
-			case '?':
-				printf("option argument fail\n");
-				exit(1);
-			default:			
+			case OPUS:
+				krad_cam->audio_codec = OPUS;
 				break;
+			case VORBIS:
+				krad_cam->audio_codec = VORBIS;
+				break;
+			case WINDOW:
+				krad_cam->interface_mode = WINDOW;
+				break;
+			case NOWINDOW:
+				krad_cam->interface_mode = NOWINDOW;
+				break;
+			case DAEMON:
+				krad_cam->interface_mode = DAEMON;
+				break;
+			case NOAUDIO:
+				krad_cam->krad_audio_api = NOAUDIO;
+				break;
+			case TONE:
+				krad_cam->krad_audio_api = TONE;
+				break;
+			case PULSE:
+				krad_cam->krad_audio_api = PULSE;
+				break;
+			case ALSA:
+				krad_cam->krad_audio_api = ALSA;
+				break;
+			case JACK:
+				krad_cam->krad_audio_api = JACK;
+				break;
+			case HELP:
+				help ();
+				break;
+
+			default:
+				abort ();
 		}
 	}
-		
-	composite_fps = capture_fps;
-	encoding_fps = capture_fps;
 
-	composite_width = capture_width;
-	composite_height = capture_height;
+	if (optind < argc) {
+		printf ("non-option ARGV-elements: ");
+		while (optind < argc) {
+			printf ("%s ", argv[optind]);
+			putchar ('\n');
+			
+			
+			if (argv[optind][0] == '/')  {		
 
-	encoding_width = capture_width;
-	encoding_height = capture_height;
+				if (strncmp("/dev", argv[optind], 4) == 0) {
+					memcpy(krad_cam->device, argv[optind], sizeof(krad_cam->device));
+					krad_cam->operation_mode = CAPTURE;
+				} else {
+				
+					if (stat(argv[optind], &krad_cam->file_stat) != 0) {
+						strncpy(krad_cam->output, argv[optind], sizeof(krad_cam->output));
+						krad_cam->operation_mode = CAPTURE;
+					} else {
+						krad_cam->operation_mode = RECEIVE;
+						strncpy(krad_cam->input, argv[optind], sizeof(krad_cam->input));
+					}				
+				}
 
-	if (display) {
-		display_width = capture_width;
-		display_height = capture_height;
-	} else {
-		display_width = 0;
-		display_height = 0;
+			} else {
+			
+				krad_cam->port = 8080;
+				memcpy(krad_cam->host, "deimos.kradradio.com", sizeof(krad_cam->host));
+				memcpy(krad_cam->mount, "/teststream.webm", sizeof(krad_cam->mount));
+				//memcpy(krad_cam->host, host, sizeof(krad_cam->host));
+				//memcpy(krad_cam->mount, mount, sizeof(krad_cam->mount));
+			
+			}
+			
+			optind++;
+		}
 	}
 
-
-	if (consume == 1) {
-	
-		krad_cam = krad_cam_consume(output, host, port, mount, krad_audio_api, 
-									display_width, display_height, &do_shutdown, daemon, alsa_device);
-	
-	} else {
-	
-		krad_cam = krad_cam_create( device, output, host, port, mount, password, bitrate, krad_audio_api, capture_width, capture_height, capture_fps, 
-									composite_width, composite_height, composite_fps, display_width, display_height, encoding_width, 
-									encoding_height, encoding_fps, &do_shutdown, daemon, bug, bug_x, bug_y, alsa_device );
-
-	}
-
-	krad_cam_run(krad_cam);
-
-	krad_cam_destroy( krad_cam );
-
+	krad_cam_run ( krad_cam );
 
 	return 0;
 

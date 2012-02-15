@@ -226,11 +226,15 @@ void krad_vorbis_decoder_decode(krad_vorbis_t *vorbis, unsigned char *buffer, in
 	vorbis_synthesis_blockin(&vorbis->vdsp, &vorbis->vblock);
 	x = vorbis_synthesis_pcmout(&vorbis->vdsp, &pcm);
 	
-	//printf("got %d samples\n", x);
-	
+	printf("got %d samples\n", x);
+	while((krad_ringbuffer_write_space(vorbis->ringbuf[0]) < x * 4) || (krad_ringbuffer_write_space(vorbis->ringbuf[1]) < x * 4)) {
+		usleep(15000);
+	}
+
 	krad_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], x * 4 );
 	krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], x * 4 );
-	
+
+		
 	vorbis_synthesis_read(&vorbis->vdsp, x);
 
 }

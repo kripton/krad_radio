@@ -81,6 +81,11 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 		case PULSE:
 			kradpulse_destroy(kradaudio->api);
 			break;
+		case TONE:
+			//kradaudio->api = kradpulse_create(kradaudio);
+			break;
+		case NOAUDIO:
+			break;
 	}
 	
 	krad_ringbuffer_free ( kradaudio->input_ringbuffer[0] );
@@ -125,6 +130,11 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 			break;
 		case PULSE:
 			kradaudio->api = kradpulse_create(kradaudio);
+			break;
+		case TONE:
+			//kradaudio->api = kradpulse_create(kradaudio);
+			break;
+		case NOAUDIO:
 			break;
 	}
 	

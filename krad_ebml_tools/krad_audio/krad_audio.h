@@ -11,7 +11,7 @@
 #define RINGBUFFER_SIZE 3000000
 
 typedef enum {
-	JACK,
+	JACK = 999,
 	PULSE,
 	ALSA,
 	TONE,
@@ -25,7 +25,7 @@ typedef enum {
 } krad_audio_direction_t;
 
 typedef enum {
-	NONE = 99,
+	NONE = 150,
 	VORBIS,
 	OPUS,
 	FLAC,
