@@ -38,7 +38,7 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = ["turbojpeg", "vorbis", "speex", "speexdsp", "opus", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["turbojpeg", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
 
 def configure(conf):
 	
@@ -46,6 +46,8 @@ def configure(conf):
 	
 	for l in libs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+
+	conf.env.LIB += ['pthread']
 
 
 def build(bld):
