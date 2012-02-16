@@ -26,7 +26,7 @@ struct krad_jack_St {
     
 };
 
-
+void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t direction, char *ports);
 void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two);
 void kradjack_destroy(krad_jack_t *jack);
 krad_jack_t *kradjack_create(krad_audio_t *kradaudio);

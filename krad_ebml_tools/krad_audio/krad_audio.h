@@ -1,13 +1,6 @@
 #ifndef KRAD_AUDIO_H
 #define KRAD_AUDIO_H
 
-#include <krad_alsa.h>
-#include <krad_jack.h>
-#include <krad_pulse.h>
-#include <krad_ring.h>
-
-#include <stddef.h>
-
 #define RINGBUFFER_SIZE 3000000
 
 typedef enum {
@@ -36,6 +29,14 @@ typedef enum {
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif
+
+#include <krad_alsa.h>
+#include <krad_jack.h>
+#include <krad_pulse.h>
+#include <krad_ring.h>
+#include <krad_tone.h>
+
+#include <stddef.h>
 
 typedef struct krad_audio_St krad_audio_t;
 

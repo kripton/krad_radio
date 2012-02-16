@@ -52,6 +52,7 @@ int main ( int argc, char *argv[] ) {
 			{"noaudio",			no_argument, 0, NOAUDIO},
 			
 			{"testscreen",		no_argument, 0, 't'},
+			{"bug",				required_argument, 0, 'B'},
 			
 			{"width",			required_argument, 0, 'w'},
 			{"height",			required_argument, 0, 'h'},
@@ -68,8 +69,8 @@ int main ( int argc, char *argv[] ) {
 			{"opus",			optional_argument, 0, OPUS},
 			{"vorbis",			optional_argument, 0, VORBIS},
 						
-			{"bitrate",			no_argument, 0, 'b'},
-			{"keyframes",		no_argument, 0, 'k'},
+			{"bitrate",			required_argument, 0, 'r'},
+			{"keyframes",		required_argument, 0, 'k'},
 			
 			{"password",		required_argument, 0, 'p'},
 			
@@ -78,7 +79,7 @@ int main ( int argc, char *argv[] ) {
 
 		option_index = 0;
 
-		o = getopt_long ( argc, argv, "vhpbwh", long_options, &option_index );
+		o = getopt_long ( argc, argv, "vhpwh", long_options, &option_index );
 
 		if (o == -1) {
 			break;
@@ -96,6 +97,11 @@ int main ( int argc, char *argv[] ) {
 			case 'w':
 				krad_link->capture_width = atoi(optarg);
 				break;
+			case 't':
+				krad_link->video_source = TEST;
+				krad_link->capture_width = 1280;
+				krad_link->capture_height = 720;
+				break;
 			case 'f':
 				krad_link->capture_fps = atoi(optarg);
 				break;
@@ -106,10 +112,12 @@ int main ( int argc, char *argv[] ) {
 				} else {
 					help ();
 				}
-		//memcpy(krad_link->bug, bug, sizeof(krad_link->bug));
-		//krad_link->bug_x = bug_x;
-		//krad_link->bug_y = bug_y;
-			case 'b':
+			case 'B':
+				strncpy (krad_link->bug, optarg, sizeof(krad_link->bug));
+				krad_link->bug_x = 64;
+				krad_link->bug_y = 64;
+				break;
+			case 'r':
 				krad_link->vpx_bitrate = atoi(optarg);
 				break;
 			case 'k':
@@ -117,6 +125,7 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case NOVIDEO:
 				krad_link->video_source = NOVIDEO;
+				krad_link->video_codec = NOCODEC;
 				break;
 			case FLAC:
 				krad_link->audio_codec = FLAC;
@@ -155,6 +164,9 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case JACK:
 				krad_link->krad_audio_api = JACK;
+				if (optarg != NULL) {
+					strncpy(krad_link->jack_ports, optarg, sizeof(krad_link->jack_ports));
+				}
 				break;
 			case HELP:
 				help ();

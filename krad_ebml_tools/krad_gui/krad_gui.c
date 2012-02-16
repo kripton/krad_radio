@@ -1358,11 +1358,11 @@ void kradgui_render_timecode(kradgui_t *kradgui) {
 	cairo_set_font_size (kradgui->cr, 22.0);
 	cairo_set_source_rgb (kradgui->cr, ORANGE);
 
-	cairo_move_to (kradgui->cr, kradgui->width/4.0, kradgui->height - 84.0);
+	cairo_move_to (kradgui->cr, kradgui->width/4.0, 90.0);
 	cairo_show_text (kradgui->cr, "Track Time");
 
 	
-	cairo_move_to (kradgui->cr, kradgui->width/4.0, kradgui->height - 40.0);
+	cairo_move_to (kradgui->cr, kradgui->width/4.0, 144.0);
 	cairo_show_text (kradgui->cr, kradgui->current_track_time_timecode_string);
 }
 

@@ -47,6 +47,7 @@ struct krad_link_St {
 	kradebml_t *krad_ebml;
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;
+	krad_tone_t *krad_tone;
 	
 	krad_link_operation_mode_t operation_mode;
 	krad_link_interface_mode_t interface_mode;
@@ -58,6 +59,8 @@ struct krad_link_St {
 	char device[512];
 	char alsa_capture_device[512];
 	char alsa_playback_device[512];
+	char jack_ports[512];
+	
 	char output[512];
 	char input[512];
 	char host[512];

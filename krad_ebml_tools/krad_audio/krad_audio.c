@@ -82,7 +82,7 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 			kradpulse_destroy(kradaudio->api);
 			break;
 		case TONE:
-			//kradaudio->api = kradpulse_create(kradaudio);
+			krad_tone_destroy(kradaudio->api);
 			break;
 		case NOAUDIO:
 			break;
@@ -132,7 +132,9 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 			kradaudio->api = kradpulse_create(kradaudio);
 			break;
 		case TONE:
-			//kradaudio->api = kradpulse_create(kradaudio);
+			kradaudio->sample_rate = 48000;
+			kradaudio->api = krad_tone_create(kradaudio->sample_rate);
+			krad_tone_add_preset(kradaudio->api, "dialtone");
 			break;
 		case NOAUDIO:
 			break;
@@ -142,6 +144,8 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 
 }
 
+
+///		krad_tone_run(krad_tone, audio, 4096);
 
 void kradaudio_set_process_callback(krad_audio_t *kradaudio, void kradaudio_process_callback(int, void *), void *userdata) {
 

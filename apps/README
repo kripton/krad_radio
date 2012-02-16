@@ -27,7 +27,7 @@ Daemonize:
 krad_link --password secretkode --daemon http://deimos.kradradio.com/my_fun_stream.webm
 
 Print lots of interesting information:
-krad_link --password secretkode --verbose http://deimos.kradradio.com/my_fun_stream.webm
+krad_link --password secretkode --verbose deimos.kradradio.com/my_fun_stream.webm
 
 Record to a file:
 krad_link ~/Videos/my_recording.webm

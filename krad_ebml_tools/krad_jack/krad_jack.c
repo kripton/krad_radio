@@ -1,5 +1,60 @@
 #include <krad_jack.h>
 
+
+void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t direction, char *ports)
+{
+
+	//const char *ports;
+	const char *src_port, *dst_port;;
+	const char **remote_ports;
+	int i, err;
+	
+	krad_jack_t *krad_jack = (krad_jack_t *)krad_audio->api;
+	
+	if (direction == KINPUT) {
+
+		if ((strlen(ports) == 0) || ((strncmp(ports, "physical", 8) == 0))) {
+			remote_ports = jack_get_ports (krad_jack->jack_client, NULL, NULL,
+				                           JackPortIsOutput | JackPortIsPhysical);
+
+		} else {
+			remote_ports = jack_get_ports (krad_jack->jack_client, ports, NULL, JackPortIsOutput);
+	
+		}
+
+		for (i = 0; i < 2 && remote_ports && remote_ports[i]; i++) {
+			dst_port = jack_port_name (krad_jack->input_ports[i]);
+			printf("Connecting port %d %s\n", i , dst_port);
+			err = jack_connect (krad_jack->jack_client, remote_ports[i], dst_port);
+			if (err < 0) {
+				return;
+			}
+		}
+	}
+
+	if (direction == KOUTPUT) {
+
+		if ((strlen(ports) == 0) || ((strncmp(ports, "physical", 8) == 0))) {
+			remote_ports = jack_get_ports (krad_jack->jack_client, NULL, NULL,
+				                           JackPortIsInput | JackPortIsPhysical);
+
+		} else {
+			remote_ports = jack_get_ports (krad_jack->jack_client, ports, NULL, JackPortIsInput);
+	
+		}
+
+		for (i = 0; i < 2 && remote_ports && remote_ports[i]; i++) {
+			src_port = jack_port_name (krad_jack->output_ports[i]);
+			printf("Connecting port %d %s\n", i , src_port);
+			err = jack_connect (krad_jack->jack_client, src_port, remote_ports[i]);
+			if (err < 0) {
+				return;
+			}
+		}
+	}
+
+}
+
 void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two)
 {
 	jack_port_t *port1;
