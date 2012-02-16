@@ -12,8 +12,15 @@
 
 #define APPVERSION "Krad Link 2.42"
 #define MAX_AUDIO_CHANNELS 8
-
+#define DEFAULT_TONE_PRESET "dialtone"
+#define DEFAULT_VPX_BITRATE 1000
 #define HELP -1337
+#define DEFAULT_CAPTURE_BUFFER_FRAMES 5
+#define DEFAULT_ENCODING_BUFFER_FRAMES 15
+
+#define DEFAULT_WIDTH 640
+#define DEFAULT_HEIGHT 480
+#define DEFAULT_FPS 15
 
 typedef struct krad_link_St krad_link_t;
 
@@ -147,7 +154,10 @@ struct krad_link_St {
 
 	int input_ready;
 	int verbose;	
-	int vpx_bitrate;
+	
+    vpx_codec_enc_cfg_t vpx_encoder_config;
+
+	char tone_preset[512];
 
 	SDL_Event event;
 

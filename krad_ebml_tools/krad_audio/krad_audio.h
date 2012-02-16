@@ -66,7 +66,7 @@ struct krad_audio_St {
 
 float read_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, int channel);
 void compute_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, float *samples, int channel, int sample_count, int interleaved);
-
+void kradaudio_set_tone_preset(krad_audio_t *kradaudio, char *preset);
 void kradaudio_set_process_callback(krad_audio_t *kradaudio, void kradaudio_process_callback(int, void *), void *userdata);
 void kradaudio_destroy(krad_audio_t *kradaudio);
 krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, krad_audio_api_t api);

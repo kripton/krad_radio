@@ -85,7 +85,7 @@ struct krad_vpx_decoder_St {
 /* public */
 
 void krad_vpx_encoder_finish(krad_vpx_encoder_t *kradvpx);
-
+void krad_vpx_encoder_set(krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg);
 krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate);
 void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx);
 int krad_vpx_encoder_write(krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe);

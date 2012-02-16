@@ -58,6 +58,18 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate) 
 
 }
 
+void krad_vpx_encoder_set(krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg) {
+
+	int ret;
+
+	ret = vpx_codec_enc_config_set (&kradvpx->encoder, cfg);
+
+	if (ret != VPX_CODEC_OK) {
+		printf("VPX Config problem: %s\n", vpx_codec_err_to_string(ret));
+	}
+
+}
+
 void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx) {
 
 	if (kradvpx->image != NULL) {

@@ -60,6 +60,10 @@ int main ( int argc, char *argv[] ) {
 			{"mjpeg",			no_argument, 0, 'm'},
 			{"yuv",				no_argument, 0, 'y'},
 
+			{"key",				required_argument, 0, 'K'},
+			{"minkey",			required_argument, 0, 'k'},
+			{"maxkey",			required_argument, 0, 'l'},
+
 			{"alsa",			optional_argument, 0, ALSA},
 			{"jack",			optional_argument, 0, JACK},
 			{"pulse",			optional_argument, 0, PULSE},
@@ -70,7 +74,6 @@ int main ( int argc, char *argv[] ) {
 			{"vorbis",			optional_argument, 0, VORBIS},
 						
 			{"bitrate",			required_argument, 0, 'r'},
-			{"keyframes",		required_argument, 0, 'k'},
 			
 			{"password",		required_argument, 0, 'p'},
 			
@@ -118,10 +121,17 @@ int main ( int argc, char *argv[] ) {
 				krad_link->bug_y = 64;
 				break;
 			case 'r':
-				krad_link->vpx_bitrate = atoi(optarg);
+				krad_link->vpx_encoder_config.rc_target_bitrate = atoi(optarg);
+				break;
+			case 'K':
+				krad_link->vpx_encoder_config.kf_min_dist = atoi(optarg);
+				krad_link->vpx_encoder_config.kf_max_dist = atoi(optarg);
 				break;
 			case 'k':
-				//
+				krad_link->vpx_encoder_config.kf_min_dist = atoi(optarg);
+				break;
+			case 'l':
+				krad_link->vpx_encoder_config.kf_max_dist = atoi(optarg);
 				break;
 			case NOVIDEO:
 				krad_link->video_source = NOVIDEO;
@@ -151,6 +161,9 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case TONE:
 				krad_link->krad_audio_api = TONE;
+				if (optarg != NULL) {
+					strncpy(krad_link->tone_preset, optarg, sizeof(krad_link->tone_preset));
+				}
 				break;
 			case PULSE:
 				krad_link->krad_audio_api = PULSE;

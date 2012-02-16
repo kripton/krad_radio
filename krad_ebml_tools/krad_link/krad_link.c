@@ -129,8 +129,12 @@ void *video_encoding_thread(void *arg) {
 	char keyframe_char[1];
 	int first = 1;
 
-	krad_link->krad_vpx_encoder = krad_vpx_encoder_create(krad_link->encoding_width, krad_link->encoding_height, krad_link->vpx_bitrate);
+	krad_link->krad_vpx_encoder = krad_vpx_encoder_create(krad_link->encoding_width, krad_link->encoding_height, krad_link->vpx_encoder_config.rc_target_bitrate);
 
+	krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
+	krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
+
+	krad_vpx_encoder_set(krad_link->krad_vpx_encoder, &krad_link->vpx_encoder_config);
 
 	krad_link->krad_vpx_encoder->quality = 1000 * ((krad_link->encoding_fps / 4) * 3);
 
@@ -287,6 +291,10 @@ void *audio_encoding_thread(void *arg) {
 	if ((krad_link->krad_audio_api == JACK) && (krad_link->jack_ports[0] != '\0')) {
 		dbg("Jack ports: %s\n", krad_link->jack_ports);
 		jack_connect_to_ports (krad_link->krad_audio, KINPUT, krad_link->jack_ports);
+	}
+		
+	if ((krad_link->krad_audio_api == TONE) && (strncmp(DEFAULT_TONE_PRESET, krad_link->tone_preset, strlen(DEFAULT_TONE_PRESET)) != 0)) {
+		kradaudio_set_tone_preset(krad_link->krad_audio, krad_link->tone_preset);
 	}
 		
 	switch (krad_link->audio_codec) {
@@ -661,32 +669,6 @@ void krad_link_handle_input(krad_link_t *krad_link) {
 					case SDLK_z:
 						kradgui_remove_bug (krad_link->krad_gui);
 						break;
-					/*			        
-					case SDLK_m:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/DinoHead-r2_small.png", 30, 30);
-						break;
-					case SDLK_x:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/fish_xiph_org.png", 30, 30);
-						break;
-					case SDLK_h:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/html_5logo.png", 30, 30);
-						break;
-					case SDLK_w:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/WebM-logo1.png", 30, 30);
-						break;
-					case SDLK_e:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/airmoz3.png", 30, 30);
-						break;
-					case SDLK_r:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/airmoz4.png", 30, 30);
-						break;					        
-					case SDLK_s:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/airmoz5.png", 30, 30);
-						break;
-					case SDLK_a:
-						kradgui_set_bug (krad_link->krad_gui, "/home/oneman/Pictures/airmoz6.png", 30, 30);
-						break;
-					*/
 					case SDLK_b:
 						if (krad_link->bug[0] != '\0') {
 							kradgui_set_bug (krad_link->krad_gui, krad_link->bug, krad_link->bug_x, krad_link->bug_y);
@@ -1621,12 +1603,12 @@ krad_link_t *krad_link_create() {
 	
 	krad_link = calloc(1, sizeof(krad_link_t));
 		
-	krad_link->capture_buffer_frames = 5;
-	krad_link->encoding_buffer_frames = 15;
+	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
+	krad_link->encoding_buffer_frames = DEFAULT_ENCODING_BUFFER_FRAMES;
 	
-	krad_link->capture_width = 640;
-	krad_link->capture_height = 480;
-	krad_link->capture_fps = 15;
+	krad_link->capture_width = DEFAULT_WIDTH;
+	krad_link->capture_height = DEFAULT_HEIGHT;
+	krad_link->capture_fps = DEFAULT_FPS;
 
 	krad_link->composite_fps = krad_link->capture_fps;
 	krad_link->encoding_fps = krad_link->capture_fps;
@@ -1636,8 +1618,6 @@ krad_link_t *krad_link_create() {
 	krad_link->encoding_height = krad_link->capture_height;
 	krad_link->display_width = krad_link->capture_width;
 	krad_link->display_height = krad_link->capture_height;
-
-	krad_link->vpx_bitrate = 1250;
 	
 	strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
 	strncpy(krad_link->alsa_capture_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(krad_link->alsa_capture_device));
@@ -1650,6 +1630,17 @@ krad_link_t *krad_link_create() {
 	krad_link->video_codec = VP8;
 	krad_link->audio_codec = VORBIS;
 	krad_link->video_source = V4L2;
+	
+	strncpy(krad_link->tone_preset, DEFAULT_TONE_PRESET, sizeof(krad_link->tone_preset));
+	vpx_codec_enc_config_default(interface, &krad_link->vpx_encoder_config, 0);
+	
+	krad_link->vpx_encoder_config.rc_target_bitrate = DEFAULT_VPX_BITRATE;
+	krad_link->vpx_encoder_config.kf_max_dist = krad_link->capture_fps * 3;	
+	krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
+	krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
+	krad_link->vpx_encoder_config.g_threads = 4;
+	krad_link->vpx_encoder_config.kf_mode = VPX_KF_AUTO;
+	krad_link->vpx_encoder_config.rc_end_usage = VPX_VBR;
 	
 	return krad_link;
 }
@@ -1672,7 +1663,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 	if (krad_link->interface_mode == DAEMON) {
 		daemonize();
 	}
-
+	
 	if (krad_link->interface_mode == WINDOW) {
 
 		krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->display_width, krad_link->display_height, 

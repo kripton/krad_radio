@@ -187,14 +187,12 @@ void *tone_generator_thread(void *arg) {
 
 	while (kradaudio->run_tone) {
 
-
 		if ((krad_ringbuffer_write_space(kradaudio->input_ringbuffer[0]) >= 4 * 8192 * 4) && 
 			(krad_ringbuffer_write_space(kradaudio->input_ringbuffer[1]) >= 4 * 8192 * 4)) {
 			
 			krad_tone_run(kradaudio->api, tone_samples, 4 * 8192);
 			krad_ringbuffer_write (kradaudio->input_ringbuffer[0], (char *)tone_samples, 4 * 8192 * 4 );
 			krad_ringbuffer_write (kradaudio->input_ringbuffer[1], (char *)tone_samples, 4 * 8192 * 4 );
-		
 		}
 	
 		clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -212,6 +210,8 @@ void *tone_generator_thread(void *arg) {
 		}
 			
 		if (kradaudio->process_callback != NULL) {
+			compute_peak(kradaudio, KINPUT, tone_samples, 0, tone_period, 0);
+			compute_peak(kradaudio, KINPUT, tone_samples, 1, tone_period, 0);
 			kradaudio->process_callback(tone_period, kradaudio->userdata);
 		}
 			
@@ -228,7 +228,13 @@ void *tone_generator_thread(void *arg) {
 				
 
 
-///		krad_tone_run(krad_tone, audio, 4096);
+void kradaudio_set_tone_preset(krad_audio_t *kradaudio, char *preset) {
+
+	if (kradaudio->audio_api == TONE) {
+		krad_tone_clear(kradaudio->api);
+		krad_tone_add_preset(kradaudio->api, preset);
+	}
+}
 
 void kradaudio_set_process_callback(krad_audio_t *kradaudio, void kradaudio_process_callback(int, void *), void *userdata) {
 
