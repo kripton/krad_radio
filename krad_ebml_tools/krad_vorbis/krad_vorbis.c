@@ -50,9 +50,9 @@ krad_vorbis_t *krad_vorbis_encoder_create(int channels, int sample_rate, float q
 	vorbis->header[0] = 0x02;
 	vorbis->headerpos++;
 
-	printf("main is %ld\n", vorbis->header_main.bytes);
+	//printf("main is %ld\n", vorbis->header_main.bytes);
 	if (vorbis->header_main.bytes > 255) {
-		printf("vorbis mainheader to long for dumb code\n");
+		printf("vorbis mainheader to long for code\n");
 		exit(1);
 	}
 	
@@ -60,9 +60,9 @@ krad_vorbis_t *krad_vorbis_encoder_create(int channels, int sample_rate, float q
 	vorbis->header[1] = (char)vorbis->demented;
 	vorbis->headerpos++;
 	
-	printf("comments is %ld\n", vorbis->header_comments.bytes);
+	//printf("comments is %ld\n", vorbis->header_comments.bytes);
 	if (vorbis->header_comments.bytes > 255) {
-		printf("vorbis comments header to long for dumb code\n");
+		printf("vorbis comments header to long for code\n");
 		exit(1);
 	}
 	
@@ -73,20 +73,20 @@ krad_vorbis_t *krad_vorbis_encoder_create(int channels, int sample_rate, float q
 	memcpy(vorbis->header + vorbis->headerpos, vorbis->header_main.packet, vorbis->header_main.bytes);
 	vorbis->headerpos += vorbis->header_main.bytes;
 		
-	printf("main is %ld bytes headerpos is  %d \n", vorbis->header_main.bytes, vorbis->headerpos);
+	//printf("main is %ld bytes headerpos is  %d \n", vorbis->header_main.bytes, vorbis->headerpos);
 		
 	memcpy(vorbis->header + vorbis->headerpos, vorbis->header_comments.packet, vorbis->header_comments.bytes);
 	vorbis->headerpos += vorbis->header_comments.bytes;
 
-	printf("comments is %ld bytes headerpos is  %d \n", vorbis->header_comments.bytes, vorbis->headerpos);
+	//printf("comments is %ld bytes headerpos is  %d \n", vorbis->header_comments.bytes, vorbis->headerpos);
 		
 	memcpy(vorbis->header + vorbis->headerpos, vorbis->header_codebooks.packet, vorbis->header_codebooks.bytes);
 	vorbis->headerpos += vorbis->header_codebooks.bytes;
 
-	printf("codebooks is %ld bytes headerpos is  %d \n", vorbis->header_codebooks.bytes, vorbis->headerpos);
+	//printf("codebooks is %ld bytes headerpos is  %d \n", vorbis->header_codebooks.bytes, vorbis->headerpos);
 
 
-	printf("Vorbis header is %d bytes\n", vorbis->headerpos);
+	//printf("Vorbis header is %d bytes\n", vorbis->headerpos);
 
 	return vorbis;
 	
@@ -196,8 +196,7 @@ krad_vorbis_t *krad_vorbis_decoder_create(unsigned char *header1, int header1len
 	vorbis_synthesis_init(&vorbis->vdsp, &vorbis->vinfo);
 	vorbis_block_init(&vorbis->vdsp, &vorbis->vblock);
 
-	printf("Vorbis Info - Version: %d Channels: %d Sample Rate: %ld Bitrate: %ld %ld %ld\n", vorbis->vinfo.version, vorbis->vinfo.channels, vorbis->vinfo.rate, vorbis->vinfo.bitrate_upper, vorbis->vinfo.bitrate_nominal, vorbis->vinfo.bitrate_lower);
-
+	//printf("Vorbis Info - Version: %d Channels: %d Sample Rate: %ld Bitrate: %ld %ld %ld\n", vorbis->vinfo.version, vorbis->vinfo.channels, vorbis->vinfo.rate, vorbis->vinfo.bitrate_upper, vorbis->vinfo.bitrate_nominal, vorbis->vinfo.bitrate_lower);
 
 	for (c = 0; c < vorbis->vinfo.channels; c++) {
 		vorbis->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);

@@ -782,6 +782,8 @@ int kradebml_open_output_stream(kradebml_t *kradebml, char *host, int port, char
 	kradebml_stream_open(kradebml);
 
 	server_build_http_header(kradebml->server);
+
+	printf("Krad EBML Source: Mounting on %s\n", mount);
 	
 	server_send(kradebml->server, kradebml->server->headers, strlen(kradebml->server->headers));
 
@@ -1283,7 +1285,7 @@ void kradebml_cluster(kradebml_t *kradebml, int timecode) {
 
         if(glob->cluster_open) {
         
-			printf("\n\ncluster end buffer size is %zu\n\n", glob->buffer_pos);
+			//printf("\n\ncluster end buffer size is %zu\n\n", glob->buffer_pos);
         
             Ebml_EndSubElement(glob, &glob->startCluster);
             kradebml_write(kradebml);

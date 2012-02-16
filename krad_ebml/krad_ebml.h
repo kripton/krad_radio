@@ -33,6 +33,9 @@ extern "C" {
 #include <stddef.h>
 #include <inttypes.h>
 
+#ifndef KRADEBML_VERSION
+#define KRADEBML_VERSION "0.41 static"
+#endif
 
 #define DEFAULT_HOST "kradradio.com"
 #define DEFAULT_PORT 9040
@@ -46,7 +49,6 @@ extern "C" {
 #define DEFAULT_DESCRIPTION "Krad EBML Streaming Test"
 #define DEFAULT_PUBLIC 0
 #define TIMESLICE 4
-#define KRADEBML_VERSION "0.31"
 
 #define LITERALU64(n) n##LLU
 #define off_t long long

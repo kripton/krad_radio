@@ -24,6 +24,8 @@ gcc -g -Wall krad_link.c \
 -I../krad_ebml_tools/krad_ring \
 ../krad_ebml_tools/krad_alsa/krad_alsa.c \
 -I../krad_ebml_tools/krad_alsa \
+../krad_ebml_tools/krad_link/krad_link.c \
+-I../krad_ebml_tools/krad_link \
 ../krad_ebml/krad_ebml.c \
 -I../krad_ebml/halloc/ \
 ../krad_ebml/halloc/src/halloc.c \

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-KRADEBML_VERSION = '0.31'
+KRADEBML_VERSION = '0.41'
 
 sources = """
 krad_ebml.c
@@ -20,7 +20,7 @@ halloc/src/
 def configure(conf):
 
 	conf.env['KRADEBML_VERSION'] = KRADEBML_VERSION
-
+	conf.define('KRADEBML_VERSION', KRADEBML_VERSION)
 def build(bld):
 
 	bld.shlib(
