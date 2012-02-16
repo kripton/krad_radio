@@ -474,7 +474,9 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 	
-	if ((krad_link->audio_codec == VORBIS) && (krad_link->video_codec == VP8)) {
+	if (((krad_link->audio_codec == VORBIS) || (krad_link->audio_codec == NOCODEC)) && 
+		((krad_link->video_codec == VP8) || (krad_link->video_codec == NOCODEC))) {
+		
 		kradebml_header(krad_link->krad_ebml, "webm", APPVERSION);
 	} else {
 		kradebml_header(krad_link->krad_ebml, "matroska", APPVERSION);
@@ -964,54 +966,47 @@ void krad_link_run(krad_link_t *krad_link) {
 
 		while (!*krad_link->shutdown) {
 
-			if (krad_link->video_source == NOVIDEO) {
-	
-				usleep(60000);
-
-			} else {
-
-				if ((krad_link->capturing) && (krad_link->interface_mode != WINDOW)) {
-					while (krad_ringbuffer_read_space(krad_link->captured_frames_buffer) < krad_link->composited_frame_byte_size) {
-						usleep(5000);
-					}
+			if ((krad_link->capturing) && (krad_link->interface_mode != WINDOW)) {
+				while (krad_ringbuffer_read_space(krad_link->captured_frames_buffer) < krad_link->composited_frame_byte_size) {
+					usleep(5000);
 				}
-
-				if (!krad_link->capturing) {
-				
-				}
-
-				krad_link_composite ( krad_link );
-
-				if (krad_link->interface_mode == WINDOW) {
-					krad_link_display(krad_link);
-					krad_link_handle_input(krad_link);
-				}
-			
-			
-			
-				if (!krad_link->capturing) {
-				
-					// Waiting so that test signal creation is "in actual time" like live video sources
-				
-					kradgui_update_elapsed_time(krad_link->krad_gui);
-
-					krad_link->next_frame_time_ms = krad_link->krad_gui->frame * (1000.0f / (float)krad_link->composite_fps);
-	
-					krad_link->next_frame_time.tv_sec = (krad_link->next_frame_time_ms - (krad_link->next_frame_time_ms % 1000)) / 1000;
-					krad_link->next_frame_time.tv_nsec = (krad_link->next_frame_time_ms % 1000) * 1000000;
-	
-					krad_link->sleep_time = timespec_diff(krad_link->krad_gui->elapsed_time, krad_link->next_frame_time);
-	
-					if ((krad_link->sleep_time.tv_sec > -1) && (krad_link->sleep_time.tv_nsec > 0))  {
-						nanosleep (&krad_link->sleep_time, NULL);
-					}
-	
-					printf("Elapsed time %s\r", krad_link->krad_gui->elapsed_time_timecode_string);
-					fflush(stdout);
-		
-				}
-		
 			}
+
+			if (!krad_link->capturing) {
+			
+			}
+
+			krad_link_composite ( krad_link );
+
+			if (krad_link->interface_mode == WINDOW) {
+				krad_link_display(krad_link);
+				krad_link_handle_input(krad_link);
+			}
+		
+		
+		
+			if (!krad_link->capturing) {
+			
+				// Waiting so that test signal creation is "in actual time" like live video sources
+			
+				kradgui_update_elapsed_time(krad_link->krad_gui);
+
+				krad_link->next_frame_time_ms = krad_link->krad_gui->frame * (1000.0f / (float)krad_link->composite_fps);
+
+				krad_link->next_frame_time.tv_sec = (krad_link->next_frame_time_ms - (krad_link->next_frame_time_ms % 1000)) / 1000;
+				krad_link->next_frame_time.tv_nsec = (krad_link->next_frame_time_ms % 1000) * 1000000;
+
+				krad_link->sleep_time = timespec_diff(krad_link->krad_gui->elapsed_time, krad_link->next_frame_time);
+
+				if ((krad_link->sleep_time.tv_sec > -1) && (krad_link->sleep_time.tv_nsec > 0))  {
+					nanosleep (&krad_link->sleep_time, NULL);
+				}
+
+				printf("Elapsed time %s\r", krad_link->krad_gui->elapsed_time_timecode_string);
+				fflush(stdout);
+	
+			}
+		
 		}
 	}
 

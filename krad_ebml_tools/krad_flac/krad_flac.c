@@ -66,7 +66,7 @@ FLAC__StreamEncoderSeekStatus krad_flac_encoder_seek_callback(const FLAC__Stream
 
 	krad_flac_t *flac = (krad_flac_t *)client_data;
 	
-	printf("got seek callback %lu\n", absolute_byte_offset);
+	//printf("got seek callback %lu\n", absolute_byte_offset);
 	
 	if (absolute_byte_offset < 666 + 23) {
 	
@@ -100,7 +100,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 	
 	//additional header metadata -- this code is above so we dont write streaminfo block twice..
 	if ((samples == 0) && (flac->have_min_header == 1) && (flac->total_frames == 0) && (flac->streaminfo_rewrite == 0)) {
-		printf("additional!! %d\n", bytes);
+		//printf("additional!! %d\n", bytes);
 		memcpy(flac->header + flac->header_size, fbuffer, bytes);
 		flac->header_size += bytes;
 	}
@@ -131,22 +131,21 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 	
 	// rewrites streaminfo block with samples, min/max blocksize and md5
 	if (flac->streaminfo_rewrite) {
-		printf("yeehaw %d bytes on ye streaminfo rewrite at %d\n", bytes, flac->streaminfo_rewrite);
-
+		//printf("yeehaw %d bytes on ye streaminfo rewrite at %d\n", bytes, flac->streaminfo_rewrite);
 
 		if (bytes == 16) {
 		
 					int b;
 			char testbuffer[256];
 	
-			printf("flac encoder write callback called with 0 samples, this is metadata\n");
+			//printf("flac encoder write callback called with 0 samples, this is metadata\n");
 			if (bytes < 128) {
 				memset(testbuffer, '\0', 256);
 				for(b = 0; b < bytes; b++) {
 					sprintf(testbuffer + (b * 2), "%02x", fbuffer[b]);
 				}
 			}
-			printf(" --%s-- \n", testbuffer);
+			//printf(" --%s-- \n", testbuffer);
 		
 		}
 

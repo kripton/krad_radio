@@ -96,6 +96,9 @@ int main ( int argc, char *argv[] ) {
 			case 'w':
 				krad_link->capture_width = atoi(optarg);
 				break;
+			case 'f':
+				krad_link->capture_fps = atoi(optarg);
+				break;
 			case 'h':
 				if (optarg != NULL) {
 					krad_link->capture_height = atoi(optarg);
@@ -135,6 +138,7 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case NOAUDIO:
 				krad_link->krad_audio_api = NOAUDIO;
+				krad_link->audio_codec = NOCODEC;
 				break;
 			case TONE:
 				krad_link->krad_audio_api = TONE;
@@ -168,7 +172,7 @@ int main ( int argc, char *argv[] ) {
 			//printf ("%s ", argv[optind]);
 			//putchar ('\n');
 			
-			if (argv[optind][0] == '/')  {		
+			if ((argv[optind][0] == '/') || (argv[optind][0] == '~') || (argv[optind][0] == '.')) {		
 
 				if (strncmp("/dev", argv[optind], 4) == 0) {
 					memcpy(krad_link->device, argv[optind], sizeof(krad_link->device));
