@@ -6,9 +6,9 @@ extern int verbose;
 
 void help() {
 
-	printf("Krad Link\n");
+	printf("%s\n", APPVERSION);
 	
-	printf("krad_link [options] [file/url]\n");
+	printf("\nkrad_link [OPTIONS] [URI]\n\n");
 	
 	printf("--help --verbose\n");
 

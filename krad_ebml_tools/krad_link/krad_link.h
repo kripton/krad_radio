@@ -10,7 +10,7 @@
 #include "krad_vorbis.h"
 #include "krad_flac.h"
 
-#define APPVERSION "Krad Link 2.4"
+#define APPVERSION "Krad Link 2.42"
 #define MAX_AUDIO_CHANNELS 8
 
 #define HELP -1337

@@ -4,10 +4,9 @@ Network A/V Transmitter/Receiver
 
 1.0 Features / Guide
 
-
 Krad Link is a program used primarly for streaming WebM from a webcam to an Icecast server.
 
-Example:
+Examples:
 
 Use defaults to send a WebM stream:
 krad_link --password secretkode deimos.kradradio.com/my_fun_stream.webm
@@ -17,6 +16,12 @@ krad_link --password secretkode --width 640 --height 360 --fps 10 http://deimos.
 
 Don't open the video preview window:
 krad_link --password secretkode --nowindow http://deimos.kradradio.com/my_fun_stream.webm
+
+Send a video-only testing stream without a preview window:
+krad_link --password secretkode --nowindow --noaudio --testscreen http://deimos.kradradio.com/my_test_stream.webm
+
+Use a PNG file as a bug:
+krad_link --password secretkode --bug ~/Pictures/logo.png http://deimos.kradradio.com/my_bugged_stream.webm
 
 Daemonize:
 krad_link --password secretkode --daemon http://deimos.kradradio.com/my_fun_stream.webm
@@ -36,8 +41,23 @@ krad_link --jack ~/Videos/my_jacked_recording.webm
 Use Pulse Audio:
 krad_link --pulse ~/Videos/my_pulsed_recording.webm
 
+Transmit a stream with FLAC audio: (Not WebM compatible)
+krad_link --password secretkode --flac http://deimos.kradradio.com/my_good_sounding_stream.mkv
+
+Transmit a stream with OPUS audio: (Not WebM compatible)
+krad_link --password secretkode --opus http://deimos.kradradio.com/my_ietf_committee_stream.mkv
 
 
+## Keyboard controls while running with a window:
+
+V - Toggle VU meter overlay
+L - Toggle "Live" overlay
+Q - Quit
+Z - Remove Bug
+B - Make bug appear
+9 - Increase bug transparency
+0 - Increase bug opacity
+0 - Increase bug opacity
 
 ## Release Plan
 
