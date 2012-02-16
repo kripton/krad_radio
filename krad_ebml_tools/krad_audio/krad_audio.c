@@ -1,5 +1,7 @@
 #include <krad_audio.h>
 
+void *tone_generator_thread(void *arg);
+
 float iec_scale(float db) {
 	
 	float def;
@@ -82,6 +84,8 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 			kradpulse_destroy(kradaudio->api);
 			break;
 		case TONE:
+			kradaudio->run_tone = 0;
+			pthread_join(kradaudio->tone_generator_thread, NULL);
 			krad_tone_destroy(kradaudio->api);
 			break;
 		case NOAUDIO:
@@ -135,6 +139,8 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 			kradaudio->sample_rate = 48000;
 			kradaudio->api = krad_tone_create(kradaudio->sample_rate);
 			krad_tone_add_preset(kradaudio->api, "dialtone");
+			kradaudio->run_tone = 1;
+			pthread_create(&kradaudio->tone_generator_thread, NULL, tone_generator_thread, (void *)kradaudio);		
 			break;
 		case NOAUDIO:
 			break;
@@ -143,6 +149,83 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 	return kradaudio;
 
 }
+
+		
+struct timespec atimespec_diff(struct timespec start, struct timespec end)
+{
+	struct timespec temp;
+	if ((end.tv_nsec-start.tv_nsec)<0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
+}
+		
+void *tone_generator_thread(void *arg) {
+
+	krad_audio_t *kradaudio = (krad_audio_t *)arg;
+
+	uint64_t count;
+	int next_time_ms;
+	float *tone_samples;
+	int tone_period;
+
+	struct timespec start_time;
+	struct timespec current_time;
+	struct timespec elapsed_time;
+	struct timespec next_time;
+	struct timespec sleep_time;
+	
+	tone_period = 512;
+	count = 0;
+	tone_samples = malloc(4 * 8192 * 4);
+
+	clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+	while (kradaudio->run_tone) {
+
+
+		if ((krad_ringbuffer_write_space(kradaudio->input_ringbuffer[0]) >= 4 * 8192 * 4) && 
+			(krad_ringbuffer_write_space(kradaudio->input_ringbuffer[1]) >= 4 * 8192 * 4)) {
+			
+			krad_tone_run(kradaudio->api, tone_samples, 4 * 8192);
+			krad_ringbuffer_write (kradaudio->input_ringbuffer[0], (char *)tone_samples, 4 * 8192 * 4 );
+			krad_ringbuffer_write (kradaudio->input_ringbuffer[1], (char *)tone_samples, 4 * 8192 * 4 );
+		
+		}
+	
+		clock_gettime(CLOCK_MONOTONIC, &current_time);
+		elapsed_time = atimespec_diff(start_time, current_time);
+
+		next_time_ms = count * (tone_period * (1000.0f / kradaudio->sample_rate));
+
+		next_time.tv_sec = (next_time_ms - (next_time_ms % 1000)) / 1000;
+		next_time.tv_nsec = (next_time_ms % 1000) * 1000000;
+
+		sleep_time = atimespec_diff(elapsed_time, next_time);
+
+		if ((sleep_time.tv_sec > -1) && (sleep_time.tv_nsec > 0))  {
+			nanosleep (&sleep_time, NULL);
+		}
+			
+		if (kradaudio->process_callback != NULL) {
+			kradaudio->process_callback(tone_period, kradaudio->userdata);
+		}
+			
+		//printf("sleeped for %zu ns \n", sleep_time.tv_nsec);
+			
+		count++;
+				
+	}	
+			
+	free(tone_samples);
+				
+	return NULL;
+}
+				
 
 
 ///		krad_tone_run(krad_tone, audio, 4096);

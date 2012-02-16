@@ -59,6 +59,9 @@ struct krad_audio_St {
 	void (*process_callback)(int, void *);
     void *userdata;
     
+	pthread_t tone_generator_thread;
+	int run_tone;
+    
 };
 
 float read_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, int channel);
