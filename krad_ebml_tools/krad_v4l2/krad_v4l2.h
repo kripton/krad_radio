@@ -51,6 +51,7 @@ struct krad_v4l2_St {
 	int height;
 	int fps;
 
+	int mjpeg_mode;
 
 	int frames;
 	

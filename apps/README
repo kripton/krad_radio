@@ -19,6 +19,10 @@ krad_link --password secretkode deimos.kradradio.com/my_fun_stream.webm
 Set Width, height and frames per second options:
 krad_link --password secretkode --width 640 --height 360 --fps 10 http://deimos.kradradio.com/my_fun_stream.webm
 
+Use a high resolution MJPEG mode:
+krad_link --password secretkode --width 1280 --height 720 --fps 30 --mjpeg http://deimos.kradradio.com/my_fun_stream.webm
+
+
 Don't open the video preview window:
 krad_link --password secretkode --nowindow http://deimos.kradradio.com/my_fun_stream.webm
 

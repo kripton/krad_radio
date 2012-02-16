@@ -58,7 +58,6 @@ int main ( int argc, char *argv[] ) {
 			{"height",			required_argument, 0, 'h'},
 			{"fps",				required_argument, 0, 'f'},
 			{"mjpeg",			no_argument, 0, 'm'},
-			{"yuv",				no_argument, 0, 'y'},
 
 			{"key",				required_argument, 0, 'K'},
 			{"minkey",			required_argument, 0, 'k'},
@@ -96,6 +95,9 @@ int main ( int argc, char *argv[] ) {
 			case 'p':
 				strncpy(krad_link->password, optarg, sizeof(krad_link->password));
 				krad_link->operation_mode = CAPTURE;
+				break;
+			case 'm':
+				krad_link->mjpeg_mode = 1;
 				break;
 			case 'w':
 				krad_link->capture_width = atoi(optarg);

@@ -565,11 +565,14 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 	fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	fmt.fmt.pix.width       = kradv4l2->width; 
 	fmt.fmt.pix.height      = kradv4l2->height;
-	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 	
-//	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-	
-//	fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
+	if (kradv4l2->mjpeg_mode) {
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+	} else {
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+	}
+		
+	//	fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 
 	if (-1 == xioctl (kradv4l2->fd, VIDIOC_S_FMT, &fmt)) {
 		errno_exit ("VIDIOC_S_FMT");
