@@ -51,8 +51,8 @@ int main (int argc, char *argv[]) {
 
 	struct stat st;
 	krad_ebml_video_player_hud_test_t *hudtest;
-	krad_codec_type_t audio_codec;
-	krad_codec_type_t video_codec;
+	krad_codec_t audio_codec;
+	krad_codec_t video_codec;
 
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_vpx_decoder_t *krad_vpx_decoder;

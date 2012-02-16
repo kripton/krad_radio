@@ -33,12 +33,6 @@ typedef enum {
 } krad_cam_interface_mode_t;
 
 typedef enum {
-	VP8 = 400,
-	DIRAC,
-	THEORA,
-} krad_video_codec_t;
-
-typedef enum {
 	TEST = 500,
 	V4L2,
 	NOVIDEO,
@@ -61,8 +55,8 @@ struct krad_cam_St {
 	krad_cam_interface_mode_t interface_mode;
 	krad_video_source_t video_source;
 	krad_audio_api_t krad_audio_api;
-	krad_audio_codec_t audio_codec;
-	krad_video_codec_t video_codec;
+	krad_codec_t audio_codec;
+	krad_codec_t video_codec;
 	
 	char device[512];
 	char alsa_capture_device[512];
@@ -672,7 +666,7 @@ void *ebml_output_thread(void *arg) {
 											 			 krad_cam->encoding_width, krad_cam->encoding_height);
 	}	
 	
-	if (krad_cam->audio_codec != NONE) {
+	if (krad_cam->audio_codec != NOCODEC) {
 	
 		switch (krad_cam->audio_codec) {
 			case VORBIS:
@@ -725,7 +719,7 @@ void *ebml_output_thread(void *arg) {
 		}
 		
 		
-		if (krad_cam->audio_codec != NONE) {
+		if (krad_cam->audio_codec != NOCODEC) {
 		
 			if ((krad_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) >= 4) && 
 				((krad_cam->video_source != NOVIDEO) || ((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed))) {
@@ -758,7 +752,7 @@ void *ebml_output_thread(void *arg) {
 		}
 		
 		
-		if ((krad_cam->audio_codec != NONE) && (!(krad_cam->video_source))) {
+		if ((krad_cam->audio_codec != NOCODEC) && (!(krad_cam->video_source))) {
 		
 			if (krad_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < 4) {
 				
@@ -772,7 +766,7 @@ void *ebml_output_thread(void *arg) {
 		
 		}
 		
-		if ((!(krad_cam->audio_codec != NONE)) && (krad_cam->video_source)) {
+		if ((!(krad_cam->audio_codec != NOCODEC)) && (krad_cam->video_source)) {
 		
 			if (krad_ringbuffer_read_space(krad_cam->encoded_video_ringbuffer) < 4) {
 		
@@ -787,7 +781,7 @@ void *ebml_output_thread(void *arg) {
 		}
 
 
-		if ((krad_cam->audio_codec != NONE) && (krad_cam->video_source)) {
+		if ((krad_cam->audio_codec != NOCODEC) && (krad_cam->video_source)) {
 
 			if (((krad_ringbuffer_read_space(krad_cam->encoded_audio_ringbuffer) < 4) || 
 				((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed)) && 
@@ -1234,18 +1228,6 @@ void *ebml_input_thread(void *arg) {
 		audio_tracknum = 0;
 	}
 	
-	if (krad_cam->audio_codec == KRAD_OPUS) {
-		krad_cam->audio_codec = OPUS;
-	}
-	
-	if (krad_cam->audio_codec == KRAD_FLAC) {
-		krad_cam->audio_codec = FLAC;
-	}
-	
-	if (krad_cam->audio_codec == KRAD_VORBIS) {
-		krad_cam->audio_codec = VORBIS;
-	}
-	
 	printf("video codec is %d and audio codec is %d\n", krad_cam->video_codec, krad_cam->audio_codec);
 	
 	if (krad_cam->audio_codec == FLAC) {
@@ -1667,7 +1649,7 @@ void krad_cam_destroy(krad_cam_t *krad_cam) {
 		krad_cam->encoding = 3;
 	}
 	
-	if (krad_cam->audio_codec != NONE) {
+	if (krad_cam->audio_codec != NOCODEC) {
 		pthread_join(krad_cam->audio_encoding_thread, NULL);
 	}
 	

@@ -51,8 +51,8 @@ int main (int argc, char *argv[]) {
 
 	struct stat st;
 	krad_ebml_video_player_hud_test_t *hudtest;
-	krad_codec_type_t audio_codec;
-	krad_codec_type_t video_codec;
+	krad_codec_t audio_codec;
+	krad_codec_t video_codec;
 
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_vpx_decoder_t *krad_vpx_decoder;
@@ -159,25 +159,25 @@ int main (int argc, char *argv[]) {
 	
 	printf("video codec is %d and audio codec is %d\n", video_codec, audio_codec);
 	
-	if (audio_codec == KRAD_FLAC) {
+	if (audio_codec == FLAC) {
 		bytes = kradebml_read_audio_header(krad_ebml, 1, buffer);
 		printf("got flac header bytes of %d\n", bytes);
 		//exit(1);
 		krad_flac_decode(krad_flac, buffer, bytes, audio_data);
 	}
 	
-	if (audio_codec == KRAD_VORBIS) {
+	if (audio_codec == VORBIS) {
 		printf("got vorbis header bytes of %d %d %d\n", krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3_len);
 		krad_vorbis = krad_vorbis_decoder_create(krad_ebml->vorbis_header1, krad_ebml->vorbis_header1_len, krad_ebml->vorbis_header2, krad_ebml->vorbis_header2_len, krad_ebml->vorbis_header3, krad_ebml->vorbis_header3_len);
 	}
 	
-	if (audio_codec == KRAD_OPUS) {
+	if (audio_codec == OPUS) {
 		bytes = kradebml_read_audio_header(krad_ebml, 1, buffer);
 		printf("got opus header bytes of %d\n", bytes);
 		krad_opus = kradopus_decoder_create(buffer, bytes, 44100.0f);
 	}
 	
-	if (video_codec == KRAD_THEORA) {
+	if (video_codec == THEORA) {
 		printf("got theora header bytes of %d %d %d\n", krad_ebml->theora_header1_len, krad_ebml->theora_header2_len, krad_ebml->theora_header3_len);
 		krad_theora_decoder = krad_theora_decoder_create(krad_ebml->theora_header1, krad_ebml->theora_header1_len, krad_ebml->theora_header2, krad_ebml->theora_header2_len, krad_ebml->theora_header3, krad_ebml->theora_header3_len);
 	} else {
@@ -195,7 +195,7 @@ int main (int argc, char *argv[]) {
 	hudtest->krad_vorbis = krad_vorbis;
 	hudtest->kradgui = kradgui;
 	
-	if (audio_codec == KRAD_VORBIS) {
+	if (audio_codec == VORBIS) {
 		kradaudio_set_process_callback(audio, krad_ebml_video_player_hud_test_audio_callback, hudtest);
 	}	
 		
@@ -254,7 +254,7 @@ int main (int argc, char *argv[]) {
 
 				nestegg_packet_data(krad_ebml->pkt, i, &buffer, &krad_ebml->size);
 
-				if (video_codec == KRAD_VP8) {
+				if (video_codec == VP8) {
 
 					krad_vpx_decoder_decode(krad_vpx_decoder, buffer, krad_ebml->size);
 				
@@ -273,7 +273,7 @@ int main (int argc, char *argv[]) {
 					}
 				}
 				
-				if (video_codec == KRAD_THEORA) {
+				if (video_codec == THEORA) {
 
 					krad_theora_decoder_decode(krad_theora_decoder, buffer, krad_ebml->size);
 				
@@ -293,7 +293,7 @@ int main (int argc, char *argv[]) {
 				}
 
 							
-				if (video_codec == KRAD_DIRAC) {
+				if (video_codec == DIRAC) {
 				
 					//printf("dirac packet size %zu\n", krad_ebml->size);		
 
@@ -381,17 +381,17 @@ int main (int argc, char *argv[]) {
 			nestegg_packet_data(krad_ebml->pkt, 0, &buffer, &krad_ebml->size);
 			printf("\nAudio packet! %zu bytes\n", krad_ebml->size);
 
-			if (audio_codec == KRAD_VORBIS) {
+			if (audio_codec == VORBIS) {
 				krad_vorbis_decoder_decode(krad_vorbis, buffer, krad_ebml->size);
 			}
 			
-			if (audio_codec == KRAD_FLAC) {
+			if (audio_codec == FLAC) {
 				audio_frames = krad_flac_decode(krad_flac, buffer, krad_ebml->size, audio_data);
 				kradaudio_write (audio, 0, (char *)audio_data, audio_frames * 4 );
 				kradaudio_write (audio, 1, (char *)audio_data, audio_frames * 4 );
 			}
 			
-			if (audio_codec == KRAD_OPUS) {
+			if (audio_codec == OPUS) {
 				kradopus_decoder_set_speed(krad_opus, 100);
 				kradopus_write_opus(krad_opus, buffer, krad_ebml->size);
 		
@@ -492,7 +492,7 @@ int main (int argc, char *argv[]) {
 	// must be before vorbis
 	kradaudio_destroy(audio);
 
-	if (audio_codec == KRAD_VORBIS) {
+	if (audio_codec == VORBIS) {
 		krad_vorbis_decoder_destroy(krad_vorbis);
 	}
 	
