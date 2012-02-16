@@ -24,12 +24,18 @@ typedef enum {
 	KDUPLEX,
 } krad_audio_direction_t;
 
+#ifndef KRAD_CODEC_T
 typedef enum {
-	NONE = 150,
-	VORBIS,
+	VORBIS = 6666,
 	OPUS,
 	FLAC,
-} krad_audio_codec_t;
+	VP8,
+	DIRAC,
+	THEORA,
+	NOCODEC,
+} krad_codec_t;
+#define KRAD_CODEC_T 1
+#endif
 
 typedef struct krad_audio_St krad_audio_t;
 

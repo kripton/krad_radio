@@ -7,12 +7,15 @@ import os, sys
 
 klibdir = "krad_ebml"
 toolsdir = "krad_ebml_tools"
+appsdir = "apps"
 subdirs = os.listdir('./' + toolsdir)
 
 for s in subdirs:
 	subdirs[subdirs.index(s)] = os.getcwd() + "/" + toolsdir + "/" + s
-	
+
 subdirs += [os.getcwd() + "/" + klibdir]
+	
+subdirs += appsdir
 	
 def configure(conf):
 

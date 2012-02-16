@@ -382,10 +382,12 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(char *title, int width
     
 	krad_sdl_opengl_init(krad_sdl_opengl_display);
     
+    /*
     debug("Krad Display \"%s\" Created %s %dx%dx%d mode (in %s memory)\n",
            krad_sdl_opengl_display->title, krad_sdl_opengl_display->screen->flags & SDL_FULLSCREEN ? " fullscreen" : "",
            krad_sdl_opengl_display->screen->w, krad_sdl_opengl_display->screen->h, krad_sdl_opengl_display->screen->format->BitsPerPixel,
            (krad_sdl_opengl_display->screen->flags & SDL_HWSURFACE) ? "video" : "system");
+    */
     
 	pthread_rwlock_init(&krad_sdl_opengl_display->frame_lock, NULL);
 	pthread_rwlock_wrlock(&krad_sdl_opengl_display->frame_lock);
@@ -404,7 +406,6 @@ krad_sdl_opengl_display_t *krad_sdl_opengl_display_create(char *title, int width
 
 void krad_sdl_opengl_display_destroy(krad_sdl_opengl_display_t *krad_sdl_opengl_display) {
 
-
   	pthread_rwlock_wrlock(&krad_sdl_opengl_display->frame_lock);
 
 	free(krad_sdl_opengl_display->rgb_frame_data);
@@ -414,15 +415,11 @@ void krad_sdl_opengl_display_destroy(krad_sdl_opengl_display_t *krad_sdl_opengl_
 	pthread_rwlock_unlock(&krad_sdl_opengl_display->frame_lock);
 	pthread_rwlock_destroy(&krad_sdl_opengl_display->frame_lock); 
 
-
-
-
     SDL_Quit();
-    
-    
+        
     free(krad_sdl_opengl_display);
-
-	debug("Krad Display Destroyed\n");
-
+    
+	//debug("Krad Display Destroyed\n");
+	
 }
 

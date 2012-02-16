@@ -3458,22 +3458,22 @@ int krad_ebml_track_codec(kradebml_t *kradebml, unsigned int track) {
 	return -1;
 
 	if (strcmp(codec_id, TRACK_ID_VP8) == 0)
-	return KRAD_VP8;
+	return VP8;
 
 	if (strcmp(codec_id, TRACK_ID_VORBIS) == 0)
-	return KRAD_VORBIS;
+	return VORBIS;
 
 	if (strcmp(codec_id, TRACK_ID_OPUS) == 0)
-	return KRAD_OPUS;
+	return OPUS;
 
 	if (strcmp(codec_id, TRACK_ID_FLAC) == 0)
-	return KRAD_FLAC;
+	return FLAC;
 
 	if (strcmp(codec_id, TRACK_ID_DIRAC) == 0)
-	return KRAD_DIRAC;    
+	return DIRAC;    
 
 	if (strcmp(codec_id, TRACK_ID_THEORA) == 0)
-	return KRAD_THEORA;    
+	return THEORA;    
 
 	return -1;
 
@@ -3538,23 +3538,18 @@ nestegg_track_codec_data(nestegg * ctx, unsigned int track, unsigned int item,
   if (!entry)
     return -1;
 
-	//if ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_VORBIS) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_OPUS)) && ((nestegg_track_codec_id(ctx, track) != NESTEGG_CODEC_FLAC))) {
-	//  return -1;
-	//}
-
-
-
 	if ((nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_OPUS) || (nestegg_track_codec_id(ctx, track) == NESTEGG_CODEC_FLAC)) {
 	   if (ne_get_binary(entry->codec_private, &codec_private) != 0)
     		return -1;
 	
-  if (codec_private.length < 1) {
-    return -1;
+	if (codec_private.length < 1) {
+		return -1;
 	}
-	printf("zzlength is %zu\n", codec_private.length);
-		*length = codec_private.length;
-		*data = codec_private.data;
 	
+	//printf("zzlength is %zu\n", codec_private.length);
+	
+	*length = codec_private.length;
+	*data = codec_private.data;
 
 	return 0;
 	}
@@ -3818,7 +3813,7 @@ int kradebml_read_video(kradebml_t *kradebml, unsigned char *buffer) {
     
   } else {
   
-  	printf("bumkis\n");
+  	//printf("bumkis\n");
   
   }
 
@@ -3838,7 +3833,7 @@ int kradebml_read_audio(kradebml_t *kradebml, unsigned char *buffer) {
     nestegg_packet_tstamp(kradebml->pkt, &kradebml->pkt_tstamp);
 
 
-	fprintf(stderr, "t %u pts %f frames %u: ", kradebml->pkt_track, kradebml->pkt_tstamp / 1e9, kradebml->pkt_cnt);
+	//fprintf(stderr, "t %u pts %f frames %u: ", kradebml->pkt_track, kradebml->pkt_tstamp / 1e9, kradebml->pkt_cnt);
 
 
     for (i = 0; i < kradebml->pkt_cnt; ++i) {
@@ -3861,7 +3856,7 @@ int kradebml_read_audio(kradebml_t *kradebml, unsigned char *buffer) {
     
   } else {
   
-  	printf("bumkis\n");
+  	//printf("bumkis\n");
   
   }
 
@@ -3871,21 +3866,95 @@ int kradebml_read_audio(kradebml_t *kradebml, unsigned char *buffer) {
 
 int kradebml_read_audio_header(kradebml_t *kradebml, int tracknum, unsigned char *buffer) {
 
-	printf("read audio header\n");
+	//printf("read audio header\n");
 	nestegg_track_codec_data(kradebml->ctx, tracknum, 0, &kradebml->codec_data, &kradebml->length);
-	printf("read audio header end \n");
+	//printf("read audio header end \n");
 	memcpy(buffer, kradebml->codec_data, kradebml->length);
 
 	return kradebml->length;
 }
 
 
-void kradebml_debug(kradebml_t *kradebml) {
+
+void kradebml_collect_xiph_headers (kradebml_t *kradebml) {
+
+	int i;
+
+	for (i = 0; i < kradebml->tracks; ++i) {
+		
+		kradebml->type = nestegg_track_type(kradebml->ctx, i);
+
+		if (kradebml->type == NESTEGG_TRACK_VIDEO) {
+
+			nestegg_track_codec_data(kradebml->ctx, i, 0, &kradebml->codec_data, &kradebml->length);
+			//fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+
+			kradebml->theora_header1_len = kradebml->length;
+			memcpy(kradebml->theora_header1, kradebml->codec_data, kradebml->theora_header1_len);
+
+			nestegg_track_codec_data(kradebml->ctx, i, 1, &kradebml->codec_data, &kradebml->length);
+			//fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+
+			kradebml->theora_header2_len = kradebml->length;
+			memcpy(kradebml->theora_header2, kradebml->codec_data, kradebml->theora_header2_len);
+				  	
+			nestegg_track_codec_data(kradebml->ctx, i, 2, &kradebml->codec_data, &kradebml->length);
+			//fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+
+			kradebml->theora_header3_len = kradebml->length;      	
+			memcpy(kradebml->theora_header3, kradebml->codec_data, kradebml->theora_header3_len);
+
+		} else if (kradebml->type == NESTEGG_TRACK_AUDIO) {
+
+			nestegg_track_codec_data(kradebml->ctx, i, 0, &kradebml->codec_data, &kradebml->length);
+			//fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);      	
+			kradebml->vorbis_header1_len = kradebml->length;
+			memcpy(kradebml->vorbis_header1, kradebml->codec_data, kradebml->vorbis_header1_len);
+
+			nestegg_track_codec_data(kradebml->ctx, i, 1, &kradebml->codec_data, &kradebml->length);
+			//fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+			kradebml->vorbis_header2_len = kradebml->length;
+			memcpy(kradebml->vorbis_header2, kradebml->codec_data, kradebml->vorbis_header2_len);
+				  	
+			nestegg_track_codec_data(kradebml->ctx, i, 2, &kradebml->codec_data, &kradebml->length);
+			//fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
+			kradebml->vorbis_header3_len = kradebml->length;      	
+			memcpy(kradebml->vorbis_header3, kradebml->codec_data, kradebml->vorbis_header3_len);
+
+		}
+	
+	}
+}
+
+
+void kradebml_gather_trackinfo(kradebml_t *kradebml) {
 
 	int i, j;
 
-  nestegg_track_count(kradebml->ctx, &kradebml->tracks);
-  nestegg_duration(kradebml->ctx, &kradebml->duration);
+	for (i = 0; i < kradebml->tracks; ++i) {
+    
+    	kradebml->type = nestegg_track_type(kradebml->ctx, i);
+		
+		if (kradebml->type == NESTEGG_TRACK_VIDEO) {
+
+			nestegg_track_video_params(kradebml->ctx, i, &kradebml->vparams);
+			kradebml->video_track = i;
+
+		} else if (kradebml->type == NESTEGG_TRACK_AUDIO) {
+		  
+			nestegg_track_audio_params(kradebml->ctx, i, &kradebml->aparams);
+			kradebml->audio_track = i;
+
+		}
+
+	}
+
+}
+
+
+void kradebml_debug(kradebml_t *kradebml) {
+
+	int i, j;
 
   fprintf(stderr, "media has %u tracks and duration %fs\n", kradebml->tracks, kradebml->duration / 1e9);
 
@@ -3917,33 +3986,6 @@ void kradebml_debug(kradebml_t *kradebml) {
 
 
 
-	// the kl
-
-
-		nestegg_track_codec_data(kradebml->ctx, i, 0, &kradebml->codec_data, &kradebml->length);
-      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
-      	
-      	kradebml->theora_header1_len = kradebml->length;
-      	memcpy(kradebml->theora_header1, kradebml->codec_data, kradebml->theora_header1_len);
-  
-  
-		nestegg_track_codec_data(kradebml->ctx, i, 1, &kradebml->codec_data, &kradebml->length);
-      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
-      	
-      	kradebml->theora_header2_len = kradebml->length;
-      	memcpy(kradebml->theora_header2, kradebml->codec_data, kradebml->theora_header2_len);
-      	      	
-		nestegg_track_codec_data(kradebml->ctx, i, 2, &kradebml->codec_data, &kradebml->length);
-      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
-
-      	kradebml->theora_header3_len = kradebml->length;      	
-      	memcpy(kradebml->theora_header3, kradebml->codec_data, kradebml->theora_header3_len);
-
-
-
-
-	// th kl
-
 
     } else if (kradebml->type == NESTEGG_TRACK_AUDIO) {
       nestegg_track_audio_params(kradebml->ctx, i, &kradebml->aparams);
@@ -3955,25 +3997,6 @@ void kradebml_debug(kradebml_t *kradebml) {
       fprintf(stderr, " audio: %.2fhz %u bit %u channels",
               kradebml->aparams.rate, kradebml->aparams.depth, kradebml->aparams.channels);
 
-
-		nestegg_track_codec_data(kradebml->ctx, i, 0, &kradebml->codec_data, &kradebml->length);
-      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
-      	
-      	kradebml->vorbis_header1_len = kradebml->length;
-      	memcpy(kradebml->vorbis_header1, kradebml->codec_data, kradebml->vorbis_header1_len);
-  
-  
-		nestegg_track_codec_data(kradebml->ctx, i, 1, &kradebml->codec_data, &kradebml->length);
-      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
-      	
-      	kradebml->vorbis_header2_len = kradebml->length;
-      	memcpy(kradebml->vorbis_header2, kradebml->codec_data, kradebml->vorbis_header2_len);
-      	      	
-		nestegg_track_codec_data(kradebml->ctx, i, 2, &kradebml->codec_data, &kradebml->length);
-      	fprintf(stderr, "%d (%s, %zu)", j, kradebml->codec_data, kradebml->length);
-
-      	kradebml->vorbis_header3_len = kradebml->length;      	
-      	memcpy(kradebml->vorbis_header3, kradebml->codec_data, kradebml->vorbis_header3_len);
 
       	
 
@@ -4330,6 +4353,10 @@ int kradebml_open_input_file(kradebml_t *kradebml, char *filename) {
 		track = track->next;
 	}
 
+	nestegg_track_count(kradebml->ctx, &kradebml->tracks);
+	nestegg_duration(kradebml->ctx, &kradebml->duration);
+	kradebml_gather_trackinfo ( kradebml );
+	kradebml_collect_xiph_headers ( kradebml );
 
 	return 0;
 }
@@ -4446,6 +4473,10 @@ int kradebml_open_input_stream(kradebml_t *kradebml, char *host, int port, char 
 		track = track->next;
 	}
 	
+	nestegg_track_count(kradebml->ctx, &kradebml->tracks);
+	nestegg_duration(kradebml->ctx, &kradebml->duration);
+	kradebml_gather_trackinfo ( kradebml );
+	kradebml_collect_xiph_headers ( kradebml );
 	
 	return 0;
 }

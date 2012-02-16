@@ -165,7 +165,7 @@ krad_jack_t *kradjack_create(krad_audio_t *kradaudio) {
 	kradjack->output_ports[0] = jack_port_register (kradjack->jack_client, "Left", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	kradjack->output_ports[1] = jack_port_register (kradjack->jack_client, "Right", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 
-
+	/*
 	char portname[128];
 	
 	sprintf(portname, "%s:Left", kradjack->client_name);
@@ -177,7 +177,7 @@ krad_jack_t *kradjack_create(krad_audio_t *kradaudio) {
 	kradjack_connect_port(kradjack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown_in", "krad_opus_ebml:InputLeft");
 	sprintf(portname, "%s:InputRight", kradjack->client_name);
 	kradjack_connect_port(kradjack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "krad_opus_ebml:InputRight");
-
+	*/
 
 	kradjack->active = 1;
 

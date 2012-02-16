@@ -215,7 +215,7 @@ int krad_vorbis_decoder_read_audio(krad_vorbis_t *vorbis, int channel, char *buf
 
 void krad_vorbis_decoder_decode(krad_vorbis_t *vorbis, unsigned char *buffer, int bufferlen) {
 
-	int x;
+	int sample_count;
 	float **pcm;
 
 	vorbis->op.packet = buffer;
@@ -224,18 +224,19 @@ void krad_vorbis_decoder_decode(krad_vorbis_t *vorbis, unsigned char *buffer, in
 
 	vorbis_synthesis(&vorbis->vblock, &vorbis->op);
 	vorbis_synthesis_blockin(&vorbis->vdsp, &vorbis->vblock);
-	x = vorbis_synthesis_pcmout(&vorbis->vdsp, &pcm);
+	sample_count = vorbis_synthesis_pcmout(&vorbis->vdsp, &pcm);
 	
-	printf("got %d samples\n", x);
-	while((krad_ringbuffer_write_space(vorbis->ringbuf[0]) < x * 4) || (krad_ringbuffer_write_space(vorbis->ringbuf[1]) < x * 4)) {
-		usleep(15000);
+	if (sample_count) {
+		//printf("Vorbis decoded %d samples\n", sample_count);
+		while((krad_ringbuffer_write_space(vorbis->ringbuf[0]) < sample_count * 4) || (krad_ringbuffer_write_space(vorbis->ringbuf[1]) < sample_count * 4)) {
+			usleep(15000);
+		}
+	
+		krad_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], sample_count * 4 );
+		krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], sample_count * 4 );
+	
+		vorbis_synthesis_read(&vorbis->vdsp, sample_count);
 	}
-
-	krad_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], x * 4 );
-	krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], x * 4 );
-
-		
-	vorbis_synthesis_read(&vorbis->vdsp, x);
 
 }
 

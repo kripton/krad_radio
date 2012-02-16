@@ -89,14 +89,18 @@ typedef enum {
 	KXPDR,
 } server_type_t;
 
+#ifndef KRAD_CODEC_T
 typedef enum {
-	KRAD_VORBIS,
-	KRAD_OPUS,
-	KRAD_FLAC,
-	KRAD_VP8,
-	KRAD_DIRAC,
-	KRAD_THEORA,
-} krad_codec_type_t;
+	VORBIS = 6666,
+	OPUS,
+	FLAC,
+	VP8,
+	DIRAC,
+	THEORA,
+	NOCODEC,
+} krad_codec_t;
+#define KRAD_CODEC_T 1
+#endif
 
 enum mkv
 {
@@ -761,8 +765,8 @@ struct kradebml_St {
 	unsigned char theora_header3[8192];
 	int theora_header3_len;
 	
-	krad_codec_type_t audio_codec;
-	krad_codec_type_t video_codec;
+	krad_codec_t audio_codec;
+	krad_codec_t video_codec;
 	
 	int next_tracknumber;
 	int total_tracks;

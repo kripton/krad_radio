@@ -6,9 +6,9 @@ void kradopus_decoder_destroy(krad_opus_t *kradopus) {
 	
 	for (c = 0; c < kradopus->channels; c++) {
 		krad_ringbuffer_free ( kradopus->ringbuf[c] );
-		printf("Ringbuffer unlocked and freed (opus)\n");
+		//printf("Ringbuffer unlocked and freed (opus)\n");
 		krad_ringbuffer_free ( kradopus->resampled_ringbuf[c] );
-		printf("Ringbuffer unlocked and freed (opus resampler)\n");
+		//printf("Ringbuffer unlocked and freed (opus resampler)\n");
 		free(kradopus->resampled_samples[c]);
 		free(kradopus->samples[c]);
 		free(kradopus->read_samples[c]);
@@ -29,9 +29,9 @@ void kradopus_encoder_destroy(krad_opus_t *kradopus) {
 	
 	for (c = 0; c < kradopus->channels; c++) {
 		krad_ringbuffer_free ( kradopus->ringbuf[c] );
-		printf("Ringbuffer unlocked and freed (opus)\n");
+		//printf("Ringbuffer unlocked and freed (opus)\n");
 		krad_ringbuffer_free ( kradopus->resampled_ringbuf[c] );
-		printf("Ringbuffer unlocked and freed (opus resampler)\n");
+		//printf("Ringbuffer unlocked and freed (opus resampler)\n");
 		free(kradopus->resampled_samples[c]);
 		free(kradopus->samples[c]);
 		free(kradopus->read_samples[c]);
@@ -58,12 +58,11 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	
 	opus_header_parse(header_data, header_length, opus->opus_header);
 		
-	printf("opus header: length %d version: %d channels: %d preskip: %d input sample rate: %d gain %d channel_mapping: %d nb_streams: %d nb_coupled: %d stream map: %s\n", header_length, opus->opus_header->version, opus->opus_header->channels, opus->opus_header->preskip, opus->opus_header->input_sample_rate, opus->opus_header->gain, opus->opus_header->channel_mapping, opus->opus_header->nb_streams, opus->opus_header->nb_coupled, opus->opus_header->stream_map);
-
+	//printf("opus header: length %d version: %d channels: %d preskip: %d input sample rate: %d gain %d channel_mapping: %d nb_streams: %d nb_coupled: %d stream map: %s\n", header_length, opus->opus_header->version, opus->opus_header->channels, opus->opus_header->preskip, opus->opus_header->input_sample_rate, opus->opus_header->gain, opus->opus_header->channel_mapping, opus->opus_header->nb_streams, opus->opus_header->nb_coupled, opus->opus_header->stream_map);
 
 	opus->input_sample_rate = opus->opus_header->input_sample_rate;
 
-	printf("output sample rate is %f\n", output_sample_rate);
+	//printf("output sample rate is %f\n", output_sample_rate);
 
 	int c;
 	
@@ -74,31 +73,25 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	
 	for (c = 0; c < opus->opus_header->channels; c++) {
 		opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
-		//	printf("Kradcast ringbuffer mlock failure\n");
-		//	kradcast_fail();
-		//}
-		printf("Ringbuffer created with %5zu bytes (opus decoder)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
+
+		//printf("Ringbuffer created with %5zu bytes (opus decoder)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
 		
 		opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
-		//	printf("Kradcast ringbuffer mlock failure\n");
-		//	kradcast_fail();
-		//}
-		printf("Ringbuffer created with %5zu bytes (opus decoder resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
+
+		//printf("Ringbuffer created with %5zu bytes (opus decoder resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
 
 		opus->samples[c] = malloc(4 * 8192);
-		printf("opus decoder malloced %d bytes\n", 8192);
+		//printf("opus decoder malloced %d bytes\n", 8192);
 		opus->read_samples[c] = malloc(4 * 8192);
-		printf("opus decoder malloced %d bytes\n", 8192);
+		//printf("opus decoder malloced %d bytes\n", 8192);
 
 		opus->resampled_samples[c] = malloc(8192);
-		printf("opus decoder malloced %d bytes\n", 8192);
+		//printf("opus decoder malloced %d bytes\n", 8192);
 	}
 	
 	opus->resampler = speex_resampler_init(opus->channels, opus->opus_header->input_sample_rate, opus->output_sample_rate, 10, &opus->opus_decoder_error);
 
-	printf("resampler error was: %d\n", opus->opus_decoder_error);
+	//printf("resampler error was: %d\n", opus->opus_decoder_error);
 
    unsigned char mapping[256] = {0,1};
 
@@ -132,24 +125,13 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	
 	for (c = 0; c < opus->channels; c++) {
 		opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
-		//	printf("Kradcast ringbuffer mlock failure\n");
-		//	kradcast_fail();
-		//}
-		printf("Ringbuffer created with %5zu bytes (opus)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
-		
+		//printf("Ringbuffer created with %5zu bytes (opus)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
 		opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		//if (krad_ringbuffer_mlock(opus->resampled_ringbuf[c])) {
-		//	printf("Kradcast ringbuffer mlock failure\n");
-		//	kradcast_fail();
-		//}
-		printf("Ringbuffer created with %5zu bytes (opus resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
-
+		//printf("Ringbuffer created with %5zu bytes (opus resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
 		opus->samples[c] = malloc(8192);
-		printf("opus decoder malloced %d bytes\n", 8192);
-
+		//printf("opus decoder malloced %d bytes\n", 8192);
 		opus->resampled_samples[c] = malloc(8192);
-		printf("opus decoder malloced %d bytes\n", 8192);
+		//printf("opus decoder malloced %d bytes\n", 8192);
 	}
 	
 	
@@ -159,7 +141,7 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 
 	opus->resampler = speex_resampler_init(opus->channels, opus->input_sample_rate, 48000, 10, &opus->err);
 
-	printf("resampler error was: %d\n", opus->err);
+	//printf("resampler error was: %d\n", opus->err);
 
 	opus->frame_size = 960;
 
