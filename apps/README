@@ -6,7 +6,12 @@ Network A/V Transmitter/Receiver
 
 Krad Link is a program used primarly for streaming WebM from a webcam to an Icecast server.
 
-Examples:
+First try debug test:
+Use a bitrate of 200 kilobits, 5 frames per second, keyframe every 5 frames, don't open a window, and use a test screen and test tone
+krad_link --bitrate 200 --fps 5 --test --tone --verbose --key 5 --nowindow --password secretkode http://deimos.kradradio.com/test_debug_signal.webm
+
+
+Other Examples:
 
 Use defaults to send a WebM stream:
 krad_link --password secretkode deimos.kradradio.com/my_fun_stream.webm
@@ -28,6 +33,15 @@ krad_link --password secretkode --daemon http://deimos.kradradio.com/my_fun_stre
 
 Print lots of interesting information:
 krad_link --password secretkode --verbose deimos.kradradio.com/my_fun_stream.webm
+
+Keyframes every 8 frames:
+krad_link --password secretkode --key 8 deimos.kradradio.com/my_fun_stream.webm
+
+Bitrate of 1500 kilobits:
+krad_link --password secretkode --bitrate 1500 deimos.kradradio.com/my_fun_stream.webm
+
+Use a dialtone as audio:
+krad_link --password secretkode --tone deimos.kradradio.com/my_fun_stream.webm
 
 Record to a file:
 krad_link ~/Videos/my_recording.webm
