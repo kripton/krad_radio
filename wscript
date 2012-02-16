@@ -15,7 +15,7 @@ for s in subdirs:
 
 subdirs += [os.getcwd() + "/" + klibdir]
 	
-subdirs += appsdir
+subdirs += [os.getcwd() + "/" + appsdir]
 	
 def configure(conf):
 
