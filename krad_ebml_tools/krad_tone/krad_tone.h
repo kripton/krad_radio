@@ -5,6 +5,9 @@
 #include <time.h>
 #include <math.h>
 
+#ifndef KRAD_TONE_H
+#define KRAD_TONE_H
+
 #define MAX_TONES 32
 #define krad_tone_DEFAULT_VOLUME 65
 
@@ -34,3 +37,5 @@ void krad_tone_volume(krad_tone_t *krad_tone, int volume);
 void krad_tone_remove(krad_tone_t *krad_tone, float frequency);
 void krad_tone_run(krad_tone_t *krad_tone, float *buffer, int samples);
 void krad_tone_destroy(krad_tone_t *krad_tone);
+
+#endif
