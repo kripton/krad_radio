@@ -23,6 +23,7 @@ into the ringbuffer, and from the ringbuffer into the client socket.
 
 4) Multi-threaded event based non-blocking single threaded design.
 
+5) Small, 1000 lines of code for core functionality
 
 Jargon:
 
@@ -43,6 +44,14 @@ Incoming transmitter connections thread - handles incoming normal clients
 
 Per source "receiver" thread, handles incoming data from a source
 Per source "transmitter" thread that handles sending data to all clients of this source
+
+
+Future possibilities:
+
+*	Live Remuxing on a per client basis
+
+*	Development of a backchannel client standard "remote control" protocol, so that clients
+	can switch streams without reconnecting.
 
 
 * All ideas thought to be good maybe later thought to be very bad, this document is non-normative 

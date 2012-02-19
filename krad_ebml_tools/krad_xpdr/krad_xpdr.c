@@ -2,7 +2,6 @@
 
 int kxpdr_shutdown;
 
-
 int set_socket_mode (int sfd)
 {
 	int flags, s;
@@ -94,7 +93,6 @@ void receiver_activate(kxpdr_receiver_t *kxpdr_receiver, int sd) {
 	
 	sprintf((char *)kxpdr_receiver->http_header, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", kxpdr_receiver->content_type);
 
-
     if ((strcmp(kxpdr_receiver->content_type, "application/x-ogg") == 0) || (strcmp(kxpdr_receiver->content_type, "application/ogg") == 0) || (strcmp(kxpdr_receiver->content_type, "audio/ogg") == 0) ||
         (strcmp(kxpdr_receiver->content_type, "video/ogg") == 0)) {
 		kxpdr_receiver->ogg_stream = calloc(1, sizeof(ogg_stream_t));
@@ -111,22 +109,90 @@ void receiver_activate(kxpdr_receiver_t *kxpdr_receiver, int sd) {
 	} else {
 		kxpdr_receiver->ebml_stream = NULL;
 	}
-	
 
 	kxpdr_receiver->http_header_size = strlen((char *)kxpdr_receiver->http_header);
 	kxpdr_receiver->http_header_position = strlen((char *)kxpdr_receiver->http_header);
 
 	printf("Recvr http header size is %d\n", kxpdr_receiver->http_header_size);
+	
+	
+	// process first bytes (kludgy yes)
+	
+	int b, y, f;
+	
+	f = 0;
+	
+	for (b = 0; b <= kxpdr_receiver->first_bytes_len - 4; b++) {
+		
+		y = memcmp ( kxpdr_receiver->first_bytes + b, "\r\n\r\n", 4 );
+	
+		if (y == 0) {
+			f = 1;
+			printf("found end of source client http header!\n");
+			memmove(kxpdr_receiver->first_bytes, kxpdr_receiver->first_bytes + (b + 4), kxpdr_receiver->first_bytes_len - (b + 4));
+			kxpdr_receiver->first_bytes_len -= (b + 4);
+			
+			printf("got %d first bytes remaining after source client http header\n", kxpdr_receiver->first_bytes_len);
+		}
+	}
+	
+	if (f == 0) {
+		printf("did not get to end of http buffer in first bytes from source client, ruh oh (fix me)\n");
+	}
+	
 	kxpdr_receiver->active = 2;
 	pthread_create(&kxpdr_receiver->receiver_thread, NULL, receiver_thread, (void *)kxpdr_receiver);
-
-	
 }
 
 void transmitter_activate(kxpdr_receiver_t *kxpdr_receiver) {
-
-
 	pthread_create(&kxpdr_receiver->transmitter_thread, NULL, transmitter_thread, (void *)kxpdr_receiver);
+}
+
+void close_receiver(kxpdr_receiver_t *kxpdr_receiver) {
+
+	kxpdr_receiver->active = 3;
+	pthread_join (kxpdr_receiver->transmitter_thread, NULL);
+	shutdown(kxpdr_receiver->sd, SHUT_RDWR);
+	close(kxpdr_receiver->sd);
+	usleep(100000);
+	strcpy(kxpdr_receiver->mount, "");
+	strcpy(kxpdr_receiver->content_type, "");
+	free (kxpdr_receiver->transmitters);	
+	free (kxpdr_receiver->receiver_events);
+	if (kxpdr_receiver->http_header != NULL) {
+		free(kxpdr_receiver->http_header);
+		kxpdr_receiver->http_header = NULL;
+	}
+	if (kxpdr_receiver->stream_header != NULL) {
+		free(kxpdr_receiver->stream_header);
+		kxpdr_receiver->stream_header = NULL;
+	}
+	
+	kxpdr_receiver->http_header_position = 0;
+	kxpdr_receiver->http_header_size = 0;
+	kxpdr_receiver->stream_header_position = 0;
+	kxpdr_receiver->stream_header_size = 0;
+	
+	krad_ringbuffer_free (kxpdr_receiver->ringbuffer);
+	kxpdr_receiver->ready_transmitters_head = NULL;
+	kxpdr_receiver->ready_transmitters_tail = NULL;
+	kxpdr_receiver->byte_position = 0;
+	kxpdr_receiver->sync_byte_position = 0;
+	kxpdr_receiver->ready = 0;
+	close(kxpdr_receiver->receiver_efd);
+	if (kxpdr_receiver->ogg_stream != NULL) {
+		ogg_sync_clear (&kxpdr_receiver->ogg_stream->os);
+		//ogg_stream_clear(&kxpdr_receiver->ogg_stream->oz);
+		free(kxpdr_receiver->ogg_stream);
+	}
+	if (kxpdr_receiver->ebml_stream != NULL) {
+		free(kxpdr_receiver->ebml_stream);
+	}
+	
+	kxpdr_receiver->first_bytes_len = 0;
+	memset(kxpdr_receiver->first_bytes, '\0', 512);
+	
+	kxpdr_receiver->active = 0;
 
 }
 
@@ -187,6 +253,14 @@ void *receiver_thread(void *arg) {
 	            	}
 
 					if (kxpdr_receiver->ogg_stream != NULL) {
+					
+						// kludge zone
+						if (kxpdr_receiver->first_bytes_len) {
+							buffer = ogg_sync_buffer (&kxpdr_receiver->ogg_stream->os, kxpdr_receiver->first_bytes_len );
+						   	ogg_sync_wrote (&kxpdr_receiver->ogg_stream->os, kxpdr_receiver->first_bytes_len);
+							kxpdr_receiver->first_bytes_len = 0;
+						}
+					
 						// input bytes
 						buffer = ogg_sync_buffer (&kxpdr_receiver->ogg_stream->os, 4096 );
 						len = read ( kxpdr_receiver->receiver_events[i].data.fd, buffer, 4096 );
@@ -202,6 +276,11 @@ void *receiver_thread(void *arg) {
 						while (ogg_sync_pageout (&kxpdr_receiver->ogg_stream->os, &kxpdr_receiver->ogg_stream->op) > 0) {
 							// this poorly named 'kludger' is simply because ogg vorbis uses two pages to start a stream
 							// and ogg opus only needs one, should be renamed
+							
+							// essentially we are kludging that vorbis streams have a start page and aux page, and opus streams
+							// have a single start page, this should be reworked to inspect the ogg pages maually 
+							// to handle chaining and work without copying in and out of the ogg library
+							
 							if ((ogg_page_bos (&kxpdr_receiver->ogg_stream->op)) || (kxpdr_receiver->ogg_stream->kludger)) {
 								if (kxpdr_receiver->ogg_stream->kludger) {
 									//kxpdr_receiver->stream_header_size = 0;
@@ -268,6 +347,15 @@ void *receiver_thread(void *arg) {
 
 					if (kxpdr_receiver->ebml_stream != NULL) {
 
+						// kludge zone
+						if (kxpdr_receiver->first_bytes_len) {
+							krad_ringbuffer_get_write_vector(kxpdr_receiver->ringbuffer, &kxpdr_receiver->write_vector[0]);
+							memcpy ( kxpdr_receiver->write_vector[0].buf, kxpdr_receiver->first_bytes, kxpdr_receiver->first_bytes_len );
+							memcpy(kxpdr_receiver->stream_header + kxpdr_receiver->stream_header_position, kxpdr_receiver->first_bytes, kxpdr_receiver->first_bytes_len);
+							kxpdr_receiver->stream_header_position += kxpdr_receiver->first_bytes_len;					   	
+							kxpdr_receiver->first_bytes_len = 0;
+						}
+
 						krad_ringbuffer_get_write_vector(kxpdr_receiver->ringbuffer, &kxpdr_receiver->write_vector[0]);
 						len = read ( kxpdr_receiver->receiver_events[i].data.fd, kxpdr_receiver->write_vector[0].buf, kxpdr_receiver->write_vector[0].len );
 						if (len > 0) {
@@ -281,8 +369,7 @@ void *receiver_thread(void *arg) {
 							int z;
 							int y;
 							y = 0;
-							//unsigned char m;
-							//m = &0x1F43B675;
+
 							newsync = 0;
 							
 							for (z = 0; z < len - 4; z++) {
@@ -327,8 +414,6 @@ void *receiver_thread(void *arg) {
 					}
 
 					if (len == -1) {
-						// If errno == EAGAIN, that means we have read all
-						//   data. So go back to the main loop. 
 						if (errno != EAGAIN) {
 							fprintf (stderr, "read");
 							done = 1;
@@ -336,9 +421,7 @@ void *receiver_thread(void *arg) {
 						
 						break;
 						
-					} else if (len == 0) {
-						// End of file. The remote has closed the
-						///  connection. 
+					} else if (len == 0) { //EOF
 						done = 1;
 						break;
 					}	    
@@ -348,53 +431,13 @@ void *receiver_thread(void *arg) {
 			
 			if (done) {
 				printf ("Closed connection on receiver %d\n", kxpdr_receiver->receiver_events[i].data.fd);
-				// Closing the descriptor will make epoll remove it
-				//    from the set of descriptors which are monitored. 
 				close (kxpdr_receiver->receiver_events[i].data.fd);
 				closed = 1;
 			}
 		}
 	}
 
-	kxpdr_receiver->active = 3;
-	pthread_join (kxpdr_receiver->transmitter_thread, NULL);
-	shutdown(kxpdr_receiver->sd, SHUT_RDWR);
-	close(kxpdr_receiver->sd);
-	usleep(100000);
-	strcpy(kxpdr_receiver->mount, "");
-	strcpy(kxpdr_receiver->content_type, "");
-	free (kxpdr_receiver->transmitters);	
-	free (kxpdr_receiver->receiver_events);
-	if (kxpdr_receiver->http_header != NULL) {
-		free(kxpdr_receiver->http_header);
-		kxpdr_receiver->http_header = NULL;
-	}
-	if (kxpdr_receiver->stream_header != NULL) {
-		free(kxpdr_receiver->stream_header);
-		kxpdr_receiver->stream_header = NULL;
-	}
-	
-	kxpdr_receiver->http_header_position = 0;
-	kxpdr_receiver->http_header_size = 0;
-	kxpdr_receiver->stream_header_position = 0;
-	kxpdr_receiver->stream_header_size = 0;
-	
-	krad_ringbuffer_free (kxpdr_receiver->ringbuffer);
-	kxpdr_receiver->ready_transmitters_head = NULL;
-	kxpdr_receiver->ready_transmitters_tail = NULL;
-	kxpdr_receiver->byte_position = 0;
-	kxpdr_receiver->sync_byte_position = 0;
-	kxpdr_receiver->ready = 0;
-	close(kxpdr_receiver->receiver_efd);
-	if (kxpdr_receiver->ogg_stream != NULL) {
-		ogg_sync_clear (&kxpdr_receiver->ogg_stream->os);
-		//ogg_stream_clear(&kxpdr_receiver->ogg_stream->oz);
-		free(kxpdr_receiver->ogg_stream);
-	}
-	if (kxpdr_receiver->ebml_stream != NULL) {
-		free(kxpdr_receiver->ebml_stream);
-	}
-	kxpdr_receiver->active = 0;
+	close_receiver(kxpdr_receiver);
 	printf("receiver thread dactivating!\n");
 
 	return NULL;
@@ -514,7 +557,7 @@ int transmit(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter)
 
 		transmitter->ring_bytes_avail = kxpdr_receiver->byte_position - transmitter->byte_position;						
 
-		//printf("%zu bytes from ringbuffer byte pos is %lu rec byte pos is %lu\n", transmitter->ring_bytes_avail, kxpdr_receiver->byte_position, transmitter->byte_position);
+		printf("%zu bytes from ringbuffer byte pos is %lu rec byte pos is %lu\n", transmitter->ring_bytes_avail, kxpdr_receiver->byte_position, transmitter->byte_position);
 		
 		if (transmitter->ring_bytes_avail == 0) {
 			// add to tail of readylist
@@ -565,8 +608,6 @@ int transmit(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter)
 		}
 
 		if (ret == -1) {
-			// If errno == EAGAIN, that means we have read all
-			//   data. So go back to the main loop. 
 			if (errno != EAGAIN) {
 				fprintf (stderr, "transmit errno %d", errno);
 				close_transmitter(transmitter);
@@ -574,9 +615,7 @@ int transmit(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter)
 			}
 			transmitter->ready = 0;
 			return 0;
-		} else if (ret == 0) {
-			// End of file. The remote has closed the
-			///  connection.
+		} else if (ret == 0) { // EOF
 			fprintf (stderr, "transmit eof");
 			close_transmitter(transmitter);
 			return 1;
@@ -662,16 +701,12 @@ void *transmitter_thread(void *arg) {
 						len = read (transmitter->sd, buf, sizeof buf);
 
 						if (len == -1) {
-							// If errno == EAGAIN, that means we have read all
-							//   data. So go back to the main loop. 
 							if (errno != EAGAIN) {
 								fprintf (stderr, "read");
 								done = 1;
 							}
 							break;
-						} else if (len == 0) {
-							// End of file. The remote has closed the
-							///  connection. 
+						} else if (len == 0) { // EOF
 							done = 1;
 							break;
 						}
@@ -680,8 +715,6 @@ void *transmitter_thread(void *arg) {
 
 						if (done) {
 							printf ("Closed connection on descriptor %d\n", transmitter->sd);
-							// Closing the descriptor will make epoll remove it
-							//    from the set of descriptors which are monitored. 
 							close_transmitter(transmitter);
 						}
 					}
@@ -724,9 +757,7 @@ void *transmitter_thread(void *arg) {
 			wait_time = 1000;
 		}
 		
-		
 		// no events or done with events, here we move the read pointer
-
 		
 		int ring_bytes_avail;
 		ring_bytes_avail = krad_ringbuffer_read_space(kxpdr_receiver->ringbuffer);
@@ -734,10 +765,7 @@ void *transmitter_thread(void *arg) {
 			printf("TRANSMITTER THREAD: ringba: %d advancing %d\n", ring_bytes_avail, ring_bytes_avail - (RING_SIZE / 2));
 			krad_ringbuffer_read_advance(kxpdr_receiver->ringbuffer, ring_bytes_avail - (RING_SIZE / 2));
 		
-		}	
-		
-		
-		
+		}		
 	}
 
 	int x;
@@ -767,7 +795,7 @@ void *incoming_receiver_connections_thread(void *arg) {
 	int n;
 	int done = 0;
 	ssize_t len;
-	char buf[4096];
+	char buf[512];
 	char mount[256];
 	char content_type[256];
 	int r;
@@ -784,16 +812,11 @@ void *incoming_receiver_connections_thread(void *arg) {
 		        (kxpdr->incoming_receiver_connection_events[i].events & EPOLLHUP) ||
 		      (!(kxpdr->incoming_receiver_connection_events[i].events & EPOLLIN)))
 			{
-				// An error has occured on this fd, or the socket is not
-				// ready for reading (why were we notified then?) 
 				fprintf (stderr, "incoming_receiver_connections epoll error\n");
 				close (kxpdr->incoming_receiver_connection_events[i].data.fd);
 				continue;
 
 			} else if (kxpdr->incoming_receiver_connections_sd == kxpdr->incoming_receiver_connection_events[i].data.fd) {
-	
-				// We have a notification on the listening socket, which
-				//  means one or more incoming connections.
 
 				while (1) {
 			
@@ -839,31 +862,21 @@ void *incoming_receiver_connections_thread(void *arg) {
 				continue;
 			
 			} else {
-			
-				//   We have data on the fd waiting to be read. Read and
-				//     display it. We must read whatever data is available
-				//    completely, as we are running in edge-triggered mode
-				//     and won't get a notification again for the same
-				//     data. 
-			
+
 				done = 0;
 
 				//while (1) {
 
 					// need to account for situation if not all buffer is avail and we need to read again to get it all
-					len = read (kxpdr->incoming_receiver_connection_events[i].data.fd, buf, sizeof buf);
+					len = read (kxpdr->incoming_receiver_connection_events[i].data.fd, buf, ((sizeof (buf)) - 1));
 
 					if (len == -1) {
-						// If errno == EAGAIN, that means we have read all
-						//   data. So go back to the main loop. 
 						if (errno != EAGAIN) {
 							fprintf (stderr, "read");
 							done = 1;
 						}
 						break;
-					} else if (len == 0) {
-						// End of file. The remote has closed the
-						///  connection. 
+					} else if (len == 0) { // EOF
 						done = 1;
 						break;
 					}
@@ -878,7 +891,7 @@ void *incoming_receiver_connections_thread(void *arg) {
 							printf("incoming receiver connection epoll error z is %d errno is %i %s\n", s, errno, strerror(errno));
 						}
 						
-						buf[1024] = '\0';
+						buf[512] = '\0';
 						char *ct;
 						
 						if (strncmp(buf, "SOURCE /", 8) == 0) {
@@ -901,7 +914,8 @@ void *incoming_receiver_connections_thread(void *arg) {
 									kxpdr->receivers[r].kxpdr = kxpdr;
 									strcpy(kxpdr->receivers[r].mount, mount);
 									strcpy(kxpdr->receivers[r].content_type, content_type);
-									
+									strncpy(kxpdr->receivers[r].first_bytes, buf, len);
+									kxpdr->receivers[r].first_bytes_len = len;
 									receiver_activate(&kxpdr->receivers[r], kxpdr->incoming_receiver_connection_events[i].data.fd);
 
 									kxpdr->active++;
@@ -925,14 +939,11 @@ void *incoming_receiver_connections_thread(void *arg) {
 					}
 				
 					printf ("Closed connection on descriptor %d\n", kxpdr->incoming_receiver_connection_events[i].data.fd);
-					// Closing the descriptor will make epoll remove it
-					//    from the set of descriptors which are monitored. 
 					close (kxpdr->incoming_receiver_connection_events[i].data.fd);
 				}
 			}
 		}
 	}
-	
 
 	printf("incoming receiver connections thread deactivating!\n");
 
@@ -968,16 +979,11 @@ void *incoming_transmitter_connections_thread(void *arg) {
 		        (kxpdr->incoming_transmitter_connection_events[i].events & EPOLLHUP) ||
 		      (!(kxpdr->incoming_transmitter_connection_events[i].events & EPOLLIN)))
 			{
-				// An error has occured on this fd, or the socket is not
-				// ready for reading (why were we notified then?) 
 				fprintf (stderr, "incoming_transmitter_connection epoll error\n");
 				close (kxpdr->incoming_transmitter_connection_events[i].data.fd);
 				continue;
 
 			} else if (kxpdr->incoming_transmitter_connections_sd == kxpdr->incoming_transmitter_connection_events[i].data.fd) {
-	
-				// We have a notification on the listening socket, which
-				//  means one or more incoming connections.
 
 				while (1) {
 			
@@ -1003,9 +1009,6 @@ void *incoming_transmitter_connections_thread(void *arg) {
 					if (s == 0) {
 						printf("Accepted transmitter connection on descriptor %d (host=%s, port=%s)\n", infd, hbuf, sbuf);
 					}
-
-					// Make the incoming socket non-blocking and add it to the
-					//  list of fds to monitor.
 				
 					s = set_socket_mode (infd);
 					if (s == -1) {
@@ -1024,28 +1027,18 @@ void *incoming_transmitter_connections_thread(void *arg) {
 			
 			} else {
 			
-				//   We have data on the fd waiting to be read. Read and
-				//     display it. We must read whatever data is available
-				//    completely, as we are running in edge-triggered mode
-				//     and won't get a notification again for the same
-				//     data. 
-			
 				done = 0;
 
 				while (1) {
 
 					len = read (kxpdr->incoming_transmitter_connection_events[i].data.fd, buf, sizeof buf);
 					if (len == -1) {
-						// If errno == EAGAIN, that means we have read all
-						//   data. So go back to the main loop. 
 						if (errno != EAGAIN) {
 							fprintf (stderr, "read");
 							done = 1;
 						}
 						break;
-					} else if (len == 0) {
-						// End of file. The remote has closed the
-						///  connection. 
+					} else if (len == 0) { // EOF
 						done = 1;
 						break;
 					}
@@ -1118,8 +1111,6 @@ void *incoming_transmitter_connections_thread(void *arg) {
 					}
 				
 					printf ("Closed connection on descriptor %d\n", kxpdr->incoming_transmitter_connection_events[i].data.fd);
-					// Closing the descriptor will make epoll remove it
-					//    from the set of descriptors which are monitored. 
 					close (kxpdr->incoming_transmitter_connection_events[i].data.fd);
 				}
 			}
@@ -1146,7 +1137,8 @@ kxpdr_t *kxpdr_create(char *incoming_receiver_connection_port, char *incoming_tr
 		printf("activating kxpdr!\n");
 	}
 	
-
+	printf("%s\n", KXPDR_VERSION);
+	
 	signal(SIGINT, kxpdr_initiate_shutdown);
 	signal(SIGTERM, kxpdr_initiate_shutdown);
 	
@@ -1156,10 +1148,7 @@ kxpdr_t *kxpdr_create(char *incoming_receiver_connection_port, char *incoming_tr
 	kxpdr->not_found_len += sprintf(kxpdr->not_found + kxpdr->not_found_len, "Content-Type: text/html; charset=utf-8\r\n");
 	kxpdr->not_found_len += sprintf(kxpdr->not_found + kxpdr->not_found_len, "\r\n404 Not Found");
 	
-	
-	
 	kxpdr->receivers = calloc(RECEIVER_COUNT, sizeof(kxpdr_receiver_t));
-	
 	
 	/* RECEIVERS */
 	
@@ -1201,7 +1190,6 @@ kxpdr_t *kxpdr_create(char *incoming_receiver_connection_port, char *incoming_tr
 	pthread_create(&kxpdr->incoming_receiver_connections_thread, NULL, incoming_receiver_connections_thread, (void *)kxpdr);
 
 	/* TRANSMITTERS */
-
 
 	kxpdr->incoming_transmitter_connections_sd = transponder_socket_create (incoming_transmitter_connection_port);
 	if (kxpdr->incoming_transmitter_connections_sd == -1)

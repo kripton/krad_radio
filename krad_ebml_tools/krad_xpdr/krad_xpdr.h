@@ -17,6 +17,7 @@
 
 #include "krad_ring.h"
 
+#define KXPDR_VERSION "KXPDR Version 0.8a"
 
 #define RECEIVER_COUNT 16
 #define TRANSMITTERS_PER_RECEIVER 128
@@ -27,7 +28,7 @@
 #define SERVER "Icecast 2.3.2"
 
 #define MAXEVENTS 64
-#define RING_SIZE 3000000
+#define RING_SIZE 30000000
 
 #define BURST_SIZE 64000
 
@@ -97,6 +98,9 @@ struct kxpdr_receiver_St {
 
 	char name[256];
 	char mount[256];
+	
+	char first_bytes[512];
+	int first_bytes_len;
 	
 	krad_ringbuffer_t *ringbuffer;
 	krad_ringbuffer_data_t read_vector[2];
