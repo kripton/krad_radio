@@ -3,6 +3,7 @@
 programs = """
 krad_ebml_fileinfo.c
 krad_link.c
+krad_xpdr.c
 """.split()
 
 sources = """
@@ -28,6 +29,7 @@ depsources = """
 ../krad_ebml_tools/krad_display/krad_sdl_overlay_display.c
 ../krad_ebml_tools/krad_ring/krad_ring.c
 ../krad_ebml_tools/krad_link/krad_link.c
+../krad_ebml_tools/krad_xpdr/krad_xpdr.c
 """.split()
 
 includedirs = """
@@ -47,6 +49,7 @@ includedirs = """
 ../krad_ebml_tools/krad_opus/
 ../krad_ebml_tools/krad_ring/
 ../krad_ebml_tools/krad_link/
+../krad_ebml_tools/krad_xpdr/
 ../krad_ebml/
 """.split()
 
