@@ -59,7 +59,7 @@ includedirs = """
 /usr/include
 """.split()
 
-libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", ]
 
 def configure(conf):
 	
@@ -76,5 +76,5 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = "kradebml",
+			use = ["kradebml", "m"],
 			uselib = libs)

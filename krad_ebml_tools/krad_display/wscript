@@ -38,5 +38,5 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""), 
-			uselib = libs)
+			uselib = libs + ["m"])
 
