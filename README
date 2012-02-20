@@ -13,10 +13,7 @@ sudo ./waf install
 
 Need to add option builds currently all deps need to be met for tools.
 
-["vorbis", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", 
- "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
-
-These are for the tools only, krad ebml library has no deps.
+These are for the apps/tools only, krad ebml library has no deps.
 
 ubuntu hint:
 
@@ -40,9 +37,32 @@ sudo apt-get install yasm
 make
 sudo make install
 
-
 It will create a subdir called build in this directory, where you will find the results of its doing.
+
+libjpeg-turbo and its confusingly differently named api turbojpeg seems to be missing a pkg-config (.pc) file
+on most linux distros.
+
+Install the distro -dev package, or install from http://www.libjpeg-turbo.org/
+
+Put this pkg-config file in /usr/local/lib/pkgconfig/turbojpeg.pc if you installed from source
+or /usr/lib/pkgconfig/turbojpeg.pc if from packages
+Something fishy maybe going on or its really just missing, not sure but this has worked for a few people
+
+
+# turbojpeg installed pkg-config file
+
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: turbojpeg
+Description: turbojpeg
+Version: 1.2.0
+Conflicts:
+Libs: -L${libdir} -lturbojpeg
+Cflags: -I${includedir}
 
 And most importantly...
 
--David Richards Jan 29, 2012
+-David Richards Feb 17, 2012
