@@ -6,6 +6,10 @@ krad_link.c
 krad_xpdr.c
 """.split()
 
+programs2 = """
+krad2_ebml_test.c
+""".split()
+
 sources = """
 """.split()
 
@@ -31,6 +35,29 @@ depsources = """
 ../krad_ebml_tools/krad_link/krad_link.c
 ../krad_ebml_tools/krad_xpdr/krad_xpdr.c
 """.split()
+
+depsources2 = """
+../krad_ebml_tools/krad_tone/krad_tone.c
+../krad_ebml_tools/krad_audio/krad_audio.c
+../krad_ebml_tools/krad_jack/krad_jack.c
+../krad_ebml_tools/krad_pulse/krad_pulse.c
+../krad_ebml_tools/krad_alsa/krad_alsa.c
+../krad_ebml_tools/krad_vpx/krad_vpx.c
+../krad_ebml_tools/krad_dirac/krad_dirac.c
+../krad_ebml_tools/krad_theora/krad_theora.c
+../krad_ebml_tools/krad_vorbis/krad_vorbis.c
+../krad_ebml_tools/krad_flac/krad_flac.c
+../krad_ebml_tools/krad_opus/krad_opus.c
+../krad_ebml_tools/krad_opus/opus_header.c
+../krad_ebml_tools/krad_gui/krad_gui.c
+../krad_ebml_tools/krad_v4l2/krad_v4l2.c
+../krad_ebml_tools/krad_gui/krad_gui_gtk.c
+../krad_ebml_tools/krad_display/krad_sdl_opengl_display.c
+../krad_ebml_tools/krad_display/krad_sdl_overlay_display.c
+../krad_ebml_tools/krad_ring/krad_ring.c
+../krad_ebml_tools/krad_xpdr/krad_xpdr.c
+""".split()
+
 
 includedirs = """
 ../krad_ebml_tools/krad_tone/
@@ -72,4 +99,14 @@ def build(bld):
 			includes = includedirs, 
 			target = p.replace(".c", ""),
 			use = "kradebml",
+			uselib = libs)
+			
+
+	for p in programs2:
+
+		bld(features = 'c cprogram', 
+			source = sources + depsources2 + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			use = "kradebml2",
 			uselib = libs)

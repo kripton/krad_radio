@@ -1,0 +1,13 @@
+# krad2ebml installed pkg-config file
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: krad2ebml
+Description: EBML Transducer 2
+Version: @KRADEBML2_VERSION@
+Conflicts:
+Libs: -L${libdir} -lkrad2ebml
+Cflags: -I${includedir}

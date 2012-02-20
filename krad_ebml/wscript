@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 KRADEBML_VERSION = '0.41'
+KRADEBML2_VERSION = '2.41'
 
 sources = """
 krad_ebml.c
@@ -17,10 +18,25 @@ halloc/src/
 """.split()
 
 
+sources2 = """
+krad2_ebml.c
+krad2ebml.pc.in
+""".split()
+
+depsources2 = """
+""".split()
+
+includedirs2 = """
+""".split()
+
 def configure(conf):
 
 	conf.env['KRADEBML_VERSION'] = KRADEBML_VERSION
 	conf.define('KRADEBML_VERSION', KRADEBML_VERSION)
+	
+	conf.env['KRADEBML2_VERSION'] = KRADEBML2_VERSION
+	conf.define('KRADEBML2_VERSION', KRADEBML2_VERSION)
+	
 def build(bld):
 
 	bld.shlib(
@@ -28,6 +44,12 @@ def build(bld):
 		includes = includedirs, 
 		target = "kradebml",
 		vnum = KRADEBML_VERSION)
+		
+	bld.shlib(
+		source = sources2 + depsources2, 
+		includes = includedirs2, 
+		target = "kradebml2",
+		vnum = KRADEBML2_VERSION)
 		
 	bld.add_post_fun(post)
 

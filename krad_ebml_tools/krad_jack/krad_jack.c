@@ -104,44 +104,51 @@ int kradjack_process(jack_nframes_t nframes, void *arg) {
 	jack_default_audio_sample_t *samples[2];
 
 	if (kradjack->active) {
+		
+		if ((kradjack->kradaudio->direction == KINPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {
 
-		samples[0] = jack_port_get_buffer (kradjack->input_ports[0], nframes);
-		samples[1] = jack_port_get_buffer (kradjack->input_ports[1], nframes);
+			samples[0] = jack_port_get_buffer (kradjack->input_ports[0], nframes);
+			samples[1] = jack_port_get_buffer (kradjack->input_ports[1], nframes);
 	
-		if ((krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[1]) > (nframes * 4))) {
+			if ((krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[1]) > (nframes * 4))) {
 
-			krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[0], (char *)samples[0], nframes * 4);
-			krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[1], (char *)samples[1], nframes * 4);
+				krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[0], (char *)samples[0], nframes * 4);
+				krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[1], (char *)samples[1], nframes * 4);
 
-			for (c = 0; c < 2; c++) {
-				compute_peak(kradjack->kradaudio, KINPUT, samples[c], c, nframes, 0);
+				for (c = 0; c < 2; c++) {
+					compute_peak(kradjack->kradaudio, KINPUT, samples[c], c, nframes, 0);
+				}
+
 			}
-
+		
 		}
 		
 		if (kradjack->kradaudio->process_callback != NULL) {
 			kradjack->kradaudio->process_callback(nframes, kradjack->kradaudio->userdata);
 		}
 		
-		samples[0] = jack_port_get_buffer (kradjack->output_ports[0], nframes);
-		samples[1] = jack_port_get_buffer (kradjack->output_ports[1], nframes);
+		if ((kradjack->kradaudio->direction == KOUTPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {
+		
+			samples[0] = jack_port_get_buffer (kradjack->output_ports[0], nframes);
+			samples[1] = jack_port_get_buffer (kradjack->output_ports[1], nframes);
 	
-		if ((krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[1]) > (nframes * 4))) {
+			if ((krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[1]) > (nframes * 4))) {
 
-			krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
-			krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
+				krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
+				krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
 
-			for (c = 0; c < 2; c++) {
-				compute_peak(kradjack->kradaudio, KOUTPUT, samples[c], c, nframes, 0);
-			}
+				for (c = 0; c < 2; c++) {
+					compute_peak(kradjack->kradaudio, KOUTPUT, samples[c], c, nframes, 0);
+				}
 
-		} else {
+			} else {
 
-			for (s = 0; s < nframes; s++) {
-				samples[0][s] = 0;
-				samples[1][s] = 0;
-			}
+				for (s = 0; s < nframes; s++) {
+					samples[0][s] = 0;
+					samples[1][s] = 0;
+				}
 	
+			}
 		}
 	
 	}
@@ -214,12 +221,16 @@ krad_jack_t *kradjack_create(krad_audio_t *kradaudio) {
 		exit (1);
 	}
 
-	kradjack->input_ports[0] = jack_port_register (kradjack->jack_client, "InputLeft", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-	kradjack->input_ports[1] = jack_port_register (kradjack->jack_client, "InputRight", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+	if ((kradjack->kradaudio->direction == KINPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {
+		kradjack->input_ports[0] = jack_port_register (kradjack->jack_client, "InputLeft", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+		kradjack->input_ports[1] = jack_port_register (kradjack->jack_client, "InputRight", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+	}
 	
-	kradjack->output_ports[0] = jack_port_register (kradjack->jack_client, "Left", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-	kradjack->output_ports[1] = jack_port_register (kradjack->jack_client, "Right", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-
+	if ((kradjack->kradaudio->direction == KOUTPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {	
+		kradjack->output_ports[0] = jack_port_register (kradjack->jack_client, "Left", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+		kradjack->output_ports[1] = jack_port_register (kradjack->jack_client, "Right", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+	}
+	
 	/*
 	char portname[128];
 	

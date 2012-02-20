@@ -6,7 +6,7 @@
 #include <krad_audio.h>
 #include <jack/jack.h>
 
-#define RINGBUFFER_SIZE 3000000
+#define RINGBUFFER_SIZE 2000000
 
 typedef struct krad_jack_St krad_jack_t;
 

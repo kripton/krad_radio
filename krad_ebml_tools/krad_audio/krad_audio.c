@@ -92,11 +92,15 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 			break;
 	}
 	
-	krad_ringbuffer_free ( kradaudio->input_ringbuffer[0] );
-	krad_ringbuffer_free ( kradaudio->input_ringbuffer[1] );
-
-	krad_ringbuffer_free ( kradaudio->output_ringbuffer[0] );
-	krad_ringbuffer_free ( kradaudio->output_ringbuffer[1] );
+	if ((kradaudio->direction == KINPUT) || (kradaudio->direction == KDUPLEX)) {
+		krad_ringbuffer_free ( kradaudio->input_ringbuffer[0] );
+		krad_ringbuffer_free ( kradaudio->input_ringbuffer[1] );
+	}
+	
+	if ((kradaudio->direction == KOUTPUT) || (kradaudio->direction == KDUPLEX)) {
+		krad_ringbuffer_free ( kradaudio->output_ringbuffer[0] );
+		krad_ringbuffer_free ( kradaudio->output_ringbuffer[1] );
+	}
 	
 	free(kradaudio);
 
@@ -111,18 +115,25 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 		fprintf(stderr, "mem alloc fail\n");
 		exit (1);
 	}
-	
-	kradaudio->output_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-	kradaudio->output_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 
-	kradaudio->input_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-	kradaudio->input_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	kradaudio->audio_api = api;
+	kradaudio->direction = direction;
+	
+	if ((kradaudio->direction == KOUTPUT) || (kradaudio->direction == KDUPLEX)) {
+	
+		kradaudio->output_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		kradaudio->output_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	
+	}
+
+	if ((kradaudio->direction == KINPUT) || (kradaudio->direction == KDUPLEX)) {
+	
+		kradaudio->input_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		kradaudio->input_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	}
 
 	strncpy(kradaudio->name, name, 128);
 	kradaudio->name[127] = '\0';
-	
-	kradaudio->audio_api = api;
-	kradaudio->direction = direction;
 
 	switch (kradaudio->audio_api) {
 	
