@@ -51,6 +51,8 @@ includedirs = """
 ../krad_ebml_tools/krad_link/
 ../krad_ebml_tools/krad_xpdr/
 ../krad_ebml/
+/usr/local/include
+/usr/include
 """.split()
 
 libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]

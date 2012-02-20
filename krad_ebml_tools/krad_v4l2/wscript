@@ -12,6 +12,8 @@ depsources = """
 """.split()
 
 includedirs = """
+/usr/local/include
+/usr/include
 """.split()
 
 libs = ['turbojpeg']
