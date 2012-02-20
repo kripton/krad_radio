@@ -54,5 +54,6 @@ def build(bld):
 		bld(features = 'c cprogram', 
 			source = sources + depsources2 + [p], 
 			includes = includedirs2, 
-			target = p.replace(".c", ""), 
+			target = p.replace(".c", ""),
+			lib = ['m'],
 			uselib = libs2)

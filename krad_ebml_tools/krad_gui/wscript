@@ -22,5 +22,6 @@ def build(bld):
 		source = sources + ["krad_gui_gtk_test.c"], 
 		includes = includedirs, 
 		target = "krad_gui_gtk_test", 
+		lib = ['m'],
 		uselib = libs + ["m"])
 
