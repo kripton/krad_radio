@@ -60,4 +60,4 @@ def build(bld):
 			includes = includedirs, 
 			target = p.replace(".c", ""),
 			use = "kradebml",
-			uselib = libs)
+			uselib = libs + ["m"])
