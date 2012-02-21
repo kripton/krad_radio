@@ -98,7 +98,7 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = "kradebml",
+			use = ["kradebml", "kradebml2"],
 			uselib = libs)
 			
 

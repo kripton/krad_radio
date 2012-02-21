@@ -1,5 +1,8 @@
 #include <krad_pulse.h>
 
+#ifdef KRAD_LINK
+extern int do_shutdown;
+#endif
 
 // This callback gets called when our context changes state.  We really only
 // care about when it's ready or if it has failed
@@ -158,12 +161,25 @@ void *kradpulse_loop_thread(void *arg) {
 	
 }
 
+//void *kradpulse_signal_callback(void *arg) {
+void kradpulse_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
+
+	krad_pulse_t *kradpulse = (krad_pulse_t *)userdata;
+	
+	kradpulse->shutdown = 1;
+
+#ifdef KRAD_LINK
+do_shutdown = 1;
+#endif
+
+}
+
 void kradpulse_destroy(krad_pulse_t *kradpulse) {
 
 	kradpulse->shutdown = 1;
 
 	pthread_join(kradpulse->loop_thread, NULL);
-	
+
 	// clean up and disconnect
 	pa_context_disconnect(kradpulse->pa_ctx);
 	pa_context_unref(kradpulse->pa_ctx);
@@ -292,10 +308,8 @@ krad_pulse_t *kradpulse_create(krad_audio_t *kradaudio) {
 		
 	}
 	
-	
 	kradaudio->sample_rate = kradpulse->ss.rate;
 	
-
 	pthread_create( &kradpulse->loop_thread, NULL, kradpulse_loop_thread, kradpulse);
 
 	return kradpulse;

@@ -1,4 +1,7 @@
+#define KRAD_LINK
+
 #include "krad_sdl_opengl_display.h"
+#include "krad2_ebml.h"
 #include "krad_ebml.h"
 #include "krad_dirac.h"
 #include "krad_vpx.h"
@@ -52,6 +55,7 @@ struct krad_link_St {
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
 	kradebml_t *krad_ebml;
+	krad2_ebml_t *krad2_ebml;
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_tone_t *krad_tone;
@@ -138,6 +142,10 @@ struct krad_link_St {
 	pthread_t audio_decoding_thread;
 	pthread_t ebml_input_thread;
 
+	pthread_t signal_thread;
+	sigset_t set;
+	int *shutdown;
+
 	int audio_channels;
 
 	int render_meters;
@@ -164,12 +172,12 @@ struct krad_link_St {
 	char bug[512];
 	int bug_x;
 	int bug_y;
-	
-	int *shutdown;
 
 	struct stat file_stat;
 	
 };
+
+void krad_link_shutdown();
 
 void dbg (char* format, ...);
 void krad_link_destroy(krad_link_t *krad_link);

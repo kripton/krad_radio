@@ -72,6 +72,8 @@ void compute_peak(krad_audio_t *kradaudio, krad_audio_direction_t direction, flo
 
 void kradaudio_destroy(krad_audio_t *kradaudio) {
 
+	kradaudio->destroy = 1;
+
 	switch (kradaudio->audio_api) {
 	
 		case JACK:
@@ -256,6 +258,13 @@ void kradaudio_set_process_callback(krad_audio_t *kradaudio, void kradaudio_proc
 
 
 void kradaudio_write(krad_audio_t *kradaudio, int channel, char *data, int len) {
+
+	while (krad_ringbuffer_write_space(kradaudio->output_ringbuffer[channel]) < len) {
+		if (kradaudio->destroy) {
+			return;
+		}
+		usleep(40000);
+	}
 
 	krad_ringbuffer_write (kradaudio->output_ringbuffer[channel], data, len );
 

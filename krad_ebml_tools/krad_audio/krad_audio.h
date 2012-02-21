@@ -56,6 +56,8 @@ struct krad_audio_St {
 	float input_peak[8];
 	float output_peak[8];
 	
+	int destroy;
+	
 	void (*process_callback)(int, void *);
     void *userdata;
     

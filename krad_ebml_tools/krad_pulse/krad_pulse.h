@@ -7,6 +7,7 @@
 #include <pulse/pulseaudio.h>
 #include <krad_audio.h>
 #include <stddef.h>
+#include <signal.h>
 
 typedef struct krad_pulse_St krad_pulse_t;
 
@@ -21,8 +22,9 @@ struct krad_pulse_St {
 	pa_mainloop_api *pa_mlapi;
 	pa_context *pa_ctx;
 	pa_stream *playstream;
-
 	pa_stream *capturestream;
+	//pa_signal_event *pa_sig;
+
 
 	int underflows;
 	int latency;
