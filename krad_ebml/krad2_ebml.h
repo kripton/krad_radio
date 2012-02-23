@@ -126,6 +126,10 @@ struct krad2_ebml_track_St {
 	int bit_depth;
 	unsigned char *codec_data;
 	int codec_data_size;
+	
+	unsigned char *xiph_header[3];
+	int xiph_header_len[3];
+	
 };
 
 struct krad2_ebml_io_St {
@@ -178,6 +182,11 @@ struct krad2_ebml_St {
 	
 	int width;
 	int height;
+	
+	
+	int read_laced_frames;
+	uint64_t frame_sizes[256];
+	int current_laced_frame;
 	
 };
 

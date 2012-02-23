@@ -155,6 +155,13 @@ int main (int argc, char *argv[]) {
 		krad_flac_decoder_destroy (krad_flac);
 		kradaudio_destroy (krad_audio);
 		
+	} else {
+	
+	
+			while (((len = krad2_ebml_read_packet ( krad2_ebml, &tracknum, buffer)) > 0) && (do_shutdown == 0)) {
+				
+			}
+	
 	}
 
 	krad2_ebml_destroy ( krad2_ebml );

@@ -99,14 +99,66 @@ void rmemcpy(void *dst, void *src, int len) {
 	}
 }
 
+int krad2_ebml_read_xiph_lace_value ( unsigned char *bytes, int *bytes_read ) {
+
+	unsigned char byte;
+	unsigned int value;
+	int maxlen;
+	int offset;
+	
+	offset = 0;
+	value = 0;
+	maxlen = 10;
+	
+	while (maxlen--) {
+		*bytes_read += 1;
+		byte = bytes[0] + offset;
+		if (byte != 255) {
+	
+			value += byte;
+		
+			printf("xiph lace value is %d\n", value);
+			return value;
+	
+		} else {
+			value += 255;
+			offset += 1;
+		}
+	}
+}
+
+
 int krad2_ebml_read_simpleblock( krad2_ebml_t *krad2_ebml, int len , int *tracknumber, unsigned char *buffer) {
 
 	int tracknum;
 	short timecode;
-	char temp[2];
-	unsigned char byte;
+	unsigned char temp[8];
+
+	int ret;
+
 	unsigned char flags;
 
+	unsigned int lacing;
+	unsigned char laced_frames;
+	
+	unsigned int framecount;
+	int total_size_of_frames;
+	unsigned int block_bytes_read;
+	
+	int last_frame_size;
+	
+	int64_t frame_size;
+	uint32_t frame_size_len;
+	
+	unsigned char byte;
+	
+	int64_t signed_drop[] = { 0x3f, 0x1fff, 0xfffff, 0x7ffffff, 0x3ffffffffLL, 0x1ffffffffffLL, 0xffffffffffffLL, 0x7fffffffffffffLL };
+	
+	total_size_of_frames = 0;
+	framecount = 0;
+	last_frame_size = 0;
+	lacing = 0;
+	block_bytes_read = 0;
 	timecode = 0;
 	tracknum = 0;
 
@@ -121,18 +173,218 @@ int krad2_ebml_read_simpleblock( krad2_ebml_t *krad2_ebml, int len , int *trackn
 	
 	krad2_ebml->last_timecode = timecode;
 	
-//	printf("timecode is %6.3f\r", ((krad2_ebml->current_cluster_timecode + (int64_t)timecode)/1000.0));
+	printf("timecode is %6.3f\n", ((krad2_ebml->current_cluster_timecode + (int64_t)timecode)/1000.0));
 //	fflush(stdout);
 	krad2_ebml_read ( krad2_ebml, &flags, 1 );
 	
-//	printf("\nflags is %x\n", flags);
+//	printf("flags is %x\n", flags);
 	
+	if ((flags & 0x04) && (flags & 0x02)) {
+	//	printf("EBML Lacing\n");
+		lacing = 1;
+	}
+
+	if ((!(flags & 0x04)) && (flags & 0x02)) {
+	///	printf("Xiph Lacing\n");
+		lacing = 2;
+	}
+	
+	if ((!(flags & 0x04)) && (!(flags & 0x02))) {
+	//	printf("No Lacing\n");
+	}
+	
+	if ((flags & 0x04) && (!(flags & 0x02))) {
+	//	printf("Fixed Lacing\n");
+		lacing = 3;
+	}
+
 //	krad2_ebml_seek ( krad2_ebml, len - 4, SEEK_CUR );
 
 	krad2_ebml->current_timecode = krad2_ebml->current_cluster_timecode + (int64_t)krad2_ebml->last_timecode;
 
-	return krad2_ebml_read ( krad2_ebml, buffer, len - 4 );
+	if (lacing == 0) {
+		return krad2_ebml_read ( krad2_ebml, buffer, len - 4 );
+	} else {
+	
+		krad2_ebml_read ( krad2_ebml, &laced_frames, 1 );
+		
+		block_bytes_read = 5;
+		
+		laced_frames += 1;
+		
+		framecount = 0;
+		
+		//printf("%u laced frames\n", laced_frames);
+							
+			if (lacing == 1) {
+			
 
+				while (framecount != laced_frames - 1) {
+					block_bytes_read += krad2_ebml_read ( krad2_ebml, &byte, 1 );
+					frame_size_len = ebml_length(byte);
+			
+					//printf("length of frame size one is %u\n", frame_size_len);
+					
+					
+					memset(temp, 0, 8);
+					
+					// data size
+					if (frame_size_len > 1) {
+						ret = krad2_ebml_read ( krad2_ebml, &temp, frame_size_len - 1 );
+						if (ret != frame_size_len - 1) {
+							printf("Failurey reading %d\n", ret);
+							exit(1);
+						}
+						block_bytes_read += ret;
+						
+						frame_size = (uint64_t)byte;
+
+
+					if (frame_size_len == 2) {
+						frame_size &= (EBML_LENGTH_2 - 1);
+					}
+
+					if (frame_size_len == 3) {
+						frame_size &= (EBML_LENGTH_3 - 1);
+					}
+
+					if (frame_size_len == 4) {
+						frame_size &= (EBML_LENGTH_4 - 1);
+					}
+
+					if (frame_size_len == 5) {
+						frame_size &= (EBML_LENGTH_5 - 1);
+					}
+
+					if (frame_size_len == 6) {
+						frame_size &= (EBML_LENGTH_6 - 1);
+					}
+
+					if (frame_size_len == 7) {
+						frame_size &= (EBML_LENGTH_7 - 1);
+					}
+
+					if (frame_size_len == 8) {
+						frame_size &= (EBML_LENGTH_8 - 1);
+					}
+
+					frame_size <<= 8 * (frame_size_len - 1);
+		
+					rmemcpy ( &frame_size, &temp, frame_size_len - 1);
+				} else {		
+					frame_size = (byte - EBML_LENGTH_1);
+				}
+				
+					//printf("frame size is %d\n", frame_size);
+					
+					if (framecount != 0) {
+					
+						frame_size -= signed_drop[frame_size_len - 1];
+					
+						frame_size = last_frame_size + frame_size;
+					
+					}
+					last_frame_size = frame_size;
+					
+					//printf("frame size is %u\n", frame_size);
+					
+					krad2_ebml->frame_sizes[framecount] = frame_size;
+					
+					total_size_of_frames += frame_size;
+
+					framecount++;
+				}
+				
+				
+				
+				frame_size = len - block_bytes_read - total_size_of_frames;
+				//frame_size = last_frame_size + frame_size;
+				//printf("last frame size is %u\n", frame_size);
+				
+				krad2_ebml->frame_sizes[framecount] = frame_size;
+				
+				krad2_ebml->read_laced_frames = framecount;
+				
+				krad2_ebml->current_laced_frame = 0;
+				
+				//printf("reading first ebml laced frame %u bytes\n", krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame]);
+				
+				return krad2_ebml_read ( krad2_ebml, buffer, krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame] );
+			}
+			
+			if (lacing == 2) {
+			
+			
+				while (framecount != laced_frames - 1) {
+				
+					int bytes = 0;
+					
+					block_bytes_read += krad2_ebml_read ( krad2_ebml, &byte, 1 );
+					if (byte != 255) {
+					
+						bytes += byte;
+						
+						
+						//printf("frame size is %d\n", bytes);
+						krad2_ebml->frame_sizes[framecount] = bytes;
+						total_size_of_frames += bytes;
+						framecount++;
+					
+					} else {
+						bytes += 255;
+					}
+				
+				
+				}
+			
+			
+				frame_size = len - block_bytes_read - total_size_of_frames;
+				//frame_size = last_frame_size + frame_size;
+				//printf("last frame size is %u\n", frame_size);
+				
+				krad2_ebml->frame_sizes[framecount] = frame_size;
+				
+				krad2_ebml->read_laced_frames = framecount;
+				
+				krad2_ebml->current_laced_frame = 0;
+				
+				//printf("reading first xiph laced frame %u bytes\n", krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame]);
+				
+				return krad2_ebml_read ( krad2_ebml, buffer, krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame] );
+			
+			
+			}
+			
+			if (lacing == 3) {
+			
+			
+
+				
+				krad2_ebml->read_laced_frames = laced_frames - 1;
+				framecount = laced_frames;
+				while (framecount ) {
+					framecount--;
+					krad2_ebml->frame_sizes[framecount] = (len - 5) / laced_frames;
+				}
+				
+							
+				krad2_ebml->current_laced_frame = 0;
+				
+				//printf("reading first fixed laced frame %u bytes\n", krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame]);
+				
+				return krad2_ebml_read ( krad2_ebml, buffer, krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame] );
+			
+			
+			}
+
+	
+	
+	
+	
+	
+	}
+	
+	
 }
 
 int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned char *buffer) {
@@ -167,6 +419,15 @@ int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned
 		if ((krad2_ebml->header_read == 0) && (tracks_size > 0) && (tracks_pos == tracks_size)) {
 				krad2_ebml->header_read = 1;
 				return 0;
+		}
+	
+	
+		if (krad2_ebml->read_laced_frames) {
+
+			krad2_ebml->current_laced_frame += 1;
+			krad2_ebml->read_laced_frames -= 1;
+			printf("reading %d laced frame %u bytes\n", krad2_ebml->current_laced_frame, krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame]);
+			return krad2_ebml_read ( krad2_ebml, buffer, krad2_ebml->frame_sizes[krad2_ebml->current_laced_frame] );
 		}
 	
 	
@@ -380,10 +641,14 @@ int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned
 		
 			krad2_ebml->tracks[krad2_ebml->current_track].codec_data = calloc(1, ebml_data_size);
 			
+			
+			
 			ret = krad2_ebml_read ( krad2_ebml, krad2_ebml->tracks[krad2_ebml->current_track].codec_data, ebml_data_size );
 			if (ret != ebml_data_size) {
 				printf("Failurebx reading %d\n", ret);
 				exit(1);
+			} else {
+				printf("read %d\n", ret);
 			}
 			if (tracks_size > 0) {
 				tracks_pos += ret;
@@ -391,6 +656,34 @@ int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned
 			krad2_ebml->tracks[krad2_ebml->current_track].codec_data_size = ebml_data_size;
 			
 			skip = 0;
+			
+			if ((krad2_ebml->tracks[krad2_ebml->current_track].codec == THEORA) || (krad2_ebml->tracks[krad2_ebml->current_track].codec == VORBIS)) {
+			
+				int bytes_read;
+			
+				bytes_read = 0;
+			
+				// first byte is the number of elements
+				bytes_read = 1;
+
+			
+				krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[0] = krad2_ebml_read_xiph_lace_value ( krad2_ebml->tracks[krad2_ebml->current_track].codec_data + bytes_read, &bytes_read );
+				krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[1] = krad2_ebml_read_xiph_lace_value ( krad2_ebml->tracks[krad2_ebml->current_track].codec_data + bytes_read, &bytes_read );
+				krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[2] = krad2_ebml->tracks[krad2_ebml->current_track].codec_data_size - bytes_read - (krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[0] + krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[1]);
+				
+				krad2_ebml->tracks[krad2_ebml->current_track].xiph_header[0] = krad2_ebml->tracks[krad2_ebml->current_track].codec_data + bytes_read;
+				krad2_ebml->tracks[krad2_ebml->current_track].xiph_header[1] = krad2_ebml->tracks[krad2_ebml->current_track].codec_data + bytes_read + krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[0];
+				krad2_ebml->tracks[krad2_ebml->current_track].xiph_header[2] = krad2_ebml->tracks[krad2_ebml->current_track].codec_data + bytes_read + krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[0] + krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[1];
+
+
+
+				printf("got xiph headers codec data size %d -- %d %d %d\n",
+						ebml_data_size,
+						krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[0],
+						krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[1],
+						krad2_ebml->tracks[krad2_ebml->current_track].xiph_header_len[2]);
+			
+			}
 			
 		}
 		

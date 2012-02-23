@@ -196,7 +196,7 @@ krad_vorbis_t *krad_vorbis_decoder_create(unsigned char *header1, int header1len
 	vorbis_synthesis_init(&vorbis->vdsp, &vorbis->vinfo);
 	vorbis_block_init(&vorbis->vdsp, &vorbis->vblock);
 
-	//printf("Vorbis Info - Version: %d Channels: %d Sample Rate: %ld Bitrate: %ld %ld %ld\n", vorbis->vinfo.version, vorbis->vinfo.channels, vorbis->vinfo.rate, vorbis->vinfo.bitrate_upper, vorbis->vinfo.bitrate_nominal, vorbis->vinfo.bitrate_lower);
+	printf("Vorbis Info - Version: %d Channels: %d Sample Rate: %ld Bitrate: %ld %ld %ld\n", vorbis->vinfo.version, vorbis->vinfo.channels, vorbis->vinfo.rate, vorbis->vinfo.bitrate_upper, vorbis->vinfo.bitrate_nominal, vorbis->vinfo.bitrate_lower);
 
 	for (c = 0; c < vorbis->vinfo.channels; c++) {
 		vorbis->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
