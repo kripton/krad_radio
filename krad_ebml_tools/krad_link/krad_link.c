@@ -232,7 +232,7 @@ void krad_link_audio_callback(int frames, void *userdata) {
 	
 	int len;
 	
-	if ((krad_link->operation_mode == CAPTURE) && (krad_link->audio_codec == VORBIS)) {
+	if (krad_link->operation_mode == CAPTURE) {
 	
 		kradaudio_read (krad_link->krad_audio, 0, (char *)krad_link->samples[0], frames * 4 );
 		kradaudio_read (krad_link->krad_audio, 1, (char *)krad_link->samples[1], frames * 4 );
