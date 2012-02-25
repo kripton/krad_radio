@@ -10,7 +10,9 @@
 #include <krad_ring.h>
 
 #define MAX_CHANNELS 8
-#define RINGBUFFER_SIZE 3000000
+#ifndef RINGBUFFER_SIZE
+#define RINGBUFFER_SIZE 2000000
+#endif
 
 typedef struct krad_vorbis_St krad_vorbis_t;
 

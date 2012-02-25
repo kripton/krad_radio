@@ -478,19 +478,14 @@ void *ebml_output_thread(void *arg) {
 			audio_frames_per_video_frame = krad_link->krad_audio->sample_rate / krad_link->capture_fps;
 		}
 	}
-	
 
-	
 	packet = malloc(2000000);
-
-
-	krad_link->krad_ebml = kradebml_create();
 	
 	if (krad_link->host[0] != '\0') {
-		kradebml_open_output_stream(krad_link->krad_ebml, krad_link->host, krad_link->port, krad_link->mount, krad_link->password);
+		krad_link->krad2_ebml = krad2_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, krad_link->password);
 	} else {
 		printf("Outputing to file: %s\n", krad_link->output);
-		kradebml_open_output_file(krad_link->krad_ebml, krad_link->output);
+		krad_link->krad2_ebml = krad2_ebml_open_file(krad_link->output, KRAD2_EBML_IO_WRITEONLY);
 	}
 	
 	if (krad_link->audio_codec != NOCODEC) {
@@ -502,14 +497,14 @@ void *ebml_output_thread(void *arg) {
 	if (((krad_link->audio_codec == VORBIS) || (krad_link->audio_codec == NOCODEC)) && 
 		((krad_link->video_codec == VP8) || (krad_link->video_codec == NOCODEC))) {
 		
-		kradebml_header(krad_link->krad_ebml, "webm", APPVERSION);
+		krad2_ebml_header(krad_link->krad2_ebml, "webm", APPVERSION);
 	} else {
-		kradebml_header(krad_link->krad_ebml, "matroska", APPVERSION);
+		krad2_ebml_header(krad_link->krad2_ebml, "matroska", APPVERSION);
 	}
 	
 	if (krad_link->video_source != NOVIDEO) {
 	
-		krad_link->video_track = kradebml_add_video_track(krad_link->krad_ebml, "V_VP8", krad_link->encoding_fps,
+		krad_link->video_track = krad2_ebml_add_video_track(krad_link->krad2_ebml, "V_VP8", krad_link->encoding_fps,
 											 			 krad_link->encoding_width, krad_link->encoding_height);
 	}	
 	
@@ -517,14 +512,14 @@ void *ebml_output_thread(void *arg) {
 	
 		switch (krad_link->audio_codec) {
 			case VORBIS:
-				krad_link->audio_track = kradebml_add_audio_track(krad_link->krad_ebml, "A_VORBIS", krad_link->krad_audio->sample_rate, krad_link->audio_channels, krad_link->krad_vorbis->header, 
+				krad_link->audio_track = krad2_ebml_add_audio_track(krad_link->krad2_ebml, "A_VORBIS", krad_link->krad_audio->sample_rate, krad_link->audio_channels, krad_link->krad_vorbis->header, 
 																 krad_link->krad_vorbis->headerpos);
 				break;
 			case FLAC:
-				krad_link->audio_track = kradebml_add_audio_track(krad_link->krad_ebml, "A_FLAC", krad_link->krad_audio->sample_rate, krad_link->audio_channels, (unsigned char *)krad_link->krad_flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
+				krad_link->audio_track = krad2_ebml_add_audio_track(krad_link->krad2_ebml, "A_FLAC", krad_link->krad_audio->sample_rate, krad_link->audio_channels, (unsigned char *)krad_link->krad_flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
 				break;
 			case OPUS:
-				krad_link->audio_track = kradebml_add_audio_track(krad_link->krad_ebml, "A_OPUS", 48000, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
+				krad_link->audio_track = krad2_ebml_add_audio_track(krad_link->krad2_ebml, "A_OPUS", 48000, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
 				break;
 			default:
 				printf("Unknown audio codec\n");
@@ -533,7 +528,7 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 	
-	kradebml_write(krad_link->krad_ebml);
+	//kradebml_write(krad_link->krad2_ebml);
 	
 	dbg("Output/Muxing thread waiting..\n");
 		
@@ -558,7 +553,7 @@ void *ebml_output_thread(void *arg) {
 				keyframe = keyframe_char[0];
 	
 
-				kradebml_add_video(krad_link->krad_ebml, krad_link->video_track, packet, packet_size, keyframe);
+				krad2_ebml_add_video(krad_link->krad2_ebml, krad_link->video_track, packet, packet_size, keyframe);
 
 				video_frames_muxed++;
 		
@@ -583,7 +578,7 @@ void *ebml_output_thread(void *arg) {
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)packet, packet_size);
 
-				kradebml_add_audio(krad_link->krad_ebml, krad_link->audio_track, packet, packet_size, frames);
+				krad2_ebml_add_audio(krad_link->krad2_ebml, krad_link->audio_track, packet, packet_size, frames);
 
 				audio_frames_muxed += frames;
 				
@@ -646,7 +641,7 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 
-	kradebml_destroy(krad_link->krad_ebml);
+	krad2_ebml_destroy(krad_link->krad2_ebml);
 	
 	free(packet);
 
@@ -1054,7 +1049,7 @@ void *ebml_input_thread(void *arg) {
 	buffer = malloc(4096 * 16);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad2_ebml = krad2_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount);
+		krad_link->krad2_ebml = krad2_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
 	} else {
 		krad_link->krad2_ebml = krad2_ebml_open_file(krad_link->input, KRAD2_EBML_IO_READONLY);
 	}

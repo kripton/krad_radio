@@ -8,6 +8,7 @@ krad_xpdr.c
 
 programs2 = """
 krad2_ebml_test.c
+krad2_ebml_write_test.c
 """.split()
 
 sources = """

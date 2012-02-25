@@ -10,7 +10,9 @@
 //#include "krad_audio.h"
 
 #define MAX_CHANNELS 8
-
+#ifndef RINGBUFFER_SIZE
+#define RINGBUFFER_SIZE 2000000
+#endif
 #define FLAC_MINIMAL_HEADER_SIZE 42
 #define FLAC_STREAMINFO_BLOCK_SIZE 38
 #define FLAC_MARKER "fLaC"

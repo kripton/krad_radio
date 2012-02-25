@@ -1,7 +1,9 @@
 #ifndef KRAD_AUDIO_H
 #define KRAD_AUDIO_H
 
+#ifndef RINGBUFFER_SIZE
 #define RINGBUFFER_SIZE 2000000
+#endif
 
 typedef enum {
 	JACK = 999,

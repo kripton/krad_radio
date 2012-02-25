@@ -407,7 +407,6 @@ void Ebml_SerializeBinary(EbmlGlobal *glob, unsigned long class_id, unsigned lon
 void Ebml_SerializeFloat(EbmlGlobal *glob, unsigned long class_id, double d);
 void Ebml_SerializeString(EbmlGlobal *glob, unsigned long class_id, const char *s);
 void Ebml_SerializeData(EbmlGlobal *glob, unsigned long class_id, unsigned char *data, unsigned long data_length);
-void Ebml_SerializeData(EbmlGlobal *glob, unsigned long class_id, unsigned char *data, unsigned long data_length);
 //void write_webm_audio_block(EbmlGlobal *glob, const vpx_codec_enc_cfg_t *cfg, unsigned char *buffer, int bufferlen, int timecode_pos);
 
 typedef struct nestegg nestegg;               /**< Opaque handle referencing the stream state. */

@@ -26,7 +26,9 @@
 #include <stdarg.h>
 #include <limits.h>
 
-
+#ifndef KRADEBML_VERSION
+#define KRADEBML_VERSION "2.1"
+#endif
 
 #define EBML_LENGTH_1 0x80 // 10000000
 #define EBML_LENGTH_2 0x40 // 01000000
@@ -37,7 +39,8 @@
 #define EBML_LENGTH_7 0x02 // 00000010
 #define EBML_LENGTH_8 0x01 // 00000001
 
-#define EBML_DATA_SIZE_UNKNOWN 0xFFFFFFFFFFFFFFFF
+#define EBML_DATA_SIZE_UNKNOWN 0x01FFFFFFFFFFFFFFLLU
+#define EBML_DATA_SIZE_UNKNOWN_LENGTH 8
 
 #define EBML_ID_EBMLVERSION        0x4286
 #define EBML_ID_EBMLREADVERSION    0x42F7
@@ -49,16 +52,16 @@
 
 #define EBML_ID_HEADER					0x1A45DFA3
 #define EBML_ID_CLUSTER					0x1F43B675
-#define EBML_ID_TRACK_UID				0x73c5
+#define EBML_ID_TRACK_UID				0x73C5
 #define EBML_ID_TRACK_TYPE				0x83
-#define EBML_ID_LANGUAGE				0x22b59c
+#define EBML_ID_LANGUAGE				0x22b59C
 #define EBML_ID_SEGMENT					0x18538067
 #define EBML_ID_SEGMENT_TITLE			0x7BA9
 #define EBML_ID_SEGMENT_INFO			0x1549A966
 #define EBML_ID_SEGMENT_TRACKS			0x1654AE6B
 #define EBML_ID_TAG						0x1254C367
 #define EBML_ID_TRACK					0xAE
-#define EBML_ID_CODECDATA				0x63a2
+#define EBML_ID_CODECDATA				0x63A2
 #define EBML_ID_CLUSTER_TIMECODE		0xE7
 #define EBML_ID_SIMPLEBLOCK				0xA3
 #define EBML_ID_BLOCKGROUP				0xA0
@@ -82,6 +85,10 @@
 
 #define EBML_ID_3D						0x53B8
 
+#define EBML_ID_TIMECODESCALE			0x2AD7B1
+
+
+
 #ifndef KRAD_CODEC_T
 typedef enum {
 	VORBIS = 6666,
@@ -94,6 +101,15 @@ typedef enum {
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif
+
+typedef struct kradx_base64_St kradx_base64_t;
+
+struct kradx_base64_St {
+	int len;
+	int chunk;
+	char *out;
+	char *result;	
+};
 
 typedef struct krad2_ebml_St krad2_ebml_t;
 typedef struct krad2_ebml_track_St krad2_ebml_track_t;
@@ -137,15 +153,17 @@ struct krad2_ebml_io_St {
 	int seekable;
 	krad2_ebml_io_mode_t mode;
 	char *uri;
-	int (* write)(void *buffer, size_t length, krad2_ebml_io_t *krad2_ebml_io);
-	int (* read)(void *buffer, size_t length, krad2_ebml_io_t *krad2_ebml_io);
-	int64_t (* seek)(int64_t offset, int whence, krad2_ebml_io_t *krad2_ebml_io);
+	int (* write)(krad2_ebml_io_t *krad2_ebml_io, void *buffer, size_t length);
+	int (* read)(krad2_ebml_io_t *krad2_ebml_io, void *buffer, size_t length);
+	int64_t (* seek)(krad2_ebml_io_t *krad2_ebml_io, int64_t offset, int whence);
+	int64_t (* tell)(krad2_ebml_io_t *krad2_ebml_io);
 	int32_t (* open)(krad2_ebml_io_t *krad2_ebml_io);
 	int32_t (* close)(krad2_ebml_io_t *krad2_ebml_io);
 	
 	int ptr;
 	char *host;
 	char *mount;
+	char *password;
 	int port;
 	int sd;
 
@@ -188,16 +206,46 @@ struct krad2_ebml_St {
 	uint64_t frame_sizes[256];
 	int current_laced_frame;
 	
+	//writing
+	uint64_t segment;
+	uint64_t tracks_info;
+	uint64_t cluster;	
+	int64_t video_frame_rate;
+	int64_t total_video_frames;
+	int64_t cluster_timecode;
+	
+	int total_audio_frames;
+	float audio_sample_rate;
+	int audio_channels;
+	int audio_frames_since_cluster;
 };
+void krad2_ebml_sync (krad2_ebml_t *krad2_ebml);
+int krad2_ebml_add_video_track(krad2_ebml_t *krad2_ebml, char *codec_id, int frame_rate, int width, int height);
+void krad2_ebml_header (krad2_ebml_t *krad2_ebml, char *doctype, char *appversion);
+int krad2_ebml_add_video_track_with_private_data (krad2_ebml_t *krad2_ebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size);
+int krad2_ebml_add_subtitle_track(krad2_ebml_t *krad2_ebml, char *codec_id);
+int krad2_ebml_add_audio_track(krad2_ebml_t *krad2_ebml, char *codec_id, float sample_rate, int channels, unsigned char *private_data, int private_data_size);
+void krad2_ebml_add_video(krad2_ebml_t *krad2_ebml, int track_num, unsigned char *buffer, int buffer_len, int keyframe);
+void krad2_ebml_add_audio(krad2_ebml_t *krad2_ebml, int track_num, unsigned char *buffer, int buffer_len, int frames);
+void krad2_ebml_cluster(krad2_ebml_t *krad2_ebml, int64_t timecode);
+
+void krad2_ebml_start_segment(krad2_ebml_t *krad2_ebml, char *appversion);
+void krad2_ebml_write_element (krad2_ebml_t *krad2_ebml, uint32_t element);
+void krad2_ebml_write_uint32 (krad2_ebml_t *krad2_ebml, uint64_t element, uint32_t number);
+void krad2_ebml_write_string (krad2_ebml_t *krad2_ebml, uint64_t element, char *string);
+void krad2_ebml_write_data_size (krad2_ebml_t *krad2_ebml, uint64_t data_size);
+void krad2_ebml_write_reversed (krad2_ebml_t *krad2_ebml, void *buffer, uint32_t len);
 
 krad_codec_t krad2_ebml_get_track_codec (krad2_ebml_t *krad2_ebml, int tracknumber);
 int krad2_ebml_get_track_codec_data(krad2_ebml_t *krad2_ebml, int tracknumber, unsigned char *buffer);
 int krad2_ebml_get_track_count(krad2_ebml_t *krad2_ebml);
 int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned char *buffer);
-krad2_ebml_t *krad2_ebml_open_stream(char *host, int port, char *mount);
+krad2_ebml_t *krad2_ebml_open_stream(char *host, int port, char *mount, char *password);
 krad2_ebml_t *krad2_ebml_open_file(char *filename, krad2_ebml_io_mode_t mode);
 void krad2_ebml_destroy(krad2_ebml_t *krad2_ebml);
 
+int64_t krad2_ebml_tell(krad2_ebml_t *krad2_ebml);
+int64_t krad2_ebml_fileio_tell(krad2_ebml_io_t *krad2_ebml_io);
 int krad2_ebml_write(krad2_ebml_t *krad2_ebml, void *buffer, size_t length);
 int krad2_ebml_read(krad2_ebml_t *krad2_ebml, void *buffer, size_t length);
 int krad2_ebml_seek(krad2_ebml_t *krad2_ebml, int64_t offset, int whence);
