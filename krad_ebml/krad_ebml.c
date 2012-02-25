@@ -619,6 +619,23 @@ int krad_ebml_read_xiph_lace_value ( unsigned char *bytes, int *bytes_read ) {
 	return -1;
 }
 
+void krad_ebml_read_tags( krad_ebml_t *krad_ebml, int tags_length ) {
+
+	int bytes_read;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	
+	bytes_read = 0;
+	
+	while (bytes_read != tags_length) {
+	
+		break;
+	
+	}
+	
+
+
+}
 
 int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumber, unsigned char *buffer) {
 
@@ -875,6 +892,113 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 	
 }
 
+
+
+
+int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr) {
+	
+	int ret;
+	uint32_t ebml_id;
+	uint32_t ebml_id_length;
+	uint64_t ebml_data_size;
+	uint32_t ebml_data_size_length;
+	unsigned char byte;
+	unsigned char temp[7];
+
+	
+	if (!(ret = krad_ebml_read ( krad_ebml, &byte, 1 )) > 0) {
+		printf("ebml read ret was %d\n", ret);
+		return -1;
+	}
+	
+	if (krad_ebml->tracks_size > 0) {
+		krad_ebml->tracks_pos += ret;
+	}
+
+	ebml_id = 0;
+	ebml_data_size = 0;
+	
+	// ID length
+	ebml_id_length = ebml_length ( byte );
+
+	//printf("id length is %u\n", ebml_id_length);
+	memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
+
+	// ID
+	if (ebml_id_length > 1) {
+		ret = krad_ebml_read ( krad_ebml, &temp, ebml_id_length - 1 );
+		if (krad_ebml->tracks_size > 0) {
+			krad_ebml->tracks_pos += ret;
+		}
+		rmemcpy ( &ebml_id, &temp, ebml_id_length - 1);
+	}
+
+	// data size length
+	ret = krad_ebml_read ( krad_ebml, &byte, 1 );
+	if (ret != 1) {
+		printf("Failurex reading %d\n", ret);
+		exit(1);
+	}
+	if (krad_ebml->tracks_size > 0) {
+		krad_ebml->tracks_pos += ret;
+	}
+	ebml_data_size_length = ebml_length ( byte );
+	//printf("data size length is %u\n", ebml_data_size_length);
+
+	// data size
+	if (ebml_data_size_length > 1) {
+		ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size_length - 1 );
+		if (ret != ebml_data_size_length - 1) {
+			printf("Failurey reading %d\n", ret);
+			exit(1);
+		}
+		if (krad_ebml->tracks_size > 0) {
+			krad_ebml->tracks_pos += ret;
+		}
+		ebml_data_size = (uint64_t)byte;
+
+		if (ebml_data_size_length == 2) {
+			ebml_data_size &= (EBML_LENGTH_2 - 1);
+		}
+
+		if (ebml_data_size_length == 3) {
+			ebml_data_size &= (EBML_LENGTH_3 - 1);
+		}
+
+		if (ebml_data_size_length == 4) {
+			ebml_data_size &= (EBML_LENGTH_4 - 1);
+		}
+
+		if (ebml_data_size_length == 5) {
+			ebml_data_size &= (EBML_LENGTH_5 - 1);
+		}
+
+		if (ebml_data_size_length == 6) {
+			ebml_data_size &= (EBML_LENGTH_6 - 1);
+		}
+
+		if (ebml_data_size_length == 7) {
+			ebml_data_size &= (EBML_LENGTH_7 - 1);
+		}
+
+		if (ebml_data_size_length == 8) {
+			ebml_data_size &= (EBML_LENGTH_8 - 1);
+		}
+
+		ebml_data_size <<= 8 * (ebml_data_size_length - 1);
+		
+		rmemcpy ( &ebml_data_size, &temp, ebml_data_size_length - 1);
+	} else {		
+		ebml_data_size = (byte - EBML_LENGTH_1);
+	}
+	
+	*ebml_id_ptr = ebml_id;
+	*ebml_data_size_ptr = ebml_data_size;
+	
+	return 1;
+	
+}
+
 int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned char *buffer) {
 
 	int ret;
@@ -893,10 +1017,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 	
 	int number;
 	int known;
-	int tracks_size;
-	int tracks_pos;
-	tracks_size = 0;
-	tracks_pos = 0;
+
 	known = 0;
 	number = 0;
 	
@@ -904,7 +1025,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 
 	while (1) {
 	
-		if ((krad_ebml->header_read == 0) && (tracks_size > 0) && (tracks_pos == tracks_size)) {
+		if ((krad_ebml->header_read == 0) && (krad_ebml->tracks_size > 0) && (krad_ebml->tracks_pos == krad_ebml->tracks_size)) {
 				krad_ebml->header_read = 1;
 				return 0;
 		}
@@ -919,91 +1040,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 		}
 	
 	
-		if (!(ret = krad_ebml_read ( krad_ebml, &byte, 1 )) > 0) {
-			printf("ebml read ret was %d\n", ret);
-			break;
-		}
-		
-		if (tracks_size > 0) {
-			tracks_pos += ret;
-		}
-	
-		ebml_id = 0;
-		ebml_data_size = 0;
-		
-		// ID length
-		ebml_id_length = ebml_length ( byte );
-
-		//printf("id length is %u\n", ebml_id_length);
-		memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
-
-		// ID
-		if (ebml_id_length > 1) {
-			ret = krad_ebml_read ( krad_ebml, &temp, ebml_id_length - 1 );
-			if (tracks_size > 0) {
-				tracks_pos += ret;
-			}
-			rmemcpy ( &ebml_id, &temp, ebml_id_length - 1);
-		}
-
-		// data size length
-		ret = krad_ebml_read ( krad_ebml, &byte, 1 );
-		if (ret != 1) {
-			printf("Failurex reading %d\n", ret);
-			exit(1);
-		}
-		if (tracks_size > 0) {
-			tracks_pos += ret;
-		}
-		ebml_data_size_length = ebml_length ( byte );
-		//printf("data size length is %u\n", ebml_data_size_length);
-
-		// data size
-		if (ebml_data_size_length > 1) {
-			ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size_length - 1 );
-			if (ret != ebml_data_size_length - 1) {
-				printf("Failurey reading %d\n", ret);
-				exit(1);
-			}
-			if (tracks_size > 0) {
-				tracks_pos += ret;
-			}
-			ebml_data_size = (uint64_t)byte;
-
-			if (ebml_data_size_length == 2) {
-				ebml_data_size &= (EBML_LENGTH_2 - 1);
-			}
-
-			if (ebml_data_size_length == 3) {
-				ebml_data_size &= (EBML_LENGTH_3 - 1);
-			}
-
-			if (ebml_data_size_length == 4) {
-				ebml_data_size &= (EBML_LENGTH_4 - 1);
-			}
-
-			if (ebml_data_size_length == 5) {
-				ebml_data_size &= (EBML_LENGTH_5 - 1);
-			}
-
-			if (ebml_data_size_length == 6) {
-				ebml_data_size &= (EBML_LENGTH_6 - 1);
-			}
-
-			if (ebml_data_size_length == 7) {
-				ebml_data_size &= (EBML_LENGTH_7 - 1);
-			}
-
-			if (ebml_data_size_length == 8) {
-				ebml_data_size &= (EBML_LENGTH_8 - 1);
-			}
-
-			ebml_data_size <<= 8 * (ebml_data_size_length - 1);
-			
-			rmemcpy ( &ebml_data_size, &temp, ebml_data_size_length - 1);
-		} else {		
-			ebml_data_size = (byte - EBML_LENGTH_1);
-		}
+		krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);		
 
 		//printf("data size is %" PRIu64 "\n", ebml_data_size);
 
@@ -1047,7 +1084,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 		if (ebml_id == EBML_ID_SEGMENT_TRACKS) {
 			krad_ebml->ebml_level = 1;
 			skip = 0;
-			tracks_size = ebml_data_size;
+			krad_ebml->tracks_size = ebml_data_size;
 		}
 
 		if (ebml_id == EBML_ID_TRACK) {
@@ -1057,8 +1094,40 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 			krad_ebml->current_track = krad_ebml->track_count;
 		}
 				
-		if (ebml_id == EBML_ID_TAG) {
-			krad_ebml->ebml_level = 1;
+		if ((ebml_id == EBML_ID_TAGS) || (ebml_id == EBML_ID_TAG) || (ebml_id == EBML_ID_TAG_SIMPLE)) {
+			krad_ebml->tags_position = 0;
+			//krad_ebml_read_tags( krad_ebml, ebml_data_size);
+			skip = 0;
+		}
+		
+		if (ebml_id == EBML_ID_TAG_NAME) {
+			//krad_ebml->ebml_level = 1;
+			if (ebml_data_size < sizeof(krad_ebml->tags)) {
+				ret = krad_ebml_read ( krad_ebml, krad_ebml->tags, ebml_data_size );
+				if (ret != ebml_data_size) {
+					printf("Failurez reading %d\n", ret);
+					exit(1);
+				}
+				krad_ebml->tags[ret] = '\0';
+				strcat(krad_ebml->tags, ": ");
+				krad_ebml->tags_position += ret + 2;
+			}
+			skip = 0;
+		}
+		
+		if (ebml_id == EBML_ID_TAG_STRING) {
+			//krad_ebml->ebml_level = 1;
+			if (ebml_data_size < sizeof(krad_ebml->tags) + krad_ebml->tags_position) {
+				ret = krad_ebml_read ( krad_ebml, krad_ebml->tags + krad_ebml->tags_position, ebml_data_size );
+				if (ret != ebml_data_size) {
+					printf("Failurez reading %d\n", ret);
+					exit(1);
+				}
+				krad_ebml->tags[ret + krad_ebml->tags_position] = '\0';
+				printf("Got Tag! %s\n", krad_ebml->tags);
+			}
+			skip = 0;
+			skip = 0;
 		}
 		
 		if (ebml_id == EBML_ID_SIMPLEBLOCK) {
@@ -1090,8 +1159,8 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 				printf("Failurez reading %d\n", ret);
 				exit(1);
 			}
-			if (tracks_size > 0) {
-				tracks_pos += ret;
+			if (krad_ebml->tracks_size > 0) {
+				krad_ebml->tracks_pos += ret;
 			}
 			printf("%s", string);
 			
@@ -1138,8 +1207,8 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 			} else {
 				printf("read %d\n", ret);
 			}
-			if (tracks_size > 0) {
-				tracks_pos += ret;
+			if (krad_ebml->tracks_size > 0) {
+				krad_ebml->tracks_pos += ret;
 			}
 			krad_ebml->tracks[krad_ebml->current_track].codec_data_size = ebml_data_size;
 			
@@ -1184,8 +1253,8 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 				printf("Failurea reading %d\n", ret);
 				exit(1);
 			}
-			if (tracks_size > 0) {
-				tracks_pos += ret;
+			if (krad_ebml->tracks_size > 0) {
+				krad_ebml->tracks_pos += ret;
 			}
 			rmemcpy ( &number, &temp, ebml_data_size);
 
@@ -1220,8 +1289,8 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 				printf("Failureb reading %d\n", ret);
 				exit(1);
 			}
-			if (tracks_size > 0) {
-				tracks_pos += ret;
+			if (krad_ebml->tracks_size > 0) {
+				krad_ebml->tracks_pos += ret;
 			}
 			int adj = 0;
 			if (ebml_data_size == 4) {
@@ -1255,8 +1324,8 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 					krad_ebml_seek ( krad_ebml, ebml_data_size, SEEK_CUR);
 				}
 			}
-			if (tracks_size > 0) {
-				tracks_pos += ebml_data_size;
+			if (krad_ebml->tracks_size > 0) {
+				krad_ebml->tracks_pos += ebml_data_size;
 			}
 		}
 		known = 0;

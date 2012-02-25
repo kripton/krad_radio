@@ -234,7 +234,18 @@ struct krad_ebml_St {
 	float audio_sample_rate;
 	int audio_channels;
 	int audio_frames_since_cluster;
+	
+	int new_tags;
+	char tags[512];
+	int tags_position;
+	
+	int tracks_size;
+	int tracks_pos;
+	
 };
+
+int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
+
 void krad_ebml_sync (krad_ebml_t *krad_ebml);
 int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height);
 void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion);
