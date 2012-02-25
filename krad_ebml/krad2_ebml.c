@@ -463,26 +463,18 @@ void krad2_ebml_cluster(krad2_ebml_t *krad2_ebml, int64_t timecode) {
 	if (krad2_ebml->tracks_info != 0) {
 		krad2_ebml_finish_element (krad2_ebml, krad2_ebml->tracks_info);
 		krad2_ebml->tracks_info = 0;
-		krad2_ebml_sync (krad2_ebml);
+		krad2_ebml_write_sync (krad2_ebml);
 	}
 
 	if (krad2_ebml->cluster != 0) {
 		krad2_ebml_finish_element (krad2_ebml, krad2_ebml->cluster);
-		krad2_ebml_sync (krad2_ebml);
+		krad2_ebml_write_sync (krad2_ebml);
 	}
 
 	krad2_ebml->cluster_timecode = timecode;
 
 	krad2_ebml_start_element (krad2_ebml, EBML_ID_CLUSTER, &krad2_ebml->cluster);
 	krad2_ebml_write_int32 (krad2_ebml, EBML_ID_CLUSTER_TIMECODE, krad2_ebml->cluster_timecode);
-}
-
-
-
-void krad2_ebml_sync (krad2_ebml_t *krad2_ebml) { 
-
-	
-
 }
 
 /*		read 			*/
@@ -849,11 +841,6 @@ int krad2_ebml_read_simpleblock( krad2_ebml_t *krad2_ebml, int len , int *trackn
 			
 			}
 
-	
-	
-	
-	
-	
 	}
 	
 	
@@ -1259,8 +1246,27 @@ int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned
 
 }
 
+
 int krad2_ebml_write(krad2_ebml_t *krad2_ebml, void *buffer, size_t length) {
-	return krad2_ebml->io_adapter.write(&krad2_ebml->io_adapter, buffer, length);
+
+//	if ((length + krad2_ebml->io_adapter.write_buffer_pos) >= KRADEBML_WRITE_BUFFER_SIZE) {
+//		krad2_ebml_write_sync(krad2_ebml);
+//	}
+
+	memcpy(krad2_ebml->io_adapter.write_buffer + krad2_ebml->io_adapter.write_buffer_pos, buffer, length);
+	krad2_ebml->io_adapter.write_buffer_pos += length;
+
+	return length;
+}
+
+int krad2_ebml_write_sync(krad2_ebml_t *krad2_ebml) {
+
+	uint64_t length;
+	
+	length = krad2_ebml->io_adapter.write_buffer_pos;
+	krad2_ebml->io_adapter.write_buffer_pos = 0;
+
+	return krad2_ebml->io_adapter.write(&krad2_ebml->io_adapter, krad2_ebml->io_adapter.write_buffer, length);
 }
 
 int krad2_ebml_read(krad2_ebml_t *krad2_ebml, void *buffer, size_t length) {
@@ -1268,10 +1274,26 @@ int krad2_ebml_read(krad2_ebml_t *krad2_ebml, void *buffer, size_t length) {
 }
 
 int krad2_ebml_seek(krad2_ebml_t *krad2_ebml, int64_t offset, int whence) {
+
+	if (krad2_ebml->io_adapter.mode == KRAD2_EBML_IO_WRITEONLY) {
+		if (whence == SEEK_CUR) {
+			krad2_ebml->io_adapter.write_buffer_pos += offset;
+		}
+		if (whence == SEEK_SET) {
+			krad2_ebml->io_adapter.write_buffer_pos = offset;
+		}
+		return krad2_ebml->io_adapter.write_buffer_pos;
+	}
+
 	return krad2_ebml->io_adapter.seek(&krad2_ebml->io_adapter, offset, whence);
 }
 
 int64_t krad2_ebml_tell(krad2_ebml_t *krad2_ebml) {
+
+	if (krad2_ebml->io_adapter.mode == KRAD2_EBML_IO_WRITEONLY) {
+		return krad2_ebml->io_adapter.write_buffer_pos;
+	}
+
 	return krad2_ebml->io_adapter.tell(&krad2_ebml->io_adapter);
 }
 
@@ -1445,7 +1467,7 @@ int krad2_ebml_streamio_open(krad2_ebml_io_t *krad2_ebml_io) {
 			http_string_pos += sprintf( http_string + http_string_pos, "content-type: %s\r\n", content_type);
 			http_string_pos += sprintf( http_string + http_string_pos, "Authorization: Basic %s\r\n", auth_base64);
 			http_string_pos += sprintf( http_string + http_string_pos, "\r\n");
-		
+			//printf("%s\n", http_string);
 			krad2_ebml_streamio_write(krad2_ebml_io, http_string, http_string_pos);
 		
 		}
@@ -1473,6 +1495,10 @@ void krad2_ebml_destroy(krad2_ebml_t *krad2_ebml) {
 			printf("freeed on track t%d\n", t);
 			free (krad2_ebml->tracks[t].codec_data);
 		}
+	}
+	
+	if (krad2_ebml->io_adapter.write_buffer != NULL) {
+		free (krad2_ebml->io_adapter.write_buffer);
 	}
 	
 	free(krad2_ebml->tracks);
@@ -1507,6 +1533,7 @@ krad2_ebml_t *krad2_ebml_open_stream(char *host, int port, char *mount, char *pa
 		krad2_ebml->io_adapter.mode = KRAD2_EBML_IO_READONLY;
 	} else {
 		krad2_ebml->io_adapter.mode = KRAD2_EBML_IO_WRITEONLY;
+		krad2_ebml->io_adapter.write_buffer = malloc(KRADEBML_WRITE_BUFFER_SIZE);
 	}
 	//krad2_ebml->io_adapter.seekable = 1;
 	krad2_ebml->io_adapter.read = krad2_ebml_streamio_read;
@@ -1516,16 +1543,18 @@ krad2_ebml_t *krad2_ebml_open_stream(char *host, int port, char *mount, char *pa
 	krad2_ebml->io_adapter.uri = host;
 	krad2_ebml->io_adapter.host = host;
 	krad2_ebml->io_adapter.port = port;
-	krad2_ebml->io_adapter.mount = mount;
+	krad2_ebml->io_adapter.mount = mount + 1;
+	krad2_ebml->io_adapter.password = password;
 	
 	krad2_ebml->stream = 1;
 	
 	krad2_ebml->io_adapter.open(&krad2_ebml->io_adapter);
 	
-	krad2_ebml->tracks = calloc(10, sizeof(krad2_ebml_track_t));
-	
-	krad2_ebml_read_packet (krad2_ebml, NULL, NULL);
-	
+	if (krad2_ebml->io_adapter.mode == KRAD2_EBML_IO_READONLY) {
+		krad2_ebml->tracks = calloc(10, sizeof(krad2_ebml_track_t));
+		krad2_ebml_read_packet (krad2_ebml, NULL, NULL);
+	}
+		
 	return krad2_ebml;
 
 }
@@ -1556,6 +1585,10 @@ krad2_ebml_t *krad2_ebml_open_file(char *filename, krad2_ebml_io_mode_t mode) {
 		krad2_ebml->tracks = calloc(10, sizeof(krad2_ebml_track_t));
 	
 		krad2_ebml_read_packet (krad2_ebml, NULL, NULL);
+	}
+
+	if (krad2_ebml->io_adapter.mode == KRAD2_EBML_IO_WRITEONLY) {
+		krad2_ebml->io_adapter.write_buffer = malloc(KRADEBML_WRITE_BUFFER_SIZE);
 	}
 	
 	return krad2_ebml;

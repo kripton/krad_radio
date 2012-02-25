@@ -2,7 +2,6 @@
 
 #include "krad_sdl_opengl_display.h"
 #include "krad2_ebml.h"
-#include "krad_ebml.h"
 #include "krad_dirac.h"
 #include "krad_vpx.h"
 #include "krad_v4l2.h"
@@ -54,7 +53,6 @@ struct krad_link_St {
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
-	kradebml_t *krad_ebml;
 	krad2_ebml_t *krad2_ebml;
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;

@@ -528,8 +528,6 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 	
-	//kradebml_write(krad_link->krad2_ebml);
-	
 	dbg("Output/Muxing thread waiting..\n");
 		
 	while ( krad_link->encoding ) {
@@ -921,8 +919,7 @@ void krad_link_run(krad_link_t *krad_link) {
 		}
 	
 		if ((!*krad_link->shutdown) && (krad_link->input_ready) && (krad_link->interface_mode == WINDOW)) {
-	
-			//krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, 1920, 1080, krad_ebml->vparams.width, krad_ebml->vparams.height);
+
 			if (krad_link->video_codec != NOCODEC) {
 				krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->krad2_ebml->width, krad_link->krad2_ebml->height, krad_link->krad2_ebml->width, krad_link->krad2_ebml->height);
 			} else {
@@ -1288,7 +1285,7 @@ void *video_decoding_thread(void *arg) {
 	/*	
 		if (video_codec == KRAD_THEORA) {
 
-			krad_theora_decoder_decode(krad_theora_decoder, buffer, krad_ebml->size);
+			krad_theora_decoder_decode(krad_theora_decoder, buffer, bytes);
 
 			krad_sdl_opengl_display_render(krad_opengl_display, krad_theora_decoder->ycbcr[0].data, krad_theora_decoder->ycbcr[0].stride, krad_theora_decoder->ycbcr[1].data, krad_theora_decoder->ycbcr[1].stride, krad_theora_decoder->ycbcr[2].data, krad_theora_decoder->ycbcr[2].stride);
 
@@ -1296,7 +1293,7 @@ void *video_decoding_thread(void *arg) {
 
 		if (video_codec == KRAD_DIRAC) {
 
-			krad_dirac_decode(krad_dirac, buffer, krad_ebml->size);
+			krad_dirac_decode(krad_dirac, buffer, bytes);
 
 			if ((krad_dirac->format != NULL) && (dirac_output_unset == true)) {
 

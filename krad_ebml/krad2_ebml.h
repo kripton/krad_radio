@@ -87,7 +87,7 @@
 
 #define EBML_ID_TIMECODESCALE			0x2AD7B1
 
-
+#define KRADEBML_WRITE_BUFFER_SIZE 8192 * 1024 * 2
 
 #ifndef KRAD_CODEC_T
 typedef enum {
@@ -166,6 +166,10 @@ struct krad2_ebml_io_St {
 	char *password;
 	int port;
 	int sd;
+	
+
+	unsigned char *write_buffer;
+	uint64_t write_buffer_pos;
 
 };
 
@@ -243,6 +247,9 @@ int krad2_ebml_read_packet (krad2_ebml_t *krad2_ebml, int *tracknumber, unsigned
 krad2_ebml_t *krad2_ebml_open_stream(char *host, int port, char *mount, char *password);
 krad2_ebml_t *krad2_ebml_open_file(char *filename, krad2_ebml_io_mode_t mode);
 void krad2_ebml_destroy(krad2_ebml_t *krad2_ebml);
+
+
+int krad2_ebml_write_sync(krad2_ebml_t *krad2_ebml);
 
 int64_t krad2_ebml_tell(krad2_ebml_t *krad2_ebml);
 int64_t krad2_ebml_fileio_tell(krad2_ebml_io_t *krad2_ebml_io);
