@@ -392,11 +392,13 @@ void krad2_ebml_add_video(krad2_ebml_t *krad2_ebml, int track_num, unsigned char
 	}
 	
 	timecode = krad2_ebml->total_video_frames * 1000 * (uint64_t)1 / krad2_ebml->video_frame_rate;
-	block_timecode = timecode - krad2_ebml->cluster_timecode;	
 
 	if (keyframe) {
 		krad2_ebml_cluster(krad2_ebml, timecode);
 	}
+	
+	/* Must be after clustering esp. in case of keyframe */ 
+	block_timecode = timecode - krad2_ebml->cluster_timecode;	
 
     krad2_ebml_write_element (krad2_ebml, EBML_ID_SIMPLEBLOCK);
     
@@ -474,7 +476,7 @@ void krad2_ebml_cluster(krad2_ebml_t *krad2_ebml, int64_t timecode) {
 	krad2_ebml->cluster_timecode = timecode;
 
 	krad2_ebml_start_element (krad2_ebml, EBML_ID_CLUSTER, &krad2_ebml->cluster);
-	krad2_ebml_write_int32 (krad2_ebml, EBML_ID_CLUSTER_TIMECODE, krad2_ebml->cluster_timecode);
+	krad2_ebml_write_int64 (krad2_ebml, EBML_ID_CLUSTER_TIMECODE, krad2_ebml->cluster_timecode);
 }
 
 /*		read 			*/
@@ -1482,6 +1484,11 @@ void krad2_ebml_destroy(krad2_ebml_t *krad2_ebml) {
 	
 	int t;
 
+	if (krad2_ebml->cluster != 0) {
+		krad2_ebml_finish_element (krad2_ebml, krad2_ebml->cluster);
+		krad2_ebml_write_sync (krad2_ebml);
+	}
+
 	if (krad2_ebml->io_adapter.mode != -1) {
 		krad2_ebml->io_adapter.close(&krad2_ebml->io_adapter);
 	}
@@ -1489,14 +1496,15 @@ void krad2_ebml_destroy(krad2_ebml_t *krad2_ebml) {
 	if (krad2_ebml->clusters != NULL) {
 		free (krad2_ebml->clusters);
 	}
-	
-	for (t = 0; t < krad2_ebml->track_count; t++) {
-		if (krad2_ebml->tracks[t].codec_data != NULL) {
-			printf("freeed on track t%d\n", t);
-			free (krad2_ebml->tracks[t].codec_data);
+
+	if (krad2_ebml->io_adapter.mode == KRAD2_EBML_IO_READONLY) {
+		for (t = 0; t < krad2_ebml->track_count; t++) {
+			if (krad2_ebml->tracks[t].codec_data != NULL) {
+				free (krad2_ebml->tracks[t].codec_data);
+			}
 		}
 	}
-	
+		
 	if (krad2_ebml->io_adapter.write_buffer != NULL) {
 		free (krad2_ebml->io_adapter.write_buffer);
 	}

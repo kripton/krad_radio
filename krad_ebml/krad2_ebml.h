@@ -214,9 +214,9 @@ struct krad2_ebml_St {
 	uint64_t segment;
 	uint64_t tracks_info;
 	uint64_t cluster;	
-	int64_t video_frame_rate;
-	int64_t total_video_frames;
-	int64_t cluster_timecode;
+	uint64_t video_frame_rate;
+	uint64_t total_video_frames;
+	uint64_t cluster_timecode;
 	
 	int total_audio_frames;
 	float audio_sample_rate;
