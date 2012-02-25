@@ -198,13 +198,36 @@ void krad_ebml_write_element (krad_ebml_t *krad_ebml, uint32_t element) {
 	krad_ebml_write_reversed(krad_ebml, (void *)&element, element_len);
 }
 
+
+void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value) {
+
+	uint64_t tags;
+	uint64_t tag;
+	uint64_t tag_targets;
+	uint64_t simple_tag;
+	
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAGS, &tags);
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAG, &tag);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAG_TARGETS, &tag_targets);
+	krad_ebml_write_int8 (krad_ebml, EBML_ID_TAG_TARGETTYPEVALUE, 50);
+	krad_ebml_finish_element (krad_ebml, tag_targets);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAG_SIMPLE, &simple_tag);	
+	krad_ebml_write_string (krad_ebml, EBML_ID_TAG_NAME, name);
+	krad_ebml_write_string (krad_ebml, EBML_ID_TAG_STRING, value);
+	krad_ebml_finish_element (krad_ebml, simple_tag);
+
+	krad_ebml_finish_element (krad_ebml, tag);
+	krad_ebml_finish_element (krad_ebml, tags);
+
+}
+
 void krad_ebml_start_element (krad_ebml_t *krad_ebml, uint32_t element, uint64_t *position) {
 
 	krad_ebml_write_element (krad_ebml, element);
 	*position = krad_ebml_tell(krad_ebml);
 	krad_ebml_write_data_size (krad_ebml, EBML_DATA_SIZE_UNKNOWN);
-	
-	printf("position is %zu\n", *position);
 	
 }
 
@@ -215,13 +238,9 @@ void krad_ebml_finish_element (krad_ebml_t *krad_ebml, uint64_t element_position
 
 	current_position = krad_ebml_tell(krad_ebml);
 	element_data_size = current_position - element_position - EBML_DATA_SIZE_UNKNOWN_LENGTH;
-	printf("position is %zu\n", krad_ebml_tell(krad_ebml));
 	krad_ebml_seek(krad_ebml, element_position, SEEK_SET);
-	printf("position is %zu\n", krad_ebml_tell(krad_ebml));
 	krad_ebml_write_data_size_update (krad_ebml, element_data_size);
-	printf("position is %zu\n", krad_ebml_tell(krad_ebml));
 	krad_ebml_seek(krad_ebml, current_position, SEEK_SET);
-	printf("position is %zu\n", krad_ebml_tell(krad_ebml));
 }
 
 void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion) {
@@ -1495,6 +1514,10 @@ void krad_ebml_destroy(krad_ebml_t *krad_ebml) {
 	if (krad_ebml->cluster != 0) {
 		krad_ebml_finish_element (krad_ebml, krad_ebml->cluster);
 		krad_ebml_write_sync (krad_ebml);
+	} else {
+		if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) {
+			krad_ebml_write_sync (krad_ebml);
+		}
 	}
 
 	if (krad_ebml->io_adapter.mode != -1) {

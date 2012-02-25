@@ -25,6 +25,9 @@ int main (int argc, char *argv[]) {
 	
 	krad_ebml_header (krad_ebml, doctype, APPVERSION);
 	
+	krad_ebml_write_tag (krad_ebml, "test tag 1", "monkey 123");
+
+	krad_ebml_write_tag (krad_ebml, "test tag 2", "monkey 456");
 	
 	krad_ebml_destroy(krad_ebml);
 	

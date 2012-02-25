@@ -59,7 +59,6 @@
 #define EBML_ID_SEGMENT_TITLE			0x7BA9
 #define EBML_ID_SEGMENT_INFO			0x1549A966
 #define EBML_ID_SEGMENT_TRACKS			0x1654AE6B
-#define EBML_ID_TAG						0x1254C367
 #define EBML_ID_TRACK					0xAE
 #define EBML_ID_CODECDATA				0x63A2
 #define EBML_ID_CLUSTER_TIMECODE		0xE7
@@ -86,6 +85,19 @@
 #define EBML_ID_3D						0x53B8
 
 #define EBML_ID_TIMECODESCALE			0x2AD7B1
+
+
+#define EBML_ID_TAGS					0x1254C367
+#define EBML_ID_TAG						0x7373
+#define EBML_ID_TAG_TARGETS				0x63C0
+#define EBML_ID_TAG_TARGETTYPEVALUE		0x68CA
+#define EBML_ID_TAG_TARGETTYPE			0x63CA
+#define EBML_ID_TAG_SIMPLE				0x67C8
+#define EBML_ID_TAG_NAME				0x45A3
+#define EBML_ID_TAG_STRING				0x4487
+#define EBML_ID_TAG_BINARY				0x4485
+
+
 
 #define KRADEBML_WRITE_BUFFER_SIZE 8192 * 1024 * 2
 
@@ -248,8 +260,12 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode);
 void krad_ebml_destroy(krad_ebml_t *krad_ebml);
 
-
+void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value);
 int krad_ebml_write_sync(krad_ebml_t *krad_ebml);
+
+
+void krad_ebml_start_element (krad_ebml_t *krad_ebml, uint32_t element, uint64_t *position);
+void krad_ebml_finish_element (krad_ebml_t *krad_ebml, uint64_t element_position);
 
 char *krad_ebml_version();
 
