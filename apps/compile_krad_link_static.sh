@@ -27,8 +27,6 @@ gcc -g -Wall krad_link.c \
 ../krad_ebml_tools/krad_link/krad_link.c \
 -I../krad_ebml_tools/krad_link \
 ../krad_ebml/krad_ebml.c \
--I../krad_ebml/halloc/ \
-../krad_ebml/halloc/src/halloc.c \
 -I../krad_ebml/ \
 -I../krad_ebml_tools/krad_display/ \
 ../krad_ebml_tools/krad_display/krad_sdl_opengl_display.c \
