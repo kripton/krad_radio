@@ -221,7 +221,7 @@ void decoding_tests() {
 		fd = open("/home/oneman/kode/testfile5.flac", O_RDONLY);
 		
 		read(fd, buffer, 42);
-		krad_flac_decode(krad_flac, buffer, 42, audio);
+		krad_flac_decode(krad_flac, buffer, 42, &audio);
 		
 
 		krad_flac_decoder_destroy(krad_flac);

@@ -482,10 +482,10 @@ void *ebml_output_thread(void *arg) {
 	packet = malloc(2000000);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad2_ebml = krad2_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, krad_link->password);
+		krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, krad_link->password);
 	} else {
 		printf("Outputing to file: %s\n", krad_link->output);
-		krad_link->krad2_ebml = krad2_ebml_open_file(krad_link->output, KRAD2_EBML_IO_WRITEONLY);
+		krad_link->krad_ebml = krad_ebml_open_file(krad_link->output, KRAD_EBML_IO_WRITEONLY);
 	}
 	
 	if (krad_link->audio_codec != NOCODEC) {
@@ -497,14 +497,14 @@ void *ebml_output_thread(void *arg) {
 	if (((krad_link->audio_codec == VORBIS) || (krad_link->audio_codec == NOCODEC)) && 
 		((krad_link->video_codec == VP8) || (krad_link->video_codec == NOCODEC))) {
 		
-		krad2_ebml_header(krad_link->krad2_ebml, "webm", APPVERSION);
+		krad_ebml_header(krad_link->krad_ebml, "webm", APPVERSION);
 	} else {
-		krad2_ebml_header(krad_link->krad2_ebml, "matroska", APPVERSION);
+		krad_ebml_header(krad_link->krad_ebml, "matroska", APPVERSION);
 	}
 	
 	if (krad_link->video_source != NOVIDEO) {
 	
-		krad_link->video_track = krad2_ebml_add_video_track(krad_link->krad2_ebml, "V_VP8", krad_link->encoding_fps,
+		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", krad_link->encoding_fps,
 											 			 krad_link->encoding_width, krad_link->encoding_height);
 	}	
 	
@@ -512,14 +512,14 @@ void *ebml_output_thread(void *arg) {
 	
 		switch (krad_link->audio_codec) {
 			case VORBIS:
-				krad_link->audio_track = krad2_ebml_add_audio_track(krad_link->krad2_ebml, "A_VORBIS", krad_link->krad_audio->sample_rate, krad_link->audio_channels, krad_link->krad_vorbis->header, 
+				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_VORBIS", krad_link->krad_audio->sample_rate, krad_link->audio_channels, krad_link->krad_vorbis->header, 
 																 krad_link->krad_vorbis->headerpos);
 				break;
 			case FLAC:
-				krad_link->audio_track = krad2_ebml_add_audio_track(krad_link->krad2_ebml, "A_FLAC", krad_link->krad_audio->sample_rate, krad_link->audio_channels, (unsigned char *)krad_link->krad_flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
+				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_FLAC", krad_link->krad_audio->sample_rate, krad_link->audio_channels, (unsigned char *)krad_link->krad_flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
 				break;
 			case OPUS:
-				krad_link->audio_track = krad2_ebml_add_audio_track(krad_link->krad2_ebml, "A_OPUS", 48000, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
+				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_OPUS", 48000, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
 				break;
 			default:
 				printf("Unknown audio codec\n");
@@ -551,7 +551,7 @@ void *ebml_output_thread(void *arg) {
 				keyframe = keyframe_char[0];
 	
 
-				krad2_ebml_add_video(krad_link->krad2_ebml, krad_link->video_track, packet, packet_size, keyframe);
+				krad_ebml_add_video(krad_link->krad_ebml, krad_link->video_track, packet, packet_size, keyframe);
 
 				video_frames_muxed++;
 		
@@ -576,7 +576,7 @@ void *ebml_output_thread(void *arg) {
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)packet, packet_size);
 
-				krad2_ebml_add_audio(krad_link->krad2_ebml, krad_link->audio_track, packet, packet_size, frames);
+				krad_ebml_add_audio(krad_link->krad_ebml, krad_link->audio_track, packet, packet_size, frames);
 
 				audio_frames_muxed += frames;
 				
@@ -639,7 +639,7 @@ void *ebml_output_thread(void *arg) {
 	
 	}
 
-	krad2_ebml_destroy(krad_link->krad2_ebml);
+	krad_ebml_destroy(krad_link->krad_ebml);
 	
 	free(packet);
 
@@ -921,7 +921,7 @@ void krad_link_run(krad_link_t *krad_link) {
 		if ((!*krad_link->shutdown) && (krad_link->input_ready) && (krad_link->interface_mode == WINDOW)) {
 
 			if (krad_link->video_codec != NOCODEC) {
-				krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->krad2_ebml->width, krad_link->krad2_ebml->height, krad_link->krad2_ebml->width, krad_link->krad2_ebml->height);
+				krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->krad_ebml->width, krad_link->krad_ebml->height, krad_link->krad_ebml->width, krad_link->krad_ebml->height);
 			} else {
 				krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->display_width, krad_link->display_height, krad_link->display_width, krad_link->display_height);
 			}
@@ -1046,23 +1046,23 @@ void *ebml_input_thread(void *arg) {
 	buffer = malloc(4096 * 16);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad2_ebml = krad2_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
+		krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
 	} else {
-		krad_link->krad2_ebml = krad2_ebml_open_file(krad_link->input, KRAD2_EBML_IO_READONLY);
+		krad_link->krad_ebml = krad_ebml_open_file(krad_link->input, KRAD_EBML_IO_READONLY);
 	}
 
 	//kradgui_set_total_track_time_ms(krad_link->krad_gui, (5000000 / 1e9) * 1000);
 
 	krad_link->krad_gui->render_timecode = 1;
 	
-	tracks = krad_link->krad2_ebml->track_count;
+	tracks = krad_link->krad_ebml->track_count;
 	
 	krad_link->audio_codec = NOCODEC;
 	krad_link->video_codec = NOCODEC;
 	
 	while (tracks) {
 	
-		codec =	krad2_ebml_get_track_codec (krad_link->krad2_ebml, tracks);
+		codec =	krad_ebml_get_track_codec (krad_link->krad_ebml, tracks);
 	
 		if ((codec == VP8) || (codec == DIRAC) || (codec == THEORA)) {
 		
@@ -1086,18 +1086,18 @@ void *ebml_input_thread(void *arg) {
 	
 	if (krad_link->audio_codec == FLAC) {
 		krad_link->krad_flac = krad_flac_decoder_create();
-		bytes = krad2_ebml_get_track_codec_data(krad_link->krad2_ebml, audio_track, buffer);
+		bytes = krad_ebml_get_track_codec_data(krad_link->krad_ebml, audio_track, buffer);
 		dbg("FLAC Header size: %d\n", bytes);
 		krad_flac_decode(krad_link->krad_flac, buffer, bytes, NULL);
 	}
 	
 	if (krad_link->audio_codec == VORBIS) {
-		dbg("Vorbis Header byte sizes: %d %d %d\n", krad_link->krad2_ebml->tracks[audio_track].xiph_header_len[0], krad_link->krad2_ebml->tracks[audio_track].xiph_header_len[1], krad_link->krad2_ebml->tracks[audio_track].xiph_header_len[2]);
-		krad_link->krad_vorbis = krad_vorbis_decoder_create(krad_link->krad2_ebml->tracks[audio_track].xiph_header[0], krad_link->krad2_ebml->tracks[audio_track].xiph_header_len[0], krad_link->krad2_ebml->tracks[audio_track].xiph_header[1], krad_link->krad2_ebml->tracks[audio_track].xiph_header_len[1], krad_link->krad2_ebml->tracks[audio_track].xiph_header[2], krad_link->krad2_ebml->tracks[audio_track].xiph_header_len[2]);
+		dbg("Vorbis Header byte sizes: %d %d %d\n", krad_link->krad_ebml->tracks[audio_track].xiph_header_len[0], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[1], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[2]);
+		krad_link->krad_vorbis = krad_vorbis_decoder_create(krad_link->krad_ebml->tracks[audio_track].xiph_header[0], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[0], krad_link->krad_ebml->tracks[audio_track].xiph_header[1], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[1], krad_link->krad_ebml->tracks[audio_track].xiph_header[2], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[2]);
 	}
 	
 	if (krad_link->audio_codec == OPUS) {
-		bytes = krad2_ebml_get_track_codec_data(krad_link->krad2_ebml, audio_track, buffer);
+		bytes = krad_ebml_get_track_codec_data(krad_link->krad_ebml, audio_track, buffer);
 		dbg("Opus Header size: %d\n", bytes);
 		krad_link->krad_opus = kradopus_decoder_create(buffer, bytes, 44100.0f);
 	}
@@ -1107,8 +1107,8 @@ void *ebml_input_thread(void *arg) {
 	}
 	
 	if (krad_link->video_codec == THEORA) {
-		dbg("Theora Header byte sizes: %d %d %d\n", krad_link->krad2_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad2_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad2_ebml->tracks[video_track].xiph_header_len[2]);
-		//krad_link->krad_theora = krad_theora_decoder_create(krad_link->krad2_ebml->tracks[video_track].xiph_header[0], krad_link->krad2_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad2_ebml->tracks[video_track].xiph_header[1], krad_link->krad2_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad2_ebml->tracks[video_track].xiph_header[2], krad_link->krad2_ebml->tracks[video_track].xiph_header_len[2]);
+		dbg("Theora Header byte sizes: %d %d %d\n", krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
+		//krad_link->krad_theora = krad_theora_decoder_create(krad_link->krad_ebml->tracks[video_track].xiph_header[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header[2], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
 	}
 	
 	if (krad_link->video_codec == DIRAC) {
@@ -1117,8 +1117,8 @@ void *ebml_input_thread(void *arg) {
 	
 	if ((krad_link->interface_mode == WINDOW) && (krad_link->video_codec != NOCODEC)) {
 		
-		krad_link->composite_width = krad_link->krad2_ebml->width;
-		krad_link->composite_height = krad_link->krad2_ebml->height;
+		krad_link->composite_width = krad_link->krad_ebml->width;
+		krad_link->composite_height = krad_link->krad_ebml->height;
 
 		krad_link->display_width = krad_link->composite_width;
 		krad_link->display_height = krad_link->composite_height;
@@ -1143,7 +1143,7 @@ void *ebml_input_thread(void *arg) {
 	
 	while (!*krad_link->shutdown) {
 		
-		packet_size = krad2_ebml_read_packet ( krad_link->krad2_ebml, &current_track, buffer);
+		packet_size = krad_ebml_read_packet ( krad_link->krad_ebml, &current_track, buffer);
 		
 		if (packet_size <= 0) {
 			printf("\nebml input thread packet size was: %d\n", packet_size);
@@ -1170,7 +1170,7 @@ void *ebml_input_thread(void *arg) {
 
 			audio_packets++;
 
-			//kradgui_set_current_track_time_ms(krad_link->krad_gui, (krad_link->krad2_ebml->current_timecode / 1e9) * 1000);
+			//kradgui_set_current_track_time_ms(krad_link->krad_gui, (krad_link->krad_ebml->current_timecode / 1e9) * 1000);
 
 			if (krad_link->krad_audio_api != NOAUDIO) {
 			
@@ -1190,7 +1190,7 @@ void *ebml_input_thread(void *arg) {
 		}
 
 		if (krad_link->krad_audio != NULL) {
-			dbg("Input Timecode: %6.1f :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_link->krad2_ebml->current_timecode / 1000.0, video_packets, audio_packets, codec_bytes);
+			dbg("Input Timecode: %6.1f :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_link->krad_ebml->current_timecode / 1000.0, video_packets, audio_packets, codec_bytes);
 			fflush(stdout);
 		}
 
@@ -1201,7 +1201,7 @@ void *ebml_input_thread(void *arg) {
 	printf("\n");
 	dbg("Input/Demuxing thread exiting\n");
 
-	krad2_ebml_destroy(krad_link->krad2_ebml);
+	krad_ebml_destroy(krad_link->krad_ebml);
 	free(buffer);
 	return NULL;
 

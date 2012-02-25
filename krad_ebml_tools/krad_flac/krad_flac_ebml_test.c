@@ -12,7 +12,7 @@ void flac_ebml_encode_test() {
 	
 	krad_flac_t *krad_flac;
 	krad_tone_t *krad_tone;
-	kradebml_t *krad_ebml;
+	krad_ebml_t *krad_ebml;
 	//krad_audio_t *audio;
 	
 	char *filename = "/home/oneman/kode/flacrox.mkv";
@@ -44,18 +44,13 @@ void flac_ebml_encode_test() {
 	krad_flac = krad_flac_encoder_create(channels, sample_rate, bit_depth);
 	bytes = krad_flac_encoder_read_min_header(krad_flac, buffer);
 	
-	krad_ebml = kradebml_create();
-	//kradebml_open_output_stream(ebml, "192.168.1.2", 9080, "/teststream.webm", "secretkode");
-	kradebml_open_output_file(krad_ebml, filename);
-	kradebml_header(krad_ebml, "matroska", APPVERSION);
-	//videotrack = kradebml_add_video_track(krad_ebml, "V_VP8", 10, width, height);
-	audiotrack = kradebml_add_audio_track(krad_ebml, "A_FLAC", sample_rate, channels, buffer, bytes);
-	kradebml_write(krad_ebml);
+	//krad_ebml_open_output_stream(ebml, "192.168.1.2", 9080, "/teststream.webm", "secretkode");
+	krad_ebml = krad_ebml_open_file(filename, KRAD_EBML_IO_WRITEONLY);
+	krad_ebml_header(krad_ebml, "matroska", APPVERSION);
+	//videotrack = krad_ebml_add_video_track(krad_ebml, "V_VP8", 10, width, height);
+	audiotrack = krad_ebml_add_audio_track(krad_ebml, "A_FLAC", sample_rate, channels, buffer, bytes);
 	
 	krad_flac_encode_info(krad_flac);
-	
-	kradebml_cluster(krad_ebml, 0);
-	kradebml_write(krad_ebml);
 		
 	for (count = 0; count < TEST_COUNT1; count++) {
 		krad_tone_run(krad_tone, audio, 4096);
@@ -63,8 +58,7 @@ void flac_ebml_encode_test() {
 	
 		if (bytes > 0) {
 			printf("encoded %d bytes\n", bytes);
-			kradebml_add_audio(krad_ebml, audiotrack, buffer, bytes, 4096);
-			kradebml_write(krad_ebml);	
+			krad_ebml_add_audio(krad_ebml, audiotrack, buffer, bytes, 4096);
 		}
 		//krad_flac_encode_info(krad_flac);
 	}
@@ -72,14 +66,9 @@ void flac_ebml_encode_test() {
 	lingering_frames = krad_flac_encoder_frames_remaining(krad_flac);
 	bytes = krad_flac_encoder_finish(krad_flac, buffer);
 	printf("got %d flac finiishing bytes\n", bytes);
-	kradebml_add_audio(krad_ebml, audiotrack, buffer, bytes, lingering_frames);
-	kradebml_write(krad_ebml);
+	krad_ebml_add_audio(krad_ebml, audiotrack, buffer, bytes, lingering_frames);	
 	
-	
-	//bytes = krad_flac_encoder_read_header(krad_flac, buffer);
-
-	
-	kradebml_destroy(krad_ebml);
+	krad_ebml_destroy(krad_ebml);
 	
 	krad_flac_encoder_destroy(krad_flac);
 	krad_tone_destroy(krad_tone);
@@ -93,12 +82,12 @@ void flac_ebml_encode_test() {
 void flac_ebml_decode_test(char *inputfile) {
 
 	krad_flac_t *krad_flac;
-	kradebml_t *krad_ebml;
+	krad_ebml_t *krad_ebml;
 	krad_audio_t *krad_audio;
 	krad_audio_api_t audio_api;
 
 	char *filename;
-
+	int track_number;
 	int count;
 	
 	
@@ -132,22 +121,19 @@ void flac_ebml_decode_test(char *inputfile) {
 		buffer = calloc(1, 8192 * 8);
 		audio = calloc(1, 8192 * 4 * 4);
 
-		krad_ebml = kradebml_create();
-		kradebml_open_input_file(krad_ebml, filename);
-		//kradebml_open_input_stream(krad_ebml_player->ebml, "192.168.1.2", 9080, "/teststream.krado");
-	
-		kradebml_debug(krad_ebml);
+		krad_ebml = krad_ebml_open_file(filename, KRAD_EBML_IO_READONLY);
+		//krad_ebml_open_input_stream(krad_ebml_player->ebml, "192.168.1.2", 9080, "/teststream.krado");
 
-		bytes = kradebml_read_audio_header(krad_ebml, 1, buffer);
 
+		bytes = krad_ebml_get_track_codec_data(krad_ebml, 1, buffer);
 		printf("got flac header bytes of %d\n", bytes);
 		//exit(1);
-		krad_flac_decode(krad_flac, buffer, bytes, audio);
-		
-		while ((bytes = kradebml_read_audio(krad_ebml, buffer)) > 0) {
+		krad_flac_decode(krad_flac, buffer, bytes, &audio);
+
+		while ((bytes = krad_ebml_read_packet ( krad_ebml, &track_number, buffer)) > 0) {
 		
 			printf("got flac data bytes of %d\n", bytes);
-			krad_flac_decode(krad_flac, buffer, bytes, audio);
+			krad_flac_decode(krad_flac, buffer, bytes, &audio);
 			kradaudio_write (krad_audio, 0, (char *)audio, 4096 * 4 );
 			kradaudio_write (krad_audio, 1, (char *)audio, 4096 * 4 );
 
@@ -167,7 +153,7 @@ void flac_ebml_decode_test(char *inputfile) {
 		
 		kradaudio_destroy(krad_audio);
 		
-		kradebml_destroy(krad_ebml);
+		krad_ebml_destroy(krad_ebml);
 		free(audio);
 		free(buffer);
 	}

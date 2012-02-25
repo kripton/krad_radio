@@ -1,4 +1,4 @@
-#include "krad2_ebml.h"
+#include "krad_ebml.h"
 #include "krad_audio.h"
 #include "krad_flac.h"
 #include "signal.h"
@@ -20,7 +20,7 @@ void krad_test_shutdown() {
 
 int main (int argc, char *argv[]) {
 	
-	krad2_ebml_t *krad2_ebml;
+	krad_ebml_t *krad_ebml;
 	char *filename;
 	unsigned char *buffer;
 	int len;
@@ -73,20 +73,20 @@ int main (int argc, char *argv[]) {
 	signal(SIGINT, krad_test_shutdown);
 	signal(SIGTERM, krad_test_shutdown);
 	
-	//printf("sd df %d\n", sizeof(krad2_ebml_track_t));
+	//printf("sd df %d\n", sizeof(krad_ebml_track_t));
 	
 	//exit(1);
 	
-//	krad2_ebml = krad2_ebml_open_stream ( "deimos.kradradio.com", 8080, "/krad_test_flac.mkv" );
+//	krad_ebml = krad_ebml_open_stream ( "deimos.kradradio.com", 8080, "/krad_test_flac.mkv" );
 	
-	krad2_ebml = krad2_ebml_open_file ( filename, KRAD2_EBML_IO_READONLY );
+	krad_ebml = krad_ebml_open_file ( filename, KRAD_EBML_IO_READONLY );
 	
-	trackcount = krad2_ebml_get_track_count (krad2_ebml);
+	trackcount = krad_ebml_get_track_count (krad_ebml);
 	
 	//printf("track count is %d\n", trackcount);
 	
 	for (t = 0; t < trackcount; t++) {
-		if (krad2_ebml_get_track_codec(krad2_ebml, t + 1) == FLAC) {
+		if (krad_ebml_get_track_codec(krad_ebml, t + 1) == FLAC) {
 
 			playtrack = t + 1;
 			
@@ -100,7 +100,7 @@ int main (int argc, char *argv[]) {
 				krad_audio = kradaudio_create("Krad E2", KOUTPUT, krad_audio_api);
 			}
 			
-			len = krad2_ebml_get_track_codec_data(krad2_ebml, playtrack, buffer);
+			len = krad_ebml_get_track_codec_data(krad_ebml, playtrack, buffer);
 			printf("FLAC Header size: %d\n", len);
 			krad_flac_decode(krad_flac, buffer, len, NULL);
 		
@@ -116,7 +116,7 @@ int main (int argc, char *argv[]) {
 			samples[c] = malloc(4 * 8192);
 		}	
 	
-		while (((len = krad2_ebml_read_packet ( krad2_ebml, &tracknum, buffer)) > 0) && (do_shutdown == 0)) {
+		while (((len = krad_ebml_read_packet ( krad_ebml, &tracknum, buffer)) > 0) && (do_shutdown == 0)) {
 
 			if (tracknum == playtrack) {
 				//printf("Got a packet for track %d sized %d\n", tracknum, len);
@@ -136,7 +136,7 @@ int main (int argc, char *argv[]) {
 				
 				printf("Playback time: %6.1f Buffered to: %6.1f \r", 
 						((frames_wrote - kradaudio_buffered_frames(krad_audio)) / 44100.0),
-						((krad2_ebml->current_cluster_timecode + (int64_t)krad2_ebml->last_timecode)/1000.0));
+						((krad_ebml->current_cluster_timecode + (int64_t)krad_ebml->last_timecode)/1000.0));
 				
 				fflush(stdout);
 				
@@ -158,13 +158,13 @@ int main (int argc, char *argv[]) {
 	} else {
 	
 	
-			while (((len = krad2_ebml_read_packet ( krad2_ebml, &tracknum, buffer)) > 0) && (do_shutdown == 0)) {
+			while (((len = krad_ebml_read_packet ( krad_ebml, &tracknum, buffer)) > 0) && (do_shutdown == 0)) {
 				
 			}
 	
 	}
 
-	krad2_ebml_destroy ( krad2_ebml );
+	krad_ebml_destroy ( krad_ebml );
 
 	free (buffer);
 
