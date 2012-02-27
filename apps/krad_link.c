@@ -48,6 +48,9 @@ int main ( int argc, char *argv[] ) {
 			{"nowindow",		no_argument, 0, COMMAND},
 			{"daemon",			no_argument, 0, DAEMON},
 			
+			{"lowlatency_listen",		optional_argument, 0, 'L'},
+			{"lowlatency_transmit",		optional_argument, 0, 'T'},
+
 			{"novideo",			no_argument, 0, NOVIDEO},
 			{"noaudio",			no_argument, 0, NOAUDIO},
 			
@@ -121,6 +124,12 @@ int main ( int argc, char *argv[] ) {
 				strncpy (krad_link->bug, optarg, sizeof(krad_link->bug));
 				krad_link->bug_x = 64;
 				krad_link->bug_y = 64;
+				break;
+			case 'L':
+				krad_link->network_mode = UDP;
+				break;
+			case 'T':
+				krad_link->network_mode = UDP;
 				break;
 			case 'r':
 				krad_link->vpx_encoder_config.rc_target_bitrate = atoi(optarg);

@@ -652,6 +652,21 @@ void *ebml_output_thread(void *arg) {
 	
 }
 
+
+void *udp_output_thread(void *arg) {
+
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+
+	dbg("UDP Output thread starting\n");
+
+	dbg("UDP Output thread exiting\n");
+	
+	return NULL;
+
+}
+
+
 void krad_link_handle_input(krad_link_t *krad_link) {
 
 	while ( SDL_PollEvent( &krad_link->event ) ){
@@ -1210,6 +1225,19 @@ void *ebml_input_thread(void *arg) {
 
 }
 
+void *udp_input_thread(void *arg) {
+
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+
+	dbg("UDP Input thread starting\n");
+
+	dbg("UDP Input thread exiting\n");
+	
+	return NULL;
+
+}
+
 void krad_link_yuv_to_rgb(krad_link_t *krad_link, unsigned char *output, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs) {
 
 	int rgb_stride_arr[3] = {4*krad_link->display_width, 0, 0};
@@ -1708,7 +1736,8 @@ krad_link_t *krad_link_create() {
 	krad_link->audio_codec = VORBIS;
 	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
 	krad_link->video_source = V4L2;
-	
+	krad_link->operation_mode = TCP;
+
 	strncpy(krad_link->tone_preset, DEFAULT_TONE_PRESET, sizeof(krad_link->tone_preset));
 	vpx_codec_enc_config_default(interface, &krad_link->vpx_encoder_config, 0);
 	

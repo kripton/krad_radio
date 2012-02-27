@@ -33,6 +33,12 @@ typedef enum {
 } krad_link_operation_mode_t;
 
 typedef enum {
+	TCP = 250,
+	UDP,
+	FAIL,
+} krad_link_network_mode_t;
+
+typedef enum {
 	WINDOW = 300,
 	COMMAND,
 	DAEMON,
@@ -64,6 +70,8 @@ struct krad_link_St {
 	krad_audio_api_t krad_audio_api;
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
+	
+	krad_link_network_mode_t network_mode;
 	
 	char device[512];
 	char alsa_capture_device[512];
@@ -135,11 +143,15 @@ struct krad_link_St {
 	pthread_t video_capture_thread;
 	pthread_t video_encoding_thread;
 	pthread_t audio_encoding_thread;
-	pthread_t ebml_output_thread;
 
 	pthread_t video_decoding_thread;
 	pthread_t audio_decoding_thread;
+
+	pthread_t ebml_output_thread;
 	pthread_t ebml_input_thread;
+
+	pthread_t udp_output_thread;
+	pthread_t udp_input_thread;
 
 	pthread_t signal_thread;
 	sigset_t set;
