@@ -303,7 +303,8 @@ void *audio_encoding_thread(void *arg) {
 		
 	switch (krad_link->audio_codec) {
 		case VORBIS:
-			krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, krad_link->krad_audio->sample_rate, 0.7);
+			printf("Vorbis quality is %f\n", krad_link->vorbis_quality);
+			krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, krad_link->krad_audio->sample_rate, krad_link->vorbis_quality);
 			framecnt = 1024;
 			break;
 		case FLAC:
@@ -637,7 +638,7 @@ void *ebml_output_thread(void *arg) {
 		}
 		
 	
-		krad_ebml_write_tag (krad_link->krad_ebml, "test tag 1", "monkey 123");
+		//krad_ebml_write_tag (krad_link->krad_ebml, "test tag 1", "monkey 123");
 	
 	}
 
@@ -1705,6 +1706,7 @@ krad_link_t *krad_link_create() {
 	krad_link->interface_mode = WINDOW;
 	krad_link->video_codec = VP8;
 	krad_link->audio_codec = VORBIS;
+	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
 	krad_link->video_source = V4L2;
 	
 	strncpy(krad_link->tone_preset, DEFAULT_TONE_PRESET, sizeof(krad_link->tone_preset));

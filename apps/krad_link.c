@@ -147,6 +147,9 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case VORBIS:
 				krad_link->audio_codec = VORBIS;
+				if (optarg != NULL) {
+					krad_link->vorbis_quality = atof(optarg);
+				}	
 				break;
 			case WINDOW:
 				krad_link->interface_mode = WINDOW;

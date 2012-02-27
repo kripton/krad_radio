@@ -19,7 +19,7 @@
 #define HELP -1337
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 5
 #define DEFAULT_ENCODING_BUFFER_FRAMES 15
-
+#define DEFAULT_VORBIS_QUALITY 0.7
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 480
 #define DEFAULT_FPS 15
@@ -104,6 +104,7 @@ struct krad_link_St {
 	int encoding;
 	int capturing;
 	
+	float vorbis_quality;
 	int capture_audio;
 	krad_ringbuffer_t *audio_input_ringbuffer[MAX_AUDIO_CHANNELS];
 	krad_ringbuffer_t *audio_output_ringbuffer[MAX_AUDIO_CHANNELS];

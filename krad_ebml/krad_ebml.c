@@ -198,31 +198,6 @@ void krad_ebml_write_element (krad_ebml_t *krad_ebml, uint32_t element) {
 	krad_ebml_write_reversed(krad_ebml, (void *)&element, element_len);
 }
 
-
-void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value) {
-
-	uint64_t tags;
-	uint64_t tag;
-	uint64_t tag_targets;
-	uint64_t simple_tag;
-	
-	krad_ebml_start_element (krad_ebml, EBML_ID_TAGS, &tags);
-	krad_ebml_start_element (krad_ebml, EBML_ID_TAG, &tag);
-
-	krad_ebml_start_element (krad_ebml, EBML_ID_TAG_TARGETS, &tag_targets);
-	krad_ebml_write_int8 (krad_ebml, EBML_ID_TAG_TARGETTYPEVALUE, 50);
-	krad_ebml_finish_element (krad_ebml, tag_targets);
-
-	krad_ebml_start_element (krad_ebml, EBML_ID_TAG_SIMPLE, &simple_tag);	
-	krad_ebml_write_string (krad_ebml, EBML_ID_TAG_NAME, name);
-	krad_ebml_write_string (krad_ebml, EBML_ID_TAG_STRING, value);
-	krad_ebml_finish_element (krad_ebml, simple_tag);
-
-	krad_ebml_finish_element (krad_ebml, tag);
-	krad_ebml_finish_element (krad_ebml, tags);
-
-}
-
 void krad_ebml_start_element (krad_ebml_t *krad_ebml, uint32_t element, uint64_t *position) {
 
 	krad_ebml_write_element (krad_ebml, element);
@@ -290,7 +265,29 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 
 }
 
+void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value) {
 
+	uint64_t tags;
+	uint64_t tag;
+	uint64_t tag_targets;
+	uint64_t simple_tag;
+	
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAGS, &tags);
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAG, &tag);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAG_TARGETS, &tag_targets);
+	krad_ebml_write_int8 (krad_ebml, EBML_ID_TAG_TARGETTYPEVALUE, 50);
+	krad_ebml_finish_element (krad_ebml, tag_targets);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_TAG_SIMPLE, &simple_tag);	
+	krad_ebml_write_string (krad_ebml, EBML_ID_TAG_NAME, name);
+	krad_ebml_write_string (krad_ebml, EBML_ID_TAG_STRING, value);
+	krad_ebml_finish_element (krad_ebml, simple_tag);
+
+	krad_ebml_finish_element (krad_ebml, tag);
+	krad_ebml_finish_element (krad_ebml, tags);
+
+}
 
 int krad_ebml_new_tracknumber(krad_ebml_t *krad_ebml) {
 
