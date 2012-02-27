@@ -938,7 +938,7 @@ krad_mixer_t *krad_mixer_setup(char *jack_name_suffix) {
 
 void example_session(krad_mixer_t *krad_mixer) {
 
-	krad_mixer_client_t *client = new_client(krad_mixer);
+	krad_mixer_client_t *client = krad_mixer_new_client(krad_mixer);
 
 	// Set up port groups.
 
@@ -983,7 +983,7 @@ void example_session(krad_mixer_t *krad_mixer) {
 	
 	
 	
-	close_client(client);
+	krad_mixer_close_client(client);
 	
 	
 }

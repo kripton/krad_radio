@@ -1,13 +1,13 @@
-#include "kradmixer_clientlib.h"
+#include "krad_mixer_clientlib.h"
 
 int main (int argc, char *argv[])
 {
 
-	kradmixer_ipc_client_t *client;
+	krad_mixer_ipc_client_t *client;
 
 	if (argc > 2) {
 
-		client = kradmixer_connect(argv[1]);
+		client = krad_mixer_connect(argv[1]);
 	
 		if (client != NULL) {
 		
@@ -15,7 +15,7 @@ int main (int argc, char *argv[])
 	
 			sprintf(cmd + strlen(cmd), "%s", argv[2]);
 	
-			kradmixer_cmd(client, cmd);
+			krad_mixer_cmd(client, cmd);
 
 			if (strlen(client->krad_ipc_client->buffer) > 0) {
 	
@@ -23,7 +23,7 @@ int main (int argc, char *argv[])
 	
 			}	
 	
-			kradmixer_disconnect(client);
+			krad_mixer_disconnect(client);
 		}
 	
 	} else {
@@ -36,5 +36,7 @@ int main (int argc, char *argv[])
 		}
 		
 	}
+	
+	return 0;
 	
 }

@@ -6,6 +6,8 @@
 #include "pass.h"
 #include "fastlimiter.h"
 
+#include <jack/jack.h>
+
 #define PORTGROUP_MAX 20
 
 // #include "kiss_fft.h"
@@ -175,6 +177,9 @@ struct krad_mixer_client_St {
 	int pg;
 	portgroup_t *portgroup;
 };
+
+void example_session(krad_mixer_t *krad_mixer);
+krad_mixer_t *krad_mixer_setup(char *jack_name_suffix);
 
 float read_stereo_peak(portgroup_t *portgroup);
 int xrun_callback(void *arg);

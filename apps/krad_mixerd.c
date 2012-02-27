@@ -37,5 +37,6 @@ int main (int argc, char *argv[]) {
 	krad_ipc_server_signals_setup(krad_mixer->ipc);
 	krad_ipc_server_run(krad_mixer->ipc);
 
+	return 0;
 
 }
