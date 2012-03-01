@@ -72,8 +72,6 @@ void krad_ebml_base64_encode(char *dest, char *src) {
 
 void krad_ebml_write_reversed (krad_ebml_t *krad_ebml, void *buffer, uint32_t len) {
 
-	char x;
-	int i;
 	unsigned char buffer_rev[8];
 	
 	rmemcpy(buffer_rev, buffer, len);

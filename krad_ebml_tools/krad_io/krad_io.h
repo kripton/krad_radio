@@ -24,6 +24,9 @@
 #include <limits.h>
 
 
+#ifndef KRAD_IO_H
+#define KRAD_IO_H
+
 #define KRAD_IO_WRITE_BUFFER_SIZE 8192 * 1024 * 2
 
 typedef struct krad_io_base64_St krad_io_base64_t;
@@ -80,3 +83,5 @@ int krad_io_seek(krad_io_t *krad_io, int64_t offset, int whence);
 krad_io_t *krad_io_open_file(char *filename, krad_io_mode_t mode);
 krad_io_t *krad_io_open_stream(char *host, int port, char *mount, char *password);
 
+
+#endif

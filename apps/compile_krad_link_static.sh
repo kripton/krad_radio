@@ -24,8 +24,12 @@ gcc -g -Wall krad_link.c \
 -I../krad_ebml_tools/krad_ring \
 ../krad_ebml_tools/krad_alsa/krad_alsa.c \
 -I../krad_ebml_tools/krad_alsa \
+../krad_ebml_tools/krad_io/krad_io.c \
+../krad_ebml_tools/krad_ogg/krad_ogg.c \
 ../krad_ebml_tools/krad_link/krad_link.c \
 -I../krad_ebml_tools/krad_link \
+-I../krad_ebml_tools/krad_io \
+-I../krad_ebml_tools/krad_ogg \
 ../krad_ebml/krad_ebml.c \
 -I../krad_ebml/ \
 -I../krad_ebml_tools/krad_display/ \
@@ -47,5 +51,5 @@ gcc -g -Wall krad_link.c \
 /usr/local/lib/liborc-test-0.4.a \
 /usr/local/lib/libturbojpeg.a \
 /usr/local/lib/libvpx.a \
--o krad_link `pkg-config --cflags --libs gtk+-3.0` \
+-o krad_link `pkg-config --cflags --libs gtk+-3.0 theora` \
 -lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -ljack -lpulse -lasound

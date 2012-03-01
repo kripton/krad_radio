@@ -2,6 +2,8 @@
 
 #include "krad_sdl_opengl_display.h"
 #include "krad_ebml.h"
+#include "krad_ogg.h"
+#include "krad_io.h"
 #include "krad_dirac.h"
 #include "krad_vpx.h"
 #include "krad_v4l2.h"
@@ -29,7 +31,7 @@ typedef struct krad_link_St krad_link_t;
 typedef enum {
 	CAPTURE = 200,
 	RECEIVE,
-	FAIL,
+	FAILURE,
 } krad_link_operation_mode_t;
 
 typedef enum {
@@ -47,6 +49,7 @@ typedef enum {
 typedef enum {
 	TEST = 500,
 	V4L2,
+	BLACKMAGIC,
 	NOVIDEO,
 } krad_video_source_t;
 
@@ -147,8 +150,8 @@ struct krad_link_St {
 	pthread_t video_decoding_thread;
 	pthread_t audio_decoding_thread;
 
-	pthread_t ebml_output_thread;
-	pthread_t ebml_input_thread;
+	pthread_t stream_output_thread;
+	pthread_t stream_input_thread;
 
 	pthread_t udp_output_thread;
 	pthread_t udp_input_thread;

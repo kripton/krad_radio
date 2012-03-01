@@ -448,7 +448,7 @@ void *audio_encoding_thread(void *arg) {
 	
 }
 
-void *ebml_output_thread(void *arg) {
+void *stream_output_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1165,7 +1165,7 @@ void krad_link_run(krad_link_t *krad_link) {
 
 }
 
-void *ebml_input_thread(void *arg) {
+void *stream_input_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1904,7 +1904,7 @@ void krad_link_destroy(krad_link_t *krad_link) {
 		pthread_join(krad_link->audio_encoding_thread, NULL);
 	}
 	
-	pthread_join(krad_link->ebml_output_thread, NULL);
+	pthread_join(krad_link->stream_output_thread, NULL);
 
 	if (krad_link->interface_mode == WINDOW) {
 		krad_sdl_opengl_display_destroy(krad_link->krad_opengl_display);
@@ -1921,7 +1921,7 @@ void krad_link_destroy(krad_link_t *krad_link) {
 			pthread_join(krad_link->audio_decoding_thread, NULL);
 		}
 		
-		pthread_join(krad_link->ebml_input_thread, NULL);
+		pthread_join(krad_link->stream_input_thread, NULL);
 		
 	}
 
@@ -2122,7 +2122,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 			pthread_create(&krad_link->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_link);
 		}
 	
-		pthread_create(&krad_link->ebml_output_thread, NULL, ebml_output_thread, (void *)krad_link);	
+		pthread_create(&krad_link->stream_output_thread, NULL, stream_output_thread, (void *)krad_link);	
 
 	}
 	
@@ -2130,7 +2130,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 		krad_link->decoded_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
 		
-		pthread_create(&krad_link->ebml_input_thread, NULL, ebml_input_thread, (void *)krad_link);	
+		pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	
 		
 		if (krad_link->interface_mode == WINDOW) {
 			pthread_create(&krad_link->video_decoding_thread, NULL, video_decoding_thread, (void *)krad_link);
