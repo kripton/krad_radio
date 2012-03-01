@@ -84,6 +84,58 @@ int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int tracknumber) {
 }
 
 
+krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
+
+	krad_codec_t codec;
+    //vorbis_comment v_comment;
+    //vorbis_info v_info;
+    theora_comment t_comment;
+    theora_info t_info;
+   
+	codec = NOCODEC;
+   
+	if (memcmp (packet->packet + 1, "FLAC", 4) == 0) {
+        printf("found flac\n");
+		return FLAC;
+	}
+
+    //vorbis_info_init (&v_info);
+    //vorbis_comment_init (&v_comment);
+
+    //if (vorbis_synthesis_headerin (&v_info, &v_comment, packet) > 0) {
+    if (vorbis_synthesis_idheader (packet) == 1) {
+        printf("found vorbis\n");
+        codec = VORBIS;
+    }
+    
+	//vorbis_info_clear (&v_info);
+	//vorbis_comment_clear (&v_comment);
+    
+    if (codec != NOCODEC) {
+    	return codec;
+    }
+    
+    
+	theora_info_init (&t_info);
+	theora_comment_init (&t_comment);
+
+    if (theora_decode_header (&t_info, &t_comment, packet) == 0) {
+        printf("found theora\n");
+        codec = THEORA;
+    }
+    
+	theora_info_clear (&t_info);
+	theora_comment_clear (&t_comment);
+    
+    if (codec != NOCODEC) {
+    	return codec;
+    }
+ 
+	return NOCODEC;
+   
+} 
+
+
 int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char *buffer) {
 
 	int t;
@@ -100,6 +152,13 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 					
 					krad_ogg->tracks[t].header[krad_ogg->tracks[t].header_count] = malloc(packet.bytes);
 					memcpy(krad_ogg->tracks[t].header[krad_ogg->tracks[t].header_count], packet.packet, packet.bytes);
+					
+					if (krad_ogg->tracks[t].header_count == 0) {
+					
+						krad_ogg->tracks[t].codec = krad_ogg_get_codec(&packet);
+					
+					}
+					
 					
 					krad_ogg->tracks[t].header_count++;
 					if (krad_ogg->tracks[t].header_count == 3) {					

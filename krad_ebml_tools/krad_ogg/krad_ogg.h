@@ -24,8 +24,10 @@
 #include <limits.h>
 
 #include <ogg/ogg.h>
-
-
+#include <theora/theora.h>
+#include <vorbis/vorbisenc.h>
+#include <theora/theoradec.h>
+#include <theora/theoraenc.h>
 
 typedef struct krad_ogg_St krad_ogg_t;
 typedef struct krad_ogg_track_St krad_ogg_track_t;
