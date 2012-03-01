@@ -76,11 +76,7 @@ struct krad_ogg_St {
 
 	int track_count;
 	krad_ogg_track_t *tracks;
-
-	int ready;
-
 	ogg_sync_state sync_state;
-
 	krad_io_t *krad_io;
 	unsigned char *input_buffer;
 

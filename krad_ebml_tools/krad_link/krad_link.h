@@ -5,6 +5,7 @@
 #include "krad_ogg.h"
 #include "krad_io.h"
 #include "krad_dirac.h"
+#include "krad_theora.h"
 #include "krad_vpx.h"
 #include "krad_v4l2.h"
 #include "krad_gui.h"
@@ -27,6 +28,12 @@
 #define DEFAULT_FPS 15
 
 typedef struct krad_link_St krad_link_t;
+
+typedef enum {
+	EBML = 100,
+	OGG,
+	NAKED,
+} krad_container_t;
 
 typedef enum {
 	CAPTURE = 200,
@@ -59,6 +66,9 @@ struct krad_link_St {
 	kradgui_t *krad_gui;
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	krad_vpx_decoder_t *krad_vpx_decoder;
+	krad_dirac_t *krad_dirac;
+	//krad_theora_encoder_t *krad_theora_encoder;
+	krad_theora_decoder_t *krad_theora_decoder;
 	krad_audio_t *krad_audio;
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;

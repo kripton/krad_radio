@@ -34,8 +34,22 @@ char *krad_codec_to_string(krad_codec_t codec) {
 		default:
 			return "No Codec";
 	}
+}
 
+krad_container_t krad_link_select_container(char *string) {
 
+	if ((strstr(string, ".ogg")) ||
+		(strstr(string, ".OGG")) ||
+		(strstr(string, ".Ogg")) ||
+		(strstr(string, ".oga")) ||
+		(strstr(string, ".ogv")) ||
+		(strstr(string, ".Oga")) ||		
+		(strstr(string, ".OGV")))
+	{
+		return OGG;
+	}
+	
+	return EBML;
 }
 
 void *video_capture_thread(void *arg) {
@@ -1084,22 +1098,6 @@ void krad_link_run(krad_link_t *krad_link) {
 
 	if (krad_link->operation_mode == RECEIVE) {
 	
-		while (krad_link->input_ready != 1) {
-			usleep(5000);
-			if (*krad_link->shutdown) {
-				break;
-			}
-		}
-	
-		if ((!*krad_link->shutdown) && (krad_link->input_ready) && (krad_link->interface_mode == WINDOW)) {
-
-			if (krad_link->video_codec != NOCODEC) {
-				krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->krad_ebml->width, krad_link->krad_ebml->height, krad_link->krad_ebml->width, krad_link->krad_ebml->height);
-			} else {
-				krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->display_width, krad_link->display_height, krad_link->display_width, krad_link->display_height);
-			}
-		}
-	
 		while (!*krad_link->shutdown) {
 
 			if (krad_link->interface_mode != WINDOW) {
@@ -1211,7 +1209,7 @@ void *stream_input_thread(void *arg) {
 	int h;
 	int total_header_size;
 	int writeheaders;
-	
+	krad_container_t container;
 	video_track = 0;
 	audio_track = 0;
 	nocodec = NOCODEC;
@@ -1229,10 +1227,19 @@ void *stream_input_thread(void *arg) {
 	buffer = malloc(4096 * 16);
 	
 	if (krad_link->host[0] != '\0') {
-		//krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
+		container = krad_link_select_container(krad_link->host);
+		if (container == OGG) {
+			krad_link->krad_ogg = krad_ogg_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
+		} else {
+			krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
+		}
 	} else {
-		//krad_link->krad_ebml = krad_ebml_open_file(krad_link->input, KRAD_EBML_IO_READONLY);
-		krad_link->krad_ogg = krad_ogg_open_file(krad_link->input, KRAD_IO_READONLY);
+		container = krad_link_select_container(krad_link->input);
+		if (container == OGG) {
+			krad_link->krad_ogg = krad_ogg_open_file(krad_link->input, KRAD_IO_READONLY);
+		} else {
+			krad_link->krad_ebml = krad_ebml_open_file(krad_link->input, KRAD_EBML_IO_READONLY);
+		}
 	}
 	
 	while (!*krad_link->shutdown) {
@@ -1241,8 +1248,11 @@ void *stream_input_thread(void *arg) {
 		total_header_size = 0;
 		header_size = 0;
 
-		//packet_size = krad_ebml_read_packet ( krad_link->krad_ebml, &current_track, buffer);		
-		packet_size = krad_ogg_read_packet ( krad_link->krad_ogg, &current_track, buffer);
+		if (container == OGG) {
+			packet_size = krad_ogg_read_packet ( krad_link->krad_ogg, &current_track, buffer);
+		} else {
+			packet_size = krad_ebml_read_packet ( krad_link->krad_ebml, &current_track, buffer);		
+		}
 		
 		if (packet_size <= 0) {
 			printf("\nstream input thread packet size was: %d\n", packet_size);
@@ -1253,6 +1263,10 @@ void *stream_input_thread(void *arg) {
 			printf("track %d changed! status is %d header count is %d\n", current_track, krad_ogg_track_status(krad_link->krad_ogg, current_track), krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track));
 			
 			track_codecs[current_track] = krad_ogg_get_track_codec(krad_link->krad_ogg, current_track);
+			
+			if (track_codecs[current_track] == NOCODEC) {
+				continue;
+			}
 			
 			writeheaders = 1;
 			
@@ -1338,8 +1352,13 @@ void *stream_input_thread(void *arg) {
 	
 	printf("\n");
 	dbg("Input/Demuxing thread exiting\n");
-	krad_ogg_destroy(krad_link->krad_ogg);
-//	krad_ebml_destroy(krad_link->krad_ebml);
+	
+	if (container == OGG) {
+		krad_ogg_destroy(krad_link->krad_ogg);
+	} else {
+		krad_ebml_destroy(krad_link->krad_ebml);
+	}
+	
 	free(buffer);
 	free(header_buffer);
 	return NULL;
@@ -1523,82 +1542,137 @@ void *video_decoding_thread(void *arg) {
 	int bytes;
 	unsigned char *buffer;	
 	unsigned char *converted_buffer;
+	int h;
+	unsigned char *header[3];
+	int header_len[3];
+
+	for (h = 0; h < 3; h++) {
+		header[h] = malloc(100000);
+		header_len[3] = 0;
+	}
 
 	bytes = 0;
 	buffer = malloc(1000000);
 	converted_buffer = malloc(4000000);
-
+	
+	krad_link->last_video_codec = NOCODEC;
+	krad_link->video_codec = NOCODEC;
+	
 	while (!*krad_link->shutdown) {
 
-////////////////////////////////////////////NOTICE
-
-
-			sleep(100);
-
-
-
-
-
-
-///            NOTE
-
-
-
-
-
-/*
-
-	if (krad_link->video_codec == VP8) {
-		krad_link->krad_vpx_decoder = krad_vpx_decoder_create();
-	}
-	
-	if (krad_link->video_codec == THEORA) {
-		dbg("Theora Header byte sizes: %d %d %d\n", krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
-		//krad_link->krad_theora = krad_theora_decoder_create(krad_link->krad_ebml->tracks[video_track].xiph_header[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header[2], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
-	}
-	
-	if (krad_link->video_codec == DIRAC) {
-		//krad_dirac = krad_dirac_decoder_create();
-	}	
-	
-	if ((krad_link->interface_mode == WINDOW) && (krad_link->video_codec != NOCODEC)) {
-		
-		krad_link->composite_width = krad_link->krad_ebml->width;
-		krad_link->composite_height = krad_link->krad_ebml->height;
-
-		krad_link->display_width = krad_link->composite_width;
-		krad_link->display_height = krad_link->composite_height;
-
-		krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
-		krad_link->current_frame = realloc(krad_link->current_frame, krad_link->composited_frame_byte_size);
-		kradgui_destroy(krad_link->krad_gui);
-		krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
-		
-		krad_link->decoded_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_YUV420P,
-															  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-															  SWS_BICUBIC, NULL, NULL, NULL);
-	}
-*/
 
 		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-			usleep(10000);
+			usleep(20000);
 		}
 		
+		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&krad_link->video_codec, 4);
+		dbg("\nvideo codec is %d\n", krad_link->video_codec);
+		if ((krad_link->last_video_codec != krad_link->video_codec) || (krad_link->video_codec == NOCODEC)) {
+			if (krad_link->last_video_codec != NOCODEC)	{
+				if (krad_link->last_video_codec == VP8) {
+					krad_vpx_decoder_destroy (krad_link->krad_vpx_decoder);
+					krad_link->krad_vpx_decoder = NULL;
+				}
+				if (krad_link->last_video_codec == THEORA) {
+					krad_theora_decoder_destroy (krad_link->krad_theora_decoder);
+					krad_link->krad_theora_decoder = NULL;
+				}			
+				if (krad_link->last_video_codec == DIRAC) {
+					krad_dirac_decoder_destroy(krad_link->krad_dirac);
+					krad_link->krad_dirac = NULL;
+				}
+				
+				if (krad_link->decoded_frame_converter != NULL) {
+					sws_freeContext ( krad_link->decoded_frame_converter );
+				}
+				
+			}
+	
+			if (krad_link->video_codec == NOCODEC) {
+				krad_link->last_video_codec = krad_link->video_codec;
+				continue;
+			}
+	
+			if (krad_link->video_codec == VP8) {
+				krad_link->krad_vpx_decoder = krad_vpx_decoder_create();
+			}
+	
+			if (krad_link->video_codec == THEORA) {
+				
+				for (h = 0; h < 3; h++) {
+
+					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+						usleep(20000);
+					}
+	
+					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&header_len[h], 4);
+		
+					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+						usleep(30000);
+					}
+		
+					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)header[h], header_len[h]);
+				}
+
+				dbg("\n\nTheora Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
+				krad_link->krad_theora_decoder = krad_theora_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
+			}
+	
+			if (krad_link->video_codec == DIRAC) {
+				krad_link->krad_dirac = krad_dirac_decoder_create();
+			}
+		}	
+
+		krad_link->last_video_codec = krad_link->video_codec;
+	
+		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+			usleep(20000);
+		}
+	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&bytes, 4);
 		
 		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < bytes) && (!*krad_link->shutdown)) {
-			usleep(10000);
+			usleep(30000);
 		}
-
-		//krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 		
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)buffer, bytes);
+		
+		if (krad_link->video_codec == THEORA) {
+		
+			krad_theora_decoder_decode(krad_link->krad_theora_decoder, buffer, bytes);
 
+			if (krad_link->decoded_frame_converter == NULL) {
+				krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_theora_decoder->info.frame_width, krad_link->krad_theora_decoder->info.frame_height, PIX_FMT_YUV420P,
+															  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
+															  SWS_BICUBIC, NULL, NULL, NULL);
+		
+			}
+
+			krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_theora_decoder->ycbcr[0].data, 
+								 krad_link->krad_theora_decoder->ycbcr[0].stride, krad_link->krad_theora_decoder->ycbcr[1].data, 
+								 krad_link->krad_theora_decoder->ycbcr[1].stride, krad_link->krad_theora_decoder->ycbcr[2].data, 
+								 krad_link->krad_theora_decoder->ycbcr[2].stride);
+
+			while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size) && (!*krad_link->shutdown)) {
+				usleep(10000);
+			}
+			
+			krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
+
+		}
+			
 		if (krad_link->video_codec == VP8) {
-
 			krad_vpx_decoder_decode(krad_link->krad_vpx_decoder, buffer, bytes);
 				
 			if (krad_link->krad_vpx_decoder->img != NULL) {
+
+				if (krad_link->decoded_frame_converter == NULL) {
+
+					krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_vpx_decoder->width, krad_link->krad_vpx_decoder->height, PIX_FMT_YUV420P,
+																  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
+																  SWS_BICUBIC, NULL, NULL, NULL);
+			
+				}
 
 				krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_vpx_decoder->img->planes[0], 
 									 krad_link->krad_vpx_decoder->img->stride[0], krad_link->krad_vpx_decoder->img->planes[1], 
@@ -1614,50 +1688,42 @@ void *video_decoding_thread(void *arg) {
 				//dbg("wrote %d to decoded frames buffer\n", krad_link->composited_frame_byte_size);
 			}
 		}
-		
+			
 
-	/*	
-		if (video_codec == KRAD_THEORA) {
+		if (krad_link->video_codec == DIRAC) {
 
-			krad_theora_decoder_decode(krad_theora_decoder, buffer, bytes);
-
-			krad_sdl_opengl_display_render(krad_opengl_display, krad_theora_decoder->ycbcr[0].data, krad_theora_decoder->ycbcr[0].stride, krad_theora_decoder->ycbcr[1].data, krad_theora_decoder->ycbcr[1].stride, krad_theora_decoder->ycbcr[2].data, krad_theora_decoder->ycbcr[2].stride);
-
-		}
-
-		if (video_codec == KRAD_DIRAC) {
-
+			/*
 			krad_dirac_decode(krad_dirac, buffer, bytes);
 
-			if ((krad_dirac->format != NULL) && (dirac_output_unset == true)) {
+				if ((krad_dirac->format != NULL) && (dirac_output_unset == true)) {
 
-				switch (krad_dirac->format->chroma_format) {
-					case SCHRO_CHROMA_444:
-						krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV444P);
-					case SCHRO_CHROMA_422:
-						krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV422P);
-					case SCHRO_CHROMA_420:
-						// default
-						//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
-						break;
+					switch (krad_dirac->format->chroma_format) {
+						case SCHRO_CHROMA_444:
+							krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV444P);
+						case SCHRO_CHROMA_422:
+							krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV422P);
+						case SCHRO_CHROMA_420:
+							// default
+							//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
+							break;
+					}
+
+					dirac_output_unset = false;				
 				}
 
-				dirac_output_unset = false;				
-			}
-
-			if (krad_dirac->frame != NULL) {
-				krad_dirac->frame->components[0].data, krad_dirac->frame->components[0].stride, krad_dirac->frame->components[1].data, krad_dirac->frame->components[1].stride, krad_dirac->frame->components[2].data, krad_dirac->frame->components[2].stride);
-			}
-
+				if (krad_dirac->frame != NULL) {
+					krad_dirac->frame->components[0].data, krad_dirac->frame->components[0].stride, krad_dirac->frame->components[1].data, krad_dirac->frame->components[1].stride, krad_dirac->frame->components[2].data, krad_dirac->frame->components[2].stride);
+				}
+			*/
 		}
-	*/
-
-
 	}
+
 
 	free (converted_buffer);
 	free (buffer);
-
+	for (h = 0; h < 3; h++) {
+		free(header[h]);
+	}
 	dbg("Video decoding thread exiting\n");
 
 	return NULL;
