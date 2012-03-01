@@ -1,3 +1,4 @@
+//#include "krad_io.h"
 #include "krad_ogg.h"
 
 krad_codec_t krad_ogg_get_track_codec (krad_ogg_t *krad_ogg, int tracknumber) {
@@ -142,6 +143,12 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 	int ret;
 	ogg_packet packet;
 	
+	
+	
+
+
+	while (1) {
+	
 	for (t = 0; t < KRAD_OGG_MAX_TRACKS; t++) {
 		if ((krad_ogg->tracks[t].serial != 0) && (krad_ogg->tracks[t].ready == 0)) {
 			while (krad_ogg->tracks[t].ready == 0) {
@@ -194,6 +201,18 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 			}
 		}
 	}
+	
+	
+		ret = krad_io_read(krad_ogg->krad_io, krad_ogg->input_buffer, 4096);
+		if (ret > 0) {
+			krad_ogg_write (krad_ogg, krad_ogg->input_buffer, ret);
+		} else {
+			break;
+		}
+
+	}
+
+	
 
 	return 0;
 
@@ -285,6 +304,12 @@ void krad_ogg_destroy(krad_ogg_t *krad_ogg) {
 	
 	free(krad_ogg->tracks);
 	
+	free(krad_ogg->input_buffer);
+	
+	if (krad_ogg->krad_io) {
+		krad_io_destroy(krad_ogg->krad_io);
+	}
+	
 	free (krad_ogg);
 
 }
@@ -295,8 +320,34 @@ krad_ogg_t *krad_ogg_create() {
 
 	krad_ogg->tracks = calloc(KRAD_OGG_MAX_TRACKS, sizeof(krad_ogg_track_t));
 
+	krad_ogg->input_buffer = calloc(1, 4096);
+
 	ogg_sync_init(&krad_ogg->sync_state);
 
 	return krad_ogg;
 
+}
+
+
+krad_ogg_t *krad_ogg_open_file(char *filename, krad_io_mode_t mode) {
+
+	krad_ogg_t *krad_ogg;
+	
+	krad_ogg = krad_ogg_create();
+	
+	krad_ogg->krad_io = krad_io_open_file(filename, mode);
+	
+	return krad_ogg;
+
+}
+
+krad_ogg_t *krad_ogg_open_stream(char *host, int port, char *mount, char *password) {
+
+	krad_ogg_t *krad_ogg;
+
+	krad_ogg = krad_ogg_create();
+	
+	krad_ogg->krad_io = krad_io_open_stream(host, port, mount, password);
+	
+	return krad_ogg;
 }

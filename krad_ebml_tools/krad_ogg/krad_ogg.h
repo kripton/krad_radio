@@ -29,9 +29,10 @@
 #include <theora/theoradec.h>
 #include <theora/theoraenc.h>
 
+#include "krad_io.h"
+
 typedef struct krad_ogg_St krad_ogg_t;
 typedef struct krad_ogg_track_St krad_ogg_track_t;
-
 
 #define KRAD_OGG_MAX_TRACKS 20
 
@@ -80,6 +81,9 @@ struct krad_ogg_St {
 
 	ogg_sync_state sync_state;
 
+	krad_io_t *krad_io;
+	unsigned char *input_buffer;
+
 };
 
 int krad_ogg_get_track_codec_header_data_size(krad_ogg_t *krad_ogg, int tracknumber, int header_number);
@@ -92,9 +96,14 @@ void krad_ogg_process (krad_ogg_t *krad_ogg);
 int krad_ogg_track_status (krad_ogg_t *krad_ogg, int tracknumber);
 int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int tracknumber);
 
-int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char *buffer);
+
 
 int krad_ogg_write (krad_ogg_t *krad_ogg, unsigned char *buffer, int length);
+int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char *buffer);
+
+krad_ogg_t *krad_ogg_open_file(char *filename, krad_io_mode_t mode);
+krad_ogg_t *krad_ogg_open_stream(char *host, int port, char *mount, char *password);
+
 
 krad_ogg_t *krad_ogg_create();
 void krad_ogg_destroy(krad_ogg_t *krad_ogg);
