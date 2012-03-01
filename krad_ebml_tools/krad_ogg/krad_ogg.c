@@ -120,6 +120,7 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 				*tracknumber = t;
 				
 				if (packet.e_o_s) {
+					ogg_stream_clear(&krad_ogg->tracks[t].stream_state);
 					krad_ogg->tracks[t].serial = 0;
 					krad_ogg->tracks[t].ready = 0;
 					krad_ogg->tracks[t].codec = NOCODEC;
