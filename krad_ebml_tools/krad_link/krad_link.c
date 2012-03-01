@@ -36,22 +36,6 @@ char *krad_codec_to_string(krad_codec_t codec) {
 	}
 }
 
-krad_container_t krad_link_select_container(char *string) {
-
-	if ((strstr(string, ".ogg")) ||
-		(strstr(string, ".OGG")) ||
-		(strstr(string, ".Ogg")) ||
-		(strstr(string, ".oga")) ||
-		(strstr(string, ".ogv")) ||
-		(strstr(string, ".Oga")) ||		
-		(strstr(string, ".OGV")))
-	{
-		return OGG;
-	}
-	
-	return EBML;
-}
-
 void *video_capture_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
@@ -1227,19 +1211,9 @@ void *stream_input_thread(void *arg) {
 	buffer = malloc(4096 * 16);
 	
 	if (krad_link->host[0] != '\0') {
-		container = krad_link_select_container(krad_link->host);
-		if (container == OGG) {
-			krad_link->krad_ogg = krad_ogg_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
-		} else {
-			krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
-		}
+		krad_link->krad_container = krad_container_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
 	} else {
-		container = krad_link_select_container(krad_link->input);
-		if (container == OGG) {
-			krad_link->krad_ogg = krad_ogg_open_file(krad_link->input, KRAD_IO_READONLY);
-		} else {
-			krad_link->krad_ebml = krad_ebml_open_file(krad_link->input, KRAD_EBML_IO_READONLY);
-		}
+		krad_link->krad_container = krad_container_open_file(krad_link->input, KRAD_IO_READONLY);
 	}
 	
 	while (!*krad_link->shutdown) {
@@ -1248,21 +1222,18 @@ void *stream_input_thread(void *arg) {
 		total_header_size = 0;
 		header_size = 0;
 
-		if (container == OGG) {
-			packet_size = krad_ogg_read_packet ( krad_link->krad_ogg, &current_track, buffer);
-		} else {
-			packet_size = krad_ebml_read_packet ( krad_link->krad_ebml, &current_track, buffer);		
-		}
+		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, buffer);
+
 		
 		if (packet_size <= 0) {
 			printf("\nstream input thread packet size was: %d\n", packet_size);
 			break;
 		}
 		
-		if (krad_ogg_track_changed(krad_link->krad_ogg, current_track)) {
-			printf("track %d changed! status is %d header count is %d\n", current_track, krad_ogg_track_status(krad_link->krad_ogg, current_track), krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track));
+		if (krad_container_track_changed(krad_link->krad_container, current_track)) {
+			printf("track %d changed! status is %d header count is %d\n", current_track, krad_container_track_status(krad_link->krad_container, current_track), krad_container_get_track_codec_header_count(krad_link->krad_container, current_track));
 			
-			track_codecs[current_track] = krad_ogg_get_track_codec(krad_link->krad_ogg, current_track);
+			track_codecs[current_track] = krad_container_get_track_codec(krad_link->krad_container, current_track);
 			
 			if (track_codecs[current_track] == NOCODEC) {
 				continue;
@@ -1270,9 +1241,9 @@ void *stream_input_thread(void *arg) {
 			
 			writeheaders = 1;
 			
-			for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
-				printf("header %d is %d bytes\n", h, krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h));
-				total_header_size += krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
+			for (h = 0; h < krad_container_get_track_codec_header_count(krad_link->krad_container, current_track); h++) {
+				printf("header %d is %d bytes\n", h, krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h));
+				total_header_size += krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h);
 			}
 
 			
@@ -1291,9 +1262,9 @@ void *stream_input_thread(void *arg) {
 				if (writeheaders == 1) {
 					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&nocodec, 4);
 					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
-					for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
-						header_size = krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
-						krad_ogg_get_track_codec_header_data(krad_link->krad_ogg, current_track, header_buffer, h);
+					for (h = 0; h < krad_container_get_track_codec_header_count(krad_link->krad_container, current_track); h++) {
+						header_size = krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h);
+						krad_container_get_track_codec_header_data(krad_link->krad_container, current_track, header_buffer, h);
 						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
 						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)header_buffer, header_size);
 						codec_bytes += packet_size;
@@ -1321,9 +1292,9 @@ void *stream_input_thread(void *arg) {
 				if (writeheaders == 1) {
 					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
 					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
-					for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
-						header_size = krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
-						krad_ogg_get_track_codec_header_data(krad_link->krad_ogg, current_track, header_buffer, h);
+					for (h = 0; h < krad_container_get_track_codec_header_count(krad_link->krad_container, current_track); h++) {
+						header_size = krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h);
+						krad_container_get_track_codec_header_data(krad_link->krad_container, current_track, header_buffer, h);
 						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
 						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)header_buffer, header_size);
 						codec_bytes += packet_size;
@@ -1353,11 +1324,7 @@ void *stream_input_thread(void *arg) {
 	printf("\n");
 	dbg("Input/Demuxing thread exiting\n");
 	
-	if (container == OGG) {
-		krad_ogg_destroy(krad_link->krad_ogg);
-	} else {
-		krad_ebml_destroy(krad_link->krad_ebml);
-	}
+	krad_container_destroy(krad_link->krad_container);
 	
 	free(buffer);
 	free(header_buffer);

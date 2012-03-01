@@ -14,6 +14,7 @@
 #include "krad_opus.h"
 #include "krad_vorbis.h"
 #include "krad_flac.h"
+#include "krad_container.h"
 
 #define APPVERSION "Krad Link 2.42"
 #define MAX_AUDIO_CHANNELS 8
@@ -28,12 +29,6 @@
 #define DEFAULT_FPS 15
 
 typedef struct krad_link_St krad_link_t;
-
-typedef enum {
-	EBML = 100,
-	OGG,
-	NAKED,
-} krad_container_t;
 
 typedef enum {
 	CAPTURE = 200,
@@ -75,6 +70,7 @@ struct krad_link_St {
 	krad_opus_t *krad_opus;
 	krad_ogg_t *krad_ogg;
 	krad_ebml_t *krad_ebml;
+	krad_container_t *krad_container;
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_tone_t *krad_tone;

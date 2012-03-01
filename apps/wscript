@@ -34,6 +34,7 @@ depsources = """
 ../krad_ebml_tools/krad_xpdr/krad_xpdr.c
 ../krad_ebml_tools/krad_io/krad_io.c
 ../krad_ebml_tools/krad_ogg/krad_ogg.c
+../krad_ebml_tools/krad_container/krad_container.c
 """.split()
 
 includedirs = """
@@ -56,6 +57,7 @@ includedirs = """
 ../krad_ebml_tools/krad_io/
 ../krad_ebml_tools/krad_link/
 ../krad_ebml_tools/krad_xpdr/
+../krad_ebml_tools/krad_container/
 ../krad_ebml/
 /usr/local/include
 /usr/include
