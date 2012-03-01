@@ -37,8 +37,9 @@ typedef enum {
 typedef enum {
 	TCP = 250,
 	UDP,
+	AFILE,
 	FAIL,
-} krad_link_network_mode_t;
+} krad_link_transport_mode_t;
 
 typedef enum {
 	WINDOW = 300,
@@ -62,6 +63,7 @@ struct krad_link_St {
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
+	krad_ogg_t *krad_ogg;
 	krad_ebml_t *krad_ebml;
 	krad_v4l2_t *krad_v4l2;
 	krad_sdl_opengl_display_t *krad_opengl_display;
@@ -74,7 +76,10 @@ struct krad_link_St {
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
 	
-	krad_link_network_mode_t network_mode;
+	krad_codec_t last_audio_codec;
+	krad_codec_t last_video_codec;
+	
+	krad_link_transport_mode_t transport_mode;
 	
 	char device[512];
 	char alsa_capture_device[512];

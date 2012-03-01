@@ -99,6 +99,11 @@ krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
         printf("found flac\n");
 		return FLAC;
 	}
+	
+	if (memcmp (packet->packet, "Opus", 4) == 0) {
+        printf("found opus\n");
+		return OPUS;
+	}
 
     //vorbis_info_init (&v_info);
     //vorbis_comment_init (&v_comment);
@@ -168,7 +173,11 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 					
 					
 					krad_ogg->tracks[t].header_count++;
-					if (krad_ogg->tracks[t].header_count == 3) {					
+					if ((krad_ogg->tracks[t].header_count == 3) && ((krad_ogg->tracks[t].codec == VORBIS) || (krad_ogg->tracks[t].codec == THEORA))) {					
+						krad_ogg->tracks[t].ready = 1;
+					}
+					if ((krad_ogg->tracks[t].header_count == 2) && ((krad_ogg->tracks[t].codec == OPUS) || (krad_ogg->tracks[t].codec == FLAC))) {					
+						krad_ogg->tracks[t].header_count = 1;
 						krad_ogg->tracks[t].ready = 1;
 					}
 				} else {

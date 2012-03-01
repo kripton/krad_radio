@@ -126,10 +126,10 @@ int main ( int argc, char *argv[] ) {
 				krad_link->bug_y = 64;
 				break;
 			case 'L':
-				krad_link->network_mode = UDP;
+				krad_link->transport_mode = UDP;
 				break;
 			case 'T':
-				krad_link->network_mode = UDP;
+				krad_link->transport_mode = UDP;
 				break;
 			case 'r':
 				krad_link->vpx_encoder_config.rc_target_bitrate = atoi(optarg);

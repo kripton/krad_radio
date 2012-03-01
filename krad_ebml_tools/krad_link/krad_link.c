@@ -16,6 +16,28 @@ void dbg (char* format, ...) {
 	}
 }
 
+char *krad_codec_to_string(krad_codec_t codec) {
+
+	switch (codec) {
+		case VORBIS:
+			return "Vorbix";
+		case FLAC:
+			return "FLAC";
+		case OPUS:
+			return "Opus";
+		case VP8:
+			return "VP8";
+		case THEORA:
+			return "Theora";
+		case DIRAC:
+			return "Dirac";
+		default:
+			return "No Codec";
+	}
+
+
+}
+
 void *video_capture_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
@@ -246,7 +268,7 @@ void krad_link_audio_callback(int frames, void *userdata) {
 	}
 	
 	if ((krad_link->operation_mode == RECEIVE) && (krad_link->audio_codec == VORBIS)) {
-	
+		/*
 		len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 0, (char *)krad_link->samples[0], frames * 4);
 
 		if (len) {
@@ -258,7 +280,7 @@ void krad_link_audio_callback(int frames, void *userdata) {
 		if (len) {
 			kradaudio_write (krad_link->krad_audio, 1, (char *)krad_link->samples[1], len );
 		}
-	
+		*/
 	}
 	
 	if (krad_link->capture_audio == 2) {
@@ -1172,168 +1194,132 @@ void *stream_input_thread(void *arg) {
 	dbg("Input/Demuxing thread starting\n");
 
 	unsigned char *buffer;
+	unsigned char *header_buffer;
 	int bytes;
 	int codec_bytes;
 	int p;
 	int video_packets;
 	int audio_packets;
 	int current_track;
-	krad_codec_t codec;
+	krad_codec_t track_codecs[10];
+	krad_codec_t nocodec;	
 	int packet_size;
 	int tracks;
 	int audio_track;
 	int video_track;
+	int header_size;
+	int h;
+	int total_header_size;
+	int writeheaders;
 	
 	video_track = 0;
 	audio_track = 0;
-	
+	nocodec = NOCODEC;
 	packet_size = 0;
 	codec_bytes = 0;	
-	bytes = 0;	
+	bytes = 0;
+	header_size = 0;
+	total_header_size = 0;	
+	writeheaders = 0;
 	video_packets = 0;
 	audio_packets = 0;
 	current_track = -1;
 
+	header_buffer = malloc(4096 * 16);
 	buffer = malloc(4096 * 16);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
+		//krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
 	} else {
-		krad_link->krad_ebml = krad_ebml_open_file(krad_link->input, KRAD_EBML_IO_READONLY);
+		//krad_link->krad_ebml = krad_ebml_open_file(krad_link->input, KRAD_EBML_IO_READONLY);
+		krad_link->krad_ogg = krad_ogg_open_file(krad_link->input, KRAD_IO_READONLY);
 	}
-
-	//kradgui_set_total_track_time_ms(krad_link->krad_gui, (5000000 / 1e9) * 1000);
-
-	krad_link->krad_gui->render_timecode = 1;
-	
-	tracks = krad_link->krad_ebml->track_count;
-	
-	krad_link->audio_codec = NOCODEC;
-	krad_link->video_codec = NOCODEC;
-	
-	while (tracks) {
-	
-		codec =	krad_ebml_get_track_codec (krad_link->krad_ebml, tracks);
-	
-		if ((codec == VP8) || (codec == DIRAC) || (codec == THEORA)) {
-		
-			krad_link->video_codec = codec;
-			video_track = tracks;
-		
-		}
-		
-		if ((codec == VORBIS) || (codec == FLAC) || (codec == OPUS)) {
-		
-			krad_link->audio_codec = codec;
-			audio_track = tracks;
-		
-		}
-		
-		
-		tracks --;
-	}
-	
-	dbg("Video codec is %d and audio codec is %d\n", krad_link->video_codec, krad_link->audio_codec);
-	
-	if (krad_link->audio_codec == FLAC) {
-		krad_link->krad_flac = krad_flac_decoder_create();
-		bytes = krad_ebml_get_track_codec_data(krad_link->krad_ebml, audio_track, buffer);
-		dbg("FLAC Header size: %d\n", bytes);
-		krad_flac_decode(krad_link->krad_flac, buffer, bytes, NULL);
-	}
-	
-	if (krad_link->audio_codec == VORBIS) {
-		dbg("Vorbis Header byte sizes: %d %d %d\n", krad_link->krad_ebml->tracks[audio_track].xiph_header_len[0], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[1], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[2]);
-		krad_link->krad_vorbis = krad_vorbis_decoder_create(krad_link->krad_ebml->tracks[audio_track].xiph_header[0], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[0], krad_link->krad_ebml->tracks[audio_track].xiph_header[1], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[1], krad_link->krad_ebml->tracks[audio_track].xiph_header[2], krad_link->krad_ebml->tracks[audio_track].xiph_header_len[2]);
-	}
-	
-	if (krad_link->audio_codec == OPUS) {
-		bytes = krad_ebml_get_track_codec_data(krad_link->krad_ebml, audio_track, buffer);
-		dbg("Opus Header size: %d\n", bytes);
-		krad_link->krad_opus = kradopus_decoder_create(buffer, bytes, 44100.0f);
-	}
-	
-	if (krad_link->video_codec == VP8) {
-		krad_link->krad_vpx_decoder = krad_vpx_decoder_create();
-	}
-	
-	if (krad_link->video_codec == THEORA) {
-		dbg("Theora Header byte sizes: %d %d %d\n", krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
-		//krad_link->krad_theora = krad_theora_decoder_create(krad_link->krad_ebml->tracks[video_track].xiph_header[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header[2], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
-	}
-	
-	if (krad_link->video_codec == DIRAC) {
-		//krad_dirac = krad_dirac_decoder_create();
-	}	
-	
-	if ((krad_link->interface_mode == WINDOW) && (krad_link->video_codec != NOCODEC)) {
-		
-		krad_link->composite_width = krad_link->krad_ebml->width;
-		krad_link->composite_height = krad_link->krad_ebml->height;
-
-		krad_link->display_width = krad_link->composite_width;
-		krad_link->display_height = krad_link->composite_height;
-
-		krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
-		krad_link->current_frame = realloc(krad_link->current_frame, krad_link->composited_frame_byte_size);
-		kradgui_destroy(krad_link->krad_gui);
-		krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
-		
-		krad_link->decoded_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_YUV420P,
-															  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-															  SWS_BICUBIC, NULL, NULL, NULL);
-	}
-	
-	if ((krad_link->interface_mode == WINDOW) && (krad_link->video_codec == NOCODEC)) {
-		krad_link->render_meters = 1;
-	}
-	
-	krad_link->input_ready = 1;
-
-	kradgui_reset_elapsed_time(krad_link->krad_gui);
 	
 	while (!*krad_link->shutdown) {
 		
-		packet_size = krad_ebml_read_packet ( krad_link->krad_ebml, &current_track, buffer);
+		writeheaders = 0;
+		total_header_size = 0;
+		header_size = 0;
+
+		//packet_size = krad_ebml_read_packet ( krad_link->krad_ebml, &current_track, buffer);		
+		packet_size = krad_ogg_read_packet ( krad_link->krad_ogg, &current_track, buffer);
 		
 		if (packet_size <= 0) {
-			printf("\nebml input thread packet size was: %d\n", packet_size);
+			printf("\nstream input thread packet size was: %d\n", packet_size);
 			break;
-		}	
+		}
 		
-		if (current_track == video_track) {
+		if (krad_ogg_track_changed(krad_link->krad_ogg, current_track)) {
+			printf("track %d changed! status is %d header count is %d\n", current_track, krad_ogg_track_status(krad_link->krad_ogg, current_track), krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track));
+			
+			track_codecs[current_track] = krad_ogg_get_track_codec(krad_link->krad_ogg, current_track);
+			
+			writeheaders = 1;
+			
+			for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
+				printf("header %d is %d bytes\n", h, krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h));
+				total_header_size += krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
+			}
+
+			
+		}
+		
+		if ((track_codecs[current_track] == VP8) || (track_codecs[current_track] == THEORA) || (track_codecs[current_track] == DIRAC)) {
 
 			video_packets++;
 
 			if (krad_link->interface_mode == WINDOW) {
-				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4) && (!*krad_link->shutdown)) {
+
+				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!*krad_link->shutdown)) {
 					usleep(10000);
 				}
 				
+				if (writeheaders == 1) {
+					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&nocodec, 4);
+					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
+					for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
+						header_size = krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
+						krad_ogg_get_track_codec_header_data(krad_link->krad_ogg, current_track, header_buffer, h);
+						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
+						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)header_buffer, header_size);
+						codec_bytes += packet_size;
+					}
+				} else {
+					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
+				}
+				
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)buffer, packet_size);
 				codec_bytes += packet_size;
 			}
 		}
 		
-		if (current_track == audio_track) {
+		if ((track_codecs[current_track] == VORBIS) || (track_codecs[current_track] == OPUS) || (track_codecs[current_track] == FLAC)) {
 
 			audio_packets++;
 
-			//kradgui_set_current_track_time_ms(krad_link->krad_gui, (krad_link->krad_ebml->current_timecode / 1e9) * 1000);
-
 			if (krad_link->krad_audio_api != NOAUDIO) {
 			
-				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!*krad_link->shutdown)) {
 					usleep(50000);
-					if (krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < 100000) {
-						usleep(100000);
-					}
 				}
 				
+				if (writeheaders == 1) {
+					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
+					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
+					for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
+						header_size = krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
+						krad_ogg_get_track_codec_header_data(krad_link->krad_ogg, current_track, header_buffer, h);
+						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
+						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)header_buffer, header_size);
+						codec_bytes += packet_size;
+					}
+				} else {
+					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
+				}
+				
+
 				krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
-				//krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 				krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 				codec_bytes += packet_size;
 			}
@@ -1341,7 +1327,8 @@ void *stream_input_thread(void *arg) {
 		}
 
 		if (krad_link->krad_audio != NULL) {
-			dbg("Input Timecode: %6.1f :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_link->krad_ebml->current_timecode / 1000.0, video_packets, audio_packets, codec_bytes);
+			dbg("Input ACodec %s :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_codec_to_string(track_codecs[current_track]), video_packets, audio_packets, codec_bytes);
+			//dbg("Input Timecode: %6.1f :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_link->krad_ebml->current_timecode / 1000.0, video_packets, audio_packets, codec_bytes);
 			fflush(stdout);
 		}
 
@@ -1351,9 +1338,10 @@ void *stream_input_thread(void *arg) {
 	
 	printf("\n");
 	dbg("Input/Demuxing thread exiting\n");
-
-	krad_ebml_destroy(krad_link->krad_ebml);
+	krad_ogg_destroy(krad_link->krad_ogg);
+//	krad_ebml_destroy(krad_link->krad_ebml);
 	free(buffer);
+	free(header_buffer);
 	return NULL;
 
 }
@@ -1542,6 +1530,56 @@ void *video_decoding_thread(void *arg) {
 
 	while (!*krad_link->shutdown) {
 
+////////////////////////////////////////////NOTICE
+
+
+			sleep(100);
+
+
+
+
+
+
+///            NOTE
+
+
+
+
+
+/*
+
+	if (krad_link->video_codec == VP8) {
+		krad_link->krad_vpx_decoder = krad_vpx_decoder_create();
+	}
+	
+	if (krad_link->video_codec == THEORA) {
+		dbg("Theora Header byte sizes: %d %d %d\n", krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
+		//krad_link->krad_theora = krad_theora_decoder_create(krad_link->krad_ebml->tracks[video_track].xiph_header[0], krad_link->krad_ebml->tracks[video_track].xiph_header_len[0], krad_link->krad_ebml->tracks[video_track].xiph_header[1], krad_link->krad_ebml->tracks[video_track].xiph_header_len[1], krad_link->krad_ebml->tracks[video_track].xiph_header[2], krad_link->krad_ebml->tracks[video_track].xiph_header_len[2]);
+	}
+	
+	if (krad_link->video_codec == DIRAC) {
+		//krad_dirac = krad_dirac_decoder_create();
+	}	
+	
+	if ((krad_link->interface_mode == WINDOW) && (krad_link->video_codec != NOCODEC)) {
+		
+		krad_link->composite_width = krad_link->krad_ebml->width;
+		krad_link->composite_height = krad_link->krad_ebml->height;
+
+		krad_link->display_width = krad_link->composite_width;
+		krad_link->display_height = krad_link->composite_height;
+
+		krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
+		krad_link->current_frame = realloc(krad_link->current_frame, krad_link->composited_frame_byte_size);
+		kradgui_destroy(krad_link->krad_gui);
+		krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
+		
+		krad_link->decoded_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_YUV420P,
+															  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
+															  SWS_BICUBIC, NULL, NULL, NULL);
+	}
+*/
+
 		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
 			usleep(10000);
 		}
@@ -1633,20 +1671,21 @@ void *audio_decoding_thread(void *arg) {
 	dbg("Audio decoding thread starting\n");
 
 	int c;
+	int h;
 	int bytes;
 	unsigned char *buffer;
+	unsigned char *header[3];
+	int header_len[3];
 	float *audio;
 	float *samples[MAX_AUDIO_CHANNELS];
 	int audio_frames;
-		
-	while (krad_link->input_ready != 1) {
-		usleep(5000);
-		if (*krad_link->shutdown) {
-			return NULL;
-		}
-	}
 	
 	krad_link->audio_channels = 2;
+
+	for (h = 0; h < 3; h++) {
+		header[h] = malloc(100000);
+		header_len[3] = 0;
+	}
 
 	for (c = 0; c < krad_link->audio_channels; c++) {
 		krad_link->audio_output_ringbuffer[c] = krad_ringbuffer_create (2000000);
@@ -1668,10 +1707,9 @@ void *audio_decoding_thread(void *arg) {
 		dbg("Jack ports: %s\n", krad_link->jack_ports);
 		jack_connect_to_ports (krad_link->krad_audio, KOUTPUT, krad_link->jack_ports);
 	}
-
-	if (krad_link->audio_codec == VORBIS) {
-		kradaudio_set_process_callback(krad_link->krad_audio, krad_link_audio_callback, krad_link);
-	}	
+	
+	krad_link->last_audio_codec = NOCODEC;
+	krad_link->audio_codec = NOCODEC;
 	
 	while (!*krad_link->shutdown) {
 
@@ -1680,18 +1718,129 @@ void *audio_decoding_thread(void *arg) {
 			usleep(20000);
 		}
 		
+		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&krad_link->audio_codec, 4);
+		//dbg("\n\naudio codec is %d\n", krad_link->audio_codec);
+		if ((krad_link->last_audio_codec != krad_link->audio_codec) || (krad_link->audio_codec == NOCODEC)) {
+			if (krad_link->last_audio_codec != NOCODEC)	{
+				if (krad_link->last_audio_codec == FLAC) {
+					krad_flac_decoder_destroy (krad_link->krad_flac);
+					krad_link->krad_flac = NULL;
+				}
+				if (krad_link->last_audio_codec == VORBIS) {
+					krad_vorbis_decoder_destroy (krad_link->krad_vorbis);
+					krad_link->krad_vorbis = NULL;
+				}			
+				if (krad_link->last_audio_codec == OPUS) {
+					kradopus_decoder_destroy(krad_link->krad_opus);
+					krad_link->krad_opus = NULL;
+				}
+			}
+	
+			if (krad_link->audio_codec == NOCODEC) {
+				krad_link->last_audio_codec = krad_link->audio_codec;
+				continue;
+			}
+	
+			if (krad_link->audio_codec == FLAC) {
+				krad_link->krad_flac = krad_flac_decoder_create();
+				for (h = 0; h < 1; h++) {
+
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+						usleep(20000);
+					}
+	
+					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
+		
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+						usleep(30000);
+					}
+		
+					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
+				}
+				krad_flac_decode(krad_link->krad_flac, header[0] + 9, header_len[0] - 9, NULL);
+			}
+	
+			if (krad_link->audio_codec == VORBIS) {
+				
+				for (h = 0; h < 3; h++) {
+
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+						usleep(20000);
+					}
+	
+					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
+		
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+						usleep(30000);
+					}
+		
+					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
+				}
+
+				dbg("\n\nVorbis Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
+				krad_link->krad_vorbis = krad_vorbis_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
+
+
+
+				kradaudio_set_process_callback(krad_link->krad_audio, krad_link_audio_callback, krad_link);
+			}
+	
+			if (krad_link->audio_codec == OPUS) {
+			
+				for (h = 0; h < 1; h++) {
+
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+						usleep(20000);
+					}
+	
+					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
+		
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+						usleep(30000);
+					}
+		
+					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
+				}
+			
+				dbg("Opus Header size: %d\n", header_len[0]);
+				krad_link->krad_opus = kradopus_decoder_create(header[0], header_len[0], 44100.0f);
+			}
+		}	
+
+		krad_link->last_audio_codec = krad_link->audio_codec;
+	
+		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+			usleep(20000);
+		}
+	
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
 		
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < bytes) && (!*krad_link->shutdown)) {
 			usleep(30000);
 		}
-
-		//krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 		
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, bytes);
 		
 		if (krad_link->audio_codec == VORBIS) {
 			krad_vorbis_decoder_decode(krad_link->krad_vorbis, buffer, bytes);
+			
+			int len = 1;
+			
+			while (len ) {
+			
+				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 0, (char *)samples[0], 512);
+
+				if (len) {
+					kradaudio_write (krad_link->krad_audio, 0, (char *)samples[0], len );
+				}
+
+				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 1, (char *)samples[1], 512);
+
+				if (len) {
+					kradaudio_write (krad_link->krad_audio, 1, (char *)samples[1], len );
+				}
+			
+			}
 		}
 			
 		if (krad_link->audio_codec == FLAC) {
@@ -1752,6 +1901,10 @@ void *audio_decoding_thread(void *arg) {
 		krad_ringbuffer_free ( krad_link->audio_output_ringbuffer[c] );
 		free(samples[c]);	
 	}	
+
+	for (h = 0; h < 3; h++) {
+		free(header[h]);
+	}
 
 	dbg("Audio decoding thread exiting\n");
 
