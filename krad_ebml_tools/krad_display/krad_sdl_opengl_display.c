@@ -318,9 +318,11 @@ void krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display_t *krad_sd
 		sws_freeContext (krad_sdl_opengl_display->sws_context);	
 	}
 
-	printf("set format to %d\n", format);
+	krad_sdl_opengl_display->format = format;
 
-	krad_sdl_opengl_display->sws_context = sws_getContext ( krad_sdl_opengl_display->videowidth, krad_sdl_opengl_display->videoheight, format, krad_sdl_opengl_display->width, krad_sdl_opengl_display->height, PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
+	printf("set format to %d\n", krad_sdl_opengl_display->format);
+
+	krad_sdl_opengl_display->sws_context = sws_getContext ( krad_sdl_opengl_display->videowidth, krad_sdl_opengl_display->videoheight, krad_sdl_opengl_display->format, krad_sdl_opengl_display->width, krad_sdl_opengl_display->height, PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
 
 }
 

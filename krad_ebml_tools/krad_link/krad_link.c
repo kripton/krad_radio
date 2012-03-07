@@ -250,7 +250,7 @@ void krad_link_audio_callback(int frames, void *userdata) {
 
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
-	int len;
+	//int len;
 	
 	if (krad_link->operation_mode == CAPTURE) {
 	
@@ -676,7 +676,7 @@ void *stream_output_thread(void *arg) {
 void *udp_output_thread(void *arg) {
 
 
-	krad_link_t *krad_link = (krad_link_t *)arg;
+	//krad_link_t *krad_link = (krad_link_t *)arg;
 
 	dbg("UDP Output thread starting\n");
 /*
@@ -1177,29 +1177,21 @@ void *stream_input_thread(void *arg) {
 
 	unsigned char *buffer;
 	unsigned char *header_buffer;
-	int bytes;
 	int codec_bytes;
-	int p;
 	int video_packets;
 	int audio_packets;
 	int current_track;
 	krad_codec_t track_codecs[10];
 	krad_codec_t nocodec;	
 	int packet_size;
-	int tracks;
-	int audio_track;
-	int video_track;
 	int header_size;
 	int h;
 	int total_header_size;
 	int writeheaders;
-	krad_container_t container;
-	video_track = 0;
-	audio_track = 0;
+	
 	nocodec = NOCODEC;
 	packet_size = 0;
 	codec_bytes = 0;	
-	bytes = 0;
 	header_size = 0;
 	total_header_size = 0;	
 	writeheaders = 0;
@@ -1231,9 +1223,9 @@ void *stream_input_thread(void *arg) {
 		}
 		
 		if (krad_container_track_changed(krad_link->krad_container, current_track)) {
-			printf("track %d changed! status is %d header count is %d\n", current_track, krad_container_track_status(krad_link->krad_container, current_track), krad_container_get_track_codec_header_count(krad_link->krad_container, current_track));
+			printf("track %d changed! status is %d header count is %d\n", current_track, krad_container_track_active(krad_link->krad_container, current_track), krad_container_track_header_count(krad_link->krad_container, current_track));
 			
-			track_codecs[current_track] = krad_container_get_track_codec(krad_link->krad_container, current_track);
+			track_codecs[current_track] = krad_container_track_codec(krad_link->krad_container, current_track);
 			
 			if (track_codecs[current_track] == NOCODEC) {
 				continue;
@@ -1241,9 +1233,9 @@ void *stream_input_thread(void *arg) {
 			
 			writeheaders = 1;
 			
-			for (h = 0; h < krad_container_get_track_codec_header_count(krad_link->krad_container, current_track); h++) {
-				printf("header %d is %d bytes\n", h, krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h));
-				total_header_size += krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h);
+			for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
+				printf("header %d is %d bytes\n", h, krad_container_track_header_size(krad_link->krad_container, current_track, h));
+				total_header_size += krad_container_track_header_size(krad_link->krad_container, current_track, h);
 			}
 
 			
@@ -1262,9 +1254,9 @@ void *stream_input_thread(void *arg) {
 				if (writeheaders == 1) {
 					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&nocodec, 4);
 					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
-					for (h = 0; h < krad_container_get_track_codec_header_count(krad_link->krad_container, current_track); h++) {
-						header_size = krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h);
-						krad_container_get_track_codec_header_data(krad_link->krad_container, current_track, header_buffer, h);
+					for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
+						header_size = krad_container_track_header_size(krad_link->krad_container, current_track, h);
+						krad_container_read_track_header(krad_link->krad_container, header_buffer, current_track, h);
 						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
 						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)header_buffer, header_size);
 						codec_bytes += packet_size;
@@ -1292,9 +1284,9 @@ void *stream_input_thread(void *arg) {
 				if (writeheaders == 1) {
 					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
 					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
-					for (h = 0; h < krad_container_get_track_codec_header_count(krad_link->krad_container, current_track); h++) {
-						header_size = krad_container_get_track_codec_header_data_size(krad_link->krad_container, current_track, h);
-						krad_container_get_track_codec_header_data(krad_link->krad_container, current_track, header_buffer, h);
+					for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
+						header_size = krad_container_track_header_size(krad_link->krad_container, current_track, h);
+						krad_container_read_track_header(krad_link->krad_container, header_buffer, current_track, h);
 						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
 						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)header_buffer, header_size);
 						codec_bytes += packet_size;
@@ -1335,7 +1327,7 @@ void *stream_input_thread(void *arg) {
 void *udp_input_thread(void *arg) {
 
 
-	krad_link_t *krad_link = (krad_link_t *)arg;
+	//krad_link_t *krad_link = (krad_link_t *)arg;
 
 	dbg("UDP Input thread starting\n");
 
@@ -1638,7 +1630,7 @@ void *video_decoding_thread(void *arg) {
 					krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_vpx_decoder->width, krad_link->krad_vpx_decoder->height, PIX_FMT_YUV420P,
 																  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
 																  SWS_BICUBIC, NULL, NULL, NULL);
-			
+
 				}
 
 				krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_vpx_decoder->img->planes[0], 
@@ -1659,29 +1651,47 @@ void *video_decoding_thread(void *arg) {
 
 		if (krad_link->video_codec == DIRAC) {
 
-			/*
-			krad_dirac_decode(krad_dirac, buffer, bytes);
+			krad_dirac_decode(krad_link->krad_dirac, buffer, bytes);
 
-				if ((krad_dirac->format != NULL) && (dirac_output_unset == true)) {
+			if ((krad_link->krad_dirac->format != NULL) && (krad_link->krad_dirac->format_set == false)) {
 
-					switch (krad_dirac->format->chroma_format) {
-						case SCHRO_CHROMA_444:
-							krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV444P);
-						case SCHRO_CHROMA_422:
-							krad_sdl_opengl_display_set_input_format(krad_opengl_display, PIX_FMT_YUV422P);
-						case SCHRO_CHROMA_420:
-							// default
-							//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
-							break;
-					}
-
-					dirac_output_unset = false;				
+				switch (krad_link->krad_dirac->format->chroma_format) {
+					case SCHRO_CHROMA_444:
+						krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV444P);
+					case SCHRO_CHROMA_422:
+						krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV422P);
+					case SCHRO_CHROMA_420:
+						// default
+						//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
+						break;
 				}
 
-				if (krad_dirac->frame != NULL) {
-					krad_dirac->frame->components[0].data, krad_dirac->frame->components[0].stride, krad_dirac->frame->components[1].data, krad_dirac->frame->components[1].stride, krad_dirac->frame->components[2].data, krad_dirac->frame->components[2].stride);
+				krad_link->krad_dirac->format_set = true;				
+			}
+
+			if (krad_link->krad_dirac->frame != NULL) {
+			
+				if (krad_link->decoded_frame_converter == NULL) {
+
+					krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_dirac->frame->width, krad_link->krad_dirac->frame->height, PIX_FMT_YUV420P,
+																  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
+																  SWS_BICUBIC, NULL, NULL, NULL);
+
 				}
-			*/
+
+				krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_dirac->frame->components[0].data, 
+									 krad_link->krad_dirac->frame->components[0].stride, krad_link->krad_dirac->frame->components[1].data, 
+									 krad_link->krad_dirac->frame->components[1].stride, krad_link->krad_dirac->frame->components[2].data,
+									 krad_link->krad_dirac->frame->components[2].stride);
+
+				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size) && (!*krad_link->shutdown)) {
+					usleep(10000);
+				}
+				
+				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
+
+
+			}
 		}
 	}
 
@@ -1790,7 +1800,8 @@ void *audio_decoding_thread(void *arg) {
 		
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
-				krad_flac_decode(krad_link->krad_flac, header[0] + 9, header_len[0] - 9, NULL);
+				//krad_flac_decode(krad_link->krad_flac, header[0] + 9, header_len[0] - 9, NULL);
+				krad_flac_decode(krad_link->krad_flac, header[0], header_len[0], NULL);
 			}
 	
 			if (krad_link->audio_codec == VORBIS) {

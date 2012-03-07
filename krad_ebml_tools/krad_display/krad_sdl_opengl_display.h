@@ -31,7 +31,7 @@ struct krad_sdl_opengl_display_St {
 
 	SDL_Surface *screen;
 
-
+	enum PixelFormat format;
 	struct SwsContext *sws_context;
 	int frame_byte_size;
 	unsigned char *rgb_frame_data;

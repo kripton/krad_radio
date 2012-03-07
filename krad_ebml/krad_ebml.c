@@ -617,8 +617,8 @@ int krad_ebml_read_xiph_lace_value ( unsigned char *bytes, int *bytes_read ) {
 void krad_ebml_read_tags( krad_ebml_t *krad_ebml, int tags_length ) {
 
 	int bytes_read;
-	uint32_t ebml_id;
-	uint64_t ebml_data_size;
+	//uint32_t ebml_id;
+	//uint64_t ebml_data_size;
 	
 	bytes_read = 0;
 	
@@ -998,11 +998,11 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 
 	int ret;
 	uint32_t ebml_id;
-	uint32_t ebml_id_length;
+	//uint32_t ebml_id_length;
 	uint64_t ebml_data_size;
-	uint32_t ebml_data_size_length;
+	//uint32_t ebml_data_size_length;
 	
-	unsigned char byte;
+	//unsigned char byte;
 	unsigned char temp[7];
 
 	int skip;
@@ -1157,7 +1157,10 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 			if (krad_ebml->tracks_size > 0) {
 				krad_ebml->tracks_pos += ret;
 			}
+			
 			printf("%s", string);
+			
+			krad_ebml->tracks[krad_ebml->current_track].codec = NOCODEC;
 			
 			if (strncmp(string, "A_VORBIS", 8) == 0) {
 				krad_ebml->tracks[krad_ebml->current_track].codec = VORBIS;
@@ -1181,6 +1184,11 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 			
 			if (strncmp(string, "V_VP8", 8) == 0) {
 				krad_ebml->tracks[krad_ebml->current_track].codec = VP8;
+			}
+			
+			// If we found one of our codecs
+			if (krad_ebml->tracks[krad_ebml->current_track].codec != NOCODEC) {
+				krad_ebml->tracks[krad_ebml->current_track].changed = 1;				
 			}
 				
 			memset(string, '\0', sizeof(string));
@@ -1218,24 +1226,39 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 				// first byte is the number of elements
 				bytes_read = 1;
 
+				krad_ebml->tracks[krad_ebml->current_track].headers = 3;
 			
-				krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[0] = krad_ebml_read_xiph_lace_value ( krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read, &bytes_read );
-				krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[1] = krad_ebml_read_xiph_lace_value ( krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read, &bytes_read );
-				krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[2] = krad_ebml->tracks[krad_ebml->current_track].codec_data_size - bytes_read - (krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[0] + krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[1]);
+				krad_ebml->tracks[krad_ebml->current_track].header_len[0] = krad_ebml_read_xiph_lace_value ( krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read, &bytes_read );
+				krad_ebml->tracks[krad_ebml->current_track].header_len[1] = krad_ebml_read_xiph_lace_value ( krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read, &bytes_read );
+				krad_ebml->tracks[krad_ebml->current_track].header_len[2] = krad_ebml->tracks[krad_ebml->current_track].codec_data_size - bytes_read - (krad_ebml->tracks[krad_ebml->current_track].header_len[0] + krad_ebml->tracks[krad_ebml->current_track].header_len[1]);
 				
-				krad_ebml->tracks[krad_ebml->current_track].xiph_header[0] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read;
-				krad_ebml->tracks[krad_ebml->current_track].xiph_header[1] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read + krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[0];
-				krad_ebml->tracks[krad_ebml->current_track].xiph_header[2] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read + krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[0] + krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[1];
+				krad_ebml->tracks[krad_ebml->current_track].header[0] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read;
+				krad_ebml->tracks[krad_ebml->current_track].header[1] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read + krad_ebml->tracks[krad_ebml->current_track].header_len[0];
+				krad_ebml->tracks[krad_ebml->current_track].header[2] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read + krad_ebml->tracks[krad_ebml->current_track].header_len[0] + krad_ebml->tracks[krad_ebml->current_track].header_len[1];
 
 
 
 				printf("got xiph headers codec data size %zu -- %d %d %d\n",
 						ebml_data_size,
-						krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[0],
-						krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[1],
-						krad_ebml->tracks[krad_ebml->current_track].xiph_header_len[2]);
+						krad_ebml->tracks[krad_ebml->current_track].header_len[0],
+						krad_ebml->tracks[krad_ebml->current_track].header_len[1],
+						krad_ebml->tracks[krad_ebml->current_track].header_len[2]);
 			
 			}
+			
+			if ((krad_ebml->tracks[krad_ebml->current_track].codec == FLAC) || (krad_ebml->tracks[krad_ebml->current_track].codec == OPUS)) {
+				// it should be just one...			
+				krad_ebml->tracks[krad_ebml->current_track].headers = 1;
+				krad_ebml->tracks[krad_ebml->current_track].header[0] = krad_ebml->tracks[krad_ebml->current_track].codec_data;
+				krad_ebml->tracks[krad_ebml->current_track].header_len[0] = krad_ebml->tracks[krad_ebml->current_track].codec_data_size;
+				
+			}
+	
+			if ((krad_ebml->tracks[krad_ebml->current_track].codec == VP8) || (krad_ebml->tracks[krad_ebml->current_track].codec == DIRAC)) {
+				// Really nothing..
+				krad_ebml->tracks[krad_ebml->current_track].headers = 0;
+				krad_ebml->tracks[krad_ebml->current_track].header_len[0] = 0;
+			}		
 			
 		}
 		
@@ -1698,28 +1721,55 @@ krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode) {
 
 } 
 
-krad_codec_t krad_ebml_get_track_codec (krad_ebml_t *krad_ebml, int tracknumber) {
 
-	return krad_ebml->tracks[tracknumber].codec;
-
+int krad_ebml_track_count(krad_ebml_t *krad_ebml) {
+	return krad_ebml->track_count;
 }
 
-int krad_ebml_get_track_codec_data(krad_ebml_t *krad_ebml, int tracknumber, unsigned char *buffer) {
 
-	if (krad_ebml->tracks[tracknumber].codec_data_size) {
-	
-		memcpy(buffer, krad_ebml->tracks[tracknumber].codec_data, krad_ebml->tracks[tracknumber].codec_data_size);
-	
+krad_codec_t krad_ebml_track_codec (krad_ebml_t *krad_ebml, int track) {
+	return krad_ebml->tracks[track].codec;
+}
+
+int krad_ebml_track_header_count (krad_ebml_t *krad_ebml, int track) {
+	return krad_ebml->tracks[track].headers;
+}
+
+int krad_ebml_track_header_size (krad_ebml_t *krad_ebml, int track, int header) {
+	return krad_ebml->tracks[track].header_len[header];
+}
+
+int krad_ebml_read_track_header(krad_ebml_t *krad_ebml, unsigned char *buffer, int track, int header) {
+
+	//if (krad_ebml->tracks[track].codec_data_size) {
+	//	memcpy(buffer, krad_ebml->tracks[track].codec_data, krad_ebml->tracks[track].codec_data_size);
+	//}
+
+	//return krad_ebml->tracks[track].codec_data_size;
+	if (krad_ebml->tracks[track].codec_data_size) {
+		memcpy(buffer, krad_ebml->tracks[track].header[header], krad_ebml->tracks[track].header_len[header]);
+		return krad_ebml->tracks[track].header_len[header];
 	}
 
-	return krad_ebml->tracks[tracknumber].codec_data_size;
+	return 0;
 
 }
 
 
-int krad_ebml_get_track_count(krad_ebml_t *krad_ebml) {
+int krad_ebml_track_active (krad_ebml_t *krad_ebml, int track) {
 
-	return krad_ebml->track_count;
+	if (krad_ebml->tracks[track].codec != NOCODEC) {
+		return 1;
+	}
 
+	return 0;
+}
+
+int krad_ebml_track_changed (krad_ebml_t *krad_ebml, int track) {
+	if (krad_ebml->tracks[track].changed == 1) {
+		krad_ebml->tracks[track].changed = 0;
+		return 1;
+	}
+	return 0;
 }
 

@@ -273,6 +273,9 @@ void krad_vpx_decoder_decode(krad_vpx_decoder_t *kradvpx, void *buffer, int len)
 
 	if (kradvpx->img == NULL) {
 	
+		kradvpx->width = kradvpx->stream_info.w;
+		kradvpx->height = kradvpx->stream_info.h;
+		
 		if ((kradvpx->img = vpx_img_alloc(NULL, VPX_IMG_FMT_YV12, kradvpx->stream_info.w, kradvpx->stream_info.h, 1)) == NULL) {
 			printf("Failed to allocate vpx image\n");
 			exit(1);

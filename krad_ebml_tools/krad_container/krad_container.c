@@ -1,6 +1,6 @@
 #include "krad_container.h"
 
-krad_container_t krad_link_select_container(char *string) {
+krad_container_type_t krad_link_select_container (char *string) {
 
 	if ((strstr(string, ".ogg")) ||
 		(strstr(string, ".OGG")) ||
@@ -16,31 +16,74 @@ krad_container_t krad_link_select_container(char *string) {
 	return EBML;
 }
 
-/*
-
-		if (krad_ogg_track_changed(krad_link->krad_ogg, current_track)) {
-			track_codecs[current_track] = krad_ogg_get_track_codec(krad_link->krad_ogg, current_track);
-			for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
-				printf("header %d is %d bytes\n", h, krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h));
-				total_header_size += krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
-					for (h = 0; h < krad_ogg_get_track_codec_header_count(krad_link->krad_ogg, current_track); h++) {
-						header_size = krad_ogg_get_track_codec_header_data_size(krad_link->krad_ogg, current_track, h);
-						krad_ogg_get_track_codec_header_data(krad_link->krad_ogg, current_track, header_buffer, h);
 
 
-*/
+int krad_container_track_count (krad_container_t *krad_container) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_track_count ( krad_container->krad_ogg );
+	} else {
+		return krad_ebml_track_count ( krad_container->krad_ebml );		
+	}
+}
 
-krad_codec_t krad_container_get_track_codec (krad_container_t *krad_container, int tracknumber);
-int krad_container_get_track_codec_data(krad_container_t *krad_container, int tracknumber, unsigned char *buffer);
-int krad_container_get_track_count(krad_container_t *krad_container);
+krad_codec_t krad_container_track_codec (krad_container_t *krad_container, int track) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_track_codec ( krad_container->krad_ogg, track );
+	} else {
+		return krad_ebml_track_codec ( krad_container->krad_ebml, track );		
+	}
+}
+
+int krad_container_track_header_size (krad_container_t *krad_container, int track, int header) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_track_header_size ( krad_container->krad_ogg, track, header );
+	} else {
+		return krad_ebml_track_header_size ( krad_container->krad_ebml, track, header );		
+	}
+}
+
+int krad_container_read_track_header (krad_container_t *krad_container, unsigned char *buffer, int track, int header) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_read_track_header ( krad_container->krad_ogg, buffer, track, header );
+	} else {
+		return krad_ebml_read_track_header ( krad_container->krad_ebml, buffer, track, header );		
+	}
+}
 
 
-int krad_container_read_packet (krad_container_t *krad_container, int *tracknumber, unsigned char *buffer) {
+int krad_container_track_changed (krad_container_t *krad_container, int track) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_track_changed ( krad_container->krad_ogg, track );
+	} else {
+		return krad_ebml_track_changed( krad_container->krad_ebml, track );		
+	}
+}
+
+int krad_container_track_active (krad_container_t *krad_container, int track) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_track_active ( krad_container->krad_ogg, track );
+	} else {
+		return krad_ebml_track_active ( krad_container->krad_ebml, track );		
+	}
+}
+
+
+int krad_container_track_header_count (krad_container_t *krad_container, int track) {
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_track_header_count ( krad_container->krad_ogg, track );
+	} else {
+		return krad_ebml_track_header_count ( krad_container->krad_ebml, track );		
+	}
+}
+
+
+
+int krad_container_read_packet (krad_container_t *krad_container, int *track, unsigned char *buffer) {
 
 	if (krad_container->container_type == OGG) {
-		return krad_ogg_read_packet ( krad_container->krad_ogg, tracknumber, buffer);
+		return krad_ogg_read_packet ( krad_container->krad_ogg, track, buffer );
 	} else {
-		return krad_ebml_read_packet ( krad_container->krad_ebml, tracknumber, buffer);		
+		return krad_ebml_read_packet ( krad_container->krad_ebml, track, buffer );		
 	}
 
 }
@@ -86,10 +129,11 @@ krad_container_t *krad_container_open_file(char *filename, krad_io_mode_t mode) 
 
 void krad_container_destroy(krad_container_t *krad_container) {
 						
-	if (container == OGG) {
-		krad_ogg_destroy(krad_link->krad_ogg);
+	if (krad_container->container_type == OGG) {
+		krad_ogg_destroy(krad_container->krad_ogg);
 	} else {
-		krad_ebml_destroy(krad_link->krad_ebml);
+		krad_ebml_destroy(krad_container->krad_ebml);
 	}
+
 }	
 

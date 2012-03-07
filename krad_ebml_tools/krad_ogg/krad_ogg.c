@@ -1,50 +1,7 @@
 //#include "krad_io.h"
 #include "krad_ogg.h"
 
-krad_codec_t krad_ogg_get_track_codec (krad_ogg_t *krad_ogg, int tracknumber) {
-
-	if ((krad_ogg->tracks[tracknumber].serial != 0) && (krad_ogg->tracks[tracknumber].ready == 1)) {
-		return krad_ogg->tracks[tracknumber].codec;
-	}
-
-	return NOCODEC;
-
-}
-
-
-int krad_ogg_get_track_codec_header_count(krad_ogg_t *krad_ogg, int tracknumber) {
-
-	if ((krad_ogg->tracks[tracknumber].serial != 0) && (krad_ogg->tracks[tracknumber].ready == 1)) {
-		return krad_ogg->tracks[tracknumber].header_count;
-	}
-
-	return 0;
-
-}
-
-int krad_ogg_get_track_codec_header_data_size(krad_ogg_t *krad_ogg, int tracknumber, int header_number) {
-
-	if ((krad_ogg->tracks[tracknumber].serial != 0) && (krad_ogg->tracks[tracknumber].ready == 1)) {
-		return krad_ogg->tracks[tracknumber].header_len[header_number];
-	}
-
-	return 0;
-
-}
-
-int krad_ogg_get_track_codec_header_data(krad_ogg_t *krad_ogg, int tracknumber, unsigned char *buffer, int header_number) {
-
-	if ((krad_ogg->tracks[tracknumber].serial != 0) && (krad_ogg->tracks[tracknumber].ready == 1)) {
-		memcpy(buffer, krad_ogg->tracks[tracknumber].header[header_number], krad_ogg->tracks[tracknumber].header_len[header_number]);
-		return krad_ogg->tracks[tracknumber].header_len[header_number];
-	}
-
-	return 0;
-
-}
-
-
-int krad_ogg_get_track_count(krad_ogg_t *krad_ogg) {
+int krad_ogg_track_count(krad_ogg_t *krad_ogg) {
 
 	int t;
 	int count;
@@ -61,9 +18,51 @@ int krad_ogg_get_track_count(krad_ogg_t *krad_ogg) {
 
 }
 
-int krad_ogg_track_status (krad_ogg_t *krad_ogg, int tracknumber) {
+krad_codec_t krad_ogg_track_codec (krad_ogg_t *krad_ogg, int track) {
 
-	if (krad_ogg->tracks[tracknumber].serial != 0) {
+	if ((krad_ogg->tracks[track].serial != 0) && (krad_ogg->tracks[track].ready == 1)) {
+		return krad_ogg->tracks[track].codec;
+	}
+
+	return NOCODEC;
+
+}
+
+
+int krad_ogg_track_header_count(krad_ogg_t *krad_ogg, int track) {
+
+	if ((krad_ogg->tracks[track].serial != 0) && (krad_ogg->tracks[track].ready == 1)) {
+		return krad_ogg->tracks[track].header_count;
+	}
+
+	return 0;
+
+}
+
+int krad_ogg_track_header_size (krad_ogg_t *krad_ogg, int track, int header) {
+
+	if ((krad_ogg->tracks[track].serial != 0) && (krad_ogg->tracks[track].ready == 1)) {
+		return krad_ogg->tracks[track].header_len[header];
+	}
+
+	return 0;
+
+}
+
+int krad_ogg_read_track_header(krad_ogg_t *krad_ogg, unsigned char *buffer, int track, int header) {
+
+	if ((krad_ogg->tracks[track].serial != 0) && (krad_ogg->tracks[track].ready == 1)) {
+		memcpy(buffer, krad_ogg->tracks[track].header[header], krad_ogg->tracks[track].header_len[header]);
+		return krad_ogg->tracks[track].header_len[header];
+	}
+
+	return 0;
+
+}
+
+int krad_ogg_track_active (krad_ogg_t *krad_ogg, int track) {
+
+	if (krad_ogg->tracks[track].serial != 0) {
 		return 1;
 	}
 
@@ -71,10 +70,10 @@ int krad_ogg_track_status (krad_ogg_t *krad_ogg, int tracknumber) {
 
 }
 
-int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int tracknumber) {
+int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int track) {
 
-	if (krad_ogg->tracks[tracknumber].serial != krad_ogg->tracks[tracknumber].last_serial) {
-		krad_ogg->tracks[tracknumber].last_serial = krad_ogg->tracks[tracknumber].serial;
+	if (krad_ogg->tracks[track].serial != krad_ogg->tracks[track].last_serial) {
+		krad_ogg->tracks[track].last_serial = krad_ogg->tracks[track].serial;
 		return 1;
 	}
 
@@ -138,7 +137,7 @@ krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
 } 
 
 
-int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char *buffer) {
+int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, unsigned char *buffer) {
 
 	int t;
 	int ret;
@@ -170,6 +169,17 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 						}
 						if ((krad_ogg->tracks[t].header_count == 2) && ((krad_ogg->tracks[t].codec == OPUS) || (krad_ogg->tracks[t].codec == FLAC))) {					
 							krad_ogg->tracks[t].header_count = 1;
+							
+							if (krad_ogg->tracks[t].codec == FLAC) {
+								// remove oggflac extra stuff
+								memmove(krad_ogg->tracks[t].header[0], krad_ogg->tracks[t].header[0] + 9, krad_ogg->tracks[t].header_len[0] - 9);
+								krad_ogg->tracks[t].header_len[0] -= 9;
+								if (krad_ogg->tracks[t].header_len[0] != 42) {
+									printf("ruh oh! our oggflac expectations where not met, problem likely!\n");
+								}
+							}
+							
+							
 							krad_ogg->tracks[t].ready = 1;
 						}
 					} else {
@@ -184,7 +194,7 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *tracknumber, unsigned char 
 				ret = ogg_stream_packetout(&krad_ogg->tracks[t].stream_state, &packet);
 				if (ret == 1) {
 					memcpy(buffer, packet.packet, packet.bytes);
-					*tracknumber = t;
+					*track = t;
 				
 					if (packet.e_o_s) {
 						ogg_stream_clear(&krad_ogg->tracks[t].stream_state);

@@ -1,3 +1,6 @@
+#ifndef KRAD_EBML_H
+#define KRAD_EBML_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,9 +9,6 @@
 #include <fcntl.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-
-
-
 #include <malloc.h>
 #include <math.h>
 #include <signal.h>
@@ -97,7 +97,7 @@
 #define EBML_ID_TAG_STRING				0x4487
 #define EBML_ID_TAG_BINARY				0x4485
 
-
+#define KRAD_EBML_MAX_TRACKS 10
 
 #define KRADEBML_WRITE_BUFFER_SIZE 8192 * 1024 * 2
 
@@ -155,9 +155,10 @@ struct krad_ebml_track_St {
 	unsigned char *codec_data;
 	int codec_data_size;
 	
-	unsigned char *xiph_header[3];
-	int xiph_header_len[3];
-	
+	unsigned char *header[3];
+	int header_len[3];
+	int headers;
+	int changed;
 };
 
 struct krad_ebml_io_St {
@@ -244,7 +245,7 @@ struct krad_ebml_St {
 	
 };
 
-int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
+/* writing functions */
 
 void krad_ebml_sync (krad_ebml_t *krad_ebml);
 int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height);
@@ -263,26 +264,38 @@ void krad_ebml_write_string (krad_ebml_t *krad_ebml, uint64_t element, char *str
 void krad_ebml_write_data_size (krad_ebml_t *krad_ebml, uint64_t data_size);
 void krad_ebml_write_reversed (krad_ebml_t *krad_ebml, void *buffer, uint32_t len);
 
-krad_codec_t krad_ebml_get_track_codec (krad_ebml_t *krad_ebml, int tracknumber);
-int krad_ebml_get_track_codec_data(krad_ebml_t *krad_ebml, int tracknumber, unsigned char *buffer);
-int krad_ebml_get_track_count(krad_ebml_t *krad_ebml);
-int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned char *buffer);
-krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *password);
-krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode);
-void krad_ebml_destroy(krad_ebml_t *krad_ebml);
-
 void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value);
 int krad_ebml_write_sync(krad_ebml_t *krad_ebml);
-
-
 void krad_ebml_start_element (krad_ebml_t *krad_ebml, uint32_t element, uint64_t *position);
 void krad_ebml_finish_element (krad_ebml_t *krad_ebml, uint64_t element_position);
 
+
+/* reading functions */
+
+int krad_ebml_track_count(krad_ebml_t *krad_ebml);
+krad_codec_t krad_ebml_track_codec (krad_ebml_t *krad_ebml, int track);
+
+int krad_ebml_track_header_count (krad_ebml_t *krad_ebml, int track);
+int krad_ebml_track_header_size (krad_ebml_t *krad_ebml, int track, int header);
+int krad_ebml_read_track_header (krad_ebml_t *krad_ebml, unsigned char *buffer, int track, int header);
+int krad_ebml_track_active (krad_ebml_t *krad_ebml, int track);
+int krad_ebml_track_changed (krad_ebml_t *krad_ebml, int track);
+
+int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned char *buffer);
+
+/* internal read func */
+int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
+
+/* r/w functions */
+
+krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *password);
+krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode);
+
+void krad_ebml_destroy(krad_ebml_t *krad_ebml);
 char *krad_ebml_version();
 
 int64_t krad_ebml_tell(krad_ebml_t *krad_ebml);
-int64_t krad_ebml_fileio_tell(krad_ebml_io_t *krad_ebml_io);
 int krad_ebml_write(krad_ebml_t *krad_ebml, void *buffer, size_t length);
 int krad_ebml_read(krad_ebml_t *krad_ebml, void *buffer, size_t length);
 int krad_ebml_seek(krad_ebml_t *krad_ebml, int64_t offset, int whence);
-
+#endif

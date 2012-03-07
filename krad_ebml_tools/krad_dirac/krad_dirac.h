@@ -35,6 +35,7 @@ struct krad_dirac_St {
 	SchroFrame *frame;
 	SchroFrame *frame2;
 	SchroVideoFormat *format;
+	int format_set;
 	int size;
 	uint8_t *picture;
 	int n_frames;
