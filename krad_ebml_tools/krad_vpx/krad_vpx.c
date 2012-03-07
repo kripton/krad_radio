@@ -309,8 +309,13 @@ krad_vpx_decoder_t *krad_vpx_decoder_create() {
 
 	kradvpx->stream_info.sz = sizeof(kradvpx->stream_info);
 	kradvpx->dec_flags = 0;
+	kradvpx->cfg.threads = 4;
 	
     vpx_codec_dec_init(&kradvpx->decoder, vpx_codec_vp8_dx(), &kradvpx->cfg, kradvpx->dec_flags);
+
+	//kradvpx->ppcfg.post_proc_flag = VP8_DEBLOCK;
+	//kradvpx->ppcfg.deblocking_level = 1;
+	//kradvpx->ppcfg.noise_level = 0;
 
 	kradvpx->ppcfg.post_proc_flag = VP8_DEMACROBLOCK | VP8_DEBLOCK | VP8_ADDNOISE;
 	kradvpx->ppcfg.deblocking_level = 5;
