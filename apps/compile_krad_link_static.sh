@@ -1,4 +1,4 @@
-gcc -g -Wall krad_link.c \
+gcc -O3 -Wall krad_link.c \
 -I../krad_ebml_tools/krad_opus \
 ../krad_ebml_tools/krad_dirac/krad_dirac.c \
 -I../krad_ebml_tools/krad_dirac \

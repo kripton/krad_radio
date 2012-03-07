@@ -118,7 +118,7 @@ void krad_sdl_opengl_draw_screen(krad_sdl_opengl_display_t *krad_sdl_opengl_disp
 	static float zoomrange = 1.0f;
 	static float rotaterange = 35.0f;
 	
-	static int animate_test = 0;
+	static int animate_test = 1;
 	static int zoom_in = 1;
 
 	k += speed;
