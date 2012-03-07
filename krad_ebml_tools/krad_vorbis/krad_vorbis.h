@@ -18,6 +18,9 @@ typedef struct krad_vorbis_St krad_vorbis_t;
 
 struct krad_vorbis_St {
 
+	int channels;
+	float sample_rate;
+
 	krad_ringbuffer_t *ringbuf[MAX_CHANNELS];
 
 	ogg_sync_state oy;

@@ -151,6 +151,20 @@ void krad_theora_decoder_decode(krad_theora_decoder_t *krad_theora, void *buffer
 
 }
 
+void krad_theora_decoder_timecode(krad_theora_decoder_t *krad_theora, uint64_t *timecode) {
+
+	float frame_rate;
+	ogg_int64_t iframe;
+	ogg_int64_t pframe;
+	
+	frame_rate = krad_theora->info.fps_numerator / krad_theora->info.fps_denominator;
+	
+	iframe = krad_theora->granulepos >> krad_theora->info.keyframe_granule_shift;
+	pframe = krad_theora->granulepos - (iframe << krad_theora->info.keyframe_granule_shift);
+	/* kludged, we use the default shift of 6 and assume a 3.2.1+ bitstream */
+	*timecode = ((iframe + pframe - 1) / frame_rate) * 1000.0;
+
+}
 
 
 void krad_theora_decoder_destroy(krad_theora_decoder_t *krad_theora) {
@@ -197,6 +211,12 @@ krad_theora_decoder_t *krad_theora_decoder_create(unsigned char *header1, int he
 		   (double)krad_theora->info.fps_numerator/krad_theora->info.fps_denominator,
 		   krad_theora->info.pic_width, krad_theora->info.pic_height, krad_theora->info.pic_x, krad_theora->info.pic_y);
 
+
+	krad_theora->offset_y = krad_theora->info.pic_y;
+	krad_theora->offset_x = krad_theora->info.pic_x;
+
+	krad_theora->width = krad_theora->info.pic_width;
+	krad_theora->height = krad_theora->info.pic_height;
 
 	krad_theora->decoder = th_decode_alloc(&krad_theora->info, krad_theora->setup_info);
 

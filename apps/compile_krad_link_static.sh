@@ -49,11 +49,14 @@ gcc -g -Wall krad_link.c \
 /usr/lib/libavutil.a \
 /usr/lib/libspeexdsp.a \
 /usr/local/lib/libvpx.a \
+/usr/local/lib/libtheora.a \
+/usr/local/lib/libtheoradec.a \
+/usr/local/lib/libtheoraenc.a \
 /usr/local/lib/libschroedinger-1.0.a \
 /usr/local/lib/liborc-0.4.a \
 /usr/local/lib/libopus.a \
 /usr/local/lib/liborc-test-0.4.a \
 /usr/local/lib/libturbojpeg.a \
 /usr/local/lib/libvpx.a \
--o krad_link `pkg-config --cflags --libs gtk+-3.0 theora theoraenc theoradec` \
+-o krad_link `pkg-config --cflags --libs gtk+-3.0` \
 -lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -ljack -lpulse -lasound

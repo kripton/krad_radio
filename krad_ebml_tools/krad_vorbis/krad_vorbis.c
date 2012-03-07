@@ -146,6 +146,11 @@ void krad_vorbis_decoder_destroy(krad_vorbis_t *vorbis) {
 	for (c = 0; c < vorbis->vinfo.channels; c++) {
 		krad_ringbuffer_free (vorbis->ringbuf[c]);
 	}
+	
+	//nasty kludge, discusting
+	if (vorbis->channels == 1) {
+		krad_ringbuffer_free (vorbis->ringbuf[1]);
+	}
 
 	vorbis_info_clear(&vorbis->vinfo);
 	vorbis_comment_clear(&vorbis->vc);
@@ -198,8 +203,16 @@ krad_vorbis_t *krad_vorbis_decoder_create(unsigned char *header1, int header1len
 
 	printf("Vorbis Info - Version: %d Channels: %d Sample Rate: %ld Bitrate: %ld %ld %ld\n", vorbis->vinfo.version, vorbis->vinfo.channels, vorbis->vinfo.rate, vorbis->vinfo.bitrate_upper, vorbis->vinfo.bitrate_nominal, vorbis->vinfo.bitrate_lower);
 
-	for (c = 0; c < vorbis->vinfo.channels; c++) {
+	vorbis->channels = vorbis->vinfo.channels;
+	vorbis->sample_rate = vorbis->vinfo.rate;
+
+	for (c = 0; c < vorbis->channels; c++) {
 		vorbis->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	}
+	
+	//nasty kludge, discusting
+	if (vorbis->channels == 1) {
+		vorbis->ringbuf[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 	}
 
 	return vorbis;
@@ -232,8 +245,12 @@ void krad_vorbis_decoder_decode(krad_vorbis_t *vorbis, unsigned char *buffer, in
 		}
 	
 		krad_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], sample_count * 4 );
-		krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], sample_count * 4 );
-	
+		if (vorbis->channels == 1) {
+			krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[0], sample_count * 4 );
+		}
+		if (vorbis->channels == 2) {
+			krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], sample_count * 4 );
+		}
 		vorbis_synthesis_read(&vorbis->vdsp, sample_count);
 	}
 

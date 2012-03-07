@@ -54,6 +54,9 @@ struct krad_theora_decoder_St {
 	int quality;
     int dec_flags;
 
+	int offset_y;
+	int offset_x;
+
 	th_info	info;
 	th_comment	comment;
 	th_setup_info	*setup_info;
@@ -76,6 +79,9 @@ void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora);
 int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe);
 void krad_theora_convert_frame_for_local_gl_display(krad_theora_encoder_t *krad_theora);
 */
+
+void krad_theora_decoder_timecode(krad_theora_decoder_t *krad_theora, uint64_t *timecode);
+
 krad_theora_decoder_t *krad_theora_decoder_create();
 void krad_theora_decoder_destroy(krad_theora_decoder_t *krad_theora);
 void krad_theora_decoder_write(krad_theora_decoder_t *krad_theora);

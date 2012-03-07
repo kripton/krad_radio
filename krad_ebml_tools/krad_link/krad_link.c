@@ -985,7 +985,7 @@ void krad_link_composite(krad_link_t *krad_link) {
 			
 			if (krad_link->current_frame_timecode != 0) {
 			
-				if (krad_link->current_frame_timecode <= krad_link->krad_gui->elapsed_time_ms) {
+				if (krad_link->current_frame_timecode <= krad_link->krad_gui->elapsed_time_ms + 18) {
 					krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
 										 (char *)krad_link->current_frame, 
 										 krad_link->composited_frame_byte_size );
@@ -1221,7 +1221,7 @@ void *stream_input_thread(void *arg) {
 
 		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
 		//printf("packet track %d timecode: %zu\n", current_track, packet_timecode);
-		if (packet_size <= 0) {
+		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 100))  {
 			printf("\nstream input thread packet size was: %d\n", packet_size);
 			break;
 		}
@@ -1473,7 +1473,7 @@ void celt_udp_receiver_destroy (kradlink_celt_receiver_t *kradlink_celt_receiver
 
 }
 
-void krad_link_yuv_to_rgb(krad_link_t *krad_link, unsigned char *output, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs) {
+void krad_link_yuv_to_rgb(krad_link_t *krad_link, unsigned char *output, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs, int height) {
 
 	int rgb_stride_arr[3] = {4*krad_link->display_width, 0, 0};
 
@@ -1492,7 +1492,7 @@ void krad_link_yuv_to_rgb(krad_link_t *krad_link, unsigned char *output, unsigne
 	unsigned char *dst[4];
 	dst[0] = output;
 
-	sws_scale(krad_link->decoded_frame_converter, yv12_arr, yv12_str_arr, 0, krad_link->composite_height, dst, rgb_stride_arr);
+	sws_scale(krad_link->decoded_frame_converter, yv12_arr, yv12_str_arr, 0, height, dst, rgb_stride_arr);
 
 }
 
@@ -1509,6 +1509,7 @@ void *video_decoding_thread(void *arg) {
 	unsigned char *header[3];
 	int header_len[3];
 	uint64_t timecode;
+	uint64_t timecode2;
 
 	for (h = 0; h < 3; h++) {
 		header[h] = malloc(100000);
@@ -1610,20 +1611,27 @@ void *video_decoding_thread(void *arg) {
 			krad_theora_decoder_decode(krad_link->krad_theora_decoder, buffer, bytes);
 
 			if (krad_link->decoded_frame_converter == NULL) {
-				krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_theora_decoder->info.frame_width, krad_link->krad_theora_decoder->info.frame_height, PIX_FMT_YUV420P,
+				krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_theora_decoder->width, krad_link->krad_theora_decoder->height, PIX_FMT_YUV420P,
 															  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
 															  SWS_BICUBIC, NULL, NULL, NULL);
 		
 			}
 
-			krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_theora_decoder->ycbcr[0].data, 
-								 krad_link->krad_theora_decoder->ycbcr[0].stride, krad_link->krad_theora_decoder->ycbcr[1].data, 
-								 krad_link->krad_theora_decoder->ycbcr[1].stride, krad_link->krad_theora_decoder->ycbcr[2].data, 
-								 krad_link->krad_theora_decoder->ycbcr[2].stride);
+			krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_theora_decoder->ycbcr[0].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[0].stride), 
+								 krad_link->krad_theora_decoder->ycbcr[0].stride, krad_link->krad_theora_decoder->ycbcr[1].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[1].stride), 
+								 krad_link->krad_theora_decoder->ycbcr[1].stride, krad_link->krad_theora_decoder->ycbcr[2].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[2].stride), 
+								 krad_link->krad_theora_decoder->ycbcr[2].stride, krad_link->krad_theora_decoder->height);
 
 			while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
 				usleep(10000);
 			}
+			
+			krad_theora_decoder_timecode(krad_link->krad_theora_decoder, &timecode2);
+			
+			///printf("\n\ntimecode1: %zu timecode2: %zu\n\n", timecode, timecode2);
+			
+			timecode = timecode2;
+			
 			krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
 			krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
 
@@ -1645,7 +1653,7 @@ void *video_decoding_thread(void *arg) {
 				krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_vpx_decoder->img->planes[0], 
 									 krad_link->krad_vpx_decoder->img->stride[0], krad_link->krad_vpx_decoder->img->planes[1], 
 									 krad_link->krad_vpx_decoder->img->stride[1], krad_link->krad_vpx_decoder->img->planes[2], 
-									 krad_link->krad_vpx_decoder->img->stride[2]);
+									 krad_link->krad_vpx_decoder->img->stride[2], krad_link->krad_vpx_decoder->height);
 
 				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
 					usleep(10000);
@@ -1691,7 +1699,7 @@ void *video_decoding_thread(void *arg) {
 				krad_link_yuv_to_rgb(krad_link, converted_buffer, krad_link->krad_dirac->frame->components[0].data, 
 									 krad_link->krad_dirac->frame->components[0].stride, krad_link->krad_dirac->frame->components[1].data, 
 									 krad_link->krad_dirac->frame->components[1].stride, krad_link->krad_dirac->frame->components[2].data,
-									 krad_link->krad_dirac->frame->components[2].stride);
+									 krad_link->krad_dirac->frame->components[2].stride, krad_link->krad_dirac->frame->height);
 
 				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
 					usleep(10000);

@@ -39,6 +39,8 @@ typedef struct krad_ogg_track_St krad_ogg_track_t;
 
 #define KRAD_OGG_MAX_TRACKS 10
 
+#define KRAD_OGG_NO_SERIAL -420
+
 #ifndef KRAD_CODEC_T
 typedef enum {
 	VORBIS = 6666,
@@ -48,6 +50,7 @@ typedef enum {
 	DIRAC,
 	THEORA,
 	NOCODEC,
+	SKELETON,
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif
