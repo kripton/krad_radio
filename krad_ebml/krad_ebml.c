@@ -916,6 +916,11 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 	// ID length
 	ebml_id_length = ebml_length ( byte );
 
+	if (ebml_id_length > 4) {
+		printf("no it cant be more than 4!\n");
+		exit(1);
+	}
+
 	//printf("id length is %u\n", ebml_id_length);
 	memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
 
@@ -1421,6 +1426,8 @@ int krad_ebml_fileio_open(krad_ebml_io_t *krad_ebml_io)
 {
 
 	int fd;
+	
+	fd = 0;
 	
 	if (krad_ebml_io->mode == KRAD_EBML_IO_READONLY) {
 		fd = open ( krad_ebml_io->uri, O_RDONLY );

@@ -104,6 +104,8 @@ int krad_io_file_open(krad_io_t *krad_io) {
 
 	int fd;
 	
+	fd = 0;
+	
 	if (krad_io->mode == KRAD_IO_READONLY) {
 		fd = open ( krad_io->uri, O_RDONLY );
 	}
