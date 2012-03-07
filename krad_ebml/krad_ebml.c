@@ -632,10 +632,10 @@ void krad_ebml_read_tags( krad_ebml_t *krad_ebml, int tags_length ) {
 
 }
 
-int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumber, unsigned char *buffer) {
+int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumber, uint64_t *timecode, unsigned char *buffer) {
 
 	int tracknum;
-	short timecode;
+	short block_timecode;
 	unsigned char temp[8];
 
 	int ret;
@@ -663,7 +663,7 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 	last_frame_size = 0;
 	lacing = 0;
 	block_bytes_read = 0;
-	timecode = 0;
+	block_timecode = 0;
 	tracknum = 0;
 
 	krad_ebml_read ( krad_ebml, &byte, 1 );
@@ -673,12 +673,14 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 	//printf("tracknum is %d\n", tracknum);
 	
 	krad_ebml_read ( krad_ebml, &temp, 2 );
-	rmemcpy ( &timecode, &temp, 2);
+	rmemcpy ( &block_timecode, &temp, 2);
 	
-	krad_ebml->last_timecode = timecode;
+	krad_ebml->last_block_timecode = block_timecode;
 	
-	printf("timecode is %6.3f\n", ((krad_ebml->current_cluster_timecode + (int64_t)timecode)/1000.0));
-//	fflush(stdout);
+	krad_ebml->current_timecode = krad_ebml->current_cluster_timecode + (int64_t)krad_ebml->last_block_timecode;
+	//printf("timecode is %6.3f\n", ((krad_ebml->current_cluster_timecode + (int64_t)block_timecode)/1000.0));
+	*timecode = krad_ebml->current_timecode;
+	
 	krad_ebml_read ( krad_ebml, &flags, 1 );
 	
 //	printf("flags is %x\n", flags);
@@ -703,8 +705,6 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 	}
 
 //	krad_ebml_seek ( krad_ebml, len - 4, SEEK_CUR );
-
-	krad_ebml->current_timecode = krad_ebml->current_cluster_timecode + (int64_t)krad_ebml->last_timecode;
 
 	if (lacing == 0) {
 		return krad_ebml_read ( krad_ebml, buffer, len - 4 );
@@ -903,7 +903,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 	
 	if (!(ret = krad_ebml_read ( krad_ebml, &byte, 1 )) > 0) {
 		printf("ebml read ret was %d\n", ret);
-		return -1;
+		return 0;
 	}
 	
 	if (krad_ebml->tracks_size > 0) {
@@ -994,7 +994,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 	
 }
 
-int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned char *buffer) {
+int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecode, unsigned char *buffer) {
 
 	int ret;
 	uint32_t ebml_id;
@@ -1035,7 +1035,11 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 		}
 	
 	
-		krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);		
+		ret = krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);		
+
+		if (ret == 0) {
+			return 0;
+		}
 
 		//printf("data size is %" PRIu64 "\n", ebml_data_size);
 
@@ -1130,7 +1134,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned ch
 			krad_ebml->block_count++;
 			if (1) {
 				skip = 0;
-				return krad_ebml_read_simpleblock( krad_ebml, ebml_data_size, tracknumber, buffer );
+				return krad_ebml_read_simpleblock( krad_ebml, ebml_data_size, track, timecode, buffer );
 			} else {
 				skip = 1;
 			}
@@ -1678,7 +1682,7 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 	
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READONLY) {
 		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
-		krad_ebml_read_packet (krad_ebml, NULL, NULL);
+		krad_ebml_read_packet (krad_ebml, NULL, NULL, NULL);
 	}
 		
 	return krad_ebml;
@@ -1710,7 +1714,7 @@ krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode) {
 	
 		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
 	
-		krad_ebml_read_packet (krad_ebml, NULL, NULL);
+		krad_ebml_read_packet (krad_ebml, NULL, NULL, NULL);
 	}
 
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) {

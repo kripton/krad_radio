@@ -197,8 +197,8 @@ struct krad_ebml_St {
 	uint32_t cluster_count;
 	int cluster_recording_space;
 	krad_ebml_cluster_t *clusters;
-	int64_t current_cluster_timecode;
-	short last_timecode;
+	uint64_t current_cluster_timecode;
+	short last_block_timecode;
 	uint32_t block_count;
 	uint32_t largest_cluster;
 	uint32_t smallest_cluster;
@@ -213,7 +213,7 @@ struct krad_ebml_St {
 	int stream;
 	
 	
-	int64_t current_timecode;
+	uint64_t current_timecode;
 	
 	int width;
 	int height;
@@ -281,7 +281,7 @@ int krad_ebml_read_track_header (krad_ebml_t *krad_ebml, unsigned char *buffer, 
 int krad_ebml_track_active (krad_ebml_t *krad_ebml, int track);
 int krad_ebml_track_changed (krad_ebml_t *krad_ebml, int track);
 
-int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *tracknumber, unsigned char *buffer);
+int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecode, unsigned char *buffer);
 
 /* internal read func */
 int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);

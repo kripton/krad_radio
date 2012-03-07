@@ -955,26 +955,47 @@ void krad_link_display(krad_link_t *krad_link) {
 
 void krad_link_composite(krad_link_t *krad_link) {
 
-	int c;
+	int c;	
 
 	if (krad_link->operation_mode == RECEIVE) {
-		if (krad_ringbuffer_read_space(krad_link->decoded_frames_buffer) >= krad_link->composited_frame_byte_size) {
-	
-			krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
-									 (char *)krad_link->current_frame, 
-									 krad_link->composited_frame_byte_size );
 		
-			if (krad_link->link_started == 0) {
-				krad_link->link_started = 1;
-				//krad_link->krad_gui->render_ftest = 1;
-				//kradgui_go_live(krad_link->krad_gui);
+		krad_link->krad_gui->clear = 0;
+		krad_link->new_capture_frame = 1;
+		
+		kradgui_update_elapsed_time(krad_link->krad_gui);
+		//clock_gettime(CLOCK_MONOTONIC, &krad_link->next_frame_time);
+		//krad_link->next_frame_time_ms = ((krad_link->next_frame_time.tv_sec * 1000) + (krad_link->next_frame_time.tv_nsec / 1000000));
+		//krad_link->next_frame_time.tv_sec = (krad_link->next_frame_time_ms - (krad_link->next_frame_time_ms % 1000)) / 1000;
+		//krad_link->next_frame_time.tv_nsec = (krad_link->next_frame_time_ms % 1000) * 1000000;
+		//krad_link->sleep_time = timespec_diff(krad_link->krad_gui->elapsed_time, krad_link->next_frame_time);
+
+		if (krad_ringbuffer_read_space(krad_link->decoded_frames_buffer) >= krad_link->composited_frame_byte_size + 8) {
+	
+			if (krad_link->current_frame_timecode == 0) {
+				krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
+									 (char *)&krad_link->current_frame_timecode, 
+									 8 );
+									 
+				if (krad_link->current_frame_timecode == 0) {
+					//first frame kludge
+					krad_link->current_frame_timecode = 1;
+				}
+									 
+			}
+			
+			if (krad_link->current_frame_timecode != 0) {
+			
+				if (krad_link->current_frame_timecode <= krad_link->krad_gui->elapsed_time_ms) {
+					krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
+										 (char *)krad_link->current_frame, 
+										 krad_link->composited_frame_byte_size );
+								 
+					printf("Current Frame Timecode: %zu Current Elapsed Time %u \r", krad_link->current_frame_timecode, krad_link->krad_gui->elapsed_time_ms);
+					fflush(stdout);
+					krad_link->current_frame_timecode = 0;
+				}
 			}
 		
-			krad_link->krad_gui->clear = 0;
-		
-			krad_link->new_capture_frame = 1;
-		} else {
-			krad_link->new_capture_frame = 0;
 		}
 
 		memcpy( krad_link->krad_gui->data, krad_link->current_frame, krad_link->krad_gui->bytes );
@@ -1012,7 +1033,7 @@ void krad_link_composite(krad_link_t *krad_link) {
 	kradgui_render( krad_link->krad_gui );
 	
 	if (krad_link->render_meters) {
-		if ((krad_link->new_capture_frame == 1) || ((krad_link->operation_mode == RECEIVE) && (krad_link->video_codec == NOCODEC))) {
+		if ((krad_link->new_capture_frame == 1) || (krad_link->operation_mode == RECEIVE)) {
 			if (krad_link->krad_audio != NULL) {
 				for (c = 0; c < krad_link->audio_channels; c++) {
 				
@@ -1094,23 +1115,6 @@ void krad_link_run(krad_link_t *krad_link) {
 				krad_link_composite(krad_link);
 				krad_link_display(krad_link);
 				krad_link_handle_input(krad_link);
-
-				
-				kradgui_update_elapsed_time(krad_link->krad_gui);
-
-				krad_link->next_frame_time_ms = krad_link->krad_gui->frame * (1000.0f / (float)krad_link->composite_fps);
-
-				krad_link->next_frame_time.tv_sec = (krad_link->next_frame_time_ms - (krad_link->next_frame_time_ms % 1000)) / 1000;
-				krad_link->next_frame_time.tv_nsec = (krad_link->next_frame_time_ms % 1000) * 1000000;
-
-				krad_link->sleep_time = timespec_diff(krad_link->krad_gui->elapsed_time, krad_link->next_frame_time);
-
-				if ((krad_link->sleep_time.tv_sec > -1) && (krad_link->sleep_time.tv_nsec > 0))  {
-				//	nanosleep (&krad_link->sleep_time, NULL);
-				}
-
-				//printf("\n\nElapsed time %s\r", krad_link->krad_gui->elapsed_time_timecode_string);
-				//fflush(stdout);
 		
 			}
 		}
@@ -1184,6 +1188,7 @@ void *stream_input_thread(void *arg) {
 	krad_codec_t track_codecs[10];
 	krad_codec_t nocodec;	
 	int packet_size;
+	uint64_t packet_timecode;
 	int header_size;
 	int h;
 	int total_header_size;
@@ -1199,8 +1204,8 @@ void *stream_input_thread(void *arg) {
 	audio_packets = 0;
 	current_track = -1;
 
-	header_buffer = malloc(4096 * 16);
-	buffer = malloc(4096 * 16);
+	header_buffer = malloc(4096 * 512);
+	buffer = malloc(4096 * 512);
 	
 	if (krad_link->host[0] != '\0') {
 		krad_link->krad_container = krad_container_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
@@ -1214,9 +1219,8 @@ void *stream_input_thread(void *arg) {
 		total_header_size = 0;
 		header_size = 0;
 
-		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, buffer);
-
-		
+		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
+		//printf("packet track %d timecode: %zu\n", current_track, packet_timecode);
 		if (packet_size <= 0) {
 			printf("\nstream input thread packet size was: %d\n", packet_size);
 			break;
@@ -1247,7 +1251,7 @@ void *stream_input_thread(void *arg) {
 
 			if (krad_link->interface_mode == WINDOW) {
 
-				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!*krad_link->shutdown)) {
 					usleep(10000);
 				}
 				
@@ -1264,7 +1268,7 @@ void *stream_input_thread(void *arg) {
 				} else {
 					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
 				}
-				
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_timecode, 8);
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)buffer, packet_size);
 				codec_bytes += packet_size;
@@ -1278,7 +1282,7 @@ void *stream_input_thread(void *arg) {
 			if (krad_link->krad_audio_api != NOAUDIO) {
 			
 				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!*krad_link->shutdown)) {
-					usleep(50000);
+					usleep(10000);
 				}
 				
 				if (writeheaders == 1) {
@@ -1504,6 +1508,7 @@ void *video_decoding_thread(void *arg) {
 	int h;
 	unsigned char *header[3];
 	int header_len[3];
+	uint64_t timecode;
 
 	for (h = 0; h < 3; h++) {
 		header[h] = malloc(100000);
@@ -1521,7 +1526,7 @@ void *video_decoding_thread(void *arg) {
 
 
 		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-			usleep(20000);
+			usleep(10000);
 		}
 		
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&krad_link->video_codec, 4);
@@ -1561,13 +1566,13 @@ void *video_decoding_thread(void *arg) {
 				for (h = 0; h < 3; h++) {
 
 					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-						usleep(20000);
+						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&header_len[h], 4);
 		
 					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
-						usleep(30000);
+						usleep(10000);
 					}
 		
 					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)header[h], header_len[h]);
@@ -1580,18 +1585,22 @@ void *video_decoding_thread(void *arg) {
 			if (krad_link->video_codec == DIRAC) {
 				krad_link->krad_dirac = krad_dirac_decoder_create();
 			}
-		}	
+		}
 
 		krad_link->last_video_codec = krad_link->video_codec;
 	
-		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-			usleep(20000);
+		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 12) && (!*krad_link->shutdown)) {
+			usleep(10000);
 		}
+	
+		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&timecode, 8);
+	
+		//printf("\nframe timecode: %zu\n", timecode);
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&bytes, 4);
 		
 		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < bytes) && (!*krad_link->shutdown)) {
-			usleep(30000);
+			usleep(10000);
 		}
 		
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)buffer, bytes);
@@ -1612,10 +1621,10 @@ void *video_decoding_thread(void *arg) {
 								 krad_link->krad_theora_decoder->ycbcr[1].stride, krad_link->krad_theora_decoder->ycbcr[2].data, 
 								 krad_link->krad_theora_decoder->ycbcr[2].stride);
 
-			while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size) && (!*krad_link->shutdown)) {
+			while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
 				usleep(10000);
 			}
-			
+			krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
 			krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
 
 		}
@@ -1638,10 +1647,10 @@ void *video_decoding_thread(void *arg) {
 									 krad_link->krad_vpx_decoder->img->stride[1], krad_link->krad_vpx_decoder->img->planes[2], 
 									 krad_link->krad_vpx_decoder->img->stride[2]);
 
-				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
 					usleep(10000);
 				}
-				
+				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
 				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
 
 				//dbg("wrote %d to decoded frames buffer\n", krad_link->composited_frame_byte_size);
@@ -1684,10 +1693,10 @@ void *video_decoding_thread(void *arg) {
 									 krad_link->krad_dirac->frame->components[1].stride, krad_link->krad_dirac->frame->components[2].data,
 									 krad_link->krad_dirac->frame->components[2].stride);
 
-				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
 					usleep(10000);
 				}
-				
+				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
 				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
 
 
@@ -1758,7 +1767,7 @@ void *audio_decoding_thread(void *arg) {
 
 
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-			usleep(20000);
+			usleep(10000);
 		}
 		
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&krad_link->audio_codec, 4);
@@ -1789,18 +1798,17 @@ void *audio_decoding_thread(void *arg) {
 				for (h = 0; h < 1; h++) {
 
 					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-						usleep(20000);
+						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
 		
 					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
-						usleep(30000);
+						usleep(10000);
 					}
 		
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
-				//krad_flac_decode(krad_link->krad_flac, header[0] + 9, header_len[0] - 9, NULL);
 				krad_flac_decode(krad_link->krad_flac, header[0], header_len[0], NULL);
 			}
 	
@@ -1809,13 +1817,13 @@ void *audio_decoding_thread(void *arg) {
 				for (h = 0; h < 3; h++) {
 
 					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-						usleep(20000);
+						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
 		
 					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
-						usleep(30000);
+						usleep(10000);
 					}
 		
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
@@ -1834,13 +1842,13 @@ void *audio_decoding_thread(void *arg) {
 				for (h = 0; h < 1; h++) {
 
 					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-						usleep(20000);
+						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
 		
 					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
-						usleep(30000);
+						usleep(10000);
 					}
 		
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
@@ -1849,18 +1857,18 @@ void *audio_decoding_thread(void *arg) {
 				dbg("Opus Header size: %d\n", header_len[0]);
 				krad_link->krad_opus = kradopus_decoder_create(header[0], header_len[0], 44100.0f);
 			}
-		}	
+		}
 
 		krad_link->last_audio_codec = krad_link->audio_codec;
 	
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
-			usleep(20000);
+			usleep(10000);
 		}
 	
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
 		
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < bytes) && (!*krad_link->shutdown)) {
-			usleep(30000);
+			usleep(10000);
 		}
 		
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, bytes);

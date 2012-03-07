@@ -81,6 +81,73 @@ int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int track) {
 
 }
 
+float krad_ogg_vorbis_sample_rate(ogg_packet *packet) {
+
+	float sample_rate;
+	
+	vorbis_info v_info;
+	vorbis_comment v_comment;
+
+	vorbis_info_init(&v_info);
+	vorbis_comment_init(&v_comment);
+
+	vorbis_synthesis_headerin(&v_info, &v_comment, packet);
+
+	sample_rate = v_info.rate;
+	printf("the sample rate is %f\n", sample_rate);
+
+	vorbis_info_clear(&v_info);
+	vorbis_comment_clear(&v_comment);
+
+	return sample_rate;
+
+}
+
+int krad_ogg_theora_frame_rate (ogg_packet *packet) {
+
+	int frame_rate;
+	
+    theora_comment t_comment;
+    theora_info t_info;
+
+    theora_info_init (&t_info);
+	theora_comment_init (&t_comment);
+
+
+	theora_decode_header (&t_info, &t_comment, packet);
+
+	frame_rate = t_info.fps_numerator;
+	printf("the frame rate is %d\n", frame_rate);
+
+	theora_info_clear (&t_info);
+	theora_comment_clear (&t_comment);
+
+	return frame_rate;
+
+}
+
+int krad_ogg_theora_keyframe_shift (ogg_packet *packet) {
+
+	int keyframe_shift;
+	
+    theora_comment t_comment;
+    th_info t_info;
+
+    th_info_init (&t_info);
+	theora_comment_init (&t_comment);
+
+
+	//theora_decode_header (&t_info, &t_comment, packet);
+
+	keyframe_shift = t_info.keyframe_granule_shift;
+	printf("the keyframe shift is %d\n", keyframe_shift);
+
+	th_info_clear (&t_info);
+	theora_comment_clear (&t_comment);
+
+	return keyframe_shift;
+
+}
 
 krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
 
@@ -137,7 +204,7 @@ krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
 } 
 
 
-int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, unsigned char *buffer) {
+int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, uint64_t *timecode, unsigned char *buffer) {
 
 	int t;
 	int ret;
@@ -159,7 +226,15 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, unsigned char *buffe
 						if (krad_ogg->tracks[t].header_count == 0) {
 					
 							krad_ogg->tracks[t].codec = krad_ogg_get_codec(&packet);
-					
+							if (krad_ogg->tracks[t].codec == VORBIS) {
+								krad_ogg->tracks[t].sample_rate = krad_ogg_vorbis_sample_rate(&packet);
+							}
+							
+							if (krad_ogg->tracks[t].codec == THEORA) {
+								krad_ogg->tracks[t].frame_rate = krad_ogg_theora_frame_rate(&packet);
+								krad_ogg->tracks[t].keyframe_shift = krad_ogg_theora_keyframe_shift (&packet);
+							}
+							
 						}
 					
 					
@@ -208,7 +283,21 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, unsigned char *buffe
 							krad_ogg->tracks[t].header_count--;
 						}
 					}
-				
+					if (packet.granulepos != -1) {
+						if (krad_ogg->tracks[t].codec == VORBIS) {
+							krad_ogg->tracks[t].last_granulepos = (packet.granulepos / krad_ogg->tracks[t].sample_rate) * 1000.0;
+						}
+						
+						if (krad_ogg->tracks[t].codec == THEORA) {
+							ogg_int64_t iframe;
+							ogg_int64_t pframe;
+							iframe = packet.granulepos >> krad_ogg->tracks[t].keyframe_shift;
+							pframe = packet.granulepos - (iframe << krad_ogg->tracks[t].keyframe_shift);
+							/* kludged, we use the default shift of 6 and assume a 3.2.1+ bitstream */
+							krad_ogg->tracks[t].last_granulepos = ((iframe + pframe - 1) / krad_ogg->tracks[t].frame_rate) * 1000.0;
+						}
+					}
+					*timecode = krad_ogg->tracks[t].last_granulepos;
 					return packet.bytes;
 				}
 			}

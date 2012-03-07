@@ -263,7 +263,7 @@ void kradaudio_write(krad_audio_t *kradaudio, int channel, char *data, int len) 
 		if (kradaudio->destroy) {
 			return;
 		}
-		usleep(40000);
+		usleep(10000);
 	}
 
 	krad_ringbuffer_write (kradaudio->output_ringbuffer[channel], data, len );

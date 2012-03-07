@@ -78,12 +78,12 @@ int krad_container_track_header_count (krad_container_t *krad_container, int tra
 
 
 
-int krad_container_read_packet (krad_container_t *krad_container, int *track, unsigned char *buffer) {
+int krad_container_read_packet (krad_container_t *krad_container, int *track, uint64_t *timecode, unsigned char *buffer) {
 
 	if (krad_container->container_type == OGG) {
-		return krad_ogg_read_packet ( krad_container->krad_ogg, track, buffer );
+		return krad_ogg_read_packet ( krad_container->krad_ogg, track, timecode, buffer );
 	} else {
-		return krad_ebml_read_packet ( krad_container->krad_ebml, track, buffer );		
+		return krad_ebml_read_packet ( krad_container->krad_ebml, track, timecode, buffer );		
 	}
 
 }

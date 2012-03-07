@@ -57,8 +57,10 @@ struct krad_ogg_track_St {
 	krad_codec_t codec;
 	
 	int channels;
-	int sample_rate;
+	float sample_rate;
 	int bit_depth;
+	float frame_rate;
+	int keyframe_shift;
 	
 	int width;
 	int height;
@@ -72,6 +74,8 @@ struct krad_ogg_track_St {
 	int last_serial;
 	
 	int ready;
+	
+	uint64_t last_granulepos;
 	
 };
 
@@ -97,7 +101,7 @@ int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int track);
 
 
 
-int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, unsigned char *buffer);
+int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, uint64_t *timecode, unsigned char *buffer);
 
 int krad_ogg_write (krad_ogg_t *krad_ogg, unsigned char *buffer, int length);
 void krad_ogg_process (krad_ogg_t *krad_ogg);

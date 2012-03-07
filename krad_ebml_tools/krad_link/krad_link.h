@@ -24,8 +24,8 @@
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 5
 #define DEFAULT_ENCODING_BUFFER_FRAMES 15
 #define DEFAULT_VORBIS_QUALITY 0.7
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 480
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
 #define DEFAULT_FPS 15
 
 typedef struct krad_link_St krad_link_t;
@@ -181,6 +181,10 @@ struct krad_link_St {
 	float temp_peak;
 	float kick;
 
+	// for playback
+	uint64_t current_frame_timecode;
+
+	// for internal signal generation
 	struct timespec next_frame_time;
 	struct timespec sleep_time;
 	uint64_t next_frame_time_ms;
