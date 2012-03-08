@@ -519,7 +519,7 @@ int krad_x11_capture(krad_x11_t *krad_x11, unsigned char *buffer) {
 		free(krad_x11->reply);
 	}
 
-	printf("And the numbers are: %d %d %d %d \n", krad_x11->img->width, krad_x11->img->height, krad_x11->screen_bit_depth, krad_x11->number);         
+	//printf("And the numbers are: %d %d %d %d \n", krad_x11->img->width, krad_x11->img->height, krad_x11->screen_bit_depth, krad_x11->number);         
 	
 	if (buffer == NULL) {
 		sprintf(filename, "%s/krad_link_test_capture_%zu.png", getenv ("HOME"), time(NULL));

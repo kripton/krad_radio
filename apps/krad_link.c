@@ -79,6 +79,8 @@ int main ( int argc, char *argv[] ) {
 			
 			{"password",		required_argument, 0, 'p'},
 			
+			{"x11",				optional_argument, 0, 'X'},
+			
 			{0, 0, 0, 0}
 		};
 
@@ -91,6 +93,11 @@ int main ( int argc, char *argv[] ) {
 		}
 
 		switch ( o ) {
+			case 'X':
+				krad_link->x11_capture = 1;
+				krad_link->capture_width = 1920;
+				krad_link->capture_height = 1080;
+				break;
 			case 'v':
 				krad_link->verbose = 1;
 				verbose = 1;
@@ -107,8 +114,10 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case 't':
 				krad_link->video_source = TEST;
-				krad_link->capture_width = 1280;
-				krad_link->capture_height = 720;
+				if (krad_link->x11_capture == 0) {
+					krad_link->capture_width = 1280;
+					krad_link->capture_height = 720;
+				}
 				break;
 			case 'f':
 				krad_link->capture_fps = atoi(optarg);

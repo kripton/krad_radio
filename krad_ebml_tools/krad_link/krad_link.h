@@ -202,6 +202,8 @@ struct krad_link_St {
 
 	struct stat file_stat;
 	
+	int x11_capture;
+	
 };
 
 void krad_link_shutdown();

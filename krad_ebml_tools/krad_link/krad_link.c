@@ -1091,6 +1091,10 @@ void krad_link_composite(krad_link_t *krad_link) {
 	if ((krad_link->operation_mode == CAPTURE) && (krad_link->video_source != NOVIDEO)) {
 	
 		if ((krad_link->link_started == 1) && (krad_link->new_capture_frame == 1) && (krad_ringbuffer_write_space(krad_link->composited_frames_buffer) >= krad_link->composited_frame_byte_size)) {
+	
+				if (krad_link->x11_capture == 1) {
+					krad_x11_capture(krad_link->krad_x11, (unsigned char *)krad_link->krad_gui->data);
+				}
 
 				krad_ringbuffer_write(krad_link->composited_frames_buffer, 
 									  (char *)krad_link->krad_gui->data, 
@@ -2194,6 +2198,12 @@ void krad_link_destroy(krad_link_t *krad_link) {
 	free(krad_link->current_encoding_frame);
 	free(krad_link->current_frame);
 
+	if (krad_link->x11_capture == 1) {
+		krad_x11_destroy (krad_link->krad_x11);
+	}
+	
+	printf("\n%s Exited Cleanly, have a nice day.\n", APPVERSION);
+	
 	free(krad_link);
 }
 
@@ -2337,6 +2347,11 @@ void krad_link_activate(krad_link_t *krad_link) {
 	
 		if (krad_link->video_source == TEST) {
 			kradgui_test_screen(krad_link->krad_gui, "Krad Test");
+		}
+
+		if (krad_link->x11_capture == 1) {
+			krad_link->krad_x11 = krad_x11_create();
+			krad_x11_enable_capture(krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 		}
 		
 		if (krad_link->video_source == V4L2) {
