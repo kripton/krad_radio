@@ -1,6 +1,6 @@
 #define KRAD_LINK
 
-#include "krad_sdl_opengl_display.h"
+#include "krad_x11.h"
 #include "krad_ebml.h"
 #include "krad_ogg.h"
 #include "krad_io.h"
@@ -57,7 +57,7 @@ typedef enum {
 } krad_video_source_t;
 
 struct krad_link_St {
-
+	krad_x11_t *krad_x11;
 	kradgui_t *krad_gui;
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	krad_vpx_decoder_t *krad_vpx_decoder;
@@ -72,7 +72,7 @@ struct krad_link_St {
 	krad_ebml_t *krad_ebml;
 	krad_container_t *krad_container;
 	krad_v4l2_t *krad_v4l2;
-	krad_sdl_opengl_display_t *krad_opengl_display;
+	//krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_tone_t *krad_tone;
 	
 	krad_link_operation_mode_t operation_mode;
@@ -195,8 +195,6 @@ struct krad_link_St {
     vpx_codec_enc_cfg_t vpx_encoder_config;
 
 	char tone_preset[512];
-
-	SDL_Event event;
 
 	char bug[512];
 	int bug_x;

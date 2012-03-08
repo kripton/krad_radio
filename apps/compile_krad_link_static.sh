@@ -28,6 +28,8 @@ gcc -O3 -Wall krad_link.c \
 -I../krad_ebml_tools/krad_theora \
 ../krad_ebml_tools/krad_io/krad_io.c \
 ../krad_ebml_tools/krad_ogg/krad_ogg.c \
+../krad_ebml_tools/krad_x11/krad_x11.c \
+-I../krad_ebml_tools/krad_x11 \
 ../krad_ebml_tools/krad_container/krad_container.c \
 -I../krad_ebml_tools/krad_container \
 ../krad_ebml_tools/krad_link/krad_link.c \
@@ -36,8 +38,6 @@ gcc -O3 -Wall krad_link.c \
 -I../krad_ebml_tools/krad_ogg \
 ../krad_ebml/krad_ebml.c \
 -I../krad_ebml/ \
--I../krad_ebml_tools/krad_display/ \
-../krad_ebml_tools/krad_display/krad_sdl_opengl_display.c \
 -I. \
 -I /usr/local/include/schroedinger-1.0/ \
 -I /usr/local/include/orc-0.4/ \
@@ -45,7 +45,7 @@ gcc -O3 -Wall krad_link.c \
 -I../krad_ebml_tools/krad_gui/ \
 ../krad_ebml_tools/krad_gui/krad_gui.c \
 /usr/lib/libswscale.a \
--D_REENTRANT -I/usr/include/SDL  -Wl,-rpath,/usr/lib -L/usr/lib -lSDL -lm \
+-D_REENTRANT -Wl,-rpath,/usr/lib -L/usr/lib -lm \
 /usr/lib/libavutil.a \
 /usr/lib/libspeexdsp.a \
 /usr/local/lib/libvpx.a \
@@ -58,5 +58,7 @@ gcc -O3 -Wall krad_link.c \
 /usr/local/lib/liborc-test-0.4.a \
 /usr/local/lib/libturbojpeg.a \
 /usr/local/lib/libvpx.a \
--o krad_link `pkg-config --cflags --libs gtk+-3.0` \
--lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -ljack -lpulse -lasound
+-o krad_link `pkg-config --cflags --libs gtk+-3.0 xcb x11 gl xext xcb-util xcb-aux xcb-atom cairo` \
+-lX11-xcb -lrt -lxcb-image -lm -ljack -lpulse -lasound
+
+#-lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -ljack -lpulse -lasound

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+#krad_ebml_test.c
+#krad_ebml_write_test.c
+
 programs = """
 krad_ebml_fileinfo.c
 krad_link.c
 krad_xpdr.c
-krad_ebml_test.c
-krad_ebml_write_test.c
 """.split()
 
 sources = """
@@ -27,14 +28,13 @@ depsources = """
 ../krad_ebml_tools/krad_gui/krad_gui.c
 ../krad_ebml_tools/krad_v4l2/krad_v4l2.c
 ../krad_ebml_tools/krad_gui/krad_gui_gtk.c
-../krad_ebml_tools/krad_display/krad_sdl_opengl_display.c
-../krad_ebml_tools/krad_display/krad_sdl_overlay_display.c
 ../krad_ebml_tools/krad_ring/krad_ring.c
 ../krad_ebml_tools/krad_link/krad_link.c
 ../krad_ebml_tools/krad_xpdr/krad_xpdr.c
 ../krad_ebml_tools/krad_io/krad_io.c
 ../krad_ebml_tools/krad_ogg/krad_ogg.c
 ../krad_ebml_tools/krad_container/krad_container.c
+../krad_ebml_tools/krad_x11/krad_x11.c
 """.split()
 
 includedirs = """
@@ -49,7 +49,6 @@ includedirs = """
 ../krad_ebml_tools/krad_v4l2/
 ../krad_ebml_tools/krad_flac/
 ../krad_ebml_tools/krad_vorbis/
-../krad_ebml_tools/krad_display/
 ../krad_ebml_tools/krad_gui/
 ../krad_ebml_tools/krad_opus/
 ../krad_ebml_tools/krad_ring/
@@ -58,12 +57,13 @@ includedirs = """
 ../krad_ebml_tools/krad_link/
 ../krad_ebml_tools/krad_xpdr/
 ../krad_ebml_tools/krad_container/
+../krad_ebml_tools/krad_x11/
 ../krad_ebml/
 /usr/local/include
 /usr/include
 """.split()
 
-libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "sdl", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
 
 def configure(conf):
 	

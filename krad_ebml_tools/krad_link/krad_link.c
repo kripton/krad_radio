@@ -824,11 +824,14 @@ void start_celt_udp_sender (kradlink_t *kradlink, char *remote_ip, int port, int
 
 void krad_link_handle_input(krad_link_t *krad_link) {
 
-	while ( SDL_PollEvent( &krad_link->event ) ){
-		switch( krad_link->event.type ){
-			/* Look for a keypress */
+
+
+/*
+	while ( SDL_PollEvent( &krad_link->event ) ) {
+		switch( krad_link->event.type ) {
+			// Look for a keypress
 			case SDL_KEYDOWN:
-				/* Check the SDLKey values and move change the coords */
+				// Check the SDLKey values and move change the coords
 				switch( krad_link->event.key.keysym.sym ){
 					case SDLK_LEFT:
 						break;
@@ -915,13 +918,17 @@ void krad_link_handle_input(krad_link_t *krad_link) {
 		}
 	}
 
+*/
+
 }
+
 
 void krad_link_display(krad_link_t *krad_link) {
 
 	if ((krad_link->composite_width == krad_link->display_width) && (krad_link->composite_height == krad_link->display_height)) {
 
-		memcpy( krad_link->krad_opengl_display->rgb_frame_data, krad_link->krad_gui->data, krad_link->krad_gui->bytes );
+		//memcpy ( krad_link->krad_opengl_display->rgb_frame_data, krad_link->krad_gui->data, krad_link->krad_gui->bytes );
+		memcpy ( krad_link->krad_x11->pixels, krad_link->krad_gui->data, krad_link->krad_gui->bytes );
 
 	} else {
 
@@ -940,14 +947,16 @@ void krad_link_display(krad_link_t *krad_link) {
 
 		unsigned char *dst[4];
 
-		dst[0] = krad_link->krad_opengl_display->rgb_frame_data;
-
+		//dst[0] = krad_link->krad_opengl_display->rgb_frame_data;
+		dst[0] = krad_link->krad_x11->pixels;
+		
 		sws_scale(krad_link->display_frame_converter, rgb_arr, rgb1_stride_arr, 0, krad_link->display_height, dst, rgb_stride_arr);
 
 
 	}
 
-	krad_sdl_opengl_draw_screen( krad_link->krad_opengl_display );
+	krad_x11_glx_render (krad_link->krad_x11);
+	//krad_sdl_opengl_draw_screen ( krad_link->krad_opengl_display );
 
 	//if (read_composited) {
 	//	krad_sdl_opengl_read_screen( krad_link->krad_opengl_display, krad_link->krad_opengl_display->rgb_frame_data);
@@ -1676,9 +1685,9 @@ void *video_decoding_thread(void *arg) {
 
 				switch (krad_link->krad_dirac->format->chroma_format) {
 					case SCHRO_CHROMA_444:
-						krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV444P);
+						//krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV444P);
 					case SCHRO_CHROMA_422:
-						krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV422P);
+						//krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV422P);
 					case SCHRO_CHROMA_420:
 						// default
 						//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
@@ -2170,7 +2179,8 @@ void krad_link_destroy(krad_link_t *krad_link) {
 	}
 	
 	if (krad_link->interface_mode == WINDOW) {
-		krad_sdl_opengl_display_destroy(krad_link->krad_opengl_display);
+		//krad_sdl_opengl_display_destroy(krad_link->krad_opengl_display);
+		krad_x11_destroy (krad_link->krad_x11);
 	}
 	
 	if (krad_link->decoded_frames_buffer != NULL) {
@@ -2267,8 +2277,13 @@ void krad_link_activate(krad_link_t *krad_link) {
 	
 	if (krad_link->interface_mode == WINDOW) {
 
-		krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->display_width, krad_link->display_height, 
-															 		   krad_link->composite_width, krad_link->composite_height);
+		//krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->display_width, krad_link->display_height, 
+		//													 		   krad_link->composite_width, krad_link->composite_height);
+
+		
+		krad_link->krad_x11 = krad_x11_create_glx_window (krad_link->krad_x11, APPVERSION, krad_link->display_width, krad_link->display_height, 
+														  krad_link->shutdown);
+
 	}
 	
 	krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
