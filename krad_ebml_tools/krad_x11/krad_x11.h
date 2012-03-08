@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <math.h>
-#define _XOPEN_SOURCE
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -37,6 +36,7 @@ struct krad_x11_St {
 	xcb_colormap_t colormap;
 	xcb_window_t window;
     xcb_generic_event_t *event;
+    xcb_button_press_event_t *press;
     
 	xcb_atom_t wm_protocols;
 	xcb_atom_t wm_delete_window;
@@ -68,6 +68,15 @@ struct krad_x11_St {
 
 	int *krad_x11_shutdown;
 
+	// capture stuff
+	xcb_shm_segment_info_t shminfo;
+	xcb_shm_get_image_cookie_t cookie;
+	xcb_shm_get_image_reply_t *reply;
+	xcb_image_t *img;
+	uint8_t screen_bit_depth;
+	int number;
+	int capture_enabled;
+
 };
 
 
@@ -76,7 +85,10 @@ struct krad_x11_St {
 krad_x11_t *krad_x11_create();
 void krad_x11_destroy(krad_x11_t *krad_x11);
 
-void krad_x11_test_capture (krad_x11_t *krad_x11);
+void krad_x11_test_capture(krad_x11_t *krad_x11);
+int krad_x11_capture(krad_x11_t *krad_x11, unsigned char *buffer);
+void krad_x11_disable_capture(krad_x11_t *krad_x11);
+void krad_x11_enable_capture(krad_x11_t *krad_x11, int width, int height);
 
 krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int width, int height, int *closed);
 void krad_x11_destroy_glx_window (krad_x11_t *krad_x11);

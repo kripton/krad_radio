@@ -12,12 +12,12 @@ int main () {
 	
 	krad_x11 = krad_x11_create();
 
-	//krad_x11_test_capture(krad_x11);
+	krad_x11_test_capture(krad_x11);
 	
 	krad_x11_create_glx_window (krad_x11, "bongo", 640, 480, NULL);
 	
 	while ((count < 120) && (krad_x11->close_window == 0)) {
-		//krad_x11_glx_wait (krad_x11);
+		krad_x11_capture(krad_x11, NULL);
 		krad_x11_glx_render (krad_x11);
 		count++;
 		printf("count is %d\n", count);
