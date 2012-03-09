@@ -1,5 +1,6 @@
 #define KRAD_LINK
 
+#include "krad_udp.h"
 #include "krad_x11.h"
 #include "krad_ebml.h"
 #include "krad_ogg.h"
@@ -27,6 +28,8 @@
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 #define DEFAULT_FPS 15
+
+#define KRAD_LINK_DEFAULT_UDP_PORT 42666
 
 typedef struct krad_link_St krad_link_t;
 
@@ -203,6 +206,12 @@ struct krad_link_St {
 	struct stat file_stat;
 	
 	int x11_capture;
+	
+	int udp_recv_port;
+	int udp_send_port;
+	
+	krad_rebuilder_t *krad_rebuilder;
+	krad_slicer_t *krad_slicer;
 	
 };
 

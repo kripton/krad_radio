@@ -681,139 +681,7 @@ void *udp_output_thread(void *arg) {
 	//krad_link_t *krad_link = (krad_link_t *)arg;
 
 	dbg("UDP Output thread starting\n");
-/*
-void start_celt_udp_sender (kradlink_t *kradlink, char *remote_ip, int port, int channels, char *name) {
 
-	kradlink_celt_sender_t *kradlink_celt_sender;
-	
-	int i;
-	
-	for(i = 0; i < MAX_CELT_CLIENTS; i++) {
-		if (kradlink->celt_sender_clients[i].active == 0) {
-			kradlink_celt_sender = &kradlink->celt_sender_clients[i];
-			if (i < MAX_CELT_CLIENTS - 1) { kradlink_celt_sender->next = &kradlink->celt_sender_clients[i + 1]; }
-			break;
-		}
-	}
-	
-	kradlink_celt_sender->ringbuf = jack_ringbuffer_create (500000);
-	if (jack_ringbuffer_mlock(kradlink_celt_sender->ringbuf)) {
-		printf("Kradlink ringbuffer mlock failure\n");
-	}
-	kradlink_celt_sender->active = 2;
-	kradlink_celt_sender->port = port;
-	kradlink_celt_sender->kradlink = kradlink;
-
-	if (name == NULL) {
-		printf("Starting Kradlink UDP Celt Sender Client Num: %d\n", kradlink_celt_sender->clientnum);
-		sprintf(kradlink_celt_sender->clientname, "celt_out_%d", kradlink_celt_sender->clientnum);
-	} else {
-		strcpy(kradlink_celt_sender->name, name);
-		
-		kradlink_celt_sender->i = 0;
-
-		while (kradlink_celt_sender->name[kradlink_celt_sender->i]) {
-			kradlink_celt_sender->j = kradlink_celt_sender->name[kradlink_celt_sender->i];
-			if ((!isalnum (kradlink_celt_sender->j)) && (kradlink_celt_sender->j != '-') && (kradlink_celt_sender->j != '_')) {
-				kradlink_celt_sender->name[kradlink_celt_sender->i] = '_';
-			}
-			kradlink_celt_sender->i++;
-		}
-		
-		sprintf(kradlink_celt_sender->name + strlen(kradlink_celt_sender->name), "_%d", kradlink_celt_sender->clientnum);
-		
-		printf("Starting Kradlink UDP Celt Sender Client: %s\n", kradlink_celt_sender->name);
-		sprintf(kradlink_celt_sender->clientname, "celt_out_for_%s", kradlink_celt_sender->name);
-		sprintf(kradlink_celt_sender->mixername, "submix_celt_out_for_%s", kradlink_celt_sender->name);
-	}
-
-
-
-	// create ports
-	// reg ports
-	kradlink_celt_sender->portgroup = create_portgroup(kradlink_celt_sender->kradlink, kradlink_celt_sender->clientname, INPUT, channels);
-
-	// connect ports
-	
-	kradlink_celt_sender->channels = channels;
-		
-	if (kradlink_celt_sender->channels == 1) {	
-	
-		//sprintf(kradlink_celt_receiver->portgroup->port_name_one, "kradlink_%s:%s", kradlink_celt_receiver->kradlink->station_name, kradlink_celt_receiver->clientname);
-		//sprintf(kradlink_celt_receiver->portgroup->port_name_two, "kradmixer_%s:mic%d", kradlink_celt_receiver->kradlink->station_name, kradlink_celt_receiver->clientnum + 1);
-	
-		//connect_ports(kradlink_celt_receiver->kradlink, kradlink_celt_receiver->portgroup->port_name_one, kradlink_celt_receiver->portgroup->port_name_two);
-
-	}
-	
-	if (kradlink_celt_sender->channels == 2) {
-	
-		sprintf(kradlink_celt_sender->portgroup->port_name_one, "kradmixer_%s:%s_left", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->mixername);
-		sprintf(kradlink_celt_sender->portgroup->port_name_two, "kradlink_%s:%s_left", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->clientname);
-	
-		connect_ports(kradlink_celt_sender->kradlink, kradlink_celt_sender->portgroup->port_name_one, kradlink_celt_sender->portgroup->port_name_two);
-
-		sprintf(kradlink_celt_sender->portgroup->port_name_one, "kradmixer_%s:%s_right", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->mixername);
-		sprintf(kradlink_celt_sender->portgroup->port_name_two, "kradlink_%s:%s_right", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->clientname);
-	
-		connect_ports(kradlink_celt_sender->kradlink, kradlink_celt_sender->portgroup->port_name_one, kradlink_celt_sender->portgroup->port_name_two);
-
-
-	}
-	
-	if (jack_port_connected(kradlink_celt_sender->portgroup->input_ports[0]) == 0) {
-		
-		// if the submix doesn't exist it must be we are just sending low latency
-		
-		sprintf(kradlink_celt_sender->mixername, "main");
-		
-		sprintf(kradlink_celt_sender->portgroup->port_name_one, "kradmixer_%s:%s_left", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->mixername);
-		sprintf(kradlink_celt_sender->portgroup->port_name_two, "kradlink_%s:%s_left", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->clientname);
-	
-		connect_ports(kradlink_celt_sender->kradlink, kradlink_celt_sender->portgroup->port_name_one, kradlink_celt_sender->portgroup->port_name_two);
-
-		sprintf(kradlink_celt_sender->portgroup->port_name_one, "kradmixer_%s:%s_right", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->mixername);
-		sprintf(kradlink_celt_sender->portgroup->port_name_two, "kradlink_%s:%s_right", kradlink_celt_sender->kradlink->station_name, kradlink_celt_sender->clientname);
-	
-		connect_ports(kradlink_celt_sender->kradlink, kradlink_celt_sender->portgroup->port_name_one, kradlink_celt_sender->portgroup->port_name_two);
-		
-	}
-	
-	
-	kradlink_celt_sender->packet_size = 192;
-	
-	kradlink_celt_sender->sample_rate = 44100;
-	kradlink_celt_sender->frame_size = DEFAULT_CELT_FRAME_SIZE;
-	kradlink_celt_sender->remote_ip = strdup(remote_ip);
-  
-	kradlink_celt_sender->h = gethostbyname(remote_ip);
-	if(kradlink_celt_sender->h==NULL) {
-		fprintf(stderr, "%s: unknown host  \n", kradlink_celt_sender->remote_ip);
-		exit(1);
-	}
-
-
-   
-	printf("%s: sending data to '%s' (IP : %s) \n", kradlink_celt_sender->remote_ip, kradlink_celt_sender->h->h_name,
-          inet_ntoa(*(struct in_addr *)kradlink_celt_sender->h->h_addr_list[0]));
-
-	{
-		kradlink_celt_sender->remote_addr.sin_family = kradlink_celt_sender->h->h_addrtype;
-		memcpy((char *) &kradlink_celt_sender->remote_addr.sin_addr.s_addr,
-            kradlink_celt_sender->h->h_addr_list[0], kradlink_celt_sender->h->h_length);
-		kradlink_celt_sender->remote_addr.sin_port = htons(kradlink_celt_sender->port);
-   }
-
-	kradlink_celt_sender->sd=socket(AF_INET, SOCK_DGRAM, 0);
-	if(kradlink_celt_sender->sd<0) {
-		printf("cannot open sending socket \n");
-		exit(1);
-	}
-
-
-
-}
-*/	
 
 	dbg("UDP Output thread exiting\n");
 	
@@ -1345,143 +1213,52 @@ void *stream_input_thread(void *arg) {
 
 void *udp_input_thread(void *arg) {
 
-
-	//krad_link_t *krad_link = (krad_link_t *)arg;
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	dbg("UDP Input thread starting\n");
 
-
-/*
-
-void start_celt_udp_receiver (kradlink_t *kradlink, char *remote_ip, int port, int channels, char *name) {
-
-
-	kradlink_celt_receiver->remote_ip = strdup(remote_ip);
-	kradlink_celt_receiver->port = port;
-	kradlink_celt_receiver->packet_size = 192;
+	int sd;
+	int ret;
+	unsigned char *buffer;
+	struct sockaddr_in local_address;
+	struct sockaddr_in remote_address;
 	
-	kradlink_celt_receiver->sample_rate = 44100;
-	kradlink_celt_receiver->frame_size = DEFAULT_CELT_FRAME_SIZE;
-	kradlink_celt_receiver->recv_started = 0;
+	buffer = calloc (1, 2000);
+	sd = socket (AF_INET, SOCK_DGRAM, 0);
 
-	pthread_rwlock_init(&kradlink_celt_receiver->lock, NULL);
-	kradlink_celt_receiver->closedown = 0;
-	kradlink_celt_receiver->lost = 0;
-	kradlink_celt_receiver->recv_started = 0;
-	kradlink_celt_receiver->sd=socket(AF_INET, SOCK_DGRAM, 0);
-	if(kradlink_celt_receiver->sd<0) {
-		printf("Kradlink UDP Celt Receiver Cannot open socket \n");
+	krad_link->krad_rebuilder = krad_rebuilder_create ();
+
+	memset((char *) &local_address, 0, sizeof(local_address));
+	local_address.sin_family = AF_INET;
+	local_address.sin_port = htons (krad_link->udp_recv_port);
+	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	if (bind (sd, &local_address, sizeof(local_address)) == -1 ) {
+		printf("bind error\n");
 		exit(1);
 	}
 
-	kradlink_celt_receiver->client_addr.sin_family = AF_INET;
-	kradlink_celt_receiver->client_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	kradlink_celt_receiver->client_addr.sin_port = htons(kradlink_celt_receiver->port);
-
-	kradlink_celt_receiver->rc = bind(kradlink_celt_receiver->sd, (struct sockaddr *) &kradlink_celt_receiver->client_addr, sizeof(kradlink_celt_receiver->client_addr));
-	if(kradlink_celt_receiver->rc<0) {
-		printf("Kradlink UDP Celt Receiver Cannot bind port\n");
-		exit(1);
-	}
-
-
-
-	kradlink_celt_receiver->pfds = malloc(sizeof(*kradlink_celt_receiver->pfds)*(kradlink_celt_receiver->nfds+1));
+	while (!*krad_link->shutdown) {
 	
-	kradlink_celt_receiver->pfds[kradlink_celt_receiver->nfds].fd = kradlink_celt_receiver->sd;
-	kradlink_celt_receiver->pfds[kradlink_celt_receiver->nfds].events = POLLIN;
-	kradlink_celt_receiver->jitterbuf = jitter_buffer_init(kradlink_celt_receiver->frame_size);
-
-	kradlink_celt_receiver->tmp = kradlink_celt_receiver->frame_size * 2;
-	jitter_buffer_ctl(kradlink_celt_receiver->jitterbuf, JITTER_BUFFER_SET_MARGIN, &kradlink_celt_receiver->tmp);
-	
-	
-	
-	pthread_create(&kradlink_celt_receiver->receiver_thread, NULL, kradlink_celt_udp_receive_thread, (void *)kradlink_celt_receiver);
-	pthread_detach(kradlink_celt_receiver->receiver_thread);
-	
-	
-	void *kradlink_celt_udp_receive_thread(void *arg) {
-
-	kradlink_celt_receiver_t *kradlink_celt_receiver = (kradlink_celt_receiver_t *)arg;
-
-	while (kradlink_celt_receiver->closedown == 0)
-	{
-   
-
-		poll(kradlink_celt_receiver->pfds, kradlink_celt_receiver->nfds+1, 150);
-
-		if (kradlink_celt_receiver->pfds[kradlink_celt_receiver->nfds].revents & POLLIN)
-		{
+		ret = recvfrom(sd, buffer, 2000, 0, &remote_address, sizeof(remote_address));
 		
-			kradlink_celt_receiver->active = 1;
-			kradlink_celt_receiver->miss = 0;
-			kradlink_celt_receiver->n = recv(kradlink_celt_receiver->sd, kradlink_celt_receiver->msg, 1500, 0);
-        	kradlink_celt_receiver->recv_timestamp = ((int*)kradlink_celt_receiver->msg)[0];
-   
-			//JitterBufferPacket kradlink_celt_receiver->packet;
-			kradlink_celt_receiver->packet.data = kradlink_celt_receiver->msg+4;
-			kradlink_celt_receiver->packet.len = kradlink_celt_receiver->n-4;
-			kradlink_celt_receiver->packet.timestamp = kradlink_celt_receiver->recv_timestamp;
-			kradlink_celt_receiver->packet.span = kradlink_celt_receiver->frame_size;
-			kradlink_celt_receiver->packet.sequence = 0;
-			// Put content of the packet into the jitter buffer, except for the pseudo-header
-			pthread_rwlock_wrlock (&kradlink_celt_receiver->lock);
-         	jitter_buffer_put(kradlink_celt_receiver->jitterbuf, &kradlink_celt_receiver->packet);
-			pthread_rwlock_unlock (&kradlink_celt_receiver->lock);
-			if (kradlink_celt_receiver->recv_started < 5) {
-         		kradlink_celt_receiver->recv_started++;
-			}
-
-		} else {
-		
-			kradlink_celt_receiver->miss++;
-		
-			if (kradlink_celt_receiver->miss > 10000) {
-				kradlink_celt_receiver->closedown = 1;
-			}
-		
+		if (ret == -1) {
+			printf("failed recvin udp\n");
+			krad_link_shutdown();
 		}
+		
+		printf("Received packet from %s:%d\n", 
+				inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
+
+
+		krad_rebuilder_write (krad_link->krad_rebuilder, buffer, ret);
+
 	}
-	
-	celt_udp_receiver_destroy (kradlink_celt_receiver);
-	
-}
 
-void celt_udp_receiver_destroy (kradlink_celt_receiver_t *kradlink_celt_receiver) {
-
-	//KLUDGE FIXME
-	// Free speex jitter buffer?
-
-
-	kradlink_celt_receiver->active = 0;
-	printf("STOPPING Kradlink UDP Celt Receiver Client Num: %d\n", kradlink_celt_receiver->clientnum);
-	usleep(100000);
-	destroy_portgroup (kradlink_celt_receiver->kradlink, kradlink_celt_receiver->portgroup);
+	krad_rebuilder_destroy (krad_link->krad_rebuilder);
+	close (sd);
+	free (buffer);
 	
-	destroy_mixer_portgroup(kradlink_celt_receiver->kradlink, kradlink_celt_receiver->name, "celt", "STEREOMIC", kradlink_celt_receiver->mixer, kradlink_celt_receiver->kradmixer_cmd);
-	
-	jack_ringbuffer_free(kradlink_celt_receiver->ringbuf);
-	
-	
-	// free the port
-	close(kradlink_celt_receiver->sd);
-	// kludge need to close udp port?
-	
-	kradlink_celt_receiver->kcom = kcom_connect();
-	if (kradlink_celt_receiver->kcom != NULL) {
-		sprintf(kradlink_celt_receiver->kcom_cmd, "remove_station_attr,%s,udp_port,%d", kradlink_celt_receiver->kradlink->station_name,kradlink_celt_receiver->port);
-		kcom_cmd(kradlink_celt_receiver->kcom, kradlink_celt_receiver->kcom_cmd);
-		kradlink_celt_receiver->kcom_ret = atoi(kradlink_celt_receiver->kcom->krad_ipc_client->buffer);
-		kcom_disconnect(kradlink_celt_receiver->kcom);
-	}
-	
-	kradlink_celt_receiver->miss = 0;
-	//free (netport_celt_receiver->info);
-	free (kradlink_celt_receiver->remote_ip);
-	//free (kradlink_celt_receiver);
-*/
-
 	dbg("UDP Input thread exiting\n");
 	
 	return NULL;
@@ -2234,6 +2011,9 @@ krad_link_t *krad_link_create() {
 	strncpy(krad_link->alsa_playback_device, DEFAULT_ALSA_PLAYBACK_DEVICE, sizeof(krad_link->alsa_playback_device));
 	sprintf(krad_link->output, "%s/Videos/krad_link_%zu.webm", getenv ("HOME"), time(NULL));
 
+	krad_link->udp_recv_port = KRAD_LINK_DEFAULT_UDP_PORT;
+	krad_link->udp_send_port = KRAD_LINK_DEFAULT_UDP_PORT;
+	
 	krad_link->krad_audio_api = ALSA;
 	krad_link->operation_mode = CAPTURE;
 	krad_link->interface_mode = WINDOW;

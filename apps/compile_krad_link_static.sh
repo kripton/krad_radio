@@ -28,6 +28,8 @@ gcc -O3 -Wall krad_link.c \
 -I../krad_ebml_tools/krad_theora \
 ../krad_ebml_tools/krad_io/krad_io.c \
 ../krad_ebml_tools/krad_ogg/krad_ogg.c \
+../krad_ebml_tools/krad_udp/krad_udp.c \
+-I../krad_ebml_tools/krad_udp \
 ../krad_ebml_tools/krad_x11/krad_x11.c \
 -I../krad_ebml_tools/krad_x11 \
 ../krad_ebml_tools/krad_container/krad_container.c \
