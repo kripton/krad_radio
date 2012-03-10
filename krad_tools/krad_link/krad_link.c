@@ -315,7 +315,7 @@ void *audio_encoding_thread(void *arg) {
 	if (krad_link->krad_audio_api == ALSA) {
 		krad_link->krad_audio = kradaudio_create(krad_link->alsa_capture_device, KINPUT, krad_link->krad_audio_api);
 	} else {
-		krad_link->krad_audio = kradaudio_create("Krad_Link_RX", KINPUT, krad_link->krad_audio_api);
+		krad_link->krad_audio = kradaudio_create("Krad_Link_TX", KINPUT, krad_link->krad_audio_api);
 	}
 		
 	if ((krad_link->krad_audio_api == JACK) && (krad_link->jack_ports[0] != '\0')) {

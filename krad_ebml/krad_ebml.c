@@ -992,6 +992,8 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 		ebml_data_size = (byte - EBML_LENGTH_1);
 	}
 	
+	//printf("data size is %zu\n", ebml_data_size);
+	
 	*ebml_id_ptr = ebml_id;
 	*ebml_data_size_ptr = ebml_data_size;
 	
@@ -1179,7 +1181,14 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 				krad_ebml->tracks[krad_ebml->current_track].codec = FLAC;
 			}
 			
-			if (strncmp(string, "A_OPUS", 8) == 0) {
+			if ((strncmp(string, "A_OPUS", 8) == 0) || (strncmp(string, "A_KRAD_OPUS", 11) == 0)) {
+			
+				if (strncmp(string, "A_KRAD_OPUS", 11) == 0) {
+					// kludge, but good catch, we need to account for things such as a "track 2" without
+					// a track 1, and other nonsense
+					krad_ebml->track_count++;
+					krad_ebml->current_track = krad_ebml->track_count;
+				}
 				krad_ebml->tracks[krad_ebml->current_track].codec = OPUS;
 			}
 			
