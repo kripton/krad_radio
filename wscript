@@ -2,12 +2,13 @@
 
 top = '.'
 
+from waflib.Errors import ConfigurationError
 from waflib import Configure, Logs
 import os, sys
 
 klibdir = "krad_ebml"
-toolsdir = "krad_ebml_tools"
-appsdir = "apps"
+toolsdir = "krad_tools"
+appsdir = "krad_apps"
 subdirs = os.listdir('./' + toolsdir)
 
 for s in subdirs:

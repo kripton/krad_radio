@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-
+from waflib.Errors import ConfigurationError
 #krad_flac_ebml_test.c
 
 programs = """
@@ -30,16 +30,25 @@ includedirs = """
 ../../krad_ebml/
 """.split()
 
-libs = ["turbojpeg", "flac", "libpulse", "jack", "alsa"]
 
 def configure(conf):
 	
-	for l in libs:
+	conf.env.libs = ["turbojpeg", "flac", "libpulse", "jack", "alsa"]
+	conf.env.notlibs = []
+	
+	for l in conf.env.libs:
+	  try:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
-
-
+	  except ConfigurationError:
+		conf.env.notlibs.append(l)
+		conf.env.libs.remove(l)
+		
 def build(bld):
 
+
+	print bld.env.libs
+
+	print bld.env.notlibs
 
 	for p in programs:
 
@@ -48,5 +57,5 @@ def build(bld):
 			includes = includedirs, 
 			target = p.replace(".c", ""),
 			use = "kradebml",
-			uselib = libs)
+			uselib = bld.env.libs)
 

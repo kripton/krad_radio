@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+#krad_ebml_test.c
+#krad_ebml_write_test.c
+
+programs = """
+krad_ebml_fileinfo.c
+krad_link.c
+krad_xpdr.c
+""".split()
+
+sources = """
+""".split()
+
+depsources = """
+../krad_tools/krad_tone/krad_tone.c
+../krad_tools/krad_audio/krad_audio.c
+../krad_tools/krad_jack/krad_jack.c
+../krad_tools/krad_pulse/krad_pulse.c
+../krad_tools/krad_alsa/krad_alsa.c
+../krad_tools/krad_vpx/krad_vpx.c
+../krad_tools/krad_dirac/krad_dirac.c
+../krad_tools/krad_theora/krad_theora.c
+../krad_tools/krad_vorbis/krad_vorbis.c
+../krad_tools/krad_flac/krad_flac.c
+../krad_tools/krad_opus/krad_opus.c
+../krad_tools/krad_opus/opus_header.c
+../krad_tools/krad_gui/krad_gui.c
+../krad_tools/krad_v4l2/krad_v4l2.c
+../krad_tools/krad_gui/krad_gui_gtk.c
+../krad_tools/krad_ring/krad_ring.c
+../krad_tools/krad_link/krad_link.c
+../krad_tools/krad_xpdr/krad_xpdr.c
+../krad_tools/krad_io/krad_io.c
+../krad_tools/krad_ogg/krad_ogg.c
+../krad_tools/krad_container/krad_container.c
+../krad_tools/krad_x11/krad_x11.c
+../krad_tools/krad_udp/krad_udp.c
+""".split()
+
+includedirs = """
+../krad_tools/krad_tone/
+../krad_tools/krad_audio/
+../krad_tools/krad_dirac/
+../krad_tools/krad_theora/
+../krad_tools/krad_jack/
+../krad_tools/krad_pulse/
+../krad_tools/krad_alsa/
+../krad_tools/krad_vpx/
+../krad_tools/krad_v4l2/
+../krad_tools/krad_flac/
+../krad_tools/krad_vorbis/
+../krad_tools/krad_gui/
+../krad_tools/krad_opus/
+../krad_tools/krad_ring/
+../krad_tools/krad_ogg/
+../krad_tools/krad_io/
+../krad_tools/krad_link/
+../krad_tools/krad_xpdr/
+../krad_tools/krad_container/
+../krad_tools/krad_x11/
+../krad_tools/krad_udp/
+../krad_ebml/
+/usr/local/include
+/usr/include
+""".split()
+
+libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+
+def configure(conf):
+	
+	for l in libs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+
+
+def build(bld):
+
+	for p in programs:
+
+		bld(features = 'c cprogram', 
+			source = sources + depsources + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			use = ["kradebml"],
+			uselib = libs)
+
