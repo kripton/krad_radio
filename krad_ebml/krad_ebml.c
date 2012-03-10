@@ -1561,7 +1561,7 @@ int krad_ebml_streamio_open(krad_ebml_io_t *krad_ebml_io) {
 
 		if (krad_ebml_io->mode == KRAD_EBML_IO_READONLY) {
 	
-			sprintf(http_string, "GET %s HTTP/1.0\r\n\r\n", krad_ebml_io->mount);
+			sprintf(http_string, "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n", krad_ebml_io->mount, krad_ebml_io->host);
 			//printf("%s\n", http_string);
 			krad_ebml_streamio_write(krad_ebml_io, http_string, strlen(http_string));
 	
@@ -1680,7 +1680,7 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 	krad_ebml->io_adapter.uri = host;
 	krad_ebml->io_adapter.host = host;
 	krad_ebml->io_adapter.port = port;
-	krad_ebml->io_adapter.mount = mount + 1;
+	krad_ebml->io_adapter.mount = mount;
 	krad_ebml->io_adapter.password = password;
 	
 	krad_ebml->stream = 1;

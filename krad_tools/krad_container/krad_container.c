@@ -94,7 +94,7 @@ krad_container_t *krad_container_open_stream(char *host, int port, char *mount, 
 	
 	krad_container = calloc(1, sizeof(krad_container_t));
 
-	krad_container->container_type = krad_link_select_container(host);
+	krad_container->container_type = krad_link_select_container(mount);
 
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_stream(host, port, mount, NULL);

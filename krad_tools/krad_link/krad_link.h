@@ -30,7 +30,7 @@
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 #define DEFAULT_FPS 15
-
+#define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 
 typedef struct krad_link_St krad_link_t;
@@ -100,7 +100,7 @@ struct krad_link_St {
 	char output[512];
 	char input[512];
 	char host[512];
-	int port;
+	int tcp_port;
 	char mount[512];
 	char password[512];
 

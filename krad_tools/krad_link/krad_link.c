@@ -512,7 +512,7 @@ void *stream_output_thread(void *arg) {
 	packet = malloc(2000000);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->port, krad_link->mount, krad_link->password);
+		krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->tcp_port, krad_link->mount, krad_link->password);
 	} else {
 		printf("Outputing to file: %s\n", krad_link->output);
 		krad_link->krad_ebml = krad_ebml_open_file(krad_link->output, KRAD_EBML_IO_WRITEONLY);
@@ -1147,7 +1147,7 @@ void *stream_input_thread(void *arg) {
 	buffer = malloc(4096 * 512);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad_container = krad_container_open_stream(krad_link->host, krad_link->port, krad_link->mount, NULL);
+		krad_link->krad_container = krad_container_open_stream(krad_link->host, krad_link->tcp_port, krad_link->mount, NULL);
 	} else {
 		krad_link->krad_container = krad_container_open_file(krad_link->input, KRAD_IO_READONLY);
 	}
@@ -2129,7 +2129,8 @@ krad_link_t *krad_link_create() {
 
 	krad_link->udp_recv_port = KRAD_LINK_DEFAULT_UDP_PORT;
 	krad_link->udp_send_port = KRAD_LINK_DEFAULT_UDP_PORT;
-	
+	krad_link->tcp_port = KRAD_LINK_DEFAULT_TCP_PORT;
+
 	krad_link->krad_audio_api = ALSA;
 	krad_link->operation_mode = CAPTURE;
 	krad_link->interface_mode = WINDOW;

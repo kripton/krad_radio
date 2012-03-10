@@ -146,12 +146,6 @@ int main ( int argc, char *argv[] ) {
 				krad_link->bug_x = 64;
 				krad_link->bug_y = 64;
 				break;
-			case 'L':
-				krad_link->transport_mode = UDP;
-				break;
-			case 'T':
-				krad_link->transport_mode = UDP;
-				break;
 			case 'r':
 				krad_link->vpx_encoder_config.rc_target_bitrate = atoi(optarg);
 				break;
@@ -263,8 +257,6 @@ int main ( int argc, char *argv[] ) {
 						krad_link->operation_mode = RECEIVE;
 					}
 				
-					krad_link->port = 8080;
-				
 					if ((strlen(argv[optind]) > 7) && (strncmp(argv[optind], "http://", 7) == 0)) {
 						uri = argv[optind] + 7;
 					} else {
@@ -276,10 +268,10 @@ int main ( int argc, char *argv[] ) {
 						memcpy(krad_link->host, uri, strcspn(uri, ":/"));
 					
 						if (strchr(uri, ':') != NULL) {
-							krad_link->port = atoi(strchr(uri, ':') + 1);
+							krad_link->tcp_port = atoi(strchr(uri, ':') + 1);
 						}
 					
-						memcpy(krad_link->mount, strchr(uri, '/') - 1, sizeof(krad_link->mount));
+						memcpy(krad_link->mount, strchr(uri, '/'), sizeof(krad_link->mount));
 					
 					} else {
 						printf("Missing mountpoint\n");
