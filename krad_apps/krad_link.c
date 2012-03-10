@@ -279,7 +279,7 @@ int main ( int argc, char *argv[] ) {
 							krad_link->port = atoi(strchr(uri, ':') + 1);
 						}
 					
-						memcpy(krad_link->mount, strchr(uri, '/'), sizeof(krad_link->mount));
+						memcpy(krad_link->mount, strchr(uri, '/') - 1, sizeof(krad_link->mount));
 					
 					} else {
 						printf("Missing mountpoint\n");

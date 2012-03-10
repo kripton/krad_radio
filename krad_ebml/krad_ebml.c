@@ -1562,7 +1562,7 @@ int krad_ebml_streamio_open(krad_ebml_io_t *krad_ebml_io) {
 		if (krad_ebml_io->mode == KRAD_EBML_IO_READONLY) {
 	
 			sprintf(http_string, "GET %s HTTP/1.0\r\n\r\n", krad_ebml_io->mount);
-	
+			//printf("%s\n", http_string);
 			krad_ebml_streamio_write(krad_ebml_io, http_string, strlen(http_string));
 	
 			int end_http_headers = 0;
@@ -1590,7 +1590,7 @@ int krad_ebml_streamio_open(krad_ebml_io_t *krad_ebml_io) {
 			//strcpy(krad_mkvsource->content_type, "application/ogg");
 			sprintf(auth, "source:%s", krad_ebml_io->password );
 			krad_ebml_base64_encode( auth_base64, auth );
-			http_string_pos = sprintf( http_string, "SOURCE /%s ICE/1.0\r\n", krad_ebml_io->mount);
+			http_string_pos = sprintf( http_string, "SOURCE %s ICE/1.0\r\n", krad_ebml_io->mount);
 			http_string_pos += sprintf( http_string + http_string_pos, "content-type: %s\r\n", content_type);
 			http_string_pos += sprintf( http_string + http_string_pos, "Authorization: Basic %s\r\n", auth_base64);
 			http_string_pos += sprintf( http_string + http_string_pos, "\r\n");

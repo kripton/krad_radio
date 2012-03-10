@@ -280,7 +280,7 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 			//strcpy(krad_mkvsource->content_type, "application/ogg");
 			sprintf(auth, "source:%s", krad_io->password );
 			krad_io_base64_encode( auth_base64, auth );
-			http_string_pos = sprintf( http_string, "SOURCE /%s ICE/1.0\r\n", krad_io->mount);
+			http_string_pos = sprintf( http_string, "SOURCE %s ICE/1.0\r\n", krad_io->mount);
 			http_string_pos += sprintf( http_string + http_string_pos, "content-type: %s\r\n", content_type);
 			http_string_pos += sprintf( http_string + http_string_pos, "Authorization: Basic %s\r\n", auth_base64);
 			http_string_pos += sprintf( http_string + http_string_pos, "\r\n");
