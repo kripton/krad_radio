@@ -47,9 +47,6 @@ int main ( int argc, char *argv[] ) {
 			{"window",			no_argument, 0, WINDOW},
 			{"nowindow",		no_argument, 0, COMMAND},
 			{"daemon",			no_argument, 0, DAEMON},
-			
-			{"lowlatency_listen",		optional_argument, 0, 'L'},
-			{"lowlatency_transmit",		optional_argument, 0, 'T'},
 
 			{"novideo",			no_argument, 0, NOVIDEO},
 			{"noaudio",			no_argument, 0, NOAUDIO},
@@ -96,6 +93,16 @@ int main ( int argc, char *argv[] ) {
 		switch ( o ) {
 			case 'U':
 				krad_link->udp_mode = 1;
+				krad_link->interface_mode = COMMAND;
+				krad_link->video_source = NOVIDEO;
+				krad_link->video_codec = NOCODEC;
+				krad_link->audio_codec = OPUS;
+				krad_link->operation_mode = RECEIVE;
+				if (optarg != NULL) {
+					krad_link->udp_recv_port = atoi(optarg);
+					krad_link->udp_send_port = atoi(optarg);
+					break;
+				}
 				break;
 			case 'X':
 				krad_link->x11_capture = 1;
@@ -221,52 +228,62 @@ int main ( int argc, char *argv[] ) {
 		
 		while (optind < argc) {
 			
-			//printf ("%s ", argv[optind]);
-			//putchar ('\n');
+			if (krad_link->udp_mode == 1) {
 			
-			if ((argv[optind][0] == '/') || (argv[optind][0] == '~') || (argv[optind][0] == '.')) {		
-
-				if (strncmp("/dev", argv[optind], 4) == 0) {
-					memcpy(krad_link->device, argv[optind], sizeof(krad_link->device));
-					krad_link->operation_mode = CAPTURE;
-				} else {
-				
-					if (stat(argv[optind], &krad_link->file_stat) != 0) {
-						strncpy(krad_link->output, argv[optind], sizeof(krad_link->output));
-						krad_link->operation_mode = CAPTURE;
-					} else {
-						krad_link->operation_mode = RECEIVE;
-						strncpy (krad_link->input, argv[optind], sizeof(krad_link->input));
-					}				
+				krad_link->operation_mode = CAPTURE;
+				uri = argv[optind];
+				memcpy(krad_link->host, uri, strcspn(uri, ":/\0"));
+				if (strchr(uri, ':') != NULL) {
+					krad_link->udp_send_port = atoi(strchr(uri, ':') + 1);
 				}
-
+			
+			
 			} else {
 			
-				if (!strlen(krad_link->password)) {
-					krad_link->operation_mode = RECEIVE;
-				}
+				if ((argv[optind][0] == '/') || (argv[optind][0] == '~') || (argv[optind][0] == '.')) {		
+
+					if (strncmp("/dev", argv[optind], 4) == 0) {
+						memcpy(krad_link->device, argv[optind], sizeof(krad_link->device));
+						krad_link->operation_mode = CAPTURE;
+					} else {
 				
-				krad_link->port = 8080;
-				
-				if ((strlen(argv[optind]) > 7) && (strncmp(argv[optind], "http://", 7) == 0)) {
-					uri = argv[optind] + 7;
-				} else {
-					uri = argv[optind];
-				}
-				
-				if ((strchr(uri, '/')) && (strlen(uri) < sizeof(krad_link->host))) {
-								
-					memcpy(krad_link->host, uri, strcspn(uri, ":/"));
-					
-					if (strchr(uri, ':') != NULL) {
-						krad_link->port = atoi(strchr(uri, ':') + 1);
+						if (stat(argv[optind], &krad_link->file_stat) != 0) {
+							strncpy(krad_link->output, argv[optind], sizeof(krad_link->output));
+							krad_link->operation_mode = CAPTURE;
+						} else {
+							krad_link->operation_mode = RECEIVE;
+							strncpy (krad_link->input, argv[optind], sizeof(krad_link->input));
+						}				
 					}
-					
-					memcpy(krad_link->mount, strchr(uri, '/'), sizeof(krad_link->mount));
-					
+
 				} else {
-					printf("Missing mountpoint\n");
-					exit(1);
+			
+					if (!strlen(krad_link->password)) {
+						krad_link->operation_mode = RECEIVE;
+					}
+				
+					krad_link->port = 8080;
+				
+					if ((strlen(argv[optind]) > 7) && (strncmp(argv[optind], "http://", 7) == 0)) {
+						uri = argv[optind] + 7;
+					} else {
+						uri = argv[optind];
+					}
+				
+					if ((strchr(uri, '/')) && (strlen(uri) < sizeof(krad_link->host))) {
+								
+						memcpy(krad_link->host, uri, strcspn(uri, ":/"));
+					
+						if (strchr(uri, ':') != NULL) {
+							krad_link->port = atoi(strchr(uri, ':') + 1);
+						}
+					
+						memcpy(krad_link->mount, strchr(uri, '/'), sizeof(krad_link->mount));
+					
+					} else {
+						printf("Missing mountpoint\n");
+						exit(1);
+					}
 				}
 			}
 			

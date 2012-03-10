@@ -712,7 +712,7 @@ void *udp_output_thread(void *arg) {
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 
-				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, "127.0.0.1", krad_link->udp_send_port);
+				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, krad_link->host, krad_link->udp_send_port);
 				count++;
 				
 			} else {
