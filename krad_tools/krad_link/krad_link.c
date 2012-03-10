@@ -963,7 +963,10 @@ void krad_link_composite(krad_link_t *krad_link) {
 		}
 	}
 		
-	if (krad_link->x11_capture == 1) {
+	if (krad_link->video_source == X11) {
+		//kludgey
+		krad_link->krad_gui->frame++;
+	
 		krad_x11_capture(krad_link->krad_x11, (unsigned char *)krad_link->krad_gui->data);
 	} else {
 		kradgui_render( krad_link->krad_gui );
@@ -1080,7 +1083,7 @@ void krad_link_run(krad_link_t *krad_link) {
 		
 		
 		
-			if (!krad_link->capturing) {
+			if ((!krad_link->capturing) || (krad_link->video_source == X11)) {
 			
 				// Waiting so that test signal creation is "in actual time" like live video sources
 			
@@ -2091,7 +2094,7 @@ void krad_link_destroy(krad_link_t *krad_link) {
 	free(krad_link->current_encoding_frame);
 	free(krad_link->current_frame);
 
-	if (krad_link->x11_capture == 1) {
+	if (krad_link->video_source == X11) {
 		krad_x11_destroy (krad_link->krad_x11);
 	}
 	
@@ -2246,8 +2249,10 @@ void krad_link_activate(krad_link_t *krad_link) {
 			kradgui_test_screen(krad_link->krad_gui, "Krad Test");
 		}
 
-		if (krad_link->x11_capture == 1) {
-			krad_link->krad_x11 = krad_x11_create();
+		if (krad_link->video_source == X11) {
+			if (krad_link->krad_x11 == NULL) {
+				krad_link->krad_x11 = krad_x11_create();
+			}
 			krad_x11_enable_capture(krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 		}
 		

@@ -58,6 +58,7 @@ typedef enum {
 	TEST = 500,
 	V4L2,
 	BLACKMAGIC,
+	X11,
 	NOVIDEO,
 } krad_video_source_t;
 
@@ -206,9 +207,7 @@ struct krad_link_St {
 	int bug_y;
 
 	struct stat file_stat;
-	
-	int x11_capture;
-	
+		
 	int udp_mode;
 	
 	int udp_recv_port;

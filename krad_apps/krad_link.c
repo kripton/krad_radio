@@ -105,10 +105,9 @@ int main ( int argc, char *argv[] ) {
 				}
 				break;
 			case 'X':
-				krad_link->x11_capture = 1;
+				krad_link->video_source = X11;
 				krad_link->capture_width = 1920;
 				krad_link->capture_height = 1080;
-				krad_link->render_meters = 1;
 				break;
 			case 'v':
 				krad_link->verbose = 1;
@@ -126,10 +125,6 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case 't':
 				krad_link->video_source = TEST;
-				if (krad_link->x11_capture == 0) {
-					krad_link->capture_width = 1280;
-					krad_link->capture_height = 720;
-				}
 				break;
 			case 'f':
 				krad_link->capture_fps = atoi(optarg);
