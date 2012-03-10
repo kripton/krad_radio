@@ -62,7 +62,7 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 
 	opus->input_sample_rate = opus->opus_header->input_sample_rate;
 
-	//printf("output sample rate is %f\n", output_sample_rate);
+	printf("output sample rate is %f\n", output_sample_rate);
 
 	int c;
 	
@@ -103,7 +103,7 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	}
 
 
-	kradopus_decoder_set_speed(opus, 250);
+	kradopus_decoder_set_speed(opus, 100);
 
 	return opus;
 
@@ -142,6 +142,8 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->resampler = speex_resampler_init(opus->channels, opus->input_sample_rate, 48000, 10, &opus->err);
 
 	//printf("resampler error was: %d\n", opus->err);
+
+	printf("krad opus input sample rate %f\n", input_sample_rate);
 
 	opus->frame_size = 960;
 
@@ -346,7 +348,7 @@ void kradopus_decoder_set_speed(krad_opus_t *kradopus, float speed) {
 	
 	speex_resampler_set_rate(kradopus->resampler, input_rate_int, output_rate_int);
 
-	//printf("res %f  setting speed to INT %d -- %f from %f wihch means a rate of %f\n", kradopus->output_sample_rate, output_rate_int, kradopus->speed, speed, kradopus->output_sample_rate * kradopus->speed);
+	printf("res %f to %f  setting speed to INT %d -- %f from %f wihch means a rate of %f\n", kradopus->input_sample_rate, kradopus->output_sample_rate, output_rate_int, kradopus->speed, speed, kradopus->output_sample_rate * kradopus->speed);
 
 }
 

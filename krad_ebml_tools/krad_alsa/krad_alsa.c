@@ -210,7 +210,7 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 		
 	
 		} else {
-	
+			printf("underrrrun!\n");
 			for (s = 0; s < kradalsa->period_size; s++) {
 				for (c = 0; c < 2; c++) {
 					kradalsa->interleaved_samples[s * 2 + c] = 0.0f;
@@ -499,7 +499,7 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
 	kradalsa->device_name = kradaudio->name;
 	
 	kradalsa->access = 2;
-	kradalsa->buffer_size = 8192;
+	kradalsa->buffer_size = 1024;
 	kradalsa->period_size = 512;
 
 

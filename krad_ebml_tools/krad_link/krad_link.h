@@ -1,5 +1,7 @@
 #define KRAD_LINK
 
+#include <sys/prctl.h>
+
 #include "krad_udp.h"
 #include "krad_x11.h"
 #include "krad_ebml.h"

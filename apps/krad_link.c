@@ -108,6 +108,7 @@ int main ( int argc, char *argv[] ) {
 				krad_link->x11_capture = 1;
 				krad_link->capture_width = 1920;
 				krad_link->capture_height = 1080;
+				krad_link->render_meters = 1;
 				break;
 			case 'v':
 				krad_link->verbose = 1;
