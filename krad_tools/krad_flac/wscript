@@ -46,9 +46,9 @@ def configure(conf):
 def build(bld):
 
 
-	print bld.env.libs
+#	print bld.env.libs
 
-	print bld.env.notlibs
+#	print bld.env.notlibs
 
 	for p in programs:
 

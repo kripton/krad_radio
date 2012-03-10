@@ -31,12 +31,12 @@ def configure(conf):
 	if conf.env['IS_MACOSX']:
 		print "MacOS X detected :("
 
-	print "\nHello to you " + os.getlogin() + "! Much thanks for testing this software, do enjoy!\n"
-
 	conf.check_tool('gcc')
 	conf.check_tool('gnu_dirs')
 	conf.env.append_unique('CFLAGS', ['-g', '-Wall', '-Wno-unused-variable', '-Wno-unused-but-set-variable'])
 	conf.recurse(subdirs, mandatory = False)
+	
+	print "\nHello to you " + os.getlogin() + "! Much thanks for testing this software, do enjoy!\n"
 	
 def build(bld):
     bld.recurse(subdirs, mandatory = False)
