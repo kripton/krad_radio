@@ -17,7 +17,7 @@ void kradopus_decoder_destroy(krad_opus_t *kradopus) {
 	free (kradopus->opus_header);
 	opus_multistream_decoder_destroy(kradopus->decoder);
 	if (kradopus->resampler != NULL) {
-		speex_resampler_reset_mem(kradopus->resampler);
+		speex_resampler_destroy(kradopus->resampler);
 	}
 	free (kradopus);
 
@@ -40,7 +40,7 @@ void kradopus_encoder_destroy(krad_opus_t *kradopus) {
 	free (kradopus->opus_header);
 	opus_multistream_encoder_destroy(kradopus->st);
 	if (kradopus->resampler != NULL) {
-		speex_resampler_reset_mem(kradopus->resampler);
+		speex_resampler_destroy(kradopus->resampler);
 	}
 	free (kradopus);
 
@@ -90,8 +90,9 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	}
 	
 	opus->resampler = speex_resampler_init(opus->channels, opus->opus_header->input_sample_rate, opus->output_sample_rate, 10, &opus->opus_decoder_error);
-
-	//printf("resampler error was: %d\n", opus->opus_decoder_error);
+	if (opus->opus_decoder_error != 0) {
+		printf("kradopus_decoder_create speex resampler error! %s\n", speex_resampler_strerror(opus->opus_decoder_error));
+	}
 
    unsigned char mapping[256] = {0,1};
 
@@ -140,8 +141,9 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->st_string = "mono";
 
 	opus->resampler = speex_resampler_init(opus->channels, opus->input_sample_rate, 48000, 10, &opus->err);
-
-	//printf("resampler error was: %d\n", opus->err);
+	if (opus->err != 0) {
+		printf("kradopus_encoder_create speex resampler error! %s\n", speex_resampler_strerror(opus->err));
+	}
 
 	printf("krad opus input sample rate %f\n", input_sample_rate);
 
@@ -218,6 +220,9 @@ int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int bu
 				spx_uint32_t out_length = in_length * 2;
 
 				kradopus->err = speex_resampler_process_float(kradopus->resampler, channel - 1, kradopus->read_samples[channel - 1], &in_length, kradopus->resampled_samples[channel - 1], &out_length);
+				if (kradopus->err != 0) {
+					printf("kradopus_read_audio speex resampler error! %s\n", speex_resampler_strerror(kradopus->err));
+				}
 
 				krad_ringbuffer_read_advance (kradopus->ringbuf[channel - 1], (in_length * 4) );
 
@@ -291,8 +296,9 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 			spx_uint32_t out_length = in_length * 2;
 
 			kradopus->err = speex_resampler_process_float(kradopus->resampler, c, kradopus->samples[c], &in_length, kradopus->resampled_samples[c], &out_length);
-
-			//printf("%d resampler error was: %d\n", c, kradopus->err);
+			if (kradopus->err != 0) {
+				printf("kradopus_read_opus speex resampler error! %s\n", speex_resampler_strerror(kradopus->err));
+			}
 			//printf("%d speex resampler: in len: %d out len: %d\n", c, in_length, out_length);
 
 			krad_ringbuffer_read_advance (kradopus->ringbuf[c], (in_length * 4) );

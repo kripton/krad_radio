@@ -37,11 +37,11 @@ def configure(conf):
 	conf.env.notlibs = []
 	
 	for l in conf.env.libs:
-	  try:
-		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
-	  except ConfigurationError:
-		conf.env.notlibs.append(l)
-		conf.env.libs.remove(l)
+		try:
+			conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+		except ConfigurationError:
+			conf.env.notlibs.append(l)
+			conf.env.libs.remove(l)
 		
 def build(bld):
 

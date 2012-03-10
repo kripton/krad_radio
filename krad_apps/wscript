@@ -36,6 +36,7 @@ depsources = """
 ../krad_tools/krad_container/krad_container.c
 ../krad_tools/krad_x11/krad_x11.c
 ../krad_tools/krad_udp/krad_udp.c
+../krad_tools/krad_codec2/krad_codec2.c
 """.split()
 
 includedirs = """
@@ -60,6 +61,7 @@ includedirs = """
 ../krad_tools/krad_container/
 ../krad_tools/krad_x11/
 ../krad_tools/krad_udp/
+../krad_tools/krad_codec2/
 ../krad_ebml/
 /usr/local/include
 /usr/include

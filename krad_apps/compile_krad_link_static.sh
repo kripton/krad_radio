@@ -24,6 +24,8 @@ gcc -O3 -Wall krad_link.c \
 -I../krad_tools/krad_ring \
 ../krad_tools/krad_alsa/krad_alsa.c \
 -I../krad_tools/krad_alsa \
+../krad_tools/krad_codec2/krad_codec2.c \
+-I../krad_tools/krad_codec2 \
 ../krad_tools/krad_theora/krad_theora.c \
 -I../krad_tools/krad_theora \
 ../krad_tools/krad_io/krad_io.c \
@@ -61,6 +63,6 @@ gcc -O3 -Wall krad_link.c \
 /usr/local/lib/libturbojpeg.a \
 /usr/local/lib/libvpx.a \
 -o krad_link `pkg-config --cflags --libs gtk+-3.0 xcb x11 gl xext xcb-util xcb-aux xcb-atom cairo` \
--lX11-xcb -lrt -lxcb-image -lm -ljack -lpulse -lasound
+-lX11-xcb -lrt -lxcb-image -lm -ljack -lpulse -lasound -lcodec2
 
 #-lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -ljack -lpulse -lasound

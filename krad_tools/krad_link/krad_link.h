@@ -14,6 +14,7 @@
 #include "krad_gui.h"
 #include "krad_audio.h"
 #include "krad_ring.h"
+#include "krad_codec2.h"
 #include "krad_opus.h"
 #include "krad_vorbis.h"
 #include "krad_flac.h"
@@ -216,6 +217,8 @@ struct krad_link_St {
 	krad_rebuilder_t *krad_rebuilder;
 	krad_slicer_t *krad_slicer;
 	
+	krad_codec2_t *krad_codec2_decoder;
+	krad_codec2_t *krad_codec2_encoder;
 };
 
 void krad_link_shutdown();

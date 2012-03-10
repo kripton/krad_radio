@@ -1639,6 +1639,8 @@ void *audio_decoding_thread(void *arg) {
 	int h;
 	int bytes;
 	unsigned char *buffer;
+	unsigned char *codec2_buffer;
+	int codec2_bytes;
 	unsigned char *header[3];
 	int header_len[3];
 	float *audio;
@@ -1660,6 +1662,8 @@ void *audio_decoding_thread(void *arg) {
 	buffer = malloc(2000000);
 	audio = calloc(1, 8192 * 4 * 4);
 
+	codec2_bytes = 0;
+	codec2_buffer = calloc(1, 8192 * 4 * 4);
 
 	if (krad_link->krad_audio_api == ALSA) {
 		krad_link->krad_audio = kradaudio_create(krad_link->alsa_playback_device, KOUTPUT, krad_link->krad_audio_api);
@@ -1833,6 +1837,16 @@ void *audio_decoding_thread(void *arg) {
 					bytes = kradopus_read_audio(krad_link->krad_opus, c + 1, (char *)audio, 960 * 4);
 					if (bytes) {
 						//printf("\nAudio data! %d samplers\n", bytes / 4);
+						/*
+						if (c == 0) {
+						codec2_bytes = krad_codec2_encode(krad_link->krad_codec2_encoder, audio, 960, codec2_buffer);
+						memset(audio, '0', 960 * 4);
+						krad_codec2_decode(krad_link->krad_codec2_decoder, codec2_buffer, codec2_bytes, audio);
+						} else {
+						memset(audio, '0', 960 * 4);
+						}
+						//krad_smash (audio, 960);
+						*/
 						kradaudio_write (krad_link->krad_audio, c, (char *)audio, bytes );
 					}
 				}
@@ -1863,6 +1877,7 @@ void *audio_decoding_thread(void *arg) {
 
 	free(buffer);
 	free(audio);
+	free(codec2_buffer);
 	
 	for (c = 0; c < krad_link->audio_channels; c++) {
 		free(krad_link->samples[c]);
@@ -2098,6 +2113,15 @@ void krad_link_destroy(krad_link_t *krad_link) {
 		krad_x11_destroy (krad_link->krad_x11);
 	}
 	
+	if (krad_link->krad_codec2_decoder != NULL) {
+		krad_codec2_decoder_destroy(krad_link->krad_codec2_decoder);
+	}
+	
+	if (krad_link->krad_codec2_encoder != NULL) {
+		krad_codec2_encoder_destroy(krad_link->krad_codec2_encoder);
+	}
+	
+	
 	printf("\n%s Exited Cleanly, have a nice day.\n", APPVERSION);
 	
 	free(krad_link);
@@ -2287,6 +2311,10 @@ void krad_link_activate(krad_link_t *krad_link) {
 		krad_link->decoded_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
 		
 		if (krad_link->udp_mode) {
+		
+			krad_link->krad_codec2_decoder = krad_codec2_decoder_create(1, 48000);
+			krad_link->krad_codec2_encoder = krad_codec2_encoder_create(1, 48000);
+		
 			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	
 		} else {
 			pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	
