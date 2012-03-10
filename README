@@ -17,9 +17,9 @@ These are for the apps/tools only, krad ebml library has no deps.
 
 ubuntu hint:
 
-sudo apt-get install libspeex-dev libspeexdsp-dev libsdl1.2-dev libasound2-dev libpulse-dev libvorbis-dev \
-gtk-3.0 libswscale-dev libflac-dev libschroedinger-dev libavutil-dev libjack-dev libvpx-dev build-essential
-
+sudo apt-get install libspeex-dev libspeexdsp-dev libasound2-dev libpulse-dev libvorbis-dev freeglut3-dev \
+libgtk-3-dev libswscale-dev libflac-dev libschroedinger-dev libavutil-dev libjack-dev git subversion yasm build-essential \
+libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev 
 
 And install opus from git: http://opus-codec.org/downloads/
 
@@ -30,23 +30,32 @@ sudo apt-get install build-essential autoconf git-core libtool
 make
 sudo make install && sudo ldconfig
 
-ubutntu vpx did not give me a pkg-config file so to compile that..
+And install libvpx:
 
 git clone http://git.chromium.org/webm/libvpx.git
-sudo apt-get install yasm
 make
-sudo make install
-
-It will create a subdir called build in this directory, where you will find the results of its doing.
+sudo make install && sudo ldconfig
 
 libjpeg-turbo and its confusingly differently named api turbojpeg seems to be missing a pkg-config (.pc) file
-on most linux distros.
+on most linux distros. http://www.libjpeg-turbo.org/
 
-Install the distro -dev package, or install from http://www.libjpeg-turbo.org/
+so install libjpeg-turbo:
 
-Put this pkg-config file in /usr/local/lib/pkgconfig/turbojpeg.pc if you installed from source
-or /usr/lib/pkgconfig/turbojpeg.pc if from packages
-Something fishy maybe going on or its really just missing, not sure but this has worked for a few people
+*PITFALL*
+be sure to set the prefix to /usr/local! it defaults to /opt (who know why?)
+
+svn co https://libjpeg-turbo.svn.sourceforge.net/svnroot/libjpeg-turbo/branches/1.2.x libjpeg-turbo
+cd libjpeg-turbo/
+mkdir build
+autoreconf -fiv
+cd build/
+sh ../configure --prefix=/usr/local
+make
+sudo make install && sudo ldconfig
+
+turbojpeg missing package config file oh no! make one:
+
+Put this pkg-config file in: /usr/local/lib/pkgconfig/turbojpeg.pc
 
 
 # turbojpeg installed pkg-config file
@@ -63,6 +72,9 @@ Conflicts:
 Libs: -L${libdir} -lturbojpeg
 Cflags: -I${includedir}
 
+
+
+
 And most importantly...
 
--David Richards Feb 17, 2012
+-David Richards March 10, 2012
