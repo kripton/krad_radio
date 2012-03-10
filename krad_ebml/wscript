@@ -41,5 +41,5 @@ def build(bld):
 	bld.add_post_fun(post)
 
 def post(ctx):
-        if ctx.cmd == 'install' and ctx.env['IS_LINUX'] == True: 
-			ctx.exec_command('/sbin/ldconfig')
+	if ctx.cmd == 'install' and ctx.env['IS_LINUX'] == True: 
+		ctx.exec_command('/sbin/ldconfig')
