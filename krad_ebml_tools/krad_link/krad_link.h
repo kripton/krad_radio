@@ -207,6 +207,8 @@ struct krad_link_St {
 	
 	int x11_capture;
 	
+	int udp_mode;
+	
 	int udp_recv_port;
 	int udp_send_port;
 	

@@ -677,11 +677,55 @@ void *stream_output_thread(void *arg) {
 
 void *udp_output_thread(void *arg) {
 
-
-	//krad_link_t *krad_link = (krad_link_t *)arg;
-
 	dbg("UDP Output thread starting\n");
 
+	krad_link_t *krad_link = (krad_link_t *)arg;
+
+	unsigned char *buffer;
+	int count;
+	int packet_size;
+	int frames;
+	
+	
+	count = 0;
+	
+	buffer = malloc(250000);
+	
+	krad_link->krad_slicer = krad_slicer_create ();
+	
+	while ( krad_link->encoding ) {
+	
+		if (krad_link->audio_codec != NOCODEC) {
+		
+			if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) >= 4)) {
+
+				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
+		
+				while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (krad_link->encoding != 4)) {
+					usleep(10000);
+				}
+			
+				if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (krad_link->encoding == 4)) {
+					break;
+				}
+			
+				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
+				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
+
+				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, "127.0.0.1", krad_link->udp_send_port);
+				count++;
+				
+			} else {
+				if (krad_link->encoding == 4) {
+					break;
+				}
+			}
+		}
+	}
+	
+	krad_slicer_destroy (krad_link->krad_slicer);
+	
+	free (buffer);
 
 	dbg("UDP Output thread exiting\n");
 	
@@ -1219,11 +1263,21 @@ void *udp_input_thread(void *arg) {
 
 	int sd;
 	int ret;
+	int rsize;
 	unsigned char *buffer;
+	unsigned char *packet_buffer;
 	struct sockaddr_in local_address;
 	struct sockaddr_in remote_address;
+	int nocodec;
+	int opus_codec;
+	int packets;
 	
+	packets = 0;
+	rsize = sizeof(remote_address);
+	opus_codec = OPUS;
+	nocodec = NOCODEC;
 	buffer = calloc (1, 2000);
+	packet_buffer = calloc (1, 500000);
 	sd = socket (AF_INET, SOCK_DGRAM, 0);
 
 	krad_link->krad_rebuilder = krad_rebuilder_create ();
@@ -1233,32 +1287,70 @@ void *udp_input_thread(void *arg) {
 	local_address.sin_port = htons (krad_link->udp_recv_port);
 	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind (sd, &local_address, sizeof(local_address)) == -1 ) {
+	if (bind (sd, (struct sockaddr *)&local_address, sizeof(local_address)) == -1 ) {
 		printf("bind error\n");
 		exit(1);
 	}
+	
+	//kludge to get header
+	krad_opus_t *opus_temp;
+	unsigned char opus_header[256];
+	int opus_header_size;
+	
+	opus_temp = kradopus_encoder_create(44100.0, 2, 192000, OPUS_APPLICATION_AUDIO);
+	opus_header_size = opus_temp->header_data_size;
+	memcpy (opus_header, opus_temp->header_data, opus_header_size);
+	kradopus_encoder_destroy(opus_temp);
+	
+	printf("placing opus header size is %d\n", opus_header_size);
+	
+	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
+	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
+	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_header_size, 4);
+	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)opus_header, opus_header_size);
 
 	while (!*krad_link->shutdown) {
 	
-		ret = recvfrom(sd, buffer, 2000, 0, &remote_address, sizeof(remote_address));
+		ret = recvfrom(sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
 		
 		if (ret == -1) {
 			printf("failed recvin udp\n");
 			krad_link_shutdown();
 		}
 		
-		printf("Received packet from %s:%d\n", 
-				inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
+		//printf("Received packet from %s:%d\n", 
+		//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
 
 
 		krad_rebuilder_write (krad_link->krad_rebuilder, buffer, ret);
+
+		ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
+		
+		if (ret != 0) {
+			//printf("read a packet with %d bytes\n", ret);
+
+			if (krad_link->krad_audio_api != NOAUDIO) {
+			
+				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!*krad_link->shutdown)) {
+					usleep(10000);
+				}
+				
+				if (packets > 0) {
+					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
+				}
+				krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&ret, 4);
+				krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)packet_buffer, ret);
+				packets++;
+			}
+
+		}
 
 	}
 
 	krad_rebuilder_destroy (krad_link->krad_rebuilder);
 	close (sd);
 	free (buffer);
-	
+	free (packet_buffer);
 	dbg("UDP Input thread exiting\n");
 	
 	return NULL;
@@ -2152,7 +2244,11 @@ void krad_link_activate(krad_link_t *krad_link) {
 			pthread_create(&krad_link->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_link);
 		}
 	
-		pthread_create(&krad_link->stream_output_thread, NULL, stream_output_thread, (void *)krad_link);	
+		if (krad_link->udp_mode) {
+			pthread_create(&krad_link->udp_output_thread, NULL, udp_output_thread, (void *)krad_link);	
+		} else {
+			pthread_create(&krad_link->stream_output_thread, NULL, stream_output_thread, (void *)krad_link);	
+		}
 
 	}
 	
@@ -2160,7 +2256,11 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 		krad_link->decoded_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
 		
-		pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	
+		if (krad_link->udp_mode) {
+			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	
+		} else {
+			pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	
+		}
 		
 		if (krad_link->interface_mode == WINDOW) {
 			pthread_create(&krad_link->video_decoding_thread, NULL, video_decoding_thread, (void *)krad_link);

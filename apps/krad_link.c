@@ -80,6 +80,7 @@ int main ( int argc, char *argv[] ) {
 			{"password",		required_argument, 0, 'p'},
 			
 			{"x11",				optional_argument, 0, 'X'},
+			{"udp",				optional_argument, 0, 'U'},
 			
 			{0, 0, 0, 0}
 		};
@@ -93,6 +94,9 @@ int main ( int argc, char *argv[] ) {
 		}
 
 		switch ( o ) {
+			case 'U':
+				krad_link->udp_mode = 1;
+				break;
 			case 'X':
 				krad_link->x11_capture = 1;
 				krad_link->capture_width = 1920;

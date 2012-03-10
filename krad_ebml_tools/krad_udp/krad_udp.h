@@ -59,7 +59,9 @@ struct krad_rebuilder_St {
 
 	krad_slice_t *slices;
 	
-	int track_seq[3];
+	int slice_count;
+	int slice_position;
+	int slice_read_position;
 };
 
 krad_slicer_t *krad_slicer_create ();

@@ -58,7 +58,7 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	
 	opus_header_parse(header_data, header_length, opus->opus_header);
 		
-	//printf("opus header: length %d version: %d channels: %d preskip: %d input sample rate: %d gain %d channel_mapping: %d nb_streams: %d nb_coupled: %d stream map: %s\n", header_length, opus->opus_header->version, opus->opus_header->channels, opus->opus_header->preskip, opus->opus_header->input_sample_rate, opus->opus_header->gain, opus->opus_header->channel_mapping, opus->opus_header->nb_streams, opus->opus_header->nb_coupled, opus->opus_header->stream_map);
+	printf("kradopus_decoder_create opus header: length %d version: %d channels: %d preskip: %d input sample rate: %d gain %d channel_mapping: %d nb_streams: %d nb_coupled: %d stream map: %s\n", header_length, opus->opus_header->version, opus->opus_header->channels, opus->opus_header->preskip, opus->opus_header->input_sample_rate, opus->opus_header->gain, opus->opus_header->channel_mapping, opus->opus_header->nb_streams, opus->opus_header->nb_coupled, opus->opus_header->stream_map);
 
 	opus->input_sample_rate = opus->opus_header->input_sample_rate;
 
@@ -251,7 +251,12 @@ int kradopus_write_opus(krad_opus_t *kradopus, unsigned char *buffer, int length
 
 	kradopus->opus_decoder_error = opus_multistream_decode_float(kradopus->decoder, buffer, length, kradopus->interleaved_samples, 960 * 2, 0);
 
-	//printf("decoder error was: %d\n", kradopus->opus_decoder_error);
+	if (kradopus->opus_decoder_error < 0) {
+		printf("decoder error was: %d\n", kradopus->opus_decoder_error);
+	}
+
+	//printf("opus decoder: nb frames is %d samples per frame %d\n", opus_packet_get_nb_frames ( buffer, length ), opus_packet_get_samples_per_frame ( buffer, 48000 ));
+
 
 	for (i = 0; i < 960; i++) {
 		kradopus->samples[0][i] = kradopus->interleaved_samples[i * 2 + 0];
@@ -314,6 +319,8 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 		//opus->id++;
 
 		kradopus->num_bytes = opus_multistream_encode_float(kradopus->st, kradopus->interleaved_resampled_samples, kradopus->frame_size, buffer, 9000);
+
+		//printf("opus encoder: nb frames is %d samples per frame %d\n", opus_packet_get_nb_frames ( buffer, kradopus->num_bytes ), opus_packet_get_samples_per_frame ( buffer, 48000 ));
 
 		if (kradopus->num_bytes < 0) {
 			fprintf(stderr, "Encoding failed: %s. Aborting.\n", opus_strerror(kradopus->num_bytes));
