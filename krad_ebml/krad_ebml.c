@@ -1024,6 +1024,10 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 	number = 0;
 	
 	skip = 1;
+	
+	if (timecode != NULL) {
+		*timecode = 0;
+	}
 
 	while (1) {
 	

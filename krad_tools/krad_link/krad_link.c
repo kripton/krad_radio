@@ -1163,7 +1163,7 @@ void *stream_input_thread(void *arg) {
 
 		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
 		//printf("packet track %d timecode: %zu\n", current_track, packet_timecode);
-		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 100))  {
+		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 20))  {
 			printf("\nstream input thread packet size was: %d\n", packet_size);
 			break;
 		}
