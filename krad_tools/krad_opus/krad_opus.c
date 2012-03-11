@@ -94,6 +94,7 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 		opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &opus->src_error[c]);
 		if (opus->src_resampler[c] == NULL) {
 			printf("kradopus_decoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
+			exit(1);
 		}
 	
 		opus->src_data[c].src_ratio = output_sample_rate / opus->input_sample_rate;
@@ -154,6 +155,7 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 		opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &opus->src_error[c]);
 		if (opus->src_resampler[c] == NULL) {
 			printf("kradopus_encoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
+			exit(1);
 		}
 		
 		opus->src_data[c].src_ratio = 48000.0 / input_sample_rate;
@@ -262,6 +264,7 @@ int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int bu
 				kradopus->src_error[channel - 1] = src_process (kradopus->src_resampler[channel - 1], &kradopus->src_data[channel - 1]);
 				if (kradopus->src_error[channel - 1] != 0) {
 					printf("kradopus_read_audio src resampler error: %s\n", src_strerror(kradopus->src_error[channel - 1]));
+					exit(1);
 				}
 				
 				krad_ringbuffer_read_advance (kradopus->ringbuf[channel - 1], (kradopus->src_data[channel - 1].input_frames_used * 4) );
@@ -352,6 +355,7 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 			kradopus->src_error[c] = src_process (kradopus->src_resampler[c], &kradopus->src_data[c]);
 			if (kradopus->src_error[c] != 0) {
 				printf("kradopus_read_opus src resampler error: %s\n", src_strerror(kradopus->src_error[c]));
+				exit(1);
 			}
 
 			krad_ringbuffer_read_advance (kradopus->ringbuf[c], (kradopus->src_data[c].input_frames_used * 4) );
