@@ -67,7 +67,7 @@ includedirs = """
 /usr/include
 """.split()
 
-libs = ["turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "speex", "speexdsp", "opus", "x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
+libs = ["samplerate", "codec2", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", "flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil"]
 
 def configure(conf):
 	
