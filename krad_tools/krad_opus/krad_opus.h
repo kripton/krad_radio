@@ -6,7 +6,8 @@
 #include <limits.h>
 #include <time.h>
 
-#include <speex/speex_resampler.h>
+#include <samplerate.h>
+//#include <speex/speex_resampler.h>
 #include <opus.h>
 #include <opus_multistream.h>
 #include <ogg/ogg.h>
@@ -22,6 +23,8 @@
 #endif
 #define DEFAULT_CHANNEL_COUNT 2
 #define MAX_CHANNELS 8
+// SRC_SINC_BEST_QUALITY SRC_SINC_MEDIUM_QUALITY SRC_SINC_FASTEST SRC_ZERO_ORDER_HOLD SRC_LINEAR
+#define KRAD_OPUS_SRC_QUALITY SRC_SINC_BEST_QUALITY
 
 typedef struct kradopus_St krad_opus_t;
 
@@ -34,7 +37,7 @@ struct kradopus_St {
 
 	OpusMSEncoder *st;
 	OpusHeader *opus_header;
-	SpeexResamplerState *resampler;	
+	//SpeexResamplerState *resampler;	
 	float *resampled_samples[MAX_CHANNELS];
 	float *samples[MAX_CHANNELS];
 	float *read_samples[MAX_CHANNELS];
@@ -68,6 +71,12 @@ struct kradopus_St {
 	
 	unsigned char header_data[100];
 	int header_data_size;
+	
+	
+	
+	SRC_STATE *src_resampler[MAX_CHANNELS];
+	SRC_DATA src_data[MAX_CHANNELS];
+	int src_error[MAX_CHANNELS];	
 	
 };
 

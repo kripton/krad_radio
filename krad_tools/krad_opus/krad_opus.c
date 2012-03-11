@@ -12,13 +12,14 @@ void kradopus_decoder_destroy(krad_opus_t *kradopus) {
 		free(kradopus->resampled_samples[c]);
 		free(kradopus->samples[c]);
 		free(kradopus->read_samples[c]);
+		src_delete (kradopus->src_resampler[c]);
 	}
 	free(kradopus->interleaved_samples);
 	free (kradopus->opus_header);
 	opus_multistream_decoder_destroy(kradopus->decoder);
-	if (kradopus->resampler != NULL) {
-		speex_resampler_destroy(kradopus->resampler);
-	}
+	//if (kradopus->resampler != NULL) {
+	//	speex_resampler_destroy(kradopus->resampler);
+	//}
 	free (kradopus);
 
 }
@@ -35,13 +36,14 @@ void kradopus_encoder_destroy(krad_opus_t *kradopus) {
 		free(kradopus->resampled_samples[c]);
 		free(kradopus->samples[c]);
 		free(kradopus->read_samples[c]);
+		src_delete (kradopus->src_resampler[c]);
 	}
 	
 	free (kradopus->opus_header);
 	opus_multistream_encoder_destroy(kradopus->st);
-	if (kradopus->resampler != NULL) {
-		speex_resampler_destroy(kradopus->resampler);
-	}
+	//if (kradopus->resampler != NULL) {
+	//	speex_resampler_destroy(kradopus->resampler);
+	//}
 	free (kradopus);
 
 }
@@ -87,12 +89,26 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 
 		opus->resampled_samples[c] = malloc(8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
+		
+	
+		opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &opus->src_error[c]);
+		if (opus->src_resampler[c] == NULL) {
+			printf("kradopus_decoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
+		}
+	
+		opus->src_data[c].src_ratio = output_sample_rate / opus->input_sample_rate;
+	
+		printf("kradopus_decoder_create src resampler ratio is: %f\n", opus->src_data[c].src_ratio);	
+		
+		
 	}
 	
-	opus->resampler = speex_resampler_init(opus->channels, opus->opus_header->input_sample_rate, opus->output_sample_rate, 10, &opus->opus_decoder_error);
-	if (opus->opus_decoder_error != 0) {
-		printf("kradopus_decoder_create speex resampler error! %s\n", speex_resampler_strerror(opus->opus_decoder_error));
-	}
+	
+	
+	//opus->resampler = speex_resampler_init(opus->channels, opus->opus_header->input_sample_rate, opus->output_sample_rate, 10, &opus->opus_decoder_error);
+	//if (opus->opus_decoder_error != 0) {
+	//	printf("kradopus_decoder_create speex resampler error! %s\n", speex_resampler_strerror(opus->opus_decoder_error));
+	//}
 
    unsigned char mapping[256] = {0,1};
 
@@ -133,6 +149,18 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 		//printf("opus decoder malloced %d bytes\n", 8192);
 		opus->resampled_samples[c] = malloc(8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
+		
+
+		opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &opus->src_error[c]);
+		if (opus->src_resampler[c] == NULL) {
+			printf("kradopus_decoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
+		}
+		
+		opus->src_data[c].src_ratio = 48000.0 / input_sample_rate;
+	
+		printf("kradopus_decoder_create src resampler ratio is: %f\n", opus->src_data[c].src_ratio);
+		
+		
 	}
 	
 	
@@ -140,10 +168,11 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->mapping[1] = 1;
 	opus->st_string = "mono";
 
-	opus->resampler = speex_resampler_init(opus->channels, opus->input_sample_rate, 48000, 10, &opus->err);
-	if (opus->err != 0) {
-		printf("kradopus_encoder_create speex resampler error! %s\n", speex_resampler_strerror(opus->err));
-	}
+
+	//opus->resampler = speex_resampler_init(opus->channels, opus->input_sample_rate, 48000, 10, &opus->err);
+	//if (opus->err != 0) {
+	//	printf("kradopus_encoder_create speex resampler error! %s\n", speex_resampler_strerror(opus->err));
+	//}
 
 	printf("krad opus input sample rate %f\n", input_sample_rate);
 
@@ -169,8 +198,8 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->opus_header->channels = opus->channels;
 	opus_multistream_encoder_ctl(opus->st, OPUS_GET_LOOKAHEAD(&opus->lookahead));
 	opus->opus_header->preskip = opus->lookahead;
-	if (opus->resampler)
-	  opus->opus_header->preskip += speex_resampler_get_output_latency(opus->resampler);
+	//if (opus->resampler)
+	//  opus->opus_header->preskip += speex_resampler_get_output_latency(opus->resampler);
 	opus->opus_header->channel_mapping = 0;
 	opus->opus_header->nb_streams = 1;
 	opus->opus_header->nb_coupled = 1;
@@ -216,6 +245,7 @@ int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int bu
 
 				kradopus->ret = krad_ringbuffer_peek (kradopus->ringbuf[channel - 1], (char *)kradopus->read_samples[channel - 1], (resample_process_size * 4) );
 
+				/*
 				spx_uint32_t in_length = resample_process_size;
 				spx_uint32_t out_length = in_length * 2;
 
@@ -223,10 +253,20 @@ int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int bu
 				if (kradopus->err != 0) {
 					printf("kradopus_read_audio speex resampler error! %s\n", speex_resampler_strerror(kradopus->err));
 				}
+				*/
+				
+				kradopus->src_data[channel - 1].data_in = kradopus->read_samples[channel - 1];
+				kradopus->src_data[channel - 1].input_frames = resample_process_size;
+				kradopus->src_data[channel - 1].data_out = kradopus->resampled_samples[channel - 1];
+				kradopus->src_data[channel - 1].output_frames = 2048;
+				kradopus->src_error[channel - 1] = src_process (kradopus->src_resampler[channel - 1], &kradopus->src_data[channel - 1]);
+				if (kradopus->src_error[channel - 1] != 0) {
+					printf("kradopus_read_audio src resampler error: %s\n", src_strerror(kradopus->src_error[channel - 1]));
+				}
+				
+				krad_ringbuffer_read_advance (kradopus->ringbuf[channel - 1], (kradopus->src_data[channel - 1].input_frames_used * 4) );
 
-				krad_ringbuffer_read_advance (kradopus->ringbuf[channel - 1], (in_length * 4) );
-
-				kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[channel - 1], (char *)kradopus->resampled_samples[channel - 1], (out_length * 4) );
+				kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[channel - 1], (char *)kradopus->resampled_samples[channel - 1], (kradopus->src_data[channel - 1].output_frames_gen * 4) );
 
 				if (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[channel - 1]) >= buffer_length ) {
 					return krad_ringbuffer_read (kradopus->resampled_ringbuf[channel - 1], buffer, buffer_length );
@@ -287,11 +327,13 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 	
 	int i, j, c;
 
-	while (krad_ringbuffer_read_space (kradopus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= 960 * 4 ) {
+	while (krad_ringbuffer_read_space (kradopus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= 512 * 4 ) {
 		for (c = 0; c < kradopus->channels; c++) {
 
-			kradopus->ret = krad_ringbuffer_peek (kradopus->ringbuf[c], (char *)kradopus->samples[c], (960 * 4) );
+			kradopus->ret = krad_ringbuffer_peek (kradopus->ringbuf[c], (char *)kradopus->samples[c], (512 * 4) );
 
+
+			/*
 			spx_uint32_t in_length = 960;
 			spx_uint32_t out_length = in_length * 2;
 
@@ -301,10 +343,21 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 			}
 			//printf("%d speex resampler: in len: %d out len: %d\n", c, in_length, out_length);
 
-			krad_ringbuffer_read_advance (kradopus->ringbuf[c], (in_length * 4) );
+			*/
+			
+			kradopus->src_data[c].data_in = kradopus->read_samples[c];
+			kradopus->src_data[c].input_frames = 512;
+			kradopus->src_data[c].data_out = kradopus->resampled_samples[c];
+			kradopus->src_data[c].output_frames = 2048;
+			kradopus->src_error[c] = src_process (kradopus->src_resampler[c], &kradopus->src_data[c]);
+			if (kradopus->src_error[c] != 0) {
+				printf("kradopus_read_opus src resampler error: %s\n", src_strerror(kradopus->src_error[c]));
+			}
+
+			krad_ringbuffer_read_advance (kradopus->ringbuf[c], (kradopus->src_data[c].input_frames_used * 4) );
 
 
-			kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (out_length * 4) );
+			kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (kradopus->src_data[c].output_frames_gen * 4) );
 
 		}	
 
@@ -344,7 +397,7 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 
 
 void kradopus_decoder_set_speed(krad_opus_t *kradopus, float speed) {
-
+/*
 	kradopus->speed = speed * 0.01;
 
 	int output_rate_int;
@@ -352,10 +405,10 @@ void kradopus_decoder_set_speed(krad_opus_t *kradopus, float speed) {
 	output_rate_int = kradopus->output_sample_rate;
 	input_rate_int = kradopus->input_sample_rate * kradopus->speed;
 	
-	speex_resampler_set_rate(kradopus->resampler, input_rate_int, output_rate_int);
+	//speex_resampler_set_rate(kradopus->resampler, input_rate_int, output_rate_int);
 
 	printf("res %f to %f  setting speed to INT %d -- %f from %f wihch means a rate of %f\n", kradopus->input_sample_rate, kradopus->output_sample_rate, output_rate_int, kradopus->speed, speed, kradopus->output_sample_rate * kradopus->speed);
-
+*/
 }
 
 

@@ -7,15 +7,21 @@
 #include <inttypes.h>
 
 #include "codec2.h"
-#include <speex/speex_resampler.h>
+//#include <speex/speex_resampler.h>
+#include <samplerate.h>
+
 
 #define KRAD_CODEC2_BYTES_PER_FRAME 7
 #define KRAD_CODEC2_SAMPLES_PER_FRAME 160
 #define KRAD_CODEC2_SAMPLE_RATE 8000
 
 #define KRAD_CODEC2_USE_SPEEX_RESAMPLER 1
+#define KRAD_CODEC2_USE_SRC_RESAMPLER 1
 
 #define KRAD_CODEC2_SLICE_SIZE_MAX 4096
+
+// SRC_SINC_BEST_QUALITY SRC_SINC_MEDIUM_QUALITY SRC_SINC_FASTEST SRC_ZERO_ORDER_HOLD SRC_LINEAR
+#define KRAD_CODEC2_SRC_QUALITY SRC_SINC_BEST_QUALITY
 
 typedef struct krad_codec2_St krad_codec2_t;
 
@@ -34,11 +40,18 @@ struct krad_codec2_St {
 	float *float_samples_in;
 	float *float_samples_out;
 	
-	SpeexResamplerState *speex_resampler;
-	int speex_resampler_error;
 	uint32_t samples_in;
 	uint32_t samples_out;
 	
+	//SpeexResamplerState *speex_resampler;
+	//int speex_resampler_error;
+	
+	SRC_STATE *src_resampler;
+	SRC_DATA src_data;
+	int src_error;
+	int src_run_count;
+	int expected_input_frames_used;
+	int expected_output_frames_gen;
 };
 
 void krad_speex_resampler_info();

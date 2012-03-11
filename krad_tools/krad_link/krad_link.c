@@ -1830,24 +1830,33 @@ void *audio_decoding_thread(void *arg) {
 			kradopus_write_opus(krad_link->krad_opus, buffer, bytes);
 
 			int c;
-
+			int returned_samples = 0;
+			int codec2_test = 0;
 			bytes = -1;			
 			while (bytes != 0) {
 				for (c = 0; c < 2; c++) {
 					bytes = kradopus_read_audio(krad_link->krad_opus, c + 1, (char *)audio, 960 * 4);
 					if (bytes) {
 						//printf("\nAudio data! %d samplers\n", bytes / 4);
-						/*
-						if (c == 0) {
-						codec2_bytes = krad_codec2_encode(krad_link->krad_codec2_encoder, audio, 960, codec2_buffer);
-						memset(audio, '0', 960 * 4);
-						krad_codec2_decode(krad_link->krad_codec2_decoder, codec2_buffer, codec2_bytes, audio);
-						} else {
-						memset(audio, '0', 960 * 4);
+						
+						if ((bytes / 4) != 960) {
+							printf("uh oh crazyto\n");
+							exit(1);
 						}
-						//krad_smash (audio, 960);
-						*/
-						kradaudio_write (krad_link->krad_audio, c, (char *)audio, bytes );
+						if (codec2_test == 1) {
+							//krad_smash (audio, 960);
+							if (c == 0) {
+								codec2_bytes = krad_codec2_encode(krad_link->krad_codec2_encoder, audio, 960, codec2_buffer);
+								memset(audio, '0', 960 * 4);
+								returned_samples = krad_codec2_decode(krad_link->krad_codec2_decoder, codec2_buffer, codec2_bytes, audio);
+								kradaudio_write (krad_link->krad_audio, c, (char *)audio, returned_samples * 4 );
+							} else {
+								memset(audio, '0', 960 * 4);
+								kradaudio_write (krad_link->krad_audio, c, (char *)audio, returned_samples * 4 );
+							}
+						} else {
+							kradaudio_write (krad_link->krad_audio, c, (char *)audio, bytes );
+						}
 					}
 				}
 			}

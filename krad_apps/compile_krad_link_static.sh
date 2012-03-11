@@ -63,6 +63,6 @@ gcc -O3 -Wall krad_link.c \
 /usr/local/lib/libturbojpeg.a \
 /usr/local/lib/libvpx.a \
 -o krad_link `pkg-config --cflags --libs gtk+-3.0 xcb x11 gl xext xcb-util xcb-aux xcb-atom cairo` \
--lX11-xcb -lrt -lxcb-image -lm -ljack -lpulse -lasound -lcodec2
+-lX11-xcb -lrt -lxcb-image -lm -ljack -lpulse -lasound -lcodec2 -lsamplerate
 
 #-lXext -lX11 -lXmu -lXi -lGL -lGLU -lm -ljack -lpulse -lasound
