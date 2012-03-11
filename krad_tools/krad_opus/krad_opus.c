@@ -153,12 +153,12 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 
 		opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &opus->src_error[c]);
 		if (opus->src_resampler[c] == NULL) {
-			printf("kradopus_decoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
+			printf("kradopus_encoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
 		}
 		
 		opus->src_data[c].src_ratio = 48000.0 / input_sample_rate;
 	
-		printf("kradopus_decoder_create src resampler ratio is: %f\n", opus->src_data[c].src_ratio);
+		printf("kradopus_encoder_create src resampler ratio is: %f\n", opus->src_data[c].src_ratio);
 		
 		
 	}
@@ -327,7 +327,7 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 	
 	int i, j, c;
 
-	while (krad_ringbuffer_read_space (kradopus->ringbuf[DEFAULT_CHANNEL_COUNT - 1]) >= 512 * 4 ) {
+	while ((krad_ringbuffer_read_space (kradopus->ringbuf[1]) >= 512 * 4 ) && (krad_ringbuffer_read_space (kradopus->ringbuf[0]) >= 512 * 4 )) {
 		for (c = 0; c < kradopus->channels; c++) {
 
 			kradopus->ret = krad_ringbuffer_peek (kradopus->ringbuf[c], (char *)kradopus->samples[c], (512 * 4) );
