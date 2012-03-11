@@ -348,7 +348,7 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 
 			*/
 			
-			kradopus->src_data[c].data_in = kradopus->read_samples[c];
+			kradopus->src_data[c].data_in = kradopus->samples[c];
 			kradopus->src_data[c].input_frames = 512;
 			kradopus->src_data[c].data_out = kradopus->resampled_samples[c];
 			kradopus->src_data[c].output_frames = 2048;
