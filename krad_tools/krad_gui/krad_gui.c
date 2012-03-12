@@ -1858,8 +1858,8 @@ void kradgui_render(kradgui_t *kradgui) {
 }
 
 
-struct timespec timespec_diff(struct timespec start, struct timespec end)
-{
+struct timespec timespec_diff(struct timespec start, struct timespec end) {
+
 	struct timespec temp;
 	if ((end.tv_nsec-start.tv_nsec)<0) {
 		temp.tv_sec = end.tv_sec-start.tv_sec-1;

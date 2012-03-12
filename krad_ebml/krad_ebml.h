@@ -152,6 +152,11 @@ struct krad_ebml_track_St {
 	int channels;
 	int sample_rate;
 	int bit_depth;
+	
+	int width;
+	int height;
+	
+	
 	unsigned char *codec_data;
 	int codec_data_size;
 	
@@ -243,6 +248,11 @@ struct krad_ebml_St {
 	int tracks_size;
 	int tracks_pos;
 	
+	//fwd kludge	
+	int read_copy;
+	unsigned char *read_copy_buffer;
+	uint64_t read_copy_pos;
+	
 };
 
 /* writing functions */
@@ -285,6 +295,13 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 /* internal read func */
 int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
+
+
+// fwd copy kludge
+void krad_ebml_disable_read_copy ( krad_ebml_t *krad_ebml );
+int krad_ebml_read_copy (krad_ebml_t *krad_ebml, void *buffer );
+void krad_ebml_enable_read_copy ( krad_ebml_t *krad_ebml );
+
 
 /* r/w functions */
 

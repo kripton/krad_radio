@@ -1305,13 +1305,29 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			if (ebml_id == EBML_ID_CLUSTER_TIMECODE) {
 				krad_ebml->current_cluster_timecode = number;
 			}
-			
+			// need to remove
 			if (ebml_id == EBML_ID_VIDEOWIDTH) {
 				krad_ebml->width = number;
 			}
-			
+			// need to remove
 			if (ebml_id == EBML_ID_VIDEOHEIGHT) {
 				krad_ebml->height = number;
+			}
+
+			if (ebml_id == EBML_ID_VIDEOWIDTH) {
+				krad_ebml->tracks[krad_ebml->current_track].width = number;
+			}
+
+			if (ebml_id == EBML_ID_VIDEOHEIGHT) {
+				krad_ebml->tracks[krad_ebml->current_track].height = number;
+			}
+			
+			if (ebml_id == EBML_ID_AUDIOBITDEPTH) {
+				krad_ebml->tracks[krad_ebml->current_track].bit_depth = number;
+			}
+			
+			if (ebml_id == EBML_ID_AUDIOCHANNELS) {
+				krad_ebml->tracks[krad_ebml->current_track].channels = number;
 			}
 			
 			number = 0;
@@ -1340,6 +1356,8 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 				rmemcpy ( &samplerate, &temp, ebml_data_size - adj);
 				printf("Sample Rate %f", samplerate);
 			}
+	
+			krad_ebml->tracks[krad_ebml->current_track].sample_rate = samplerate;
 	
 			skip = 0;
 			known = 1;
@@ -1407,8 +1425,53 @@ int krad_ebml_write_sync(krad_ebml_t *krad_ebml) {
 	return krad_ebml->io_adapter.write(&krad_ebml->io_adapter, krad_ebml->io_adapter.write_buffer, length);
 }
 
-int krad_ebml_read(krad_ebml_t *krad_ebml, void *buffer, size_t length) {
-	return krad_ebml->io_adapter.read(&krad_ebml->io_adapter, buffer, length);
+	
+void krad_ebml_enable_read_copy ( krad_ebml_t *krad_ebml ) {
+
+	if (krad_ebml->read_copy == 0) {
+		krad_ebml->read_copy_buffer = malloc (1000000);
+		krad_ebml->read_copy = 1;
+	}
+
+}
+
+void krad_ebml_disable_read_copy ( krad_ebml_t *krad_ebml ) {
+
+	if (krad_ebml->read_copy == 1) {
+		free (krad_ebml->read_copy_buffer);
+		krad_ebml->read_copy_pos = 0;
+		krad_ebml->read_copy = 0;
+	}
+
+}	
+
+
+int krad_ebml_read (krad_ebml_t *krad_ebml, void *buffer, size_t length) {
+
+	int ret;
+
+	ret = krad_ebml->io_adapter.read(&krad_ebml->io_adapter, buffer, length);
+	
+	if (krad_ebml->read_copy == 1) {
+		memcpy (krad_ebml->read_copy_buffer + krad_ebml->read_copy_pos, buffer, ret);
+		krad_ebml->read_copy_pos += ret;
+	}
+
+	return ret;
+}
+
+int krad_ebml_read_copy (krad_ebml_t *krad_ebml, void *buffer ) {
+
+	int ret;
+
+	ret = krad_ebml->read_copy_pos;
+
+	memcpy (buffer, krad_ebml->read_copy_buffer, krad_ebml->read_copy_pos);
+
+	krad_ebml->read_copy_pos = 0;
+	
+	return ret;
+
 }
 
 int krad_ebml_seek(krad_ebml_t *krad_ebml, int64_t offset, int whence) {
@@ -1443,7 +1506,11 @@ int krad_ebml_fileio_open(krad_ebml_io_t *krad_ebml_io)
 	fd = 0;
 	
 	if (krad_ebml_io->mode == KRAD_EBML_IO_READONLY) {
-		fd = open ( krad_ebml_io->uri, O_RDONLY );
+		if ((krad_ebml_io->uri == NULL) || (!strlen(krad_ebml_io->uri))) {
+			fd = STDIN_FILENO;
+		} else {
+			fd = open ( krad_ebml_io->uri, O_RDONLY );
+		}
 	}
 	
 	if (krad_ebml_io->mode == KRAD_EBML_IO_WRITEONLY) {
@@ -1649,6 +1716,10 @@ void krad_ebml_destroy(krad_ebml_t *krad_ebml) {
 		
 	if (krad_ebml->io_adapter.write_buffer != NULL) {
 		free (krad_ebml->io_adapter.write_buffer);
+	}
+	
+	if (krad_ebml->read_copy == 1) {
+		krad_ebml_disable_read_copy ( krad_ebml );
 	}
 	
 	free(krad_ebml->tracks);
