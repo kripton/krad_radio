@@ -1531,7 +1531,11 @@ int krad_ebml_fileio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t le
 }
 
 int krad_ebml_fileio_read(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length) {
-	return read(krad_ebml_io->ptr, buffer, length);
+	if (krad_ebml_io->ptr == 0) {
+		return fread(buffer, 1, length, stdin);
+	} else {
+		return read(krad_ebml_io->ptr, buffer, length);
+	}
 }
 
 int64_t krad_ebml_fileio_seek(krad_ebml_io_t *krad_ebml_io, int64_t offset, int whence) {
@@ -1540,7 +1544,7 @@ int64_t krad_ebml_fileio_seek(krad_ebml_io_t *krad_ebml_io, int64_t offset, int 
 
 	if (krad_ebml_io->ptr == 0) {
 		while (offset--) {
-			read(krad_ebml_io->ptr, &c, 1);
+			fread(&c, 1, 1, stdin);
 		}
 		return 0;
 	} else {
