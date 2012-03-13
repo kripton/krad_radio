@@ -37,6 +37,9 @@ depsources = """
 ../krad_tools/krad_x11/krad_x11.c
 ../krad_tools/krad_udp/krad_udp.c
 ../krad_tools/krad_codec2/krad_codec2.c
+../krad_tools/krad_decklink/krad_decklink.c
+../krad_tools/krad_decklink/krad_decklink_capture.cpp
+../krad_tools/krad_decklink/vendor/DeckLinkAPIDispatch.cpp
 """.split()
 
 includedirs = """
@@ -62,6 +65,8 @@ includedirs = """
 ../krad_tools/krad_x11/
 ../krad_tools/krad_udp/
 ../krad_tools/krad_codec2/
+../krad_tools/krad_decklink/
+../krad_tools/krad_decklink/vendor
 ../krad_ebml/
 /usr/local/include
 /usr/include

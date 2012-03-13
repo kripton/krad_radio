@@ -18,6 +18,11 @@ subdirs += [os.getcwd() + "/" + klibdir]
 	
 subdirs += [os.getcwd() + "/" + appsdir]
 	
+def options(opt):
+
+	opt.load('compiler_c')
+	opt.load('compiler_cxx')
+	
 def configure(conf):
 
 	platform = sys.platform
@@ -30,6 +35,10 @@ def configure(conf):
 
 	if conf.env['IS_MACOSX']:
 		print("MacOS X detected :(")
+
+
+	conf.load('compiler_c')	
+	conf.load('compiler_cxx')
 
 	conf.check_tool('gcc')
 	conf.check_tool('gnu_dirs')

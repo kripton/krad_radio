@@ -2417,12 +2417,6 @@ void krad_link_activate(krad_link_t *krad_link) {
 			krad_x11_enable_capture(krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 		}
 		
-		if (krad_link->video_source == DECKLINK) {
-
-			krad_link->capturing = 1;
-			krad_link_start_decklink_capture(krad_link);
-		}
-		
 		if (krad_link->video_source == V4L2) {
 
 			krad_link->capturing = 1;
@@ -2445,6 +2439,13 @@ void krad_link_activate(krad_link_t *krad_link) {
 			pthread_create(&krad_link->udp_output_thread, NULL, udp_output_thread, (void *)krad_link);	
 		} else {
 			pthread_create(&krad_link->stream_output_thread, NULL, stream_output_thread, (void *)krad_link);	
+		}
+		
+		if (krad_link->video_source == DECKLINK) {
+			krad_link->capturing = 1;
+			// delay slightly so audio encoder ringbuffer ready?
+			usleep (150000);
+			krad_link_start_decklink_capture(krad_link);
 		}
 
 	}
