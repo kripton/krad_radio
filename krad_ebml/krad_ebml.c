@@ -308,7 +308,7 @@ int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *c
 
 	krad_ebml->total_video_frames = -1;
 	krad_ebml->video_frame_rate = frame_rate;
-
+	
 	track_number = krad_ebml_new_tracknumber(krad_ebml);
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
@@ -410,8 +410,23 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 		flags |= 0x80;
 	}
 	
-	timecode = krad_ebml->total_video_frames * 1000 * (uint64_t)1 / krad_ebml->video_frame_rate;
-
+	if ((krad_ebml->video_frame_rate == 30) || (krad_ebml->video_frame_rate == 24) || (krad_ebml->video_frame_rate == 60)) {
+		if (krad_ebml->video_frame_rate == 60) {
+			krad_ebml->video_frame_time = 16683500;
+			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
+		}
+		if (krad_ebml->video_frame_rate == 30) {
+			krad_ebml->video_frame_time = 33367000;
+			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
+		}
+		if (krad_ebml->video_frame_rate == 24) {
+			krad_ebml->video_frame_time = 41708000;
+			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
+		}	
+	} else {
+		timecode = krad_ebml->total_video_frames * 1000 * (uint64_t)1 / krad_ebml->video_frame_rate;
+	}
+	
 	if (keyframe) {
 		krad_ebml_cluster(krad_ebml, timecode);
 	}
@@ -449,7 +464,22 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
     track_number |= 0x80;
 
 	if (krad_ebml->total_audio_frames > 0) {
-		timecode = (krad_ebml->total_audio_frames)/ krad_ebml->audio_sample_rate * 1000;
+
+		if ((krad_ebml->audio_sample_rate == 44100.0) || (krad_ebml->audio_sample_rate == 48000.0)) {
+		
+			if (krad_ebml->audio_sample_rate == 44100.0) {
+				krad_ebml->audio_frame_time = 22675;
+				timecode = (krad_ebml->total_audio_frames * krad_ebml->audio_frame_time) / 1000000;
+			}
+			
+			if (krad_ebml->audio_sample_rate == 48000.0) {
+				krad_ebml->audio_frame_time = 20833;
+				timecode = (krad_ebml->total_audio_frames * krad_ebml->audio_frame_time) / 1000000;
+			}
+
+		} else {	
+			timecode = (krad_ebml->total_audio_frames)/ krad_ebml->audio_sample_rate * 1000000;
+		}
 	} else {
 		timecode = 0;
 	}

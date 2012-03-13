@@ -1087,6 +1087,8 @@ void krad_link_run(krad_link_t *krad_link) {
 			if ((!krad_link->capturing) || (krad_link->video_source == X11)) {
 			
 				// Waiting so that test signal creation is "in actual time" like live video sources
+
+				//FIXME this needs to be calculated with frame duration in nanoseconds
 			
 				kradgui_update_elapsed_time(krad_link->krad_gui);
 

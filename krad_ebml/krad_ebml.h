@@ -233,11 +233,13 @@ struct krad_ebml_St {
 	uint64_t tracks_info;
 	uint64_t cluster;	
 	uint64_t video_frame_rate;
+	uint64_t video_frame_time;	
 	uint64_t total_video_frames;
 	uint64_t cluster_timecode;
 	
 	int total_audio_frames;
 	float audio_sample_rate;
+	uint64_t audio_frame_time;	
 	int audio_channels;
 	int audio_frames_since_cluster;
 	
