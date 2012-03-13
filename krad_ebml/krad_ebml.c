@@ -1507,7 +1507,7 @@ int krad_ebml_fileio_open(krad_ebml_io_t *krad_ebml_io)
 	
 	if (krad_ebml_io->mode == KRAD_EBML_IO_READONLY) {
 		if ((krad_ebml_io->uri == NULL) || (!strlen(krad_ebml_io->uri))) {
-			fd = STDIN_FILENO;
+			fd = fileno(stdin);
 		} else {
 			fd = open ( krad_ebml_io->uri, O_RDONLY );
 		}
@@ -1516,8 +1516,6 @@ int krad_ebml_fileio_open(krad_ebml_io_t *krad_ebml_io)
 	if (krad_ebml_io->mode == KRAD_EBML_IO_WRITEONLY) {
 		fd = open ( krad_ebml_io->uri, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH );
 	}
-	
-	//printf("fd is %d\n", fd);
 	
 	krad_ebml_io->ptr = fd;
 
@@ -1533,15 +1531,21 @@ int krad_ebml_fileio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t le
 }
 
 int krad_ebml_fileio_read(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length) {
-
-	//printf("len is %zu\n", length);
-
 	return read(krad_ebml_io->ptr, buffer, length);
-
 }
 
 int64_t krad_ebml_fileio_seek(krad_ebml_io_t *krad_ebml_io, int64_t offset, int whence) {
-	return lseek(krad_ebml_io->ptr, offset, whence);
+
+	char c;
+
+	if (krad_ebml_io->ptr == 0) {
+		while (offset--) {
+			read(krad_ebml_io->ptr, &c, 1);
+		}
+		return 0;
+	} else {
+		return lseek(krad_ebml_io->ptr, offset, whence);
+	}
 }
 
 int64_t krad_ebml_fileio_tell(krad_ebml_io_t *krad_ebml_io) {

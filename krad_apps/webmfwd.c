@@ -129,41 +129,74 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (optind < argc) {
-		
-		while (optind < argc) {
+	
+		if ((argc - optind) == 4) {
+			// oggfwd compatible options mode
+			
+			strncpy (host, argv[optind++], sizeof(host));
+			port = atoi (argv[optind++]);
+			strncpy (password, argv[optind++], sizeof(password));
+			strncpy (mount, argv[optind], sizeof(mount));
+			
+			if (strchr(host, '.') == NULL) {
+				printf("Invalid host: %s\n", host);
+				help ();
+			}
 			
 			if (!strlen(password)) {
 				printf("Need password\n");
 				help ();
 			}
-	
-			if ((strlen(argv[optind]) > 7) && (strncmp(argv[optind], "http://", 7) == 0)) {
-				uri = argv[optind] + 7;
-			} else {
-				uri = argv[optind];
-			}
-	
-			if ((strchr(uri, '/')) && (strlen(uri) < sizeof(host))) {
-					
-				memcpy(host, uri, strcspn(uri, ":/"));
 			
-				if (strchr(host, '.') == NULL) {
-					printf("Invalid host: %s\n", host);
+			if (!strlen(mount)) {
+				printf("Missing mount point\n");
+				help ();
+			}
+			
+			if (strchr(mount, '/') == NULL) {
+				printf("Invalid mount: %s\n", mount);
+				help ();
+			}
+			
+			
+		} else {
+	
+		
+			while (optind < argc) {
+			
+				if (!strlen(password)) {
+					printf("Need password\n");
+					help ();
+				}
+	
+				if ((strlen(argv[optind]) > 7) && (strncmp(argv[optind], "http://", 7) == 0)) {
+					uri = argv[optind] + 7;
+				} else {
+					uri = argv[optind];
+				}
+	
+				if ((strchr(uri, '/')) && (strlen(uri) < sizeof(host))) {
+					
+					memcpy(host, uri, strcspn(uri, ":/"));
+			
+					if (strchr(host, '.') == NULL) {
+						printf("Invalid host: %s\n", host);
+						exit(1);
+					}
+		
+					if (strchr(uri, ':') != NULL) {
+						port = atoi(strchr(uri, ':') + 1);
+					}
+		
+					memcpy(mount, strchr(uri, '/'), sizeof(mount));
+		
+				} else {
+					printf("Missing mount point\n");
 					exit(1);
 				}
-		
-				if (strchr(uri, ':') != NULL) {
-					port = atoi(strchr(uri, ':') + 1);
-				}
-		
-				memcpy(mount, strchr(uri, '/'), sizeof(mount));
-		
-			} else {
-				printf("Missing mount point\n");
-				exit(1);
-			}
 			
-			optind++;
+				optind++;
+			}
 		}
 	} else {
 		printf("Missing URL\n");
