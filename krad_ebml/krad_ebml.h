@@ -85,7 +85,7 @@
 #define EBML_ID_3D						0x53B8
 
 #define EBML_ID_TIMECODESCALE			0x2AD7B1
-
+#define EBML_ID_DEFAULTDURATION			0x23E383
 
 #define EBML_ID_TAGS					0x1254C367
 #define EBML_ID_TAG						0x7373

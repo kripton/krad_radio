@@ -561,6 +561,8 @@ char *ebml_identify(uint32_t element_id) {
 			return "Height";
 		case EBML_ID_AUDIOCHANNELS:
 			return "Channels";
+		case EBML_ID_DEFAULTDURATION:
+			return "Default Duration";
 		case EBML_ID_TRACKNUMBER:
 			return "Track Number";
 		case EBML_ID_AUDIOBITDEPTH:
@@ -1316,7 +1318,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 		
 
 		if ((ebml_id == EBML_ID_VIDEOWIDTH) || (ebml_id == EBML_ID_VIDEOHEIGHT) ||
-			(ebml_id == EBML_ID_AUDIOCHANNELS) || (ebml_id == EBML_ID_TRACKNUMBER) ||
+			(ebml_id == EBML_ID_AUDIOCHANNELS) || (ebml_id == EBML_ID_TRACKNUMBER) || (ebml_id == EBML_ID_DEFAULTDURATION) ||
 			(ebml_id == EBML_ID_AUDIOBITDEPTH) || (ebml_id == EBML_ID_3D) || (ebml_id == EBML_ID_CLUSTER_TIMECODE)) {
 			ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 			if (ret != ebml_data_size) {
