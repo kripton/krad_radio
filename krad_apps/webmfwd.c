@@ -6,7 +6,7 @@
 
 #include "krad_ebml.h"
 
-#define APPVERSION "Krad WebM FWD 0.1"
+#define APPVERSION "Krad WebM FWD 0.3"
 
 int do_shutdown;
 int debug;
@@ -17,8 +17,11 @@ void help() {
 	printf("%s\n", APPVERSION);
 	
 	printf("\nwebmfwd --password=PASSWORD [URL]\n\n");
-	printf("--help --verbose\n");
-	
+	printf("Other options: \n");	
+	printf("[--file filename] [--buffer seconds] [--verbose] [--debug]\n");
+	printf("Default is to read from stdin and have a 7 second buffer.\n");
+	printf("\noggfwd style options supported:\n");
+	printf("webmfwd address port password mountpoint\n");	
 	exit (0);
 
 }
@@ -46,6 +49,19 @@ struct timespec timespec_diff(struct timespec start, struct timespec end) {
 	}
 	return temp;
 }
+
+void webmfwd_shutdown (int signal) {
+
+	if (do_shutdown == 0) {
+		printf("\nShutting down..\n");
+		do_shutdown = 1;
+	} else {
+		printf("\nTerminating.\n");
+		exit(1);
+	}
+	
+}
+
 
 int main (int argc, char *argv[]) {
 
@@ -81,7 +97,7 @@ int main (int argc, char *argv[]) {
 	debug = 0;
 
 	port = 8000;	
-	buffer_seconds = 5;
+	buffer_seconds = 7;
 
 	while (1) {
 
@@ -90,7 +106,7 @@ int main (int argc, char *argv[]) {
 			{"debug",			no_argument, 0, 'd'},
 			{"verbose",			no_argument, 0, 'v'},
 			{"help",			no_argument, 0, 'h'},
-			{"buffer",		required_argument, 0, 'b'},
+			{"buffer",			required_argument, 0, 'b'},
 			{"password",		required_argument, 0, 'p'},
 			
 			{0, 0, 0, 0}
@@ -181,7 +197,7 @@ int main (int argc, char *argv[]) {
 			
 					if (strchr(host, '.') == NULL) {
 						printf("Invalid host: %s\n", host);
-						exit(1);
+						help ();
 					}
 		
 					if (strchr(uri, ':') != NULL) {
@@ -200,9 +216,11 @@ int main (int argc, char *argv[]) {
 		}
 	} else {
 		printf("Missing URL\n");
-		exit(1);
+		help ();
 	}
 
+	signal(SIGTERM, webmfwd_shutdown);
+	signal(SIGINT, webmfwd_shutdown);
 
 	dbg ("Sending to %s:%d%s with password %s\n", host, port, mount, password);
 
@@ -250,7 +268,7 @@ int main (int argc, char *argv[]) {
 		
 	clock_gettime (CLOCK_MONOTONIC, &start_time);
 	
-	while (krad_ebml_read_packet ( input, &current_track, &packet_timecode, buffer) > 0) {
+	while ((krad_ebml_read_packet ( input, &current_track, &packet_timecode, buffer) > 0) && (do_shutdown == 0)) {
 	
 		rd = krad_ebml_read_copy ( input , buffer );
 		krad_ebml_write(output, buffer, rd);
@@ -297,6 +315,8 @@ int main (int argc, char *argv[]) {
 	
 	krad_ebml_destroy ( input );
 	krad_ebml_destroy ( output );
+	
+	dbg ("\nClean exit\n");
 	
 	return 0;
 
