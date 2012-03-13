@@ -412,15 +412,15 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	
 	if ((krad_ebml->video_frame_rate == 30) || (krad_ebml->video_frame_rate == 24) || (krad_ebml->video_frame_rate == 60)) {
 		if (krad_ebml->video_frame_rate == 60) {
-			krad_ebml->video_frame_time = 16683500;
+			krad_ebml->video_frame_time = 16683333;
 			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
 		}
 		if (krad_ebml->video_frame_rate == 30) {
-			krad_ebml->video_frame_time = 33367000;
+			krad_ebml->video_frame_time = 33366666;
 			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
 		}
 		if (krad_ebml->video_frame_rate == 24) {
-			krad_ebml->video_frame_time = 41708000;
+			krad_ebml->video_frame_time = 41708333;
 			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
 		}	
 	} else {
