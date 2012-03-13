@@ -36,3 +36,4 @@ waf
 .lock*
 *.webm*
 *.mkv*
+krad_tools/krad_decklink/krad_decklink_capture.a

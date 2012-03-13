@@ -177,6 +177,7 @@ void *video_encoding_thread(void *arg) {
 			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 2)) ) {
 			
 				krad_link->krad_vpx_encoder->quality = (1000 * ((krad_link->encoding_fps / 4) * 3)) / 2LU;
+				krad_link->krad_vpx_encoder->quality = 1;
 				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 						
@@ -1516,7 +1517,7 @@ void *video_decoding_thread(void *arg) {
 			if (krad_link->decoded_frame_converter == NULL) {
 				krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_theora_decoder->width, krad_link->krad_theora_decoder->height, PIX_FMT_YUV420P,
 															  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-															  SWS_SINC, NULL, NULL, NULL);
+															  SWS_BICUBIC, NULL, NULL, NULL);
 		
 			}
 
@@ -1549,7 +1550,7 @@ void *video_decoding_thread(void *arg) {
 
 					krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_vpx_decoder->width, krad_link->krad_vpx_decoder->height, PIX_FMT_YUV420P,
 																  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-																  SWS_SINC, NULL, NULL, NULL);
+																  SWS_BICUBIC, NULL, NULL, NULL);
 
 				}
 
@@ -1595,7 +1596,7 @@ void *video_decoding_thread(void *arg) {
 
 					krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_dirac->frame->width, krad_link->krad_dirac->frame->height, PIX_FMT_YUV420P,
 																  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-																  SWS_SINC, NULL, NULL, NULL);
+																  SWS_BICUBIC, NULL, NULL, NULL);
 
 				}
 
@@ -1668,7 +1669,9 @@ void *audio_decoding_thread(void *arg) {
 	if (krad_link->krad_audio_api == ALSA) {
 		krad_link->krad_audio = kradaudio_create(krad_link->alsa_playback_device, KOUTPUT, krad_link->krad_audio_api);
 	} else {
-		krad_link->krad_audio = kradaudio_create("Krad_Link_RX", KOUTPUT, krad_link->krad_audio_api);
+		if (krad_link->krad_audio_api != DECKLINKAUDIO) {
+			krad_link->krad_audio = kradaudio_create("Krad_Link_RX", KOUTPUT, krad_link->krad_audio_api);
+		}
 	}
 	
 	if ((krad_link->krad_audio_api == JACK) && (krad_link->jack_ports[0] != '\0')) {
@@ -1903,6 +1906,112 @@ void *audio_decoding_thread(void *arg) {
 
 }
 
+int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+
+	//printf("krad link decklink frame received %d bytes\n", length);
+
+
+
+
+		int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
+
+		const uint8_t *yuv_arr[4];
+		int yuv_stride_arr[4];
+	
+		yuv_arr[0] = buffer;
+
+		yuv_stride_arr[0] = krad_link->capture_width + (krad_link->capture_width/2) * 2;
+		yuv_stride_arr[1] = 0;
+		yuv_stride_arr[2] = 0;
+		yuv_stride_arr[3] = 0;
+
+		unsigned char *dst[4];
+
+		dst[0] = krad_link->krad_decklink->captured_frame_rgb;
+
+		sws_scale(krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
+		
+
+
+
+	if (krad_ringbuffer_write_space(krad_link->captured_frames_buffer) >= krad_link->composited_frame_byte_size) {
+
+		krad_ringbuffer_write(krad_link->captured_frames_buffer, 
+							 (char *)krad_link->krad_decklink->captured_frame_rgb, 
+							 krad_link->composited_frame_byte_size );
+
+	} else {
+	
+		printf("oh no! captured frames ringbuffer overflow!\n");
+	
+	}
+
+
+	return 0;
+
+}
+
+
+#define SAMPLE_16BIT_SCALING  32767.0f
+
+void krad_link_int16_to_float (float *dst, char *src, unsigned long nsamples, unsigned long src_skip) {
+
+	const float scaling = 1.0/SAMPLE_16BIT_SCALING;
+	while (nsamples--) {
+		*dst = (*((short *) src)) * scaling;
+		dst++;
+		src += src_skip;
+	}
+}
+
+int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+
+	int c;
+	if (krad_link->audio_encoder_ready) {
+		//printf("krad link decklink audio %d frames\n", frames);
+
+		for (c = 0; c < 2; c++) {
+			krad_link_int16_to_float ( krad_link->krad_decklink->samples[c], (char *)buffer + (c * 2), frames, 4);
+			krad_ringbuffer_write(krad_link->audio_input_ringbuffer[c], (char *)krad_link->krad_decklink->samples[c], frames * 4);
+			//compute_peak(krad_link->krad_audio, KINPUT, krad_link->krad_decklink->samples[c], c, frames, 0);
+		}
+	
+		krad_link->audio_frames_captured += frames;
+	}	
+	return 0;
+
+}
+
+void krad_link_start_decklink_capture (krad_link_t *krad_link) {
+
+	krad_link->krad_decklink = krad_decklink_create ();
+	krad_decklink_info ( krad_link->krad_decklink );
+	
+	krad_link->krad_decklink->callback_pointer = krad_link;
+	krad_link->krad_decklink->audio_frames_callback = krad_link_decklink_audio_callback;
+	krad_link->krad_decklink->video_frame_callback = krad_link_decklink_video_callback;
+	
+	krad_decklink_set_verbose(krad_link->krad_decklink, verbose);
+	
+	krad_decklink_start (krad_link->krad_decklink);
+}
+
+void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
+
+	if (krad_link->krad_decklink != NULL) {
+		krad_decklink_destroy ( krad_link->krad_decklink );
+		krad_link->krad_decklink = NULL;
+	}
+	
+	krad_link->capture_audio = 3;
+	krad_link->encoding = 2;
+
+}
+
 void daemonize() {
 
 	char *daemon_name;
@@ -2025,12 +2134,17 @@ void krad_link_destroy(krad_link_t *krad_link) {
 	pthread_sigmask (SIG_UNBLOCK, &krad_link->set, NULL);
 	signal(SIGINT, krad_link_shutdown);
 	signal(SIGTERM, krad_link_shutdown);
-
-	krad_link->capturing = 0;
 	
 	if (krad_link->capturing) {
 		krad_link->capturing = 0;
-		pthread_join(krad_link->video_capture_thread, NULL);
+		if (krad_link->video_source == V4L2) {
+			pthread_join(krad_link->video_capture_thread, NULL);
+		}
+		if (krad_link->video_source == DECKLINK) {
+			if (krad_link->krad_decklink != NULL) {
+				krad_link_stop_decklink_capture (krad_link);
+			}
+		}		
 	} else {
 		krad_link->capture_audio = 2;
 		krad_link->encoding = 2;
@@ -2130,7 +2244,6 @@ void krad_link_destroy(krad_link_t *krad_link) {
 		krad_codec2_encoder_destroy(krad_link->krad_codec2_encoder);
 	}
 	
-	
 	printf("\n%s Exited Cleanly, have a nice day.\n", APPVERSION);
 	
 	free(krad_link);
@@ -2195,10 +2308,18 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 	krad_link->composite_fps = krad_link->capture_fps;
 	krad_link->encoding_fps = krad_link->capture_fps;
-	krad_link->composite_width = krad_link->capture_width;
-	krad_link->composite_height = krad_link->capture_height;
-	krad_link->encoding_width = krad_link->capture_width;
-	krad_link->encoding_height = krad_link->capture_height;
+	
+	if (krad_link->video_source == DECKLINK) {
+		krad_link->composite_width = 1280;
+		krad_link->composite_height = 720;
+		krad_link->encoding_width = 1280;
+		krad_link->encoding_height = 720;
+		//krad_link->encoding_width = krad_link->capture_width / 2;
+		//krad_link->encoding_height = krad_link->capture_height / 2;
+	} else {
+		krad_link->encoding_width = krad_link->capture_width;
+		krad_link->encoding_height = krad_link->capture_height;
+	}
 	krad_link->display_width = krad_link->capture_width;
 	krad_link->display_height = krad_link->capture_height;
 
@@ -2233,24 +2354,29 @@ void krad_link_activate(krad_link_t *krad_link) {
 	krad_link->current_frame = calloc(1, krad_link->composited_frame_byte_size);
 	krad_link->current_encoding_frame = calloc(1, krad_link->composited_frame_byte_size);
 
-
 	if (krad_link->video_source == V4L2) {
 		krad_link->captured_frame_converter = sws_getContext ( krad_link->capture_width, krad_link->capture_height, PIX_FMT_YUYV422, 
 															  krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
-															  SWS_SINC, NULL, NULL, NULL);
+															  SWS_BICUBIC, NULL, NULL, NULL);
+	}
+
+	if (krad_link->video_source == DECKLINK) {
+		krad_link->captured_frame_converter = sws_getContext ( krad_link->capture_width, krad_link->capture_height, PIX_FMT_UYVY422, 
+															  krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
+															  SWS_BICUBIC, NULL, NULL, NULL);
 	}
 		  
 	if (krad_link->video_source != NOVIDEO) {
 		krad_link->encoding_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
 															  krad_link->encoding_width, krad_link->encoding_height, PIX_FMT_YUV420P, 
-															  SWS_SINC, NULL, NULL, NULL);
+															  SWS_BICUBIC, NULL, NULL, NULL);
 	}
 	
 	if (krad_link->interface_mode == WINDOW) {
 															
 		krad_link->display_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
 															 krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-															 SWS_SINC, NULL, NULL, NULL);
+															 SWS_BICUBIC, NULL, NULL, NULL);
 	}
 		
 	krad_link->captured_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->capture_buffer_frames);
@@ -2274,7 +2400,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 		krad_link->encoding = 1;
 
-		if (krad_link->video_source == V4L2) {
+		if ((krad_link->video_source == V4L2) || (krad_link->video_source == DECKLINK)) {
 			krad_link->krad_gui->clear = 0;
 		}
 	
@@ -2289,6 +2415,12 @@ void krad_link_activate(krad_link_t *krad_link) {
 			krad_x11_enable_capture(krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 		}
 		
+		if (krad_link->video_source == DECKLINK) {
+
+			krad_link->capturing = 1;
+			krad_link_start_decklink_capture(krad_link);
+		}
+		
 		if (krad_link->video_source == V4L2) {
 
 			krad_link->capturing = 1;
@@ -2296,7 +2428,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 		}
 	
 		if (krad_link->interface_mode == WINDOW) {
-			krad_link->render_meters = 1;
+			krad_link->render_meters = 0;
 		}
 	
 		if (krad_link->video_source != NOVIDEO) {

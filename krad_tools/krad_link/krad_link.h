@@ -19,13 +19,14 @@
 #include "krad_vorbis.h"
 #include "krad_flac.h"
 #include "krad_container.h"
+#include "krad_decklink.h"
 
 #define APPVERSION "Krad Link 2.42"
 #define MAX_AUDIO_CHANNELS 8
 #define DEFAULT_TONE_PRESET "dialtone"
 #define DEFAULT_VPX_BITRATE 1000
 #define HELP -1337
-#define DEFAULT_CAPTURE_BUFFER_FRAMES 5
+#define DEFAULT_CAPTURE_BUFFER_FRAMES 15
 #define DEFAULT_ENCODING_BUFFER_FRAMES 15
 #define DEFAULT_VORBIS_QUALITY 0.7
 #define DEFAULT_WIDTH 1280
@@ -58,12 +59,13 @@ typedef enum {
 typedef enum {
 	TEST = 500,
 	V4L2,
-	BLACKMAGIC,
+	DECKLINK,
 	X11,
 	NOVIDEO,
 } krad_video_source_t;
 
 struct krad_link_St {
+	krad_decklink_t *krad_decklink;
 	krad_x11_t *krad_x11;
 	kradgui_t *krad_gui;
 	krad_vpx_encoder_t *krad_vpx_encoder;

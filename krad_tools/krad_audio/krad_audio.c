@@ -92,6 +92,8 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 			break;
 		case NOAUDIO:
 			break;
+		case DECKLINKAUDIO:
+			break;
 	}
 	
 	if ((kradaudio->direction == KINPUT) || (kradaudio->direction == KDUPLEX)) {
@@ -156,6 +158,9 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 			pthread_create(&kradaudio->tone_generator_thread, NULL, tone_generator_thread, (void *)kradaudio);		
 			break;
 		case NOAUDIO:
+			break;
+		case DECKLINKAUDIO:
+			kradaudio->sample_rate = 48000;
 			break;
 	}
 	

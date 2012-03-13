@@ -79,6 +79,8 @@ int main ( int argc, char *argv[] ) {
 			{"x11",				optional_argument, 0, 'X'},
 			{"udp",				optional_argument, 0, 'U'},
 			
+			{"decklink",		no_argument, 0, 'D'},
+			
 			{0, 0, 0, 0}
 		};
 
@@ -103,6 +105,15 @@ int main ( int argc, char *argv[] ) {
 					krad_link->udp_send_port = atoi(optarg);
 					break;
 				}
+				break;
+			case 'D':
+				krad_link->video_source = DECKLINK;
+				krad_link->krad_audio_api = DECKLINKAUDIO;
+				krad_link->capture_fps = 30;
+				krad_link->capture_width = 1920;
+				krad_link->capture_height = 1080;
+				krad_link->capture_buffer_frames = 100;
+				krad_link->encoding_buffer_frames = 100;
 				break;
 			case 'X':
 				krad_link->video_source = X11;

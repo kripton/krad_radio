@@ -11,6 +11,7 @@ typedef enum {
 	ALSA,
 	TONE,
 	NOAUDIO,
+	DECKLINKAUDIO,
 } krad_audio_api_t;
 
 typedef enum {

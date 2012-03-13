@@ -1,3 +1,11 @@
+rm *.o
+rm ../krad_tools/krad_decklink/krad_decklink_capture.a
+
+g++ -Wall -Wno-multichar -fno-rtti -c ../krad_tools/krad_decklink/krad_decklink_capture.cpp ../krad_tools/krad_decklink/vendor/DeckLinkAPIDispatch.cpp -I../krad_tools/krad_decklink/ -I../krad_tools/krad_decklink/vendor
+ar -cvq ../krad_tools/krad_decklink/krad_decklink_capture.a krad_decklink_capture.o DeckLinkAPIDispatch.o
+
+rm *.o
+
 gcc -O3 -Wall krad_link.c \
 -I../krad_tools/krad_opus \
 ../krad_tools/krad_dirac/krad_dirac.c \
@@ -31,6 +39,9 @@ gcc -O3 -Wall krad_link.c \
 ../krad_tools/krad_io/krad_io.c \
 ../krad_tools/krad_ogg/krad_ogg.c \
 ../krad_tools/krad_udp/krad_udp.c \
+-I../krad_tools/krad_decklink \
+../krad_tools/krad_decklink/krad_decklink.c \
+../krad_tools/krad_decklink/krad_decklink_capture.a \
 -I../krad_tools/krad_udp \
 ../krad_tools/krad_x11/krad_x11.c \
 -I../krad_tools/krad_x11 \

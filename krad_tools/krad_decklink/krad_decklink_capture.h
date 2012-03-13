@@ -25,7 +25,6 @@ public:
 private:
 	ULONG				m_refCount;
 	pthread_mutex_t		m_mutex;
-	unsigned long frameCount;
 };
 
 #ifndef KRAD_DECKLINK_H
@@ -36,12 +35,24 @@ struct krad_decklink_capture_St {
 	IDeckLinkIterator *deckLinkIterator;
 	IDeckLinkDisplayModeIterator *displayModeIterator;
 	IDeckLinkDisplayMode *displayMode;
-	BMDDisplayMode selectedDisplayMode;
-	BMDPixelFormat pixelFormat;
 	int inputFlags;
 	DeckLinkCaptureDelegate *delegate;
-
 	HRESULT result;
+	
+	int verbose;
+	
+	BMDDisplayMode display_mode;
+	BMDPixelFormat pixel_format;
+	BMDAudioSampleRate audio_sample_rate; 
+	int audio_channels;
+	int audio_bit_depth;
+	
+	uint64_t video_frames;
+	uint64_t audio_frames;
+	
+	int (*video_frame_callback)(void *, void *, int);
+	int (*audio_frames_callback)(void *, void *, int);
+	void *callback_pointer;
 
 };
 #endif
@@ -50,10 +61,15 @@ struct krad_decklink_capture_St {
 extern "C" {
 #endif
 
-
-krad_decklink_capture_t *krad_decklink_capture_start();
+krad_decklink_capture_t *krad_decklink_capture_create();
+void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture);
 void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture);
-void krad_decklink_info ();
+void krad_decklink_capture_info ();
+
+void krad_decklink_capture_set_verbose(krad_decklink_capture_t *krad_decklink_capture, int verbose);
+void krad_decklink_capture_set_video_callback(krad_decklink_capture_t *krad_decklink_capture, int video_frame_callback(void *, void *, int));
+void krad_decklink_capture_set_audio_callback(krad_decklink_capture_t *krad_decklink_capture, int audio_frames_callback(void *, void *, int));
+void krad_decklink_capture_set_callback_pointer(krad_decklink_capture_t *krad_decklink_capture, void *callback_pointer);
 
 #ifdef __cplusplus
 }
