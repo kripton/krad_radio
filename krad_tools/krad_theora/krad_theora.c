@@ -1,30 +1,44 @@
 #include "krad_theora.h"
 
-/*
-krad_theora_encoder_t *krad_theora_encoder_create(int width, int height) {
+
+krad_theora_encoder_t *krad_theora_encoder_create(int width, int height, int quality) {
 
 	krad_theora_encoder_t *krad_theora;
 	
-	krad_theora = calloc(1, sizeof(krad_theora_encoder_t));
+	krad_theora = calloc (1, sizeof(krad_theora_encoder_t));
 	
 	krad_theora->width = width;
 	krad_theora->height = height;
-
-    th_encode_flushheader(td,&tc,&op);
-    timebase=th_granule_time(td,op.granulepos);
-
-	krad_theora->frame_byte_size = krad_theora->height * krad_theora->width * 4;
-
-	krad_theora->rgb_frame_data = calloc (1, krad_theora->frame_byte_size);
+	krad_theora->quality = quality;
 	
-    th_info_init(&ti);
+	th_info_init (&krad_theora->info);
+	th_comment_init (&krad_theora->comment);
 
+	//FIXME add support for non dividable by 16 things
+	krad_theora->info.frame_width = krad_theora->width;
+	krad_theora->info.frame_height = krad_theora->height;
+	krad_theora->info.pic_width = krad_theora->width;
+	krad_theora->info.pic_height = krad_theora->height;
+	krad_theora->info.pic_x = 0;
+	krad_theora->info.pic_y = 0;
+	krad_theora->info.target_bitrate = 0;
+	krad_theora->info.quality = krad_theora->quality;
 
+	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
-	krad_theora->rgb_sws_context = sws_getContext ( krad_theora->width, krad_theora->height, PIX_FMT_YUV420P, krad_theora->width, krad_theora->height, PIX_FMT_RGB32, SWS_FAST_BILINEAR, NULL, NULL, NULL);
-	krad_theora->sws_context = sws_getContext ( krad_theora->width, krad_theora->height, PIX_FMT_YUV420P, krad_theora->width, krad_theora->height, PIX_FMT_RGB32, SWS_FAST_BILINEAR, NULL, NULL, NULL);
-     
-
+	while (th_encode_flushheader ( krad_theora->encoder, &krad_theora->comment, &krad_theora->packet) > 0) {
+	
+		krad_theora->header[krad_theora->header_count] = malloc(krad_theora->packet.bytes);
+		memcpy (krad_theora->header[krad_theora->header_count], krad_theora->packet.packet, krad_theora->packet.bytes);
+		krad_theora->header_len[krad_theora->header_count] = krad_theora->packet.bytes;
+		krad_theora->header_count++;
+		
+		
+		//printf("krad_theora_encoder_create th_encode_flushheader got header packet %ld which is %ld bytes\n", 
+		//		krad_theora->packet.packetno, krad_theora->packet.bytes);
+	}
+	
+	//printf("krad_theora_encoder_create Got %d header packets\n", krad_theora->header_count);
 
 	return krad_theora;
 
@@ -32,109 +46,59 @@ krad_theora_encoder_t *krad_theora_encoder_create(int width, int height) {
 
 void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora) {
 
+	while (krad_theora->header_count--) {
+		//printf("krad_theora_encoder_destroy freeing header %d\n", krad_theora->header_count);
+		free (krad_theora->header[krad_theora->header_count]);
+	}
 
-    th_encode_free(krad_theora->encoder);
-    th_comment_clear(&krad_theora->comment);
-	sws_freeContext (krad_theora->sws_context);
-	sws_freeContext (krad_theora->rgb_sws_context);
-	free(krad_theora->rgb_frame_data);
+	th_info_clear (&krad_theora->info);
+	th_comment_clear (&krad_theora->comment);
+	th_encode_free (krad_theora->encoder);
 	free(krad_theora);
 
 }
 
-void krad_theora_fail(theora_codec_ctx_t *ctx, const char *s) {
-    
-    const char *detail = theora_codec_error_detail(ctx);
-    
-    printf("%s: %s\n", s, theora_codec_error(ctx));
-
-	if (detail) {
-    	printf("%s\n", detail);
-	}
-
-    exit(1);
-}
-
 int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe) {
-
-	//krad_theora->quality = theora_DL_GOOD_QUALITY;
-	//krad_theora->quality = theora_DL_BEST_QUALITY;
-	//krad_theora->quality = theora_DL_REALTIME;
-
-	if (theora_codec_encode(&krad_theora->encoder, krad_theora->image, krad_theora->frames, 1, krad_theora->flags, krad_theora->quality)) {
-		krad_theora_fail(&krad_theora->encoder, "Failed to encode frame");
-	}
-
-	krad_theora->frames++;
 	
-	krad_theora->iter = NULL;
-	while ((krad_theora->pkt = theora_codec_get_cx_data(&krad_theora->encoder, &krad_theora->iter))) {
-		//printf("Got packet\n");
-		if (krad_theora->pkt->kind == theora_CODEC_CX_FRAME_PKT) {
-			*packet = krad_theora->pkt->data.frame.buf;
-			*keyframe = krad_theora->pkt->data.frame.flags & theora_FRAME_IS_KEY;
-			
-			//printf("keyframe is %d pts is -%ld-\n", *keyframe, krad_theora->pkt->data.frame.pts);
-			return krad_theora->pkt->data.frame.sz;
-		}
+	int ret;
+	
+	ret = th_encode_ycbcr_in (krad_theora->encoder, krad_theora->ycbcr);
+	if (ret != 0) {
+		printf("krad_theora_encoder_write th_encode_ycbcr_in failed! %d\n", ret);
+		exit(1);
 	}
 	
-	return 0;
-}
-
-
-void krad_theora_convert_frame_for_local_gl_display(krad_theora_encoder_t *krad_theora) {
-
-	int rgb_stride_arr[3] = {4*krad_theora->width, 0, 0};
-
-	const uint8_t *yv12_arr[4];
+	// Note: Currently the encoder operates in a one-frame-in, one-packet-out manner. However, this may be changed in the future.
 	
-	yv12_arr[0] = krad_theora->image->planes[0];
-	yv12_arr[1] = krad_theora->image->planes[2];
-	yv12_arr[2] = krad_theora->image->planes[1];
-
-	unsigned char *dst[4];
-	dst[0] = krad_theora->rgb_frame_data;
-
-
-	sws_scale(krad_theora->sws_context, yv12_arr, krad_theora->image->stride, 0, krad_theora->height, dst, rgb_stride_arr);
-
+	ret = th_encode_packetout (krad_theora->encoder, krad_theora->finish, &krad_theora->packet);
+	if (ret < 1) {
+		printf("krad_theora_encoder_write th_encode_packetout failed! %d\n", ret);
+		exit(1);
+	}
+	
+	*packet = krad_theora->packet.packet;
+	
+	*keyframe = th_packet_iskeyframe (&krad_theora->packet);
+	if (*keyframe == -1) {
+		printf("krad_theora_encoder_write th_packet_iskeyframe failed! %d\n", *keyframe);
+		exit(1);
+	}
+	
+	
+	// Double check
+	ogg_packet test_packet;
+	ret = th_encode_packetout (krad_theora->encoder, krad_theora->finish, &test_packet);
+	if (ret < 0) {
+		printf("krad_theora_encoder_write th_encode_packetout offerd up an extra packet! %d\n", ret);
+		exit(1);
+	}
+	
+	return krad_theora->packet.bytes;
 }
 
-int krad_theora_convert_uyvy2yv12(theora_image_t *theora_img, char *uyvy, int w, int h) {
 
-    unsigned char *y = theora_img->img_data;
-    unsigned char *u = w * h + y;
-    unsigned char *v = w / 2 * h / 2 + u;
-    int i, j;
 
-    char *p = uyvy;
-
-    // pretty clearly a very slow way to do this even in c
-    // super easy simd conversion
-    for (; y < u; p += 4)
-    {
-        *y++ = p[0];
-        *y++ = p[2];
-    }
-
-    p = uyvy;
-
-    for (i = 0; i<(h >> 1); i++, p += (w << 1))
-        for (j = 0; j<(w >> 1); j++, p += 4)
-            * u++ = p[3];
-
-    p = uyvy;
-
-    for (i = 0; i<(h >> 1); i++, p += (w << 1))
-        for (j = 0; j<(w >> 1); j++, p += 4)
-            * v++ = p[1];
-
-    return 0;
-}
-
-*/
-
+/* decoder */
 
 void krad_theora_decoder_decode(krad_theora_decoder_t *krad_theora, void *buffer, int len) {
 

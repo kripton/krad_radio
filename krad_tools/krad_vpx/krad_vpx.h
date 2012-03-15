@@ -24,8 +24,6 @@
 
 #define interface (vpx_codec_vp8_cx())
 
-#define CLEAR(x) memset (&(x), 0, sizeof (x))
-
 typedef struct krad_vpx_encoder_St krad_vpx_encoder_t;
 typedef struct krad_vpx_decoder_St krad_vpx_decoder_t;
 
@@ -89,13 +87,11 @@ void krad_vpx_encoder_set(krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg)
 krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate);
 void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx);
 int krad_vpx_encoder_write(krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe);
-void krad_vpx_convert_frame_for_local_gl_display(krad_vpx_encoder_t *kradvpx);
+
 
 krad_vpx_decoder_t *krad_vpx_decoder_create();
 void krad_vpx_decoder_destroy(krad_vpx_decoder_t *kradvpx);
-void krad_vpx_decoder_write(krad_vpx_decoder_t *kradvpx);
 void krad_vpx_decoder_decode(krad_vpx_decoder_t *kradvpx, void *buffer, int len);
-int krad_vpx_convert_uyvy2yv12(vpx_image_t *vpx_img, char *uyvy, int w, int h);
 
 /* private */
 void krad_vpx_fail(vpx_codec_ctx_t *ctx, const char *s);
