@@ -21,6 +21,8 @@
 #include "krad_container.h"
 #include "krad_decklink.h"
 
+#include <libswscale/swscale.h>
+
 #define APPVERSION "Krad Link 2.42"
 #define MAX_AUDIO_CHANNELS 8
 #define DEFAULT_TONE_PRESET "dialtone"

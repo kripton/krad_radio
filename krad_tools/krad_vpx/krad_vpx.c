@@ -19,7 +19,6 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate) 
 	
 	
 	//printf("\n\n encoding quality set to %ld\n\n", kradvpx->quality);
-	
 
 	kradvpx->frame_byte_size = kradvpx->height * kradvpx->width * 4;
 
@@ -45,15 +44,6 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate) 
 		 krad_vpx_fail(&kradvpx->encoder, "Failed to initialize encoder");
 	}
 
-
-
-	kradvpx->rgb_sws_context = sws_getContext ( kradvpx->width, kradvpx->height, PIX_FMT_YUV420P, kradvpx->width, kradvpx->height, PIX_FMT_RGB32, SWS_FAST_BILINEAR, NULL, NULL, NULL);
-	kradvpx->sws_context = sws_getContext ( kradvpx->width, kradvpx->height, PIX_FMT_YUV420P, kradvpx->width, kradvpx->height, PIX_FMT_RGB32, SWS_FAST_BILINEAR, NULL, NULL, NULL);
-     
-
-	// now that cfg exists
-	//write_webm_header(&kradcomposite->ebml, &kradcomposite->cfg, &kradcomposite->arg_framerate, kradcomposite->stereo_fmt, kradcomposite->vorbis->header, kradcomposite->vorbis->headerpos);
-
 	return kradvpx;
 
 }
@@ -77,8 +67,6 @@ void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx) {
 		kradvpx->image = NULL;
 	}
 	vpx_codec_destroy(&kradvpx->encoder);
-	sws_freeContext (kradvpx->sws_context);
-	sws_freeContext (kradvpx->rgb_sws_context);
 	free(kradvpx->rgb_frame_data);
 	free(kradvpx);
 
@@ -109,10 +97,6 @@ void krad_vpx_fail(vpx_codec_ctx_t *ctx, const char *s) {
 }
 
 int krad_vpx_encoder_write(krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe) {
-
-	//kradvpx->quality = VPX_DL_GOOD_QUALITY;
-	//kradvpx->quality = VPX_DL_BEST_QUALITY;
-	//kradvpx->quality = VPX_DL_REALTIME;
 
 	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->quality)) {
 		krad_vpx_fail(&kradvpx->encoder, "Failed to encode frame");

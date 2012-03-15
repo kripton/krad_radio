@@ -14,7 +14,7 @@ depsources = """
 includedirs = """
 """.split()
 
-libs = ["gtk+-3.0", "vpx", "libswscale", "libavutil"]
+libs = ["vpx"]
 
 def configure(conf):
 	

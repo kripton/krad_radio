@@ -20,7 +20,6 @@
 
 #include <vpx/vpx_decoder.h>
 #include <vpx/vp8dx.h>
-#include <libswscale/swscale.h>
 
 #define interface (vpx_codec_vp8_cx())
 
@@ -29,8 +28,6 @@ typedef struct krad_vpx_decoder_St krad_vpx_decoder_t;
 
 struct krad_vpx_encoder_St {
 
-	struct SwsContext *rgb_sws_context;
-	struct SwsContext *sws_context;
 	int width;
 	int height;
 
@@ -63,7 +60,6 @@ struct krad_vpx_decoder_St {
 	int quality;
     int dec_flags;
 
-	//vpx_image_t *image;
     vpx_codec_ctx_t codec;
     vpx_codec_err_t	res;
     vpx_dec_ctx_t decoder;
