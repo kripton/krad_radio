@@ -1,5 +1,7 @@
 gcc -Wall -g -pthread krad_radio.c ../krad_tools/krad_radio/krad_radio.c ../krad_tools/krad_ipc/krad_ipc_server.c \
--I../krad_tools/krad_ipc -I../krad_tools/krad_radio ../krad_ebml/krad_ebml.c -I../krad_ebml/  -o krad_radio -lrt
+-I../krad_tools/krad_ipc ../krad_tools/krad_ipc/krad_ipc_client.c -I../krad_tools/krad_websocket -I../krad_tools/krad_radio \
+../krad_ebml/krad_ebml.c -I../krad_ebml/ \
+../krad_tools/krad_web/krad_websocket.c -o krad_radio -lrt -lwebsockets
 
 
 gcc -Wall -pthread krad_radio_cmd.c ../krad_tools/krad_ipc/krad_ipc_client.c \
