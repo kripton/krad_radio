@@ -175,7 +175,7 @@ struct ebml_header {
 typedef enum {
 	KRAD_EBML_IO_READONLY,
 	KRAD_EBML_IO_WRITEONLY,
-	//krad_EBML_IO_READWRITE,
+	KRAD_EBML_IO_READWRITE,
 } krad_ebml_io_mode_t;
 
 struct krad_ebml_cluster_St {
@@ -226,6 +226,10 @@ struct krad_ebml_io_St {
 	int port;
 	int sd;
 	
+	
+	unsigned char *buffer_io_buffer;
+	int buffer_io_read_pos;
+	int buffer_io_read_len;	
 
 	unsigned char *write_buffer;
 	uint64_t write_buffer_pos;
@@ -305,6 +309,7 @@ struct krad_ebml_St {
 void krad_ebml_sync (krad_ebml_t *krad_ebml);
 int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height);
 void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion);
+void krad_ebml_header_advanced (krad_ebml_t *krad_ebml, char *doctype, int doctype_version, int doctype_read_version);
 int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size);
 int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id);
 int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, float sample_rate, int channels, unsigned char *private_data, int private_data_size);
@@ -352,7 +357,10 @@ void krad_ebml_disable_read_copy ( krad_ebml_t *krad_ebml );
 int krad_ebml_read_copy (krad_ebml_t *krad_ebml, void *buffer );
 void krad_ebml_enable_read_copy ( krad_ebml_t *krad_ebml );
 
-
+int krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer);
+krad_ebml_t *krad_ebml_open_buffer(krad_ebml_io_mode_t mode);
+int krad_ebml_io_buffer_push(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
+krad_ebml_t *krad_ebml_open_active_socket (int socket, krad_ebml_io_mode_t mode);
 /* r/w functions */
 
 krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *password);

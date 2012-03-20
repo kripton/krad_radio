@@ -130,6 +130,7 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 		}
 
 		client->active = 1;
+		client->krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_READONLY);
 		krad_ipc_server_update_pollfds (client->krad_ipc_server);
 		printf("Krad IPC Server: Client accepted!\n");	
 		return client;
@@ -141,8 +142,10 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 
 	close (client->sd);
+	krad_ebml_destroy (client->krad_ebml);
 	client->input_buffer_pos = 0;
 	client->output_buffer_pos = 0;
+	client->confirmed = 0;
 	memset (client->input_buffer, 0, sizeof(client->input_buffer));
 	memset (client->output_buffer, 0, sizeof(client->output_buffer));
 	client->active = 0;
@@ -275,13 +278,38 @@ void *krad_ipc_server_run (void *arg) {
 						client->input_buffer_pos += recv(krad_ipc_server->sockets[s].fd, client->input_buffer + client->input_buffer_pos, (sizeof (client->input_buffer) - client->input_buffer_pos), 0);
 					
 						// big enough to read element id and data size
-						if (client->input_buffer_pos > 0) {
-							sprintf(client->output_buffer, "hi you sent me %d bytes", client->input_buffer_pos);
-							//send (client->sd, client->output_buffer, strlen (client->output_buffer) + 1, 0);
-							send (krad_ipc_server->sockets[s].fd, client->output_buffer, strlen (client->output_buffer) + 1, 0);
+						if ((client->input_buffer_pos > 7) && (client->confirmed == 0)) {
+							krad_ebml_io_buffer_push(&client->krad_ebml->io_adapter, client->input_buffer, client->input_buffer_pos);
 							client->input_buffer_pos = 0;
-						}
+							
+							krad_ebml_read_ebml_header (client->krad_ebml, client->krad_ebml->header);
+							krad_ebml_check_ebml_header (client->krad_ebml->header);
+							krad_ebml_print_ebml_header (client->krad_ebml->header);
+							
+							if (krad_ebml_check_doctype_header (client->krad_ebml->header, KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION)) {
+								printf("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+								client->confirmed = 1;
+							} else {
+								printf("Did Not Match %s Version: %d Read Version: %d\n", KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+								krad_ipc_disconnect_client (client);
+								continue;
+							}
+							
+							
+							client->krad_ebml2 = krad_ebml_open_active_socket (client->sd, KRAD_EBML_IO_READWRITE);
 
+							krad_ebml_header_advanced (client->krad_ebml2, KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+							krad_ebml_write_sync (client->krad_ebml2);	
+							krad_ebml_destroy (client->krad_ebml2);	
+							
+						}
+						if ((client->input_buffer_pos > 7) && (client->confirmed == 1)) {
+							krad_ebml_io_buffer_push(&client->krad_ebml->io_adapter, client->input_buffer, client->input_buffer_pos);
+							client->input_buffer_pos = 0;
+							krad_ebml_read_command (client->krad_ebml, client->output_buffer);
+						}
+						
+						
 						//printf("Krad IPC Server: got %d bytes\n", client->bytes);
 	/*	
 						while (strchr(client->recbuffer, '|') != NULL) {

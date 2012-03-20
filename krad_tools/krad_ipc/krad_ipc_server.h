@@ -25,9 +25,21 @@
 
 #include <pthread.h>
 
+#include "krad_ebml.h"
+
 #define KRAD_IPC_SERVER_MAX_CLIENTS 35
 #define KRAD_IPC_SERVER_TIMEOUT_MS 250
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000
+
+#define KRAD_IPC_CLIENT_DOCTYPE "krad_ipc_client"
+#define KRAD_IPC_SERVER_DOCTYPE "krad_ipc_server"
+#define KRAD_IPC_DOCTYPE_VERSION 6
+#define KRAD_IPC_DOCTYPE_READ_VERSION 6
+
+#define EBML_ID_KRAD_IPC_CMD 0x4444
+#define EBML_ID_KRAD_RADIO_CMD 0x7384
+#define EBML_ID_KRAD_MIXER_CMD 0x4443
+#define EBML_ID_KRAD_LINK_CMD 0x69A5
 
 enum krad_ipc_shutdown {
 	KRAD_IPC_STARTING = -1,
@@ -68,6 +80,11 @@ struct krad_ipc_server_client_St {
 
 	krad_ipc_server_t *krad_ipc_server;
 
+	krad_ebml_t *krad_ebml;
+	krad_ebml_t *krad_ebml2;
+	
+	int confirmed;
+	
 	int sd;
 
 	char input_buffer[4096 * 4];

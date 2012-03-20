@@ -22,9 +22,16 @@
 
 #include <pthread.h>
 
+#include "krad_ebml.h"
+
 #define KRAD_IPC_BUFFER_SIZE 16384
 #ifndef KRAD_IPC_CLIENT
 #define KRAD_IPC_CLIENT 1
+
+#define KRAD_IPC_CLIENT_DOCTYPE "krad_ipc_client"
+#define KRAD_IPC_SERVER_DOCTYPE "krad_ipc_server"
+#define KRAD_IPC_DOCTYPE_VERSION 6
+#define KRAD_IPC_DOCTYPE_READ_VERSION 6
 
 typedef struct {
 	int flags;
@@ -36,6 +43,7 @@ typedef struct {
 	struct stat info;
 	struct utsname unixname;
 	char *buffer;
+	krad_ebml_t *krad_ebml;
 
 } krad_ipc_client_t;
 

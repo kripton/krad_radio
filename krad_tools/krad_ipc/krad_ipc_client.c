@@ -85,6 +85,22 @@ int krad_ipc_client_init (krad_ipc_client_t *client)
 		return 0;
 	}
 */
+
+	client->krad_ebml = krad_ebml_open_active_socket (client->sd, KRAD_EBML_IO_READWRITE);
+
+	krad_ebml_header_advanced (client->krad_ebml, KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+	krad_ebml_write_sync (client->krad_ebml);
+	
+	krad_ebml_read_ebml_header (client->krad_ebml, client->krad_ebml->header);
+	krad_ebml_check_ebml_header (client->krad_ebml->header);
+	krad_ebml_print_ebml_header (client->krad_ebml->header);
+	
+	if (krad_ebml_check_doctype_header (client->krad_ebml->header, KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION)) {
+		printf("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+	} else {
+		printf("Did Not Match %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+	}	
+	
 	return client->sd;
 }
 
@@ -119,7 +135,10 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	FD_SET (client->sd, &set);
 	
 	select (client->sd+1, NULL, &set, NULL, NULL);
-	send (client->sd, cmd, len, 0);
+	
+	krad_ebml_write_string (client->krad_ebml, 0x4444, "monkey head");
+	krad_ebml_write_sync (client->krad_ebml);
+	//send (client->sd, cmd, len, 0);
 
 	printf("sent\n");
 
@@ -193,6 +212,9 @@ void krad_ipc_disconnect(krad_ipc_client_t *client) {
 		}
 		if (client->sd != 0) {
 			close(client->sd);
+		}
+		if (client->krad_ebml != NULL) {
+			krad_ebml_destroy (client->krad_ebml);
 		}
 		free(client);
 	}
