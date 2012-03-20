@@ -23,7 +23,7 @@ int main (int argc, char *argv[]) {
 	krad_mixer = krad_mixer_setup(argv[1]);
 
 	example_session(krad_mixer);
-		
+	/*	
 	if ((krad_mixer->ipc = krad_ipc_server_setup("krad_mixer", argv[1])) == NULL) {
 		krad_mixer_shutdown (krad_mixer);
 		exit(1);
@@ -36,7 +36,7 @@ int main (int argc, char *argv[]) {
 	krad_ipc_server_set_client_callback_pointer(krad_mixer->ipc, krad_mixer);
 	krad_ipc_server_signals_setup(krad_mixer->ipc);
 	krad_ipc_server_run(krad_mixer->ipc);
-
+	*/
 	return 0;
 
 }
