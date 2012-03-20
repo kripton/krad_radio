@@ -113,77 +113,56 @@ int callback_http (struct libwebsocket_context *this, struct libwebsocket *wsi,
 	char client_name[128];
 	char client_ip[128];
 
-
 	krad_websocket_t *krad_websocket = krad_websocket_glob;
 
 	switch (reason) {
-	
-	case LWS_CALLBACK_HTTP:
-		fprintf(stderr, "serving HTTP URI %s\n", (char *)in);
+		/*
+		case LWS_CALLBACK_HTTP:
+			fprintf(stderr, "serving HTTP URI %s\n", (char *)in);
 
-		if (in && strncmp(in, "/favicon.ico", 12) == 0) {
+			if (in && strncmp(in, "/favicon.ico", 12) == 0) {
+				if (libwebsockets_serve_http_file(wsi,
+					 "/favicon.ico", "image/x-icon"))
+					fprintf(stderr, "Failed to send favicon\n");
+				break;
+			}
+
+			// send the script... when it runs it'll start websockets
+
 			if (libwebsockets_serve_http_file(wsi,
-			     "/favicon.ico", "image/x-icon"))
-				fprintf(stderr, "Failed to send favicon\n");
+					  "/test.html", "text/html"))
+				fprintf(stderr, "Failed to send HTTP file\n");
 			break;
-		}
+		*/
+		case LWS_CALLBACK_ADD_POLL_FD:
+			krad_websocket->fdof[krad_websocket->count_pollfds] = MYSTERY;
+			krad_websocket->pollfds[krad_websocket->count_pollfds].fd = (int)(long)user;
+			krad_websocket->pollfds[krad_websocket->count_pollfds].events = (int)len;
+			krad_websocket->pollfds[krad_websocket->count_pollfds++].revents = 0;
+			break;
 
-		/* send the script... when it runs it'll start websockets */
+		case LWS_CALLBACK_DEL_POLL_FD:
+			del_poll_fd(user, len);
+			break;
 
-		if (libwebsockets_serve_http_file(wsi,
-				  "/test.html", "text/html"))
-			fprintf(stderr, "Failed to send HTTP file\n");
-		break;
+		case LWS_CALLBACK_SET_MODE_POLL_FD:
+			for (n = 0; n < krad_websocket->count_pollfds; n++) {
+				if (krad_websocket->pollfds[n].fd == (int)(long)user) {
+					krad_websocket->pollfds[n].events |= (int)(long)len;
+				}
+			}
+			break;
 
-	/*
-	 * callback for confirming to continue with client IP appear in
-	 * protocol 0 callback since no websocket protocol has been agreed
-	 * yet.  You can just ignore this if you won't filter on client IP
-	 * since the default uhandled callback return is 0 meaning let the
-	 * connection continue.
-	 */
+		case LWS_CALLBACK_CLEAR_MODE_POLL_FD:
+			for (n = 0; n < krad_websocket->count_pollfds; n++) {
+				if (krad_websocket->pollfds[n].fd == (int)(long)user) {
+					krad_websocket->pollfds[n].events &= ~(int)(long)len;
+				}
+			}
+			break;
 
-	case LWS_CALLBACK_FILTER_NETWORK_CONNECTION:
-
-		libwebsockets_get_peer_addresses((int)(long)user, client_name,
-			     sizeof(client_name), client_ip, sizeof(client_ip));
-
-		fprintf(stderr, "Received network connect from %s (%s)\n",
-							client_name, client_ip);
-
-		/* if we returned non-zero from here, we kill the connection */
-		break;
-
-	/*
-	 * callbacks for managing the external poll() array appear in
-	 * protocol 0 callback
-	 */
-
-	case LWS_CALLBACK_ADD_POLL_FD:
-		krad_websocket->fdof[krad_websocket->count_pollfds] = MYSTERY;
-		krad_websocket->pollfds[krad_websocket->count_pollfds].fd = (int)(long)user;
-		krad_websocket->pollfds[krad_websocket->count_pollfds].events = (int)len;
-		krad_websocket->pollfds[krad_websocket->count_pollfds++].revents = 0;
-		break;
-
-	case LWS_CALLBACK_DEL_POLL_FD:
-		del_poll_fd(user, len);
-		break;
-
-	case LWS_CALLBACK_SET_MODE_POLL_FD:
-		for (n = 0; n < krad_websocket->count_pollfds; n++)
-			if (krad_websocket->pollfds[n].fd == (int)(long)user)
-				krad_websocket->pollfds[n].events |= (int)(long)len;
-		break;
-
-	case LWS_CALLBACK_CLEAR_MODE_POLL_FD:
-		for (n = 0; n < krad_websocket->count_pollfds; n++)
-			if (krad_websocket->pollfds[n].fd == (int)(long)user)
-				krad_websocket->pollfds[n].events &= ~(int)(long)len;
-		break;
-
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return 0;
@@ -265,10 +244,6 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 	return 0;
 }
-
-
-
-
 
 
 krad_websocket_t *krad_websocket_create (char *callsign, int port) {
@@ -439,5 +414,5 @@ void krad_websocket_destroy (krad_websocket_t *krad_websocket) {
 	free (krad_websocket->buffer);
 	libwebsocket_context_destroy (krad_websocket->context);
 	free (krad_websocket);
-
+	krad_websocket_glob = NULL;
 }
