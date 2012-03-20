@@ -29,10 +29,10 @@
 typedef struct {
 	int flags;
 	struct sockaddr_un saddr;
-	int fd;
+	int sd;
 	char ipc_path[256];
 	int ipc_path_pos;
-	int linux_abstract_sockets;
+	int on_linux;
 	struct stat info;
 	struct utsname unixname;
 	char *buffer;

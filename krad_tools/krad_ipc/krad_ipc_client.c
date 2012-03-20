@@ -1,6 +1,6 @@
 #include "krad_ipc_client.h"
 
-krad_ipc_client_t *krad_ipc_connect (char *daemon_name, char *station_name)
+krad_ipc_client_t *krad_ipc_connect (char *callsign_or_ipc_path_or_port)
 {
 	
 	krad_ipc_client_t *client = calloc (1, sizeof (krad_ipc_client_t));
@@ -18,17 +18,13 @@ krad_ipc_client_t *krad_ipc_connect (char *daemon_name, char *station_name)
 	uname(&client->unixname);
 
 	if (strncmp(client->unixname.sysname, "Linux", 5) == 0) {
-		client->linux_abstract_sockets = 1;
-		client->ipc_path_pos = sprintf(client->ipc_path, "@%s_ipc", daemon_name);
+		client->on_linux = 1;
+		client->ipc_path_pos = sprintf(client->ipc_path, "@%s_ipc", callsign_or_ipc_path_or_port);
 	} else {
-		client->ipc_path_pos = sprintf(client->ipc_path, "%s/krad/run/%s_ipc", getenv ("HOME"), daemon_name);
+		client->ipc_path_pos = sprintf(client->ipc_path, "%s/%s_ipc", getenv ("HOME"), callsign_or_ipc_path_or_port);
 	}
 	
-	if (station_name != NULL) {
-		sprintf(client->ipc_path + client->ipc_path_pos, "_%s", station_name);
-	}
-	
-	if (!client->linux_abstract_sockets) {
+	if (!client->on_linux) {
 		if(stat(client->ipc_path, &client->info) != 0) {
 			krad_ipc_disconnect(client);
 			printf ("Krad IPC Client: IPC PATH Failure\n");
@@ -38,7 +34,7 @@ krad_ipc_client_t *krad_ipc_connect (char *daemon_name, char *station_name)
 	
 	if (krad_ipc_client_init (client) == 0) {
 		printf ("Failed to init krad ipc client!\n");
-		krad_ipc_disconnect(client);
+		krad_ipc_disconnect (client);
 		return NULL;
 	}
 
@@ -49,8 +45,8 @@ krad_ipc_client_t *krad_ipc_connect (char *daemon_name, char *station_name)
 int krad_ipc_client_init (krad_ipc_client_t *client)
 {
 
-	client->fd = socket (AF_UNIX, SOCK_STREAM, 0);
-	if (client->fd == -1) {
+	client->sd = socket (AF_UNIX, SOCK_STREAM, 0);
+	if (client->sd == -1) {
 		printf ("Krad IPC Client: socket fail\n");
 		return 0;
 	}
@@ -58,38 +54,38 @@ int krad_ipc_client_init (krad_ipc_client_t *client)
 	client->saddr.sun_family = AF_UNIX;
 	snprintf (client->saddr.sun_path, sizeof(client->saddr.sun_path), "%s", client->ipc_path);
 
-	if (client->linux_abstract_sockets) {
+	if (client->on_linux) {
 		client->saddr.sun_path[0] = '\0';
 	}
 
 
-	if (connect (client->fd, (struct sockaddr *) &client->saddr, sizeof (client->saddr)) == -1) {
-		close (client->fd);
-		client->fd = 0;
+	if (connect (client->sd, (struct sockaddr *) &client->saddr, sizeof (client->saddr)) == -1) {
+		close (client->sd);
+		client->sd = 0;
 		printf ("Can't connect to socket %s\n", client->ipc_path);
 		return 0;
 	}
 
-	client->flags = fcntl (client->fd, F_GETFL, 0);
+	client->flags = fcntl (client->sd, F_GETFL, 0);
 
 	if (client->flags == -1) {
-		close (client->fd);
-		client->fd = 0;
+		close (client->sd);
+		client->sd = 0;
 		printf ("Krad IPC Client: socket get flag fail\n");
 		return 0;
 	}
-
+/*
 	client->flags |= O_NONBLOCK;
 
-	client->flags = fcntl (client->fd, F_SETFL, client->flags);
+	client->flags = fcntl (client->sd, F_SETFL, client->flags);
 	if (client->flags == -1) {
-		close (client->fd);
-		client->fd = 0;
+		close (client->sd);
+		client->sd = 0;
 		printf ("Krad IPC Client: socket set flag fail\n");
 		return 0;
 	}
-
-	return client->fd;
+*/
+	return client->sd;
 }
 
 void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
@@ -102,10 +98,10 @@ void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
 	len = strlen(cmd);
 
 	FD_ZERO (&set);
-	FD_SET (client->fd, &set);
+	FD_SET (client->sd, &set);
 
-	select (client->fd+1, NULL, &set, NULL, NULL);
-	send (client->fd, cmd, len, 0);
+	select (client->sd+1, NULL, &set, NULL, NULL);
+	send (client->sd, cmd, len, 0);
 
 }
 
@@ -120,18 +116,20 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	len = strlen(cmd);
 	
 	FD_ZERO (&set);
-	FD_SET (client->fd, &set);
+	FD_SET (client->sd, &set);
 	
-	select (client->fd+1, NULL, &set, NULL, NULL);
-	send (client->fd, cmd, len, 0);
+	select (client->sd+1, NULL, &set, NULL, NULL);
+	send (client->sd, cmd, len, 0);
+
+	printf("sent\n");
 
 	FD_ZERO (&set);
-	FD_SET (client->fd, &set);
+	FD_SET (client->sd, &set);
 
-	select (client->fd+1, &set, NULL, NULL, NULL);
-	bytes = recv(client->fd, client->buffer, KRAD_IPC_BUFFER_SIZE, 0);
+	select (client->sd+1, &set, NULL, NULL, NULL);
+	bytes = recv(client->sd, client->buffer, KRAD_IPC_BUFFER_SIZE, 0);
 	client->buffer[bytes] = '\0';
-	//printf("Received %d bytes of data: '%s' \n", bytes, client->buffer);
+	printf("Received %d bytes of data: '%s' \n", bytes, client->buffer);
 	return bytes;
 }
 
@@ -145,16 +143,16 @@ int krad_ipc_wait (krad_ipc_client_t *client, char *buffer, int size) {
 	//len = strlen(cmd);
 	
 	//FD_ZERO (&set);
-	//FD_SET (client->fd, &set);
+	//FD_SET (client->sd, &set);
 	
-	//select (client->fd+1, NULL, &set, NULL, NULL);
-	//send (client->fd, cmd, len, 0);
+	//select (client->sd+1, NULL, &set, NULL, NULL);
+	//send (client->sd, cmd, len, 0);
 
 	FD_ZERO (&set);
-	FD_SET (client->fd, &set);
+	FD_SET (client->sd, &set);
 
-	select (client->fd+1, &set, NULL, NULL, NULL);
-	bytes = recv(client->fd, buffer, size, 0);
+	select (client->sd+1, &set, NULL, NULL, NULL);
+	bytes = recv(client->sd, buffer, size, 0);
 	buffer[bytes] = '\0';
 	//printf("Received %d bytes of data: '%s' \n", bytes, client->buffer);
 	return bytes;
@@ -170,18 +168,18 @@ int krad_ipc_recv (krad_ipc_client_t *client, char *buffer, int size) {
 	//len = strlen(cmd);
 	
 	//FD_ZERO (&set);
-	//FD_SET (client->fd, &set);
+	//FD_SET (client->sd, &set);
 	
-	//select (client->fd+1, NULL, &set, NULL, NULL);
-	//send (client->fd, cmd, len, 0);
+	//select (client->sd+1, NULL, &set, NULL, NULL);
+	//send (client->sd, cmd, len, 0);
 
 	//FD_ZERO (&set);
-	//FD_SET (client->fd, &set);
+	//FD_SET (client->sd, &set);
 
-	//select (client->fd+1, &set, NULL, NULL, NULL);
-	//bytes = recv(client->fd, client->buffer, KRAD_IPC_BUFFER_SIZE, 0);
+	//select (client->sd+1, &set, NULL, NULL, NULL);
+	//bytes = recv(client->sd, client->buffer, KRAD_IPC_BUFFER_SIZE, 0);
 
-	bytes = recv(client->fd, buffer, size, 0);
+	bytes = recv(client->sd, buffer, size, 0);
 	buffer[bytes] = '\0';
 	//printf("Received %d bytes of data: '%s' \n", bytes, client->buffer);
 	return bytes;
@@ -193,8 +191,8 @@ void krad_ipc_disconnect(krad_ipc_client_t *client) {
 		if (client->buffer != NULL) {
 			free(client->buffer);
 		}
-		if (client->fd != 0) {
-			close(client->fd);
+		if (client->sd != 0) {
+			close(client->sd);
 		}
 		free(client);
 	}
