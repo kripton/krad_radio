@@ -265,15 +265,21 @@ uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64
 
 void krad_ipc_server_respond_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t number) {
 
-
-	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
 	krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, ebml_id, number);
-	//krad_ebml_write_data_size (client->krad_ebml, 0);
-	//krad_ebml_finish_element (client->krad_ebml, radio_command);
-	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
-		
 	krad_ebml_write_sync (krad_ipc_server->current_client->krad_ebml2);
 
+}
+
+void krad_ipc_server_broadcast_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t number) {
+
+	int c;
+
+	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		if ((krad_ipc_server->clients[c].active == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+			krad_ebml_write_int8 (krad_ipc_server->clients[c].krad_ebml2, ebml_id, number);
+			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+		}
+	}
 }
 
 
@@ -289,7 +295,7 @@ void *krad_ipc_server_run (void *arg) {
 
 	while (!krad_ipc_server->shutdown) {
 
-		ret = poll(krad_ipc_server->sockets, krad_ipc_server->socket_count, KRAD_IPC_SERVER_TIMEOUT_MS);
+		ret = poll (krad_ipc_server->sockets, krad_ipc_server->socket_count, KRAD_IPC_SERVER_TIMEOUT_MS);
 
 		if (ret > 0) {
 		
@@ -302,9 +308,11 @@ void *krad_ipc_server_run (void *arg) {
 				ret--;
 			}
 	
-			for (s = 1; s <= ret; s++) {
+			for (s = 1; ret > 0; s++) {
 
 				if (krad_ipc_server->sockets[s].revents) {
+					
+					ret--;
 				
 					client = krad_ipc_server->sockets_clients[s];
 				
@@ -328,7 +336,7 @@ void *krad_ipc_server_run (void *arg) {
 	
 						client->input_buffer_pos += recv(krad_ipc_server->sockets[s].fd, client->input_buffer + client->input_buffer_pos, (sizeof (client->input_buffer) - client->input_buffer_pos), 0);
 					
-						printf("Krad IPC Server: Got %d bytes\n", client->input_buffer_pos);
+						//printf("Krad IPC Server: Got %d bytes\n", client->input_buffer_pos);
 					
 						// big enough to read element id and data size
 						if ((client->input_buffer_pos > 7) && (client->confirmed == 0)) {
@@ -363,7 +371,7 @@ void *krad_ipc_server_run (void *arg) {
 							while (krad_ebml_io_buffer_read_space (&client->krad_ebml->io_adapter)) {
 								client->krad_ipc_server->current_client = client; /* single thread has a few perks */
 								resp = client->krad_ipc_server->handler (client->output_buffer, &client->command_response_len, client->krad_ipc_server->pointer);
-								printf("Krad IPC Server: cmd resp %d len %d\n", resp, client->command_response_len);
+								//printf("Krad IPC Server: cmd resp %d len %d\n", resp, client->command_response_len);
 							}
 						
 						}

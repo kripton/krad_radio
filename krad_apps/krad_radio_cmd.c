@@ -1,7 +1,7 @@
 #include "krad_ipc_client.h"
 #include "krad_radio_ipc.h"
-int main (int argc, char *argv[])
-{
+
+int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
 	char cmd[128];

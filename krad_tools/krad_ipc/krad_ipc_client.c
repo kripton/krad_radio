@@ -123,6 +123,52 @@ void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
 
 }
 
+int krad_ipc_cmd2 (krad_ipc_client_t *client, int value) {
+
+	fd_set set;
+	
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;	
+	
+	uint64_t number;		
+	
+//	FD_ZERO (&set);
+//	FD_SET (client->sd, &set);
+	
+//	select (client->sd+1, NULL, &set, NULL, NULL);
+	
+	uint64_t ipc_command;
+	uint64_t radio_command;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SETCONTROL, value);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+	return 0;
+}
+
+int krad_ipc_client_check (krad_ipc_client_t *client, int *value) {
+
+	int ret;
+	struct pollfd sockets[1];
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;	
+
+	sockets[0].fd = client->sd;
+	sockets[0].events = POLLIN;
+
+	while ((ret = poll(sockets, 1, 0)) > 0) {
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+		*value = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+		//printf("Received number %d\n", *value);
+	}
+
+	return 0;
+}
 
 int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 

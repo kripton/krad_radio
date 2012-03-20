@@ -48,6 +48,9 @@ typedef struct {
 
 } krad_ipc_client_t;
 
+int krad_ipc_client_check (krad_ipc_client_t *client, int *value);
+int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
+
 
 krad_ipc_client_t *krad_ipc_connect ();
 int krad_ipc_client_init (krad_ipc_client_t *client);

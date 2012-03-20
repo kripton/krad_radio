@@ -135,8 +135,9 @@ void krad_radio (char *callsign_or_config) {
 
 void krad_radio_run (krad_radio_t *krad_radio) {
 
-	sleep (25);
-
+	while (1) {
+		sleep (25);
+	}
 }
 
 
@@ -148,6 +149,8 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	uint64_t ebml_data_size;
 	uint64_t number;
 	
+	//printf("handler! \n");	
+	
 	krad_ipc_server_read_command ( krad_radio_station->ipc, &command, &ebml_data_size);
 
 	switch ( command ) {
@@ -157,12 +160,13 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		case EBML_ID_KRAD_RADIO_CMD_SETCONTROL:
 			number = krad_ipc_server_read_number ( krad_radio_station->ipc, ebml_data_size );
 			krad_radio_station->test_value = number;
-			printf("SET CONTROL to %d!\n", krad_radio_station->test_value);
+			//printf("SET CONTROL to %d!\n", krad_radio_station->test_value);
+			krad_ipc_server_broadcast_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_RESPONSE_GETCONTROL, krad_radio_station->test_value);
 			*output_len = 666;
 			return 2;
 			break;	
 		case EBML_ID_KRAD_RADIO_CMD_GETCONTROL:
-			printf("GET CONTROL! %d\n", krad_radio_station->test_value);
+			//printf("GET CONTROL! %d\n", krad_radio_station->test_value);
 			krad_ipc_server_respond_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_RESPONSE_GETCONTROL, krad_radio_station->test_value);
 			return 1;
 			break;
