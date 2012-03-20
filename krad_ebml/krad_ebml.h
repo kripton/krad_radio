@@ -49,8 +49,8 @@
 #define EBML_ID_DOCTYPE            0x4282
 #define EBML_ID_DOCTYPEVERSION     0x4287
 #define EBML_ID_DOCTYPEREADVERSION 0x4285
+#define EBML_ID_HEADER			   0x1A45DFA3
 
-#define EBML_ID_HEADER					0x1A45DFA3
 #define EBML_ID_CLUSTER					0x1F43B675
 #define EBML_ID_TRACK_UID				0x73C5
 #define EBML_ID_TRACK_TYPE				0x83
@@ -131,6 +131,47 @@ typedef struct krad_ebml_videotrack_St krad_ebml_videotrack_t;
 typedef struct krad_ebml_subtrack_St krad_ebml_subtrack_t;
 typedef struct krad_ebml_cluster_St krad_ebml_cluster_t;
 
+/* from nestegg */
+
+enum ebml_type_enum {
+  TYPE_UNKNOWN,
+  TYPE_MASTER,
+  TYPE_UINT,
+  TYPE_FLOAT,
+  TYPE_INT,
+  TYPE_STRING,
+  TYPE_BINARY
+};
+
+struct ebml_binary {
+  unsigned char * data;
+  size_t length;
+};
+
+struct ebml_type {
+  union ebml_value {
+    uint64_t u;
+    double f;
+    int64_t i;
+    char * s;
+    struct ebml_binary b;
+  } v;
+  enum ebml_type_enum type;
+};
+
+struct ebml_header {
+  struct ebml_type ebml_version;
+  struct ebml_type ebml_read_version;
+  struct ebml_type ebml_max_id_length;
+  struct ebml_type ebml_max_size_length;
+  struct ebml_type doctype;
+  struct ebml_type doctype_version;
+  struct ebml_type doctype_read_version;
+};
+
+/* end from nestegg */
+
+
 typedef enum {
 	KRAD_EBML_IO_READONLY,
 	KRAD_EBML_IO_WRITEONLY,
@@ -192,6 +233,8 @@ struct krad_ebml_io_St {
 };
 
 struct krad_ebml_St {
+	
+	struct ebml_header *header;
 	
 	int record_cluster_info;
 	krad_ebml_io_t io_adapter;
@@ -283,6 +326,11 @@ void krad_ebml_finish_element (krad_ebml_t *krad_ebml, uint64_t element_position
 
 
 /* reading functions */
+
+int krad_ebml_check_doctype_header (struct ebml_header *ebml_head, char *doctype, int doctype_version, int doctype_read_version );
+int krad_ebml_read_ebml_header (krad_ebml_t *krad_ebml, struct ebml_header *ebml_head);
+int krad_ebml_check_ebml_header (struct ebml_header *ebml_head);
+void krad_ebml_print_ebml_header (struct ebml_header *ebml_head);
 
 int krad_ebml_track_count(krad_ebml_t *krad_ebml);
 krad_codec_t krad_ebml_track_codec (krad_ebml_t *krad_ebml, int track);

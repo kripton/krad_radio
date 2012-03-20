@@ -1434,6 +1434,145 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 }
 
+void krad_ebml_print_ebml_header (struct ebml_header *ebml_head) {
+
+	printf ("EBML Header:\n");
+	printf ("EBML Version: %zu\n", ebml_head->ebml_version.v.u);
+	printf ("EBML Read Version: %zu\n", ebml_head->ebml_read_version.v.u);
+	printf ("EBML Max ID Length: %zu\n", ebml_head->ebml_max_id_length.v.u);
+	printf ("EBML Max Size Length: %zu\n", ebml_head->ebml_max_size_length.v.u);
+	printf ("EBML Doctype: %s\n", ebml_head->doctype.v.s);				
+	printf ("EBML Doctype Version: %zu\n", ebml_head->doctype_version.v.u);
+	printf ("EBML Doctype Read Version: %zu\n", ebml_head->doctype_read_version.v.u);
+	printf ("\n");
+}
+
+int krad_ebml_check_ebml_header (struct ebml_header *ebml_head) {
+
+	if ((ebml_head->ebml_version.v.u == 1) &&
+	    (ebml_head->ebml_read_version.v.u == 1) &&
+	    (ebml_head->ebml_max_id_length.v.u == 4) &&
+	    (ebml_head->ebml_max_size_length.v.u <= 8))
+	{
+		return 1;
+	}
+	
+	printf ("Krad EBML can't read this EBML!\n");
+	krad_ebml_print_ebml_header (ebml_head);
+	
+	return 0;
+	
+}
+
+
+int krad_ebml_check_doctype_header (struct ebml_header *ebml_head, char *doctype, int doctype_version, int doctype_read_version ) {
+
+	if ((strcmp(doctype, ebml_head->doctype.v.s) == 0) &&
+	   (doctype_version == ebml_head->doctype_version.v.u) &&
+	   (doctype_read_version == ebml_head->doctype_read_version.v.u))
+	{
+		return 1;
+	}
+	
+	return 0;
+	
+}
+
+int krad_ebml_read_ebml_header (krad_ebml_t *krad_ebml, struct ebml_header *ebml_head) {
+
+	int ret;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int header_items;
+	uint64_t number;
+	char *string;
+	unsigned char buffer[7];
+
+	header_items = 7;
+	number = 0;
+	string = NULL;
+
+	ret = krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);		
+
+	if ((ret == 0) || (ebml_id != EBML_ID_HEADER)) {
+		return 0;
+	} else {
+
+		while (header_items) {
+		
+			memset (buffer, '0', sizeof(buffer));
+		
+			ret = krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
+			
+			switch (ebml_id) {
+				case EBML_ID_DOCTYPE:
+					string = malloc(ebml_data_size + 1);
+					string[ebml_data_size] = '\0';
+					ret = krad_ebml_read ( krad_ebml, string, ebml_data_size );
+					if (ret != ebml_data_size) {
+						return 0;
+					}
+					break;
+				case EBML_ID_EBMLVERSION:
+				case EBML_ID_EBMLREADVERSION:
+				case EBML_ID_EBMLMAXIDLENGTH:
+				case EBML_ID_EBMLMAXSIZELENGTH:
+				case EBML_ID_DOCTYPEVERSION:
+				case EBML_ID_DOCTYPEREADVERSION:
+					ret = krad_ebml_read ( krad_ebml, &buffer, ebml_data_size );
+					if (ret != ebml_data_size) {
+						return 0;
+					}
+					rmemcpy ( &number, &buffer, ebml_data_size);
+					break;
+				default:
+					return 0;
+			}
+
+			switch (ebml_id) {
+				case EBML_ID_DOCTYPE:
+					ebml_head->doctype.v.s = string;
+					ebml_head->doctype.type = TYPE_STRING;
+					break;			
+				case EBML_ID_EBMLVERSION:
+					ebml_head->ebml_version.v.u = number;
+					ebml_head->ebml_version.type = TYPE_UINT;
+					break;
+				case EBML_ID_EBMLREADVERSION:
+					ebml_head->ebml_read_version.v.u = number;
+					ebml_head->ebml_read_version.type = TYPE_UINT;
+					break;
+				case EBML_ID_EBMLMAXIDLENGTH:
+					ebml_head->ebml_max_id_length.v.u = number;
+					ebml_head->ebml_max_id_length.type = TYPE_UINT;
+					break;
+				case EBML_ID_EBMLMAXSIZELENGTH:
+					ebml_head->ebml_max_size_length.v.u = number;
+					ebml_head->ebml_max_size_length.type = TYPE_UINT;
+					break;
+				case EBML_ID_DOCTYPEVERSION:
+					ebml_head->doctype_version.v.u = number;
+					ebml_head->doctype_version.type = TYPE_UINT;
+					break;
+				case EBML_ID_DOCTYPEREADVERSION:
+					ebml_head->doctype_read_version.v.u = number;
+					ebml_head->doctype_read_version.type = TYPE_UINT;
+					break;
+				default:
+					return 0;
+			}
+
+			header_items--;
+		}
+		
+		return 1;
+
+	}
+
+}
+
+
+/* IO */
 
 int krad_ebml_write(krad_ebml_t *krad_ebml, void *buffer, size_t length) {
 
@@ -1763,7 +1902,10 @@ void krad_ebml_destroy(krad_ebml_t *krad_ebml) {
 	}
 	
 	free(krad_ebml->tracks);
-	
+	if (krad_ebml->header->doctype.v.s != NULL) {
+		free (krad_ebml->header->doctype.v.s);
+	}
+	free (krad_ebml->header);
 	free (krad_ebml);
 
 }
@@ -1775,6 +1917,9 @@ krad_ebml_t *krad_ebml_create() {
 	krad_ebml->ebml_level = -1;
 	krad_ebml->io_adapter.mode = -1;
 	krad_ebml->smallest_cluster = 10000000;
+	
+	krad_ebml->header = calloc(1, sizeof(struct ebml_header));
+	
 	return krad_ebml;
 
 }
@@ -1813,6 +1958,9 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 	
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READONLY) {
 		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
+		krad_ebml_read_ebml_header (krad_ebml, krad_ebml->header);
+		krad_ebml_check_ebml_header (krad_ebml->header);
+		krad_ebml_print_ebml_header (krad_ebml->header);		
 		krad_ebml_read_packet (krad_ebml, NULL, NULL, NULL);
 	}
 		
@@ -1842,9 +1990,10 @@ krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode) {
 		krad_ebml->record_cluster_info = 1;
 		krad_ebml->cluster_recording_space = 5000;
 		krad_ebml->clusters = calloc(krad_ebml->cluster_recording_space, sizeof(krad_ebml_cluster_t));
-	
 		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
-	
+		krad_ebml_read_ebml_header (krad_ebml, krad_ebml->header);
+		krad_ebml_check_ebml_header (krad_ebml->header);
+		krad_ebml_print_ebml_header (krad_ebml->header);
 		krad_ebml_read_packet (krad_ebml, NULL, NULL, NULL);
 	}
 
