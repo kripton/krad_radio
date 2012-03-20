@@ -37,9 +37,6 @@
 #define KRAD_IPC_DOCTYPE_READ_VERSION 6
 
 #define EBML_ID_KRAD_IPC_CMD 0x4444
-#define EBML_ID_KRAD_RADIO_CMD 0x7384
-#define EBML_ID_KRAD_MIXER_CMD 0x4443
-#define EBML_ID_KRAD_LINK_CMD 0x69A5
 
 enum krad_ipc_shutdown {
 	KRAD_IPC_STARTING = -1,
@@ -65,13 +62,14 @@ struct krad_ipc_server_St {
 	int socket_count;
 	
 	krad_ipc_server_client_t *clients;
+	krad_ipc_server_client_t *current_client;
 
 	pthread_t server_thread;
 
 	struct pollfd sockets[KRAD_IPC_SERVER_MAX_CLIENTS + 1];
 	krad_ipc_server_client_t *sockets_clients[KRAD_IPC_SERVER_MAX_CLIENTS + 1];	
 
-	int (*handler)(void *, void *, int *, void *);
+	int (*handler)(void *, int *, void *);
 	void *pointer;
 	
 };
@@ -89,7 +87,9 @@ struct krad_ipc_server_client_St {
 
 	char input_buffer[4096 * 4];
 	char output_buffer[4096 * 4];
-
+	char command_buffer[4096 * 4];
+	int command_response_len;
+	
 	int input_buffer_pos;
 	int output_buffer_pos;
 
@@ -106,10 +106,13 @@ void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
 krad_ipc_server_t *krad_ipc_server_create (char *callsign_or_ipc_path_or_port);
 krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server);
 
+void krad_ipc_server_respond_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t number);
+int krad_ipc_server_read_command (krad_ipc_server_t *krad_ipc_server, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
+uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64_t data_size);
 //void krad_ipc_server_client_send (void *client, char *data);
 
 void *krad_ipc_server_run (void *arg);
 void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server);
 
-krad_ipc_server_t *krad_ipc_server (char *callsign_or_ipc_path_or_port, int handler (void *, void *, int *, void *), void *ptr);
+krad_ipc_server_t *krad_ipc_server (char *callsign_or_ipc_path_or_port, int handler (void *, int *, void *), void *pointer);
 

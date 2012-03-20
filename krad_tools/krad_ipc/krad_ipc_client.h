@@ -32,6 +32,7 @@
 #define KRAD_IPC_SERVER_DOCTYPE "krad_ipc_server"
 #define KRAD_IPC_DOCTYPE_VERSION 6
 #define KRAD_IPC_DOCTYPE_READ_VERSION 6
+#define EBML_ID_KRAD_IPC_CMD 0x4444
 
 typedef struct {
 	int flags;

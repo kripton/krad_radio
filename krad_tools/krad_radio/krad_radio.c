@@ -135,17 +135,42 @@ void krad_radio (char *callsign_or_config) {
 
 void krad_radio_run (krad_radio_t *krad_radio) {
 
-	sleep (5);
+	sleep (25);
 
 }
 
 
-int krad_radio_handler ( void *input, void *output, int *output_len, void *ptr ) {
+int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 	krad_radio_t *krad_radio_station = (krad_radio_t *)ptr;
 	
+	uint32_t command;
+	uint64_t ebml_data_size;
+	uint64_t number;
 	
+	krad_ipc_server_read_command ( krad_radio_station->ipc, &command, &ebml_data_size);
+
+	switch ( command ) {
 	
+		case EBML_ID_KRAD_RADIO_CMD:
+			return krad_radio_handler ( output, output_len, ptr );
+		case EBML_ID_KRAD_RADIO_CMD_SETCONTROL:
+			number = krad_ipc_server_read_number ( krad_radio_station->ipc, ebml_data_size );
+			krad_radio_station->test_value = number;
+			printf("SET CONTROL to %d!\n", krad_radio_station->test_value);
+			*output_len = 666;
+			return 2;
+			break;	
+		case EBML_ID_KRAD_RADIO_CMD_GETCONTROL:
+			printf("GET CONTROL! %d\n", krad_radio_station->test_value);
+			krad_ipc_server_respond_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_RESPONSE_GETCONTROL, krad_radio_station->test_value);
+			return 1;
+			break;
+		default:
+			printf("unknown command! %u\n", command);
+			return 0;
+			break;
+	}
 
 	return 0;
 

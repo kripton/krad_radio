@@ -1,5 +1,7 @@
 #include "krad_ipc_client.h"
 
+#include "krad_radio_ipc.h"
+
 krad_ipc_client_t *krad_ipc_connect (char *callsign_or_ipc_path_or_port)
 {
 	
@@ -124,21 +126,40 @@ void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
 
 int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 
-	int len;
-	int bytes;
 	fd_set set;
-
-	strcat(cmd, "|");
-	len = strlen(cmd);
+	
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;	
+	
+	uint64_t number;		
 	
 	FD_ZERO (&set);
 	FD_SET (client->sd, &set);
 	
 	select (client->sd+1, NULL, &set, NULL, NULL);
 	
-	krad_ebml_write_string (client->krad_ebml, 0x4444, "monkey head");
+	uint64_t ipc_command;
+	uint64_t radio_command;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SETCONTROL, 82);
+
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
 	krad_ebml_write_sync (client->krad_ebml);
-	//send (client->sd, cmd, len, 0);
+
+
+	//usleep(200000);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_write_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GETCONTROL);
+	krad_ebml_write_data_size (client->krad_ebml, 0);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
 
 	printf("sent\n");
 
@@ -146,10 +167,12 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	FD_SET (client->sd, &set);
 
 	select (client->sd+1, &set, NULL, NULL, NULL);
-	bytes = recv(client->sd, client->buffer, KRAD_IPC_BUFFER_SIZE, 0);
-	client->buffer[bytes] = '\0';
-	printf("Received %d bytes of data: '%s' \n", bytes, client->buffer);
-	return bytes;
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+	
+	printf("Received number %zu\n", number);
+	return 0;
 }
 
 int krad_ipc_wait (krad_ipc_client_t *client, char *buffer, int size) {

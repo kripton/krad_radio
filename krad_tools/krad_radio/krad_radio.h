@@ -10,6 +10,8 @@
 
 #include "krad_ipc_server.h"
 
+#include "krad_radio_ipc.h"
+
 typedef struct krad_radio_St krad_radio_t;
 
 struct krad_radio_St {
@@ -17,6 +19,8 @@ struct krad_radio_St {
 	char *name;
 	char *callsign;
 	krad_ipc_server_t *ipc;
+
+	int test_value;
 
 };
 
@@ -28,4 +32,4 @@ void krad_radio_daemonize ();
 void krad_radio_run (krad_radio_t *krad_radio);
 void krad_radio (char *callsign_or_config);
 
-int krad_radio_handler ( void *input, void *output, int *output_len, void *ptr );
+int krad_radio_handler ( void *output, int *output_len, void *ptr );

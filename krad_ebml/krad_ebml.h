@@ -319,6 +319,7 @@ void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode);
 
 void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion);
 void krad_ebml_write_element (krad_ebml_t *krad_ebml, uint32_t element);
+void krad_ebml_write_int8 (krad_ebml_t *krad_ebml, uint64_t element, int8_t number);
 void krad_ebml_write_uint32 (krad_ebml_t *krad_ebml, uint64_t element, uint32_t number);
 void krad_ebml_write_string (krad_ebml_t *krad_ebml, uint64_t element, char *string);
 void krad_ebml_write_data_size (krad_ebml_t *krad_ebml, uint64_t data_size);
@@ -357,9 +358,11 @@ void krad_ebml_disable_read_copy ( krad_ebml_t *krad_ebml );
 int krad_ebml_read_copy (krad_ebml_t *krad_ebml, void *buffer );
 void krad_ebml_enable_read_copy ( krad_ebml_t *krad_ebml );
 
-int krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer);
+uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size);
+uint64_t krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer);
 krad_ebml_t *krad_ebml_open_buffer(krad_ebml_io_mode_t mode);
-int krad_ebml_io_buffer_push(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
+int krad_ebml_io_buffer_push (krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
+int krad_ebml_io_buffer_read_space (krad_ebml_io_t *krad_ebml_io);
 krad_ebml_t *krad_ebml_open_active_socket (int socket, krad_ebml_io_mode_t mode);
 /* r/w functions */
 

@@ -1055,11 +1055,10 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 }
 
 
-int krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer) {
+uint64_t krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer) {
 
 	int ret;
 	uint32_t ebml_id;
-	//uint32_t ebml_id_length;
 	uint64_t ebml_data_size;
 
 	ret = krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);		
@@ -1071,13 +1070,34 @@ int krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer) {
 	printf("data size is %" PRIu64 "\n", ebml_data_size);
 
 	//if (ebml_id == EBML_ID_HEADER) {
-		ret = krad_ebml_read ( krad_ebml, buffer, ebml_data_size );
-		printf("%s %s\n", ebml_identify(ebml_id), buffer);
+	//	ret = krad_ebml_read ( krad_ebml, buffer, ebml_data_size );
+	//	printf("%s %s\n", ebml_identify(ebml_id), buffer);
 	//}
 	
 	return ebml_data_size;
 }
 
+
+uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size) {
+
+	int ret;
+	unsigned char temp[7];
+	uint64_t number;
+	
+	number = 0;
+	
+	memset (temp, '\0', sizeof(temp));
+
+	ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
+	if (ret != ebml_data_size) {
+		printf("Failurea reading %d %zu\n", ret, ebml_data_size);
+		exit(1);
+	}
+
+	rmemcpy ( &number, &temp, ebml_data_size);
+	return number;
+
+}
 
 int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecode, unsigned char *buffer) {
 
@@ -1763,6 +1783,12 @@ int krad_ebml_io_buffer_read(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t 
 	}
 
 	return length;
+
+}
+
+int krad_ebml_io_buffer_read_space (krad_ebml_io_t *krad_ebml_io) {
+
+	return krad_ebml_io->buffer_io_read_len - krad_ebml_io->buffer_io_read_pos;
 
 }
 
