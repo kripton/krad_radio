@@ -53,6 +53,122 @@ void krad_http_404 (krad_http_client_t *client) {
 	
 }
 
+
+/*
+
+void upload(int fd) {
+	int file_fd = 0, buflen = 0, wrote = 0, end = 0, ret = 0, bufpos = 0, wrote_total = 0, length = 0, status;
+	
+	static char buffer[8192];
+ 
+ 	char station[256];
+ 	char filename[512];
+	char fullfilename[768];
+
+	struct stat st;
+
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+	
+	printf("\nNew Upload\n");
+	
+	ret = read(fd,buffer,BUFSIZE); 	 
+	
+	if (ret == 0 || ret == -1) {	 
+		printf("failed to read browser request\n");
+		exit(1);
+	}
+	
+	buflen = BUFSIZE / 2;
+
+	while(bufpos <= buflen) {
+		if (strncmp(buffer + bufpos, "Content-Length: ", 15) == 0) {
+			length = atoi(buffer + 15 + bufpos);
+			printf("Upload Size: %dK\n", length / 1000);
+		}
+
+		if (strncmp(buffer + bufpos, "X-File-Name: ", 13) == 0) {
+			end = strcspn(buffer + bufpos + 13, "\r");
+			strncpy(filename, buffer + bufpos + 13, end);
+			filename[end] = '\0';
+			printf("Filename: %s\n", filename);
+		}
+		
+		if (strncmp(buffer + bufpos, "X-Krad-Station: ", 16) == 0) {
+			strncpy(station, buffer + bufpos + 16, strcspn(buffer + bufpos + 16, "\r"));
+			printf("Station %s\n", station);
+		}
+		
+		bufpos += strcspn(buffer + bufpos, "\r") + 2;
+		//printf("spin %d - %d\n", bufpos, buflen);
+		if (strncmp(buffer + bufpos, "\r\n", 2) == 0) {
+			bufpos = bufpos + 2;
+			printf("Headers Length: %d\n", bufpos );
+			break;
+		}		
+	}
+
+
+	// test dir existance
+	sprintf(fullfilename, "%s/krad/uploads/%s", homedir, station);
+	if(stat(fullfilename, &st) == 0) {
+		printf("Directory Exists: %s\n", fullfilename );
+	} else {
+		status = mkdir(fullfilename, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if (status == 0) {	
+			printf("Directory Created: %s\n", fullfilename );
+		} else {
+			printf("Cant create directory: %s\n", fullfilename );
+		}	
+	}
+
+	sprintf(fullfilename, "%s/krad/uploads/%s/%s", homedir, station, filename);
+
+	if ((file_fd = open(fullfilename, O_WRONLY | O_CREAT, mode)) == -1) {
+		printf("failed to open new file");
+		exit(1);
+	}
+
+
+	wrote = write(file_fd, buffer + bufpos, ret - bufpos);
+	wrote_total += wrote;
+	//printf("wrote %d bytes total %d\n", wrote, wrote_total);
+
+	while (wrote_total != length) {
+
+		if (wrote_total > length) {	 
+			printf("failed got to much data\n");
+			close(file_fd);
+			close(fd);
+			exit(1);
+		}
+
+		ret = read(fd, buffer, BUFSIZE);
+		
+		if (ret == 0 || ret < 0) {	 
+			printf("failed to read incomping socket\n");
+			close(file_fd);
+			close(fd);
+			exit(1);
+		}
+		
+		wrote = write(file_fd, buffer, ret);
+		wrote_total += wrote;
+	}
+
+	close(file_fd);
+	close(fd);
+
+	printf("Upload Complete %s - %dKB / %dMB for station %s\n", fullfilename, wrote_total / 1000, (wrote_total / 1000 / 1000), station);
+
+	tell_station_about_upload(station, fullfilename);
+
+
+	exit(0);
+}
+
+
+*/
+
 void *krad_http_client_thread (void *arg) {
 
 
