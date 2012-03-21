@@ -20,7 +20,7 @@ enum fdclass {
 	KRAD_IPC = 1,
 };
 
-enum krad_ipc_shutdown {
+enum krad_websocket_shutdown {
 	KRAD_WEBSOCKET_STARTING = -1,
 	KRAD_WEBSOCKET_RUNNING,
 	KRAD_WEBSOCKET_DO_SHUTDOWN,
@@ -69,6 +69,6 @@ int callback_krad_ipc (struct libwebsocket_context * this,
 void set_poll_mode_pollfd(struct pollfd *apollfd, short events);
 void set_poll_mode_fd(int fd, short events);
 
-void krad_websocket_destroy (krad_websocket_t *krad_websocket);
-krad_websocket_t *krad_websocket_create (char *callsign, int port);
-void *krad_websocket_run (void *arg);
+void krad_websocket_server_destroy (krad_websocket_t *krad_websocket);
+krad_websocket_t *krad_websocket_server_create (char *callsign, int port);
+void *krad_websocket_server_run (void *arg);

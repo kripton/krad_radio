@@ -9,8 +9,9 @@
 #include <sys/stat.h>
 
 #include "krad_ipc_server.h"
-
 #include "krad_radio_ipc.h"
+#include "krad_websocket.h"
+#include "krad_http.h"
 
 typedef struct krad_radio_St krad_radio_t;
 
@@ -19,7 +20,8 @@ struct krad_radio_St {
 	char *name;
 	char *callsign;
 	krad_ipc_server_t *ipc;
-
+	krad_websocket_t *krad_websocket;
+	krad_http_t *krad_http;
 	int test_value;
 
 };

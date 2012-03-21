@@ -246,7 +246,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 }
 
 
-krad_websocket_t *krad_websocket_create (char *callsign, int port) {
+krad_websocket_t *krad_websocket_server_create (char *callsign, int port) {
 
 
 	krad_websocket_t *krad_websocket = calloc (1, sizeof (krad_websocket_t));
@@ -265,18 +265,18 @@ krad_websocket_t *krad_websocket_create (char *callsign, int port) {
 										   				   NULL, NULL, -1, -1, 0);
 	if (krad_websocket->context == NULL) {
 		fprintf(stderr, "libwebsocket init failed\n");
-		krad_websocket_destroy (krad_websocket);
+		krad_websocket_server_destroy (krad_websocket);
 		return NULL;
 	}
 	
-	pthread_create (&krad_websocket->server_thread, NULL, krad_websocket_run, (void *)krad_websocket);
+	pthread_create (&krad_websocket->server_thread, NULL, krad_websocket_server_run, (void *)krad_websocket);
 	pthread_detach (krad_websocket->server_thread);	
 
 	return krad_websocket;
 
 }
 
-void *krad_websocket_run (void *arg) {
+void *krad_websocket_server_run (void *arg) {
 
 	krad_websocket_t *krad_websocket = (krad_websocket_t *)arg;
 
@@ -396,23 +396,26 @@ void *krad_websocket_run (void *arg) {
 }
 
 
-void krad_websocket_destroy (krad_websocket_t *krad_websocket) {
+void krad_websocket_server_destroy (krad_websocket_t *krad_websocket) {
 
 	int patience;
 	
-	patience = KRAD_WEBSOCKET_SERVER_TIMEOUT_US * 3;
+	if (krad_websocket != NULL) {
 	
-	if (krad_websocket->shutdown == KRAD_WEBSOCKET_RUNNING) {
-		krad_websocket->shutdown = KRAD_WEBSOCKET_DO_SHUTDOWN;
+		patience = KRAD_WEBSOCKET_SERVER_TIMEOUT_US * 3;
 	
-		while ((krad_websocket != KRAD_WEBSOCKET_SHUTINGDOWN) && (patience > 0)) {
-			usleep (KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4);
-			patience -= KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4;
+		if (krad_websocket->shutdown == KRAD_WEBSOCKET_RUNNING) {
+			krad_websocket->shutdown = KRAD_WEBSOCKET_DO_SHUTDOWN;
+	
+			while ((krad_websocket != KRAD_WEBSOCKET_SHUTINGDOWN) && (patience > 0)) {
+				usleep (KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4);
+				patience -= KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4;
+			}
 		}
-	}
 
-	free (krad_websocket->buffer);
-	libwebsocket_context_destroy (krad_websocket->context);
-	free (krad_websocket);
-	krad_websocket_glob = NULL;
+		free (krad_websocket->buffer);
+		libwebsocket_context_destroy (krad_websocket->context);
+		free (krad_websocket);
+		krad_websocket_glob = NULL;
+	}
 }

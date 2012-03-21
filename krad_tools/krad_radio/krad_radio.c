@@ -84,6 +84,8 @@ int krad_radio_valid_callsign(char *callsign) {
 
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
+	krad_http_server_destroy (krad_radio->krad_http);
+	krad_websocket_server_destroy (krad_radio->krad_websocket);
 	krad_ipc_server_destroy (krad_radio->ipc);
 	free (krad_radio->name);	
 	free (krad_radio->callsign);
@@ -110,6 +112,20 @@ krad_radio_t *krad_radio_create (char *callsign_or_config) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
+	
+	krad_radio->krad_websocket = krad_websocket_server_create (callsign_or_config, 41222);
+	
+	if (krad_radio->krad_websocket == NULL) {
+		krad_radio_destroy (krad_radio);
+		return NULL;
+	}	
+	
+	krad_radio->krad_http = krad_http_server_create (41221);
+	
+	if (krad_radio->krad_http == NULL) {
+		krad_radio_destroy (krad_radio);
+		return NULL;
+	}	
 	
 	return krad_radio;
 
