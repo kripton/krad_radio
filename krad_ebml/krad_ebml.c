@@ -941,6 +941,116 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 }
 
 
+uint64_t krad_ebml_read_number_from_frag (unsigned char *ebml_frag, uint64_t ebml_data_size) {
+
+	int ret;
+	unsigned char temp[7];
+	uint64_t number;
+	
+	number = 0;
+	
+	memset (temp, '\0', sizeof(temp));
+	memcpy (&temp, &ebml_frag[0], ebml_data_size);
+	rmemcpy ( &number, &temp, ebml_data_size);
+	
+	return number;
+
+}
+
+int krad_ebml_read_element_from_frag (unsigned char *ebml_frag, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr) {
+	
+	int ret;
+	int frag_pos;
+	uint32_t ebml_id;
+	uint32_t ebml_id_length;
+	uint64_t ebml_data_size;
+	uint32_t ebml_data_size_length;
+	unsigned char byte;
+	unsigned char temp[7];
+
+	frag_pos = 0;
+	ebml_id = 0;
+	ebml_data_size = 0;
+	
+	byte = ebml_frag[frag_pos++];
+	
+	// ID length
+	ebml_id_length = ebml_length ( byte );
+
+	if (ebml_id_length > 4) {
+		printf("no it cant be more than 4!\n");
+		exit(1);
+	}
+
+	//printf("id length is %u\n", ebml_id_length);
+	memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
+
+	// ID
+	if (ebml_id_length > 1) {
+
+		memcpy (&temp, &ebml_frag[frag_pos], ebml_id_length - 1);
+		frag_pos += ebml_id_length - 1;
+
+		rmemcpy ( &ebml_id, &temp, ebml_id_length - 1);
+	}
+
+	// data size length
+	byte = ebml_frag[frag_pos++];
+	ebml_data_size_length = ebml_length ( byte );
+	
+	//printf("data size length is %u\n", ebml_data_size_length);
+
+	// data size
+	if (ebml_data_size_length > 1) {
+		
+		memcpy (&temp, &ebml_frag[frag_pos], ebml_data_size_length - 1);
+		frag_pos += ebml_data_size_length - 1;
+		
+		ebml_data_size = (uint64_t)byte;
+
+		if (ebml_data_size_length == 2) {
+			ebml_data_size &= (EBML_LENGTH_2 - 1);
+		}
+
+		if (ebml_data_size_length == 3) {
+			ebml_data_size &= (EBML_LENGTH_3 - 1);
+		}
+
+		if (ebml_data_size_length == 4) {
+			ebml_data_size &= (EBML_LENGTH_4 - 1);
+		}
+
+		if (ebml_data_size_length == 5) {
+			ebml_data_size &= (EBML_LENGTH_5 - 1);
+		}
+
+		if (ebml_data_size_length == 6) {
+			ebml_data_size &= (EBML_LENGTH_6 - 1);
+		}
+
+		if (ebml_data_size_length == 7) {
+			ebml_data_size &= (EBML_LENGTH_7 - 1);
+		}
+
+		if (ebml_data_size_length == 8) {
+			ebml_data_size &= (EBML_LENGTH_8 - 1);
+		}
+
+		ebml_data_size <<= 8 * (ebml_data_size_length - 1);
+		
+		rmemcpy ( &ebml_data_size, &temp, ebml_data_size_length - 1);
+	} else {		
+		ebml_data_size = (byte - EBML_LENGTH_1);
+	}
+	
+	//printf("data size is %zu\n", ebml_data_size);
+	
+	*ebml_id_ptr = ebml_id;
+	*ebml_data_size_ptr = ebml_data_size;
+	
+	return frag_pos;
+	
+}
 
 
 int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr) {
@@ -1096,6 +1206,20 @@ uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size)
 
 	rmemcpy ( &number, &temp, ebml_data_size);
 	return number;
+
+}
+
+uint64_t krad_ebml_read_string (krad_ebml_t *krad_ebml, char *string, uint64_t ebml_data_size) {
+
+	int ret;
+
+	ret = krad_ebml_read ( krad_ebml, string, ebml_data_size );
+	if (ret != ebml_data_size) {
+		printf("Failurea reading %d %zu\n", ret, ebml_data_size);
+		exit(1);
+	}
+	string[ebml_data_size] = '\0';
+	return ebml_data_size + 1;
 
 }
 
@@ -1851,7 +1975,7 @@ int krad_ebml_streamio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t 
 		bytes += send (krad_ebml_io->sd, buffer + bytes, length - bytes, 0);
 
 		if (bytes <= 0) {
-			fprintf(stderr, "Krad EBML Source: send Got Disconnected from server\n");
+			fprintf(stderr, "Krad EBML stream io write: Got Disconnected from server. bytes ret %d len %zu\n", bytes, length);
 			exit(1);
 		}
 	}

@@ -95,15 +95,88 @@ int krad_ipc_client_init (krad_ipc_client_t *client)
 	
 	krad_ebml_read_ebml_header (client->krad_ebml, client->krad_ebml->header);
 	krad_ebml_check_ebml_header (client->krad_ebml->header);
-	krad_ebml_print_ebml_header (client->krad_ebml->header);
+	//krad_ebml_print_ebml_header (client->krad_ebml->header);
 	
 	if (krad_ebml_check_doctype_header (client->krad_ebml->header, KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION)) {
-		printf("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+		//printf("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
 	} else {
 		printf("Did Not Match %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
 	}	
 	
 	return client->sd;
+}
+
+void krad_ipc_get_tags (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t get_tags;
+	//uint64_t tag;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_LIST_TAGS, &get_tags);	
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
+
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, "");	
+
+	//krad_ebml_finish_element (client->krad_ebml, tag);
+	krad_ebml_finish_element (client->krad_ebml, get_tags);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t get_tag;
+	uint64_t tag;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_TAG, &get_tag);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, "");	
+
+	krad_ebml_finish_element (client->krad_ebml, tag);
+	krad_ebml_finish_element (client->krad_ebml, get_tag);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+
+void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_value) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t set_tag;
+	uint64_t tag;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SET_TAG, &set_tag);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, tag_value);	
+
+	krad_ebml_finish_element (client->krad_ebml, tag);
+	krad_ebml_finish_element (client->krad_ebml, set_tag);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
 }
 
 void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
@@ -142,7 +215,7 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value) {
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
-	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SETCONTROL, value);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SET_CONTROL, value);
 	krad_ebml_finish_element (client->krad_ebml, radio_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
 		
@@ -189,7 +262,7 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
-	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SETCONTROL, 82);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SET_CONTROL, 82);
 
 	krad_ebml_finish_element (client->krad_ebml, radio_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
@@ -200,7 +273,7 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	//usleep(200000);
 
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
-	krad_ebml_write_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GETCONTROL);
+	krad_ebml_write_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_CONTROL);
 	krad_ebml_write_data_size (client->krad_ebml, 0);
 	krad_ebml_finish_element (client->krad_ebml, radio_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);

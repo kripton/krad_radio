@@ -21,15 +21,38 @@ struct libwebsocket_protocols protocols[] = {
 /* blame libwebsockets */
 krad_websocket_t *krad_websocket_glob;
 
-void krad_ipc_control (krad_ipc_session_data_t *pss, char *value) {
+void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 	
-	char cmd[128];
+
+	printf ("got len %d data from browser: --%s--\n", len, value);
+
+	if (memcmp(value, "kradmixer:", 10) == 0) {
+		krad_ipc_cmd2 (pss->krad_ipc_client, atoi(value + 10));
+		
 	
-	strcpy (cmd, "");
+	}
+
+}
+
+
+int ebml_frag_to_js (char *js_data, unsigned char *ebml_frag) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	uint64_t a_number;
+	uint32_t ebml_frag_pos;
 	
-	sprintf (cmd + strlen(cmd), "%s", value);
+	ebml_frag_pos = 0;
+
+	ebml_frag_pos += krad_ebml_read_element_from_frag (&ebml_frag[ebml_frag_pos], &ebml_id, &ebml_data_size);
+
+	a_number = krad_ebml_read_number_from_frag (&ebml_frag[ebml_frag_pos], ebml_data_size);
+
+	printf( "frag got %u %zu - %zu\n", ebml_id, ebml_data_size, a_number);
 	
-	krad_ipc_send (pss->krad_ipc_client, cmd);	
+	
+	
+	return sprintf(js_data, "KM%u:%zu", ebml_id, a_number);
 
 }
 
@@ -174,6 +197,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 					   void *user, void *in, size_t len)
 {
 	int ret;
+	int newlen;
 	krad_websocket_t *krad_websocket = krad_websocket_glob;
 	krad_ipc_session_data_t *pss = user;
 	unsigned char *p = &krad_websocket->buffer[LWS_SEND_BUFFER_PRE_PADDING];
@@ -194,6 +218,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 		case LWS_CALLBACK_CLOSED:
 
+			krad_ipc_disconnect (pss->krad_ipc_client);
 			del_poll_fd(pss->krad_ipc_client->sd);
 		
 			pss->context = NULL;
@@ -215,8 +240,12 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 
 			if (pss->krad_ipc_info == 1) {
-				memcpy (p, pss->krad_ipc_data, pss->krad_ipc_data_len);
-				ret = libwebsocket_write(wsi, p, pss->krad_ipc_data_len, LWS_WRITE_TEXT);
+				
+				printf ("wanted to write %d bytes to browser\n", pss->krad_ipc_data_len);
+				newlen = ebml_frag_to_js ((char *)p, pss->krad_ipc_data);
+				//memcpy (p, pss->krad_ipc_data, pss->krad_ipc_data_len);
+				printf ("A message of length %d became %d", pss->krad_ipc_data_len, newlen);
+				ret = libwebsocket_write(wsi, p, newlen, LWS_WRITE_TEXT);
 				if (ret < 0) {
 					fprintf(stderr, "krad_ipc ERROR writing to socket");
 					return 1;
@@ -229,10 +258,8 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 		case LWS_CALLBACK_RECEIVE:
 
-			sprintf(in + len, "\0");
-
-			if (strncmp(in, "krad_ipc:", 10) == 0) {
-				krad_ipc_control(pss, in + 10);
+			if (memcmp(in, "KIPC", 4) == 0) {
+				krad_ipc_control (pss, in + 4, len - 4);
 				break;
 			}
 		

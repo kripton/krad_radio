@@ -27,6 +27,11 @@
 
 #include "krad_ebml.h"
 
+#include "krad_radio_ipc.h"
+
+#ifndef KRAD_IPC_SERVER_H
+#define KRAD_IPC_SERVER_H
+
 #define KRAD_IPC_SERVER_MAX_CLIENTS 35
 #define KRAD_IPC_SERVER_TIMEOUT_MS 250
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000
@@ -97,6 +102,16 @@ struct krad_ipc_server_client_St {
 
 };
 
+
+void krad_ipc_server_respond_list_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *list);
+void krad_ipc_server_respond_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_name, char *tag_value);
+void krad_ipc_server_respond_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list);
+
+
+void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_name, char **tag_value );
+
+
+
 void krad_ipc_server_set_client_broadcasts(krad_ipc_server_t *krad_ipc_server, void *client_pointer, int broadcast_level);
 void krad_ipc_server_client_broadcast_skip (krad_ipc_server_t *krad_ipc_server, char *data, int size, int broadcast_level, krad_ipc_server_client_t *client);
 void krad_ipc_server_client_broadcast (krad_ipc_server_t *krad_ipc_server, char *data, int size, int broadcast_level);
@@ -116,4 +131,6 @@ void *krad_ipc_server_run (void *arg);
 void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server);
 
 krad_ipc_server_t *krad_ipc_server (char *callsign_or_ipc_path_or_port, int handler (void *, int *, void *), void *pointer);
+
+#endif
 

@@ -4,23 +4,46 @@
 	<title>Krad Radio</title>
 	<meta charset="utf-8">
 	<!-- <link rel="shortcut icon" href="/favicon.png"> -->
-
+	<link type="text/css" href="http://media.kradradio.com/smoothness/jquery-ui-1.8.18.custom.css" rel="stylesheet" />
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="/krad_radio.js"></script>
 
+	<style>
+
+		#test_value { width: 150px; border: 3px solid green;}
+
+	</style>
+	
 	<script>
+		var j;
 	
-		var j = $.noConflict();
+		function load() {
+		
+			j = $.noConflict();
 	
-		kradwebsocket = new Kradwebsocket(41222);
+	
+			j( "#test_value" ).slider();
+	
+			kradwebsocket = new Kradwebsocket(41222);
+		
+			j( "#test_value" ).slider({orientation: 'vertical'});
+		
+			j( "#test_value" ).bind( "slide", function(event, ui) {
+				kradwebsocket.send("KIPCkradmixer:" + ui.value);
+			});
+		
+		}	
 	</script>
 	
 
 </head>
 
-<body>
+<body onload="load()">
 
 	<h1>Krad Radio</h1>
+
+	<div id="test_value"></div>
 
 	<div id="studio"></div>
 

@@ -12,16 +12,40 @@ int main (int argc, char *argv[]) {
 	
 		if (client != NULL) {
 	
-			sprintf(cmd, "%s", argv[2]);
+			
+			if (strncmp(argv[2], "tag", 3) == 0) {
+			
+				if (strncmp(argv[2], "tags", 4) == 0) {
 	
-			krad_ipc_cmd(client, cmd);
-
+					krad_ipc_get_tags (client, argv[3]);		
+	
+				} else {
+			
+					if (argc == 4) {
+						krad_ipc_get_tag (client, argv[3]);
+					}
+				
+					if (argc == 5) {
+						krad_ipc_set_tag (client, argv[3], argv[4]);
+					}
+				}
+			
+				krad_ipc_wait (client, client->buffer, 222);
+			
+			} else {
+	
+				sprintf(cmd, "%s", argv[2]);
+	
+				krad_ipc_cmd(client, cmd);
+			}
+			
+			
 			if (strlen(client->buffer) > 0) {
 	
 				printf("%s\n", client->buffer);
 	
 			}
-	
+		
 			krad_ipc_disconnect (client);
 		}
 	

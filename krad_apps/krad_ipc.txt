@@ -1,0 +1,58 @@
+krad_ipc[krad_(mixer/link/radio)[setcontrol[path_number,value]]]
+
+----
+
+
+//// RADIO
+
+			radio
+		mixer link [sampler] [xmms2 integration] [compositor]
+
+
+krad_ipc|krad_radio|list_tags
+krad_ipc|krad_radio|get_tag
+krad_ipc|krad_radio|set_tag
+
+response:
+krad_ipc|krad_radio|tags_list
+	tag|name|value
+
+
+key tags: name / description / http port / websocket port / logo / current_dj / current_show / nowplaying
+
+
+krad_ipc|krad_radio|web_enable/disable
+
+krad_ipc|krad_radio|destroy
+
+
+//// MIXER
+
+krad_ipc|krad_mixer|list_portgroups
+
+response:
+krad_ipc|krad_mixer|portgroups_list
+
+	portgroup|name|channels_val|mic_val|mainmix_val|submix_val|monitormix_val|crossfade_grp_val|tags_list
+				
+		tag|name|value
+
+
+krad_ipc|krad_mixer|list_controls
+
+
+response:
+krad_ipc|krad_mixer|controls_list
+
+	control|name|number|minval|maxval|curval
+
+---
+
+
+
+krad_ipc|krad_mixer|set_control|number|num_value
+krad_ipc|krad_mixer|get_control|number
+
+response or broadcast:
+krad_ipc|krad_mixer|control_set|number|num_value
+	

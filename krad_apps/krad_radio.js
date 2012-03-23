@@ -36,7 +36,7 @@ function Kradwebsocket (port) {
 			if (this.connecting != true) {
 				this.connecting = true;
 				this.debug("Connecting..");
-				if ( j.browser.mozilla ) {
+				if (typeof MozWebSocket != 'undefined') {
 					this.websocket = new MozWebSocket(this.uri, "krad-ipc");
 				} else {
 					this.websocket = new WebSocket(this.uri, "krad-ipc");
@@ -96,8 +96,121 @@ function Kradwebsocket (port) {
  
 	Kradwebsocket.prototype.on_message = function(evt) {
 
+		this.debug ("got message: " + evt.data);
+
 		if (evt.data.indexOf("kradmixer:") != -1) {
-			mixer.set_control_state(evt.data.replace("kradmixer:", ""));
+			//mixer.set_control_state(evt.data.replace("kradmixer:", ""));
 			return;
 		}
+		if (evt.data.indexOf("KM161:") != -1) {
+			j('#test_value').slider( "value" , (evt.data.replace("KM161:", "")));
+			return;
+		}
+
 	}
+	
+	
+	
+	
+	
+	
+/* mixer */
+
+
+function Kradmixer(mixername) {
+
+	this.instance_name = mixername;
+	this.abstraction_type = "Krad Mixer";
+	this.nice_name = "Krad Mixer";
+	this.controls = "";
+	this.real_interfaces = new Array();
+	this.ignoreupdate = false;
+	this.peak_update_rate = 60;
+	this.get_controls();
+	this.timer;
+}
+
+
+	Kradmixer.prototype.destroy = function() {
+	
+		clearTimeout(this.timer);
+	
+		for (real_interface in this.real_interfaces) {
+			this.real_interfaces[real_interface].destroy();
+		}
+	
+	}
+
+
+
+	Kradmixer.prototype.add_real_interface = function(real_interface) {
+	
+		this.real_interfaces.push( real_interface );
+
+		if (this.controls == "") {
+			this.get_controls();
+		} else {
+			//real_interface.generate_controls(this.controls);
+		}	
+	}
+
+
+	Kradmixer.prototype.get_controls = function() {
+	
+		kradwebsocket.send("kradmixer:listcontrols");
+	
+	}
+	
+	Kradmixer.prototype.set_controls = function(controls) {
+	
+		this.controls = controls.split("*");
+  		//kludge fix last blank
+  		this.controls.pop();
+		
+		for (real_interface in this.real_interfaces) {
+			this.real_interfaces[real_interface].generate_controls(this.controls);
+		}
+		
+		
+		setTimeout('kradwebsocket.send("getpeak=")', this.peak_update_rate);
+
+	}
+	
+	
+	Kradmixer.prototype.set_peaks = function(peaks) {
+	
+		peaks_arr = peaks.split("*");
+		peaks_arr.pop();
+		
+		for ( peak in peaks_arr) {
+		
+			a_peak = peaks_arr[peak].split("/");
+			peakname = a_peak[0];
+			peakval = parseFloat(a_peak[1]);
+			
+			
+			for (real_interface in this.real_interfaces) {
+				this.real_interfaces[real_interface].set_peak(peakname, peakval);
+			}
+			
+		}
+	}
+	
+	Kradmixer.prototype.set_control_state = function(message) {
+		if (this.ignoreupdate == false) {
+			for (real_interface in this.real_interfaces) {
+				this.real_interfaces[real_interface].set_interface_state(message);
+			}		
+		}
+	}
+		
+	Kradmixer.prototype.set_control = function(subunit, control, value) {
+		kradwebsocket.send("kradmixer:" + control + "/" + value);
+	}
+
+
+	
+		
+	
+	
+	

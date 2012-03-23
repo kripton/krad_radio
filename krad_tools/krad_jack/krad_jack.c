@@ -1,8 +1,7 @@
 #include <krad_jack.h>
 
 
-void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t direction, char *ports)
-{
+void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t direction, char *ports) {
 
 	//const char *ports;
 	const char *src_port, *dst_port;;
@@ -55,8 +54,7 @@ void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t dir
 
 }
 
-void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two)
-{
+void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two) {
 	jack_port_t *port1;
 	jack_port_t *port2;
 	
@@ -82,8 +80,7 @@ void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two
 	}
 }
 
-int kradjack_xrun(void *arg)
-{
+int kradjack_xrun(void *arg) {
 
 	krad_jack_t *kradjack = (krad_jack_t *)arg;
 
