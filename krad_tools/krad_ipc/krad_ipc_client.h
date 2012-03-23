@@ -50,7 +50,7 @@ typedef struct {
 
 
 void krad_ipc_get_portgroups (krad_ipc_client_t *client);
-
+void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value);
 void krad_ipc_print_response (krad_ipc_client_t *client);
 void krad_ipc_get_tags (krad_ipc_client_t *client);
 

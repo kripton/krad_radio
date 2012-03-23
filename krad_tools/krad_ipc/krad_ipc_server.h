@@ -109,6 +109,9 @@ void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char
 void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list);
 
 
+void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
+											  int io_type, float volume,  char *mixgroup );
+											  
 void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_name, char **tag_value );
 
 
@@ -122,7 +125,7 @@ void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
 krad_ipc_server_t *krad_ipc_server_create (char *callsign_or_ipc_path_or_port);
 krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server);
 
-void krad_ipc_server_broadcast_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t number);
+void krad_ipc_server_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, char *portname, char *controlname, float floatval);
 void krad_ipc_server_respond_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t number);
 int krad_ipc_server_read_command (krad_ipc_server_t *krad_ipc_server, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
 uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64_t data_size);

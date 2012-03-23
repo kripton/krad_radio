@@ -23,13 +23,15 @@ krad_websocket_t *krad_websocket_glob;
 
 void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 	
-
+	float floatval;
+	
 	printf ("got len %d data from browser: --%s--\n", len, value);
 
 	if (memcmp(value, "kradmixer:", 10) == 0) {
 
-
-
+		floatval = atof (value + 10);
+		
+		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
 
 // FIXME FIXME FIXME
 

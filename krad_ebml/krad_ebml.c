@@ -1082,7 +1082,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 		exit(1);
 	}
 
-	//printf("id length is %u\n", ebml_id_length);
+	printf("id length is %u\n", ebml_id_length);
 	memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
 
 	// ID
@@ -1191,6 +1191,27 @@ uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size)
 	int ret;
 	unsigned char temp[7];
 	uint64_t number;
+	
+	number = 0;
+	
+	memset (temp, '\0', sizeof(temp));
+
+	ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
+	if (ret != ebml_data_size) {
+		printf("Failurea reading %d %zu\n", ret, ebml_data_size);
+		exit(1);
+	}
+
+	rmemcpy ( &number, &temp, ebml_data_size);
+	return number;
+
+}
+
+float krad_ebml_read_float (krad_ebml_t *krad_ebml, uint64_t ebml_data_size) {
+
+	int ret;
+	unsigned char temp[7];
+	float number;
 	
 	number = 0;
 	

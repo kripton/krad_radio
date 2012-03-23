@@ -22,11 +22,15 @@ static void set_test_value (GtkWidget *widget, gpointer data) {
 	
 	krad_mixer_gtk_t *krad_mixer_gtk = (krad_mixer_gtk_t *)data;
 
-	int intval2;	
+	int intval2;
+	float floatval;	
 	intval2 = gtk_range_get_value (GTK_RANGE(widget));
+	
+	floatval = intval2;
 	
 	if (intval2 != krad_mixer_gtk->intval) {
 		krad_mixer_gtk->intval = intval2;
+		krad_ipc_set_control (krad_mixer_gtk->client, "Music2", "volume", floatval);
 		//krad_ipc_cmd2 (krad_mixer_gtk->client, krad_mixer_gtk->intval);
 	}
 }
@@ -61,6 +65,8 @@ int main (int argc, char *argv[]) {
 	krad_mixer_gtk_t *krad_mixer_gtk = calloc (1, sizeof(krad_mixer_gtk_t));;
 	
 	krad_mixer_gtk->client = krad_ipc_connect (argv[1]);
+	
+	krad_ipc_get_portgroups (krad_mixer_gtk->client);
 	
 	gtk_init (&argc, &argv);
 

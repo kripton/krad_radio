@@ -32,13 +32,18 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "mix", 3) == 0) {
-			
-				krad_ipc_get_portgroups (client);
-				krad_ipc_print_response (client);
-			
+				if (argc == 3) {
+					krad_ipc_get_portgroups (client);
+					krad_ipc_print_response (client);
+				}
 			}
 			
-			
+			if (strncmp(argv[2], "set", 3) == 0) {
+				if (argc == 6) {
+					krad_ipc_set_control (client, argv[3], argv[4], atof(argv[5]));
+					//krad_ipc_print_response (client);
+				}
+			}
 			
 			usleep(80000);
 			krad_ipc_disconnect (client);

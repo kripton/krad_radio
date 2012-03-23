@@ -177,12 +177,10 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	
 	uint32_t command;
 	uint64_t ebml_data_size;
-//	uint64_t number;
-	
 	uint64_t element;
-	
 	uint64_t response;
 //	uint64_t broadcast;
+//	uint64_t number;
 	
 	char tag_name_actual[256];
 	char tag_value_actual[1024];
@@ -196,7 +194,11 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	int i;
 	
 	i = 0;
-	
+	command = 0;
+	ebml_data_size = 0;
+	element = 0;
+	response = 0;
+
 	//printf("handler! \n");	
 	
 	krad_ipc_server_read_command ( krad_radio_station->krad_ipc, &command, &ebml_data_size);

@@ -490,7 +490,6 @@ void krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, in
 
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgroup) {
 
-
 	int c;
 
 	portgroup->active = 2;
@@ -522,6 +521,52 @@ int krad_mixer_destroy_portgroup_by_name(krad_mixer_t *krad_mixer, char *name) {
 		if ((portgroup != NULL) && (portgroup->active)) {
 			if (strncmp(name, portgroup->name, strlen(name)) == 0) {	
 				krad_mixer_portgroup_destroy (krad_mixer, portgroup);
+				return 1;
+			}
+		}
+	}
+		
+	return 0;
+}
+
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *name, char *control, float value) {
+
+	int pg;
+	portgroup_t *portgroup;
+
+	float volume_temp;
+	
+	volume_temp = 0;
+
+	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
+		portgroup = krad_mixer->portgroup[pg];
+		if ((portgroup != NULL) && (portgroup->active)) {
+			if (strncmp(name, portgroup->name, strlen(name)) == 0) {	
+				
+				
+				
+				if ((strncmp(control, "volume", 6) == 0) || (strncmp(control, "volume_left", 11) == 0)) {
+					portgroup->volume[0] = value;
+					volume_temp = (value/100.0f);
+					volume_temp *= volume_temp;
+					//printf("Left Old Value: %f New Value %f\n", portgroup->volume_actual[0], volume_temp);
+					portgroup->new_volume_actual[0] = volume_temp;
+					//printf("Set Left Value: %f\n", portgroup->new_volume_actual[0]);
+			
+			
+				}
+				if ((strncmp(control, "volume", 6) == 0) || (strncmp(control, "volume_right", 12) == 0)) {
+					portgroup->volume[1] = value;
+					volume_temp = (value/100.0f);
+					volume_temp *= volume_temp;
+					//printf("Right Old Value: %f New Value %f\n", portgroup->volume_actual[1], volume_temp);
+					portgroup->new_volume_actual[1] = volume_temp;
+					//printf("Set Right Value: %f\n", portgroup->new_volume_actual[0]);
+			
+				}
+				
+				
+				
 				return 1;
 			}
 		}
@@ -793,15 +838,22 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc ) {
 
 	uint32_t command;
+	uint32_t ebml_id;	
 	uint64_t ebml_data_size;
 //	uint64_t number;
-	
+	portgroup_t *portgroup;
 	uint64_t element;
 	
 	uint64_t response;
 //	uint64_t broadcast;
 	
-	//int i;
+	int p;
+	
+	ebml_id = 0;
+	
+	char portname[1024];
+	char controlname[1024];	
+	float floatval;
 	
 	//i = 0;
 	
@@ -817,10 +869,51 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			break;	
 		case EBML_ID_KRAD_MIXER_CMD_SET_CONTROL:
 			printf("krad mixer handler! got set control\n");			
-			//number = krad_ipc_server_read_number ( krad_radio_station->ipc, ebml_data_size );
-			//krad_radio_station->test_value = number;
-			//printf("SET CONTROL to %d!\n", krad_radio_station->test_value);
-			//krad_ipc_server_broadcast_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_CONTROL, krad_radio_station->test_value);
+
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
+				printf("hrm wtf2\n");
+			} else {
+				//printf("tag name size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portname, ebml_data_size);
+	
+			printf("setcontrol portgroup %s\n", portname);
+	
+	
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_NAME) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
+	
+			printf(" control -- %s\n", controlname);
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+	
+				printf("value %f\n", floatval);
+
+
+			krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval);
+			
+
+
+			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			//*output_len = 666;
 			return 2;
 			break;	
@@ -834,8 +927,17 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			//	printf("got PORTGROUP %d: %s to %s\n", i, tag_name, tag_value);
 			//}
 			
-			krad_ipc_server_response_list_finish ( krad_ipc, element);
-			krad_ipc_server_response_finish ( krad_ipc, response);
+			for (p = 0; p < PORTGROUP_MAX; p++) {
+				portgroup = krad_mixer->portgroup[p];
+				if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
+					krad_ipc_server_response_add_portgroup ( krad_ipc, portgroup->name, portgroup->channels,
+											  				 portgroup->io_type, portgroup->volume[0],  portgroup->mixgroup->name );
+				}
+			}
+			
+			
+			krad_ipc_server_response_list_finish ( krad_ipc, element );
+			krad_ipc_server_response_finish ( krad_ipc, response );
 			return 1;
 			break;
 	}
