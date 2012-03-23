@@ -146,121 +146,53 @@ float get_fade_out_amount (float crossfade_value, float out_fade_amount, float o
 void apply_volume (portgroup_t *portgroup, int nframes) {
 
 	int c, s, sign;
-	
-	int no_fade_change[8];
 
-	if (portgroup->type == MIC) {
-		
-		for (s = 0; s < nframes; s++) {
-			// Turn into stereo, right channel first so the left volume doensnt control both
-			portgroup->samples[1][s] = portgroup->samples[0][s] * portgroup->volume_actual[1];
-			portgroup->samples[0][s] = portgroup->samples[0][s] * portgroup->volume_actual[0];
+	for (c = 0; c < 2; c++) {
 
-		}
-	
-	
-	} else {	// 2 channel
-		for (c = 0; c < 2; c++) {
-		
-			no_fade_change[c] = 1;
+		if (portgroup->new_volume_actual[c] == portgroup->volume_actual[c]) {
+			for (s = 0; s < nframes; s++) {
+				portgroup->samples[c][s] = portgroup->samples[c][s] * portgroup->volume_actual[c];
+			}
+		} else {
 			
-			if (portgroup->type == MUSIC) {
-				if (strncmp(portgroup->name, "music1", 6) == 0) {
-					if (portgroup->krad_mixer->music1_fade_value[c] != portgroup->krad_mixer->new_music1_fade_value[c]) {
-						no_fade_change[c] = 0;
-					}
-				}
-				if (strncmp(portgroup->name, "music2", 6) == 0) {
-					if (portgroup->krad_mixer->music2_fade_value[c] != portgroup->krad_mixer->new_music2_fade_value[c]) {
-						no_fade_change[c] = 0;
-					}
-				}
-					
-				if (portgroup->music_fade_value[c] != portgroup->krad_mixer->new_music_fade_value[c]) {
-					no_fade_change[c] = 0;
-				}
+			/* The way the volume change is set up here, the volume can only change once per callback, but thats 
+			   allways plenty of times per second */
+			
+			/* last_sign: 0 = unset, -1 neg, +1 pos */
 				
+			if (portgroup->last_sign[c] == 0) {
+				if (portgroup->samples[c][0] > 0.0f) {
+					portgroup->last_sign[c] = 1;
+				} else {
+					/* Zero counts as negative here, but its moot */
+					portgroup->last_sign[c] = -1;
+				}
 			}
 			
-			if (portgroup->type == AUX) {
-				if (portgroup->aux_fade_value[c] != portgroup->krad_mixer->new_aux_fade_value[c]) {
-					no_fade_change[c] = 0;
-				}
-			}
-		
-		
-			if ((portgroup->new_volume_actual[c] == portgroup->volume_actual[c]) && (no_fade_change[c])) {
-				for (s = 0; s < nframes; s++) {
-					portgroup->samples[c][s] = portgroup->samples[c][s] * portgroup->final_volume_actual[c];
-				}
-			} else {
-				
-				/* The way the volume change is set up here, the volume can only change once per callback, but thats 
-				   allways plenty of times per second */
-				
-				/* last_sign: 0 = unset, -1 neg, +1 pos */
-					
-				if (portgroup->last_sign[c] == 0) {
-					if (portgroup->samples[c][0] > 0.0f) {
-						portgroup->last_sign[c] = 1;
-					} else {
-						/* Zero counts as negative here, but its moot */
-						portgroup->last_sign[c] = -1;
-					}
-				}
-				
-				for (s = 0; s < nframes; s++) {
-					if (portgroup->last_sign[c] != 0) {
-						if (portgroup->samples[c][s] > 0.0f) {
-							sign = 1;
-						} else {
-							sign = -1;
-						}
-					
-						if ((sign != portgroup->last_sign[c]) || (portgroup->samples[c][s] == 0.0f)) {
-							portgroup->volume_actual[c] = portgroup->new_volume_actual[c];
-							
-							
-							
-							
-							if (portgroup->type == MUSIC) {
-							
-								portgroup->music_fade_value[c] = portgroup->krad_mixer->new_music_fade_value[c];
-							
-								if (strncmp(portgroup->name, "music1", 6) == 0) {
-									portgroup->krad_mixer->music1_fade_value[c] = portgroup->krad_mixer->new_music1_fade_value[c];
-									portgroup->final_fade_actual[c] = portgroup->music_fade_value[c] * portgroup->krad_mixer->music1_fade_value[c];	
-								}
-								
-								if (strncmp(portgroup->name, "music2", 6) == 0) {
-									portgroup->krad_mixer->music2_fade_value[c] = portgroup->krad_mixer->new_music2_fade_value[c];
-									portgroup->final_fade_actual[c] = portgroup->music_fade_value[c] * portgroup->krad_mixer->music2_fade_value[c];	
-								}
-							}
-			
-							if (portgroup->type == AUX) {
-								portgroup->aux_fade_value[c] = portgroup->krad_mixer->new_aux_fade_value[c];
-								portgroup->final_fade_actual[c] = portgroup->aux_fade_value[c];
-							}	
-							
-							
-							portgroup->final_volume_actual[c] = portgroup->volume_actual[c] * portgroup->final_fade_actual[c];
-							
-							
-							portgroup->last_sign[c] = 0;
-						}
-					}
-						
-					portgroup->samples[c][s] = (portgroup->samples[c][s] * portgroup->final_volume_actual[c]);
-		
-				}
-
+			for (s = 0; s < nframes; s++) {
 				if (portgroup->last_sign[c] != 0) {
-					portgroup->last_sign[c] = sign;
+					if (portgroup->samples[c][s] > 0.0f) {
+						sign = 1;
+					} else {
+						sign = -1;
+					}
+				
+					if ((sign != portgroup->last_sign[c]) || (portgroup->samples[c][s] == 0.0f)) {
+						portgroup->volume_actual[c] = portgroup->new_volume_actual[c];
+						portgroup->last_sign[c] = 0;
+					}
 				}
+					
+				portgroup->samples[c][s] = (portgroup->samples[c][s] * portgroup->volume_actual[c]);
+	
+			}
+
+			if (portgroup->last_sign[c] != 0) {
+				portgroup->last_sign[c] = sign;
 			}
 		}
 	}
+
 
 }
 
@@ -287,15 +219,6 @@ float read_stereo_peak (portgroup_t *portgroup) {
 	}
 }
 
-void compute_peaks (portgroup_t *portgroup, int sample_count) {
-
-	int i;
-	
-	for (i = 0; i < portgroup->channels; i++) {
-		compute_peak(portgroup, i, sample_count);
-	}
-}
-
 void compute_peak (portgroup_t *portgroup, int channel, int sample_count) {
 
 	int i;
@@ -309,6 +232,15 @@ void compute_peak (portgroup_t *portgroup, int channel, int sample_count) {
 	}
 }
 
+
+void compute_peaks (portgroup_t *portgroup, int sample_count) {
+
+	int i;
+	
+	for (i = 0; i < portgroup->channels; i++) {
+		compute_peak (portgroup, i, sample_count);
+	}
+}
 
 int krad_mixer_jack_callback (jack_nframes_t nframes, void *arg) {
 
@@ -324,269 +256,68 @@ int krad_mixer_jack_callback (jack_nframes_t nframes, void *arg) {
 
 int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 	
-	int x, i, pg, pg2, s;
+	int s, c, p, m;
 
 	portgroup_t *portgroup = NULL;
-	portgroup_t *portgroup2 = NULL;
+	mixgroup_t *mixgroup = NULL;
 	
-	// clear mic mix
-	for (i = 0; i < nframes; i++) {
-		krad_mixer->micmix_left[i] = 0.0f;
-		krad_mixer->micmix_right[i] = 0.0f;
-	}
-
 	// Gets input/output port buffers and hardlimits inputs
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
+	for (p = 0; p < PORTGROUP_MAX; p++) {
 	
-		if (portgroup->type == MIC) {
-			portgroup->samples[0] = jack_port_get_buffer (portgroup->input_port, nframes);
-			
-			apply_volume(portgroup, nframes);
-			//hardlimit(portgroup->samples[0], nframes);
-			compute_peaks(portgroup, nframes);
-			
-		} else {
-			if (portgroup->direction == INPUT) {
-				portgroup->samples[0] = jack_port_get_buffer (portgroup->input_ports[0], nframes);
-				portgroup->samples[1] = jack_port_get_buffer (portgroup->input_ports[1], nframes);
-				
-				apply_volume(portgroup, nframes);
-				if (portgroup->djeq_on) {
-					djeq_run(portgroup->djeq, portgroup->samples[0], portgroup->samples[1], portgroup->samples[0], portgroup->samples[1], nframes);
+		portgroup = krad_mixer->portgroup[p];
+	
+		if ((portgroup != NULL) && (portgroup->active)) {
+
+			if (portgroup->io_type == JACK) {
+				for (c = 0; c < mixgroup->channels; c++) {
+					portgroup->samples[c] = jack_port_get_buffer (portgroup->ports[c], nframes);
 				}
-				//hardlimit(portgroup->samples[0], nframes);
-				//hardlimit(portgroup->samples[1], nframes);
-				compute_peaks(portgroup, nframes);
-				
-				
-			} else {
-				portgroup->samples[0] = jack_port_get_buffer (portgroup->output_ports[0], nframes);
-				portgroup->samples[1] = jack_port_get_buffer (portgroup->output_ports[1], nframes);
 			}
-		}
-	
-	}
-	}
-
-	// Clears Submix output ports
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if (portgroup->type == SUBMIX) {
-			for (x = 0;x < nframes; x++) {
-				portgroup->samples[0][x] = 0.0f;
-				portgroup->samples[1][x] = 0.0f;
-			}
-		}	
-	}
-	}
-
-
-	// creates mix of all mics, and puts all mics not in the same group as a submix into each submix
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-	
-		if ((portgroup->type == MIC) || (portgroup->type == STEREOMIC)) {
-	
-			for (x = 0;x < nframes; x++) {
-				krad_mixer->micmix_left[x] += portgroup->samples[0][x];
-				krad_mixer->micmix_right[x] += portgroup->samples[1][x];
-			}
-			
-			//for (portgroup2 = krad_mixer->portgroup; portgroup2 != NULL && portgroup2->active; portgroup2 = portgroup2->next) {
-			for (pg2 = 0; pg2 < PORTGROUP_MAX; pg2++) {
-			portgroup2 = krad_mixer->portgroup[pg2];
-			if ((portgroup2 != NULL) && (portgroup2->active)) {
-				if (portgroup2->type == SUBMIX) {
-					if ((portgroup->group != portgroup2->group) || (portgroup2->monitor == 1)) {
-						for (x = 0;x < nframes; x++) {
-							portgroup2->samples[0][x] += portgroup->samples[0][x];
-							portgroup2->samples[1][x] += portgroup->samples[1][x];  // mic is mono
-						}
-					}
-				}	
-			}
-			}
-		}
-
-	}
-	}	
 		
-	int gotmusic1 = 0;
-	int gotmusic2 = 0;
-	
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if (portgroup->type == MUSIC) {
-			gotmusic1 = 1;
-			break;
-		}	
-	}
-	}
-	
-	if (gotmusic1) {
-		for (pg2 = 0; pg2 < PORTGROUP_MAX; pg2++) {
-		portgroup2 = krad_mixer->portgroup[pg2];
-		if ((portgroup2 != NULL) && (portgroup2->active)) {
-			if ((portgroup2->type == MUSIC) && (portgroup2 != portgroup)) {
-				gotmusic2 = 1;
-				break;
-			}	
-		}
-		}
-	
-		if ((gotmusic1) && (gotmusic1)) {
-	
-			//add music portgroups together
-			for (s = 0; s < nframes; s++) {
-					portgroup->samples[0][s] = portgroup->samples[0][s] + portgroup2->samples[0][s];
-					portgroup->samples[1][s] = portgroup->samples[1][s] + portgroup2->samples[1][s];
+			if (portgroup->direction == INPUT) {
+				apply_volume (portgroup, nframes);
 			}
+
+			compute_peaks(portgroup, nframes);
 		}
 	}
+
+	// Clear Mixgroups
+	for (m = 0; m < MIXGROUP_MAX; m++) {
 	
-
-
-	//add aux inputs, takes input from aux portgroup and adds it to the music ports
-
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if (portgroup->type == AUX) {
-			//for (portgroup2 = krad_mixer->portgroup; portgroup2 != NULL && portgroup2->active; portgroup2 = portgroup2->next) {
-			for (pg2 = 0; pg2 < PORTGROUP_MAX; pg2++) {
-			portgroup2 = krad_mixer->portgroup[pg2];
-			if ((portgroup2 != NULL) && (portgroup2->active)) {
-				if (portgroup2->type == MUSIC) {
-					for (x = 0; x < nframes; x++) {
-						portgroup2->samples[0][x] += portgroup->samples[0][x];
-						portgroup2->samples[1][x] += portgroup->samples[1][x];
-					}
-					// since all of the music gets put into the first music portgroup
-					break;
+		mixgroup = krad_mixer->mixgroup[m];
+	
+		if ((mixgroup != NULL) && (mixgroup->active)) {
+			for (c = 0; c < mixgroup->channels; c++) {
+				for (s = 0; s < nframes; s++) {
+					portgroup->samples[c][s] = 0.0f;
 				}
 			}
-			}
 		}
 	}
-	}
-	
-	
-	//compress music from mics, takes input from music portgroup and puts it in the mainmix output ports
 
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if (portgroup->type == MUSIC) {
-			//for (portgroup2 = krad_mixer->portgroup; portgroup2 != NULL && portgroup2->active; portgroup2 = portgroup2->next) {
-			for (pg2 = 0; pg2 < PORTGROUP_MAX; pg2++) {
-			portgroup2 = krad_mixer->portgroup[pg2];
-			if ((portgroup2 != NULL) && (portgroup2->active)) {
-				if (portgroup2->type == MAINMIX) {
-					sc2_run(krad_mixer->sc2_data, portgroup->samples[0], krad_mixer->micmix_left, portgroup2->samples[0], nframes);
-					sc2_run(krad_mixer->sc2_data2, portgroup->samples[1], krad_mixer->micmix_right, portgroup2->samples[1], nframes);
-				}
-			}
-			}
-		// since all of the music gets put into the first music portgroup	
-		break;
-		}
-	}
-	}
-	
-	// add music to submixes
-	//for (portgroup2 = krad_mixer->portgroup; portgroup2 != NULL && portgroup2->active; portgroup2 = portgroup2->next) {
-	for (pg2 = 0; pg2 < PORTGROUP_MAX; pg2++) {
-	portgroup2 = krad_mixer->portgroup[pg2];
-	if ((portgroup2 != NULL) && (portgroup2->active)) {
-		if (portgroup2->type == SUBMIX) {
-			//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-			for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-			portgroup = krad_mixer->portgroup[pg];
-			if ((portgroup != NULL) && (portgroup->active)) {
-				// This actually adds the current mainmix to the submixes, which is the music after being compressed by all mics
-				if (portgroup->type == MAINMIX) {
-					for (x = 0; x < nframes; x++) {
-						portgroup2->samples[0][x] += portgroup->samples[0][x];
-						portgroup2->samples[1][x] += portgroup->samples[1][x];
-					}
-				}
-			}
-			}	
-		}
-	}
-	}
-	
-	// add mics to mainmix
-
-	//for (portgroup2 = krad_mixer->portgroup; portgroup2 != NULL && portgroup2->active; portgroup2 = portgroup2->next) {
-	for (pg2 = 0; pg2 < PORTGROUP_MAX; pg2++) {
-	portgroup2 = krad_mixer->portgroup[pg2];
-	if ((portgroup2 != NULL) && (portgroup2->active)) {
-		if (portgroup2->type == MAINMIX) {
-			for (x = 0; x < nframes; x++) {
-				portgroup2->samples[0][x] += krad_mixer->micmix_left[x];
- 				portgroup2->samples[1][x] += krad_mixer->micmix_right[x];
-			}
-		}
-	}
-	}
-
-	
-	// effects test
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	//	if (portgroup->type == MAINMIX) {
-	//		pass_run(krad_mixer->pass_left, portgroup->samples[0], portgroup->samples[0], nframes);
-	//		pass_run(krad_mixer->pass_right, portgroup->samples[1], portgroup->samples[1], nframes);
-	//		digilogue_run(krad_mixer->digilogue_left, portgroup->samples[0], portgroup->samples[0], nframes);
-	//		digilogue_run(krad_mixer->digilogue_right, portgroup->samples[1], portgroup->samples[1], nframes);
-	//		djeq_run(krad_mixer->djeq, portgroup->samples[0], portgroup->samples[1], portgroup->samples[0], portgroup->samples[1], nframes);
-	//	}
-	//}	
-
-
-	// fastlimit mainmix
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if ((portgroup->direction == OUTPUT) && (portgroup->type == MAINMIX)) {
-			fastlimiter_run(portgroup->fastlimiter, portgroup->samples[0], portgroup->samples[1], portgroup->samples[0], portgroup->samples[1], nframes);
-		}
-	}
-	}
 		
 	// hardlimit all outputs
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if (portgroup->direction == OUTPUT) {
-			hardlimit(portgroup->samples[0], nframes);
-			hardlimit(portgroup->samples[1], nframes);
+	for (p = 0; p < PORTGROUP_MAX; p++) {
+		portgroup = krad_mixer->portgroup[p];
+		if ((portgroup != NULL) && (portgroup->active)) {
+			if (portgroup->direction == OUTPUT) {
+				for (c = 0; c < mixgroup->channels; c++) {			
+					hardlimit (portgroup->samples[c], nframes);
+				}
+			}
 		}
-	}
 	}
 	
 	// deactivate ports that need to be deactivated
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if (portgroup->active == 2) {
-			portgroup->active = 0;
+	for (p = 0; p < PORTGROUP_MAX; p++) {
+		portgroup = krad_mixer->portgroup[p];
+		if ((portgroup != NULL) && (portgroup->active)) {
+			if (portgroup->active == 2) {
+				portgroup->active = 0;
+			}
 		}
-	}
-	}
-		
+	}	
 
 	return 0;      
 
@@ -607,17 +338,73 @@ void krad_mixer_jack_finish(void *arg) {
 	
 }
 
+void krad_mixer_mixgroup_destroy (krad_mixer_t *krad_mixer, mixgroup_t *mixgroup) {
+	
+	int c;
+	int p;
+	
+	for (p = 0; p < PORTGROUP_MAX; p++) {
+		if ((krad_mixer->portgroup[p]->active == 1) && (krad_mixer->portgroup[p]->mixgroup == mixgroup)) {
+			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer->portgroup[p]);
+		}
+	}
 
-void krad_mixer_create_portgroup (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, int type, int group) {
+	mixgroup->active = 2;
+	
+	while (mixgroup->active != 0) {
+		usleep(30000);
+	}
+	
+	for (c = 0; c < mixgroup->channels; c++) {
+		free (mixgroup->samples[c]);
+	}
+	
+	mixgroup->active = 0;
+}
+
+
+mixgroup_t *krad_mixer_mixgroup_create (krad_mixer_t *krad_mixer, const char *name, int channels) {
+
+	int m;
+	int c;
+	mixgroup_t *mixgroup;
+	
+	for(m = 0; m < MIXGROUP_MAX; m++) {
+		if (krad_mixer->portgroup[m]->active == 0) {
+			mixgroup = krad_mixer->mixgroup[m];
+			break;
+		}
+	}
+
+	mixgroup->krad_mixer = krad_mixer;
+
+	strcpy (mixgroup->name, name);
+	mixgroup->channels = channels;
+	
+	
+	for (c = 0; c < mixgroup->channels; c++) {
+		mixgroup->samples[c] = calloc (1, 8192 * 4);
+	}
+	
+	mixgroup->active = 1;
+	
+	return mixgroup;
+	
+}
+
+
+
+void krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, mixgroup_t *mixgroup, portgroup_io_t io_type) {
 
 	int pg;
+	int c;
 	portgroup_t *portgroup;
 	char portname[256];
+	int port_direction;
 	
 	for(pg = 0; pg < PORTGROUP_MAX; pg++) {
 		if (krad_mixer->portgroup[pg]->active == 0) {
 			portgroup = krad_mixer->portgroup[pg];
-			if (pg < PORTGROUP_MAX - 1) { portgroup->next = krad_mixer->portgroup[pg + 1]; }
 			break;
 		}
 	}
@@ -626,184 +413,76 @@ void krad_mixer_create_portgroup (krad_mixer_t *krad_mixer, const char *name, in
 
 	portgroup->krad_mixer = krad_mixer;
 
-	strcpy(portgroup->name, name);
+	strcpy (portgroup->name, name);
 	portgroup->channels = channels;
-	portgroup->type = type;
-	portgroup->group = group;
+	portgroup->io_type = io_type;
+	portgroup->mixgroup = mixgroup;
 	portgroup->direction = direction;
 
-	portgroup->monitor = 0;
-	
-	portgroup->djeq_on = 1;
-	portgroup->djeq = djeq_create();
-	portgroup->fastlimiter = fastlimiter_create();
+	if (portgroup->direction == INPUT) {		
+		port_direction = JackPortIsInput;
+	} else {
+		port_direction = JackPortIsOutput;
+	}
 
-	for (pg = 0; pg < 8; pg++) {
+	for (c = 0; c < portgroup->channels; c++) {
 	
-		// temp default volume
 		portgroup->volume[pg] = 90;
-	
-	
+
 		portgroup->volume_actual[pg] = (float)(portgroup->volume[pg]/100.0f);
 		portgroup->volume_actual[pg] *= portgroup->volume_actual[pg];
 		portgroup->new_volume_actual[pg] = portgroup->volume_actual[pg];
-		portgroup->final_volume_actual[pg] = portgroup->volume_actual[pg];
-		
-		if (strncmp(portgroup->name, "music1", 6) == 0) {
-			portgroup->final_fade_actual[pg] = 1.0f;
-		}
-		if (strncmp(portgroup->name, "music2", 6) == 0) {
-			portgroup->final_fade_actual[pg] = 0.0f;
-		}
-		if (portgroup->type == AUX) {
-			portgroup->final_fade_actual[pg] = 0.0f;
-		}
-
-
 	}
 
-	strcpy(portname, name);
-
-
-	if (portgroup->direction == INPUT) {
-
-
-		
-
-		if (portgroup->channels == MONO) {
-			portgroup->input_port = jack_port_register (krad_mixer->jack_client, portname,
-																					  JACK_DEFAULT_AUDIO_TYPE,
-																					  JackPortIsInput, 0);
-
-			portgroup->input_ports[0] = portgroup->input_port;
-
-			if (portgroup->input_port == NULL) {
-				fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
-				return;
-			}
-			
-			//Allocate second buffer for turning mono into stereo since jack will give us one per port
-			//FIXME free this? we dun use mono yet btw..
-			portgroup->samples[1] = malloc(2048 * sizeof(float));
-			
-		} else {
-		
-			strcat(portname, "_left");
-
-			portgroup->input_ports[0] = jack_port_register (krad_mixer->jack_client, portname,
-																					  JACK_DEFAULT_AUDIO_TYPE,
-																					  JackPortIsInput, 0);
-			if (portgroup->input_ports[0] == NULL) {
-				fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
-				return;
-			}
-			
-			strcpy(portname, name);
-			strcat(portname, "_right");
-
-			portgroup->input_ports[1] = jack_port_register (krad_mixer->jack_client, portname,
-																					  JACK_DEFAULT_AUDIO_TYPE,
-																					  JackPortIsInput, 0);
-			if (portgroup->input_ports[1] == NULL) {
-				fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
-				return;
-			}
-																					  
-		
-		}
-
-	} else {
+	strcpy (portname, name);
 	
+
+	strcat (portname, "_left");
+
+	portgroup->ports[0] = jack_port_register (krad_mixer->jack_client, portname, JACK_DEFAULT_AUDIO_TYPE, port_direction, 0);
 	
-		strcat(portname, "_left");
-
-		portgroup->output_ports[0] = jack_port_register (krad_mixer->jack_client, portname,
-																					  JACK_DEFAULT_AUDIO_TYPE,
-																					  JackPortIsOutput, 0);
-
-		if (portgroup->output_ports[0] == NULL) {
-			fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
-			return;
-		}
-
-		strcpy(portname, name);
-		strcat(portname, "_right");
-
-		portgroup->output_ports[1] = jack_port_register (krad_mixer->jack_client, portname,
-																					  JACK_DEFAULT_AUDIO_TYPE,
-																					  JackPortIsOutput, 0);
-																					  
-		if (portgroup->output_ports[1] == NULL) {
-			fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
-			return;
-		}
-
-
+	if (portgroup->ports[0] == NULL) {
+		fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
+		return;
 	}
+	
+	strcpy (portname, name);
+	strcat (portname, "_right");
+
+	portgroup->ports[1] = jack_port_register (krad_mixer->jack_client, portname, JACK_DEFAULT_AUDIO_TYPE, port_direction, 0);
+	if (portgroup->ports[1] == NULL) {
+		fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
+		return;
+	}
+
 
 
 	portgroup->active = 1;
 
-
 }
 
 
-void krad_mixer_destroy_portgroup (krad_mixer_t *krad_mixer, portgroup_t *portgroup) {
+void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgroup) {
 
+
+	int c;
 
 	portgroup->active = 2;
 	
 	while (portgroup->active != 0) {
-		usleep(50000);
+		usleep(30000);
 	}
 
-	if (portgroup->direction == INPUT) {
+	printf("Krad Mixer: Removing %d channel Portgroup %s\n", portgroup->channels, portgroup->name);
 
-		if (portgroup->channels == MONO) {
+	for (c = 0; c < portgroup->channels; c++) {
 
-			printf("Krad Mixer Removing Mono Input Portgroup %s\n", portgroup->name);
-
-			printf("Krad Mixer Disconnecting Input Port\n");
-			jack_port_disconnect(krad_mixer->jack_client, portgroup->input_port);
-			printf("Krad Mixer Unregistering Input port\n");
-			jack_port_unregister(krad_mixer->jack_client, portgroup->input_port);
-	
-		} else {
-	
-			printf("Krad Mixer Removing Stereo Input Portgroup %s\n", portgroup->name);
-
-			printf("Krad Mixer Disconnecting Left Input Port\n");
-			jack_port_disconnect(krad_mixer->jack_client, portgroup->input_ports[0]);
-			printf("Krad Mixer Unregistering Left Input port\n");
-			jack_port_unregister(krad_mixer->jack_client, portgroup->input_ports[0]);
-			
-			printf("Krad Mixer Disconnecting Right Input Port\n");
-			jack_port_disconnect(krad_mixer->jack_client, portgroup->input_ports[1]);
-			printf("Krad Mixer Unregistering Right Input port\n");
-			jack_port_unregister(krad_mixer->jack_client, portgroup->input_ports[1]);
-	
-		}
-	
-	
-	} else {
-	
-		printf("Krad Mixer Removing Output Portgroup %s\n", portgroup->name);
-		
-		printf("Krad Mixer Disconnecting Left Output Port\n");
-		jack_port_disconnect(krad_mixer->jack_client, portgroup->output_ports[0]);
-		printf("Krad Mixer Unregistering Left Output port\n");
-		jack_port_unregister(krad_mixer->jack_client, portgroup->output_ports[0]);
-			
-		printf("Krad Mixer Disconnecting Right Output Port\n");
-		jack_port_disconnect(krad_mixer->jack_client, portgroup->output_ports[1]);
-		printf("Krad Mixer Unregistering Right Output port\n");
-		jack_port_unregister(krad_mixer->jack_client, portgroup->output_ports[1]);	
-
+		printf("Krad Mixer: Disconnecting %s Port %d\n", portgroup->name, c);
+		jack_port_disconnect(krad_mixer->jack_client, portgroup->ports[c]);
+		printf("Krad Mixer: Unregistering %s Port %d\n", portgroup->name, c);
+		jack_port_unregister(krad_mixer->jack_client, portgroup->ports[c]);
 	
 	}
-	
-	fastlimiter_destroy(portgroup->fastlimiter);
-	djeq_destroy(portgroup->djeq);
 
 }
 
@@ -816,71 +495,34 @@ int krad_mixer_destroy_portgroup_by_name(krad_mixer_t *krad_mixer, char *name) {
 		portgroup = krad_mixer->portgroup[pg];
 		if ((portgroup != NULL) && (portgroup->active)) {
 			if (strncmp(name, portgroup->name, strlen(name)) == 0) {	
-				krad_mixer_destroy_portgroup(krad_mixer, portgroup);
+				krad_mixer_portgroup_destroy (krad_mixer, portgroup);
 				return 1;
 			}
 		}
 	}
 		
 	return 0;
-		
 }
 
 
 void listcontrols (krad_mixer_t *krad_mixer, char *data) {
 
 	int pos;
-	int pg;
+	int p;
 	portgroup_t *portgroup;
-	
 
 	pos = 0;
 
 	pos += sprintf(data + pos, "krad_mixer_state:");
 
-	//for (portgroup = krad_mixer->portgroup; portgroup != NULL && portgroup->active; portgroup = portgroup->next) {
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-	portgroup = krad_mixer->portgroup[pg];
-	if ((portgroup != NULL) && (portgroup->active)) {
-		if ((portgroup->type == MUSIC) || (portgroup->type == MIC) || (portgroup->type == STEREOMIC) || (portgroup->type == AUX)) { 
-			pos += sprintf(data + pos, "/mainmixer/%s/volume_left|%f|%f|%f*", portgroup->name, 0.0f, 100.0f, portgroup->volume[0]);
-			pos += sprintf(data + pos, "/mainmixer/%s/volume_right|%f|%f|%f*", portgroup->name, 0.0f, 100.0f, portgroup->volume[1]);
+	for (p = 0; p < PORTGROUP_MAX; p++) {
+		portgroup = krad_mixer->portgroup[p];
+		if ((portgroup != NULL) && (portgroup->active)) {
+			if ((portgroup->direction == INPUT)) { 
+				pos += sprintf(data + pos, "/mainmixer/%s/volume_left|%f|%f|%f*", portgroup->name, 0.0f, 100.0f, portgroup->volume[0]);
+				pos += sprintf(data + pos, "/mainmixer/%s/volume_right|%f|%f|%f*", portgroup->name, 0.0f, 100.0f, portgroup->volume[1]);
+			}
 		}
-		
-		if ((portgroup->type == SUBMIX)) { 
-			pos += sprintf(data + pos, "/mainmixer/%s/monitor|%f|%f|%d*", portgroup->name, 0.0f, 1.0f, portgroup->monitor);
-		}
-		
-		if ((portgroup->type == MAINMIX)) { 
-		/*
-			x += sprintf(data + x, "/mainmixer/%s/highpass|%f|%f|%f*", portgroup->name, 20.0f, 20000.0f, krad_mixer->pass_left->high_freq);
-			x += sprintf(data + x, "/mainmixer/%s/lowpass|%f|%f|%f*", portgroup->name, 20.0f, 20000.0f, krad_mixer->pass_left->low_freq);
-		*/
-			pos += sprintf(data + pos, "/mainmixer/%s/music_1-2_crossfader|%f|%f|%f*", portgroup->name, -1.0f, 1.0f, krad_mixer->music_1_2_crossfade);
-			pos += sprintf(data + pos, "/mainmixer/%s/music-aux_crossfader|%f|%f|%f*", portgroup->name, -1.0f, 1.0f, krad_mixer->music_aux_crossfade);
-			
-			pos += sprintf(data + pos, "/mainmixer/%s/fastlimiter_limit|%f|%f|%f*", portgroup->name, -20.0f, 0.0f, portgroup->fastlimiter->limit);
-			pos += sprintf(data + pos, "/mainmixer/%s/fastlimiter_release|%f|%f|%f*", portgroup->name, 0.01f, 2.0f, portgroup->fastlimiter->release);
-			
-		}
-		/*
-		if ((portgroup->type == MUSIC)) {
-
-			x += sprintf(data + x, "/mainmixer/%s/digilogue_drive|%f|%f|%f*", portgroup->name, 0.1f, 10.0f, krad_mixer->digilogue_left->drive);
-			x += sprintf(data + x, "/mainmixer/%s/digilogue_blend|%f|%f|%f*", portgroup->name, -10.0f, 10.0f, krad_mixer->digilogue_left->blend);
-			x += sprintf(data + x, "/mainmixer/%s/digilogue_on|%f|%f|%d*", portgroup->name, 0.0f, 1.0f, portgroup->digilogue_on);
-		}
-		*/
-		if ((portgroup->direction == INPUT)) { 
-
-			pos += sprintf(data + pos, "/mainmixer/%s/djeq_low|%f|%f|%f*", portgroup->name, -50.0f, 20.0f, portgroup->djeq->low);
-			pos += sprintf(data + pos, "/mainmixer/%s/djeq_mid|%f|%f|%f*", portgroup->name, -50.0f, 20.0f, portgroup->djeq->mid);
-			pos += sprintf(data + pos, "/mainmixer/%s/djeq_high|%f|%f|%f*", portgroup->name, -50.0f, 20.0f, portgroup->djeq->high);
-			pos += sprintf(data + pos, "/mainmixer/%s/djeq_on|%f|%f|%d*", portgroup->name, 0.0f, 1.0f, portgroup->djeq_on);
-
-		}
-
-	}
 	}
 
 }
@@ -1039,7 +681,9 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 
 krad_mixer_t *krad_mixer_create (char *callsign) {
 
-	int pg;
+	int p;
+	int m;
+	mixgroup_t *mixgroup;
 	char jack_client_name_string[48] = "";
 
 	krad_mixer_t *krad_mixer;
@@ -1054,37 +698,15 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 	//			exit (1);
 	//}
 	
-	for (pg = 0; pg < PORTGROUP_MAX; pg++) {
-		krad_mixer->portgroup[pg] = calloc (1, sizeof (portgroup_t));
+	for (p = 0; p < PORTGROUP_MAX; p++) {
+		krad_mixer->portgroup[p] = calloc (1, sizeof (portgroup_t));
+	}
+	
+	for (m = 0; m < MIXGROUP_MAX; m++) {
+		krad_mixer->mixgroup[m] = calloc (1, sizeof (mixgroup_t));
 	}
 	
 	strcpy (krad_mixer->callsign, callsign);
-	
-	krad_mixer->sc2_data = sc2_init(krad_mixer->sc2_data);
-	krad_mixer->sc2_data2 = sc2_init(krad_mixer->sc2_data2);
-	
-	//krad_mixer->djeq = djeq_create(krad_mixer->djeq);
-	//krad_mixer->digilogue_left = digilogue_create(krad_mixer->digilogue_left);
-	//krad_mixer->digilogue_right = digilogue_create(krad_mixer->digilogue_right);
-	
-	//krad_mixer->pass_left = pass_create(krad_mixer->pass_left);
-	//krad_mixer->pass_right = pass_create(krad_mixer->pass_right);
-	
-	krad_mixer->music_1_2_crossfade = -1.0f;
-	krad_mixer->music_aux_crossfade = -1.0f;
-	
-	krad_mixer->new_music_fade_value[0] = get_fade_out_amount(krad_mixer->music_aux_crossfade, krad_mixer->fade_temp, krad_mixer->fade_temp_pos);
-	krad_mixer->new_music_fade_value[1] = krad_mixer->new_music_fade_value[0];
-	krad_mixer->new_aux_fade_value[0] = get_fade_in_amount(krad_mixer->music_aux_crossfade, krad_mixer->fade_temp, krad_mixer->fade_temp_pos);
-	krad_mixer->new_aux_fade_value[1] = krad_mixer->new_aux_fade_value[0];
-	
-	krad_mixer->new_music1_fade_value[0] = get_fade_out_amount(krad_mixer->music_1_2_crossfade, krad_mixer->fade_temp, krad_mixer->fade_temp_pos);
-	krad_mixer->new_music1_fade_value[1] = krad_mixer->new_music1_fade_value[0];
-
-	krad_mixer->new_music2_fade_value[0] = get_fade_in_amount(krad_mixer->music_1_2_crossfade, krad_mixer->fade_temp, krad_mixer->fade_temp_pos);
-	krad_mixer->new_music2_fade_value[1] = krad_mixer->new_music2_fade_value[0];
-	
-	krad_mixer->active_input = 1;
 	
 	strcat (jack_client_name_string, "krad_mixer_");
 	strcat (jack_client_name_string, callsign);
@@ -1138,6 +760,7 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 	krad_mixer_create_portgroup (krad_mixer, "main", OUTPUT, STEREO, MAINMIX, 0);
 	krad_mixer_create_portgroup (krad_mixer, "music1", INPUT, STEREO, MUSIC, 0);
 	krad_mixer_create_portgroup (krad_mixer, "music2", INPUT, STEREO, MUSIC, 0);
+	
 	sprintf(portname1, "%s:main_left", krad_mixer->client_name);
 	sprintf(portname2, "kradlink_%s:flac_encoder_left", krad_mixer->callsign);
 	connect_port(krad_mixer->jack_client, portname1, portname2);
@@ -1158,10 +781,14 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 	
 	*/
 
-	
-
 	//pthread_create(&krad_mixer->levels_thread, NULL, levels_thread, (void *)krad_mixer);
 	//pthread_create(&krad_mixer->active_input_thread, NULL, active_input_thread, (void *)krad_mixer);
+
+	mixgroup = krad_mixer_mixgroup_create (krad_mixer, "MainMix", 2);
+
+	krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, mixgroup, JACK);
+	krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, mixgroup, JACK);
+	krad_mixer_portgroup_create (krad_mixer, "Main", OUTPUT, 2, mixgroup, JACK);	
 	
 	return krad_mixer;
 	
@@ -1179,9 +806,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	uint64_t response;
 //	uint64_t broadcast;
 	
-	int i;
+	//int i;
 	
-	i = 0;
+	//i = 0;
 	
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 

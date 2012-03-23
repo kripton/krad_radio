@@ -11,9 +11,11 @@
 #include <jack/jack.h>
 
 #define PORTGROUP_MAX 20
+#define MIXGROUP_MAX 20
 
 typedef struct krad_mixer_St krad_mixer_t;
 typedef struct portgroup_St portgroup_t;
+typedef struct mixgroup_St mixgroup_t;
 
 typedef enum {
 	OUTPUT,
@@ -23,7 +25,7 @@ typedef enum {
 typedef enum {
 	JACK,
 	INTERNAL,
-} portgroup_io_type_t;
+} portgroup_io_t;
 
 typedef enum {
 	NIL,
@@ -35,58 +37,41 @@ typedef enum {
 	SIX,
 	SEVEN,
 	EIGHT,
-} portgroup_channels_t;
+} channels_t;
 
-typedef enum {
-	MIC,
-	MUSIC,
-	AUX,
-	MAINMIX,
-	SUBMIX,
-	STEREOMIC
-} portgroup_type_t;
+struct mixgroup_St {
 
+	char name[256];
+	float *samples[8];
+	channels_t channels;
+	int active;
+	krad_mixer_t *krad_mixer;
+};
 
 struct portgroup_St {
 
 	char name[256];
 	
 	portgroup_direction_t direction;
-	portgroup_type_t type;
-	portgroup_channels_t channels;
-	portgroup_io_type_t io_type;
+	portgroup_io_t io_type;
+	channels_t channels;
+	mixgroup_t *mixgroup;
 	
-	int group;
-	
-	jack_port_t *input_port;
-	jack_port_t *input_ports[8];
-	jack_port_t *output_ports[8];
+	jack_port_t *ports[8];
 	
 	float volume[8];
-	float final_volume_actual[8];
-	float final_fade_actual[8];
-	float music_fade_value[8];
-	float aux_fade_value[8];
 	float volume_actual[8];
 	float new_volume_actual[8];
 	int last_sign[8];
 
 	float peak[8];
-	jack_default_audio_sample_t *samples[8];
+	float *samples[8];
 
 	int active;
-	int monitor;
-	
-	int djeq_on;
-	djeq_t *djeq;
-	fastlimiter_t *fastlimiter;
 	
 	krad_mixer_t *krad_mixer;
-	
-	portgroup_t *next;
-	
 	krad_tags_t *krad_tags;
-	
+
 };
 
 
@@ -103,14 +88,12 @@ struct krad_mixer_St {
 	int shutdown;
 	int xruns;
 	int sample_rate;
-		
     void *userdata;
     
-
+	mixgroup_t *mixgroup[MIXGROUP_MAX];
 	portgroup_t *portgroup[PORTGROUP_MAX];
 
-	int portgroup_count;
-
+	/*
 	sc2_data_t *sc2_data;
 	sc2_data_t *sc2_data2;
 
@@ -143,7 +126,7 @@ struct krad_mixer_St {
 	int level_pg;
 	portgroup_t *level_portgroup;
 	pthread_t levels_thread;
-	
+	*/
 };
 
 
@@ -158,6 +141,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 
 
+void krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, mixgroup_t *mixgroup, portgroup_io_t io_type);
+void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgroup);
 
 void compute_peak (portgroup_t *portgroup, int channel, int sample_count);
 void compute_peaks (portgroup_t *portgroup, int sample_count);
