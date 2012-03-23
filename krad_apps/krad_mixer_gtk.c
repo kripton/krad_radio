@@ -27,7 +27,7 @@ static void set_test_value (GtkWidget *widget, gpointer data) {
 	
 	if (intval2 != krad_mixer_gtk->intval) {
 		krad_mixer_gtk->intval = intval2;
-		krad_ipc_cmd2 (krad_mixer_gtk->client, krad_mixer_gtk->intval);
+		//krad_ipc_cmd2 (krad_mixer_gtk->client, krad_mixer_gtk->intval);
 	}
 }
 

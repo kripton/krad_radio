@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdint.h>
 
+#ifndef KRAD_TAG_H
+#define KRAD_TAG_H
+
 #define KRAD_MAX_TAGS 100
 
 typedef struct krad_tag_St krad_tag_t;
@@ -32,3 +35,5 @@ char *krad_tags_get_tag (krad_tags_t *krad_tags, char *name);
 void krad_tags_set_tag (krad_tags_t *krad_tags, char *name, char *value);
 
 int krad_tags_get_next_tag (krad_tags_t *krad_tags, int *tagnum, char **name, char **value);
+
+#endif

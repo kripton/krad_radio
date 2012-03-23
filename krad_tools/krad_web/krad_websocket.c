@@ -27,8 +27,18 @@ void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 	printf ("got len %d data from browser: --%s--\n", len, value);
 
 	if (memcmp(value, "kradmixer:", 10) == 0) {
-		krad_ipc_cmd2 (pss->krad_ipc_client, atoi(value + 10));
-		
+
+
+
+
+// FIXME FIXME FIXME
+
+
+
+//		krad_ipc_cmd2 (pss->krad_ipc_client, atoi(value + 10));
+
+
+// FIXME FIXME FIXME
 	
 	}
 
@@ -133,8 +143,8 @@ int callback_http (struct libwebsocket_context *this, struct libwebsocket *wsi,
 				   void *in, size_t len) {
 
 	int n;
-	char client_name[128];
-	char client_ip[128];
+	//char client_name[128];
+	//char client_ip[128];
 
 	krad_websocket_t *krad_websocket = krad_websocket_glob;
 
@@ -434,7 +444,7 @@ void krad_websocket_server_destroy (krad_websocket_t *krad_websocket) {
 		if (krad_websocket->shutdown == KRAD_WEBSOCKET_RUNNING) {
 			krad_websocket->shutdown = KRAD_WEBSOCKET_DO_SHUTDOWN;
 	
-			while ((krad_websocket != KRAD_WEBSOCKET_SHUTINGDOWN) && (patience > 0)) {
+			while ((krad_websocket->shutdown != KRAD_WEBSOCKET_SHUTINGDOWN) && (patience > 0)) {
 				usleep (KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4);
 				patience -= KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4;
 			}

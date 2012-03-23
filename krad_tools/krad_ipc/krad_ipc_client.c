@@ -106,6 +106,31 @@ int krad_ipc_client_init (krad_ipc_client_t *client)
 	return client->sd;
 }
 
+void krad_ipc_get_portgroups (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t get_portgroups;
+	//uint64_t tag;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS, &get_portgroups);	
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
+
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, "");	
+
+	//krad_ebml_finish_element (client->krad_ebml, tag);
+	krad_ebml_finish_element (client->krad_ebml, get_portgroups);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+
 void krad_ipc_get_tags (krad_ipc_client_t *client) {
 
 	//uint64_t ipc_command;
@@ -195,7 +220,7 @@ void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
 	send (client->sd, cmd, len, 0);
 
 }
-
+/*
 int krad_ipc_cmd2 (krad_ipc_client_t *client, int value) {
 
 	fd_set set;
@@ -223,28 +248,31 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value) {
 
 	return 0;
 }
-
+*/
 int krad_ipc_client_check (krad_ipc_client_t *client, int *value) {
 
 	int ret;
 	struct pollfd sockets[1];
-	uint32_t ebml_id;
-	uint64_t ebml_data_size;	
+	//uint32_t ebml_id;
+	//uint64_t ebml_data_size;	
 
 	sockets[0].fd = client->sd;
 	sockets[0].events = POLLIN;
 
 	while ((ret = poll(sockets, 1, 0)) > 0) {
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-		*value = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+		//krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+		//*value = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 		//printf("Received number %d\n", *value);
+		
+		krad_ipc_print_response (client);
+		
 	}
 
 	return 0;
 }
 
 int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
-
+/*
 	fd_set set;
 	
 	uint32_t ebml_id;
@@ -291,6 +319,9 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 	
 	printf("Received number %zu\n", number);
+	
+*/	
+	
 	return 0;
 }
 
@@ -374,7 +405,6 @@ void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_name
 
 void krad_ipc_print_response (krad_ipc_client_t *client) {
 
-	int ret;
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
 	fd_set set;
@@ -390,7 +420,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	int bytes_read;
 	int list_size;
 	
-	list_size;
+	list_size = 0;
 	bytes_read = 0;
 
 	FD_ZERO (&set);

@@ -312,28 +312,24 @@ void compute_peak(portgroup_t *portgroup, int channel, int sample_count) {
 }
 
 
-int jack_callback (jack_nframes_t nframes, void *arg)
-{
+int jack_callback (jack_nframes_t nframes, void *arg) {
 
 	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
 	
-	int x, j, ret, cycle, i, i2, pg, pg2, s;
+	krad_mixer_process ( krad_mixer, nframes );
+	
+	return 0;
+	
+}
+
+
+
+int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
+	
+	int x, i, pg, pg2, s;
 
 	portgroup_t *portgroup = NULL;
 	portgroup_t *portgroup2 = NULL;
-	
-	/*
-	
-	cur_sample = cur_sample + nframes;
-
-	if (cur_sample == 4096) {
-		kiss_fft( cfg , inf , outf );
-		cur_sample = 0;
-	}
-	
-	*/
-	
-	
 	
 	// clear mic mix
 	for (i = 0; i < nframes; i++) {
@@ -1127,7 +1123,7 @@ int setcontrol(krad_mixer_t *krad_mixer, char *data) {
 			if (strncmp(control, "djeq_high", 9) == 0) {	
 				portgroup->djeq->high = float_value;
 			}
-			/*
+			
 			if (strcmp(control, "digilogue_drive") == 0) {	
 				krad_mixer->digilogue_left->drive = value;
 				krad_mixer->digilogue_right->drive = value;
@@ -1182,9 +1178,9 @@ int setcontrol(krad_mixer_t *krad_mixer, char *data) {
 	
 	}
 	}
-
-	return 0;
 */
+	return 0;
+
 }
 
 
@@ -1200,9 +1196,60 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	//pthread_cancel(krad_mixer->active_input_thread);
 }
 
-int krad_mixer_handler(char *data, void *pointer) {
 
-	krad_mixer_t *krad_mixer = (krad_mixer_t *)pointer;
+int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc ) {
+
+	uint32_t command;
+	uint64_t ebml_data_size;
+//	uint64_t number;
+	
+	uint64_t element;
+	
+	uint64_t response;
+//	uint64_t broadcast;
+	
+	int i;
+	
+	i = 0;
+	
+	printf("krad mixer handler! \n");	
+	
+	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
+
+	switch ( command ) {
+	
+		case EBML_ID_KRAD_MIXER_CMD_GET_CONTROL:
+			//printf("GET CONTROL! %d\n", krad_radio_station->test_value);
+			//krad_ipc_server_respond_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_CONTROL, krad_radio_station->test_value);
+			return 1;
+			break;	
+		case EBML_ID_KRAD_MIXER_CMD_SET_CONTROL:
+			//number = krad_ipc_server_read_number ( krad_radio_station->ipc, ebml_data_size );
+			//krad_radio_station->test_value = number;
+			//printf("SET CONTROL to %d!\n", krad_radio_station->test_value);
+			//krad_ipc_server_broadcast_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_CONTROL, krad_radio_station->test_value);
+			//*output_len = 666;
+			return 2;
+			break;	
+		case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
+			printf("get PORTGROUPS list\n");
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
+			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_LIST, &element);
+			
+			//while (krad_tags_get_next_tag ( krad_radio_station->krad_tags, &i, &tag_name, &tag_value)) {
+			//	krad_ipc_server_response_add_tag ( krad_radio_station->ipc, tag_name, tag_value);
+			//	printf("got PORTGROUP %d: %s to %s\n", i, tag_name, tag_value);
+			//}
+			
+			krad_ipc_server_response_list_finish ( krad_ipc, element);
+			krad_ipc_server_response_finish ( krad_ipc, response);
+			return 1;
+			break;
+	}
+	
+	
+	
+
 
 /*
 
@@ -1366,6 +1413,8 @@ int krad_mixer_handler(char *data, void *pointer) {
 		return 1; // to broadcast
 	}
 */
+
+	return 0;
 
 }
 

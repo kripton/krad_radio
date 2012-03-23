@@ -4,7 +4,6 @@
 int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
-	char cmd[128];
 	
 	if (argc > 2) {
 
@@ -30,20 +29,17 @@ int main (int argc, char *argv[]) {
 						krad_ipc_set_tag (client, argv[3], argv[4]);
 					}
 				}
+			}
 			
-			} else {
-	
-				sprintf(cmd, "%s", argv[2]);
-	
-				krad_ipc_cmd(client, cmd);
+			if (strncmp(argv[2], "mix", 3) == 0) {
+			
+				krad_ipc_get_portgroups (client);
+				krad_ipc_print_response (client);
+			
 			}
 			
 			
-			if (strlen(client->buffer) > 0) {
-	
-				printf("%s\n", client->buffer);
-	
-			}
+			
 			usleep(200000);
 			krad_ipc_disconnect (client);
 		}
