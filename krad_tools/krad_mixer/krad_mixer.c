@@ -274,7 +274,7 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 			}
 		
 			if (portgroup->direction == INPUT) {
-				//apply_volume (portgroup, nframes);
+				apply_volume (portgroup, nframes);
 			}
 
 			compute_peaks (portgroup, nframes);
