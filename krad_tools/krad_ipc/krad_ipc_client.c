@@ -294,6 +294,149 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	return 0;
 }
 
+int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char **tag_value ) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int bytes_read;
+	
+	bytes_read = 0;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+	bytes_read += ebml_data_size + 9;
+	
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG) {
+		printf("hrm wtf\n");
+	} else {
+		//printf("tag size %zu\n", ebml_data_size);
+	}
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, *tag_name, ebml_data_size);
+	
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_VALUE) {
+		printf("hrm wtf3\n");
+	} else {
+		//printf("tag value size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, *tag_value, ebml_data_size);
+	
+	return bytes_read;
+	
+}
+
+void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_name, char **tag_value ) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+/*
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG) {
+		printf("hrm wtf\n");
+	} else {
+		//printf("tag size %zu\n", ebml_data_size);
+	}
+*/
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, *tag_name, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_VALUE) {
+		printf("hrm wtf3\n");
+	} else {
+		//printf("tag value size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, *tag_value, ebml_data_size);
+	
+}
+
+void krad_ipc_print_response (krad_ipc_client_t *client) {
+
+	int ret;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	fd_set set;
+	char tag_name_actual[256];
+	char tag_value_actual[1024];
+	
+	tag_name_actual[0] = '\0';
+	tag_value_actual[0] = '\0';
+	
+	char *tag_name = tag_name_actual;
+	char *tag_value = tag_value_actual;	
+	
+	int bytes_read;
+	int list_size;
+	
+	list_size;
+	bytes_read = 0;
+
+	FD_ZERO (&set);
+	FD_SET (client->sd, &set);	
+
+	select (client->sd+1, &set, NULL, NULL, NULL);
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+	switch ( ebml_id ) {
+	
+		case EBML_ID_KRAD_RADIO_MSG:
+			printf("Received KRAD_RADIO_MSG %zu bytes of data.\n", ebml_data_size);		
+		
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			switch ( ebml_id ) {
+	
+				case EBML_ID_KRAD_RADIO_TAG_LIST:
+					printf("Received Tag list %zu bytes of data.\n", ebml_data_size);
+					list_size = ebml_data_size;
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_name, &tag_value )) <= list_size)) {
+						printf("Tag %s - %s.\n", tag_name, tag_value);
+						if (bytes_read == list_size) {
+							break;
+						}
+					}	
+					break;
+				case EBML_ID_KRAD_RADIO_TAG:
+					krad_ipc_client_read_tag_inner ( client, &tag_name, &tag_value );
+					printf("Tag %zu bytes %s - %s.\n", ebml_data_size, tag_name, tag_value);
+					break;
+			}
+		
+		
+			break;
+		case EBML_ID_KRAD_MIXER_MSG:
+			printf("Received KRAD_MIXER_MSG %zu bytes of data.\n", ebml_data_size);				
+			break;
+		case EBML_ID_KRAD_LINK_MSG:
+			printf("Received KRAD_LINK_MSG %zu bytes of data.\n", ebml_data_size);				
+			break;
+	}
+}
+
+
+
 int krad_ipc_wait (krad_ipc_client_t *client, char *buffer, int size) {
 
 	//int len;

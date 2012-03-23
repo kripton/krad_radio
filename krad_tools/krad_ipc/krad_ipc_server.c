@@ -297,13 +297,25 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_n
 	
 }
 
-void krad_ipc_server_respond_list_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *list) {
+void krad_ipc_server_response_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *response) {
+
+	krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, ebml_id, response);
+
+}
+
+void krad_ipc_server_response_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t response) {
+
+	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, response);
+
+}
+
+void krad_ipc_server_response_list_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *list) {
 
 	krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, ebml_id, list);
 
 }
 
-void krad_ipc_server_respond_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_name, char *tag_value) {
+void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_name, char *tag_value) {
 
 	uint64_t tag;
 
@@ -316,7 +328,7 @@ void krad_ipc_server_respond_add_tag ( krad_ipc_server_t *krad_ipc_server, char 
 
 }
 
-void krad_ipc_server_respond_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list) {
+void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list) {
 
 	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, list);
 

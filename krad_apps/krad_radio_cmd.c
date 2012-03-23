@@ -17,20 +17,19 @@ int main (int argc, char *argv[]) {
 			
 				if (strncmp(argv[2], "tags", 4) == 0) {
 	
-					krad_ipc_get_tags (client, argv[3]);		
-	
+					krad_ipc_get_tags (client);		
+					krad_ipc_print_response (client);
 				} else {
 			
 					if (argc == 4) {
 						krad_ipc_get_tag (client, argv[3]);
+						krad_ipc_print_response (client);	
 					}
 				
 					if (argc == 5) {
 						krad_ipc_set_tag (client, argv[3], argv[4]);
 					}
 				}
-			
-				krad_ipc_wait (client, client->buffer, 222);
 			
 			} else {
 	
@@ -45,7 +44,7 @@ int main (int argc, char *argv[]) {
 				printf("%s\n", client->buffer);
 	
 			}
-		
+			usleep(200000);
 			krad_ipc_disconnect (client);
 		}
 	

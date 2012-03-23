@@ -183,6 +183,9 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	
 	uint64_t element;
 	
+	uint64_t response;
+	uint64_t broadcast;
+	
 	char tag_name_actual[256];
 	char tag_value_actual[1024];
 	
@@ -220,16 +223,16 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
 			printf("get tags list\n");
-			
-			krad_ipc_server_respond_list_start ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
+			krad_ipc_server_response_start ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_response_list_start ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
 			
 			while (krad_tags_get_next_tag ( krad_radio_station->krad_tags, &i, &tag_name, &tag_value)) {
-				krad_ipc_server_respond_add_tag ( krad_radio_station->ipc, tag_name, tag_value);
+				krad_ipc_server_response_add_tag ( krad_radio_station->ipc, tag_name, tag_value);
 				printf("got tag %d: %s to %s\n", i, tag_name, tag_value);
 			}
 			
-			krad_ipc_server_respond_list_finish ( krad_radio_station->ipc, element);
-
+			krad_ipc_server_response_list_finish ( krad_radio_station->ipc, element);
+			krad_ipc_server_response_finish ( krad_radio_station->ipc, response);
 			return 1;
 			break;
 		case EBML_ID_KRAD_RADIO_CMD_SET_TAG:
@@ -250,7 +253,11 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			tag_value = krad_tags_get_tag (krad_radio_station->krad_tags, tag_name);
 			
 			printf("get tag %s its %s\n", tag_name, tag_value);
-			krad_ipc_server_respond_add_tag ( krad_radio_station->ipc, tag_name, tag_value);
+			
+			krad_ipc_server_response_start ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_response_add_tag ( krad_radio_station->ipc, tag_name, tag_value);
+			krad_ipc_server_response_finish ( krad_radio_station->ipc, response);
+			
 
 			return 1;
 			break;

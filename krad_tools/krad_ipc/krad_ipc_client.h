@@ -49,6 +49,9 @@ typedef struct {
 } krad_ipc_client_t;
 
 
+void krad_ipc_print_response (krad_ipc_client_t *client);
+void krad_ipc_get_tags (krad_ipc_client_t *client);
+
 void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name);
 void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_value);
 
