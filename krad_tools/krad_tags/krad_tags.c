@@ -59,13 +59,12 @@ void krad_tags_set_tag (krad_tags_t *krad_tags, char *name, char *value) {
 		if (krad_tags->tags[t].name != NULL) {
 			if (strcmp(krad_tags->tags[t].name, name) == 0) {
 				free (krad_tags->tags[t].value);
+				krad_tags->tags[t].value = NULL;
 				if ((value != NULL) && (strlen(value))) {
 					krad_tags->tags[t].value = strdup (value);
 				} else {
 					free (krad_tags->tags[t].name);
 					krad_tags->tags[t].name = NULL;
-					free (krad_tags->tags[t].value);
-					krad_tags->tags[t].value = NULL;
 				}
 				return;
 			}

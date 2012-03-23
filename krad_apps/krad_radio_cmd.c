@@ -40,7 +40,7 @@ int main (int argc, char *argv[]) {
 			
 			
 			
-			usleep(200000);
+			usleep(80000);
 			krad_ipc_disconnect (client);
 		}
 	

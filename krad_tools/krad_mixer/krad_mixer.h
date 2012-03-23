@@ -21,6 +21,11 @@ typedef enum {
 } portgroup_direction_t;
 
 typedef enum {
+	JACK,
+	INTERNAL,
+} portgroup_io_type_t;
+
+typedef enum {
 	NIL,
 	MONO,
 	STEREO,
@@ -30,7 +35,7 @@ typedef enum {
 	SIX,
 	SEVEN,
 	EIGHT,
-} portgroup_channel_t;
+} portgroup_channels_t;
 
 typedef enum {
 	MIC,
@@ -41,10 +46,6 @@ typedef enum {
 	STEREOMIC
 } portgroup_type_t;
 
-typedef enum {
-	JACK,
-	INTERNAL,
-} portgroup_io_type_t;
 
 struct portgroup_St {
 
@@ -52,7 +53,7 @@ struct portgroup_St {
 	
 	portgroup_direction_t direction;
 	portgroup_type_t type;
-	portgroup_channel_t channels;
+	portgroup_channels_t channels;
 	portgroup_io_type_t io_type;
 	
 	int group;
@@ -146,16 +147,6 @@ struct krad_mixer_St {
 };
 
 
-/*
-	float float_value;
-	char *unit;
-	char *subunit;
-	char *control;
-	float fade_temp;
-	float fade_temp_pos;
-	float volume_temp;
-*/
-
 int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t frames);
 
 krad_mixer_t *krad_mixer_create (char *callsign);
@@ -166,9 +157,9 @@ void listcontrols(krad_mixer_t *client, char *data);
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );
 
 
-void example_session(krad_mixer_t *krad_mixer);
 
-void compute_peak(portgroup_t *portgroup, int channel, int sample_count);
-void compute_peaks(portgroup_t *portgroup, int sample_count);
-float read_stereo_peak(portgroup_t *portgroup);
-int xrun_callback(void *arg);
+
+void compute_peak (portgroup_t *portgroup, int channel, int sample_count);
+void compute_peaks (portgroup_t *portgroup, int sample_count);
+float read_stereo_peak (portgroup_t *portgroup);
+int krad_mixer_jack_xrun_callback (void *arg);
