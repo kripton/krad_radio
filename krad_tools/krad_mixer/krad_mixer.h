@@ -88,7 +88,6 @@ struct krad_mixer_St {
 	int shutdown;
 	int xruns;
 	int sample_rate;
-    void *userdata;
     
 	mixgroup_t *mixgroup[MIXGROUP_MAX];
 	portgroup_t *portgroup[PORTGROUP_MAX];

@@ -222,7 +222,6 @@ float read_stereo_peak (portgroup_t *portgroup) {
 void compute_peak (portgroup_t *portgroup, int channel, int sample_count) {
 
 	int i;
-	
 
 	for(i = 0; i < sample_count; i++) {
 		const float s = fabs(portgroup->samples[channel][i]);
@@ -269,16 +268,16 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 		if ((portgroup != NULL) && (portgroup->active)) {
 
 			if (portgroup->io_type == JACK) {
-				for (c = 0; c < mixgroup->channels; c++) {
+				for (c = 0; c < portgroup->channels; c++) {
 					portgroup->samples[c] = jack_port_get_buffer (portgroup->ports[c], nframes);
 				}
 			}
 		
 			if (portgroup->direction == INPUT) {
-				apply_volume (portgroup, nframes);
+				//apply_volume (portgroup, nframes);
 			}
 
-			compute_peaks(portgroup, nframes);
+			compute_peaks (portgroup, nframes);
 		}
 	}
 
@@ -290,12 +289,40 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 		if ((mixgroup != NULL) && (mixgroup->active)) {
 			for (c = 0; c < mixgroup->channels; c++) {
 				for (s = 0; s < nframes; s++) {
-					portgroup->samples[c][s] = 0.0f;
+					mixgroup->samples[c][s] = 0.0f;
 				}
 			}
 		}
 	}
 
+	// Mix
+	for (m = 0; m < MIXGROUP_MAX; m++) {
+		mixgroup = krad_mixer->mixgroup[m];
+		if ((mixgroup != NULL) && (mixgroup->active)) {
+			for (p = 0; p < PORTGROUP_MAX; p++) {
+				portgroup = krad_mixer->portgroup[p];
+				if ((portgroup != NULL) && (portgroup->active) && (portgroup->mixgroup == mixgroup) && (portgroup->direction == INPUT)) {
+					for (c = 0; c < mixgroup->channels; c++) {
+						for (s = 0; s < nframes; s++) {
+							mixgroup->samples[c][s] += portgroup->samples[c][s];
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// copy to outputs
+	for (p = 0; p < PORTGROUP_MAX; p++) {
+		portgroup = krad_mixer->portgroup[p];
+		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == OUTPUT)) {
+			for (c = 0; c < portgroup->channels; c++) {
+				for (s = 0; s < nframes; s++) {
+					portgroup->samples[c][s] = portgroup->mixgroup->samples[c][s];
+				}
+			}
+		}
+	}
 		
 	// hardlimit all outputs
 	for (p = 0; p < PORTGROUP_MAX; p++) {
@@ -396,15 +423,15 @@ mixgroup_t *krad_mixer_mixgroup_create (krad_mixer_t *krad_mixer, const char *na
 
 void krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, mixgroup_t *mixgroup, portgroup_io_t io_type) {
 
-	int pg;
+	int p;
 	int c;
 	portgroup_t *portgroup;
 	char portname[256];
 	int port_direction;
 	
-	for(pg = 0; pg < PORTGROUP_MAX; pg++) {
-		if (krad_mixer->portgroup[pg]->active == 0) {
-			portgroup = krad_mixer->portgroup[pg];
+	for(p = 0; p < PORTGROUP_MAX; p++) {
+		if (krad_mixer->portgroup[p]->active == 0) {
+			portgroup = krad_mixer->portgroup[p];
 			break;
 		}
 	}
@@ -427,15 +454,14 @@ void krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, in
 
 	for (c = 0; c < portgroup->channels; c++) {
 	
-		portgroup->volume[pg] = 90;
+		portgroup->volume[c] = 90;
 
-		portgroup->volume_actual[pg] = (float)(portgroup->volume[pg]/100.0f);
-		portgroup->volume_actual[pg] *= portgroup->volume_actual[pg];
-		portgroup->new_volume_actual[pg] = portgroup->volume_actual[pg];
+		portgroup->volume_actual[c] = (float)(portgroup->volume[c]/100.0f);
+		portgroup->volume_actual[c] *= portgroup->volume_actual[c];
+		portgroup->new_volume_actual[c] = portgroup->volume_actual[c];
 	}
 
 	strcpy (portname, name);
-	
 
 	strcat (portname, "_left");
 
@@ -712,11 +738,8 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 	strcat (jack_client_name_string, callsign);
 	krad_mixer->client_name = jack_client_name_string;
 
-/*	
 	krad_mixer->server_name = NULL;
 	krad_mixer->options = JackNoStartServer;
-	
-	krad_mixer->userdata = krad_mixer;
 
 	// Connect up to the JACK server 
 
@@ -735,16 +758,15 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 	}
 
 	if (krad_mixer->status & JackNameNotUnique) {
-		krad_mixer->client_name = jack_get_client_name(krad_mixer->jack_client);
+		krad_mixer->client_name = jack_get_client_name (krad_mixer->jack_client);
 		fprintf(stderr, "unique name `%s' assigned\n", krad_mixer->client_name);
 	}
 
 	// Set up Callbacks
 
-	jack_set_process_callback (krad_mixer->jack_client, jack_callback, krad_mixer->userdata);
-	jack_on_shutdown (krad_mixer->jack_client, jack_shutdown, krad_mixer->userdata);
-
-	jack_set_xrun_callback (krad_mixer->jack_client, xrun_callback, krad_mixer->userdata);
+	jack_set_process_callback (krad_mixer->jack_client, krad_mixer_jack_callback, krad_mixer);
+	jack_on_shutdown (krad_mixer->jack_client, krad_mixer_jack_shutdown, krad_mixer);
+	jack_set_xrun_callback (krad_mixer->jack_client, krad_mixer_jack_xrun_callback, krad_mixer);
 
 	// Activate
 
@@ -752,37 +774,10 @@ krad_mixer_t *krad_mixer_create (char *callsign) {
 		printf("cannot activate client\n");
 		exit (1);
 	}
-	*/
 	
-	
-	/*
-	
-	krad_mixer_create_portgroup (krad_mixer, "main", OUTPUT, STEREO, MAINMIX, 0);
-	krad_mixer_create_portgroup (krad_mixer, "music1", INPUT, STEREO, MUSIC, 0);
-	krad_mixer_create_portgroup (krad_mixer, "music2", INPUT, STEREO, MUSIC, 0);
-	
-	sprintf(portname1, "%s:main_left", krad_mixer->client_name);
-	sprintf(portname2, "kradlink_%s:flac_encoder_left", krad_mixer->callsign);
-	connect_port(krad_mixer->jack_client, portname1, portname2);
-	
-	sprintf(portname1, "%s:main_right", krad_mixer->client_name);
-	sprintf(portname2, "kradlink_%s:flac_encoder_right", krad_mixer->callsign);
-	connect_port(krad_mixer->jack_client, portname1, portname2);
-		
-	
-	//
-	//create_portgroup(client, "aux1", INPUT, STEREO, AUX, 0);
-	//create_portgroup(client, "submix1", OUTPUT, STEREO, SUBMIX, 1);
-	//create_portgroup(client, "submix2", OUTPUT, STEREO, SUBMIX, 2);
-	//create_portgroup(client, "mic1", INPUT, MONO, MIC, 1);
-	//create_portgroup(client, "mic2", INPUT, MONO, MIC, 2);
-	//
 
-	
-	*/
-
-	//pthread_create(&krad_mixer->levels_thread, NULL, levels_thread, (void *)krad_mixer);
-	//pthread_create(&krad_mixer->active_input_thread, NULL, active_input_thread, (void *)krad_mixer);
+	// pthread_create(&krad_mixer->levels_thread, NULL, levels_thread, (void *)krad_mixer);
+	// pthread_create(&krad_mixer->active_input_thread, NULL, active_input_thread, (void *)krad_mixer);
 
 	mixgroup = krad_mixer_mixgroup_create (krad_mixer, "MainMix", 2);
 
