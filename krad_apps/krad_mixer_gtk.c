@@ -31,7 +31,6 @@ static void set_test_value (GtkWidget *widget, gpointer data) {
 	if (intval2 != krad_mixer_gtk->intval) {
 		krad_mixer_gtk->intval = intval2;
 		krad_ipc_set_control (krad_mixer_gtk->client, "Music2", "volume", floatval);
-		//krad_ipc_cmd2 (krad_mixer_gtk->client, krad_mixer_gtk->intval);
 	}
 }
 
@@ -60,11 +59,100 @@ static gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer da
 	return FALSE;
 }
 
+void krad_mixer_gtk_set_control ( krad_mixer_gtk_t *krad_mixer_gtk, char *portname, char *controlname, float floatval) {
+
+	printf("yay I set control to %s portname %s controlname %f floatval\n", portname, controlname, floatval);
+
+}
+
+
+int krad_mixer_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
+
+	krad_mixer_gtk_t *krad_mixer_gtk = (krad_mixer_gtk_t *)ptr;
+
+	uint32_t message;
+	uint32_t ebml_id;	
+	uint64_t ebml_data_size;
+	//uint64_t element;
+	//int list_size;
+	//int p;
+	float floatval;	
+	char portname_actual[256];
+	char controlname_actual[1024];
+	//int bytes_read;
+	portname_actual[0] = '\0';
+	controlname_actual[0] = '\0';
+	
+	char *portname = portname_actual;
+	char *controlname = controlname_actual;
+	//bytes_read = 0;
+	ebml_id = 0;
+	//list_size = 0;	
+	floatval = 0;
+	message = 0;
+	ebml_data_size = 0;
+	//element = 0;
+	//p = 0;
+	
+	krad_ebml_read_element ( krad_ipc->krad_ebml, &message, &ebml_data_size);
+
+	switch ( message ) {
+	
+		case EBML_ID_KRAD_RADIO_MSG:
+			printf("krad_mixer_gtk_ipc_handler got message from krad radio\n");
+			break;
+	
+		case EBML_ID_KRAD_LINK_MSG:
+			printf("krad_mixer_gtk_ipc_handler got message from krad link\n");
+			break;
+			
+		case EBML_ID_KRAD_MIXER_MSG:
+			printf("krad_mixer_gtk_ipc_handler got message from krad mixer\n");
+//			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
+			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+			
+			switch ( ebml_id ) {
+				case EBML_ID_KRAD_MIXER_CONTROL:
+					printf("Received mixer control list %zu bytes of data.\n", ebml_data_size);
+
+					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
+					
+					krad_mixer_gtk_set_control ( krad_mixer_gtk, portname, controlname, floatval);
+					
+					break;	
+				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+					printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
+					//list_size = ebml_data_size;
+					//while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc )) <= list_size)) {
+					//	//printf("Tag %s - %s.\n", tag_name, tag_value);
+					//	if (bytes_read == list_size) {
+					//		break;
+					///	}
+					//}	
+					break;
+				case EBML_ID_KRAD_MIXER_PORTGROUP:
+					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+					printf("PORTGROUP %zu bytes  \n", ebml_data_size );
+					break;
+			}
+		
+		
+			break;
+	
+	}
+
+	return 0;
+
+}
+
+
 int main (int argc, char *argv[]) {
 	
-	krad_mixer_gtk_t *krad_mixer_gtk = calloc (1, sizeof(krad_mixer_gtk_t));;
+	krad_mixer_gtk_t *krad_mixer_gtk = calloc (1, sizeof(krad_mixer_gtk_t));
 	
 	krad_mixer_gtk->client = krad_ipc_connect (argv[1]);
+	
+	krad_ipc_set_handler_callback (krad_mixer_gtk->client, krad_mixer_gtk_ipc_handler, krad_mixer_gtk);
 	
 	krad_ipc_get_portgroups (krad_mixer_gtk->client);
 	

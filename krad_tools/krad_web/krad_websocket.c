@@ -32,15 +32,6 @@ void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 		floatval = atof (value + 10);
 		
 		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
-
-// FIXME FIXME FIXME
-
-
-
-//		krad_ipc_cmd2 (pss->krad_ipc_client, atoi(value + 10));
-
-
-// FIXME FIXME FIXME
 	
 	}
 

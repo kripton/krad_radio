@@ -204,6 +204,13 @@ void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_valu
 
 }
 
+void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr) {
+
+	client->handler = handler;
+	client->ptr = ptr;
+
+}
+
 
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value) {
 
@@ -350,6 +357,35 @@ int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd) {
 	
 	return 0;
 }
+
+
+int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value ) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
+		printf("hrm wtf1\n");
+	}
+	krad_ebml_read_string (client->krad_ebml, *portgroup_name, ebml_data_size);
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_NAME) {
+		printf("hrm wtf2\n");
+	}
+	krad_ebml_read_string (client->krad_ebml, *control_name, ebml_data_size);
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
+		printf("hrm wtf3\n");
+	}
+	
+	*value = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+
+	printf("krad_ipc_client_read_mixer_control %s %s %f\n", *portgroup_name, *control_name, *value );
+		
+	return 0;		
+						
+}						
 
 int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char **tag_value ) {
 
@@ -542,9 +578,9 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	list_size = 0;
 	bytes_read = 0;
 	
-	float floatval;
+	//float floatval;
 	
-	floatval = 0;
+	//floatval = 0;
 	
 	ebml_id = 0;
 	ebml_data_size = 0;
@@ -591,40 +627,6 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					printf("Received mixer control list %zu bytes of data.\n", ebml_data_size);
 
 
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
-		printf("hrm wtf2\n");
-	} else {
-		//printf("tag name size %zu\n", ebml_data_size);
-	}
-
-	krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-	
-						printf("Received mixer control portgroup %s.\n", tag_name);
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
-		printf("hrm wtf2\n");
-	} else {
-		//printf("tag name size %zu\n", ebml_data_size);
-	}
-
-	krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-	
-							printf("control %s.\n", tag_name);
-	
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
-		printf("hrm wtf2\n");
-	} else {
-		//printf("tag name size %zu\n", ebml_data_size);
-	}
-
-	floatval = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
-
-						printf("value %f.\n", floatval);
 	
 					break;	
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
@@ -645,9 +647,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 		
 		
 			break;
-			
-						
-			break;
+
 		case EBML_ID_KRAD_LINK_MSG:
 			printf("Received KRAD_LINK_MSG %zu bytes of data.\n", ebml_data_size);				
 			break;

@@ -34,7 +34,9 @@
 #define KRAD_IPC_DOCTYPE_READ_VERSION 6
 #define EBML_ID_KRAD_IPC_CMD 0x4444
 
-typedef struct {
+typedef struct krad_ipc_client_St krad_ipc_client_t;
+
+struct krad_ipc_client_St {
 	int flags;
 	struct sockaddr_un saddr;
 	int sd;
@@ -45,9 +47,15 @@ typedef struct {
 	struct utsname unixname;
 	char *buffer;
 	krad_ebml_t *krad_ebml;
+	
+	int (*handler)(krad_ipc_client_t *, void *);
+	void *ptr;
+	
 
-} krad_ipc_client_t;
+};
 
+int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
+void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
 
 void krad_ipc_get_portgroups (krad_ipc_client_t *client);
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value);
