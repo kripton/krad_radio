@@ -282,6 +282,11 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value) {
 	return 0;
 }
 */
+
+void krad_ipc_client_handle (krad_ipc_client_t *client) {
+	client->handler ( client, client->ptr );
+}
+
 int krad_ipc_client_poll (krad_ipc_client_t *client) {
 
 	int ret;

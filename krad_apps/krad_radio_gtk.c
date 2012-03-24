@@ -215,7 +215,6 @@ int main (int argc, char *argv[]) {
 	
 	gdk_threads_add_timeout (25, krad_ipc_poll, krad_radio_gtk);
 
-
 	gtk_container_add (GTK_CONTAINER (krad_radio_gtk->window), krad_radio_gtk->hbox);
 	
 	gtk_container_set_border_width (GTK_CONTAINER (krad_radio_gtk->window), 20);

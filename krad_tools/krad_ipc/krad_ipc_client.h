@@ -67,6 +67,7 @@ void krad_ipc_get_tags (krad_ipc_client_t *client);
 void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name);
 void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_value);
 
+void krad_ipc_client_handle (krad_ipc_client_t *client);
 int krad_ipc_client_poll (krad_ipc_client_t *client);
 int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 

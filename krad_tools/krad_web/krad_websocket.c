@@ -21,16 +21,127 @@ struct libwebsocket_protocols protocols[] = {
 /* blame libwebsockets */
 krad_websocket_t *krad_websocket_glob;
 
+
+void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data,  char *portname, float floatval) {
+
+	printf("add a portgroup called %s withe a volume of %f\n", portname, floatval);
+
+
+	krad_ipc_session_data->krad_ipc_data_len += sprintf(krad_ipc_session_data->krad_ipc_data + krad_ipc_session_data->krad_ipc_data_len, "kradmixer:add_portgroup:%s:%f|", portname, floatval);
+
+
+}
+
+void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, char *controlname, float floatval) {
+
+	printf("set portgroup called %s control %s with a value %f\n", portname, controlname, floatval);
+	
+	krad_ipc_session_data->krad_ipc_data_len += sprintf(krad_ipc_session_data->krad_ipc_data + krad_ipc_session_data->krad_ipc_data_len, "kradmixer:set_control:%s:%s:%f|", portname, controlname, floatval);
+	
+}
+
+
+int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
+
+	krad_ipc_session_data_t *krad_ipc_session_data = (krad_ipc_session_data_t *)ptr;
+
+	uint32_t message;
+	uint32_t ebml_id;	
+	uint64_t ebml_data_size;
+	//uint64_t element;
+	int list_size;
+	//int p;
+	float floatval;	
+	char portname_actual[256];
+	char controlname_actual[1024];
+	int bytes_read;
+	portname_actual[0] = '\0';
+	controlname_actual[0] = '\0';
+	
+	char *portname = portname_actual;
+	char *controlname = controlname_actual;
+	bytes_read = 0;
+	ebml_id = 0;
+	list_size = 0;	
+	floatval = 0;
+	message = 0;
+	ebml_data_size = 0;
+	//element = 0;
+	//p = 0;
+	
+	krad_ebml_read_element ( krad_ipc->krad_ebml, &message, &ebml_data_size);
+
+	switch ( message ) {
+	
+		case EBML_ID_KRAD_RADIO_MSG:
+			printf("krad_radio_gtk_ipc_handler got message from krad radio\n");
+			break;
+	
+		case EBML_ID_KRAD_LINK_MSG:
+			printf("krad_radio_gtk_ipc_handler got message from krad link\n");
+			break;
+			
+		case EBML_ID_KRAD_MIXER_MSG:
+			printf("krad_radio_gtk_ipc_handler got message from krad mixer\n");
+//			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
+			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+			
+			switch ( ebml_id ) {
+				case EBML_ID_KRAD_MIXER_CONTROL:
+					printf("Received mixer control list %zu bytes of data.\n", ebml_data_size);
+
+					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
+					
+					krad_websocket_set_control ( krad_ipc_session_data, portname, controlname, floatval);
+					
+					
+					
+					
+					break;	
+				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+					printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
+					list_size = ebml_data_size;
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval )) <= list_size)) {
+						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval);
+						if (bytes_read == list_size) {
+							break;
+						}
+					}	
+					break;
+				case EBML_ID_KRAD_MIXER_PORTGROUP:
+					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+					printf("PORTGROUP %zu bytes  \n", ebml_data_size );
+					break;
+			}
+		
+		
+			break;
+	
+	}
+
+	return 0;
+
+}
+
 void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
 	
 	printf ("got len %d data from browser: --%s--\n", len, value);
 
-	if (memcmp(value, "kradmixer:", 10) == 0) {
 
-		floatval = atof (value + 10);
-		
+	if (memcmp(value, "set_control:Music1:", 19) == 0) {
+
+		floatval = atof (value + 19);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
+	
+	}
+
+	if (memcmp(value, "set_control:Music2:", 19) == 0) {
+
+		floatval = atof (value + 19);
+
 		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
 	
 	}
@@ -200,7 +311,6 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 					   void *user, void *in, size_t len)
 {
 	int ret;
-	int newlen;
 	krad_websocket_t *krad_websocket = krad_websocket_glob;
 	krad_ipc_session_data_t *pss = user;
 	unsigned char *p = &krad_websocket->buffer[LWS_SEND_BUFFER_PRE_PADDING];
@@ -214,7 +324,8 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->krad_websocket = krad_websocket_glob;
 			pss->krad_ipc_client = krad_ipc_connect (pss->krad_websocket->callsign);
 			pss->krad_ipc_info = 0;
-			
+			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
+			krad_ipc_get_portgroups (pss->krad_ipc_client);
 			add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
 
 			break;
@@ -245,10 +356,8 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			if (pss->krad_ipc_info == 1) {
 				
 				printf ("wanted to write %d bytes to browser\n", pss->krad_ipc_data_len);
-				newlen = ebml_frag_to_js ((char *)p, pss->krad_ipc_data);
-				//memcpy (p, pss->krad_ipc_data, pss->krad_ipc_data_len);
-				printf ("A message of length %d became %d", pss->krad_ipc_data_len, newlen);
-				ret = libwebsocket_write(wsi, p, newlen, LWS_WRITE_TEXT);
+				memcpy (p, pss->krad_ipc_data, pss->krad_ipc_data_len);
+				ret = libwebsocket_write(wsi, p, pss->krad_ipc_data_len, LWS_WRITE_TEXT);
 				if (ret < 0) {
 					fprintf(stderr, "krad_ipc ERROR writing to socket");
 					return 1;
@@ -375,10 +484,9 @@ void *krad_websocket_server_run (void *arg) {
 							
 							switch ( krad_websocket->fdof[n] ) {
 								case KRAD_IPC:
-									//sprintf(info + strlen(info), " it was Krad Mixer");
+								
+									krad_ipc_client_handle (krad_websocket->sessions[n]->krad_ipc_client);
 									krad_websocket->sessions[n]->krad_ipc_info = 1;
-									krad_websocket->sessions[n]->krad_ipc_data_len = recv (krad_websocket->pollfds[n].fd, krad_websocket->sessions[n]->krad_ipc_data, sizeof(krad_websocket->sessions[n]->krad_ipc_data), 0);
-									//sessions[n]->krad_ipc_data[bytes] = '\0';
 									libwebsocket_callback_on_writable(krad_websocket->sessions[n]->context, krad_websocket->sessions[n]->wsi);
 									break;
 		

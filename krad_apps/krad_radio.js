@@ -98,14 +98,25 @@ function Kradwebsocket (port) {
 
 		this.debug ("got message: " + evt.data);
 
-		if (evt.data.indexOf("kradmixer:") != -1) {
-			//mixer.set_control_state(evt.data.replace("kradmixer:", ""));
-			return;
-		}
-		if (evt.data.indexOf("KM161:") != -1) {
-			j('#test_value').slider( "value" , (evt.data.replace("KM161:", "")));
-			return;
-		}
+
+			slices = evt.data.split("|");
+			
+			for (piece in slices) {
+
+				if (slices[piece].indexOf("kradmixer:set_control") != -1) {
+					//alert("add portgroup name " + slices[piece].split(":")[2] + " volume " + slices[piece].split(":")[3]);
+					set_control (slices[piece].split(":")[2], slices[piece].split(":")[4]);
+					
+				}
+				if (slices[piece].indexOf("kradmixer:add_portgroup") != -1) {
+					
+					//alert("add portgroup name " + slices[piece].split(":")[2] + " volume " + slices[piece].split(":")[3]);
+					
+					add_portgroup (slices[piece].split(":")[2], slices[piece].split(":")[3]);
+					
+				}
+			}
+			
 
 	}
 	
