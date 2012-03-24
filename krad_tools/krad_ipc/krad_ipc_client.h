@@ -54,6 +54,8 @@ struct krad_ipc_client_St {
 
 };
 
+int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume );
+
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
 
@@ -65,7 +67,7 @@ void krad_ipc_get_tags (krad_ipc_client_t *client);
 void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name);
 void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_value);
 
-int krad_ipc_client_check (krad_ipc_client_t *client, int *value);
+int krad_ipc_client_poll (krad_ipc_client_t *client);
 int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 
 

@@ -282,7 +282,7 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value) {
 	return 0;
 }
 */
-int krad_ipc_client_check (krad_ipc_client_t *client, int *value) {
+int krad_ipc_client_poll (krad_ipc_client_t *client) {
 
 	int ret;
 	struct pollfd sockets[1];
@@ -297,8 +297,8 @@ int krad_ipc_client_check (krad_ipc_client_t *client, int *value) {
 		//*value = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 		//printf("Received number %d\n", *value);
 		
-		krad_ipc_print_response (client);
-		
+		//krad_ipc_print_response (client);
+		client->handler ( client, client->ptr );
 	}
 
 	return 0;
@@ -430,7 +430,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char 
 	
 }
 
-int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client  ) {
+int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume  ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -461,9 +461,9 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client  ) {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
 
-	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+	krad_ebml_read_string (client->krad_ebml, portname, ebml_data_size);
 	
-	printf("\nInput name: %s\n", string);
+	printf("\nInput name: %s\n", portname);
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -499,6 +499,8 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client  ) {
 	}
 
 	floaty = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	
+	*volume = floaty;
 	
 	printf("Volume: %f\n", floaty);
 	
@@ -578,9 +580,9 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	list_size = 0;
 	bytes_read = 0;
 	
-	//float floatval;
+	float floatval;
 	
-	//floatval = 0;
+	floatval = 0;
 	
 	ebml_id = 0;
 	ebml_data_size = 0;
@@ -632,7 +634,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
 					//printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client )) <= list_size)) {
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval )) <= list_size)) {
 						//printf("Tag %s - %s.\n", tag_name, tag_value);
 						if (bytes_read == list_size) {
 							break;
