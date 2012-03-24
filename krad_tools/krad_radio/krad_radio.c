@@ -127,14 +127,14 @@ krad_radio_t *krad_radio_create (char *callsign_or_config) {
 		return NULL;
 	}
 	
-	krad_radio->krad_websocket = krad_websocket_server_create (callsign_or_config, 41222);
+	krad_radio->krad_websocket = krad_websocket_server_create (callsign_or_config, 56001);
 	
 	if (krad_radio->krad_websocket == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}	
 	
-	krad_radio->krad_http = krad_http_server_create (41221);
+	krad_radio->krad_http = krad_http_server_create (56000);
 	
 	if (krad_radio->krad_http == NULL) {
 		krad_radio_destroy (krad_radio);
