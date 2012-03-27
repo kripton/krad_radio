@@ -1,5 +1,7 @@
 #include <krad_radio.h>
 
+int do_shutdown;
+int verbose;
 
 void krad_radio_daemonize () {
 
@@ -84,10 +86,11 @@ int krad_radio_valid_sysname (char *sysname) {
 
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
-	krad_tags_destroy (krad_radio->krad_tags);
+	krad_linker_destroy (krad_radio->krad_linker);
 	krad_mixer_destroy (krad_radio->krad_mixer);
 	krad_http_server_destroy (krad_radio->krad_http);
 	krad_websocket_server_destroy (krad_radio->krad_websocket);
+	krad_tags_destroy (krad_radio->krad_tags);
 	krad_ipc_server_destroy (krad_radio->krad_ipc);
 	free (krad_radio->sysname);
 	free (krad_radio);
@@ -118,6 +121,13 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
+	krad_radio->krad_linker = krad_linker_create (sysname);
+	
+	if (krad_radio->krad_linker == NULL) {
+		krad_radio_destroy (krad_radio);
+		return NULL;
+	}	
+	
 	krad_radio->krad_ipc = krad_ipc_server ( sysname, krad_radio_handler, krad_radio );
 	
 	if (krad_radio->krad_ipc == NULL) {
@@ -147,6 +157,9 @@ krad_radio_t *krad_radio_create (char *sysname) {
 void krad_radio (char *sysname) {
 
 	krad_radio_t *krad_radio_station;
+
+	do_shutdown = 0;
+	verbose = 0;
 
 	krad_radio_station = krad_radio_create (sysname);
 
@@ -210,7 +223,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return krad_mixer_handler ( krad_radio_station->krad_mixer, krad_radio_station->krad_ipc );
 		case EBML_ID_KRAD_LINK_CMD:
 			printf("got a krad link cmd\n");
-			//return krad_link_handler ( output, output_len, ptr );
+			return krad_linker_handler ( krad_radio_station->krad_linker, krad_radio_station->krad_ipc );
 			return 0;
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
 			printf("get tags list\n");

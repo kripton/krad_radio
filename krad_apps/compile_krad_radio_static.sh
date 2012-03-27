@@ -19,7 +19,7 @@ ar -cvq ../krad_tools/krad_decklink/krad_decklink_capture.a krad_decklink_captur
 
 rm *.o
 
-gcc -O3 -Wall krad_radio.c \
+gcc -g -Wall krad_radio.c \
 ../krad_tools/krad_radio/krad_radio.c ../krad_tools/krad_ipc/krad_ipc_server.c \
 -I../krad_tools/krad_ipc ../krad_tools/krad_ipc/krad_ipc_client.c -I../krad_tools/krad_web/ -I../krad_tools/krad_radio \
 ../krad_tools/krad_mixer/krad_mixer.c -I../krad_tools/krad_mixer/ \

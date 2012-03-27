@@ -1082,7 +1082,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 		exit(1);
 	}
 
-	printf("id length is %u\n", ebml_id_length);
+	//printf("id length is %u\n", ebml_id_length);
 	memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
 
 	// ID

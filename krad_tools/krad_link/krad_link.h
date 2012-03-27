@@ -1,6 +1,7 @@
 #define KRAD_LINK
 
 #include <sys/prctl.h>
+#include <libswscale/swscale.h>
 
 #include "krad_udp.h"
 #include "krad_x11.h"
@@ -20,10 +21,11 @@
 #include "krad_flac.h"
 #include "krad_container.h"
 #include "krad_decklink.h"
-
-#include <libswscale/swscale.h>
+#include "krad_tags.h"
+#include "krad_ipc_server.h"
 
 #define APPVERSION "Krad Link 2.42"
+#define KRAD_LINKER_MAX_LINKS 42
 #define MAX_AUDIO_CHANNELS 8
 #define DEFAULT_TONE_PRESET "dialtone"
 #define DEFAULT_VPX_BITRATE 1000
@@ -37,7 +39,13 @@
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 
+
 typedef struct krad_link_St krad_link_t;
+typedef struct krad_linker_St krad_linker_t;
+
+struct krad_linker_St {
+	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
+};
 
 typedef enum {
 	CAPTURE = 200,
@@ -67,6 +75,10 @@ typedef enum {
 } krad_video_source_t;
 
 struct krad_link_St {
+
+	char sysname[64];
+	krad_tags_t *krad_tags;
+
 	krad_decklink_t *krad_decklink;
 	krad_x11_t *krad_x11;
 	kradgui_t *krad_gui;
@@ -83,7 +95,6 @@ struct krad_link_St {
 	krad_ebml_t *krad_ebml;
 	krad_container_t *krad_container;
 	krad_v4l2_t *krad_v4l2;
-	//krad_sdl_opengl_display_t *krad_opengl_display;
 	krad_tone_t *krad_tone;
 	
 	krad_link_operation_mode_t operation_mode;
@@ -165,6 +176,8 @@ struct krad_link_St {
 	int video_track;
 	int audio_track;
 
+	pthread_t main_thread;
+
 	pthread_t video_capture_thread;
 	pthread_t video_encoding_thread;
 	pthread_t audio_encoding_thread;
@@ -180,7 +193,7 @@ struct krad_link_St {
 
 	pthread_t signal_thread;
 	sigset_t set;
-	int *shutdown;
+	int shutdown;
 
 	int audio_channels;
 
@@ -225,9 +238,14 @@ struct krad_link_St {
 	krad_codec2_t *krad_codec2_encoder;
 };
 
+krad_linker_t *krad_linker_create ();
+void krad_linker_destroy (krad_linker_t *krad_linker);
+int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ipc );
+
+
 void krad_link_shutdown();
 
 void dbg (char* format, ...);
-void krad_link_destroy(krad_link_t *krad_link);
+void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create();
-void krad_link_run(krad_link_t *krad_link);
+void krad_link_run (krad_link_t *krad_link);

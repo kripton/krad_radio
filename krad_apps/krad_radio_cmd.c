@@ -45,6 +45,19 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			
+			if (strncmp(argv[2], "link", 4) == 0) {
+				if (argc == 3) {
+					krad_ipc_create_link (client, NULL);
+				}
+			}
+		
+			if (strncmp(argv[2], "ls", 2) == 0) {
+				if (argc == 3) {
+					krad_ipc_list_links (client);
+				}
+			}	
+			
 			usleep(80000);
 			krad_ipc_disconnect (client);
 		}

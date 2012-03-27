@@ -1,7 +1,7 @@
 #include "krad_link.h"
 
-int do_shutdown;
-int verbose;
+extern int do_shutdown;
+extern int verbose;
 
 void krad_link_activate(krad_link_t *krad_link);
 
@@ -790,7 +790,7 @@ void krad_link_handle_input(krad_link_t *krad_link) {
 						}
 						break;
 					case SDLK_q:
-						*krad_link->shutdown = 1;
+						krad_link->shutdown = 1;
 						break;
 					case SDLK_f:
 						if (krad_link->krad_gui->render_ftest == 1) {
@@ -833,7 +833,7 @@ void krad_link_handle_input(krad_link_t *krad_link) {
 				break;
 	
 			case SDL_QUIT:
-				*krad_link->shutdown = 1;	 			
+				krad_link->shutdown = 1;	 			
 				break;
 
 			default:
@@ -1037,14 +1037,15 @@ void krad_link_composite(krad_link_t *krad_link) {
 		
 }
 
+void *krad_link_run_thread (void *arg) {
 
-void krad_link_run(krad_link_t *krad_link) {
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	krad_link_activate ( krad_link );
 
 	if (krad_link->operation_mode == RECEIVE) {
 	
-		while (!*krad_link->shutdown) {
+		while (!krad_link->shutdown) {
 
 			if (krad_link->interface_mode != WINDOW) {
 	
@@ -1063,7 +1064,7 @@ void krad_link_run(krad_link_t *krad_link) {
 	
 	} else {
 
-		while (!*krad_link->shutdown) {
+		while (!krad_link->shutdown) {
 
 			if ((krad_link->capturing) && (krad_link->interface_mode != WINDOW)) {
 				while (krad_ringbuffer_read_space(krad_link->captured_frames_buffer) < krad_link->composited_frame_byte_size) {
@@ -1114,6 +1115,14 @@ void krad_link_run(krad_link_t *krad_link) {
 
 	krad_link_destroy ( krad_link );
 
+	return NULL;
+
+}
+
+void krad_link_run (krad_link_t *krad_link) {
+
+	pthread_create (&krad_link->main_thread, NULL, krad_link_run_thread, (void *)krad_link);
+	pthread_detach (krad_link->main_thread);
 }
 
 void *stream_input_thread(void *arg) {
@@ -1158,7 +1167,7 @@ void *stream_input_thread(void *arg) {
 		krad_link->krad_container = krad_container_open_file(krad_link->input, KRAD_IO_READONLY);
 	}
 	
-	while (!*krad_link->shutdown) {
+	while (!krad_link->shutdown) {
 		
 		writeheaders = 0;
 		total_header_size = 0;
@@ -1196,7 +1205,7 @@ void *stream_input_thread(void *arg) {
 
 			if (krad_link->interface_mode == WINDOW) {
 
-				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!krad_link->shutdown)) {
 					usleep(10000);
 				}
 				
@@ -1226,7 +1235,7 @@ void *stream_input_thread(void *arg) {
 
 			if (krad_link->krad_audio_api != NOAUDIO) {
 			
-				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!krad_link->shutdown)) {
 					usleep(10000);
 				}
 				
@@ -1329,7 +1338,7 @@ void *udp_input_thread(void *arg) {
 	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_header_size, 4);
 	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)opus_header, opus_header_size);
 
-	while (!*krad_link->shutdown) {
+	while (!krad_link->shutdown) {
 	
 		ret = recvfrom(sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
 		
@@ -1351,7 +1360,7 @@ void *udp_input_thread(void *arg) {
 
 			if (krad_link->krad_audio_api != NOAUDIO) {
 			
-				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!krad_link->shutdown)) {
 					usleep(10000);
 				}
 				
@@ -1429,10 +1438,10 @@ void *video_decoding_thread(void *arg) {
 	krad_link->last_video_codec = NOCODEC;
 	krad_link->video_codec = NOCODEC;
 	
-	while (!*krad_link->shutdown) {
+	while (!krad_link->shutdown) {
 
 
-		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!krad_link->shutdown)) {
 			usleep(10000);
 		}
 		
@@ -1472,13 +1481,13 @@ void *video_decoding_thread(void *arg) {
 				
 				for (h = 0; h < 3; h++) {
 
-					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) && (!krad_link->shutdown)) {
 						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&header_len[h], 4);
 		
-					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < header_len[h]) && (!krad_link->shutdown)) {
 						usleep(10000);
 					}
 		
@@ -1496,7 +1505,7 @@ void *video_decoding_thread(void *arg) {
 
 		krad_link->last_video_codec = krad_link->video_codec;
 	
-		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 12) && (!*krad_link->shutdown)) {
+		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 12) && (!krad_link->shutdown)) {
 			usleep(10000);
 		}
 	
@@ -1506,7 +1515,7 @@ void *video_decoding_thread(void *arg) {
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&bytes, 4);
 		
-		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < bytes) && (!*krad_link->shutdown)) {
+		while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < bytes) && (!krad_link->shutdown)) {
 			usleep(10000);
 		}
 		
@@ -1528,7 +1537,7 @@ void *video_decoding_thread(void *arg) {
 								 krad_link->krad_theora_decoder->ycbcr[1].stride, krad_link->krad_theora_decoder->ycbcr[2].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[2].stride), 
 								 krad_link->krad_theora_decoder->ycbcr[2].stride, krad_link->krad_theora_decoder->height);
 
-			while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
+			while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!krad_link->shutdown)) {
 				usleep(10000);
 			}
 			
@@ -1561,7 +1570,7 @@ void *video_decoding_thread(void *arg) {
 									 krad_link->krad_vpx_decoder->img->stride[1], krad_link->krad_vpx_decoder->img->planes[2], 
 									 krad_link->krad_vpx_decoder->img->stride[2], krad_link->krad_vpx_decoder->height);
 
-				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!krad_link->shutdown)) {
 					usleep(10000);
 				}
 				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
@@ -1607,7 +1616,7 @@ void *video_decoding_thread(void *arg) {
 									 krad_link->krad_dirac->frame->components[1].stride, krad_link->krad_dirac->frame->components[2].data,
 									 krad_link->krad_dirac->frame->components[2].stride, krad_link->krad_dirac->frame->height);
 
-				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!*krad_link->shutdown)) {
+				while ((krad_ringbuffer_write_space(krad_link->decoded_frames_buffer) < krad_link->composited_frame_byte_size + 8) && (!krad_link->shutdown)) {
 					usleep(10000);
 				}
 				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
@@ -1688,10 +1697,10 @@ void *audio_decoding_thread(void *arg) {
 		//usleep(150000);
 	}
 	
-	while (!*krad_link->shutdown) {
+	while (!krad_link->shutdown) {
 
 
-		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->shutdown)) {
 			usleep(5000);
 		}
 		
@@ -1722,13 +1731,13 @@ void *audio_decoding_thread(void *arg) {
 				krad_link->krad_flac = krad_flac_decoder_create();
 				for (h = 0; h < 1; h++) {
 
-					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->shutdown)) {
 						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
 		
-					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!krad_link->shutdown)) {
 						usleep(10000);
 					}
 		
@@ -1741,13 +1750,13 @@ void *audio_decoding_thread(void *arg) {
 				
 				for (h = 0; h < 3; h++) {
 
-					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->shutdown)) {
 						usleep(10000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
 		
-					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!krad_link->shutdown)) {
 						usleep(10000);
 					}
 		
@@ -1766,13 +1775,13 @@ void *audio_decoding_thread(void *arg) {
 			
 				for (h = 0; h < 1; h++) {
 
-					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->shutdown)) {
 						usleep(5000);
 					}
 	
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&header_len[h], 4);
 		
-					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!*krad_link->shutdown)) {
+					while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < header_len[h]) && (!krad_link->shutdown)) {
 						usleep(5000);
 					}
 		
@@ -1786,13 +1795,13 @@ void *audio_decoding_thread(void *arg) {
 
 		krad_link->last_audio_codec = krad_link->audio_codec;
 	
-		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!*krad_link->shutdown)) {
+		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->shutdown)) {
 			usleep(5000);
 		}
 	
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
 		
-		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < bytes) && (!*krad_link->shutdown)) {
+		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < bytes) && (!krad_link->shutdown)) {
 			usleep(5000);
 		}
 		
@@ -2248,7 +2257,7 @@ void krad_link_destroy(krad_link_t *krad_link) {
 	
 	printf("\n%s Exited Cleanly, have a nice day.\n", APPVERSION);
 	
-	free(krad_link);
+	free (krad_link);
 }
 
 krad_link_t *krad_link_create() {
@@ -2328,7 +2337,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 	if (krad_link->interface_mode == DAEMON) {
 		daemonize();
 	}
-
+/*
 	sigemptyset(&krad_link->set);
 	sigaddset(&krad_link->set, SIGINT);
 	sigaddset(&krad_link->set, SIGTERM);
@@ -2340,7 +2349,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 	}
 	pthread_create(&krad_link->signal_thread, NULL, signal_thread, (void *)krad_link);	
 	pthread_detach(krad_link->signal_thread);
-	
+*/	
 	if (krad_link->interface_mode == WINDOW) {
 
 		//krad_link->krad_opengl_display = krad_sdl_opengl_display_create(APPVERSION, krad_link->display_width, krad_link->display_height, 
@@ -2348,7 +2357,7 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 		
 		krad_link->krad_x11 = krad_x11_create_glx_window (krad_link->krad_x11, APPVERSION, krad_link->display_width, krad_link->display_height, 
-														  krad_link->shutdown);
+														  &krad_link->shutdown);
 
 	}
 	
@@ -2478,4 +2487,92 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 
 }
+
+
+
+
+int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ipc ) {
+
+	krad_link_t *krad_link;
+
+	uint32_t command;
+	uint64_t ebml_data_size;
+
+	uint64_t element;
+	uint64_t response;
+	
+	char linkname[64];	
+	float floatval;
+	
+	int k;
+
+	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
+
+	switch ( command ) {
+
+		case EBML_ID_KRAD_LINK_CMD_LIST_LINKS:
+			printf("krad linker handler! LIST_LINKS\n");
+			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
+				if (krad_linker->krad_link[k] != NULL) {
+					printf("link %d is bein used\n", k);
+				}
+			}			
+			break;
+		case EBML_ID_KRAD_LINK_CMD_CREATE_LINK:
+			printf("krad linker handler! CREATE_LINK\n");
+			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
+				if (krad_linker->krad_link[k] == NULL) {
+					verbose = 1;
+					krad_linker->krad_link[k] = krad_link_create ();
+					krad_link = krad_linker->krad_link[k];
+					krad_link->krad_audio_api = JACKAUDIO;
+					krad_link->interface_mode = COMMAND;
+					krad_link->video_source = NOVIDEO;
+					krad_link->video_codec = NOCODEC;
+					krad_link->operation_mode = CAPTURE;
+					strncpy (krad_link->password, "secretkode", sizeof(krad_link->password));
+					krad_link->tcp_port = 8080;
+					strcpy (krad_link->host, "kradradio.com");
+					strcpy (krad_link->mount, "/krdo.webm");
+					krad_link_run (krad_link);
+					break;
+				}
+			}
+			break;
+		case EBML_ID_KRAD_LINK_CMD_DESTROY_LINK:
+			printf("krad linker handler! DESTROY_LINK\n");		
+			break;
+		case EBML_ID_KRAD_LINK_CMD_UPDATE_LINK:
+			printf("krad linker handler! UPDATE_LINK\n");		
+			break;
+	}
+
+	return 0;
+}
+
+krad_linker_t *krad_linker_create () {
+
+	krad_linker_t *krad_linker;
+	
+	krad_linker = calloc(1, sizeof(krad_linker_t));
+
+	return krad_linker;
+
+}
+
+void krad_linker_destroy (krad_linker_t *krad_linker) {
+
+	int l;
+	
+	for (l = 0; l < KRAD_LINKER_MAX_LINKS; l++) {
+		if (krad_linker->krad_link[l] != NULL) {
+			krad_link_destroy (krad_linker->krad_link[l]);
+			krad_linker->krad_link[l] = NULL;
+		}
+	}
+
+	free (krad_linker);
+
+}
+
 
