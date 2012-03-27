@@ -16,7 +16,7 @@
 typedef struct krad_mixer_St krad_mixer_t;
 typedef struct portgroup_St portgroup_t;
 typedef struct portgroup_St mixbus_t;
-typedef struct crossfadegroup_St crossfadegroup_t;
+typedef struct crossfade_group_St crossfade_group_t;
 
 typedef enum {
 	OUTPUT,
@@ -42,7 +42,7 @@ typedef enum {
 	EIGHT,
 } channels_t;
 
-struct crossfadegroup_St {
+struct crossfade_group_St {
 
 	portgroup_t *portgroup[2];
 	float fade;
@@ -51,12 +51,13 @@ struct crossfadegroup_St {
 
 struct portgroup_St {
 
-	char name[256];
+	char sysname[256];
 	
 	portgroup_direction_t direction;
 	portgroup_io_t io_type;
 	channels_t channels;
 	mixbus_t *mixbus;
+	crossfade_group_t *crossfade_group;
 	
 	jack_port_t *ports[8];
 	
@@ -78,7 +79,7 @@ struct portgroup_St {
 
 struct krad_mixer_St {
 	
-	char callsign[64];
+	char sysname[64];
 	
 	const char **ports;
 	const char *client_name;
@@ -91,7 +92,7 @@ struct krad_mixer_St {
 	int sample_rate;
     
 	portgroup_t *portgroup[PORTGROUP_MAX];
-	crossfadegroup_t *crossfadegroup[PORTGROUP_MAX];
+	crossfade_group_t *crossfade_group;
 
 	/*
 	
@@ -110,23 +111,27 @@ struct krad_mixer_St {
 	*/
 };
 
-
-char *krad_mixer_channel_number_to_string (int channel);
-
 int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t frames);
-
-krad_mixer_t *krad_mixer_create (char *callsign);
+krad_mixer_t *krad_mixer_create (char *sysname);
 void krad_mixer_destroy (krad_mixer_t *krad_mixer);
 
-int setcontrol(krad_mixer_t *client, char *data);
-void listcontrols(krad_mixer_t *client, char *data);
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );
 
-
-
-portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, mixbus_t *mixbus, portgroup_io_t io_type);
+portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, mixbus_t *mixbus, portgroup_io_t io_type);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgroup);
 
+void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, portgroup_t *portgroup1, portgroup_t *portgroup2);
+void krad_mixer_crossfade_group_destroy (krad_mixer_t *krad_mixer, crossfade_group_t *crossfade_group);
+
+void update_portgroup_volume (portgroup_t *portgroup);
+void set_portgroup_channel_volume (portgroup_t *portgroup, int channel, float value);
+void set_portgroup_volume (portgroup_t *portgroup, float value);
+void set_crossfade (portgroup_t *portgroup, float value);
+
+int setcontrol (krad_mixer_t *client, char *data);
+void listcontrols (krad_mixer_t *client, char *data);
+
+char *krad_mixer_channel_number_to_string (int channel);
 void compute_peak (portgroup_t *portgroup, int channel, int sample_count);
 void compute_peaks (portgroup_t *portgroup, int sample_count);
 float read_stereo_peak (portgroup_t *portgroup);

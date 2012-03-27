@@ -16,32 +16,38 @@
 	<script>	
 	
 		$(document).ready(function() {
-	
 			kradwebsocket = new Kradwebsocket(56001);
-		
-		
-			//add_portgroup ("bongo", 55);
-			//add_portgroup ("bon3go", 55);
 		});
 		
 		
 		function add_portgroup (name, volume) {
 		
-			$('#studio').append("<div class='sliders'><div id=" + name + "></div> <h2>" + name + "</h2></div>");
+			$('#studio').append("<div class='sliders'><div id='" + name + "'></div> <h2>" + name + "</h2></div>");
 		
 			$('#' + name).slider();
 		
 			$('#' + name).slider({orientation: 'vertical', value: volume });
 		
 			$( "#" + name ).bind( "slide", function(event, ui) {
-				kradwebsocket.send("KIPCset_control:" + name + ":" + ui.value);
+				kradwebsocket.send("KIPCset_control:" + name + ":volume:" + ui.value);
 			});
 		
+
+			$('#studio').append("<div class='sliders'><div id='xfader_" + name + "'></div> <h2>xfader " + name + "</h2></div>");
+		
+			$('#xfader_' + name).slider();
+		
+			$('#xfader_' + name).slider({orientation: 'horizontal', value: 0, min: -100 });
+		
+			$( "#xfader_" + name ).bind( "slide", function(event, ui) {
+				kradwebsocket.send("KIPCset_control:" + name + ":xfader:" + ui.value);
+			});
+
 		}
 		
 		function set_control (name, volume) {
 		
-			$('#' + name).slider( "value" , volume )
+		//	$('#' + name).slider( "value" , volume )
 		
 		}
 	</script>

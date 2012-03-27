@@ -130,21 +130,39 @@ void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 	printf ("got len %d data from browser: --%s--\n", len, value);
 
 
-	if (memcmp(value, "set_control:Music1:", 19) == 0) {
+	if (memcmp(value, "set_control:Music1:volume:", 26) == 0) {
 
-		floatval = atof (value + 19);
+		floatval = atof (value + 26);
 
 		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
 	
 	}
 
-	if (memcmp(value, "set_control:Music2:", 19) == 0) {
+	if (memcmp(value, "set_control:Music2:volume:", 26) == 0) {
 
-		floatval = atof (value + 19);
+		floatval = atof (value + 26);
 
 		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
 	
 	}
+	
+	
+	if (memcmp(value, "set_control:Music1:xfader:", 26) == 0) {
+
+		floatval = atof (value + 26);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "crossfade", floatval);
+	
+	}
+
+	if (memcmp(value, "set_control:Music2:xfader:", 26) == 0) {
+
+		floatval = atof (value + 26);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "crossfade", floatval);
+	
+	}
+	
 
 }
 
