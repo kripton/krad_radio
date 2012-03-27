@@ -2,7 +2,7 @@
 
 #include "krad_radio_ipc.h"
 
-krad_ipc_client_t *krad_ipc_connect (char *callsign_or_ipc_path_or_port)
+krad_ipc_client_t *krad_ipc_connect (char *sysname)
 {
 	
 	krad_ipc_client_t *client = calloc (1, sizeof (krad_ipc_client_t));
@@ -21,9 +21,9 @@ krad_ipc_client_t *krad_ipc_connect (char *callsign_or_ipc_path_or_port)
 
 	if (strncmp(client->unixname.sysname, "Linux", 5) == 0) {
 		client->on_linux = 1;
-		client->ipc_path_pos = sprintf(client->ipc_path, "@%s_ipc", callsign_or_ipc_path_or_port);
+		client->ipc_path_pos = sprintf(client->ipc_path, "@%s_ipc", sysname);
 	} else {
-		client->ipc_path_pos = sprintf(client->ipc_path, "%s/%s_ipc", getenv ("HOME"), callsign_or_ipc_path_or_port);
+		client->ipc_path_pos = sprintf(client->ipc_path, "%s/%s_ipc", getenv ("HOME"), sysname);
 	}
 	
 	if (!client->on_linux) {

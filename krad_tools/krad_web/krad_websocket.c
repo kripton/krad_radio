@@ -340,7 +340,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->context = this;
 			pss->wsi = wsi;
 			pss->krad_websocket = krad_websocket_glob;
-			pss->krad_ipc_client = krad_ipc_connect (pss->krad_websocket->callsign);
+			pss->krad_ipc_client = krad_ipc_connect (pss->krad_websocket->sysname);
 			pss->krad_ipc_info = 0;
 			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
@@ -403,7 +403,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 }
 
 
-krad_websocket_t *krad_websocket_server_create (char *callsign, int port) {
+krad_websocket_t *krad_websocket_server_create (char *sysname, int port) {
 
 
 	krad_websocket_t *krad_websocket = calloc (1, sizeof (krad_websocket_t));
@@ -413,7 +413,7 @@ krad_websocket_t *krad_websocket_server_create (char *callsign, int port) {
 	krad_websocket->shutdown = KRAD_WEBSOCKET_STARTING;
 
 	krad_websocket->port = port;
-	strcpy (krad_websocket->callsign, callsign);
+	strcpy (krad_websocket->sysname, sysname);
 
 	krad_websocket->buffer = calloc(1, 32768 * 8);
 

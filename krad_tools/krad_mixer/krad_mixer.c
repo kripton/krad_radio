@@ -90,11 +90,11 @@ float get_fade_in (float crossfade_value) {
 float portgroup_get_crossfade (portgroup_t *portgroup) {
 
 	if (portgroup->crossfade_group->portgroup[0] == portgroup) {
-		return get_fade_in (portgroup->crossfade_group->fade);
+		return get_fade_out (portgroup->crossfade_group->fade);
 	}
 
 	if (portgroup->crossfade_group->portgroup[1] == portgroup) {
-		return get_fade_out (portgroup->crossfade_group->fade);
+		return get_fade_in (portgroup->crossfade_group->fade);
 	}
 	
 	printf ("failed to get portgroup for crossfade!\n");
@@ -618,30 +618,30 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 	
 	strcat (jack_client_name_string, "krad_mixer_");
 	strcat (jack_client_name_string, sysname);
-	krad_mixer->client_name = jack_client_name_string;
+	krad_mixer->jack_client_name = jack_client_name_string;
 
-	krad_mixer->server_name = NULL;
-	krad_mixer->options = JackNoStartServer;
+	krad_mixer->jack_server_name = NULL;
+	krad_mixer->jack_options = JackNoStartServer;
 
 	// Connect up to the JACK server 
 
-	krad_mixer->jack_client = jack_client_open (krad_mixer->client_name, krad_mixer->options, &krad_mixer->status, krad_mixer->server_name);
+	krad_mixer->jack_client = jack_client_open (krad_mixer->jack_client_name, krad_mixer->jack_options, &krad_mixer->jack_status, krad_mixer->jack_server_name);
 
 	if (krad_mixer->jack_client == NULL) {
-		fprintf(stderr, "jack_client_open() failed, status = 0x%2.0x\n", krad_mixer->status);
-		if (krad_mixer->status & JackServerFailed) {
+		fprintf(stderr, "jack_client_open() failed, status = 0x%2.0x\n", krad_mixer->jack_status);
+		if (krad_mixer->jack_status & JackServerFailed) {
 			fprintf(stderr, "Unable to connect to JACK server\n");
 		}
 		exit (1);
 	}
 	
-	if (krad_mixer->status & JackServerStarted) {
+	if (krad_mixer->jack_status & JackServerStarted) {
 		fprintf(stderr, "JACK server started\n");
 	}
 
-	if (krad_mixer->status & JackNameNotUnique) {
-		krad_mixer->client_name = jack_get_client_name (krad_mixer->jack_client);
-		fprintf(stderr, "unique name `%s' assigned\n", krad_mixer->client_name);
+	if (krad_mixer->jack_status & JackNameNotUnique) {
+		krad_mixer->jack_client_name = jack_get_client_name (krad_mixer->jack_client);
+		fprintf(stderr, "unique name `%s' assigned\n", krad_mixer->jack_client_name);
 	}
 
 	// Set up Callbacks

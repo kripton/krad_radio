@@ -80,7 +80,7 @@ void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two
 	}
 }
 
-int kradjack_xrun(void *arg) {
+int kradjack_xrun (void *arg) {
 
 	krad_jack_t *kradjack = (krad_jack_t *)arg;
 
@@ -92,7 +92,7 @@ int kradjack_xrun(void *arg) {
 
 }
 
-int kradjack_process(jack_nframes_t nframes, void *arg) {
+int kradjack_process (jack_nframes_t nframes, void *arg) {
 
 	krad_jack_t *kradjack = (krad_jack_t *)arg;
 
@@ -169,7 +169,7 @@ void kradjack_destroy(krad_jack_t *kradjack) {
 
 }
 
-krad_jack_t *kradjack_create(krad_audio_t *kradaudio) {
+krad_jack_t *kradjack_create (krad_audio_t *kradaudio) {
 
 	krad_jack_t *kradjack;
 

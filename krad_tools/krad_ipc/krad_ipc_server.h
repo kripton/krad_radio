@@ -122,7 +122,7 @@ void krad_ipc_server_client_broadcast (krad_ipc_server_t *krad_ipc_server, char 
 
 void krad_ipc_disconnect_client (krad_ipc_server_client_t *client);
 void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
-krad_ipc_server_t *krad_ipc_server_create (char *callsign_or_ipc_path_or_port);
+krad_ipc_server_t *krad_ipc_server_create (char *sysname);
 krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server);
 
 void krad_ipc_server_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, char *portname, char *controlname, float floatval);
@@ -134,7 +134,7 @@ uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64
 void *krad_ipc_server_run (void *arg);
 void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server);
 
-krad_ipc_server_t *krad_ipc_server (char *callsign_or_ipc_path_or_port, int handler (void *, int *, void *), void *pointer);
+krad_ipc_server_t *krad_ipc_server (char *sysname, int handler (void *, int *, void *), void *pointer);
 
 #endif
 

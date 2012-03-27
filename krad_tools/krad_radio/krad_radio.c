@@ -33,44 +33,44 @@ void krad_radio_daemonize () {
         
 }
 
-int krad_radio_valid_callsign(char *callsign) {
+int krad_radio_valid_sysname (char *sysname) {
 	
 	int i = 0;
 	char j;
 	
-	char requirements[] = "Callsigns must be atleast 4 numbers or lowercase letters, start with a letter, and be no longer than 40 characters.";
+	char requirements[] = "Sysnames must be atleast 4 numbers or lowercase letters, start with a letter, and be no longer than 40 characters.";
 	
 	
-	if (strlen(callsign) < 4) {
-		fprintf (stderr, "Callsign Name %s is invalid, too short!\n", callsign);
+	if (strlen(sysname) < 4) {
+		fprintf (stderr, "Sysname Name %s is invalid, too short!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;
 	}
 	
-	if (strlen(callsign) > 40) {
-		fprintf (stderr, "Callsign %s is invalid, too long!\n", callsign);
+	if (strlen(sysname) > 40) {
+		fprintf (stderr, "Sysname %s is invalid, too long!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;
 	}
 	
-	j = callsign[i];
+	j = sysname[i];
 	if (!((isalpha (j)) && (islower (j)))) {
-		fprintf (stderr, "Callsign %s is invalid, must start with a lowercase letter!\n", callsign);
+		fprintf (stderr, "Sysname %s is invalid, must start with a lowercase letter!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;
 	}
 	i++;
 
-	while (callsign[i]) {
-		j = callsign[i];
+	while (sysname[i]) {
+		j = sysname[i];
 			if (!isalnum (j)) {
-				fprintf (stderr, "Callsign %s is invalid, alphanumeric only!\n", callsign);
+				fprintf (stderr, "Sysname %s is invalid, alphanumeric only!\n", sysname);
 				fprintf (stderr, "%s\n", requirements);
 				return 0;
 			}
 			if (isalpha (j)) {
 				if (!islower (j)) {
-					fprintf (stderr, "Callsign %s is invalid lowercase letters only!\n", callsign);
+					fprintf (stderr, "Sysname %s is invalid lowercase letters only!\n", sysname);
 					fprintf (stderr, "%s\n", requirements);
 					return 0;
 				}
@@ -89,22 +89,20 @@ void krad_radio_destroy (krad_radio_t *krad_radio) {
 	krad_http_server_destroy (krad_radio->krad_http);
 	krad_websocket_server_destroy (krad_radio->krad_websocket);
 	krad_ipc_server_destroy (krad_radio->krad_ipc);
-	free (krad_radio->callsign);
+	free (krad_radio->sysname);
 	free (krad_radio);
 
 }
 
-krad_radio_t *krad_radio_create (char *callsign_or_config) {
+krad_radio_t *krad_radio_create (char *sysname) {
 
 	krad_radio_t *krad_radio = calloc(1, sizeof(krad_radio_t));
 
-	// add config file stuff here
-	if (1) {
-		if (!krad_radio_valid_callsign(callsign_or_config)) {
-			return NULL;
-		}
-		krad_radio->callsign = strdup (callsign_or_config);
+
+	if (!krad_radio_valid_sysname(sysname)) {
+		return NULL;
 	}
+	krad_radio->sysname = strdup (sysname);
 	
 	krad_radio->krad_tags = krad_tags_create ();
 	
@@ -113,21 +111,21 @@ krad_radio_t *krad_radio_create (char *callsign_or_config) {
 		return NULL;
 	}
 	
-	krad_radio->krad_mixer = krad_mixer_create (callsign_or_config);
+	krad_radio->krad_mixer = krad_mixer_create (sysname);
 	
 	if (krad_radio->krad_mixer == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
 	
-	krad_radio->krad_ipc = krad_ipc_server ( callsign_or_config, krad_radio_handler, krad_radio );
+	krad_radio->krad_ipc = krad_ipc_server ( sysname, krad_radio_handler, krad_radio );
 	
 	if (krad_radio->krad_ipc == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
 	
-	krad_radio->krad_websocket = krad_websocket_server_create (callsign_or_config, 56001);
+	krad_radio->krad_websocket = krad_websocket_server_create (sysname, 56001);
 	
 	if (krad_radio->krad_websocket == NULL) {
 		krad_radio_destroy (krad_radio);
@@ -146,14 +144,14 @@ krad_radio_t *krad_radio_create (char *callsign_or_config) {
 }
 
 
-void krad_radio (char *callsign_or_config) {
+void krad_radio (char *sysname) {
 
 	krad_radio_t *krad_radio_station;
 
-	krad_radio_station = krad_radio_create (callsign_or_config);
+	krad_radio_station = krad_radio_create (sysname);
 
 	if (krad_radio_station != NULL) {
-		printf("Krad Radio Station %s Daemonizing..\n", krad_radio_station->callsign);
+		printf("Krad Radio Station %s Daemonizing..\n", krad_radio_station->sysname);
 		//krad_radio_daemonize ();
 
 		krad_radio_run ( krad_radio_station );

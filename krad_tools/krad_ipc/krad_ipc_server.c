@@ -1,7 +1,7 @@
 #include "krad_ipc_server.h"
 
 
-krad_ipc_server_t *krad_ipc_server_create (char *callsign_or_ipc_path_or_port) {
+krad_ipc_server_t *krad_ipc_server_create (char *sysname) {
 
 	krad_ipc_server_t *krad_ipc_server = calloc (1, sizeof (krad_ipc_server_t));
 	int i;
@@ -36,7 +36,7 @@ krad_ipc_server_t *krad_ipc_server_create (char *callsign_or_ipc_path_or_port) {
 	krad_ipc_server->saddr.sun_family = AF_UNIX;
 
 	if (krad_ipc_server->on_linux) {
-		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "@%s_ipc", callsign_or_ipc_path_or_port);	
+		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "@%s_ipc", sysname);	
 		krad_ipc_server->saddr.sun_path[0] = '\0';
 		if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 			/* active socket already exists! */
@@ -45,7 +45,7 @@ krad_ipc_server_t *krad_ipc_server_create (char *callsign_or_ipc_path_or_port) {
 			return NULL;
 		}
 	} else {
-		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "%s/%s_ipc", getenv ("HOME"), callsign_or_ipc_path_or_port);	
+		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "%s/%s_ipc", getenv ("HOME"), sysname);	
 		if (access (krad_ipc_server->saddr.sun_path, F_OK) == 0) {
 			if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 				/* active socket already exists! */
@@ -579,12 +579,12 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 }
 
 
-krad_ipc_server_t *krad_ipc_server (char *callsign_or_ipc_path_or_port, int handler (void *, int *, void *), void *pointer) {
+krad_ipc_server_t *krad_ipc_server (char *sysname, int handler (void *, int *, void *), void *pointer) {
 
 
 	krad_ipc_server_t *krad_ipc_server;
 	
-	krad_ipc_server = krad_ipc_server_create (callsign_or_ipc_path_or_port);
+	krad_ipc_server = krad_ipc_server_create (sysname);
 
 	if (krad_ipc_server == NULL) {
 		return NULL;

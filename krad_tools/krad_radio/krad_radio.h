@@ -20,7 +20,7 @@ typedef struct krad_radio_St krad_radio_t;
 
 struct krad_radio_St {
 
-	char *callsign;
+	char *sysname;
 	
 	krad_ipc_server_t *krad_ipc;
 	krad_websocket_t *krad_websocket;
@@ -33,9 +33,9 @@ struct krad_radio_St {
 
 
 void krad_radio_destroy(krad_radio_t *krad_radio);
-krad_radio_t *krad_radio_create(char *callsign_or_config);
+krad_radio_t *krad_radio_create(char *sysname);
 void krad_radio_daemonize ();
 void krad_radio_run (krad_radio_t *krad_radio);
-void krad_radio (char *callsign_or_config);
+void krad_radio (char *sysname);
 
 int krad_radio_handler ( void *output, int *output_len, void *ptr );

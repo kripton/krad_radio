@@ -81,34 +81,19 @@ struct krad_mixer_St {
 	
 	char sysname[64];
 	
-	const char **ports;
-	const char *client_name;
-	const char *server_name;
-	jack_options_t options;
-	jack_status_t status;
+	const char *jack_client_name;
+	const char *jack_server_name;
+	jack_options_t jack_options;
+	jack_status_t jack_status;
 	jack_client_t *jack_client;
+	int jack_xruns;
+	int jack_sample_rate;
+
 	int shutdown;
-	int xruns;
-	int sample_rate;
     
 	portgroup_t *portgroup[PORTGROUP_MAX];
 	crossfade_group_t *crossfade_group;
 
-	/*
-	
-	int active_input;
-	int last_active_input;
-	int active_input_bytes;
-	char active_input_data[2048];
-	pthread_t active_input_thread;
-	
-	int level_bytes;
-	char level_data[2048];
-	float level_float_value;
-	int level_pg;
-	portgroup_t *level_portgroup;
-	pthread_t levels_thread;
-	*/
 };
 
 int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t frames);

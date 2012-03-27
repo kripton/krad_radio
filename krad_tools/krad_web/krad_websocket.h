@@ -52,7 +52,7 @@ struct krad_websocket_St {
 	struct libwebsocket_context *context;
 
 	int port;
-	char callsign[64];
+	char sysname[64];
 	pthread_t server_thread;
 	int shutdown;
 };
@@ -70,5 +70,5 @@ void set_poll_mode_pollfd(struct pollfd *apollfd, short events);
 void set_poll_mode_fd(int fd, short events);
 
 void krad_websocket_server_destroy (krad_websocket_t *krad_websocket);
-krad_websocket_t *krad_websocket_server_create (char *callsign, int port);
+krad_websocket_t *krad_websocket_server_create (char *sysname, int port);
 void *krad_websocket_server_run (void *arg);
