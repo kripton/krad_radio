@@ -70,30 +70,21 @@ void krad_mixer_crossfade_group_destroy (krad_mixer_t *krad_mixer, crossfade_gro
 
 }
 
-
-float get_fade_in (float crossfade_value) {
-	
-	float fade_in;
-	
-	crossfade_value = (crossfade_value + 100.0f);
-	fade_in = cos (3.14159f*0.5f*(crossfade_value + 0.5f)/200.0f);
-	fade_in = fade_in * fade_in;
-	fade_in = 1.0f - fade_in;
-	
-	return fade_in;
-	
-}
-
 float get_fade_out (float crossfade_value) {
 
 	float fade_out;
 
-	crossfade_value = (crossfade_value + 100.0f);
-	fade_out = cos (3.14159f*0.5f*(crossfade_value + 0.5f)/200.0f);
+	fade_out = cos (3.14159f*0.5f*((crossfade_value + 100.0f) + 0.5f)/200.0f);
 	fade_out = fade_out * fade_out;
 		
 	return fade_out;
 		
+}
+
+float get_fade_in (float crossfade_value) {
+	
+	return 1.0f - get_fade_out (crossfade_value);
+	
 }
 
 float portgroup_get_crossfade (portgroup_t *portgroup) {
