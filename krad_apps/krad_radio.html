@@ -49,8 +49,9 @@
 		
 		function set_control (name, volume) {
 		
-		//	$('#' + name).slider( "value" , volume )
-		
+			if ($('#' + name)) {
+				$('#' + name).slider( "value" , volume )
+			}
 		}
 	</script>
 	
@@ -65,7 +66,7 @@
 
 
 
-	<video src="http://kradradio.com:9080/mixtest.webm"></video>
+	<video src="http://kradradio.com:9080/mixtest.webm" width="300" height="150" controls></video>
 
 </body>
 
