@@ -11,20 +11,23 @@
 #include <jack/jack.h>
 
 #define PORTGROUP_MAX 20
-#define MIXGROUP_MAX 20
+#define MAXCHANNELS 8
 
 typedef struct krad_mixer_St krad_mixer_t;
 typedef struct portgroup_St portgroup_t;
-typedef struct mixgroup_St mixgroup_t;
+typedef struct portgroup_St mixbus_t;
+typedef struct crossfadegroup_St crossfadegroup_t;
 
 typedef enum {
 	OUTPUT,
 	INPUT,
+	MIX,
 } portgroup_direction_t;
 
 typedef enum {
 	JACK,
-	INTERNAL,
+	KRAD_LINK,
+	MIXBUS,
 } portgroup_io_t;
 
 typedef enum {
@@ -39,13 +42,11 @@ typedef enum {
 	EIGHT,
 } channels_t;
 
-struct mixgroup_St {
+struct crossfadegroup_St {
 
-	char name[256];
-	float *samples[8];
-	channels_t channels;
-	int active;
-	krad_mixer_t *krad_mixer;
+	portgroup_t *portgroup[2];
+	float fade;
+
 };
 
 struct portgroup_St {
@@ -55,7 +56,7 @@ struct portgroup_St {
 	portgroup_direction_t direction;
 	portgroup_io_t io_type;
 	channels_t channels;
-	mixgroup_t *mixgroup;
+	mixbus_t *mixbus;
 	
 	jack_port_t *ports[8];
 	
@@ -89,29 +90,10 @@ struct krad_mixer_St {
 	int xruns;
 	int sample_rate;
     
-	mixgroup_t *mixgroup[MIXGROUP_MAX];
 	portgroup_t *portgroup[PORTGROUP_MAX];
+	crossfadegroup_t *crossfadegroup[PORTGROUP_MAX];
 
 	/*
-	sc2_data_t *sc2_data;
-	sc2_data_t *sc2_data2;
-
-	float music_1_2_crossfade;
-	float music_aux_crossfade;
-	
-	float new_music1_fade_value[8];
-	float new_music2_fade_value[8];
-	float new_music_fade_value[8];
-	float new_aux_fade_value[8];
-	
-	float music1_fade_value[8];
-	float music2_fade_value[8];
-	
-	float fade_temp;
-	float fade_temp_pos;	
-	
-	jack_default_audio_sample_t micmix_left[1024];
-	jack_default_audio_sample_t micmix_right[1024];
 	
 	int active_input;
 	int last_active_input;
@@ -129,6 +111,8 @@ struct krad_mixer_St {
 };
 
 
+char *krad_mixer_channel_number_to_string (int channel);
+
 int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t frames);
 
 krad_mixer_t *krad_mixer_create (char *callsign);
@@ -140,7 +124,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 
 
-void krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, mixgroup_t *mixgroup, portgroup_io_t io_type);
+portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, const char *name, int direction, int channels, mixbus_t *mixbus, portgroup_io_t io_type);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgroup);
 
 void compute_peak (portgroup_t *portgroup, int channel, int sample_count);
