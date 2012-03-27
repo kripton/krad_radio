@@ -384,6 +384,12 @@ portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysnam
 
 	portgroup->krad_mixer = krad_mixer;
 
+	portgroup->krad_tags = krad_tags_create ();
+
+	if (portgroup->krad_tags == NULL) {
+		return NULL;
+	}
+
 	strcpy (portgroup->sysname, sysname);
 	portgroup->channels = channels;
 	portgroup->io_type = io_type;
@@ -448,6 +454,8 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgr
 	while (portgroup->active != 0) {
 		usleep(15000);
 	}
+	
+	krad_tags_destroy (portgroup->krad_tags);	
 
 	printf("Krad Mixer: Removing %d channel Portgroup %s\n", portgroup->channels, portgroup->sysname);
 
@@ -611,16 +619,11 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 		exit (1);
 	}
 	
-	//if ((krad_mixer->portgroup = calloc (PORTGROUP_MAX, sizeof (portgroup_t))) == NULL) {
-	//		fprintf(stderr, "mem alloc fail\n");
-	//			exit (1);
-	//}
-	
+	krad_mixer->crossfade_group = calloc (PORTGROUP_MAX / 2, sizeof (crossfade_group_t));
+
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		krad_mixer->portgroup[p] = calloc (1, sizeof (portgroup_t));
 	}
-	
-	krad_mixer->crossfade_group = calloc (PORTGROUP_MAX / 2, sizeof (crossfade_group_t));
 	
 	strcpy (krad_mixer->sysname, sysname);
 	

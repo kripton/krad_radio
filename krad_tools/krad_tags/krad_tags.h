@@ -6,26 +6,19 @@
 #ifndef KRAD_TAG_H
 #define KRAD_TAG_H
 
-#define KRAD_MAX_TAGS 100
+#define KRAD_MAX_TAGS 42
 
 typedef struct krad_tag_St krad_tag_t;
 typedef struct krad_tags_St krad_tags_t;
 
 struct krad_tag_St {
-
 	char *name;
 	char *value;
-
 };
 
 struct krad_tags_St {
-
-	char *name;
-
 	krad_tag_t *tags;
-
 };
-
 
 
 void krad_tags_destroy (krad_tags_t *krad_tags);
