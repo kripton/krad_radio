@@ -49,12 +49,13 @@ void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, portgroup_t *p
 		}	
 	}
 
-	crossfade_group->fade = 0.0f;
 	crossfade_group->portgroup[0] = portgroup1;
 	crossfade_group->portgroup[1] = portgroup2;
 	
 	portgroup1->crossfade_group = crossfade_group;
 	portgroup2->crossfade_group = crossfade_group;
+	
+	crossfade_group_set_crossfade (crossfade_group, -100.0f);
 	
 }
 
@@ -65,7 +66,7 @@ void krad_mixer_crossfade_group_destroy (krad_mixer_t *krad_mixer, crossfade_gro
 
 	crossfade_group->portgroup[0] = NULL;
 	crossfade_group->portgroup[1] = NULL;
-	crossfade_group->fade = 0.0f;
+	crossfade_group->fade = -100.0f;
 
 }
 
@@ -485,18 +486,28 @@ portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, ch
 	return NULL;
 }
 
-void set_crossfade (portgroup_t *portgroup, float value) {
+void portgroup_set_crossfade (portgroup_t *portgroup, float value) {
 
 	if (portgroup->crossfade_group != NULL) {
 
 		portgroup->crossfade_group->fade = value;	
 
-		update_portgroup_volume (portgroup->crossfade_group->portgroup[0]);
-		update_portgroup_volume (portgroup->crossfade_group->portgroup[1]);	
+		portgroup_update_volume (portgroup->crossfade_group->portgroup[0]);
+		portgroup_update_volume (portgroup->crossfade_group->portgroup[1]);	
 	}
 }
 
-void set_portgroup_volume (portgroup_t *portgroup, float value) {
+void crossfade_group_set_crossfade (crossfade_group_t *crossfade_group, float value) {
+
+	crossfade_group->fade = value;	
+
+	if ((crossfade_group->portgroup[0] != NULL) && (crossfade_group->portgroup[1] != NULL)) {
+		portgroup_update_volume (crossfade_group->portgroup[0]);
+		portgroup_update_volume (crossfade_group->portgroup[1]);	
+	}
+}
+
+void portgroup_set_volume (portgroup_t *portgroup, float value) {
 
 	int c;
 	float volume_temp;
@@ -515,7 +526,7 @@ void set_portgroup_volume (portgroup_t *portgroup, float value) {
 
 }
 
-void set_portgroup_channel_volume (portgroup_t *portgroup, int channel, float value) {
+void portgroup_set_channel_volume (portgroup_t *portgroup, int channel, float value) {
 
 	float volume_temp;
 
@@ -531,12 +542,12 @@ void set_portgroup_channel_volume (portgroup_t *portgroup, int channel, float va
 
 }
 
-void update_portgroup_volume (portgroup_t *portgroup) {
+void portgroup_update_volume (portgroup_t *portgroup) {
 
 	int c;
 	
 	for (c = 0; c < portgroup->channels; c++) {
-		set_portgroup_channel_volume (portgroup, c, portgroup->volume[c]);
+		portgroup_set_channel_volume (portgroup, c, portgroup->volume[c]);
 	}	
 }		
 
@@ -549,22 +560,22 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
 	if (portgroup != NULL) {
 			
 		if ((strncmp(control, "volume", 6) == 0) && (strlen(control) == 6)) {
-			set_portgroup_volume (portgroup, value);
+			portgroup_set_volume (portgroup, value);
 			return 1;
 		}
 
 		if ((strncmp(control, "crossfade", 9) == 0) && (strlen(control) == 9)) {
-			set_crossfade (portgroup, value);
+			portgroup_set_crossfade (portgroup, value);
 			return 1;
 		}				
 
 		if (strncmp(control, "volume_left", 11) == 0) {
-			set_portgroup_channel_volume (portgroup, 0, value);
+			portgroup_set_channel_volume (portgroup, 0, value);
 			return 1;	
 		}
 		
 		if (strncmp(control, "volume_right", 12) == 0) {
-			set_portgroup_channel_volume (portgroup, 1, value);
+			portgroup_set_channel_volume (portgroup, 1, value);
 			return 1;
 		}
 	}

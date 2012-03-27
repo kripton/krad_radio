@@ -123,11 +123,12 @@ portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, ch
 
 void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, portgroup_t *portgroup1, portgroup_t *portgroup2);
 void krad_mixer_crossfade_group_destroy (krad_mixer_t *krad_mixer, crossfade_group_t *crossfade_group);
+void crossfade_group_set_crossfade (crossfade_group_t *crossfade_group, float value);
 
-void update_portgroup_volume (portgroup_t *portgroup);
-void set_portgroup_channel_volume (portgroup_t *portgroup, int channel, float value);
-void set_portgroup_volume (portgroup_t *portgroup, float value);
-void set_crossfade (portgroup_t *portgroup, float value);
+void portgroup_update_volume (portgroup_t *portgroup);
+void portgroup_set_channel_volume (portgroup_t *portgroup, int channel, float value);
+void portgroup_set_volume (portgroup_t *portgroup, float value);
+void portgroup_set_crossfade (portgroup_t *portgroup, float value);
 
 char *krad_mixer_channel_number_to_string (int channel);
 void compute_peak (portgroup_t *portgroup, int channel, uint32_t nframes);
