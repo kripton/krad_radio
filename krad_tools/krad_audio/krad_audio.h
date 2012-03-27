@@ -6,7 +6,7 @@
 #endif
 
 typedef enum {
-	JACK = 999,
+	JACKAUDIO = 999,
 	PULSE,
 	ALSA,
 	TONE,

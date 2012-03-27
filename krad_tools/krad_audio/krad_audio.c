@@ -76,7 +76,7 @@ void kradaudio_destroy(krad_audio_t *kradaudio) {
 
 	switch (kradaudio->audio_api) {
 	
-		case JACK:
+		case JACKAUDIO:
 			kradjack_destroy(kradaudio->api);
 			break;
 		case ALSA:
@@ -141,7 +141,7 @@ krad_audio_t *kradaudio_create(char *name, krad_audio_direction_t direction, kra
 
 	switch (kradaudio->audio_api) {
 	
-		case JACK:
+		case JACKAUDIO:
 			kradaudio->api = kradjack_create(kradaudio);
 			break;
 		case ALSA:

@@ -105,6 +105,8 @@ float portgroup_get_crossfade (portgroup_t *portgroup) {
 void portgroup_apply_volume (portgroup_t *portgroup, int nframes) {
 
 	int c, s, sign;
+	
+	sign = 0;
 
 	for (c = 0; c < portgroup->channels; c++) {
 
@@ -152,7 +154,7 @@ void portgroup_apply_volume (portgroup_t *portgroup, int nframes) {
 }
 
 
-float read_peak (portgroup_t *portgroup, int channel) {
+float krad_mixer_portgroup_read_channel_peak (portgroup_t *portgroup, int channel) {
 
 	float peak;
 	
@@ -162,7 +164,7 @@ float read_peak (portgroup_t *portgroup, int channel) {
 	return peak;
 }
 
-float read_stereo_peak (portgroup_t *portgroup) {
+float krad_mixer_portgroup_read_peak (portgroup_t *portgroup) {
 
 	float tmp = portgroup->peak[0];
 	portgroup->peak[0] = 0.0f;
@@ -176,7 +178,7 @@ float read_stereo_peak (portgroup_t *portgroup) {
 	}
 }
 
-void compute_peak (portgroup_t *portgroup, int channel, uint32_t nframes) {
+void krad_mixer_portgroup_compute_channel_peak (portgroup_t *portgroup, int channel, uint32_t nframes) {
 
 	int s;
 	float sample;
@@ -190,12 +192,12 @@ void compute_peak (portgroup_t *portgroup, int channel, uint32_t nframes) {
 }
 
 
-void portgroup_compute_peaks (portgroup_t *portgroup, uint32_t nframes) {
+void krad_mixer_portgroup_compute_peaks (portgroup_t *portgroup, uint32_t nframes) {
 
 	int c;
 	
 	for (c = 0; c < portgroup->channels; c++) {
-		compute_peak (portgroup, c, nframes);
+		krad_mixer_portgroup_compute_channel_peak (portgroup, c, nframes);
 	}
 }
 
@@ -215,7 +217,7 @@ void portgroup_update_samples (portgroup_t *portgroup, uint32_t nframes) {
 
 	int c;
 
-	if (portgroup->io_type == JACK) {
+	if (portgroup->io_type == KRAD_JACK) {
 		for (c = 0; c < portgroup->channels; c++) {
 			portgroup->samples[c] = jack_port_get_buffer (portgroup->ports[c], nframes);
 		}
@@ -285,7 +287,7 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
 			portgroup_apply_volume (portgroup, nframes);
-			portgroup_compute_peaks (portgroup, nframes);
+			krad_mixer_portgroup_compute_peaks (portgroup, nframes);
 		}
 	}
 	
@@ -367,11 +369,17 @@ portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysnam
 	char portname[256];
 	int port_direction;
 	
+	portgroup = NULL;
+	
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		if (krad_mixer->portgroup[p]->active == 0) {
 			portgroup = krad_mixer->portgroup[p];
 			break;
 		}
+	}
+	
+	if (portgroup == NULL) {
+		return NULL;
 	}
 
 	portgroup->krad_mixer = krad_mixer;
@@ -403,7 +411,7 @@ portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysnam
 			case MIXBUS:
 				portgroup->samples[c] = calloc (1, 16384);
 				break;
-			case JACK:
+			case KRAD_JACK:
 
 				strcpy ( portname, sysname );
 		
@@ -419,7 +427,7 @@ portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysnam
 					return NULL;
 				}
 				break;
-			case KRAD_LINK:
+			case KRADLINK:
 				break;
 		}
 	}
@@ -448,13 +456,13 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgr
 			case MIXBUS:
 				free ( portgroup->samples[c] );
 				break;
-			case JACK:
+			case KRAD_JACK:
 				printf("Krad Mixer: Disconnecting %s Port %d\n", portgroup->sysname, c);
 				jack_port_disconnect(krad_mixer->jack_client, portgroup->ports[c]);
 				printf("Krad Mixer: Unregistering %s Port %d\n", portgroup->sysname, c);
 				jack_port_unregister(krad_mixer->jack_client, portgroup->ports[c]);
 				break;
-			case KRAD_LINK:
+			case KRADLINK:
 				break;
 		}
 	}
@@ -623,20 +631,20 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 	krad_mixer->jack_server_name = NULL;
 	krad_mixer->jack_options = JackNoStartServer;
 
-	// Connect up to the JACK server 
+	// Connect up to the KRAD_JACK server 
 
 	krad_mixer->jack_client = jack_client_open (krad_mixer->jack_client_name, krad_mixer->jack_options, &krad_mixer->jack_status, krad_mixer->jack_server_name);
 
 	if (krad_mixer->jack_client == NULL) {
 		fprintf(stderr, "jack_client_open() failed, status = 0x%2.0x\n", krad_mixer->jack_status);
 		if (krad_mixer->jack_status & JackServerFailed) {
-			fprintf(stderr, "Unable to connect to JACK server\n");
+			fprintf(stderr, "Unable to connect to KRAD_JACK server\n");
 		}
 		exit (1);
 	}
 	
 	if (krad_mixer->jack_status & JackServerStarted) {
-		fprintf(stderr, "JACK server started\n");
+		fprintf(stderr, "KRAD_JACK server started\n");
 	}
 
 	if (krad_mixer->jack_status & JackNameNotUnique) {
@@ -662,9 +670,9 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 
 	mixbus = krad_mixer_portgroup_create (krad_mixer, "MainMix", MIX, 2, NULL, MIXBUS);
 
-	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, mixbus, JACK);
-	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, mixbus, JACK);
-	krad_mixer_portgroup_create (krad_mixer, "Main", OUTPUT, 2, mixbus, JACK);	
+	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, mixbus, KRAD_JACK);
+	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, mixbus, KRAD_JACK);
+	krad_mixer_portgroup_create (krad_mixer, "Main", OUTPUT, 2, mixbus, KRAD_JACK);	
 	
 	krad_mixer_crossfade_group_create (krad_mixer, music1, music2);
 	

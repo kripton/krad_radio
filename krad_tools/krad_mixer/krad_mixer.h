@@ -1,9 +1,4 @@
 #include "hardlimiter.h"
-#include "sidechain_comp.h"
-#include "djeq.h"
-#include "digilogue.h"
-#include "pass.h"
-#include "fastlimiter.h"
 
 #include "krad_ipc_server.h"
 #include "krad_tags.h"
@@ -25,8 +20,8 @@ typedef enum {
 } portgroup_direction_t;
 
 typedef enum {
-	JACK,
-	KRAD_LINK,
+	KRAD_JACK,
+	KRADLINK,
 	MIXBUS,
 } portgroup_io_t;
 
@@ -116,7 +111,7 @@ void portgroup_set_volume (portgroup_t *portgroup, float value);
 void portgroup_set_crossfade (portgroup_t *portgroup, float value);
 
 char *krad_mixer_channel_number_to_string (int channel);
-void compute_peak (portgroup_t *portgroup, int channel, uint32_t nframes);
-void compute_peaks (portgroup_t *portgroup, uint32_t nframes);
-float read_stereo_peak (portgroup_t *portgroup);
+void krad_mixer_portgroup_compute_channel_peak (portgroup_t *portgroup, int channel, uint32_t nframes);
+void krad_mixer_portgroup_compute_peaks (portgroup_t *portgroup, uint32_t nframes);
+float krad_mixer_portgroup_read_peak (portgroup_t *portgroup);
 int krad_mixer_jack_xrun_callback (void *arg);

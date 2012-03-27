@@ -319,7 +319,7 @@ void *audio_encoding_thread(void *arg) {
 		krad_link->krad_audio = kradaudio_create("Krad_Link_TX", KINPUT, krad_link->krad_audio_api);
 	}
 		
-	if ((krad_link->krad_audio_api == JACK) && (krad_link->jack_ports[0] != '\0')) {
+	if ((krad_link->krad_audio_api == JACKAUDIO) && (krad_link->jack_ports[0] != '\0')) {
 		dbg("Jack ports: %s\n", krad_link->jack_ports);
 		jack_connect_to_ports (krad_link->krad_audio, KINPUT, krad_link->jack_ports);
 	}
@@ -1676,7 +1676,7 @@ void *audio_decoding_thread(void *arg) {
 		}
 	}
 	
-	if ((krad_link->krad_audio_api == JACK) && (krad_link->jack_ports[0] != '\0')) {
+	if ((krad_link->krad_audio_api == JACKAUDIO) && (krad_link->jack_ports[0] != '\0')) {
 		dbg("Jack ports: %s\n", krad_link->jack_ports);
 		jack_connect_to_ports (krad_link->krad_audio, KOUTPUT, krad_link->jack_ports);
 	}

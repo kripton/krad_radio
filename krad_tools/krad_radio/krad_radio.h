@@ -13,6 +13,7 @@
 #include "krad_websocket.h"
 #include "krad_http.h"
 
+#include "krad_link.h"
 #include "krad_mixer.h"
 #include "krad_tags.h"
 
@@ -25,6 +26,7 @@ struct krad_radio_St {
 	krad_ipc_server_t *krad_ipc;
 	krad_websocket_t *krad_websocket;
 	krad_http_t *krad_http;
+	krad_link_t *krad_link;
 	krad_mixer_t *krad_mixer;
 	krad_tags_t *krad_tags;
 
