@@ -48,6 +48,13 @@ int krad_mixer_jack_xrun_callback (void *arg) {
 
 }
 
+void krad_mixer_jack_shutdown (void *arg) {
+
+	printf("Jack called shutdown..\n");
+	//krad_mixer_want_shutdown();
+
+}
+
 /*
 void *active_input_thread(void *arg) {
 
@@ -238,9 +245,7 @@ void apply_volume (portgroup_t *portgroup, int nframes) {
 						portgroup->last_sign[c] = 0;
 					}
 				}
-					
 				portgroup->samples[c][s] = (portgroup->samples[c][s] * portgroup->volume_actual[c]);
-	
 			}
 
 			if (portgroup->last_sign[c] != 0) {
@@ -407,13 +412,6 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 }
 
 
-void krad_mixer_jack_shutdown (void *arg) {
-
-	printf("Jack called shutdown..\n");
-	//krad_mixer_want_shutdown();
-
-}
-
 char *krad_mixer_channel_number_to_string (int channel) {
 
 	switch ( channel ) {
@@ -540,7 +538,7 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, portgroup_t *portgr
 	}
 }
 
-int krad_mixer_destroy_portgroup_by_name (krad_mixer_t *krad_mixer, char *name) {
+portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname) {
 
 	int p;
 	portgroup_t *portgroup;
@@ -548,14 +546,13 @@ int krad_mixer_destroy_portgroup_by_name (krad_mixer_t *krad_mixer, char *name) 
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active)) {
-			if (strncmp(name, portgroup->sysname, strlen(name)) == 0) {	
-				krad_mixer_portgroup_destroy (krad_mixer, portgroup);
-				return 1;
+			if (strncmp(sysname, portgroup->sysname, strlen(sysname)) == 0) {	
+				return portgroup;
 			}
 		}
 	}
 
-	return 0;
+	return NULL;
 }
 
 void set_crossfade (portgroup_t *portgroup, float value) {
@@ -613,36 +610,32 @@ void update_portgroup_volume (portgroup_t *portgroup) {
 	}	
 }		
 
-int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *name, char *control, float value) {
-	//monitor, djeq_on, fastlimiter_release, fastlimiter_limit, djeq_low, djeq_mid, djeq_high
-	int p;
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value) {
+
 	portgroup_t *portgroup;
 
-	for (p = 0; p < PORTGROUP_MAX; p++) {
-		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active)) {
-			if (strncmp(name, portgroup->sysname, strlen(name)) == 0) {
-				
-				if ((strncmp(control, "volume", 6) == 0) && (strlen(control) == 6)) {
-					set_portgroup_volume (portgroup, value);
-					return 1;
-				}
+	portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, sysname);
+	
+	if (portgroup != NULL) {
+			
+		if ((strncmp(control, "volume", 6) == 0) && (strlen(control) == 6)) {
+			set_portgroup_volume (portgroup, value);
+			return 1;
+		}
 
-				if ((strncmp(control, "crossfade", 9) == 0) && (strlen(control) == 9)) {
-					set_crossfade (portgroup, value);
-					return 1;
-				}				
+		if ((strncmp(control, "crossfade", 9) == 0) && (strlen(control) == 9)) {
+			set_crossfade (portgroup, value);
+			return 1;
+		}				
 
-				if (strncmp(control, "volume_left", 11) == 0) {
-					set_portgroup_channel_volume (portgroup, 0, value);
-					return 1;	
-				}
-				
-				if (strncmp(control, "volume_right", 12) == 0) {
-					set_portgroup_channel_volume (portgroup, 1, value);
-					return 1;
-				}
-			}
+		if (strncmp(control, "volume_left", 11) == 0) {
+			set_portgroup_channel_volume (portgroup, 0, value);
+			return 1;	
+		}
+		
+		if (strncmp(control, "volume_right", 12) == 0) {
+			set_portgroup_channel_volume (portgroup, 1, value);
+			return 1;
 		}
 	}
 		
@@ -650,7 +643,6 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *name, char
 }
 
 void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
-
 
 	krad_mixer->shutdown = 1;
 
