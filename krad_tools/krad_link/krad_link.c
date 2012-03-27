@@ -2531,9 +2531,9 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link->video_codec = NOCODEC;
 					krad_link->operation_mode = CAPTURE;
 					strncpy (krad_link->password, "secretkode", sizeof(krad_link->password));
-					krad_link->tcp_port = 8080;
+					krad_link->tcp_port = 9080;
 					strcpy (krad_link->host, "kradradio.com");
-					strcpy (krad_link->mount, "/krdo.webm");
+					strcpy (krad_link->mount, "/mixtest.webm");
 					krad_link_run (krad_link);
 					break;
 				}
