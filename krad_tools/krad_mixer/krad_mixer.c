@@ -9,113 +9,17 @@
 
 #include "krad_mixer.h"
 
-void connect_port (jack_client_t *client, char *port_one, char *port_two) {
 
-	jack_port_t *port1;
-	jack_port_t *port2;
-	
-	// Get the port we are connecting to
-	port1 = jack_port_by_name(client, port_one);
-	if (port1 == NULL) {
-		fprintf(stderr, "Can't find port '%s'\n", port_one);
-		return;
-	}
-	
-	// Get the port we are connecting to
-	port2 = jack_port_by_name(client, port_two);
-	if (port2 == NULL) {
-		fprintf(stderr, "Can't find port '%s'\n", port_two);
-		return;
-	}
-
-	// Connect the port to our input port
-	fprintf(stderr,"Connecting '%s' to '%s'...\n", jack_port_name(port1), jack_port_name(port2));
-	if (jack_connect(client, jack_port_name(port1), jack_port_name(port2))) {
-		fprintf(stderr, "Cannot connect port '%s' to '%s'\n", jack_port_name(port1), jack_port_name(port2));
-		return;
-	}
-}
-
-int krad_mixer_jack_xrun_callback (void *arg) {
+int krad_mixer_jack_callback (jack_nframes_t nframes, void *arg) {
 
 	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
-
-	krad_mixer->xruns++;
 	
-	printf("%s xrun number %d!\n", krad_mixer->client_name, krad_mixer->xruns);
-
+	krad_mixer_process ( krad_mixer, nframes );
+	
 	return 0;
-
+	
 }
 
-void krad_mixer_jack_shutdown (void *arg) {
-
-	printf("Jack called shutdown..\n");
-	//krad_mixer_want_shutdown();
-
-}
-
-/*
-void *active_input_thread(void *arg) {
-
-	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
-	
-	while (krad_mixer->ipc == NULL) {
-		usleep(1000000);
-	}
-	
-	while (krad_mixer->shutdown == 0) {
-	
-		if (krad_mixer->ipc->broadcast_clients) {
-			
-			if (krad_mixer->active_input != krad_mixer->last_active_input) {
-				printf("Active Input: %d\n", krad_mixer->active_input);
-				krad_mixer->active_input_bytes = sprintf(krad_mixer->active_input_data, "Active Input: %d\n", krad_mixer->active_input);
-				krad_ipc_server_client_broadcast(krad_mixer->ipc, krad_mixer->active_input_data, krad_mixer->active_input_bytes, 1);
-				krad_mixer->last_active_input = krad_mixer->active_input;
-			}
-		
-			usleep(50000);
-		
-		} else {
-		
-			usleep(1000000);
-		
-		}
-	}
-}
-
-
-void *levels_thread(void *arg) {
-
-	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
-	
-	while (krad_mixer->ipc == NULL) {
-		usleep(1000000);
-	}
-	
-	while (krad_mixer->shutdown == 0) {
-	
-		if (krad_mixer->ipc->broadcast_clients_level[2]) {
-
-			krad_mixer->level_bytes = 0;
-			krad_mixer->level_bytes += sprintf(krad_mixer->level_data + krad_mixer->level_bytes, "krad_mixer_peaks:");
-			for (krad_mixer->level_pg = 0; krad_mixer->level_pg < PORTGROUP_MAX; krad_mixer->level_pg++) {
-				krad_mixer->level_portgroup = krad_mixer->portgroup[krad_mixer->level_pg];
-				if ((krad_mixer->level_portgroup != NULL) && (krad_mixer->level_portgroup->active) && (krad_mixer->level_portgroup->direction == INPUT)) {
-					krad_mixer->level_float_value = read_stereo_peak(krad_mixer->level_portgroup);
-					krad_mixer->level_bytes += sprintf(krad_mixer->level_data + krad_mixer->level_bytes, "%s/%f*", krad_mixer->level_portgroup->sysname, krad_mixer->level_float_value);
-				}
-			}
-			krad_ipc_server_client_broadcast(krad_mixer->ipc, krad_mixer->level_data, krad_mixer->level_bytes, 2);
-			usleep(50000);
-		} else {
-			usleep(1000000);
-		}
-	}
-}	
-
-*/
 
 void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, portgroup_t *portgroup1, portgroup_t *portgroup2) {
 
@@ -301,16 +205,6 @@ void portgroup_compute_peaks (portgroup_t *portgroup, uint32_t nframes) {
 	for (c = 0; c < portgroup->channels; c++) {
 		compute_peak (portgroup, c, nframes);
 	}
-}
-
-int krad_mixer_jack_callback (jack_nframes_t nframes, void *arg) {
-
-	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
-	
-	krad_mixer_process ( krad_mixer, nframes );
-	
-	return 0;
-	
 }
 
 void portgroup_clear_samples (portgroup_t *portgroup, uint32_t nframes) {
@@ -751,8 +645,8 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 	// Set up Callbacks
 
 	jack_set_process_callback (krad_mixer->jack_client, krad_mixer_jack_callback, krad_mixer);
-	jack_on_shutdown (krad_mixer->jack_client, krad_mixer_jack_shutdown, krad_mixer);
-	jack_set_xrun_callback (krad_mixer->jack_client, krad_mixer_jack_xrun_callback, krad_mixer);
+	//jack_on_shutdown (krad_mixer->jack_client, krad_mixer_jack_shutdown, krad_mixer);
+	//jack_set_xrun_callback (krad_mixer->jack_client, krad_mixer_jack_xrun_callback, krad_mixer);
 
 	// Activate
 
@@ -760,9 +654,7 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 		printf("cannot activate client\n");
 		exit (1);
 	}
-	
-	// pthread_create(&krad_mixer->levels_thread, NULL, levels_thread, (void *)krad_mixer);
-	// pthread_create(&krad_mixer->active_input_thread, NULL, active_input_thread, (void *)krad_mixer);
+
 
 	portgroup_t *music1, *music2;
 
