@@ -130,7 +130,7 @@ void set_portgroup_volume (portgroup_t *portgroup, float value);
 void set_crossfade (portgroup_t *portgroup, float value);
 
 char *krad_mixer_channel_number_to_string (int channel);
-void compute_peak (portgroup_t *portgroup, int channel, int sample_count);
-void compute_peaks (portgroup_t *portgroup, int sample_count);
+void compute_peak (portgroup_t *portgroup, int channel, uint32_t nframes);
+void compute_peaks (portgroup_t *portgroup, uint32_t nframes);
 float read_stereo_peak (portgroup_t *portgroup);
 int krad_mixer_jack_xrun_callback (void *arg);

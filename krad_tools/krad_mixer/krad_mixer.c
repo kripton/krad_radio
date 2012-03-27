@@ -191,7 +191,7 @@ float get_fade_out (float crossfade_value) {
 		
 }
 
-float get_crossfade (portgroup_t *portgroup) {
+float portgroup_get_crossfade (portgroup_t *portgroup) {
 
 	if (portgroup->crossfade_group->portgroup[0] == portgroup) {
 		return get_fade_in (portgroup->crossfade_group->fade);
@@ -206,7 +206,7 @@ float get_crossfade (portgroup_t *portgroup) {
 	
 }
 
-void apply_volume (portgroup_t *portgroup, int nframes) {
+void portgroup_apply_volume (portgroup_t *portgroup, int nframes) {
 
 	int c, s, sign;
 
@@ -280,12 +280,12 @@ float read_stereo_peak (portgroup_t *portgroup) {
 	}
 }
 
-void compute_peak (portgroup_t *portgroup, int channel, int sample_count) {
+void compute_peak (portgroup_t *portgroup, int channel, uint32_t nframes) {
 
 	int s;
 	float sample;
 
-	for(s = 0; s < sample_count; s++) {
+	for(s = 0; s < nframes; s++) {
 		sample = fabs(portgroup->samples[channel][s]);
 		if (sample > portgroup->peak[channel]) {
 			portgroup->peak[channel] = sample;
@@ -294,12 +294,12 @@ void compute_peak (portgroup_t *portgroup, int channel, int sample_count) {
 }
 
 
-void compute_peaks (portgroup_t *portgroup, int sample_count) {
+void portgroup_compute_peaks (portgroup_t *portgroup, uint32_t nframes) {
 
 	int c;
 	
 	for (c = 0; c < portgroup->channels; c++) {
-		compute_peak (portgroup, c, sample_count);
+		compute_peak (portgroup, c, nframes);
 	}
 }
 
@@ -313,11 +313,75 @@ int krad_mixer_jack_callback (jack_nframes_t nframes, void *arg) {
 	
 }
 
+void portgroup_clear_samples (portgroup_t *portgroup, uint32_t nframes) {
 
+	int c;
+	int s;
+
+	for (c = 0; c < portgroup->channels; c++) {
+		for (s = 0; s < nframes; s++) {
+			portgroup->samples[c][s] = 0.0f;
+		}
+	}
+}
+
+void portgroup_update_samples (portgroup_t *portgroup, uint32_t nframes) {
+
+	int c;
+
+	if (portgroup->io_type == JACK) {
+		for (c = 0; c < portgroup->channels; c++) {
+			portgroup->samples[c] = jack_port_get_buffer (portgroup->ports[c], nframes);
+		}
+	}
+}
+
+void portgroup_mix_samples (portgroup_t *dest_portgroup, portgroup_t *src_portgroup, uint32_t nframes) {
+
+	int c;
+	int s;
+
+	if (dest_portgroup->channels != src_portgroup->channels) {
+		printf ("oh no channel count not equal!\n");
+		exit (1);
+	}
+
+	for (c = 0; c < dest_portgroup->channels; c++) {
+		for (s = 0; s < nframes; s++) {
+			dest_portgroup->samples[c][s] += src_portgroup->samples[c][s];
+		}
+	}
+}
+
+void portgroup_copy_samples (portgroup_t *dest_portgroup, portgroup_t *src_portgroup, uint32_t nframes) {
+
+	int c;
+	int s;
+
+	if (dest_portgroup->channels != src_portgroup->channels) {
+		printf ("oh no channel count not equal!\n");
+		exit (1);
+	}
+
+	for (c = 0; c < dest_portgroup->channels; c++) {
+		for (s = 0; s < nframes; s++) {
+			dest_portgroup->samples[c][s] = src_portgroup->samples[c][s];
+		}
+	}
+}
+
+void portgroup_hardlimit (portgroup_t *portgroup, uint32_t nframes) {
+
+	int c;
+
+	for (c = 0; c < portgroup->channels; c++) {	
+		hardlimit (portgroup->samples[c], nframes);
+	}
+}
 
 int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 	
-	int s, c, p, m;
+	int p, m;
 
 	portgroup_t *portgroup = NULL;
 	portgroup_t *mixbus = NULL;
@@ -325,12 +389,8 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 	// Gets input/output port buffers
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active)) {
-			if (portgroup->io_type == JACK) {
-				for (c = 0; c < portgroup->channels; c++) {
-					portgroup->samples[c] = jack_port_get_buffer (portgroup->ports[c], nframes);
-				}
-			}
+		if ((portgroup != NULL) && (portgroup->active) && ((portgroup->direction == INPUT) || (portgroup->direction == OUTPUT))) {
+			portgroup_update_samples (portgroup, nframes);
 		}
 	}
 	
@@ -338,8 +398,8 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
-			apply_volume (portgroup, nframes);
-			compute_peaks (portgroup, nframes);
+			portgroup_apply_volume (portgroup, nframes);
+			portgroup_compute_peaks (portgroup, nframes);
 		}
 	}
 	
@@ -347,14 +407,9 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->io_type == MIXBUS)) {
-			for (c = 0; c < portgroup->channels; c++) {
-				for (s = 0; s < nframes; s++) {
-					portgroup->samples[c][s] = 0.0f;
-				}
-			}
+			portgroup_clear_samples (portgroup, nframes);
 		}
 	}
-	
 
 	// Mix
 	for (m = 0; m < PORTGROUP_MAX; m++) {
@@ -363,37 +418,18 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 			for (p = 0; p < PORTGROUP_MAX; p++) {
 				portgroup = krad_mixer->portgroup[p];
 				if ((portgroup != NULL) && (portgroup->active) && (portgroup->mixbus == mixbus) && (portgroup->direction == INPUT)) {
-					for (c = 0; c < mixbus->channels; c++) {
-						for (s = 0; s < nframes; s++) {
-							mixbus->samples[c][s] += portgroup->samples[c][s];
-						}
-					}
+					portgroup_mix_samples ( mixbus, portgroup, nframes );
 				}
 			}
 		}
 	}
 
-	// copy to outputs
+	// copy to outputs, hardlimit all outputs
 	for (p = 0; p < PORTGROUP_MAX; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == OUTPUT)) {
-			for (c = 0; c < portgroup->channels; c++) {
-				for (s = 0; s < nframes; s++) {
-					portgroup->samples[c][s] = portgroup->mixbus->samples[c][s];
-				}
-			}
-		}
-	}
-		
-	// hardlimit all outputs
-	for (p = 0; p < PORTGROUP_MAX; p++) {
-		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active)) {
-			if (portgroup->direction == OUTPUT) {
-				for (c = 0; c < portgroup->channels; c++) {			
-					hardlimit (portgroup->samples[c], nframes);
-				}
-			}
+			portgroup_copy_samples ( portgroup, portgroup->mixbus, nframes );
+			portgroup_hardlimit ( portgroup, nframes );
 		}
 	}
 	
@@ -575,7 +611,7 @@ void set_portgroup_volume (portgroup_t *portgroup, float value) {
 	volume_temp *= volume_temp;
 
 	if (portgroup->crossfade_group != NULL) {
-		volume_temp = volume_temp * get_crossfade (portgroup);
+		volume_temp = volume_temp * portgroup_get_crossfade (portgroup);
 	}
 
 	for (c = 0; c < portgroup->channels; c++) {
@@ -594,7 +630,7 @@ void set_portgroup_channel_volume (portgroup_t *portgroup, int channel, float va
 	volume_temp *= volume_temp;
 
 	if (portgroup->crossfade_group != NULL) {
-		volume_temp = volume_temp * get_crossfade (portgroup);
+		volume_temp = volume_temp * portgroup_get_crossfade (portgroup);
 	}
 
 	portgroup->new_volume_actual[channel] = volume_temp;
