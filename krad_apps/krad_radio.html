@@ -16,7 +16,7 @@
 	<script>	
 	
 		$(document).ready(function() {
-			kradwebsocket = new Kradwebsocket(56001);
+			kradwebsocket = new Kradwebsocket(46001);
 		});
 		
 		
@@ -32,16 +32,18 @@
 				kradwebsocket.send("KIPCset_control:" + name + ":volume:" + ui.value);
 			});
 		
-
-			$('#studio').append("<div class='sliders'><div id='xfader_" + name + "'></div> <h2>xfader " + name + "</h2></div>");
+			if (name == "Music2") {
+				$('#studio').append("<div class='sliders'><div id='xfader_" + name + "'></div> <h2>xfader " + name + "</h2></div>");
 		
-			$('#xfader_' + name).slider();
+				$('#xfader_' + name).slider();
 		
-			$('#xfader_' + name).slider({orientation: 'horizontal', value: 0, min: -100 });
+				$('#xfader_' + name).slider({orientation: 'horizontal', value: 0, min: -100 });
 		
-			$( "#xfader_" + name ).bind( "slide", function(event, ui) {
-				kradwebsocket.send("KIPCset_control:" + name + ":xfader:" + ui.value);
-			});
+				$( "#xfader_" + name ).bind( "slide", function(event, ui) {
+					kradwebsocket.send("KIPCset_control:" + name + ":xfader:" + ui.value);
+				});
+			
+			}
 
 		}
 		
@@ -60,6 +62,10 @@
 	<h1>Krad Radio</h1>
 
 	<div id="studio"></div>
+
+
+
+	<video src="http://kradradio.com:9080/mixtest.webm"></video>
 
 </body>
 

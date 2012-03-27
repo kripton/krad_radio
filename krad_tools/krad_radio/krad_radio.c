@@ -135,14 +135,14 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
-	krad_radio->krad_websocket = krad_websocket_server_create (sysname, 56001);
+	krad_radio->krad_websocket = krad_websocket_server_create (sysname, 46001);
 	
 	if (krad_radio->krad_websocket == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}	
 	
-	krad_radio->krad_http = krad_http_server_create (56000);
+	krad_radio->krad_http = krad_http_server_create (46000);
 	
 	if (krad_radio->krad_http == NULL) {
 		krad_radio_destroy (krad_radio);
