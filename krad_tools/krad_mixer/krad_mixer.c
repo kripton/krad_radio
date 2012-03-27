@@ -396,12 +396,6 @@ portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysnam
 	portgroup->mixbus = mixbus;
 	portgroup->direction = direction;
 
-	if (portgroup->direction == INPUT) {		
-		port_direction = JackPortIsInput;
-	} else {
-		port_direction = JackPortIsOutput;
-	}
-
 	for (c = 0; c < portgroup->channels; c++) {
 	
 		portgroup->volume[c] = 90;
@@ -424,6 +418,12 @@ portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysnam
 				if (portgroup->channels > 1) {
 					strcat ( portname, "_" );
 					strcat ( portname, krad_mixer_channel_number_to_string ( c ) );
+				}
+				
+				if (portgroup->direction == INPUT) {		
+					port_direction = JackPortIsInput;
+				} else {
+					port_direction = JackPortIsOutput;
 				}
 		
 				portgroup->ports[c] = jack_port_register (krad_mixer->jack_client, portname, JACK_DEFAULT_AUDIO_TYPE, port_direction, 0);
@@ -610,7 +610,7 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 
 	int p;
 	mixbus_t *mixbus;
-	char jack_client_name_string[48] = "";
+	char jack_client_name_string[48];
 
 	krad_mixer_t *krad_mixer;
 
@@ -626,28 +626,21 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 	}
 	
 	strcpy (krad_mixer->sysname, sysname);
-	
-	strcat (jack_client_name_string, "krad_mixer_");
-	strcat (jack_client_name_string, sysname);
-	krad_mixer->jack_client_name = jack_client_name_string;
+	sprintf (jack_client_name_string, "krad_mixer_%s", krad_mixer->sysname);
 
+	krad_mixer->jack_client_name = jack_client_name_string;
 	krad_mixer->jack_server_name = NULL;
 	krad_mixer->jack_options = JackNoStartServer;
 
-	// Connect up to the KRAD_JACK server 
-
-	krad_mixer->jack_client = jack_client_open (krad_mixer->jack_client_name, krad_mixer->jack_options, &krad_mixer->jack_status, krad_mixer->jack_server_name);
+	krad_mixer->jack_client = jack_client_open (krad_mixer->jack_client_name, krad_mixer->jack_options, &krad_mixer->jack_status, 
+												krad_mixer->jack_server_name);
 
 	if (krad_mixer->jack_client == NULL) {
 		fprintf(stderr, "jack_client_open() failed, status = 0x%2.0x\n", krad_mixer->jack_status);
 		if (krad_mixer->jack_status & JackServerFailed) {
-			fprintf(stderr, "Unable to connect to KRAD_JACK server\n");
+			fprintf(stderr, "Unable to connect to JACK server\n");
 		}
 		exit (1);
-	}
-	
-	if (krad_mixer->jack_status & JackServerStarted) {
-		fprintf(stderr, "KRAD_JACK server started\n");
 	}
 
 	if (krad_mixer->jack_status & JackNameNotUnique) {
@@ -655,19 +648,14 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 		fprintf(stderr, "unique name `%s' assigned\n", krad_mixer->jack_client_name);
 	}
 
-	// Set up Callbacks
-
 	jack_set_process_callback (krad_mixer->jack_client, krad_mixer_jack_callback, krad_mixer);
 	//jack_on_shutdown (krad_mixer->jack_client, krad_mixer_jack_shutdown, krad_mixer);
 	//jack_set_xrun_callback (krad_mixer->jack_client, krad_mixer_jack_xrun_callback, krad_mixer);
-
-	// Activate
 
 	if (jack_activate (krad_mixer->jack_client)) {
 		printf("cannot activate client\n");
 		exit (1);
 	}
-
 
 	portgroup_t *music1, *music2;
 
@@ -762,7 +750,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			//*output_len = 666;
 			return 2;
-			break;	
+			break;
 		case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
 
 			printf("get PORTGROUPS list\n");
