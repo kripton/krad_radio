@@ -20,9 +20,7 @@ ar -cvq ../krad_tools/krad_decklink/krad_decklink_capture.a krad_decklink_captur
 rm *.o
 
 gcc -g -Wall krad_radio.c \
-../krad_tools/krad_radio/krad_radio.c ../krad_tools/krad_ipc/krad_ipc_server.c \
 -I../krad_tools/krad_ipc ../krad_tools/krad_ipc/krad_ipc_client.c -I../krad_tools/krad_web/ -I../krad_tools/krad_radio \
-../krad_tools/krad_mixer/krad_mixer.c -I../krad_tools/krad_mixer/ \
 ../krad_tools/krad_effects/util/rms.c ../krad_tools/krad_effects/util/db.c ../krad_tools/krad_effects/digilogue.c ../krad_tools/krad_effects/djeq.c ../krad_tools/krad_effects/fastlimiter.c \
 ../krad_tools/krad_effects/sidechain_comp.c ../krad_tools/krad_effects/hardlimiter.c -I../krad_tools/krad_effects/ -I../krad_tools/krad_effects/util \
 ../krad_tools/krad_tags/krad_tags.c -I../krad_tools/krad_tags/ \
@@ -42,12 +40,13 @@ gcc -g -Wall krad_radio.c \
 -I../krad_tools/krad_vpx \
 ../krad_tools/krad_tone/krad_tone.c \
 -I../krad_tools/krad_tone \
-../krad_tools/krad_audio/krad_audio.c \
--I../krad_tools/krad_audio \
 ../krad_tools/krad_pulse/krad_pulse.c \
 -I../krad_tools/krad_pulse \
 ../krad_tools/krad_jack/krad_jack.c \
 -I../krad_tools/krad_jack \
+../krad_tools/krad_audio/krad_audio.c \
+-I../krad_tools/krad_audio \
+../krad_tools/krad_mixer/krad_mixer.c -I../krad_tools/krad_mixer/ \
 ../krad_tools/krad_ring/krad_ring.c \
 -I../krad_tools/krad_ring \
 ../krad_tools/krad_alsa/krad_alsa.c \
@@ -94,6 +93,7 @@ gcc -g -Wall krad_radio.c \
 /usr/local/lib/libturbojpeg.a \
 /usr/local/lib/libvpx.a \
 /usr/local/lib/libwebsockets.a \
+../krad_tools/krad_radio/krad_radio.c ../krad_tools/krad_ipc/krad_ipc_server.c \
 -o krad_radio `pkg-config --cflags --libs gtk+-3.0 xcb x11 gl xext xcb-util xcb-aux xcb-atom cairo` \
 -lX11-xcb -lrt -lxcb-image -lm -ljack -lpulse -lasound -lcodec2 -lsamplerate -lwebsockets
 

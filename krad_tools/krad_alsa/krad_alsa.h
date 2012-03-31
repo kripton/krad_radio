@@ -1,10 +1,14 @@
+typedef struct krad_alsa_St krad_alsa_t;
+
+
+#include "krad_audio.h"
+
 #ifndef KRAD_ALSA_H
 #define KRAD_ALSA_H
 
 #define DEFAULT_ALSA_CAPTURE_DEVICE "hw:1,0"
 #define DEFAULT_ALSA_PLAYBACK_DEVICE "hw:0,0"
 
-#include <krad_audio.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +21,9 @@
 #include <stdint.h>
 #include <limits.h>
 #include <endian.h>
+
+
 #define f_round(f) lrintf(f)
-
-
 
 //general configuration parameters of the device
 struct device_parameters {
@@ -50,8 +54,6 @@ struct io_method {
     int open_mode;           //open function flags
 };
 
-
-typedef struct krad_alsa_St krad_alsa_t;
 
 struct krad_alsa_St {
 

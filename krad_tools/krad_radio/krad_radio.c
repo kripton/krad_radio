@@ -1,4 +1,4 @@
-#include <krad_radio.h>
+#include "krad_radio.h"
 
 int do_shutdown;
 int verbose;
@@ -86,12 +86,12 @@ int krad_radio_valid_sysname (char *sysname) {
 
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
-	krad_linker_destroy (krad_radio->krad_linker);
-	krad_mixer_destroy (krad_radio->krad_mixer);
 	krad_http_server_destroy (krad_radio->krad_http);
 	krad_websocket_server_destroy (krad_radio->krad_websocket);
-	krad_tags_destroy (krad_radio->krad_tags);
 	krad_ipc_server_destroy (krad_radio->krad_ipc);
+	krad_linker_destroy (krad_radio->krad_linker);
+	krad_mixer_destroy (krad_radio->krad_mixer);
+	krad_tags_destroy (krad_radio->krad_tags);	
 	free (krad_radio->sysname);
 	free (krad_radio);
 
@@ -135,19 +135,23 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
-	krad_radio->krad_websocket = krad_websocket_server_create (sysname, 46001);
+	/* fixme - should be added after the fact via ipc command */
 	
-	if (krad_radio->krad_websocket == NULL) {
-		krad_radio_destroy (krad_radio);
-		return NULL;
-	}	
+		krad_radio->krad_websocket = krad_websocket_server_create (sysname, 46001);
 	
-	krad_radio->krad_http = krad_http_server_create (46000);
+		if (krad_radio->krad_websocket == NULL) {
+			krad_radio_destroy (krad_radio);
+			return NULL;
+		}	
 	
-	if (krad_radio->krad_http == NULL) {
-		krad_radio_destroy (krad_radio);
-		return NULL;
-	}	
+		krad_radio->krad_http = krad_http_server_create (46000);
+	
+		if (krad_radio->krad_http == NULL) {
+			krad_radio_destroy (krad_radio);
+			return NULL;
+		}	
+	
+	/* end fixme */
 	
 	return krad_radio;
 
@@ -164,12 +168,14 @@ void krad_radio (char *sysname) {
 	krad_radio_station = krad_radio_create (sysname);
 
 	if (krad_radio_station != NULL) {
+	
 		printf("Krad Radio Station %s Daemonizing..\n", krad_radio_station->sysname);
 		//krad_radio_daemonize ();
 
 		krad_radio_run ( krad_radio_station );
 
 		krad_radio_destroy (krad_radio_station);
+
 	}
 }
 

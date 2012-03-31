@@ -1,4 +1,4 @@
-#include <krad_alsa.h>
+#include "krad_alsa.h"
 
 #define SAMPLE_24BIT_SCALING  8388607.0f
 #define SAMPLE_16BIT_SCALING  32767.0f

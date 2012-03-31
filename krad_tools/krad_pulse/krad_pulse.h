@@ -1,19 +1,19 @@
-
-#ifndef KRAD_PULSE_H
-#define KRAD_PULSE_H
+typedef struct krad_pulse_St krad_pulse_t;
 
 #include <stdio.h>
 #include <string.h>
 #include <pulse/pulseaudio.h>
-#include <krad_audio.h>
 #include <stddef.h>
 #include <signal.h>
 
-typedef struct krad_pulse_St krad_pulse_t;
+#ifndef KRAD_PULSE_H
+#define KRAD_PULSE_H
+
+#include "krad_audio.h"
 
 struct krad_pulse_St {
 
-	krad_audio_t *kradaudio;
+	krad_audio_t *krad_audio;
 
 	pa_buffer_attr bufattr;
 	pa_sample_spec ss;
@@ -48,11 +48,11 @@ struct krad_pulse_St {
 
 
 
-void kradpulse_destroy(krad_pulse_t *kradpulse);
-krad_pulse_t *kradpulse_create();
-void kradpulse_write(krad_pulse_t *kradpulse,  int channel, char *data, int len);
+void krad_pulse_destroy(krad_pulse_t *krad_pulse);
+krad_pulse_t *krad_pulse_create();
+void krad_pulse_write(krad_pulse_t *krad_pulse,  int channel, char *data, int len);
 
-size_t kradpulse_buffered_frames(krad_pulse_t *kradpulse);
+size_t krad_pulse_buffered_frames(krad_pulse_t *krad_pulse);
 
 #endif
 

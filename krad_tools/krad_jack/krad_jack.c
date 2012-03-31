@@ -1,6 +1,6 @@
-#include <krad_jack.h>
+#include "krad_jack.h"
 
-
+/*
 void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t direction, char *ports) {
 
 	//const char *ports;
@@ -54,7 +54,7 @@ void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_direction_t dir
 
 }
 
-void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two) {
+void krad_jack_connect_port(jack_client_t *client, char *port_one, char *port_two) {
 	jack_port_t *port1;
 	jack_port_t *port2;
 	
@@ -79,63 +79,64 @@ void kradjack_connect_port(jack_client_t *client, char *port_one, char *port_two
 		return;
 	}
 }
+*/
 
-int kradjack_xrun (void *arg) {
+int krad_jack_xrun (void *arg) {
 
-	krad_jack_t *kradjack = (krad_jack_t *)arg;
+	krad_jack_t *krad_jack = (krad_jack_t *)arg;
 
-	kradjack->xruns++;
+	krad_jack->xruns++;
 	
-	printf("%s xrun number %d!\n", kradjack->client_name, kradjack->xruns);
+	printf("%s xrun number %d!\n", krad_jack->name, krad_jack->xruns);
 
 	return 0;
 
 }
 
-int kradjack_process (jack_nframes_t nframes, void *arg) {
+int krad_jack_process (jack_nframes_t nframes, void *arg) {
 
-	krad_jack_t *kradjack = (krad_jack_t *)arg;
+	krad_jack_t *krad_jack = (krad_jack_t *)arg;
 
 	int c, s;
-
+/*
 	jack_default_audio_sample_t *samples[2];
 
-	if (kradjack->active) {
+	if (krad_jack->active) {
 		
-		if ((kradjack->kradaudio->direction == KINPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {
+		if ((krad_jack->krad_audio->direction == KINPUT) || (krad_jack->krad_audio->direction == KDUPLEX)) {
 
-			samples[0] = jack_port_get_buffer (kradjack->input_ports[0], nframes);
-			samples[1] = jack_port_get_buffer (kradjack->input_ports[1], nframes);
+			samples[0] = jack_port_get_buffer (krad_jack->input_ports[0], nframes);
+			samples[1] = jack_port_get_buffer (krad_jack->input_ports[1], nframes);
 	
-			if ((krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_write_space(kradjack->kradaudio->input_ringbuffer[1]) > (nframes * 4))) {
+			if ((krad_ringbuffer_write_space(krad_jack->krad_audio->input_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_write_space(krad_jack->krad_audio->input_ringbuffer[1]) > (nframes * 4))) {
 
-				krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[0], (char *)samples[0], nframes * 4);
-				krad_ringbuffer_write (kradjack->kradaudio->input_ringbuffer[1], (char *)samples[1], nframes * 4);
+				krad_ringbuffer_write (krad_jack->krad_audio->input_ringbuffer[0], (char *)samples[0], nframes * 4);
+				krad_ringbuffer_write (krad_jack->krad_audio->input_ringbuffer[1], (char *)samples[1], nframes * 4);
 
 				for (c = 0; c < 2; c++) {
-					compute_peak(kradjack->kradaudio, KINPUT, samples[c], c, nframes, 0);
+					compute_peak(krad_jack->krad_audio, KINPUT, samples[c], c, nframes, 0);
 				}
 
 			}
 		
 		}
 		
-		if (kradjack->kradaudio->process_callback != NULL) {
-			kradjack->kradaudio->process_callback(nframes, kradjack->kradaudio->userdata);
+		if (krad_jack->krad_audio->process_callback != NULL) {
+			krad_jack->krad_audio->process_callback(nframes, krad_jack->krad_audio->userdata);
 		}
 		
-		if ((kradjack->kradaudio->direction == KOUTPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {
+		if ((krad_jack->krad_audio->direction == KOUTPUT) || (krad_jack->krad_audio->direction == KDUPLEX)) {
 		
-			samples[0] = jack_port_get_buffer (kradjack->output_ports[0], nframes);
-			samples[1] = jack_port_get_buffer (kradjack->output_ports[1], nframes);
+			samples[0] = jack_port_get_buffer (krad_jack->output_ports[0], nframes);
+			samples[1] = jack_port_get_buffer (krad_jack->output_ports[1], nframes);
 	
-			if ((krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_read_space(kradjack->kradaudio->output_ringbuffer[1]) > (nframes * 4))) {
+			if ((krad_ringbuffer_read_space(krad_jack->krad_audio->output_ringbuffer[0]) > (nframes * 4)) && (krad_ringbuffer_read_space(krad_jack->krad_audio->output_ringbuffer[1]) > (nframes * 4))) {
 
-				krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
-				krad_ringbuffer_read (kradjack->kradaudio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
+				krad_ringbuffer_read (krad_jack->krad_audio->output_ringbuffer[0], (char *)samples[0], nframes * 4);
+				krad_ringbuffer_read (krad_jack->krad_audio->output_ringbuffer[1], (char *)samples[1], nframes * 4);
 
 				for (c = 0; c < 2; c++) {
-					compute_peak(kradjack->kradaudio, KOUTPUT, samples[c], c, nframes, 0);
+					compute_peak(krad_jack->krad_audio, KOUTPUT, samples[c], c, nframes, 0);
 				}
 
 			} else {
@@ -149,102 +150,102 @@ int kradjack_process (jack_nframes_t nframes, void *arg) {
 		}
 	
 	}
-
+*/
 	return 0;
 
 }
 
-void kradjack_shutdown(void *arg) {
+void krad_jack_shutdown(void *arg) {
 
 	//jack_t *jack = (jack_t *)arg;
-	
 
 }
 
-void kradjack_destroy(krad_jack_t *kradjack) {
+void krad_jack_destroy(krad_jack_t *krad_jack) {
 
-	jack_client_close (kradjack->jack_client);
+	jack_client_close (krad_jack->client);
 	
-	free(kradjack);
+	free (krad_jack);
 
 }
 
-krad_jack_t *kradjack_create (krad_audio_t *kradaudio) {
+krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 
-	krad_jack_t *kradjack;
+	krad_jack_t *krad_jack;
 
-	if ((kradjack = calloc (1, sizeof (krad_jack_t))) == NULL) {
+	if ((krad_jack = calloc (1, sizeof (krad_jack_t))) == NULL) {
 		fprintf(stderr, "mem alloc fail\n");
 		exit (1);
 	}
 
-	kradjack->kradaudio = kradaudio;
+	krad_jack->krad_audio = krad_audio;
 
-	kradjack->client_name = kradjack->kradaudio->name;
+	krad_jack->name = krad_jack->krad_audio->krad_mixer->krad_radio->sysname;
 
-	kradjack->server_name = NULL;
-	kradjack->options = JackNoStartServer;
+	krad_jack->server_name = NULL;
+	krad_jack->options = JackNoStartServer;
 
 	// Connect up to the JACK server 
 
-	kradjack->jack_client = jack_client_open (kradjack->client_name, kradjack->options, &kradjack->status, kradjack->server_name);
-	if (kradjack->jack_client == NULL) {
+	krad_jack->client = jack_client_open (krad_jack->name, krad_jack->options, &krad_jack->status, krad_jack->server_name);
+	if (krad_jack->client == NULL) {
 			fprintf(stderr, "jack_client_open() failed, "
-			"status = 0x%2.0x\n", kradjack->status);
-		if (kradjack->status & JackServerFailed) {
+			"status = 0x%2.0x\n", krad_jack->status);
+		if (krad_jack->status & JackServerFailed) {
 			fprintf(stderr, "Unable to connect to JACK server\n");
 		}
 		exit (1);
 	}
 	
-	if (kradjack->status & JackNameNotUnique) {
-		kradjack->client_name = jack_get_client_name(kradjack->jack_client);
-		fprintf(stderr, "unique name `%s' assigned\n", kradjack->client_name);
+	if (krad_jack->status & JackNameNotUnique) {
+		krad_jack->name = jack_get_client_name(krad_jack->client);
+		fprintf(stderr, "unique name `%s' assigned\n", krad_jack->name);
 	}
 
 
-	kradaudio->sample_rate = jack_get_sample_rate ( kradjack->jack_client );
+	krad_jack->sample_rate = jack_get_sample_rate ( krad_jack->client );
 
 	// Set up Callbacks
 
-	jack_set_process_callback (kradjack->jack_client, kradjack_process, kradjack);
-	jack_on_shutdown (kradjack->jack_client, kradjack_shutdown, kradjack);
-	jack_set_xrun_callback (kradjack->jack_client, kradjack_xrun, kradjack);
+	jack_set_process_callback (krad_jack->client, krad_jack_process, krad_jack);
+	jack_on_shutdown (krad_jack->client, krad_jack_shutdown, krad_jack);
+	jack_set_xrun_callback (krad_jack->client, krad_jack_xrun, krad_jack);
 
 	// Activate
 
-	if (jack_activate (kradjack->jack_client)) {
+	if (jack_activate (krad_jack->client)) {
 		printf("cannot activate client\n");
 		exit (1);
 	}
 
-	if ((kradjack->kradaudio->direction == KINPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {
-		kradjack->input_ports[0] = jack_port_register (kradjack->jack_client, "InputLeft", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-		kradjack->input_ports[1] = jack_port_register (kradjack->jack_client, "InputRight", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-	}
-	
-	if ((kradjack->kradaudio->direction == KOUTPUT) || (kradjack->kradaudio->direction == KDUPLEX)) {	
-		kradjack->output_ports[0] = jack_port_register (kradjack->jack_client, "Left", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-		kradjack->output_ports[1] = jack_port_register (kradjack->jack_client, "Right", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-	}
-	
 	/*
+	if ((krad_jack->krad_audio->direction == KINPUT) || (krad_jack->krad_audio->direction == KDUPLEX)) {
+		krad_jack->input_ports[0] = jack_port_register (krad_jack->jack_client, "InputLeft", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+		krad_jack->input_ports[1] = jack_port_register (krad_jack->jack_client, "InputRight", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+	}
+	
+	if ((krad_jack->krad_audio->direction == KOUTPUT) || (krad_jack->krad_audio->direction == KDUPLEX)) {	
+		krad_jack->output_ports[0] = jack_port_register (krad_jack->jack_client, "Left", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+		krad_jack->output_ports[1] = jack_port_register (krad_jack->jack_client, "Right", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+	}
+	
+	
 	char portname[128];
 	
-	sprintf(portname, "%s:Left", kradjack->client_name);
-	kradjack_connect_port(kradjack->jack_client, portname, "firewire_pcm:001486af2e61ac6b_Unknown1_out");
-	sprintf(portname, "%s:Right", kradjack->client_name);
-	kradjack_connect_port(kradjack->jack_client, portname, "firewire_pcm:001486af2e61ac6b_Unknown2_out");
+	sprintf(portname, "%s:Left", krad_jack->client_name);
+	krad_jack_connect_port(krad_jack->jack_client, portname, "firewire_pcm:001486af2e61ac6b_Unknown1_out");
+	sprintf(portname, "%s:Right", krad_jack->client_name);
+	krad_jack_connect_port(krad_jack->jack_client, portname, "firewire_pcm:001486af2e61ac6b_Unknown2_out");
 
-	sprintf(portname, "%s:InputLeft", kradjack->client_name);
-	kradjack_connect_port(kradjack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown_in", "krad_opus_ebml:InputLeft");
-	sprintf(portname, "%s:InputRight", kradjack->client_name);
-	kradjack_connect_port(kradjack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "krad_opus_ebml:InputRight");
+	sprintf(portname, "%s:InputLeft", krad_jack->client_name);
+	krad_jack_connect_port(krad_jack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown_in", "krad_opus_ebml:InputLeft");
+	sprintf(portname, "%s:InputRight", krad_jack->client_name);
+	krad_jack_connect_port(krad_jack->jack_client, "firewire_pcm:001486af2e61ac6b_Unknown0_in", "krad_opus_ebml:InputRight");
 	*/
 
-	kradjack->active = 1;
+	krad_jack->active = 1;
 
-	return kradjack;
+	return krad_jack;
 
 }
 

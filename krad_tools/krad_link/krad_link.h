@@ -1,33 +1,13 @@
-#define KRAD_LINK
+#include "krad_radio.h"
+
+#ifndef KRAD_LINK_H
+#define KRAD_LINK_H
 
 #include <sys/prctl.h>
 #include <libswscale/swscale.h>
 
-#include "krad_udp.h"
-#include "krad_x11.h"
-#include "krad_ebml.h"
-#include "krad_ogg.h"
-#include "krad_io.h"
-#include "krad_dirac.h"
-#include "krad_theora.h"
-#include "krad_vpx.h"
-#include "krad_v4l2.h"
-#include "krad_gui.h"
-#include "krad_audio.h"
-#include "krad_ring.h"
-#include "krad_codec2.h"
-#include "krad_opus.h"
-#include "krad_vorbis.h"
-#include "krad_flac.h"
-#include "krad_container.h"
-#include "krad_decklink.h"
-#include "krad_tags.h"
-#include "krad_ipc_server.h"
-
 #define APPVERSION "Krad Link 2.42"
 #define KRAD_LINKER_MAX_LINKS 42
-#define MAX_AUDIO_CHANNELS 8
-#define DEFAULT_TONE_PRESET "dialtone"
 #define DEFAULT_VPX_BITRATE 1000
 #define HELP -1337
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 15
@@ -38,7 +18,6 @@
 #define DEFAULT_FPS 15
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
-
 
 typedef struct krad_link_St krad_link_t;
 typedef struct krad_linker_St krad_linker_t;
@@ -76,6 +55,9 @@ typedef enum {
 
 struct krad_link_St {
 
+
+	krad_radio_t *krad_radio;
+
 	char sysname[64];
 	krad_tags_t *krad_tags;
 
@@ -87,7 +69,6 @@ struct krad_link_St {
 	krad_dirac_t *krad_dirac;
 	//krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
-	krad_audio_t *krad_audio;
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
@@ -95,12 +76,10 @@ struct krad_link_St {
 	krad_ebml_t *krad_ebml;
 	krad_container_t *krad_container;
 	krad_v4l2_t *krad_v4l2;
-	krad_tone_t *krad_tone;
 	
 	krad_link_operation_mode_t operation_mode;
 	krad_link_interface_mode_t interface_mode;
 	krad_video_source_t video_source;
-	krad_audio_api_t krad_audio_api;
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
 	
@@ -150,9 +129,9 @@ struct krad_link_St {
 	
 	float vorbis_quality;
 	int capture_audio;
-	krad_ringbuffer_t *audio_input_ringbuffer[MAX_AUDIO_CHANNELS];
-	krad_ringbuffer_t *audio_output_ringbuffer[MAX_AUDIO_CHANNELS];
-	float *samples[MAX_AUDIO_CHANNELS];
+	krad_ringbuffer_t *audio_input_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
+	krad_ringbuffer_t *audio_output_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
+	float *samples[KRAD_MIXER_MAX_CHANNELS];
 	int audio_encoder_ready;
 	int audio_frames_captured;
 	int audio_frames_encoded;
@@ -218,8 +197,6 @@ struct krad_link_St {
 	
     vpx_codec_enc_cfg_t vpx_encoder_config;
 
-	char tone_preset[512];
-
 	char bug[512];
 	int bug_x;
 	int bug_y;
@@ -249,3 +226,4 @@ void dbg (char* format, ...);
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create();
 void krad_link_run (krad_link_t *krad_link);
+#endif

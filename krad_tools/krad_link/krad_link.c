@@ -303,7 +303,7 @@ void *audio_encoding_thread(void *arg) {
 	int s;
 	int bytes;
 	int frames;
-	float *samples[MAX_AUDIO_CHANNELS];
+	float *samples[KRAD_MIXER_MAX_CHANNELS];
 	float *interleaved_samples;
 	unsigned char *buffer;
 	ogg_packet *op;
@@ -1656,7 +1656,7 @@ void *audio_decoding_thread(void *arg) {
 	unsigned char *header[3];
 	int header_len[3];
 	float *audio;
-	float *samples[MAX_AUDIO_CHANNELS];
+	float *samples[KRAD_MIXER_MAX_CHANNELS];
 	int audio_frames;
 	
 	krad_link->audio_channels = 2;
@@ -2533,7 +2533,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					strcpy (krad_link->password, "secretkode");
 					krad_link->tcp_port = 9080;
 					strcpy (krad_link->host, "127.0.0.1");
-					strcpy (krad_link->mount, "/mixtest.webm");
+					strcpy (krad_link->mount, "/mix2.webm");
 					krad_link_run (krad_link);
 					break;
 				}
