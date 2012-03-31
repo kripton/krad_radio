@@ -137,18 +137,18 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
     int error;
 
 	int c, s;
-	krad_alsa_t *kradalsa;
+	krad_alsa_t *krad_alsa;
 	
     snd_pcm_t *device = snd_async_handler_get_pcm(ahandler);
-    kradalsa = snd_async_handler_get_callback_private(ahandler);
+    krad_alsa = snd_async_handler_get_callback_private(ahandler);
+/*
+	if (krad_alsa->capture) {
 
-	if (kradalsa->capture) {
-
-		if ((krad_ringbuffer_write_space (kradalsa->kradaudio->input_ringbuffer[1]) >= kradalsa->period_size * 4 ) && (krad_ringbuffer_write_space (kradalsa->kradaudio->input_ringbuffer[0]) >= kradalsa->period_size * 4 )) {
+		if ((krad_ringbuffer_write_space (krad_alsa->krad_audio->input_ringbuffer[1]) >= krad_alsa->period_size * 4 ) && (krad_ringbuffer_write_space (krad_alsa->krad_audio->input_ringbuffer[0]) >= krad_alsa->period_size * 4 )) {
 	
 	
 			//trying to read one entire period
-			if ((error = snd_pcm_readi (device, kradalsa->integer_samples, kradalsa->period_size)) < 0)
+			if ((error = snd_pcm_readi (device, krad_alsa->integer_samples, krad_alsa->period_size)) < 0)
 			{
 				if (xrun_recovery(device, error)) {
 				    fprintf(stderr,"alsa input: read error: %s\n", snd_strerror(error));
@@ -156,80 +156,80 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 				}
 			}
 			
-			if (kradalsa->sample_format == SND_PCM_FORMAT_S32_LE) {
-				sample_move_dS_s32u24 (kradalsa->interleaved_samples, (char *)kradalsa->integer_samples, kradalsa->period_size * 2, kradalsa->sample_size);
+			if (krad_alsa->sample_format == SND_PCM_FORMAT_S32_LE) {
+				sample_move_dS_s32u24 (krad_alsa->interleaved_samples, (char *)krad_alsa->integer_samples, krad_alsa->period_size * 2, krad_alsa->sample_size);
 			}
 
-			if (kradalsa->sample_format == SND_PCM_FORMAT_S16_LE) {
-				sample_move_dS_s16 (kradalsa->interleaved_samples, (char *)kradalsa->integer_samples, kradalsa->period_size * 2, kradalsa->sample_size);
+			if (krad_alsa->sample_format == SND_PCM_FORMAT_S16_LE) {
+				sample_move_dS_s16 (krad_alsa->interleaved_samples, (char *)krad_alsa->integer_samples, krad_alsa->period_size * 2, krad_alsa->sample_size);
 			}			
 			
-			for (s = 0; s < kradalsa->period_size; s++) {
+			for (s = 0; s < krad_alsa->period_size; s++) {
 				for (c = 0; c < 2; c++) {
-					kradalsa->samples[c][s] = kradalsa->interleaved_samples[s * 2 + c];	
+					krad_alsa->samples[c][s] = krad_alsa->interleaved_samples[s * 2 + c];	
 				}
 			}
 			
 			for (c = 0; c < 2; c++) {
-				krad_ringbuffer_write (kradalsa->kradaudio->input_ringbuffer[c], (char *)kradalsa->samples[c], (kradalsa->period_size * 4) );
+				krad_ringbuffer_write (krad_alsa->krad_audio->input_ringbuffer[c], (char *)krad_alsa->samples[c], (krad_alsa->period_size * 4) );
 			}
 		
 
 			for (c = 0; c < 2; c++) {
-				compute_peak(kradalsa->kradaudio, KINPUT, kradalsa->samples[c], c, kradalsa->period_size, 0);
+				compute_peak(krad_alsa->krad_audio, KINPUT, krad_alsa->samples[c], c, krad_alsa->period_size, 0);
 			}
 		
 	
 		}
-
-
+*/
+/*
 	}
 		
-	if (kradalsa->kradaudio->process_callback != NULL) {
-		kradalsa->kradaudio->process_callback(kradalsa->period_size, kradalsa->kradaudio->userdata);
+	if (krad_alsa->krad_audio->process_callback != NULL) {
+		krad_alsa->krad_audio->process_callback(krad_alsa->period_size, krad_alsa->krad_audio->userdata);
 	}
 
-	if (kradalsa->playback) {
+	if (krad_alsa->playback) {
 
-		if ((krad_ringbuffer_read_space (kradalsa->kradaudio->output_ringbuffer[1]) >= kradalsa->period_size * 4 ) && (krad_ringbuffer_read_space (kradalsa->kradaudio->output_ringbuffer[0]) >= kradalsa->period_size * 4 )) {
+		if ((krad_ringbuffer_read_space (krad_alsa->krad_audio->output_ringbuffer[1]) >= krad_alsa->period_size * 4 ) && (krad_ringbuffer_read_space (krad_alsa->krad_audio->output_ringbuffer[0]) >= krad_alsa->period_size * 4 )) {
 	
 			for (c = 0; c < 2; c++) {
-				krad_ringbuffer_read (kradalsa->kradaudio->output_ringbuffer[c], (char *)kradalsa->samples[c], (kradalsa->period_size * 4) );
+				krad_ringbuffer_read (krad_alsa->krad_audio->output_ringbuffer[c], (char *)krad_alsa->samples[c], (krad_alsa->period_size * 4) );
 			}
 
-			for (s = 0; s < kradalsa->period_size; s++) {
+			for (s = 0; s < krad_alsa->period_size; s++) {
 				for (c = 0; c < 2; c++) {
-					kradalsa->interleaved_samples[s * 2 + c] = kradalsa->samples[c][s];
+					krad_alsa->interleaved_samples[s * 2 + c] = krad_alsa->samples[c][s];
 				}
 			}
 		
 
 			for (c = 0; c < 2; c++) {
-				compute_peak(kradalsa->kradaudio, KOUTPUT, kradalsa->samples[c], c, kradalsa->period_size, 0);
+				compute_peak(krad_alsa->krad_audio, KOUTPUT, krad_alsa->samples[c], c, krad_alsa->period_size, 0);
 			}
 		
 	
 		} else {
 			printf("underrrrun!\n");
-			for (s = 0; s < kradalsa->period_size; s++) {
+			for (s = 0; s < krad_alsa->period_size; s++) {
 				for (c = 0; c < 2; c++) {
-					kradalsa->interleaved_samples[s * 2 + c] = 0.0f;
+					krad_alsa->interleaved_samples[s * 2 + c] = 0.0f;
 				}
 			}
 	
 		}
 
-		if (kradalsa->sample_format == SND_PCM_FORMAT_S32_LE) {
-			sample_move_d32u24_sS ((char *)kradalsa->integer_samples, kradalsa->interleaved_samples, kradalsa->period_size * 2, kradalsa->sample_size);
+		if (krad_alsa->sample_format == SND_PCM_FORMAT_S32_LE) {
+			sample_move_d32u24_sS ((char *)krad_alsa->integer_samples, krad_alsa->interleaved_samples, krad_alsa->period_size * 2, krad_alsa->sample_size);
 		}
 
-		if (kradalsa->sample_format == SND_PCM_FORMAT_S16_LE) {
-			sample_move_d16_sS ((char *)kradalsa->integer_samples, kradalsa->interleaved_samples, kradalsa->period_size * 2, kradalsa->sample_size);
+		if (krad_alsa->sample_format == SND_PCM_FORMAT_S16_LE) {
+			sample_move_d16_sS ((char *)krad_alsa->integer_samples, krad_alsa->interleaved_samples, krad_alsa->period_size * 2, krad_alsa->sample_size);
 		}	
 
 
 		//trying to write one entire period
-		if ((error = snd_pcm_writei (device, kradalsa->integer_samples, kradalsa->period_size)) < 0)
+		if ((error = snd_pcm_writei (device, krad_alsa->integer_samples, krad_alsa->period_size)) < 0)
 		{
 		    if (xrun_recovery(device, error)) {
 		        fprintf(stderr,"speaker: Write error: %s\n", snd_strerror(error));
@@ -237,10 +237,10 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 		    }       
 		}
 	}
-
+*/
 }
 
-void async_rw(krad_alsa_t *kradalsa)
+void async_rw(krad_alsa_t *krad_alsa)
 {
 
     snd_async_handler_t *ahandler;//async handler
@@ -248,42 +248,42 @@ void async_rw(krad_alsa_t *kradalsa)
 
     
 	//adding async handler for PCM with private data and callback async_rw_callback
-    if ((error = snd_async_add_pcm_handler(&ahandler, kradalsa->device, async_rw_callback, kradalsa)) < 0)
+    if ((error = snd_async_add_pcm_handler(&ahandler, krad_alsa->device, async_rw_callback, krad_alsa)) < 0)
     { 
         fprintf(stderr,"speaker: Unable to register async handler\n");
         exit(EXIT_FAILURE);
     }
     
     
-	memset (kradalsa->integer_samples, 0, sizeof(kradalsa->integer_samples));
+	memset (krad_alsa->integer_samples, 0, sizeof(krad_alsa->integer_samples));
     
     int count = 0;
     
-    if (kradalsa->playback) {
+    if (krad_alsa->playback) {
     
-		while (count < kradalsa->buffer_size / kradalsa->period_size) {
+		while (count < krad_alsa->buffer_size / krad_alsa->period_size) {
 		
-			error = snd_pcm_writei(kradalsa->device, kradalsa->integer_samples, kradalsa->period_size);
+			error = snd_pcm_writei(krad_alsa->device, krad_alsa->integer_samples, krad_alsa->period_size);
 
 			if (error < 0) {
 				printf("Initial write error: %s\n", snd_strerror(error));
 				exit(1);
 			}
 	
-			if (error != kradalsa->period_size) {
-				printf("Initial write error: written %i expected %li\n", error, kradalsa->period_size);
+			if (error != krad_alsa->period_size) {
+				printf("Initial write error: written %i expected %li\n", error, krad_alsa->period_size);
 				exit(1);
 			}
 		
-			if (snd_pcm_state(kradalsa->device) == SND_PCM_STATE_PREPARED) {
-				error = snd_pcm_start(kradalsa->device);
+			if (snd_pcm_state(krad_alsa->device) == SND_PCM_STATE_PREPARED) {
+				error = snd_pcm_start(krad_alsa->device);
 				if (error < 0) {
 					printf("Start error: %s\n", snd_strerror(error));
 					exit(1);
 				}
 			}
 	
-			printf("#########krad audio %s\n", kradalsa->device_name);	
+			printf("#########krad audio %s\n", krad_alsa->device_name);	
 	
 			count++;
 	
@@ -292,17 +292,17 @@ void async_rw(krad_alsa_t *kradalsa)
 	}
 	
 	
-    if (kradalsa->capture) {
+    if (krad_alsa->capture) {
 
-		if (snd_pcm_state(kradalsa->device) == SND_PCM_STATE_PREPARED) {
-			error = snd_pcm_start(kradalsa->device);
+		if (snd_pcm_state(krad_alsa->device) == SND_PCM_STATE_PREPARED) {
+			error = snd_pcm_start(krad_alsa->device);
 			if (error < 0) {
 				printf("Start error: %s\n", snd_strerror(error));
 				exit(1);
 			}
 		}
 
-		printf("#########krad audio %s\n", kradalsa->device_name);	
+		printf("#########krad audio %s\n", krad_alsa->device_name);	
 
 	}
 	
@@ -458,102 +458,100 @@ void async_mmap(snd_pcm_t *device, struct device_parameters cap_dev_params)
 }
 */
 
-void kradalsa_destroy(krad_alsa_t *kradalsa) {
+void krad_alsa_destroy(krad_alsa_t *krad_alsa) {
 
-	printf ("kradalsa: BYE BYE\n");
+	printf ("krad_alsa: BYE BYE\n");
 
-    snd_pcm_close (kradalsa->device);
+    snd_pcm_close (krad_alsa->device);
 
-	free(kradalsa->samples[0]);
-	free(kradalsa->samples[1]);
+	free(krad_alsa->samples[0]);
+	free(krad_alsa->samples[1]);
 
-	free(kradalsa->interleaved_samples);
-	free(kradalsa->integer_samples);
+	free(krad_alsa->interleaved_samples);
+	free(krad_alsa->integer_samples);
 	
-	free(kradalsa);
+	free(krad_alsa);
 
 }
 
 
-krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
+krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
 
-	krad_alsa_t *kradalsa;
+	krad_alsa_t *krad_alsa;
 
-	if ((kradalsa = calloc (1, sizeof (krad_alsa_t))) == NULL) {
+	if ((krad_alsa = calloc (1, sizeof (krad_alsa_t))) == NULL) {
 		fprintf(stderr, "mem alloc fail\n");
 		exit (1);
 	}
 	
-	kradalsa->kradaudio = kradaudio;
+	krad_alsa->krad_audio = krad_audio;
 
 
-	kradalsa->samples[0] = malloc(24 * 8192);
-	kradalsa->samples[1] = malloc(24 * 8192);
-	kradalsa->interleaved_samples = malloc(48 * 8192);
-	kradalsa->integer_samples = malloc(48 * 8192);
+	krad_alsa->samples[0] = malloc(24 * 8192);
+	krad_alsa->samples[1] = malloc(24 * 8192);
+	krad_alsa->interleaved_samples = malloc(48 * 8192);
+	krad_alsa->integer_samples = malloc(48 * 8192);
 
-	kradalsa->sample_format = SND_PCM_FORMAT_S32_LE;
-	kradalsa->sample_size = 4;
-	kradalsa->sample_rate = 44100;
-	kradalsa->n_channels = 2;
-	kradalsa->device_name = kradaudio->name;
+	krad_alsa->sample_format = SND_PCM_FORMAT_S32_LE;
+	krad_alsa->sample_size = 4;
+	krad_alsa->sample_rate = 44100;
+	krad_alsa->n_channels = 2;
 	
-	kradalsa->access = 2;
-	kradalsa->buffer_size = 1024;
-	kradalsa->period_size = 512;
+	krad_alsa->access = 2;
+	krad_alsa->buffer_size = 1024;
+	krad_alsa->period_size = 512;
 
-
-	if ((kradaudio->direction == KINPUT) || (kradaudio->direction == KDUPLEX)) {
-		kradalsa->capture = 1;
+	/*
+	if ((krad_audio->direction == KINPUT) || (krad_audio->direction == KDUPLEX)) {
+		krad_alsa->capture = 1;
 	}
 
-	if ((kradaudio->direction == KOUTPUT) || (kradaudio->direction == KDUPLEX)) {
-		kradalsa->playback = 1;
+	if ((krad_audio->direction == KOUTPUT) || (krad_audio->direction == KDUPLEX)) {
+		krad_alsa->playback = 1;
 	}
+	*/
+	if (krad_alsa->playback) {
 	
-	if (kradalsa->playback) {
-	
-		kradalsa->stream = SND_PCM_STREAM_PLAYBACK;
+		krad_alsa->stream = SND_PCM_STREAM_PLAYBACK;
 	}
 
-	if (kradalsa->capture) {
-		kradalsa->device_name = kradaudio->name;
+	if (krad_alsa->capture) {
 		
-		if (strncmp(kradalsa->device_name, "hw:1,0", 6) == 0) {
+		if (strncmp(krad_alsa->device_name, "hw:1,0", 6) == 0) {
 			// likely a webcam
-			kradalsa->stream = SND_PCM_STREAM_CAPTURE;
-			kradalsa->sample_format = SND_PCM_FORMAT_S16_LE;
-			kradalsa->sample_rate = 32000;
+			krad_alsa->stream = SND_PCM_STREAM_CAPTURE;
+			krad_alsa->sample_format = SND_PCM_FORMAT_S16_LE;
+			krad_alsa->sample_rate = 32000;
 		}
 	}
 	
 	/************************************** opens the device *****************************************/
 
-    if ((kradalsa->error = snd_pcm_open (&kradalsa->device, kradalsa->device_name, kradalsa->stream, methods[kradalsa->access].open_mode)) < 0) {
+    if ((krad_alsa->error = snd_pcm_open (&krad_alsa->device, krad_alsa->device_name, krad_alsa->stream, methods[krad_alsa->access].open_mode)) < 0) {
         fprintf (stderr, "speaker: Device cannot be opened %s (%s)\n", 
-             kradalsa->device_name,
-             snd_strerror (kradalsa->error));
+             krad_alsa->device_name,
+             snd_strerror (krad_alsa->error));
         	exit (1);
     }
-    fprintf (stderr, "speaker: Device: %s open_mode = %d\n", kradalsa->device_name, methods[kradalsa->access].open_mode);
+    fprintf (stderr, "speaker: Device: %s open_mode = %d\n", krad_alsa->device_name, methods[krad_alsa->access].open_mode);
     
  	//allocating the hardware configuration structure
-    if ((kradalsa->error = snd_pcm_hw_params_malloc (&kradalsa->hw_params)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_malloc (&krad_alsa->hw_params)) < 0) {
         fprintf (stderr, "speaker: Hardware configuration structure cannot be allocated (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
 
     //assigning the hw configuration structure to the device        
-    if ((kradalsa->error = snd_pcm_hw_params_any (kradalsa->device, kradalsa->hw_params)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_any (krad_alsa->device, krad_alsa->hw_params)) < 0) {
         fprintf (stderr, "speaker: Hardware configuration structure cannot be assigned to device (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
 
 	/*********************************** shows the audio capture method ****************************/
     
-    switch(methods[kradalsa->access].method)
+    switch(methods[krad_alsa->access].method)
     {
         case METHOD_DIRECT_RW:
             fprintf (stderr, "microphone: Capture method: METHOD_DIRECT_RW (m = 0) \n");
@@ -577,21 +575,21 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
     
 /*************************** configures access method *********************************************/  
     //sets the configuration method
-    fprintf (stderr, "speaker: Access method: %d\n", methods[kradalsa->access].access);
-    if ((kradalsa->error = snd_pcm_hw_params_set_access (kradalsa->device, kradalsa->hw_params, methods[kradalsa->access].access)) < 0) {
+    fprintf (stderr, "speaker: Access method: %d\n", methods[krad_alsa->access].access);
+    if ((krad_alsa->error = snd_pcm_hw_params_set_access (krad_alsa->device, krad_alsa->hw_params, methods[krad_alsa->access].access)) < 0) {
         fprintf (stderr, "speaker: Access method cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
 
     //checks the access method
-    if ((kradalsa->error = snd_pcm_hw_params_get_access (kradalsa->hw_params, &kradalsa->real_access)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_get_access (krad_alsa->hw_params, &krad_alsa->real_access)) < 0) {
         fprintf (stderr, "speaker: Access method cannot be obtained (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //shows the access method
-    switch(kradalsa->real_access)
+    switch(krad_alsa->real_access)
     {
     case SND_PCM_ACCESS_MMAP_INTERLEAVED:
         fprintf (stderr, "speaker: PCM access method: SND_PCM_ACCESS_MMAP_INTERLEAVED \n");
@@ -611,119 +609,119 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
     }   
 /****************************  configures the playback format ******************************/   
     //SND_PCM_FORMAT_S16_LE => 16 bit signed little endian
-    if ((kradalsa->error = snd_pcm_hw_params_set_format (kradalsa->device, kradalsa->hw_params, kradalsa->sample_format)) < 0)
+    if ((krad_alsa->error = snd_pcm_hw_params_set_format (krad_alsa->device, krad_alsa->hw_params, krad_alsa->sample_format)) < 0)
     {
         fprintf (stderr, "speaker: Playback sample format cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //checks playback format
-    if ((kradalsa->error = snd_pcm_hw_params_get_format (kradalsa->hw_params, &kradalsa->real_sample_format)) < 0)
+    if ((krad_alsa->error = snd_pcm_hw_params_get_format (krad_alsa->hw_params, &krad_alsa->real_sample_format)) < 0)
     {
         fprintf (stderr, "speaker: Playback sample format cannot be obtained (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //just shows the capture format in a human readable way
-    switch(kradalsa->real_sample_format)
+    switch(krad_alsa->real_sample_format)
     {
     case SND_PCM_FORMAT_S32_LE:
         fprintf (stderr, "speaker: PCM sample format: SND_PCM_FORMAT_S32_LE \n");
         
-		kradalsa->sample_size = 4;
+		krad_alsa->sample_size = 4;
         
         break;
     case SND_PCM_FORMAT_S16_LE:
         fprintf (stderr, "speaker: PCM sample format: SND_PCM_FORMAT_S16_LE \n");
         
-        kradalsa->sample_size = 2;
+        krad_alsa->sample_size = 2;
         
         break;
     default:
-        fprintf (stderr, "speaker: Real_sample_format = %d\n", kradalsa->real_sample_format);
+        fprintf (stderr, "speaker: Real_sample_format = %d\n", krad_alsa->real_sample_format);
     }    
 /*************************** configures the sample rate ***************************/    
 	//sets the sample rate
-    if ((kradalsa->error = snd_pcm_hw_params_set_rate (kradalsa->device, kradalsa->hw_params, kradalsa->sample_rate, 0)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_set_rate (krad_alsa->device, krad_alsa->hw_params, krad_alsa->sample_rate, 0)) < 0) {
         fprintf (stderr, "speaker: Sample rate cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //cheks the sample rate
-    if ((kradalsa->error = snd_pcm_hw_params_get_rate (kradalsa->hw_params, &kradalsa->real_sample_rate, 0)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_get_rate (krad_alsa->hw_params, &krad_alsa->real_sample_rate, 0)) < 0) {
         fprintf (stderr, "speaker: Sample rate cannot be obtained (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     
-	kradaudio->sample_rate = kradalsa->real_sample_rate;
+//	krad_audio->sample_rate = krad_alsa->real_sample_rate;
     
-    fprintf (stderr, "speaker: real_sample_rate = %d\n", kradalsa->real_sample_rate);
+    fprintf (stderr, "speaker: real_sample_rate = %d\n", krad_alsa->real_sample_rate);
     
 /**************************** configures the number of channels ********************************/    
     //sets the number of channels
-    if ((kradalsa->error = snd_pcm_hw_params_set_channels (kradalsa->device, kradalsa->hw_params, kradalsa->n_channels)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_set_channels (krad_alsa->device, krad_alsa->hw_params, krad_alsa->n_channels)) < 0) {
         fprintf (stderr, "speaker: Number of channels cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //checks the number of channels
-    if ((kradalsa->error = snd_pcm_hw_params_get_channels (kradalsa->hw_params, &kradalsa->real_n_channels)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_get_channels (krad_alsa->hw_params, &krad_alsa->real_n_channels)) < 0) {
         fprintf (stderr, "speaker: Number of channels cannot be obtained (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
-    fprintf (stderr, "speaker: real_n_channels = %d\n", kradalsa->real_n_channels);
+    fprintf (stderr, "speaker: real_n_channels = %d\n", krad_alsa->real_n_channels);
     
 /***************************** configures the buffer size *************************************/
     //sets the buffer size
-    if (snd_pcm_hw_params_set_buffer_size(kradalsa->device, kradalsa->hw_params, kradalsa->buffer_size) < 0) {
+    if (snd_pcm_hw_params_set_buffer_size(krad_alsa->device, krad_alsa->hw_params, krad_alsa->buffer_size) < 0) {
         fprintf (stderr, "speaker: Buffer size cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //checks the value of the buffer size
-    if (snd_pcm_hw_params_get_buffer_size(kradalsa->hw_params, &kradalsa->real_buffer_size) < 0) {
+    if (snd_pcm_hw_params_get_buffer_size(krad_alsa->hw_params, &krad_alsa->real_buffer_size) < 0) {
 		fprintf (stderr, "speaker: Buffer size cannot be obtained (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
-    fprintf (stderr, "speaker: Buffer size = %d [frames]\n", (int) kradalsa->real_buffer_size);
+    fprintf (stderr, "speaker: Buffer size = %d [frames]\n", (int) krad_alsa->real_buffer_size);
 /***************************** configures period size *************************************/
-    kradalsa->dir=0;//dir=0  =>  period size must be equal to period_size
+    krad_alsa->dir=0;//dir=0  =>  period size must be equal to period_size
     //sets the period size
-    if ((kradalsa->error = snd_pcm_hw_params_set_period_size(kradalsa->device, kradalsa->hw_params, kradalsa->period_size, kradalsa->dir)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params_set_period_size(krad_alsa->device, krad_alsa->hw_params, krad_alsa->period_size, krad_alsa->dir)) < 0) {
         fprintf (stderr, "speaker: Period size cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         //exit (1);
     }
     //checks the value of period size
-    if (snd_pcm_hw_params_get_period_size(kradalsa->hw_params, &kradalsa->real_period_size, &kradalsa->dir) < 0) {
+    if (snd_pcm_hw_params_get_period_size(krad_alsa->hw_params, &krad_alsa->real_period_size, &krad_alsa->dir) < 0) {
     fprintf (stderr, "speaker: Period size cannot be obtained (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
-    fprintf (stderr, "speaker:  Period size = %d [frames]\n", (int) kradalsa->real_period_size);
+    fprintf (stderr, "speaker:  Period size = %d [frames]\n", (int) krad_alsa->real_period_size);
 /************************* applies the hardware configuration ******************************/
     
-    if ((kradalsa->error = snd_pcm_hw_params (kradalsa->device, kradalsa->hw_params)) < 0) {
+    if ((krad_alsa->error = snd_pcm_hw_params (krad_alsa->device, krad_alsa->hw_params)) < 0) {
         fprintf (stderr, "speaker: Hardware parameters cannot be configured (%s)\n",
-             snd_strerror (kradalsa->error));
+             snd_strerror (krad_alsa->error));
         exit (1);
     }
     //frees the structure of hardware configuration
-    snd_pcm_hw_params_free (kradalsa->hw_params);
+    snd_pcm_hw_params_free (krad_alsa->hw_params);
 
 /*********************** filling capture_device_param *************************************/
     
-    kradalsa->capture_device_params.access_type = kradalsa->real_access;          //real access method
-    kradalsa->capture_device_params.buffer_size = kradalsa->real_buffer_size;     //real buffer size
-    kradalsa->capture_device_params.period_size = kradalsa->real_period_size;     //real period size
-    kradalsa->capture_device_params.buffer_time = kradalsa->buffer_time;          //real buffer time
-    kradalsa->capture_device_params.period_time = kradalsa->period_time;          //real period time
-    kradalsa->capture_device_params.sample_format = kradalsa->real_sample_format; //real samples format
-    kradalsa->capture_device_params.sample_rate = kradalsa->real_sample_rate;     //real sample rate 
-    kradalsa->capture_device_params.n_channels = kradalsa->n_channels;            //real number of channels
+    krad_alsa->capture_device_params.access_type = krad_alsa->real_access;          //real access method
+    krad_alsa->capture_device_params.buffer_size = krad_alsa->real_buffer_size;     //real buffer size
+    krad_alsa->capture_device_params.period_size = krad_alsa->real_period_size;     //real period size
+    krad_alsa->capture_device_params.buffer_time = krad_alsa->buffer_time;          //real buffer time
+    krad_alsa->capture_device_params.period_time = krad_alsa->period_time;          //real period time
+    krad_alsa->capture_device_params.sample_format = krad_alsa->real_sample_format; //real samples format
+    krad_alsa->capture_device_params.sample_rate = krad_alsa->real_sample_rate;     //real sample rate 
+    krad_alsa->capture_device_params.n_channels = krad_alsa->n_channels;            //real number of channels
 
 /************************ selects the appropriate access method for audio capture *********************/
     /*
@@ -751,9 +749,9 @@ krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio) {
 	}
 	*/
     
-	async_rw(kradalsa);
+	async_rw(krad_alsa);
 
-	return kradalsa;
+	return krad_alsa;
 }
 
 

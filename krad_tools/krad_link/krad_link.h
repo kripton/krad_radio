@@ -27,6 +27,12 @@ struct krad_linker_St {
 };
 
 typedef enum {
+	AUDIO_ONLY = 150,
+	VIDEO_ONLY,
+	AUDIO_AND_VIDEO,
+} krad_link_av_mode_t;
+
+typedef enum {
 	CAPTURE = 200,
 	RECEIVE,
 	FAILURE,
@@ -61,14 +67,16 @@ struct krad_link_St {
 	char sysname[64];
 	krad_tags_t *krad_tags;
 
+	krad_link_av_mode_t av_mode;
+
 	krad_decklink_t *krad_decklink;
 	krad_x11_t *krad_x11;
 	kradgui_t *krad_gui;
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	krad_vpx_decoder_t *krad_vpx_decoder;
-	krad_dirac_t *krad_dirac;
-	//krad_theora_encoder_t *krad_theora_encoder;
+	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
+	krad_dirac_t *krad_dirac;	
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
@@ -193,7 +201,7 @@ struct krad_link_St {
 	uint64_t next_frame_time_ms;
 
 	int input_ready;
-	int verbose;	
+	int verbose;
 	
     vpx_codec_enc_cfg_t vpx_encoder_config;
 

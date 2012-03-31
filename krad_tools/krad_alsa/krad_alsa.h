@@ -57,7 +57,7 @@ struct io_method {
 
 struct krad_alsa_St {
 
-	krad_audio_t *kradaudio;
+	krad_audio_t *krad_audio;
     
 	int dir;
 	int error;
@@ -93,8 +93,8 @@ struct krad_alsa_St {
 
 
 
-void kradalsa_destroy(krad_alsa_t *kradalsa);
-krad_alsa_t *kradalsa_create(krad_audio_t *kradaudio);
+void krad_alsa_destroy(krad_alsa_t *krad_alsa);
+krad_alsa_t *krad_alsa_create(krad_audio_t *krad_audio);
 
 
 #endif
