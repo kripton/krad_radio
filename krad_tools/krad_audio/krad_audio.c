@@ -7,8 +7,6 @@ void krad_audio_portgroup_samples_callback (int frames, void *userdata, float **
 
 	krad_audio_portgroup_t *portgroup = (krad_audio_portgroup_t *)userdata;
 
-	printf("--%s\n", portgroup->name);
-
 	switch (portgroup->audio_api) {
 	
 		case JACK:
@@ -40,14 +38,11 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 	portgroup = NULL;
 	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-		printf(" p is$$%d$$%d$$\n", p , KRAD_MIXER_MAX_PORTGROUPS);
 		if (krad_audio->portgroup[p]->active == 0) {
 			portgroup = krad_audio->portgroup[p];
 			break;
 		}
 	}
-
-	printf(" p is %d\n", p );
 
 	portgroup->krad_audio = krad_audio;
 	portgroup->audio_api = api;

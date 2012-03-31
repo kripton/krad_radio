@@ -205,9 +205,7 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 		case MIXBUS:
 			break;
 		case KRAD_AUDIO:
-					printf("\n\n# %s #%p\n", portgroup->sysname, portgroup->io_ptr);
 			krad_audio_portgroup_samples_callback (nframes, portgroup->io_ptr, &portgroup->samples[0]);
-					printf("##%s\n", portgroup->sysname);
 			break;
 		case KRAD_LINK:
 			krad_link_audio_samples_callback (nframes, portgroup->io_ptr, portgroup->samples);
@@ -411,7 +409,6 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 			break;
 		case KRAD_AUDIO:
 			portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, portgroup->sysname, portgroup->direction, portgroup->channels, api);
-	printf("--%s -- %p\n", portgroup->sysname, portgroup->io_ptr);
 			break;
 		case KRAD_LINK:
 			portgroup->io_ptr = io_ptr;
