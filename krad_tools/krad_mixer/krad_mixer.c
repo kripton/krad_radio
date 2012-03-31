@@ -201,16 +201,16 @@ void portgroup_clear_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframe
 
 void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 
-	int c;
-
 	switch ( portgroup->io_type ) {
 		case MIXBUS:
 			break;
 		case KRAD_AUDIO:
-			krad_audio_callback (nframes, portgroup->io_ptr);
+					printf("\n\n# %s #%p\n", portgroup->sysname, portgroup->io_ptr);
+			krad_audio_portgroup_samples_callback (nframes, portgroup->io_ptr, &portgroup->samples[0]);
+					printf("##%s\n", portgroup->sysname);
 			break;
 		case KRAD_LINK:
-			krad_link_audio_callback (nframes, portgroup->io_ptr);
+			krad_link_audio_samples_callback (nframes, portgroup->io_ptr, portgroup->samples);
 			break;
 	}
 	
@@ -259,7 +259,7 @@ void portgroup_hardlimit (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 	}
 }
 
-int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
+int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	
 	int p, m;
 
@@ -273,13 +273,14 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 			portgroup_update_samples (portgroup, nframes);
 		}
 	}
-	
+
 	// apply volume and calc peaks on inputs
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
 			portgroup_apply_volume (portgroup, nframes);
 			krad_mixer_portgroup_compute_peaks (portgroup, nframes);
+			//printf("%f\n", portgroup->samples[0][128]);
 		}
 	}
 	
@@ -294,7 +295,7 @@ int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t nframes) {
 	// Mix
 	for (m = 0; m < KRAD_MIXER_MAX_PORTGROUPS; m++) {
 		mixbus = krad_mixer->portgroup[m];
-		if ((mixbus != NULL) && (mixbus->active)) {
+		if ((mixbus != NULL) && (mixbus->active) && (mixbus->io_type == MIXBUS)) {
 			for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 				portgroup = krad_mixer->portgroup[p];
 				if ((portgroup != NULL) && (portgroup->active) && (portgroup->mixbus == mixbus) && (portgroup->direction == INPUT)) {
@@ -359,8 +360,6 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 	int p;
 	int c;
 	krad_mixer_portgroup_t *portgroup;
-	char portname[256];
-	int port_direction;
 	
 	portgroup = NULL;
 	
@@ -411,7 +410,8 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 		case MIXBUS:
 			break;
 		case KRAD_AUDIO:
-			portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, sysname, portgroup->direction, portgroup->channels, api);
+			portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, portgroup->sysname, portgroup->direction, portgroup->channels, api);
+	printf("--%s -- %p\n", portgroup->sysname, portgroup->io_ptr);
 			break;
 		case KRAD_LINK:
 			portgroup->io_ptr = io_ptr;
@@ -591,23 +591,21 @@ void krad_mixer_default_setup (krad_mixer_t *krad_mixer) {
 
 	/* default portgroups setup */
 
-	//krad_mixer_portgroup_t *music1, *music2;
-	//krad_mixer_mixbus_t *master;
+	krad_mixer_portgroup_t *music1, *music2;
+	krad_mixer_mixbus_t *master;
 	
-	//master = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL);
+	master = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
 
-	krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
+	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, master, KRAD_AUDIO, NULL, JACK);
+	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, master, KRAD_AUDIO, NULL, JACK);
 
-	//music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, master, KRAD_AUDIO);
-	//music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, master, KRAD_AUDIO);
-
-	//krad_mixer_portgroup_create (krad_mixer, "Master", OUTPUT, 2, master, KRAD_AUDIO);	
+	krad_mixer_portgroup_create (krad_mixer, "Master", OUTPUT, 2, master, KRAD_AUDIO, NULL, JACK);	
 	
-	//krad_mixer_crossfade_group_create (krad_mixer, music1, music2);
+	krad_mixer_crossfade_group_create (krad_mixer, music1, music2);
 
 }
 
-krad_mixer_t *krad_mixer_create (char *sysname) {
+krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 
 	int p;
 
@@ -617,6 +615,8 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 		fprintf (stderr, "mem alloc fail\n");
 		exit (1);
 	}
+	
+	krad_mixer->krad_radio = krad_radio;
 	
 	krad_mixer->crossfade_group = calloc (KRAD_MIXER_MAX_PORTGROUPS / 2, sizeof (krad_mixer_crossfade_group_t));
 

@@ -3,10 +3,29 @@
 void *tone_generator_thread (void *arg);
 
 
-void krad_audio_callback (int frames, void *userdata) {
+void krad_audio_portgroup_samples_callback (int frames, void *userdata, float **samples) {
 
-	krad_audio_t *krad_audio = (krad_audio_t *)userdata;
-	//FIXME ATUALLY PRTRGORUP
+	krad_audio_portgroup_t *portgroup = (krad_audio_portgroup_t *)userdata;
+
+	printf("--%s\n", portgroup->name);
+
+	switch (portgroup->audio_api) {
+	
+		case JACK:
+			krad_jack_portgroup_samples_callback ( frames, portgroup->api_portgroup, samples);
+			break;
+		case ALSA:
+			break;
+		case PULSE:
+			break;
+		case TONE:		
+			break;
+		case NOAUDIO:
+			break;
+		case DECKLINKAUDIO:
+			break;
+	}
+
 	
 }
 
@@ -21,11 +40,14 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 	portgroup = NULL;
 	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-		if (krad_audio->portgroup[p].active == 0) {
-			portgroup = &krad_audio->portgroup[p];
+		printf(" p is$$%d$$%d$$\n", p , KRAD_MIXER_MAX_PORTGROUPS);
+		if (krad_audio->portgroup[p]->active == 0) {
+			portgroup = krad_audio->portgroup[p];
 			break;
 		}
 	}
+
+	printf(" p is %d\n", p );
 
 	portgroup->krad_audio = krad_audio;
 	portgroup->audio_api = api;
@@ -68,7 +90,9 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 			break;
 	}
 
-	return NULL;
+	portgroup->active = 1;
+
+	return portgroup;
 
 }
 
@@ -121,6 +145,7 @@ void krad_audio_destroy (krad_audio_t *krad_audio) {
 krad_audio_t *krad_audio_create (krad_mixer_t *krad_mixer) {
 
 	krad_audio_t *krad_audio;
+	int p;
 	
 	if ((krad_audio = calloc (1, sizeof (krad_audio_t))) == NULL) {
 		fprintf(stderr, "mem alloc fail\n");
@@ -128,8 +153,10 @@ krad_audio_t *krad_audio_create (krad_mixer_t *krad_mixer) {
 	}
 
 	krad_audio->krad_mixer = krad_mixer;
-	
-	krad_audio->portgroup = calloc (KRAD_MIXER_MAX_PORTGROUPS, sizeof (krad_audio_portgroup_t));	
+		
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		krad_audio->portgroup[p] = calloc (1, sizeof (krad_audio_portgroup_t));
+	}
 		
 	return krad_audio;
 

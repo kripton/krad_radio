@@ -82,10 +82,33 @@ void krad_jack_connect_port(jack_client_t *client, char *port_one, char *port_tw
 */
 
 
-// krad mixer portgroup create if jack
+void krad_jack_portgroup_samples_callback (int frames, void *userdata, float **samples) {
+
+	krad_jack_portgroup_t *portgroup = (krad_jack_portgroup_t *)userdata;
+	int c;
+	float *temp;
+	
+	for (c = 0; c < portgroup->channels; c++) {
+		if (portgroup->direction == INPUT) {
+			temp = jack_port_get_buffer (portgroup->ports[c], frames);
+			memcpy (portgroup->samples[c], temp, frames * 4);
+			samples[c] = portgroup->samples[c];
+		} else {
+			samples[c] = jack_port_get_buffer (portgroup->ports[c], frames);
+		}
+
+	}
+}
+
 void krad_jack_portgroup_destroy (krad_jack_portgroup_t *portgroup) {
 
-
+	int c;
+	
+	for (c = 0; c < portgroup->channels; c++) {
+		if (portgroup->direction == INPUT) {		
+			free (portgroup->samples[c]);
+		}
+	}
 }
 
 
@@ -99,7 +122,10 @@ krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char 
 	portgroup = calloc (1, sizeof(krad_jack_portgroup_t));
 	
 	portgroup->krad_jack = krad_jack;
-
+	portgroup->channels = channels;
+	portgroup->direction = direction;
+	strcpy ( portgroup->name, name );
+		
 	if (portgroup->direction == INPUT) {		
 		port_direction = JackPortIsInput;
 	} else {
@@ -121,6 +147,10 @@ krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char 
 			fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
 			return NULL;
 		}
+		
+		if (portgroup->direction == INPUT) {		
+			portgroup->samples[c] = calloc (1, 16384);
+		}	
 	}
 
 	return portgroup;
@@ -143,8 +173,13 @@ int krad_jack_process (jack_nframes_t nframes, void *arg) {
 
 	krad_jack_t *krad_jack = (krad_jack_t *)arg;
 
-	int c, s;
+
+
+	return krad_mixer_process (nframes, krad_jack->krad_audio->krad_mixer);
+
 /*
+	int c, s;
+
 	jack_default_audio_sample_t *samples[2];
 
 	if (krad_jack->active) {

@@ -82,8 +82,8 @@ struct krad_mixer_St {
 
 };
 
-int krad_mixer_process (krad_mixer_t *krad_mixer, uint32_t frames);
-krad_mixer_t *krad_mixer_create (char *sysname);
+int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer);
+krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio);
 void krad_mixer_destroy (krad_mixer_t *krad_mixer);
 
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );

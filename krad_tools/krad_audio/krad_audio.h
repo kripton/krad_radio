@@ -66,7 +66,7 @@ struct krad_audio_St {
 	krad_pulse_t *krad_pulse;
 	krad_jack_t *krad_jack;
 	
-	krad_audio_portgroup_t *portgroup;	
+	krad_audio_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];	
 	
 	int destroy;
 	
@@ -74,6 +74,7 @@ struct krad_audio_St {
     
 };
 
+void krad_audio_portgroup_samples_callback (int frames, void *userdata, float **samples);
 
 krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, char *name, krad_audio_portgroup_direction_t direction, int channels, krad_audio_api_t api);
 void krad_audio_portgroup_destroy (krad_audio_portgroup_t *portgroup);

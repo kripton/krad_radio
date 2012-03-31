@@ -13,9 +13,9 @@ struct krad_jack_portgroup_St {
 
 	krad_jack_t *krad_jack;
 
-	char *name;
+	char name[256];
 	jack_port_t *ports[8];
-	
+	float *samples[8];
 	int direction;
 	int channels;
 
@@ -44,6 +44,9 @@ struct krad_jack_St {
 
 //void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_portgroup_direction_t direction, char *ports);
 //void krad_jack_connect_port(jack_client_t *client, char *port_one, char *port_two);
+
+
+void krad_jack_portgroup_samples_callback (int frames, void *userdata, float **samples);
 
 krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char *name, int direction, int channels);
 

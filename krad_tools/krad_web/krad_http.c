@@ -232,7 +232,7 @@ void *krad_http_client_thread (void *arg) {
 			if (strncmp("krad_radio.js", client->get, 13) == 0) {
 		
 
-				sprintf(client->filename, "%s/kode/krad_ebml_experimental/krad_apps/krad_radio.js", client->krad_http->homedir);
+				sprintf(client->filename, "%s/kode/krad_radio/krad_apps/krad_radio.js", client->krad_http->homedir);
 
 				if ((client->file_fd = open (client->filename, O_RDONLY)) == -1) {
 					printf("failed to open js api file");
@@ -253,7 +253,7 @@ void *krad_http_client_thread (void *arg) {
 		
 			if ((strlen(client->get) == 0) || (strncmp("krad_radio.html", client->get, 15) == 0)) {
 
-				sprintf(client->filename, "%s/kode/krad_ebml_experimental/krad_apps/krad_radio.html", client->krad_http->homedir);
+				sprintf(client->filename, "%s/kode/krad_radio/krad_apps/krad_radio.html", client->krad_http->homedir);
 
 				if ((client->file_fd = open (client->filename, O_RDONLY)) == -1) {
 					printf("failed to open html file");
