@@ -77,6 +77,8 @@ struct krad_mixer_St {
 	krad_radio_t *krad_radio;
 	krad_audio_t *krad_audio;
     
+	krad_mixer_mixbus_t *master_mix;
+    
 	krad_mixer_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];
 	krad_mixer_crossfade_group_t *crossfade_group;
 

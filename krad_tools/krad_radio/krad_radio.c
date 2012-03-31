@@ -121,7 +121,7 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
-	krad_radio->krad_linker = krad_linker_create (sysname);
+	krad_radio->krad_linker = krad_linker_create (krad_radio);
 	
 	if (krad_radio->krad_linker == NULL) {
 		krad_radio_destroy (krad_radio);
@@ -163,7 +163,7 @@ void krad_radio (char *sysname) {
 	krad_radio_t *krad_radio_station;
 
 	do_shutdown = 0;
-	verbose = 0;
+	verbose = 1;
 
 	krad_radio_station = krad_radio_create (sysname);
 

@@ -264,10 +264,11 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 
 	}
 
-	if (krad_link->capture_audio == 1) {
+	if (krad_link->operation_mode == CAPTURE) {
 		krad_link->audio_frames_captured += frames;
-		krad_ringbuffer_write(krad_link->audio_input_ringbuffer[0], (char *)krad_link->samples[0], frames * 4);
-		krad_ringbuffer_write(krad_link->audio_input_ringbuffer[1], (char *)krad_link->samples[1], frames * 4);
+		krad_ringbuffer_write (krad_link->audio_input_ringbuffer[0], (char *)samples[0], frames * 4);
+		krad_ringbuffer_write (krad_link->audio_input_ringbuffer[1], (char *)samples[1], frames * 4);
+		//printf("wrote %d frames\n", frames);
 	}
 	
 	if ((krad_link->operation_mode == RECEIVE) && (krad_link->audio_codec == VORBIS)) {
@@ -309,6 +310,8 @@ void *audio_encoding_thread(void *arg) {
 	ogg_packet *op;
 	int framecnt;
 
+	krad_mixer_portgroup_t *mixer_portgroup;
+
 	dbg("Audio encoding thread starting\n");
 	
 	krad_link->audio_channels = 2;	
@@ -327,11 +330,24 @@ void *audio_encoding_thread(void *arg) {
 	//if ((krad_link->krad_audio_api == TONE) && (strncmp(DEFAULT_TONE_PRESET, krad_link->tone_preset, strlen(DEFAULT_TONE_PRESET)) != 0)) {
 	//	kradaudio_set_tone_preset(krad_link->krad_audio, krad_link->tone_preset);
 	//}
+	
+	
+	for (c = 0; c < krad_link->audio_channels; c++) {
+		krad_link->audio_input_ringbuffer[c] = krad_ringbuffer_create (2000000);
+		samples[c] = malloc(4 * 8192);
+		krad_link->samples[c] = malloc(4 * 8192);
+	}
+
+	interleaved_samples = calloc(1, 1000000);
+	buffer = calloc(1, 1000000);
+	
+	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "MasterEnc", OUTPUT, 2, 
+												   krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);		
 		
 	switch (krad_link->audio_codec) {
 		case VORBIS:
 			printf("Vorbis quality is %f\n", krad_link->vorbis_quality);
-			//krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, krad_link->krad_audio->sample_rate, krad_link->vorbis_quality);
+			krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, 44100, krad_link->vorbis_quality);
 			framecnt = 1024;
 			break;
 		case FLAC:
@@ -346,16 +362,6 @@ void *audio_encoding_thread(void *arg) {
 			printf("unknown audio codec\n");
 			exit(1);
 	}
-
-
-	for (c = 0; c < krad_link->audio_channels; c++) {
-		krad_link->audio_input_ringbuffer[c] = krad_ringbuffer_create (2000000);
-		samples[c] = malloc(4 * 8192);
-		krad_link->samples[c] = malloc(4 * 8192);
-	}
-
-	interleaved_samples = calloc(1, 1000000);
-	buffer = calloc(1, 1000000);
 
 	//kradaudio_set_process_callback(krad_link->krad_audio, krad_link_audio_callback, krad_link);
 	
@@ -543,8 +549,8 @@ void *stream_output_thread(void *arg) {
 	
 		switch (krad_link->audio_codec) {
 			case VORBIS:
-				//krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_VORBIS", krad_link->krad_audio->sample_rate, krad_link->audio_channels, krad_link->krad_vorbis->header, 
-				//												 krad_link->krad_vorbis->headerpos);
+				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_VORBIS", 44100, krad_link->audio_channels, krad_link->krad_vorbis->header, 
+																 krad_link->krad_vorbis->headerpos);
 				break;
 			case FLAC:
 				//krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_FLAC", krad_link->krad_audio->sample_rate, krad_link->audio_channels, (unsigned char *)krad_link->krad_flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
@@ -2521,14 +2527,16 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					verbose = 1;
 					krad_linker->krad_link[k] = krad_link_create ();
 					krad_link = krad_linker->krad_link[k];
+					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->interface_mode = COMMAND;
 					krad_link->video_source = NOVIDEO;
 					krad_link->video_codec = NOCODEC;
 					krad_link->operation_mode = CAPTURE;
+					krad_link->av_mode = AUDIO_ONLY;
 					strcpy (krad_link->password, "secretkode");
 					krad_link->tcp_port = 9080;
-					strcpy (krad_link->host, "127.0.0.1");
-					strcpy (krad_link->mount, "/mix2.webm");
+					strcpy (krad_link->host, "192.168.1.2");
+					strcpy (krad_link->mount, "/radio1.webm");
 					krad_link_run (krad_link);
 					break;
 				}
@@ -2545,11 +2553,13 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	return 0;
 }
 
-krad_linker_t *krad_linker_create () {
+krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 
 	krad_linker_t *krad_linker;
 	
 	krad_linker = calloc(1, sizeof(krad_linker_t));
+
+	krad_linker->krad_radio = krad_radio;
 
 	return krad_linker;
 

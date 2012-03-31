@@ -208,7 +208,7 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 			krad_audio_portgroup_samples_callback (nframes, portgroup->io_ptr, &portgroup->samples[0]);
 			break;
 		case KRAD_LINK:
-			krad_link_audio_samples_callback (nframes, portgroup->io_ptr, portgroup->samples);
+			//krad_link_audio_samples_callback (nframes, portgroup->io_ptr, portgroup->samples);
 			break;
 	}
 	
@@ -241,10 +241,19 @@ void portgroup_copy_samples (krad_mixer_portgroup_t *dest_portgroup, krad_mixer_
 		exit (1);
 	}
 
-	for (c = 0; c < dest_portgroup->channels; c++) {
-		for (s = 0; s < nframes; s++) {
-			dest_portgroup->samples[c][s] = src_portgroup->samples[c][s];
-		}
+	switch ( dest_portgroup->io_type ) {
+		case MIXBUS:
+			break;
+		case KRAD_AUDIO:
+			for (c = 0; c < dest_portgroup->channels; c++) {
+				for (s = 0; s < nframes; s++) {
+					dest_portgroup->samples[c][s] = src_portgroup->samples[c][s];
+				}
+			}
+			break;
+		case KRAD_LINK:
+			krad_link_audio_samples_callback (nframes, dest_portgroup->io_ptr, src_portgroup->samples);
+			break;
 	}
 }
 
@@ -307,8 +316,8 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == OUTPUT)) {
+			portgroup_hardlimit ( portgroup->mixbus, nframes );
 			portgroup_copy_samples ( portgroup, portgroup->mixbus, nframes );
-			portgroup_hardlimit ( portgroup, nframes );
 		}
 	}
 	
@@ -589,14 +598,13 @@ void krad_mixer_default_setup (krad_mixer_t *krad_mixer) {
 	/* default portgroups setup */
 
 	krad_mixer_portgroup_t *music1, *music2;
-	krad_mixer_mixbus_t *master;
 	
-	master = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
+	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
 
-	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, master, KRAD_AUDIO, NULL, JACK);
-	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, master, KRAD_AUDIO, NULL, JACK);
+	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);
+	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);
 
-	krad_mixer_portgroup_create (krad_mixer, "Master", OUTPUT, 2, master, KRAD_AUDIO, NULL, JACK);	
+	krad_mixer_portgroup_create (krad_mixer, "Master", OUTPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);	
 	
 	krad_mixer_crossfade_group_create (krad_mixer, music1, music2);
 

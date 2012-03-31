@@ -25,6 +25,7 @@ typedef struct krad_linker_St krad_linker_t;
 
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
+	krad_radio_t *krad_radio;
 };
 
 typedef enum {
