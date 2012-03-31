@@ -401,13 +401,22 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 				portgroup->samples[c] = calloc (1, 16384);
 				break;
 			case KRAD_AUDIO:
-				portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, sysname, portgroup->direction, portgroup->channels, api);
 				break;
 			case KRAD_LINK:
-				portgroup->io_ptr = io_ptr;
 				break;
 		}
 	}
+	
+	switch ( portgroup->io_type ) {
+		case MIXBUS:
+			break;
+		case KRAD_AUDIO:
+			portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, sysname, portgroup->direction, portgroup->channels, api);
+			break;
+		case KRAD_LINK:
+			portgroup->io_ptr = io_ptr;
+			break;
+	}	
 
 	portgroup->active = 1;
 

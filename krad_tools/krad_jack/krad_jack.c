@@ -81,6 +81,52 @@ void krad_jack_connect_port(jack_client_t *client, char *port_one, char *port_tw
 }
 */
 
+
+// krad mixer portgroup create if jack
+void krad_jack_portgroup_destroy (krad_jack_portgroup_t *portgroup) {
+
+
+}
+
+
+krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char *name, int direction, int channels) {
+
+	int c;
+	int port_direction;
+	char portname[256];
+	krad_jack_portgroup_t *portgroup;
+	
+	portgroup = calloc (1, sizeof(krad_jack_portgroup_t));
+	
+	portgroup->krad_jack = krad_jack;
+
+	if (portgroup->direction == INPUT) {		
+		port_direction = JackPortIsInput;
+	} else {
+		port_direction = JackPortIsOutput;
+	}
+
+	for (c = 0; c < portgroup->channels; c++) {
+
+		strcpy ( portname, name );
+
+		if (portgroup->channels > 1) {
+			strcat ( portname, "_" );
+			strcat ( portname, krad_mixer_channel_number_to_string ( c ) );
+		}
+
+		portgroup->ports[c] = jack_port_register (portgroup->krad_jack->client, portname, JACK_DEFAULT_AUDIO_TYPE, port_direction, 0);
+
+		if (portgroup->ports[c] == NULL) {
+			fprintf(stderr, "could not reg, prolly a dupe reg: %s\n", portname);
+			return NULL;
+		}
+	}
+
+	return portgroup;
+
+}
+
 int krad_jack_xrun (void *arg) {
 
 	krad_jack_t *krad_jack = (krad_jack_t *)arg;

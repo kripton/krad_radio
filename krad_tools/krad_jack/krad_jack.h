@@ -7,6 +7,19 @@ typedef struct krad_jack_St krad_jack_t;
 #include "krad_audio.h"
 #include <jack/jack.h>
 
+typedef struct krad_jack_portgroup_St krad_jack_portgroup_t;
+
+struct krad_jack_portgroup_St {
+
+	krad_jack_t *krad_jack;
+
+	char *name;
+	jack_port_t *ports[8];
+	
+	int direction;
+	int channels;
+
+};
 
 struct krad_jack_St {
 
@@ -31,6 +44,8 @@ struct krad_jack_St {
 
 //void jack_connect_to_ports (krad_audio_t *krad_audio, krad_audio_portgroup_direction_t direction, char *ports);
 //void krad_jack_connect_port(jack_client_t *client, char *port_one, char *port_two);
+
+krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char *name, int direction, int channels);
 
 void krad_jack_destroy (krad_jack_t *jack);
 krad_jack_t *krad_jack_create (krad_audio_t *krad_audio);

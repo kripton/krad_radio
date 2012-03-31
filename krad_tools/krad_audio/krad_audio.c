@@ -53,7 +53,7 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 			if (krad_audio->krad_jack == NULL) {
 				krad_audio->krad_jack = krad_jack_create (krad_audio);
 			}
-			
+			portgroup->api_portgroup = krad_jack_portgroup_create (krad_audio->krad_jack, portgroup->name, portgroup->direction, portgroup->channels);
 			break;
 		case ALSA:
 			break;
