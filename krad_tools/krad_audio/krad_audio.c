@@ -11,8 +11,62 @@ void krad_audio_callback (int frames, void *userdata) {
 }
 
 
-krad_audio_portgroup_t *krad_audio_portgroup_create (char *name, krad_audio_portgroup_direction_t direction, int channels, krad_audio_api_t api) {
+krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, char *name, krad_audio_portgroup_direction_t direction,
+													 int channels, krad_audio_api_t api) {
 
+
+	krad_audio_portgroup_t *portgroup;
+	int p;
+	
+	portgroup = NULL;
+	
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		if (krad_audio->portgroup[p].active == 0) {
+			portgroup = &krad_audio->portgroup[p];
+			break;
+		}
+	}
+
+	portgroup->krad_audio = krad_audio;
+	portgroup->audio_api = api;
+	portgroup->direction = direction;
+	portgroup->channels = channels;
+	
+	if ((portgroup->direction == KOUTPUT) || (portgroup->direction == KDUPLEX)) {
+	
+		//krad_audio->output_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		//krad_audio->output_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	
+	}
+
+	if ((portgroup->direction == KINPUT) || (portgroup->direction == KDUPLEX)) {
+	
+		//krad_audio->input_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		//krad_audio->input_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+	}
+
+	strncpy (portgroup->name, name, 256);
+
+	switch (portgroup->audio_api) {
+	
+		case JACK:
+			if (krad_audio->krad_jack == NULL) {
+				krad_audio->krad_jack = krad_jack_create (krad_audio);
+			}
+			
+			break;
+		case ALSA:
+			break;
+		case PULSE:
+			break;
+		case TONE:		
+			break;
+		case NOAUDIO:
+			break;
+		case DECKLINKAUDIO:
+			portgroup->sample_rate = 48000;
+			break;
+	}
 
 	return NULL;
 
@@ -64,7 +118,6 @@ void krad_audio_destroy (krad_audio_t *krad_audio) {
 }
 
 
-//krad_audio_t *krad_audio_create (char *name, krad_audio_direction_t direction, krad_audio_api_t api) {
 krad_audio_t *krad_audio_create (krad_mixer_t *krad_mixer) {
 
 	krad_audio_t *krad_audio;
@@ -74,52 +127,10 @@ krad_audio_t *krad_audio_create (krad_mixer_t *krad_mixer) {
 		exit (1);
 	}
 
-
-	/*
-	krad_audio->audio_api = api;
-	krad_audio->direction = direction;
+	krad_audio->krad_mixer = krad_mixer;
 	
-	if ((krad_audio->direction == KOUTPUT) || (krad_audio->direction == KDUPLEX)) {
-	
-		krad_audio->output_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		krad_audio->output_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-	
-	}
-
-	if ((krad_audio->direction == KINPUT) || (krad_audio->direction == KDUPLEX)) {
-	
-		krad_audio->input_ringbuffer[0] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		krad_audio->input_ringbuffer[1] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-	}
-
-	strncpy(krad_audio->name, name, 128);
-	krad_audio->name[127] = '\0';
-
-	switch (krad_audio->audio_api) {
-	
-		case JACK:
-			krad_audio->api = kradjack_create(krad_audio);
-			break;
-		case ALSA:
-			krad_audio->api = kradalsa_create(krad_audio);
-			break;
-		case PULSE:
-			krad_audio->api = kradpulse_create(krad_audio);
-			break;
-		case TONE:
-			krad_audio->sample_rate = 48000;
-			krad_audio->api = krad_tone_create(krad_audio->sample_rate);
-			krad_tone_add_preset(krad_audio->api, "dialtone");
-			krad_audio->run_tone = 1;
-			pthread_create(&krad_audio->tone_generator_thread, NULL, tone_generator_thread, (void *)krad_audio);		
-			break;
-		case NOAUDIO:
-			break;
-		case DECKLINKAUDIO:
-			krad_audio->sample_rate = 48000;
-			break;
-	}
-	*/
+	krad_audio->portgroup = calloc (KRAD_MIXER_MAX_PORTGROUPS, sizeof (krad_audio_portgroup_t));	
+		
 	return krad_audio;
 
 }

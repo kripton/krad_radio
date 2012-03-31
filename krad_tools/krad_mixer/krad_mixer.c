@@ -401,7 +401,7 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 				portgroup->samples[c] = calloc (1, 16384);
 				break;
 			case KRAD_AUDIO:
-				portgroup->io_ptr = krad_audio_portgroup_create (sysname, portgroup->direction, portgroup->channels, api);
+				portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, sysname, portgroup->direction, portgroup->channels, api);
 				break;
 			case KRAD_LINK:
 				portgroup->io_ptr = io_ptr;
@@ -614,6 +614,8 @@ krad_mixer_t *krad_mixer_create (char *sysname) {
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		krad_mixer->portgroup[p] = calloc (1, sizeof (krad_mixer_portgroup_t));
 	}
+	
+	krad_mixer->krad_audio = krad_audio_create (krad_mixer);
 
 	krad_mixer_default_setup ( krad_mixer );
 	

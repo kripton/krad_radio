@@ -155,13 +155,13 @@ int krad_jack_process (jack_nframes_t nframes, void *arg) {
 
 }
 
-void krad_jack_shutdown(void *arg) {
+void krad_jack_shutdown (void *arg) {
 
 	//jack_t *jack = (jack_t *)arg;
 
 }
 
-void krad_jack_destroy(krad_jack_t *krad_jack) {
+void krad_jack_destroy (krad_jack_t *krad_jack) {
 
 	jack_client_close (krad_jack->client);
 	
