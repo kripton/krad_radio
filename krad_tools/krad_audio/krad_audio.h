@@ -1,6 +1,18 @@
 typedef struct krad_audio_St krad_audio_t;
 typedef struct krad_audio_portgroup_St krad_audio_portgroup_t;
 
+#ifndef KRAD_AUDIO_API
+#define KRAD_AUDIO_API
+typedef enum {
+	NOAUDIO = 999,	
+	JACK,
+	PULSE,
+	ALSA,
+	DECKLINKAUDIO,
+	TONE,
+} krad_audio_api_t;
+#endif
+
 #ifndef KRAD_AUDIO_H
 #define KRAD_AUDIO_H
 
@@ -18,15 +30,6 @@ typedef struct krad_audio_portgroup_St krad_audio_portgroup_t;
 #include <stddef.h>
 
 typedef enum {
-	NOAUDIO = 999,	
-	JACK,
-	PULSE,
-	ALSA,
-	DECKLINKAUDIO,
-	TONE,
-} krad_audio_api_t;
-
-typedef enum {
 	KOUTPUT,
 	KINPUT,
 	KDUPLEX,
@@ -37,6 +40,8 @@ struct krad_audio_portgroup_St {
 	krad_audio_api_t audio_api;
 	krad_audio_portgroup_direction_t direction;
 
+	int channels;
+	
 	krad_ringbuffer_t *input_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	krad_ringbuffer_t *output_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	
@@ -61,6 +66,9 @@ struct krad_audio_St {
     
 };
 
+
+krad_audio_portgroup_t *krad_audio_portgroup_create (char *name, krad_audio_portgroup_direction_t direction, int channels, krad_audio_api_t api);
+void krad_audio_portgroup_destroy (krad_audio_portgroup_t *portgroup);
 
 //void krad_audio_set_process_callback (krad_audio_t *krad_audio, void krad_audio_process_callback(int, void *), void *userdata);
 void krad_audio_destroy (krad_audio_t *krad_audio);

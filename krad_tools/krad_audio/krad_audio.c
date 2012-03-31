@@ -3,6 +3,17 @@
 void *tone_generator_thread (void *arg);
 
 
+krad_audio_portgroup_t *krad_audio_portgroup_create (char *name, krad_audio_portgroup_direction_t direction, int channels, krad_audio_api_t api) {
+
+
+	return NULL;
+
+}
+
+void krad_audio_portgroup_destroy (krad_audio_portgroup_t *portgroup) {
+
+}
+
 
 void krad_audio_destroy (krad_audio_t *krad_audio) {
 

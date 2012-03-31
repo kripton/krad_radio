@@ -48,9 +48,10 @@ struct krad_mixer_crossfade_group_St {
 
 struct krad_mixer_portgroup_St {
 	
-	char sysname[256];	
+	char sysname[256];
 	krad_mixer_portgroup_direction_t direction;
 	krad_mixer_portgroup_io_t io_type;
+	void * io_ptr;
 	channels_t channels;
 	krad_mixer_mixbus_t *mixbus;
 	krad_mixer_crossfade_group_t *crossfade_group;
@@ -87,7 +88,8 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer);
 
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );
 
-krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type);
+krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, 
+													 krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup);
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname);
 

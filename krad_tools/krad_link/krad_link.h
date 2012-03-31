@@ -1,4 +1,8 @@
+typedef struct krad_link_St krad_link_t;
+typedef struct krad_linker_St krad_linker_t;
+
 #include "krad_radio.h"
+
 
 #ifndef KRAD_LINK_H
 #define KRAD_LINK_H
@@ -18,9 +22,6 @@
 #define DEFAULT_FPS 15
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
-
-typedef struct krad_link_St krad_link_t;
-typedef struct krad_linker_St krad_linker_t;
 
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
