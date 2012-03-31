@@ -1,6 +1,14 @@
-#include <krad_audio.h>
+#include "krad_audio.h"
 
 void *tone_generator_thread (void *arg);
+
+
+void krad_audio_callback (int frames, void *userdata) {
+
+	krad_audio_t *krad_audio = (krad_audio_t *)userdata;
+	//FIXME ATUALLY PRTRGORUP
+	
+}
 
 
 krad_audio_portgroup_t *krad_audio_portgroup_create (char *name, krad_audio_portgroup_direction_t direction, int channels, krad_audio_api_t api) {

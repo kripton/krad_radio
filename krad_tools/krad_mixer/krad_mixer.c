@@ -203,7 +203,16 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 
 	int c;
 
-	// FIXME GET SAMPLES or OUTPUT SAMPLE POINTER
+	switch ( portgroup->io_type ) {
+		case MIXBUS:
+			break;
+		case KRAD_AUDIO:
+			krad_audio_callback (nframes, portgroup->io_ptr);
+			break;
+		case KRAD_LINK:
+			krad_link_audio_callback (nframes, portgroup->io_ptr);
+			break;
+	}
 	
 }
 

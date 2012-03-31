@@ -51,7 +51,7 @@ struct krad_mixer_portgroup_St {
 	char sysname[256];
 	krad_mixer_portgroup_direction_t direction;
 	krad_mixer_portgroup_io_t io_type;
-	void * io_ptr;
+	void *io_ptr;
 	channels_t channels;
 	krad_mixer_mixbus_t *mixbus;
 	krad_mixer_crossfade_group_t *crossfade_group;

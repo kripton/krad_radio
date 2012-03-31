@@ -251,7 +251,7 @@ void *video_encoding_thread(void *arg) {
 }
 
 
-void krad_link_audio_callback(int frames, void *userdata) {
+void krad_link_audio_callback (int frames, void *userdata) {
 
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
