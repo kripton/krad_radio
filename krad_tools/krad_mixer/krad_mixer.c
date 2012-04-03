@@ -665,13 +665,13 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	switch ( command ) {
 	
 		case EBML_ID_KRAD_MIXER_CMD_GET_CONTROL:
-			printf("krad mixer handler! got get control\n");			
+			printf("Get Control\n");			
 			//printf("GET CONTROL! %d\n", krad_radio_station->test_value);
 			//krad_ipc_server_respond_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_CONTROL, krad_radio_station->test_value);
 			return 1;
 			break;	
 		case EBML_ID_KRAD_MIXER_CMD_SET_CONTROL:
-			printf("krad mixer handler! got set control\n");			
+			//printf("krad mixer handler! got set control\n");			
 
 		
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
@@ -684,7 +684,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portname, ebml_data_size);
 	
-			printf("setcontrol portgroup %s\n", portname);
+			printf("Set Control: %s / ", portname);
 	
 	
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
@@ -697,7 +697,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
 	
-			printf(" control -- %s\n", controlname);
+			printf("%s = ", controlname);
 
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -709,7 +709,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 			floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
 	
-			printf("value %f\n", floatval);
+			printf("%f\n", floatval);
 
 			krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval);
 
@@ -719,7 +719,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			break;
 		case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
 
-			printf("get PORTGROUPS list\n");
+			printf("List Portgroups\n");
 
 			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
 			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_LIST, &element);

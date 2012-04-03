@@ -182,7 +182,7 @@ struct krad_link_St {
 
 	pthread_t signal_thread;
 	sigset_t set;
-	int shutdown;
+	int destroy;
 
 	int audio_channels;
 

@@ -287,6 +287,28 @@ void krad_ipc_list_links (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_destroy_link (krad_ipc_client_t *client, int number) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t destroy_link;
+	
+	linker_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_DESTROY_LINK, &destroy_link);
+
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_finish_element (client->krad_ebml, destroy_link);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
 
 

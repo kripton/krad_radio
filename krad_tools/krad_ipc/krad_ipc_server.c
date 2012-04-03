@@ -475,7 +475,7 @@ void *krad_ipc_server_run (void *arg) {
 							while (krad_ebml_io_buffer_read_space (&client->krad_ebml->io_adapter)) {
 								client->krad_ipc_server->current_client = client; /* single thread has a few perks */
 								resp = client->krad_ipc_server->handler (client->output_buffer, &client->command_response_len, client->krad_ipc_server->pointer);
-								printf("Krad IPC Server: cmd resp %d len %d\n", resp, client->command_response_len);
+								printf("Krad IPC Server: CMD Response %d %d bytes\n", resp, client->command_response_len);
 								krad_ebml_write_sync (krad_ipc_server->current_client->krad_ebml2);
 							}
 						

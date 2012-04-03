@@ -223,22 +223,23 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	switch ( command ) {
 	
 		case EBML_ID_KRAD_RADIO_CMD:
+			printf("Krad Radio Command\n");
 			return krad_radio_handler ( output, output_len, ptr );
 		case EBML_ID_KRAD_MIXER_CMD:
-			printf("got a krad MIXER cmd\n");
+			printf("Krad Mixer Command\n");
 			return krad_mixer_handler ( krad_radio_station->krad_mixer, krad_radio_station->krad_ipc );
 		case EBML_ID_KRAD_LINK_CMD:
-			printf("got a krad link cmd\n");
+			printf("Krad Link Command\n");
 			return krad_linker_handler ( krad_radio_station->krad_linker, krad_radio_station->krad_ipc );
 			return 0;
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
-			printf("get tags list\n");
+			printf("LIST_TAGS\n");
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_response_list_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
 			
 			while (krad_tags_get_next_tag ( krad_radio_station->krad_tags, &i, &tag_name, &tag_value)) {
 				krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
-				printf("got tag %d: %s to %s\n", i, tag_name, tag_value);
+				printf("Tag %d: %s - %s\n", i, tag_name, tag_value);
 			}
 			
 			krad_ipc_server_response_list_finish ( krad_radio_station->krad_ipc, element);
@@ -251,7 +252,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			krad_tags_set_tag ( krad_radio_station->krad_tags, tag_name, tag_value);
 
-			printf("set tag %s to %s\n", tag_name, tag_value);
+			printf("Set Tag %s to %s\n", tag_name, tag_value);
 			
 
 			*output_len = 666;
@@ -262,7 +263,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			tag_value = krad_tags_get_tag (krad_radio_station->krad_tags, tag_name);
 			
-			printf("get tag %s its %s\n", tag_name, tag_value);
+			printf("Get Tag %s - %s\n", tag_name, tag_value);
 			
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);

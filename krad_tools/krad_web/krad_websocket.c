@@ -127,7 +127,7 @@ void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
 	
-	printf ("got len %d data from browser: --%s--\n", len, value);
+	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
 
 
 	if (memcmp(value, "set_control:Music1:volume:", 26) == 0) {

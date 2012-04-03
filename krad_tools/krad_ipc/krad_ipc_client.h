@@ -57,7 +57,7 @@ struct krad_ipc_client_St {
 
 void krad_ipc_create_link (krad_ipc_client_t *client, char *name);
 void krad_ipc_list_links (krad_ipc_client_t *client);
-
+void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
 
 int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume );
 
