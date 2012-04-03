@@ -37,13 +37,15 @@ typedef enum {
 typedef enum {
 	CAPTURE = 200,
 	RECEIVE,
+	TRANSMIT,
+	PLAYBACK,
 	FAILURE,
 } krad_link_operation_mode_t;
 
 typedef enum {
 	TCP = 250,
 	UDP,
-	AFILE,
+	FILESYSTEM,
 	FAIL,
 } krad_link_transport_mode_t;
 

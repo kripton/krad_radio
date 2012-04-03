@@ -1,6 +1,5 @@
 #include "krad_link.h"
 
-extern int do_shutdown;
 extern int verbose;
 
 void krad_link_activate(krad_link_t *krad_link);
@@ -255,36 +254,15 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
-	//int len;
-	
-	if (krad_link->operation_mode == CAPTURE) {
-	
-	//	kradaudio_read (krad_link->krad_audio, 0, (char *)krad_link->samples[0], frames * 4 );
-	//	kradaudio_read (krad_link->krad_audio, 1, (char *)krad_link->samples[1], frames * 4 );
-
+	if (krad_link->operation_mode == RECEIVE) {
+		krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
+		krad_ringbuffer_read (krad_link->audio_output_ringbuffer[1], (char *)samples[1], frames * 4);
 	}
 
 	if (krad_link->operation_mode == CAPTURE) {
 		krad_link->audio_frames_captured += frames;
 		krad_ringbuffer_write (krad_link->audio_input_ringbuffer[0], (char *)samples[0], frames * 4);
 		krad_ringbuffer_write (krad_link->audio_input_ringbuffer[1], (char *)samples[1], frames * 4);
-		//printf("wrote %d frames\n", frames);
-	}
-	
-	if ((krad_link->operation_mode == RECEIVE) && (krad_link->audio_codec == VORBIS)) {
-		/*
-		len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 0, (char *)krad_link->samples[0], frames * 4);
-
-		if (len) {
-			kradaudio_write (krad_link->krad_audio, 0, (char *)krad_link->samples[0], len );
-		}
-
-		len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 1, (char *)krad_link->samples[1], frames * 4);
-
-		if (len) {
-			kradaudio_write (krad_link->krad_audio, 1, (char *)krad_link->samples[1], len );
-		}
-		*/
 	}
 	
 	if (krad_link->capture_audio == 2) {
@@ -294,7 +272,7 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 	
 }
 
-void *audio_encoding_thread(void *arg) {
+void *audio_encoding_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_audenc", 0, 0, 0);
 
@@ -1354,7 +1332,8 @@ void *udp_input_thread(void *arg) {
 		
 		if (ret == -1) {
 			printf("failed recvin udp\n");
-			krad_link_shutdown();
+			krad_link->destroy = 1;
+			continue;
 		}
 		
 		//printf("Received packet from %s:%d\n", 
@@ -1669,6 +1648,8 @@ void *audio_decoding_thread(void *arg) {
 	float *samples[KRAD_MIXER_MAX_CHANNELS];
 	int audio_frames;
 	
+	krad_mixer_portgroup_t *mixer_portgroup;	
+	
 	krad_link->audio_channels = 2;
 
 	for (h = 0; h < 3; h++) {
@@ -1677,6 +1658,7 @@ void *audio_decoding_thread(void *arg) {
 	}
 
 	for (c = 0; c < krad_link->audio_channels; c++) {
+		krad_link->audio_output_ringbuffer[c] = krad_ringbuffer_create (2000000);	
 		samples[c] = malloc(4 * 8192);
 		krad_link->samples[c] = malloc(4 * 8192);
 	}
@@ -1697,6 +1679,11 @@ void *audio_decoding_thread(void *arg) {
 	
 	krad_link->last_audio_codec = NOCODEC;
 	krad_link->audio_codec = NOCODEC;
+	
+	
+	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "StreamIn", INPUT, 2, 
+												   krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);
+	
 	
 	if (krad_link->udp_mode == 1) {
 		//usleep(150000);
@@ -1822,13 +1809,13 @@ void *audio_decoding_thread(void *arg) {
 				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 0, (char *)samples[0], 512);
 
 				if (len) {
-					//kradaudio_write (krad_link->krad_audio, 0, (char *)samples[0], len );
+					krad_ringbuffer_write (krad_link->audio_output_ringbuffer[0], (char *)samples[0], len);
 				}
 
 				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 1, (char *)samples[1], 512);
 
 				if (len) {
-					//kradaudio_write (krad_link->krad_audio, 1, (char *)samples[1], len );
+					krad_ringbuffer_write (krad_link->audio_output_ringbuffer[1], (char *)samples[1], len);
 				}
 			
 			}
@@ -1882,11 +1869,7 @@ void *audio_decoding_thread(void *arg) {
 		}
 	}
 	
-	// must be before vorbis
-	//if (krad_link->krad_audio != NULL) {
-	//	kradaudio_destroy (krad_link->krad_audio);
-	//	krad_link->krad_audio = NULL;
-	//}
+	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, mixer_portgroup);
 
 	if (krad_link->krad_vorbis != NULL) {
 		krad_vorbis_decoder_destroy (krad_link->krad_vorbis);
@@ -1909,7 +1892,8 @@ void *audio_decoding_thread(void *arg) {
 	
 	for (c = 0; c < krad_link->audio_channels; c++) {
 		free(krad_link->samples[c]);
-		free(samples[c]);	
+		free(samples[c]);
+		krad_ringbuffer_free ( krad_link->audio_output_ringbuffer[c] );		
 	}	
 
 	for (h = 0; h < 3; h++) {
@@ -2028,128 +2012,10 @@ void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
 
 }
 
-void daemonize() {
-
-	char *daemon_name;
-	pid_t pid, sid;
-	char err_log_file[98] = "";
-	char log_file[98] = "";
-	char *homedir = getenv ("HOME");
-	int i;
-	char timestamp[64];
-	FILE *fp;
-	time_t ltime;
-
-	daemon_name = "krad_link";
-
-	printf("Krad Link Daemonizing..\n");
-
-	pid = fork();
-
-	if (pid < 0) {
-		exit (EXIT_FAILURE);
-	}
-
-	if (pid > 0) {
-		exit (EXIT_SUCCESS);
-	}
-	
-	umask(0);
- 
-	sid = setsid();
-	
-	if (sid < 0) {
-		exit(EXIT_FAILURE);
-	}
-
-	if ((chdir("/")) < 0) {
-		exit(EXIT_FAILURE);
-	}
-
-	close (STDIN_FILENO);
-	//close(STDOUT_FILENO);
-	//close(STDERR_FILENO);
-
-	ltime = time (NULL);
-	
-	sprintf( timestamp, "%s", asctime (localtime(&ltime)) );
-
-	for (i = 0; i < strlen (timestamp); i++) {
-
-		if (timestamp[i] == ' ') {
-			timestamp[i] = '_';
-		}
-		
-		if (timestamp[i] == ':') {
-			timestamp[i] = '.';
-		}
-		
-		if (timestamp[i] == '\n') {
-			timestamp[i] = '\0';
-		}
-	}
-
-	sprintf(err_log_file, "%s/%s_%s_err.log", homedir, daemon_name, timestamp);
-	sprintf(log_file, "%s/%s_%s.log", homedir, daemon_name, timestamp);
-		
-	fp = freopen( err_log_file, "w", stderr );
-
-	if (fp == NULL) {
-		printf("Error in freopen stderr\n");
-	}
-
-	fp = freopen( log_file, "w", stdout );
-
-	if (fp == NULL) {
-		printf("Error in freopen stdout\n");
-	}
-        
-}
-
-void *signal_thread(void *arg) {
-
-	prctl (PR_SET_NAME, (unsigned long) "kradlink_sigcap", 0, 0, 0);
-
-	krad_link_t *krad_link = (krad_link_t *)arg;
-	
-	int s, sig;
-
-	s = sigwait(&krad_link->set, &sig);
-	if (s != 0) {
-		printf("\n\nproblem getting signal %d\n\n", sig);
-	}
-
-	printf("\n\nSignal handling thread got signal %d\n\n", sig);
-
-	//if (krad_link->krad_audio != NULL) {
-	//	krad_link->krad_audio->destroy = 1;
-	//}
-
-	krad_link_shutdown();
-
-	
-	return NULL;
-}
-
-void krad_link_shutdown() {
-
-	if (do_shutdown == 1) {
-		printf("\nKrad Link Terminated.\n");
-		exit(1);
-	}
-
-
-
-	do_shutdown = 1;
-
-}
 
 void krad_link_destroy (krad_link_t *krad_link) {
 
 	dbg ("Link shutting down\n");
-	//pthread_sigmask (SIG_UNBLOCK, &krad_link->set, NULL);
-	//signal(SIGINT, krad_link_shutdown);
-	//signal(SIGTERM, krad_link_shutdown);
 	
 	krad_link->destroy = 1;	
 	
@@ -2340,9 +2206,6 @@ void krad_link_activate(krad_link_t *krad_link) {
 	krad_link->display_width = krad_link->capture_width;
 	krad_link->display_height = krad_link->capture_height;
 
-	if (krad_link->interface_mode == DAEMON) {
-		daemonize();
-	}
 /*
 	sigemptyset(&krad_link->set);
 	sigaddset(&krad_link->set, SIGINT);
@@ -2539,14 +2402,25 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link = krad_linker->krad_link[k];
 					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->interface_mode = COMMAND;
-					krad_link->video_source = NOVIDEO;
-					krad_link->video_codec = NOCODEC;
-					krad_link->operation_mode = CAPTURE;
-					krad_link->av_mode = AUDIO_ONLY;
-					strcpy (krad_link->password, "secretkode");
-					krad_link->tcp_port = 9080;
-					strcpy (krad_link->host, "192.168.1.2");
-					sprintf (krad_link->mount, "/%s_%d.webm", krad_link->krad_radio->sysname, k);
+					if (k == 1) {
+						krad_link->video_source = NOVIDEO;
+						krad_link->video_codec = NOCODEC;
+						krad_link->operation_mode = RECEIVE;
+						krad_link->av_mode = AUDIO_ONLY;
+						krad_link->tcp_port = 19800;
+						strcpy (krad_link->host, "radio.hbr1.com");
+						sprintf (krad_link->mount, "/trance.ogg");
+					} else {
+						krad_link->video_source = NOVIDEO;
+						krad_link->video_codec = NOCODEC;
+						krad_link->operation_mode = CAPTURE;
+						krad_link->av_mode = AUDIO_ONLY;
+						strcpy (krad_link->password, "secretkode");
+						krad_link->tcp_port = 9080;
+						strcpy (krad_link->host, "192.168.1.2");
+						sprintf (krad_link->mount, "/%s_%d.webm", krad_link->krad_radio->sysname, k);
+					}
+					
 					krad_link_run (krad_link);
 					break;
 				}
