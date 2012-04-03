@@ -255,8 +255,14 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
 	if (krad_link->operation_mode == RECEIVE) {
-		krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
-		krad_ringbuffer_read (krad_link->audio_output_ringbuffer[1], (char *)samples[1], frames * 4);
+		if ((krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
+			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[1]) >= frames * 4)) {
+			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
+			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[1], (char *)samples[1], frames * 4);
+		} else {
+			memset(samples[0], '0', frames * 4);
+			memset(samples[1], '0', frames * 4);
+		}
 	}
 
 	if (krad_link->operation_mode == CAPTURE) {
@@ -319,7 +325,7 @@ void *audio_encoding_thread (void *arg) {
 	interleaved_samples = calloc(1, 1000000);
 	buffer = calloc(1, 1000000);
 	
-	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "MasterEnc", OUTPUT, 2, 
+	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, OUTPUT, 2, 
 												   krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);		
 		
 	switch (krad_link->audio_codec) {
@@ -1658,7 +1664,7 @@ void *audio_decoding_thread(void *arg) {
 	}
 
 	for (c = 0; c < krad_link->audio_channels; c++) {
-		krad_link->audio_output_ringbuffer[c] = krad_ringbuffer_create (2000000);	
+		krad_link->audio_output_ringbuffer[c] = krad_ringbuffer_create (4000000);	
 		samples[c] = malloc(4 * 8192);
 		krad_link->samples[c] = malloc(4 * 8192);
 	}
@@ -1681,7 +1687,7 @@ void *audio_decoding_thread(void *arg) {
 	krad_link->audio_codec = NOCODEC;
 	
 	
-	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "StreamIn", INPUT, 2, 
+	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, INPUT, 2, 
 												   krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);
 	
 	
@@ -1809,12 +1815,24 @@ void *audio_decoding_thread(void *arg) {
 				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 0, (char *)samples[0], 512);
 
 				if (len) {
+				
+					while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[0]) < len) {
+						//printf("wait!\n");
+						usleep(25000);
+					}
+				
 					krad_ringbuffer_write (krad_link->audio_output_ringbuffer[0], (char *)samples[0], len);
 				}
 
 				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 1, (char *)samples[1], 512);
 
 				if (len) {
+
+					while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[1]) < len) {
+						//printf("wait!\n");
+						usleep(25000);
+					}
+
 					krad_ringbuffer_write (krad_link->audio_output_ringbuffer[1], (char *)samples[1], len);
 				}
 			
@@ -2357,8 +2375,64 @@ void krad_link_activate(krad_link_t *krad_link) {
 
 }
 
+void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t *krad_link) {
 
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
 
+	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+	if (ebml_id != EBML_ID_KRAD_LINK_LINK) {
+		printf("hrm wtf\n");
+	} else {
+		//printf("tag size %zu\n", ebml_data_size);
+	}
+	
+	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->host, ebml_data_size);
+	
+	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+		printf("hrm wtf3\n");
+	} else {
+		//printf("tag value size %zu\n", ebml_data_size);
+	}
+
+	krad_link->tcp_port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+
+	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
+
+}
+
+void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t *krad_link) {
+
+	uint64_t link;
+
+	krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK, &link);	
+
+	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_HOST, krad_link->host);
+	krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->tcp_port);
+	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_MOUNT, krad_link->mount);
+	
+	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, link);
+
+}
 
 int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ipc ) {
 
@@ -2387,11 +2461,20 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 
 		case EBML_ID_KRAD_LINK_CMD_LIST_LINKS:
 			printf("krad linker handler! LIST_LINKS\n");
+			
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_LINK_MSG, &response);
+			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_LINK_LINK_LIST, &element);	
+			
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] != NULL) {
 					printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+					krad_linker_link_to_ebml ( krad_ipc, krad_linker->krad_link[k]);
 				}
-			}			
+			}
+			
+			krad_ipc_server_response_list_finish ( krad_ipc, element );
+			krad_ipc_server_response_finish ( krad_ipc, response );	
+						
 			break;
 		case EBML_ID_KRAD_LINK_CMD_CREATE_LINK:
 			printf("krad linker handler! CREATE_LINK\n");
@@ -2402,23 +2485,32 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link = krad_linker->krad_link[k];
 					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->interface_mode = COMMAND;
-					if (k == 1) {
-						krad_link->video_source = NOVIDEO;
-						krad_link->video_codec = NOCODEC;
+
+					krad_link->video_source = NOVIDEO;
+					krad_link->video_codec = NOCODEC;
+					krad_link->av_mode = AUDIO_ONLY;
+
+					sprintf (krad_link->sysname, "link%d", k);
+
+					if (k != 1) {
 						krad_link->operation_mode = RECEIVE;
-						krad_link->av_mode = AUDIO_ONLY;
+
 						krad_link->tcp_port = 19800;
-						strcpy (krad_link->host, "radio.hbr1.com");
+						strcpy (krad_link->host, "radio.hbr1.com");						
 						sprintf (krad_link->mount, "/trance.ogg");
+						
+						krad_linker_ebml_to_link ( krad_ipc, krad_link);
+						
 					} else {
-						krad_link->video_source = NOVIDEO;
-						krad_link->video_codec = NOCODEC;
 						krad_link->operation_mode = CAPTURE;
-						krad_link->av_mode = AUDIO_ONLY;
 						strcpy (krad_link->password, "secretkode");
 						krad_link->tcp_port = 9080;
 						strcpy (krad_link->host, "192.168.1.2");
+
 						sprintf (krad_link->mount, "/%s_%d.webm", krad_link->krad_radio->sysname, k);
+						
+						krad_linker_ebml_to_link ( krad_ipc, krad_link);
+
 					}
 					
 					krad_link_run (krad_link);

@@ -209,7 +209,7 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 			break;
 		case KRAD_LINK:
 			if (portgroup->direction == INPUT) {
-				krad_link_audio_samples_callback (nframes, portgroup->io_ptr, portgroup->samples);
+				krad_link_audio_samples_callback (nframes, portgroup->io_ptr, &portgroup->samples[0]);
 			}
 			break;
 	}
@@ -413,7 +413,9 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 			case KRAD_AUDIO:
 				break;
 			case KRAD_LINK:
-				portgroup->samples[c] = calloc (1, 16384);
+				//if (portgroup->direction == INPUT) {
+					portgroup->samples[c] = calloc (1, 16384);
+				//}
 				break;
 		}
 	}

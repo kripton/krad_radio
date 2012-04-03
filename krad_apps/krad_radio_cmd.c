@@ -47,14 +47,15 @@ int main (int argc, char *argv[]) {
 			
 			
 			if (strncmp(argv[2], "link", 4) == 0) {
-				if (argc == 3) {
-					krad_ipc_create_link (client, NULL);
+				if (argc == 6) {
+					krad_ipc_create_link (client, argv[3], atoi(argv[4]), argv[5]);
 				}
 			}
 		
 			if (strncmp(argv[2], "ls", 2) == 0) {
 				if (argc == 3) {
 					krad_ipc_list_links (client);
+					krad_ipc_print_response (client);
 				}
 			}	
 			
