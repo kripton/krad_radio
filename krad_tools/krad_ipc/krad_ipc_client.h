@@ -55,6 +55,9 @@ struct krad_ipc_client_St {
 };
 
 
+void krad_ipc_weboff (krad_ipc_client_t *client);
+void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_port);
+
 void krad_ipc_create_link (krad_ipc_client_t *client, char *host, int port, char *mount);
 void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);

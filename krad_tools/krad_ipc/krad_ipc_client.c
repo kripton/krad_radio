@@ -204,6 +204,46 @@ void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_valu
 
 }
 
+void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_port) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t webon;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_WEB_ENABLE, &webon);	
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_HTTP_PORT, http_port);	
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_WEBSOCKET_PORT, websocket_port);	
+
+	krad_ebml_finish_element (client->krad_ebml, webon);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_weboff (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t weboff;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_WEB_DISABLE, &weboff);
+
+	krad_ebml_finish_element (client->krad_ebml, weboff);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr) {
 
 	client->handler = handler;

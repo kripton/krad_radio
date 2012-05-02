@@ -59,11 +59,25 @@ int main (int argc, char *argv[]) {
 				}
 			}	
 			
+			if (strncmp(argv[2], "webon", 5) == 0) {
+				if (argc == 5) {
+					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]));
+					krad_ipc_print_response (client);
+				}
+			}			
+			
+			if (strncmp(argv[2], "weboff", 5) == 0) {
+				if (argc == 3) {
+					krad_ipc_weboff (client);
+					krad_ipc_print_response (client);
+				}
+			}			
+			
 			if (strncmp(argv[2], "rm", 2) == 0) {
 				if (argc == 4) {
 					krad_ipc_destroy_link (client, atoi(argv[3]));
 				}
-			}	
+			}
 			
 			usleep(80000);
 			krad_ipc_disconnect (client);

@@ -599,10 +599,10 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	
 }
 
-
+/*
 void krad_mixer_default_setup (krad_mixer_t *krad_mixer) {
 
-	/* default portgroups setup */
+	// default portgroups setup
 
 	krad_mixer_portgroup_t *music1, *music2;
 	
@@ -616,6 +616,7 @@ void krad_mixer_default_setup (krad_mixer_t *krad_mixer) {
 	krad_mixer_crossfade_group_create (krad_mixer, music1, music2);
 
 }
+*/
 
 krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 
@@ -638,7 +639,9 @@ krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 	
 	krad_mixer->krad_audio = krad_audio_create (krad_mixer);
 
-	krad_mixer_default_setup ( krad_mixer );
+	//krad_mixer_default_setup ( krad_mixer );
+	
+	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
 	
 	return krad_mixer;
 	

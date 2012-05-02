@@ -78,9 +78,9 @@ gcc -g -Wall krad_radio.c \
 -I /usr/local/include/opus/ \
 -I../krad_tools/krad_gui/ \
 ../krad_tools/krad_gui/krad_gui.c \
-/usr/lib/libswscale.a \
+/usr/lib/x86_64-linux-gnu/libswscale.a \
 -D_REENTRANT -Wl,-rpath,/usr/lib -L/usr/lib -lm \
-/usr/lib/libavutil.a \
+/usr/lib/x86_64-linux-gnu/libavutil.a \
 /usr/lib/libspeexdsp.a \
 /usr/local/lib/libvpx.a \
 /usr/local/lib/libtheora.a \

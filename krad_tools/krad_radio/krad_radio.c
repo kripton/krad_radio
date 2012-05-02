@@ -134,25 +134,7 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
-	
-	/* fixme - should be added after the fact via ipc command */
-	
-		krad_radio->krad_websocket = krad_websocket_server_create (sysname, 46001);
-	
-		if (krad_radio->krad_websocket == NULL) {
-			krad_radio_destroy (krad_radio);
-			return NULL;
-		}	
-	
-		krad_radio->krad_http = krad_http_server_create (46000);
-	
-		if (krad_radio->krad_http == NULL) {
-			krad_radio_destroy (krad_radio);
-			return NULL;
-		}	
-	
-	/* end fixme */
-	
+		
 	return krad_radio;
 
 }
@@ -192,12 +174,13 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 	krad_radio_t *krad_radio_station = (krad_radio_t *)ptr;
 	
+	uint32_t ebml_id;	
 	uint32_t command;
 	uint64_t ebml_data_size;
 	uint64_t element;
 	uint64_t response;
 //	uint64_t broadcast;
-//	uint64_t number;
+	uint64_t numbers[10];
 	
 	char tag_name_actual[256];
 	char tag_value_actual[1024];
@@ -212,6 +195,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	
 	i = 0;
 	command = 0;
+	ebml_id = 0;
 	ebml_data_size = 0;
 	element = 0;
 	response = 0;
@@ -221,17 +205,19 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	krad_ipc_server_read_command ( krad_radio_station->krad_ipc, &command, &ebml_data_size);
 
 	switch ( command ) {
-	
-		case EBML_ID_KRAD_RADIO_CMD:
-			printf("Krad Radio Command\n");
-			return krad_radio_handler ( output, output_len, ptr );
+		
+		/* Handoffs */
 		case EBML_ID_KRAD_MIXER_CMD:
 			printf("Krad Mixer Command\n");
 			return krad_mixer_handler ( krad_radio_station->krad_mixer, krad_radio_station->krad_ipc );
 		case EBML_ID_KRAD_LINK_CMD:
 			printf("Krad Link Command\n");
 			return krad_linker_handler ( krad_radio_station->krad_linker, krad_radio_station->krad_ipc );
-			return 0;
+
+		/* Krad Radio Commands */
+		case EBML_ID_KRAD_RADIO_CMD:
+			printf("Krad Radio Command\n");
+			return krad_radio_handler ( output, output_len, ptr );
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
 			printf("LIST_TAGS\n");
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
@@ -245,7 +231,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ipc_server_response_list_finish ( krad_radio_station->krad_ipc, element);
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			return 1;
-			break;
+
 		case EBML_ID_KRAD_RADIO_CMD_SET_TAG:
 			
 			krad_ipc_server_read_tag ( krad_radio_station->krad_ipc, &tag_name, &tag_value );
@@ -257,7 +243,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 			*output_len = 666;
 			return 2;
-			break;	
+
 		case EBML_ID_KRAD_RADIO_CMD_GET_TAG:
 			krad_ipc_server_read_tag ( krad_radio_station->krad_ipc, &tag_name, &tag_value );
 			
@@ -268,15 +254,53 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
-			
 
 			return 1;
-			break;
+			
+		case EBML_ID_KRAD_RADIO_CMD_WEB_ENABLE:
+		
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_HTTP_PORT) {
+				printf("hrm wtf5\n");
+			}
+			
+			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);	
+
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_WEBSOCKET_PORT) {
+				printf("hrm wtf6\n");
+			}
+			
+			numbers[1] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
+		
+			// Remove existing if existing (ie. I am changing the port)
+			if (krad_radio_station->krad_http != NULL) {
+				krad_http_server_destroy (krad_radio_station->krad_http);
+			}
+			if (krad_radio_station->krad_websocket != NULL) {
+				krad_websocket_server_destroy (krad_radio_station->krad_websocket);
+			}		
+		
+			krad_radio_station->krad_http = krad_http_server_create ( numbers[0] );
+			krad_radio_station->krad_websocket = krad_websocket_server_create ( krad_radio_station->sysname, numbers[1] );
+		
+			return 0;
+		
+		case EBML_ID_KRAD_RADIO_CMD_WEB_DISABLE:
+			
+			krad_http_server_destroy (krad_radio_station->krad_http);
+			krad_websocket_server_destroy (krad_radio_station->krad_websocket);			
+			
+			krad_radio_station->krad_http = NULL;
+			krad_radio_station->krad_websocket = NULL;
+			
+			return 0;
 			
 		default:
-			printf("unknown command! %u\n", command);
+			printf("Krad Radio Command Unknown! %u\n", command);
 			return 0;
-			break;
 	}
 
 	return 0;
