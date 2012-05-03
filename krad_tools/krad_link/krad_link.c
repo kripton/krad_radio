@@ -939,7 +939,7 @@ void krad_link_composite(krad_link_t *krad_link) {
 				if (krad_link->link_started == 0) {
 					krad_link->link_started = 1;
 					//krad_link->krad_gui->render_ftest = 1;
-					kradgui_go_live(krad_link->krad_gui);
+					//kradgui_go_live(krad_link->krad_gui);
 				}
 		
 				krad_link->new_capture_frame = 1;
@@ -1005,12 +1005,12 @@ void krad_link_composite(krad_link_t *krad_link) {
 			}
 			*/
 		}
-	
 
 		kradgui_render_meter (krad_link->krad_gui, 110, krad_link->composite_height - 30, 96, krad_link->krad_gui->output_current[0]);
 		kradgui_render_meter (krad_link->krad_gui, krad_link->composite_width - 110, krad_link->composite_height - 30, 96, krad_link->krad_gui->output_current[1]);
 	}
 	
+	kradgui_render_hex (krad_link->krad_gui, 1150, 100, 33);	
 	
 	if ((krad_link->operation_mode == CAPTURE) && (krad_link->video_source != NOVIDEO)) {
 	
