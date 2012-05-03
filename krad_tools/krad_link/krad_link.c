@@ -2486,13 +2486,14 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->interface_mode = COMMAND;
 
-					krad_link->video_source = NOVIDEO;
-					krad_link->video_codec = NOCODEC;
-					krad_link->av_mode = AUDIO_ONLY;
+					krad_link->audio_codec = NOCODEC;
+					krad_link->video_source = DECKLINK;
+					krad_link->video_codec = VP8;
+					krad_link->av_mode = VIDEO_ONLY;
 
 					sprintf (krad_link->sysname, "link%d", k);
 
-					if (k != 1) {
+					if (k != 0) {
 						krad_link->operation_mode = RECEIVE;
 
 						krad_link->tcp_port = 19800;
@@ -2503,9 +2504,12 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						
 					} else {
 						krad_link->operation_mode = CAPTURE;
-						strcpy (krad_link->password, "secretkode");
-						krad_link->tcp_port = 9080;
-						strcpy (krad_link->host, "192.168.1.2");
+						
+						krad_link->capture_fps = 30;
+						
+						strcpy (krad_link->password, "firefox");
+						krad_link->tcp_port = 8000;
+						strcpy (krad_link->host, "ec2-50-112-77-171.us-west-2.compute.amazonaws.com");
 
 						sprintf (krad_link->mount, "/%s_%d.webm", krad_link->krad_radio->sysname, k);
 						

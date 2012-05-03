@@ -86,6 +86,15 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 	timecodeFormat = 0;
 	frame_data_size = 0;
 	
+	if (krad_decklink_capture->skip_frame == 1) {
+		krad_decklink_capture->skip_frame = 0;
+	    return S_OK;
+	}
+	
+	if (krad_decklink_capture->skip_frame == 0) {
+		krad_decklink_capture->skip_frame = 1;
+	}	
+	
 	if (video_frame) {
 
 		if (video_frame->GetFlags() & bmdFrameHasNoInputSource) {
@@ -157,7 +166,8 @@ krad_decklink_capture_t *krad_decklink_capture_create() {
 	
 	krad_decklink_capture->pixel_format = bmdFormat8BitYUV;
 	//krad_decklink_capture->pixel_format = bmdFormat8BitARGB;	
-	krad_decklink_capture->display_mode = bmdModeHD1080p30;
+	krad_decklink_capture->display_mode = bmdModeHD720p5994;
+	krad_decklink_capture->display_mode = bmdModeHD720p60;
 	krad_decklink_capture->inputFlags = 0;
 	
 	krad_decklink_capture->audio_sample_rate = bmdAudioSampleRate48kHz;

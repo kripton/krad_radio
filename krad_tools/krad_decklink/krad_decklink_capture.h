@@ -40,6 +40,9 @@ struct krad_decklink_capture_St {
 	HRESULT result;
 	
 	int verbose;
+
+	int skip_frame;
+	int skip_frames;
 	
 	BMDDisplayMode display_mode;
 	BMDPixelFormat pixel_format;
