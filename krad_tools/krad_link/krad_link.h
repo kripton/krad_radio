@@ -12,7 +12,7 @@ typedef struct krad_linker_St krad_linker_t;
 
 #define APPVERSION "Krad Link 2.42"
 #define KRAD_LINKER_MAX_LINKS 42
-#define DEFAULT_VPX_BITRATE 1000
+#define DEFAULT_VPX_BITRATE 200 * 8
 #define HELP -1337
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 15
 #define DEFAULT_ENCODING_BUFFER_FRAMES 15

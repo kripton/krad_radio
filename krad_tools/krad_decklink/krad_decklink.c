@@ -1,12 +1,12 @@
 #include "krad_decklink.h"
 
-void krad_decklink_info(krad_decklink_t *krad_decklink) {
+void krad_decklink_info (krad_decklink_t *krad_decklink) {
 
 	krad_decklink_capture_info();
 
 }
 
-void krad_decklink_destroy(krad_decklink_t *krad_decklink) {
+void krad_decklink_destroy (krad_decklink_t *krad_decklink) {
 
 	int c;
 	
@@ -28,7 +28,7 @@ krad_decklink_t *krad_decklink_create() {
 
 	krad_decklink_t *krad_decklink = (krad_decklink_t *)calloc(1, sizeof(krad_decklink_t));
 	
-	krad_decklink->captured_frame_rgb = malloc(1920 * 1080 * 4); 
+	krad_decklink->captured_frame_rgb = malloc(1920 * 1080 * 4);
 	
 	for (c = 0; c < 2; c++) {
 		krad_decklink->samples[c] = malloc(4 * 8192);
@@ -38,7 +38,7 @@ krad_decklink_t *krad_decklink_create() {
 
 }
 
-void krad_decklink_set_verbose(krad_decklink_t *krad_decklink, int verbose) {
+void krad_decklink_set_verbose (krad_decklink_t *krad_decklink, int verbose) {
 
 	krad_decklink->verbose = verbose;
 	if (krad_decklink->krad_decklink_capture != NULL) {

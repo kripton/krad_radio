@@ -159,7 +159,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_vpx_encoder_set(krad_link->krad_vpx_encoder, &krad_link->vpx_encoder_config);
 
-	krad_link->krad_vpx_encoder->quality = 1000 * ((krad_link->encoding_fps / 4) * 3);
+	krad_link->krad_vpx_encoder->quality = 1000 * krad_link->encoding_fps;
 
 	dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 	
