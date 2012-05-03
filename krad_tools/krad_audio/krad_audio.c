@@ -93,12 +93,61 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 
 void krad_audio_portgroup_destroy (krad_audio_portgroup_t *portgroup) {
 
+	int p;
+	int j;
+	
+	j = 0;
+	portgroup->active = 2;
+
+	switch (portgroup->audio_api) {
+	
+		case JACK:
+			krad_jack_portgroup_destroy (portgroup->api_portgroup);
+			// if there is no jack portgroups, disconnect from jack
+			for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+				if ((portgroup->krad_audio->portgroup[p]->active != 0) &&
+					(portgroup->krad_audio->portgroup[p] != portgroup) &&
+					(portgroup->krad_audio->portgroup[p]->audio_api == JACK)) {
+					j++;
+					break;
+				}
+			}
+			
+			if ((j == 0) && (portgroup->krad_audio->krad_jack != NULL)) {
+				krad_jack_destroy (portgroup->krad_audio->krad_jack);
+				portgroup->krad_audio->krad_jack = NULL;
+			}
+				
+			break;
+		case ALSA:
+			break;
+		case PULSE:
+			break;
+		case TONE:		
+			break;
+		case NOAUDIO:
+			break;
+		case DECKLINKAUDIO:
+			break;
+	}
+
+	portgroup->active = 0;
+
 }
 
 
 void krad_audio_destroy (krad_audio_t *krad_audio) {
+	
+	int p;
 
 	krad_audio->destroy = 1;
+	
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		if (krad_audio->portgroup[p]->active != 0) {
+			krad_audio_portgroup_destroy ( krad_audio->portgroup[p] );
+		}
+	}	
+	
 	/*
 	switch (krad_audio->audio_api) {
 	
@@ -143,7 +192,7 @@ krad_audio_t *krad_audio_create (krad_mixer_t *krad_mixer) {
 	int p;
 	
 	if ((krad_audio = calloc (1, sizeof (krad_audio_t))) == NULL) {
-		fprintf(stderr, "mem alloc fail\n");
+		fprintf(stderr, "Krad Audio memory alloc fail\n");
 		exit (1);
 	}
 

@@ -243,6 +243,47 @@ void krad_ipc_weboff (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t destroy;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_CREATE_PORTGROUP, &destroy);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION, direction);
+	
+	krad_ebml_finish_element (client->krad_ebml, destroy);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *name) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t destroy;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP, &destroy);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
+
+	krad_ebml_finish_element (client->krad_ebml, destroy);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr) {
 
@@ -552,7 +593,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char 
 	
 }
 
-int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume  ) {
+int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;

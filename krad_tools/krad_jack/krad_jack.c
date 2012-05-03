@@ -105,10 +105,17 @@ void krad_jack_portgroup_destroy (krad_jack_portgroup_t *portgroup) {
 	int c;
 	
 	for (c = 0; c < portgroup->channels; c++) {
+
+		jack_port_unregister (portgroup->krad_jack->client, portgroup->ports[c]);	
+	
+		portgroup->ports[c] = NULL;
+	
 		if (portgroup->direction == INPUT) {		
 			free (portgroup->samples[c]);
 		}
 	}
+	
+	free (portgroup);
 }
 
 

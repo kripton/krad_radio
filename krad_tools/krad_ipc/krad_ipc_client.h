@@ -54,6 +54,9 @@ struct krad_ipc_client_St {
 
 };
 
+// FIXME creation is functionally incomplete
+void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction);
+void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *portgroupname);
 
 void krad_ipc_weboff (krad_ipc_client_t *client);
 void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_port);

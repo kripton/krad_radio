@@ -48,6 +48,7 @@ struct krad_jack_St {
 
 void krad_jack_portgroup_samples_callback (int frames, void *userdata, float **samples);
 
+void krad_jack_portgroup_destroy (krad_jack_portgroup_t *portgroup);
 krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char *name, int direction, int channels);
 
 void krad_jack_destroy (krad_jack_t *jack);

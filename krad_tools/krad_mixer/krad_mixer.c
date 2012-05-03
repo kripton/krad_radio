@@ -373,6 +373,15 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 	krad_mixer_portgroup_t *portgroup;
 	
 	portgroup = NULL;
+
+	/* prevent dupe names */
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		if (krad_mixer->portgroup[p]->active != 0) {
+			if (strcmp(sysname, krad_mixer->portgroup[p]->sysname) == 0) {
+				return NULL;
+			}
+		}
+	}
 	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		if (krad_mixer->portgroup[p]->active == 0) {
@@ -442,6 +451,10 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 
 	int c;
 
+	if (portgroup == NULL) {
+		return;
+	}
+
 	portgroup->active = 2;
 
 	while (portgroup->active != 0) {
@@ -463,6 +476,18 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 				break;
 		}
 	}
+	
+
+	switch ( portgroup->io_type ) {
+		case MIXBUS:
+			break;
+		case KRAD_AUDIO:
+			krad_audio_portgroup_destroy (portgroup->io_ptr);
+			break;
+		case KRAD_LINK:
+			break;
+	}
+	
 }
 
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname) {
@@ -473,7 +498,7 @@ krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *kra
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active)) {
-			if (strncmp(sysname, portgroup->sysname, strlen(sysname)) == 0) {	
+			if (strcmp(sysname, portgroup->sysname) == 0) {	
 				return portgroup;
 			}
 		}
@@ -605,8 +630,6 @@ void krad_mixer_default_setup (krad_mixer_t *krad_mixer) {
 	// default portgroups setup
 
 	krad_mixer_portgroup_t *music1, *music2;
-	
-	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
 
 	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);
 	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);
@@ -625,7 +648,7 @@ krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 	krad_mixer_t *krad_mixer;
 
 	if ((krad_mixer = calloc (1, sizeof (krad_mixer_t))) == NULL) {
-		fprintf (stderr, "mem alloc fail\n");
+		fprintf (stderr, "Krad Mixer memory alloc failure\n");
 		exit (1);
 	}
 	
@@ -638,8 +661,6 @@ krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 	}
 	
 	krad_mixer->krad_audio = krad_audio_create (krad_mixer);
-
-	//krad_mixer_default_setup ( krad_mixer );
 	
 	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
 	
@@ -665,9 +686,14 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	ebml_id = 0;
 	
 	char portname[1024];
+	char portgroupname[1024];
 	char controlname[1024];	
 	float floatval;
-	
+
+	char string[1024];
+	int direction;
+
+	direction = 0;
 	//i = 0;
 	
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
@@ -746,11 +772,52 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			krad_ipc_server_response_finish ( krad_ipc, response );
 			return 1;
 			break;
+		// FIXME create / remove portgroup need broadcast	
 		case EBML_ID_KRAD_MIXER_CMD_CREATE_PORTGROUP:
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION ) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+
+			if (strncmp(string, "output", 6) == 0) {
+				direction = OUTPUT;
+			} else {
+				direction = INPUT;
+			}
+
+			krad_mixer_portgroup_create (krad_mixer, portgroupname, direction, 2,
+										 krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);			
 		
 			break;
 		case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:	
-		
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
+			
+			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname));
 		
 			break;			
 	}
