@@ -517,7 +517,7 @@ void *stream_output_thread(void *arg) {
 	
 	if (krad_link->video_source != NOVIDEO) {
 	
-		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1001,
+		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1000,
 											 			 krad_link->encoding_width, krad_link->encoding_height);
 	}	
 	
