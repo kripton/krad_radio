@@ -54,6 +54,8 @@ struct krad_ipc_client_St {
 
 };
 
+void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size);
+
 // FIXME creation is functionally incomplete
 void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction);
 void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *portgroupname);

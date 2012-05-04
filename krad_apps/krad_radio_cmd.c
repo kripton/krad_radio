@@ -104,6 +104,15 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			/* Krad Compositor Commands */			
+
+			if (strncmp(argv[2], "hex", 3) == 0) {
+				if (argc == 6) {
+					krad_ipc_compositor_hex (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
+				}
+			}			
+			
+			
 			usleep(80000);
 			krad_ipc_disconnect (client);
 		}

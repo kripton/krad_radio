@@ -517,7 +517,7 @@ void *stream_output_thread(void *arg) {
 	
 	if (krad_link->video_source != NOVIDEO) {
 	
-		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1000,
+		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1001,
 											 			 krad_link->encoding_width, krad_link->encoding_height);
 	}	
 	
@@ -760,177 +760,6 @@ void krad_link_display(krad_link_t *krad_link) {
 
 }
 
-void krad_link_composite(krad_link_t *krad_link) {
-
-	int c;	
-
-	/*
-	kradgui_remove_bug (krad_link->krad_gui);
-	kradgui_set_bug (krad_link->krad_gui, krad_link->bug, krad_link->bug_x, krad_link->bug_y);
-	krad_link->krad_gui->live = 0;
-	krad_link->krad_gui->live = 1;
-
-	krad_link->krad_gui->bug_alpha += 0.1f;
-	if (krad_link->krad_gui->bug_alpha > 1.0f) {
-		krad_link->krad_gui->bug_alpha = 1.0f;
-	}
-
-	krad_link->krad_gui->bug_alpha -= 0.1f;
-	if (krad_link->krad_gui->bug_alpha < 0.1f) {
-		krad_link->krad_gui->bug_alpha = 0.1f;
-	}
-
-	krad_link->krad_gui->render_ftest = 1;
-
-	krad_link->render_meters = 0;
-
-	krad_link->render_meters = 1;
-	*/
-
-
-	if (krad_link->operation_mode == RECEIVE) {
-		
-		krad_link->krad_gui->clear = 0;
-		krad_link->new_capture_frame = 1;
-		
-		kradgui_update_elapsed_time(krad_link->krad_gui);
-
-		if (krad_ringbuffer_read_space(krad_link->decoded_frames_buffer) >= krad_link->composited_frame_byte_size + 8) {
-	
-			if (krad_link->current_frame_timecode == 0) {
-				krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
-									 (char *)&krad_link->current_frame_timecode, 
-									 8 );
-									 
-				if (krad_link->current_frame_timecode == 0) {
-					//first frame kludge
-					krad_link->current_frame_timecode = 1;
-				}
-									 
-			}
-			
-			if (krad_link->current_frame_timecode != 0) {
-			
-				if (krad_link->current_frame_timecode <= krad_link->krad_gui->elapsed_time_ms + 18) {
-					krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
-										 (char *)krad_link->current_frame, 
-										 krad_link->composited_frame_byte_size );
-								 
-					//printf("Current Frame Timecode: %zu Current Elapsed Time %u \r", krad_link->current_frame_timecode, krad_link->krad_gui->elapsed_time_ms);
-					//fflush(stdout);
-					krad_link->current_frame_timecode = 0;
-				}
-			}
-		
-		}
-
-		memcpy( krad_link->krad_gui->data, krad_link->current_frame, krad_link->krad_gui->bytes );
-	
-	}
-	
-	if (krad_link->operation_mode == CAPTURE) {
-		if (krad_link->capturing) {
-			if (krad_ringbuffer_read_space(krad_link->captured_frames_buffer) >= krad_link->composited_frame_byte_size) {
-	
-				krad_ringbuffer_read(krad_link->captured_frames_buffer, 
-										 (char *)krad_link->current_frame, 
-										 krad_link->composited_frame_byte_size );
-		
-				if (krad_link->link_started == 0) {
-					krad_link->link_started = 1;
-					//krad_link->krad_gui->render_ftest = 1;
-					//kradgui_go_live(krad_link->krad_gui);
-				}
-		
-				krad_link->new_capture_frame = 1;
-			} else {
-				krad_link->new_capture_frame = 0;
-			}
-
-			memcpy( krad_link->krad_gui->data, krad_link->current_frame, krad_link->krad_gui->bytes );
-	
-		} else {
-			krad_link->capture_audio = 1;
-			krad_link->new_capture_frame = 1;
-			krad_link->link_started = 1;
-		}
-	}
-		
-	if (krad_link->video_source == X11) {
-		//kludgey
-		krad_link->krad_gui->frame++;
-	
-		krad_x11_capture(krad_link->krad_x11, (unsigned char *)krad_link->krad_gui->data);
-	} else {
-		kradgui_render( krad_link->krad_gui );
-	}
-	
-	if (krad_link->render_meters) {
-		if ((krad_link->new_capture_frame == 1) || (krad_link->operation_mode == RECEIVE)) {
-			/*
-			if (krad_link->krad_audio != NULL) {
-				for (c = 0; c < krad_link->audio_channels; c++) {
-				
-					if (krad_link->operation_mode == CAPTURE) {
-						krad_link->temp_peak = read_peak(krad_link->krad_audio, KINPUT, c);
-					} else {
-						krad_link->temp_peak = read_peak(krad_link->krad_audio, KOUTPUT, c);
-					}
-				
-					if (krad_link->temp_peak >= krad_link->krad_gui->output_peak[c]) {
-						if (krad_link->temp_peak > 2.7f) {
-							krad_link->krad_gui->output_peak[c] = krad_link->temp_peak;
-							krad_link->kick = ((krad_link->krad_gui->output_peak[c] - krad_link->krad_gui->output_current[c]) / 300.0);
-						}
-					} else {
-						if (krad_link->krad_gui->output_peak[c] == krad_link->krad_gui->output_current[c]) {
-							krad_link->krad_gui->output_peak[c] -= (0.9 * (60/krad_link->capture_fps));
-							if (krad_link->krad_gui->output_peak[c] < 0.0f) {
-								krad_link->krad_gui->output_peak[c] = 0.0f;
-							}
-							krad_link->krad_gui->output_current[c] = krad_link->krad_gui->output_peak[c];
-						}
-					}
-			
-					if (krad_link->krad_gui->output_peak[c] > krad_link->krad_gui->output_current[c]) {
-						krad_link->krad_gui->output_current[c] = (krad_link->krad_gui->output_current[c] + 1.4) * (1.3 + krad_link->kick); ;
-					}
-		
-					if (krad_link->krad_gui->output_peak[c] < krad_link->krad_gui->output_current[c]) {
-						krad_link->krad_gui->output_current[c] = krad_link->krad_gui->output_peak[c];
-					}
-			
-			
-				}
-			}
-			*/
-		}
-
-		kradgui_render_meter (krad_link->krad_gui, 110, krad_link->composite_height - 30, 96, krad_link->krad_gui->output_current[0]);
-		kradgui_render_meter (krad_link->krad_gui, krad_link->composite_width - 110, krad_link->composite_height - 30, 96, krad_link->krad_gui->output_current[1]);
-	}
-	
-	kradgui_render_hex (krad_link->krad_gui, 1150, 100, 33);	
-	
-	if ((krad_link->operation_mode == CAPTURE) && (krad_link->video_source != NOVIDEO)) {
-	
-		if ((krad_link->link_started == 1) && (krad_link->new_capture_frame == 1) && (krad_ringbuffer_write_space(krad_link->composited_frames_buffer) >= krad_link->composited_frame_byte_size)) {
-
-				krad_ringbuffer_write(krad_link->composited_frames_buffer, 
-									  (char *)krad_link->krad_gui->data, 
-									  krad_link->composited_frame_byte_size );
-
-		} else {
-	
-			if ((krad_link->link_started == 1) && (krad_link->new_capture_frame == 1)) {
-				dbg("encoding to slow! overflow!\n");
-			}
-	
-		}
-	}
-		
-}
-
 void *krad_link_run_thread (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
@@ -940,49 +769,24 @@ void *krad_link_run_thread (void *arg) {
 	if (krad_link->operation_mode == RECEIVE) {
 	
 		while (!krad_link->destroy) {
-
-			if (krad_link->interface_mode != WINDOW) {
-	
-				usleep(40000);
-
-			} else {
-
-				
-				krad_link_composite(krad_link);
-				krad_link_display(krad_link);
-			}
+			usleep(40000);
 		}
-
 	
 	} else {
 
 		while (!krad_link->destroy) {
 
-			if ((krad_link->capturing) && (krad_link->interface_mode != WINDOW)) {
-				while (krad_ringbuffer_read_space(krad_link->captured_frames_buffer) < krad_link->composited_frame_byte_size) {
+			if (krad_link->capturing) {
+				while (krad_ringbuffer_read_space (krad_link->captured_frames_buffer) < krad_link->composited_frame_byte_size) {
 					usleep(5000);
 				}
 			}
 
-			if (!krad_link->capturing) {
-			
-			}
-
 			if (krad_link->operation_mode == CAPTURE) {
-
-				krad_link_composite ( krad_link );
-
+				krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
 			}
 
-			if (krad_link->interface_mode == WINDOW) {
-				krad_link_display(krad_link);
-			}
-		
-		
-		
 			if ((!krad_link->capturing) || (krad_link->video_source == X11)) {
-			
-				// Waiting so that test signal creation is "in actual time" like live video sources
 
 				//FIXME this needs to be calculated with frame duration in nanoseconds
 			
@@ -1003,7 +807,6 @@ void *krad_link_run_thread (void *arg) {
 				fflush(stdout);
 	
 			}
-		
 		}
 	}
 
@@ -1468,8 +1271,6 @@ void *video_decoding_thread(void *arg) {
 				}
 				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
 				krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
-
-				//dbg("wrote %d to decoded frames buffer\n", krad_link->composited_frame_byte_size);
 			}
 		}
 			
@@ -2037,7 +1838,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	krad_ringbuffer_free ( krad_link->encoded_video_ringbuffer );
 
 	free(krad_link->current_encoding_frame);
-	free(krad_link->current_frame);
+	//free(krad_link->current_frame);
 
 	if (krad_link->video_source == X11) {
 		krad_x11_destroy (krad_link->krad_x11);
@@ -2141,7 +1942,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 	
 	krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
-	krad_link->current_frame = calloc(1, krad_link->composited_frame_byte_size);
+	//krad_link->current_frame = calloc(1, krad_link->composited_frame_byte_size);
 	krad_link->current_encoding_frame = calloc(1, krad_link->composited_frame_byte_size);
 
 	if (krad_link->video_source == V4L2) {
@@ -2170,23 +1971,16 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 		
 	krad_link->captured_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->capture_buffer_frames);
-	krad_link->composited_frames_buffer = krad_link->krad_linker->composited_frames_buffer;
+	krad_link->composited_frames_buffer = krad_link->krad_linker->krad_radio->krad_compositor->composited_frames_buffer;
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
 	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (2000000);
 
 	krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
 
-	if (krad_link->bug[0] != '\0') {
-		kradgui_set_bug (krad_link->krad_gui, krad_link->bug, krad_link->bug_x, krad_link->bug_y);
-	}
-
-	if (krad_link->verbose) {	
-	//	krad_link->krad_gui->update_drawtime = 1;
-	//	krad_link->krad_gui->print_drawtime = 1;
-	}
-
-
 	if (krad_link->operation_mode == CAPTURE) {
+
+		//FIXME temp kludge
+		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;
 
 		krad_link->audio_channels = 2;
 
@@ -2196,10 +1990,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 		if ((krad_link->video_source == V4L2) || (krad_link->video_source == DECKLINK)) {
 			krad_link->krad_gui->clear = 0;
-		}
-	
-		if (krad_link->video_source == TEST) {
-			kradgui_test_screen(krad_link->krad_gui, "Krad Test");
 		}
 
 		if (krad_link->video_source == X11) {
@@ -2446,8 +2236,6 @@ krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 
 	krad_linker->krad_radio = krad_radio;
 
-	krad_linker->composited_frames_buffer = krad_ringbuffer_create (1920 * 1080 * 4 * 15);
-
 	return krad_linker;
 
 }
@@ -2462,8 +2250,6 @@ void krad_linker_destroy (krad_linker_t *krad_linker) {
 			krad_linker->krad_link[l] = NULL;
 		}
 	}
-
-	krad_ringbuffer_free ( krad_linker->composited_frames_buffer );
 
 	free (krad_linker);
 

@@ -40,7 +40,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_container.h"
 #include "krad_decklink.h"
 #include "krad_link.h"
-
+#include "krad_compositor.h"
 
 struct krad_radio_St {
 
@@ -51,6 +51,7 @@ struct krad_radio_St {
 	krad_http_t *krad_http;
 	krad_linker_t *krad_linker;
 	krad_mixer_t *krad_mixer;
+	krad_compositor_t *krad_compositor;
 	krad_tags_t *krad_tags;
 
 };

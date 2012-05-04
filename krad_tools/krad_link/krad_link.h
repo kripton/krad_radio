@@ -12,7 +12,7 @@ typedef struct krad_linker_St krad_linker_t;
 
 #define APPVERSION "Krad Radio 3.00"
 #define KRAD_LINKER_MAX_LINKS 42
-#define DEFAULT_VPX_BITRATE 200 * 8
+#define DEFAULT_VPX_BITRATE 80 * 8
 #define HELP -1337
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 15
 #define DEFAULT_ENCODING_BUFFER_FRAMES 15
@@ -26,9 +26,6 @@ typedef struct krad_linker_St krad_linker_t;
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
 	krad_radio_t *krad_radio;
-	
-	krad_ringbuffer_t *composited_frames_buffer;
-	
 };
 
 typedef enum {

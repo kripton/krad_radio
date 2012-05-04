@@ -91,6 +91,7 @@ void krad_radio_destroy (krad_radio_t *krad_radio) {
 	krad_ipc_server_destroy (krad_radio->krad_ipc);
 	krad_linker_destroy (krad_radio->krad_linker);
 	krad_mixer_destroy (krad_radio->krad_mixer);
+	krad_compositor_destroy (krad_radio->krad_compositor);
 	krad_tags_destroy (krad_radio->krad_tags);	
 	free (krad_radio->sysname);
 	free (krad_radio);
@@ -120,6 +121,13 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
+	
+	krad_radio->krad_compositor = krad_compositor_create (1280, 720);
+	
+	if (krad_radio->krad_compositor == NULL) {
+		krad_radio_destroy (krad_radio);
+		return NULL;
+	}	
 	
 	krad_radio->krad_linker = krad_linker_create (krad_radio);
 	
@@ -210,6 +218,9 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		case EBML_ID_KRAD_MIXER_CMD:
 			printf("Krad Mixer Command\n");
 			return krad_mixer_handler ( krad_radio_station->krad_mixer, krad_radio_station->krad_ipc );
+		case EBML_ID_KRAD_COMPOSITOR_CMD:
+			printf("Krad Compositor Command\n");
+			return krad_compositor_handler ( krad_radio_station->krad_compositor, krad_radio_station->krad_ipc );			
 		case EBML_ID_KRAD_LINK_CMD:
 			printf("Krad Link Command\n");
 			return krad_linker_handler ( krad_radio_station->krad_linker, krad_radio_station->krad_ipc );
