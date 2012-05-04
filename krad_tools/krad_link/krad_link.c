@@ -968,7 +968,11 @@ void *krad_link_run_thread (void *arg) {
 			
 			}
 
-			krad_link_composite ( krad_link );
+			if (krad_link->operation_mode == CAPTURE) {
+
+				krad_link_composite ( krad_link );
+
+			}
 
 			if (krad_link->interface_mode == WINDOW) {
 				krad_link_display(krad_link);
