@@ -321,14 +321,15 @@ int krad_ebml_new_tracknumber(krad_ebml_t *krad_ebml) {
 
 }
 
-int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size) {
+int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size) {
 
 	int track_number;
 	uint64_t track_info;
 	uint64_t video_info;
 
-	krad_ebml->total_video_frames = -1;
-	krad_ebml->video_frame_rate = frame_rate;
+	krad_ebml->total_video_frames = 0;
+	krad_ebml->fps_numerator = fps_numerator;
+	krad_ebml->fps_denominator = fps_denominator;
 	
 	track_number = krad_ebml_new_tracknumber(krad_ebml);
 
@@ -353,8 +354,8 @@ int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *c
 
 }
 
-int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height) {
-	return krad_ebml_add_video_track_with_private_data(krad_ebml, codec_id, frame_rate, width, height, NULL, 0);
+int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height) {
+	return krad_ebml_add_video_track_with_private_data(krad_ebml, codec_id, fps_numerator, fps_denominator, width, height, NULL, 0);
 }
 
 int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id) {
@@ -376,13 +377,14 @@ int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id) {
 
 }
 
-int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, float sample_rate, int channels, unsigned char *private_data, int private_data_size) {
+int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, int sample_rate, int channels, unsigned char *private_data, int private_data_size) {
 
 	int track_number;
 	uint64_t track_info;
 	uint64_t audio_info;
 
 	krad_ebml->audio_sample_rate = sample_rate;
+	
 	//	kradebml->audio_channels = channels;
 
 	track_number = krad_ebml_new_tracknumber(krad_ebml);
@@ -419,8 +421,6 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 
 	flags = 0;
 	block_timecode = 0;
-	krad_ebml->total_video_frames += 1;
-
     block_length = buffer_len + 4;
     block_length |= 0x10000000;
 
@@ -431,23 +431,10 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 		flags |= 0x80;
 	}
 	
-	if ((krad_ebml->video_frame_rate == 30) || (krad_ebml->video_frame_rate == 24) || (krad_ebml->video_frame_rate == 60)) {
-		if (krad_ebml->video_frame_rate == 60) {
-			krad_ebml->video_frame_time = 16683333;
-			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
-		}
-		if (krad_ebml->video_frame_rate == 30) {
-			krad_ebml->video_frame_time = 33366666;
-			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
-		}
-		if (krad_ebml->video_frame_rate == 24) {
-			krad_ebml->video_frame_time = 41708333;
-			timecode = (krad_ebml->total_video_frames * krad_ebml->video_frame_time) / 1000000;
-		}	
-	} else {
-		timecode = krad_ebml->total_video_frames * 1000 * (uint64_t)1 / krad_ebml->video_frame_rate;
-	}
-	
+	timecode = round (1000000000 * krad_ebml->total_video_frames / krad_ebml->fps_numerator * krad_ebml->fps_denominator / 1000000);
+
+	krad_ebml->total_video_frames++;
+		
 	if (keyframe) {
 		krad_ebml_cluster(krad_ebml, timecode);
 	}
@@ -484,26 +471,7 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
     track_number = track_num;
     track_number |= 0x80;
 
-	if (krad_ebml->total_audio_frames > 0) {
-
-		if ((krad_ebml->audio_sample_rate == 44100.0) || (krad_ebml->audio_sample_rate == 48000.0)) {
-		
-			if (krad_ebml->audio_sample_rate == 44100.0) {
-				krad_ebml->audio_frame_time = 22675;
-				timecode = (krad_ebml->total_audio_frames * krad_ebml->audio_frame_time) / 1000000;
-			}
-			
-			if (krad_ebml->audio_sample_rate == 48000.0) {
-				krad_ebml->audio_frame_time = 20833;
-				timecode = (krad_ebml->total_audio_frames * krad_ebml->audio_frame_time) / 1000000;
-			}
-
-		} else {	
-			timecode = (krad_ebml->total_audio_frames)/ krad_ebml->audio_sample_rate * 1000000;
-		}
-	} else {
-		timecode = 0;
-	}
+	timecode = round ((1000000000 * krad_ebml->total_audio_frames / krad_ebml->audio_sample_rate / 1000000));
 	
 	krad_ebml->total_audio_frames += frames;
 	krad_ebml->audio_frames_since_cluster += frames;

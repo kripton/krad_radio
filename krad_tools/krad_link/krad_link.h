@@ -10,7 +10,7 @@ typedef struct krad_linker_St krad_linker_t;
 #include <sys/prctl.h>
 #include <libswscale/swscale.h>
 
-#define APPVERSION "Krad Link 2.42"
+#define APPVERSION "Krad Radio 3.00"
 #define KRAD_LINKER_MAX_LINKS 42
 #define DEFAULT_VPX_BITRATE 200 * 8
 #define HELP -1337
@@ -19,13 +19,16 @@ typedef struct krad_linker_St krad_linker_t;
 #define DEFAULT_VORBIS_QUALITY 0.7
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
-#define DEFAULT_FPS 15
+#define DEFAULT_FPS 30
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
 	krad_radio_t *krad_radio;
+	
+	krad_ringbuffer_t *composited_frames_buffer;
+	
 };
 
 typedef enum {
@@ -68,10 +71,14 @@ struct krad_link_St {
 
 	krad_radio_t *krad_radio;
 
+	krad_linker_t *krad_linker;
+
 	char sysname[64];
 	krad_tags_t *krad_tags;
 
 	krad_link_av_mode_t av_mode;
+
+	krad_mixer_portgroup_t *decklink_mixer_portgroup;
 
 	krad_decklink_t *krad_decklink;
 	krad_x11_t *krad_x11;
@@ -141,6 +148,7 @@ struct krad_link_St {
 	
 	float vorbis_quality;
 	int capture_audio;
+	krad_ringbuffer_t *audio_capture_ringbuffer[KRAD_MIXER_MAX_CHANNELS];	
 	krad_ringbuffer_t *audio_input_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	krad_ringbuffer_t *audio_output_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	float *samples[KRAD_MIXER_MAX_CHANNELS];

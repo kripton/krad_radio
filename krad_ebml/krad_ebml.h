@@ -279,14 +279,13 @@ struct krad_ebml_St {
 	uint64_t segment;
 	uint64_t tracks_info;
 	uint64_t cluster;	
-	uint64_t video_frame_rate;
-	uint64_t video_frame_time;	
+	int fps_numerator;
+	int fps_denominator;
 	uint64_t total_video_frames;
 	uint64_t cluster_timecode;
 	
-	int total_audio_frames;
-	float audio_sample_rate;
-	uint64_t audio_frame_time;	
+	uint64_t total_audio_frames;
+	double audio_sample_rate;
 	int audio_channels;
 	int audio_frames_since_cluster;
 	
@@ -307,12 +306,12 @@ struct krad_ebml_St {
 /* writing functions */
 
 void krad_ebml_sync (krad_ebml_t *krad_ebml);
-int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height);
+int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height);
 void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion);
 void krad_ebml_header_advanced (krad_ebml_t *krad_ebml, char *doctype, int doctype_version, int doctype_read_version);
-int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int frame_rate, int width, int height, unsigned char *private_data, int private_data_size);
+int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size);
 int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id);
-int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, float sample_rate, int channels, unsigned char *private_data, int private_data_size);
+int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, int sample_rate, int channels, unsigned char *private_data, int private_data_size);
 void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *buffer, int buffer_len, int keyframe);
 void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *buffer, int buffer_len, int frames);
 void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode);

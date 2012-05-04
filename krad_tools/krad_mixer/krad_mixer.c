@@ -333,7 +333,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 				portgroup->active = 0;
 			}
 		}
-	}	
+	}
 
 	return 0;      
 

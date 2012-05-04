@@ -86,6 +86,20 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 	timecodeFormat = 0;
 	frame_data_size = 0;
 	
+
+	if (audio_frame) {
+		audio_frame->GetBytes(&audio_data);
+		audio_frames = audio_frame->GetSampleFrameCount();
+		if (krad_decklink_capture->verbose) {
+			printf("Audio Frame received %d frames\r", audio_frames);
+		}
+		if (krad_decklink_capture->audio_frames_callback != NULL) {
+			krad_decklink_capture->audio_frames_callback (krad_decklink_capture->callback_pointer, audio_data, audio_frames);
+		}		
+		krad_decklink_capture->audio_frames += audio_frames;
+	}	
+	
+	
 	if (krad_decklink_capture->skip_frame == 1) {
 		krad_decklink_capture->skip_frame = 0;
 	    return S_OK;
@@ -130,18 +144,6 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 		
 		krad_decklink_capture->video_frames++;
 		
-	}
-
-	if (audio_frame) {
-		audio_frame->GetBytes(&audio_data);
-		audio_frames = audio_frame->GetSampleFrameCount();
-		if (krad_decklink_capture->verbose) {
-			printf("Audio Frame received %d frames\r", audio_frames);
-		}
-		if (krad_decklink_capture->audio_frames_callback != NULL) {
-			krad_decklink_capture->audio_frames_callback (krad_decklink_capture->callback_pointer, audio_data, audio_frames);
-		}		
-		krad_decklink_capture->audio_frames += audio_frames;
 	}
 	
 	if (krad_decklink_capture->verbose) {
