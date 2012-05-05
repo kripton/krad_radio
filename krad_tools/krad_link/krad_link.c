@@ -335,8 +335,6 @@ void *audio_encoding_thread (void *arg) {
 			printf("unknown audio codec\n");
 			exit(1);
 	}
-
-	//kradaudio_set_process_callback(krad_link->krad_audio, krad_link_audio_callback, krad_link);
 	
 	krad_link->audio_encoder_ready = 1;
 	
@@ -480,15 +478,15 @@ void *stream_output_thread(void *arg) {
 	video_frames_muxed = 0;
 
 	if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-	//	while (krad_link->krad_audio == NULL) {
-	//		usleep(5000);
-	//	}
 
 		if (krad_link->audio_codec == OPUS) {
 			audio_frames_per_video_frame = 48000 / krad_link->capture_fps;
 		} else {
 			audio_frames_per_video_frame = 48000 / krad_link->capture_fps;
-	//		audio_frames_per_video_frame = krad_link->krad_audio->sample_rate / krad_link->capture_fps;
+			
+			
+			//audio_frames_per_video_frame = 1602;
+
 		}
 	}
 
@@ -517,7 +515,7 @@ void *stream_output_thread(void *arg) {
 	
 	if (krad_link->video_source != NOVIDEO) {
 	
-		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1001,
+		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1000,
 											 			 krad_link->encoding_width, krad_link->encoding_height);
 	}	
 	
@@ -573,8 +571,8 @@ void *stream_output_thread(void *arg) {
 		
 		if (krad_link->audio_codec != NOCODEC) {
 		
-			if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) >= 4) && 
-				((krad_link->video_source == NOVIDEO) || ((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed))) {
+			while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) >= 4) && 
+				  ((krad_link->video_source == NOVIDEO) || ((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed))) {
 
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 		
@@ -595,14 +593,10 @@ void *stream_output_thread(void *arg) {
 				
 				//printf("ebml muxed audio frames: %d\n\n", audio_frames_muxed);
 				
-			} else {
+			}
 			
-			
-				//printf("ebml yasdsad rames: %d\n", krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer));
-			
-				if (krad_link->encoding == 4) {
-					break;
-				}
+			if (krad_link->encoding == 4) {
+				break;
 			}
 		}
 		
