@@ -159,7 +159,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_vpx_encoder_set(krad_link->krad_vpx_encoder, &krad_link->vpx_encoder_config);
 
-	krad_link->krad_vpx_encoder->quality = (1000 / krad_link->encoding_fps) * 1000;
+	krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
 
 	dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 	
@@ -175,13 +175,13 @@ void *video_encoding_thread(void *arg) {
 						
 			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 2)) ) {
 			
-				krad_link->krad_vpx_encoder->quality = ((1000 / krad_link->encoding_fps) * 1000) / 2LU;
+				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 2LU;
 				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 						
 			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 4)) ) {
 			
-				krad_link->krad_vpx_encoder->quality = ((1000 / krad_link->encoding_fps) * 1000) / 4LU;
+				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 4LU;
 				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}						 
 								 
@@ -217,8 +217,8 @@ void *video_encoding_thread(void *arg) {
 	
 		} else {
 		
-			if (krad_link->krad_vpx_encoder->quality != (1000 / krad_link->encoding_fps) * 1000) {
-				krad_link->krad_vpx_encoder->quality = (1000 / krad_link->encoding_fps) * 1000;
+			if (krad_link->krad_vpx_encoder->quality != (600 / krad_link->encoding_fps) * 1000) {
+				krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
 				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 
