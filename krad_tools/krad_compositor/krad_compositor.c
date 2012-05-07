@@ -161,7 +161,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 			krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);
 			
 			if (krad_frame != NULL) {
-				//memcpy ( krad_compositor->krad_gui->data, krad_frame->pixels, krad_compositor->frame_byte_size );
+				memcpy ( krad_compositor->krad_gui->data, krad_frame->pixels, krad_compositor->frame_byte_size );
 				krad_framepool_unref_frame (krad_frame);
 			}
 			break;
