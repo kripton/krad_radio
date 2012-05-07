@@ -787,7 +787,7 @@ void *krad_link_run_thread (void *arg) {
 			}
 
 			if (krad_link->operation_mode == CAPTURE) {
-				krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
+			//	krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
 			}
 
 			if ((!krad_link->capturing) || (krad_link->video_source == X11)) {
@@ -1653,6 +1653,8 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 	krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
 	krad_framepool_unref_frame (krad_frame);
+
+	krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
 
 	/*
 	if (krad_ringbuffer_write_space(krad_link->captured_frames_buffer) >= krad_link->composited_frame_byte_size) {
