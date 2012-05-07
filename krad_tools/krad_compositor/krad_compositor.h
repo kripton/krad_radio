@@ -53,7 +53,7 @@ struct krad_compositor_St {
 
 	krad_framepool_t *krad_framepool;
 
-	krad_compositor_port_t *port[KRAD_COMPOSITOR_MAX_PORTS];
+	krad_compositor_port_t *port;
 
 
 	krad_ringbuffer_t *composited_frames_buffer;

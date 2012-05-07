@@ -157,8 +157,8 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	krad_compositor->krad_gui->clear = 0;
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if ((krad_compositor->port[p]->active == 1) && (krad_compositor->port[p]->direction == INPUT)) {
-			krad_frame = krad_compositor_port_pull_frame (krad_compositor->port[p]);
+		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
+			krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);
 			
 			if (krad_frame != NULL) {
 				memcpy ( krad_compositor->krad_gui->data, krad_frame->pixels, krad_compositor->frame_byte_size );
@@ -180,8 +180,8 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	memcpy ( krad_frame->pixels, krad_compositor->krad_gui->data, krad_compositor->frame_byte_size );	
 	
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if ((krad_compositor->port[p]->active == 1) && (krad_compositor->port[p]->direction == OUTPUT)) {
-			krad_compositor_port_push_frame (krad_compositor->port[p], krad_frame);
+		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT)) {
+			krad_compositor_port_push_frame (&krad_compositor->port[p], krad_frame);
 			break;
 		}
 	}
@@ -234,8 +234,8 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	int p;
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if (krad_compositor->port[p]->active == 0) {
-			krad_compositor_port = krad_compositor->port[p];
+		if (krad_compositor->port[p].active == 0) {
+			krad_compositor_port = &krad_compositor->port[p];
 			break;
 		}
 	}
@@ -273,6 +273,8 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 	kradgui_destroy (krad_compositor->krad_gui);
 
+	free (krad_compositor->port);
+
 	free (krad_compositor);
 
 }
@@ -285,6 +287,8 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	krad_compositor->height = height;
 
 	krad_compositor->frame_byte_size = krad_compositor->width * krad_compositor->height * 4;
+
+	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
 
 	krad_compositor->composited_frames_buffer = krad_ringbuffer_create (krad_compositor->frame_byte_size * DEFAULT_COMPOSITOR_BUFFER_FRAMES);
 	
