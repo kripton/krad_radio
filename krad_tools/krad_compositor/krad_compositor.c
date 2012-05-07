@@ -167,6 +167,41 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}
 }
 
+
+krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction) {
+
+	krad_compositor_port_t *krad_compositor_port;
+
+	int p;
+
+	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
+		if (krad_compositor->port[p]->active == 0) {
+			krad_compositor_port = krad_compositor->port[p];
+			break;
+		}
+	}
+	
+	if (krad_compositor_port == NULL) {
+		return NULL;
+	}
+	
+	strcpy (krad_compositor_port->sysname, sysname);	
+	
+	krad_compositor_port->direction = direction;	
+	
+	krad_compositor_port->active = 1;	
+	
+	return krad_compositor_port;
+
+}
+
+
+void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port) {
+
+	krad_compositor_port->active = 0;
+
+}
+
 void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 	krad_ringbuffer_free ( krad_compositor->composited_frames_buffer );
@@ -187,6 +222,8 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	krad_compositor->frame_byte_size = krad_compositor->width * krad_compositor->height * 4;
 
 	krad_compositor->composited_frames_buffer = krad_ringbuffer_create (krad_compositor->frame_byte_size * DEFAULT_COMPOSITOR_BUFFER_FRAMES);
+	
+	krad_compositor->krad_framepool = krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
 	
 	krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);	
 	

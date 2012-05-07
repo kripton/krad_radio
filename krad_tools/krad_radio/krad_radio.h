@@ -38,10 +38,10 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_vorbis.h"
 #include "krad_flac.h"
 #include "krad_container.h"
-#include "krad_decklink.h"
-#include "krad_link.h"
-#include "krad_compositor.h"
 #include "krad_framepool.h"
+#include "krad_decklink.h"
+#include "krad_compositor.h"
+#include "krad_link.h"
 
 struct krad_radio_St {
 

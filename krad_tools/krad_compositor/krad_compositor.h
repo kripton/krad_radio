@@ -11,9 +11,20 @@
 #ifndef KRAD_COMPOSITOR_H
 #define KRAD_COMPOSITOR_H
 
-#define DEFAULT_COMPOSITOR_BUFFER_FRAMES 15
+#define DEFAULT_COMPOSITOR_BUFFER_FRAMES 30
+
+#define KRAD_COMPOSITOR_MAX_PORTS 30
 
 typedef struct krad_compositor_St krad_compositor_t;
+typedef struct krad_compositor_port_St krad_compositor_port_t;
+
+struct krad_compositor_port_St {
+
+	char sysname[256];
+	int direction;
+	int active;
+	
+};
 
 struct krad_compositor_St {
 
@@ -24,17 +35,27 @@ struct krad_compositor_St {
 
 	int frame_byte_size;
 
+//	int frame_rate_numerator;
+//	int frame_rate_denominator;
+
+
 	//FIXME temp kludge
 	krad_ringbuffer_t *incoming_frames_buffer;
 	int hex_x;
 	int hex_y;
 	int hex_size;
 
+	krad_framepool_t *krad_framepool;
+
+	krad_compositor_port_t *port[KRAD_COMPOSITOR_MAX_PORTS];
+
 
 	krad_ringbuffer_t *composited_frames_buffer;
 
 };
 
+krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
+void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
 
 int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc );
 

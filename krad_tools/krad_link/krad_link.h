@@ -75,7 +75,8 @@ struct krad_link_St {
 
 	krad_link_av_mode_t av_mode;
 
-	krad_mixer_portgroup_t *decklink_mixer_portgroup;
+	krad_mixer_portgroup_t *krad_mixer_portgroup;
+	krad_compositor_port_t *krad_compositor_port;
 
 	krad_decklink_t *krad_decklink;
 	krad_x11_t *krad_x11;

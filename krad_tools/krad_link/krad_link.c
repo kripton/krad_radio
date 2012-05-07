@@ -150,7 +150,6 @@ void *video_encoding_thread(void *arg) {
 	int keyframe;
 	int packet_size;
 	char keyframe_char[1];
-	int first = 1;
 
 	krad_link->krad_vpx_encoder = krad_vpx_encoder_create(krad_link->encoding_width, krad_link->encoding_height, krad_link->vpx_encoder_config.rc_target_bitrate);
 
@@ -163,7 +162,7 @@ void *video_encoding_thread(void *arg) {
 
 	dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 	
-	while ((krad_link->encoding == 1) || (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= krad_link->composited_frame_byte_size)) {
+	while (krad_link->encoding == 1) {
 
 		if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= krad_link->composited_frame_byte_size) {
 	
@@ -171,7 +170,7 @@ void *video_encoding_thread(void *arg) {
 								 (char *)krad_link->current_encoding_frame,
 								 krad_link->composited_frame_byte_size );
 								 
-						
+			/*		
 						
 			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 2)) ) {
 			
@@ -183,7 +182,9 @@ void *video_encoding_thread(void *arg) {
 			
 				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 4LU;
 				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
-			}						 
+			}
+			
+			*/					 
 								 
 			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
 			const uint8_t *rgb_arr[4];
@@ -206,10 +207,6 @@ void *video_encoding_thread(void *arg) {
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, keyframe_char, 1);
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)vpx_packet, packet_size);
-
-				if (first == 1) {				
-					first = 0;
-				}
 				
 				krad_link->video_frames_encoded++;
 				
@@ -217,13 +214,16 @@ void *video_encoding_thread(void *arg) {
 	
 		} else {
 		
+			/*
+		
 			if (krad_link->krad_vpx_encoder->quality != (600 / krad_link->encoding_fps) * 1000) {
 				krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
 				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 
+			*/
 			
-			usleep(4000);
+			usleep(5000);
 		
 		}
 		
@@ -234,7 +234,7 @@ void *video_encoding_thread(void *arg) {
 		packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder, (unsigned char **)&vpx_packet, &keyframe);
 	}
 
-	krad_vpx_encoder_destroy(krad_link->krad_vpx_encoder);
+	krad_vpx_encoder_destroy (krad_link->krad_vpx_encoder);
 	
 	krad_link->encoding = 3;
 
@@ -515,8 +515,8 @@ void *stream_output_thread(void *arg) {
 	
 	if (krad_link->video_source != NOVIDEO) {
 	
-		krad_link->video_track = krad_ebml_add_video_track(krad_link->krad_ebml, "V_VP8", 30000, 1000,
-											 			 krad_link->encoding_width, krad_link->encoding_height);
+		krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_VP8", 30000, 1000,
+															krad_link->encoding_width, krad_link->encoding_height);
 	}	
 	
 	if (krad_link->audio_codec != NOCODEC) {
@@ -724,7 +724,8 @@ void *udp_output_thread(void *arg) {
 
 }
 
-void krad_link_display(krad_link_t *krad_link) {
+/*
+void krad_link_display (krad_link_t *krad_link) {
 
 	if ((krad_link->composite_width == krad_link->display_width) && (krad_link->composite_height == krad_link->display_height)) {
 		memcpy ( krad_link->krad_x11->pixels, krad_link->krad_gui->data, krad_link->krad_gui->bytes );
@@ -753,6 +754,7 @@ void krad_link_display(krad_link_t *krad_link) {
 	krad_x11_glx_render (krad_link->krad_x11);
 
 }
+*/
 
 void *krad_link_run_thread (void *arg) {
 
@@ -1634,16 +1636,16 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 		dst[0] = krad_link->krad_decklink->captured_frame_rgb;
 
-		sws_scale(krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
+		sws_scale (krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
 		
 
 
 
 	if (krad_ringbuffer_write_space(krad_link->captured_frames_buffer) >= krad_link->composited_frame_byte_size) {
 
-		krad_ringbuffer_write(krad_link->captured_frames_buffer, 
-							 (char *)krad_link->krad_decklink->captured_frame_rgb, 
-							 krad_link->composited_frame_byte_size );
+		krad_ringbuffer_write (krad_link->captured_frames_buffer, 
+							  (char *)krad_link->krad_decklink->captured_frame_rgb, 
+							  krad_link->composited_frame_byte_size );
 
 	} else {
 	
@@ -1696,14 +1698,16 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	krad_link->krad_decklink = krad_decklink_create ();
 	krad_decklink_info ( krad_link->krad_decklink );
 	
-	krad_link->decklink_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "DecklinkIn", INPUT, 2, 
+	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "DecklinkIn", INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
+	
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "DecklinkIn", INPUT);	
 	
 	krad_link->krad_decklink->callback_pointer = krad_link;
 	krad_link->krad_decklink->audio_frames_callback = krad_link_decklink_audio_callback;
 	krad_link->krad_decklink->video_frame_callback = krad_link_decklink_video_callback;
 	
-	krad_decklink_set_verbose(krad_link->krad_decklink, verbose);
+	krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
 	
 	krad_decklink_start (krad_link->krad_decklink);
 }
@@ -1718,7 +1722,9 @@ void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
 	krad_link->capture_audio = 3;
 	krad_link->encoding = 2;
 
-	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, krad_link->decklink_mixer_portgroup);
+	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, krad_link->krad_mixer_portgroup);
+
+	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
 }
 
