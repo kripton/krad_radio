@@ -206,7 +206,7 @@ void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_po
 
 	krad_framepool_ref_frame (krad_frame);
 	
-	krad_ringbuffer_write (krad_compositor_port->frame_ring, (char *)krad_frame, 4);
+	krad_ringbuffer_write (krad_compositor_port->frame_ring, (char *)&krad_frame, 8);
 	
 	//krad_compositor_port->krad_frame = krad_frame;
 
@@ -218,7 +218,7 @@ krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_comp
 	krad_frame_t *krad_frame;
 	
 	if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= 4) {
-		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, 4);
+		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, 8);
 		return krad_frame;
 	}
 	//krad_compositor_port->krad_frame = krad_frame;
@@ -252,7 +252,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	
 	krad_compositor_port->active = 1;	
 	
-	krad_compositor_port->frame_ring = krad_ringbuffer_create ( 128 * 4 );	
+	krad_compositor_port->frame_ring = krad_ringbuffer_create ( 128 * 8 );	
 	
 	return krad_compositor_port;
 
