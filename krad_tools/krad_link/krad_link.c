@@ -2000,7 +2000,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 
-		krad_link->krad_framepool = krad_framepool_create ( 1280, 720, 15);
+		krad_link->krad_framepool = krad_framepool_create ( 1280, 720, 75);
 
 		//FIXME temp kludge
 		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;
