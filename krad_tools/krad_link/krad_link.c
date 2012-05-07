@@ -416,6 +416,9 @@ void *audio_encoding_thread (void *arg) {
 				
 					krad_link->audio_frames_encoded = op->granulepos;
 					
+					if (frames < framecnt / 2) {
+						op = NULL;
+					}
 				}
 			}
 
@@ -807,8 +810,8 @@ void *krad_link_run_thread (void *arg) {
 					nanosleep (&krad_link->sleep_time, NULL);
 				}
 
-				printf("Elapsed time %s\r", krad_link->krad_gui->elapsed_time_timecode_string);
-				fflush(stdout);
+				//printf("Elapsed time %s\r", krad_link->krad_gui->elapsed_time_timecode_string);
+				//fflush(stdout);
 	
 			}
 		}
