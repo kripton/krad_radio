@@ -146,10 +146,13 @@ void *video_encoding_thread(void *arg) {
 		printf("Video encoding thread started\n");
 	}
 	
+	krad_frame_t *krad_frame;
 	void *vpx_packet;
 	int keyframe;
 	int packet_size;
 	char keyframe_char[1];
+
+	krad_frame = NULL;
 
 	krad_link->krad_vpx_encoder = krad_vpx_encoder_create(krad_link->encoding_width, krad_link->encoding_height, krad_link->vpx_encoder_config.rc_target_bitrate);
 
@@ -162,13 +165,13 @@ void *video_encoding_thread(void *arg) {
 
 	dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 	
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "VP8Enc", OUTPUT);
+	
 	while (krad_link->encoding == 1) {
 
-		if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= krad_link->composited_frame_byte_size) {
-	
-			krad_ringbuffer_read(krad_link->composited_frames_buffer, 
-								 (char *)krad_link->current_encoding_frame,
-								 krad_link->composited_frame_byte_size );
+		krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
+
+		if (krad_frame != NULL) {
 								 
 			/*		
 						
@@ -189,10 +192,13 @@ void *video_encoding_thread(void *arg) {
 			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
 			const uint8_t *rgb_arr[4];
 	
-			rgb_arr[0] = krad_link->current_encoding_frame;
+			rgb_arr[0] = krad_frame->pixels;
 
 			sws_scale(krad_link->encoding_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
 					  krad_link->krad_vpx_encoder->image->planes, krad_link->krad_vpx_encoder->image->stride);
+							
+							
+			krad_framepool_unref_frame (krad_frame);
 										 
 			packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder, (unsigned char **)&vpx_packet, &keyframe);
 								 
@@ -228,6 +234,8 @@ void *video_encoding_thread(void *arg) {
 		}
 		
 	}
+	
+	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);	
 	
 	while (packet_size) {
 		krad_vpx_encoder_finish(krad_link->krad_vpx_encoder);
