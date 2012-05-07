@@ -59,6 +59,8 @@ gcc -g -Wall krad_radio.c \
 ../krad_tools/krad_ogg/krad_ogg.c \
 ../krad_tools/krad_udp/krad_udp.c \
 -I../krad_tools/krad_decklink \
+-I../krad_tools/krad_framepool \
+../krad_tools/krad_framepool/krad_framepool.c \
 -I../krad_tools/krad_compositor \
 ../krad_tools/krad_compositor/krad_compositor.c \
 ../krad_tools/krad_decklink/krad_decklink.c \
