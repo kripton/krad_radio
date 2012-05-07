@@ -218,7 +218,7 @@ krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_comp
 	krad_frame_t *krad_frame;
 	
 	if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= 4) {
-		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)krad_frame, 4);
+		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, 4);
 		return krad_frame;
 	}
 	//krad_compositor_port->krad_frame = krad_frame;
