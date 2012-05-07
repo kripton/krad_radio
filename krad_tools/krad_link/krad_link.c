@@ -1617,30 +1617,36 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	//printf("krad link decklink frame received %d bytes\n", length);
 
+	krad_frame_t *krad_frame;
 
 
+	int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
 
-		int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
+	const uint8_t *yuv_arr[4];
+	int yuv_stride_arr[4];
 
-		const uint8_t *yuv_arr[4];
-		int yuv_stride_arr[4];
+	yuv_arr[0] = buffer;
+
+	yuv_stride_arr[0] = krad_link->capture_width + (krad_link->capture_width/2) * 2;
+	yuv_stride_arr[1] = 0;
+	yuv_stride_arr[2] = 0;
+	yuv_stride_arr[3] = 0;
+
+	unsigned char *dst[4];
+
+	//dst[0] = krad_link->krad_decklink->captured_frame_rgb;
+
+	krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+
+	dst[0] = krad_frame->pixels;
+
+	sws_scale (krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
 	
-		yuv_arr[0] = buffer;
+	krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
-		yuv_stride_arr[0] = krad_link->capture_width + (krad_link->capture_width/2) * 2;
-		yuv_stride_arr[1] = 0;
-		yuv_stride_arr[2] = 0;
-		yuv_stride_arr[3] = 0;
+	krad_framepool_unref_frame (krad_frame);
 
-		unsigned char *dst[4];
-
-		dst[0] = krad_link->krad_decklink->captured_frame_rgb;
-
-		sws_scale (krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
-		
-
-
-
+	/*
 	if (krad_ringbuffer_write_space(krad_link->captured_frames_buffer) >= krad_link->composited_frame_byte_size) {
 
 		krad_ringbuffer_write (krad_link->captured_frames_buffer, 
@@ -1652,7 +1658,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 		printf("oh no! captured frames ringbuffer overflow!\n");
 	
 	}
-
+	*/
 
 	return 0;
 
@@ -1783,6 +1789,12 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		for (c = 0; c < krad_link->audio_channels; c++) {
 			krad_ringbuffer_free ( krad_link->audio_capture_ringbuffer[c] );
 		}
+		
+		if (krad_link->krad_framepool != NULL) {
+			krad_framepool_destroy (krad_link->krad_framepool);
+			krad_link->krad_framepool = NULL;
+		}
+		
 	}
 	
 	if (krad_link->krad_vpx_decoder) {
@@ -1978,6 +1990,9 @@ void krad_link_activate (krad_link_t *krad_link) {
 	krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
 
 	if (krad_link->operation_mode == CAPTURE) {
+
+
+		krad_link->krad_framepool = krad_framepool_create ( 1280, 720, 15);
 
 		//FIXME temp kludge
 		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;

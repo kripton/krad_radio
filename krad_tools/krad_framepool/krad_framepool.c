@@ -6,6 +6,7 @@ krad_frame_t *krad_framepool_getframe (krad_framepool_t *krad_framepool) {
 
 	for (f = 0; f < krad_framepool->count; f++ ) {
 		if (krad_framepool->frames[f].refs == 0) {
+			krad_framepool_ref_frame (&krad_framepool->frames[f]);
 			return &krad_framepool->frames[f];
 		}
 	}
@@ -14,14 +15,14 @@ krad_frame_t *krad_framepool_getframe (krad_framepool_t *krad_framepool) {
 
 }
 
-void krad_framepool_ref_frame (krad_framepool_t *krad_framepool, krad_frame_t *frame) {
+void krad_framepool_ref_frame (krad_frame_t *frame) {
 
 	frame->refs++;
 
 }
 
 
-void krad_framepool_unref_frame (krad_framepool_t *krad_framepool, krad_frame_t *frame) {
+void krad_framepool_unref_frame (krad_frame_t *frame) {
 
 	frame->refs--;
 

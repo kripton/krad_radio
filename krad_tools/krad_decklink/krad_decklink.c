@@ -16,7 +16,7 @@ void krad_decklink_destroy (krad_decklink_t *krad_decklink) {
 		free(krad_decklink->samples[c]);	
 	}
 
-	free (krad_decklink->captured_frame_rgb);
+	//free (krad_decklink->captured_frame_rgb);
 
 	free (krad_decklink);
 
@@ -28,7 +28,7 @@ krad_decklink_t *krad_decklink_create() {
 
 	krad_decklink_t *krad_decklink = (krad_decklink_t *)calloc(1, sizeof(krad_decklink_t));
 	
-	krad_decklink->captured_frame_rgb = malloc(1920 * 1080 * 4);
+	//krad_decklink->captured_frame_rgb = malloc(1920 * 1080 * 4);
 	
 	for (c = 0; c < 2; c++) {
 		krad_decklink->samples[c] = malloc(4 * 8192);

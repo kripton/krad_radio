@@ -20,9 +20,15 @@ typedef struct krad_compositor_port_St krad_compositor_port_t;
 
 struct krad_compositor_port_St {
 
+	krad_compositor_t *krad_compositor;
+
 	char sysname[256];
 	int direction;
 	int active;
+	
+	krad_frame_t *krad_frame;	
+	
+	krad_ringbuffer_t *frame_ring;
 	
 };
 
@@ -53,6 +59,9 @@ struct krad_compositor_St {
 	krad_ringbuffer_t *composited_frames_buffer;
 
 };
+
+void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
+krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port);
 
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
