@@ -54,6 +54,8 @@ struct krad_ipc_client_St {
 
 };
 
+void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string);
+
 void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size);
 
 // FIXME creation is functionally incomplete
@@ -67,7 +69,7 @@ void krad_ipc_create_link (krad_ipc_client_t *client, char *host, int port, char
 void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
 
-int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume );
+int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade );
 
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);

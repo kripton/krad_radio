@@ -264,6 +264,32 @@ void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, cha
 
 }
 
+
+
+void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t update;
+
+
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_UPDATE_PORTGROUP, &update);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+	krad_ebml_write_string (client->krad_ebml, update_command, string);
+	
+	
+	krad_ebml_finish_element (client->krad_ebml, update);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *name) {
 
 	//uint64_t ipc_command;
@@ -618,7 +644,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char 
 	
 }
 
-int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume ) {
+int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -678,7 +704,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	
 	printf("Type: %s\n", string);	
 	
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME) {
 		printf("hrm wtf3\n");
@@ -703,6 +729,40 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);	
 	
 		printf("Bus: %s\n", string);	
+	
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, crossfade_name, ebml_data_size);	
+	
+	
+	if (strlen(crossfade_name)) {
+		printf("Crossfade With: %s\n", string);	
+	}
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE) {
+		printf("hrm wtf3\n");
+	} else {
+		//printf("VOLUME value size %zu\n", ebml_data_size);
+	}
+
+	floaty = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	
+	if (strlen(crossfade_name)) {
+		*crossfade = floaty;
+		printf("Crossfade: %f\n", floaty);
+	} else {
+		*crossfade = 0.0f;
+	}
+	
 	
 	return bytes_read;
 	
@@ -761,6 +821,10 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	
 	char *tag_name = tag_name_actual;
 	char *tag_value = tag_value_actual;	
+	
+	char crossfadename_actual[1024];	
+	char *crossfadename = crossfadename_actual;
+	float crossfade;	
 	
 	int bytes_read;
 	int list_size;
@@ -822,7 +886,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
 					//printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval )) <= list_size)) {
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval, crossfadename, &crossfade )) <= list_size)) {
 						//printf("Tag %s - %s.\n", tag_name, tag_value);
 						if (bytes_read == list_size) {
 							break;

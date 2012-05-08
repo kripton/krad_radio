@@ -75,6 +75,17 @@ int main (int argc, char *argv[]) {
 					krad_ipc_print_response (client);
 				}
 			}
+			
+			if (strncmp(argv[2], "xfade", 5) == 0) {
+				if (argc == 4) {
+					krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
+					krad_ipc_print_response (client);
+				}
+				if (argc == 5) {
+					krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, argv[4]);
+					krad_ipc_print_response (client);
+				}
+			}			
 		
 			if (strncmp(argv[2], "set", 3) == 0) {
 				if (argc == 6) {

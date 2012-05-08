@@ -329,7 +329,7 @@ void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char
 }
 
 void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  int io_type, float volume, char *mixbus ) {
+											  int io_type, float volume, char *mixbus, char *crossfade_name, float crossfade_value ) {
 
 	uint64_t portgroup;
 
@@ -344,6 +344,9 @@ void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server
 	}
 	krad_ebml_write_float (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME, volume);	
 	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS, mixbus);			
+
+	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, crossfade_name);
+	krad_ebml_write_float (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, crossfade_value);	
 
 	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, portgroup);
 
@@ -374,6 +377,9 @@ void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_s
 			}
 			krad_ebml_write_float (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME, volume);	
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS, mixbus);			
+
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
+			krad_ebml_write_float (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, 0.0);	
 
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, portgroup);
 			
@@ -413,6 +419,29 @@ void krad_ipc_server_simple_broadcast ( krad_ipc_server_t *krad_ipc_server, uint
 		if ((krad_ipc_server->clients[c].active == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, string);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
+			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+		}
+	}
+}
+
+void krad_ipc_server_mixer_broadcast2 ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, char *portname, uint32_t ebml_subid2, char *string) {
+
+	int c;
+
+	uint64_t element;
+	uint64_t subelement;
+
+	element = 0;
+	subelement = 0;
+
+	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		if ((krad_ipc_server->clients[c].active == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portname);
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, string);
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);

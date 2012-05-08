@@ -60,6 +60,11 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	
 	char *portname = portname_actual;
 	char *controlname = controlname_actual;
+	
+	char crossfadename_actual[1024];	
+	char *crossfadename = crossfadename_actual;
+	float crossfade;	
+	
 	bytes_read = 0;
 	ebml_id = 0;
 	list_size = 0;	
@@ -101,7 +106,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
 					printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval )) <= list_size)) {
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade )) <= list_size)) {
 						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval);
 						if (bytes_read == list_size) {
 							break;

@@ -676,11 +676,14 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	uint64_t ebml_data_size;
 //	uint64_t number;
 	krad_mixer_portgroup_t *portgroup;
+	krad_mixer_portgroup_t *portgroup2;
 	uint64_t element;
 	
 	uint64_t response;
 //	uint64_t broadcast;
 	
+	char *crossfade_name;
+	float crossfade_value;
 	int p;
 	
 	ebml_id = 0;
@@ -694,6 +697,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	int direction;
 
 	direction = 0;
+	crossfade_name = NULL;
 	//i = 0;
 	
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
@@ -737,22 +741,20 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
-				printf("hrm wtf3\n");
+			if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
+				floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+	
+				printf("%f\n", floatval);
+
+				krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval);
+
+				krad_ipc_server_mixer_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			} else {
-				//printf("tag value size %zu\n", ebml_data_size);
+
 			}
 
-			floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
-	
-			printf("%f\n", floatval);
-
-			krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval);
-
-			krad_ipc_server_mixer_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
-			//*output_len = 666;
 			return 2;
-			break;
+
 		case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
 
 			printf("List Portgroups\n");
@@ -763,8 +765,18 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 				portgroup = krad_mixer->portgroup[p];
 				if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
+					crossfade_name = "";
+					crossfade_value = 0.0f;
+					if (portgroup->crossfade_group != NULL) {
+					
+						if (portgroup->crossfade_group->portgroup[0] == portgroup) {
+							crossfade_name = portgroup->crossfade_group->portgroup[1]->sysname;
+							crossfade_value = portgroup->crossfade_group->fade;
+						}
+					}
+				
 					krad_ipc_server_response_add_portgroup ( krad_ipc, portgroup->sysname, portgroup->channels,
-											  				 portgroup->io_type, portgroup->volume[0],  portgroup->mixbus->sysname );
+											  				 portgroup->io_type, portgroup->volume[0],  portgroup->mixbus->sysname, crossfade_name, crossfade_value );
 				}
 			}
 			
@@ -824,7 +836,67 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 		
 			krad_ipc_server_simple_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);		
 		
-			break;			
+			break;
+		case EBML_ID_KRAD_MIXER_CMD_UPDATE_PORTGROUP:	
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
+			
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+
+			// set tag / add/remove effect / set/rm crossfade group partner
+
+			if (ebml_id == EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME) {
+			
+				krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+				
+				portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
+				
+				if (portgroup->crossfade_group != NULL) {
+				
+					krad_mixer_crossfade_group_destroy (krad_mixer, portgroup->crossfade_group);
+				
+					if (strlen(string) == 0) {
+						krad_ipc_server_mixer_broadcast2 ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_PORTGROUP_UPDATED, portgroupname, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");		
+						return 0;
+					}
+				
+				}
+				
+				if (strlen(string) > 0) {
+				
+					portgroup2 = krad_mixer_get_portgroup_from_sysname (krad_mixer, string);
+				
+					if (portgroup2 != NULL) {
+						if (portgroup2->crossfade_group != NULL) {
+							krad_mixer_crossfade_group_destroy (krad_mixer, portgroup2->crossfade_group);
+						}
+						
+						if (portgroup != portgroup2) {
+						
+							krad_mixer_crossfade_group_create (krad_mixer, portgroup, portgroup2);
+
+							krad_ipc_server_mixer_broadcast2 ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_PORTGROUP_UPDATED, portgroupname, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, string);		
+
+						}
+
+					}
+				
+				}					
+				
+			}
+
+
+			break;	
+
 	}
 
 	return 0;
