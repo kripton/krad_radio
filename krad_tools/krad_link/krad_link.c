@@ -121,6 +121,7 @@ void *video_capture_thread(void *arg) {
 		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
 			memcpy (krad_frame->pixels, captured_frame, krad_link->krad_v4l2->jpeg_size);
 			krad_frame->mjpeg_size = krad_link->krad_v4l2->jpeg_size;
+			//krad_frame->mjpeg_size = kradv4l2_mjpeg_to_jpeg (krad_link->krad_v4l2, krad_frame->pixels, captured_frame, krad_link->krad_v4l2->jpeg_size);
 		} else {
 			memcpy (krad_frame->pixels, captured_frame_rgb, krad_link->composited_frame_byte_size);
 		}
@@ -131,7 +132,11 @@ void *video_capture_thread(void *arg) {
 
 		krad_framepool_unref_frame (krad_frame);
 		
-		krad_compositor_mjpeg_process (krad_link->krad_radio->krad_compositor);
+		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
+			krad_compositor_mjpeg_process (krad_link->krad_radio->krad_compositor);
+		} else {
+			krad_compositor_process (krad_link->krad_radio->krad_compositor);
+		}
 	
 	}
 
@@ -543,18 +548,16 @@ void *stream_output_thread(void *arg) {
 		krad_ebml_header(krad_link->krad_ebml, "matroska", APPVERSION);
 	}
 	
-	if (krad_link->video_source != NOVIDEO) {
+	if (krad_link->mjpeg_passthru == 1) {
 	
-		if (krad_link->mjpeg_passthru == 1) {
+		krad_link->krad_compositor_port = krad_compositor_mjpeg_port_create (krad_link->krad_radio->krad_compositor, "StreamOut", OUTPUT);
+	
+		krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_MJPEG", 30000, 1000,
+															krad_link->encoding_width, krad_link->encoding_height);
+	} else {
 		
-			krad_link->krad_compositor_port = krad_compositor_mjpeg_port_create (krad_link->krad_radio->krad_compositor, "StreamOut", OUTPUT);
-		
-			krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_MJPEG", 30000, 1000,
-																krad_link->encoding_width, krad_link->encoding_height);
-		} else {
-			krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_VP8", 30000, 1000,
-																krad_link->encoding_width, krad_link->encoding_height);
-		}
+		krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_VP8", 30000, 1000,
+															krad_link->encoding_width, krad_link->encoding_height);
 	}
 	
 	if (krad_link->audio_codec != NOCODEC) {
@@ -612,17 +615,26 @@ void *stream_output_thread(void *arg) {
 			krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
 
 			if (krad_frame != NULL) {
-							
-				keyframe = 1;
-							
+
+				if (video_frames_muxed % 4 == 0) {
+					keyframe = 1;
+				} else {
+					keyframe = 0;
+				}
+				
 				krad_ebml_add_video(krad_link->krad_ebml, krad_link->video_track, krad_frame->pixels, krad_frame->mjpeg_size, keyframe);
 							
 				krad_framepool_unref_frame (krad_frame);
 			
+				video_frames_muxed++;
+
+	
+
 			}
 			
+			usleep(2000);
 		
-		}		
+		}
 		
 		if (krad_link->audio_codec != NOCODEC) {
 		
@@ -649,12 +661,11 @@ void *stream_output_thread(void *arg) {
 				//printf("ebml muxed audio frames: %d\n\n", audio_frames_muxed);
 				
 			}
-			
+
 			if (krad_link->encoding == 4) {
 				break;
 			}
 		}
-		
 		
 		if ((krad_link->audio_codec != NOCODEC) && (!(krad_link->video_source))) {
 		
@@ -663,27 +674,24 @@ void *stream_output_thread(void *arg) {
 				if (krad_link->encoding == 4) {
 					break;
 				}
-		
-				usleep(10000);
+
+				usleep(8000);
 			
 			}
-		
 		}
 		
-		if ((!(krad_link->audio_codec != NOCODEC)) && (krad_link->video_source)) {
+		if ((krad_link->audio_codec == NOCODEC) && (krad_link->video_source) && (krad_link->mjpeg_passthru == 0)) {
 		
 			if (krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4) {
 		
 				if (krad_link->encoding == 4) {
 					break;
 				}
-		
-				usleep(10000);
+
+				usleep(8000);
 			
 			}
-		
 		}
-
 
 		if ((krad_link->audio_codec != NOCODEC) && (krad_link->video_source)) {
 
@@ -694,15 +702,12 @@ void *stream_output_thread(void *arg) {
 				if (krad_link->encoding == 4) {
 					break;
 				}
-		
-				usleep(10000);
+
+				usleep(8000);
 			
 			}
-		
-		
 		}
 		
-	
 		//krad_ebml_write_tag (krad_link->krad_ebml, "test tag 1", "monkey 123");
 	
 	}
@@ -820,49 +825,9 @@ void *krad_link_run_thread (void *arg) {
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	krad_link_activate ( krad_link );
-
-	if (krad_link->operation_mode == RECEIVE) {
 	
-		while (!krad_link->destroy) {
-			usleep(40000);
-		}
-	
-	} else {
-
-		while (!krad_link->destroy) {
-
-			if (krad_link->capturing) {
-				while (krad_ringbuffer_read_space (krad_link->captured_frames_buffer) < krad_link->composited_frame_byte_size) {
-					usleep(5000);
-				}
-			}
-
-			if (krad_link->operation_mode == CAPTURE) {
-			//	krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
-			}
-
-			if ((!krad_link->capturing) || (krad_link->video_source == X11)) {
-
-				//FIXME this needs to be calculated with frame duration in nanoseconds
-			
-				kradgui_update_elapsed_time(krad_link->krad_gui);
-
-				krad_link->next_frame_time_ms = krad_link->krad_gui->frame * (1000.0f / (float)krad_link->composite_fps);
-
-				krad_link->next_frame_time.tv_sec = (krad_link->next_frame_time_ms - (krad_link->next_frame_time_ms % 1000)) / 1000;
-				krad_link->next_frame_time.tv_nsec = (krad_link->next_frame_time_ms % 1000) * 1000000;
-
-				krad_link->sleep_time = timespec_diff(krad_link->krad_gui->elapsed_time, krad_link->next_frame_time);
-
-				if ((krad_link->sleep_time.tv_sec > -1) && (krad_link->sleep_time.tv_nsec > 0))  {
-					nanosleep (&krad_link->sleep_time, NULL);
-				}
-
-				//printf("Elapsed time %s\r", krad_link->krad_gui->elapsed_time_timecode_string);
-				//fflush(stdout);
-	
-			}
-		}
+	while (!krad_link->destroy) {
+		usleep(50000);
 	}
 
 	return NULL;
@@ -1995,10 +1960,10 @@ void krad_link_activate (krad_link_t *krad_link) {
 	krad_link->encoding_fps = krad_link->capture_fps;
 	
 	if (krad_link->video_source == DECKLINK) {
-		krad_link->composite_width = 1280;
-		krad_link->composite_height = 720;
-		krad_link->encoding_width = 1280;
-		krad_link->encoding_height = 720;
+		krad_link->composite_width = 640;
+		krad_link->composite_height = 360;
+		krad_link->encoding_width = 640;
+		krad_link->encoding_height = 360;
 	} else {
 		krad_link->encoding_width = krad_link->capture_width;
 		krad_link->encoding_height = krad_link->capture_height;
@@ -2030,7 +1995,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 															  SWS_BICUBIC, NULL, NULL, NULL);
 	}
 		  
-	if (krad_link->video_source != NOVIDEO) {
+	if ((krad_link->video_codec != NOCODEC) && (krad_link->mjpeg_passthru == 0)) {
 		krad_link->encoding_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
 															  krad_link->encoding_width, krad_link->encoding_height, PIX_FMT_YUV420P, 
 															  SWS_BICUBIC, NULL, NULL, NULL);
@@ -2053,7 +2018,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 
-		krad_link->krad_framepool = krad_framepool_create ( 1280, 720, 75);
+		krad_link->krad_framepool = krad_framepool_create ( 640, 360, 75);
 
 		//FIXME temp kludge
 		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;
@@ -2079,10 +2044,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 			krad_link->capturing = 1;
 			pthread_create(&krad_link->video_capture_thread, NULL, video_capture_thread, (void *)krad_link);
-		}
-	
-		if (krad_link->interface_mode == WINDOW) {
-			krad_link->render_meters = 0;
 		}
 		
 		if (krad_link->video_source == DECKLINK) {
@@ -2121,7 +2082,8 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 		krad_link->encoding = 1;
 
-		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+		
+		if ((krad_link->mjpeg_passthru == 0) && ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO))) {
 			pthread_create (&krad_link->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_link);
 		}
 	
@@ -2260,56 +2222,39 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link->av_mode = AUDIO_AND_VIDEO;
 
 					sprintf (krad_link->sysname, "link%d", k);
-
-					if (k != 0) {
-						krad_link->operation_mode = TRANSMIT;
-
-						strcpy (krad_link->password, "firefox");
-						krad_link->tcp_port = 8000;
-						strcpy (krad_link->host, "ec2-50-112-77-171.us-west-2.compute.amazonaws.com");
-
-						sprintf (krad_link->mount, "/%s_%d.webm", krad_link->krad_radio->sysname, k);
-						
-						krad_linker_ebml_to_link ( krad_ipc, krad_link);
-						
-					} else {
-						krad_link->operation_mode = CAPTURE;
-						krad_link->av_mode = AUDIO_AND_VIDEO;
-						krad_link->video_source = DECKLINK;
-						krad_link->capture_fps = 30;
-						krad_linker_ebml_to_link ( krad_ipc, krad_link);
-					}
 					
 					*/
 					
+					krad_link->verbose = 1;
+					
 					krad_link->audio_codec = NOCODEC;
-					krad_link->video_source = V4L2;
-					krad_link->video_codec = MJPEG;
 					krad_link->av_mode = VIDEO_ONLY;
-
+					krad_link->video_source = NOVIDEO;
 					krad_link->mjpeg_mode = 1;
+			
 					krad_link->mjpeg_passthru = 1;
+			
+					if (krad_link->mjpeg_passthru == 1) {
+						krad_link->video_codec = MJPEG;
+					} else {
+						krad_link->video_codec = VP8;
+					}
 					
 					sprintf (krad_link->sysname, "link%d", k);
 
-					if (k != 0) {
-						krad_link->operation_mode = TRANSMIT;
-
-						strcpy (krad_link->password, "firefox");
-						krad_link->tcp_port = 8000;
-						strcpy (krad_link->host, "ec2-50-112-77-171.us-west-2.compute.amazonaws.com");
-
-						sprintf (krad_link->mount, "/%s_%d.webm", krad_link->krad_radio->sysname, k);
-						
-						krad_linker_ebml_to_link ( krad_ipc, krad_link);
-						
-					} else {
+					if (k == 0) {
+						krad_link->video_source = V4L2;
 						krad_link->operation_mode = CAPTURE;
 						krad_link->capture_fps = 30;
-						krad_linker_ebml_to_link ( krad_ipc, krad_link);
 					}
 					
+					if (k == 1) {
+						krad_link->operation_mode = TRANSMIT;
+						//strcpy (krad_link->password, "firefox");					
+						strcpy (krad_link->password, "secretkode");
+					}	
 					
+					krad_linker_ebml_to_link ( krad_ipc, krad_link);
 					
 					krad_link_run (krad_link);
 					break;

@@ -53,9 +53,9 @@ char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2) {
 
 			
 			kradv4l2->jpeg_size = kradv4l2->buf.bytesused;
-
+			//kradv4l2->jpeg_size = kradv4l2->buffers[kradv4l2->buf.index].length;
 			
-			//printf("\n\njpeg size %u \n\n", kradv4l2->jpeg_size);
+			//printf("jpeg size %zu or %u \n", kradv4l2->buffers[kradv4l2->buf.index].length, kradv4l2->buf.bytesused);
 
 			
 			return kradv4l2->buffers[kradv4l2->buf.index].start;
@@ -399,7 +399,7 @@ void kradv4l2_init_mmap (krad_v4l2_t *kradv4l2) {
 
     CLEAR (req);
 
-    req.count = 4;
+    req.count = 60;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
@@ -416,6 +416,8 @@ void kradv4l2_init_mmap (krad_v4l2_t *kradv4l2) {
 		fprintf (stderr, "Insufficient buffer memory on %s\n", kradv4l2->device);
 		exit (EXIT_FAILURE);
 	}
+
+	printf("v4l2 says %d buffers\n", req.count);
 
 	kradv4l2->buffers = calloc (req.count, sizeof (*kradv4l2->buffers));
 
@@ -832,7 +834,7 @@ void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, u
 }
 
 
-void kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size) {
+int kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size) {
 
 
 	unsigned long jpeg_size_long;
@@ -850,7 +852,7 @@ void kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, 
  	//printf("sizeof jpeghed %d \n", jpg_hedsize);
  	//printf("sizeof huf %d \n", hufsize);
  
-	memcpy (kradv4l2->jpeg_buffer, jpeg_header, jpg_hedsize);
+	memcpy (jpeg_buffer, jpeg_header, jpg_hedsize);
 
 
  	jpeg_size_long += jpg_hedsize;
@@ -876,14 +878,17 @@ void kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, 
  	
  	//printf("got %d for X!\n", x);
 
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize, mjpeg_buffer + tmp, x);
+	memcpy (jpeg_buffer + jpg_hedsize, mjpeg_buffer + tmp, x);
 
 
  	
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x, mjpg_dht, hufsize);
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x + hufsize, mjpeg_buffer + tmp + x, mjpeg_size - tmp - x);
+	memcpy (jpeg_buffer + jpg_hedsize + x, mjpg_dht, hufsize);
+	memcpy (jpeg_buffer + jpg_hedsize + x + hufsize, mjpeg_buffer + tmp + x, mjpeg_size - tmp - x);
  	
  	jpeg_size_long = jpg_hedsize + x + hufsize + (mjpeg_size - tmp - x);
+ 	
+ 	
+ 	return jpeg_size_long;
  	
 	//ret = tjDecompress2 ( kradv4l2->jpeg_dec, kradv4l2->jpeg_buffer, jpeg_size_long, argb_buffer, kradv4l2->width, 
 	//					  stride, kradv4l2->height, TJPF_BGRA, 0 );

@@ -217,6 +217,10 @@ void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 			break;
 		}
 	}
+	
+	if (krad_frame == NULL) {
+		return;
+	}
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT) && (krad_compositor->port[p].mjpeg == 1)) {
@@ -244,7 +248,7 @@ krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_comp
 
 	krad_frame_t *krad_frame;
 	
-	if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= 4) {
+	if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= 8) {
 		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, 8);
 		return krad_frame;
 	}
