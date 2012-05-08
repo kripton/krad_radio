@@ -110,6 +110,7 @@ typedef enum {
 	DIRAC,
 	THEORA,
 	NOCODEC,
+	MJPEG,	
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif

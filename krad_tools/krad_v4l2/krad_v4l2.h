@@ -81,7 +81,9 @@ struct krad_v4l2_St {
 
 /* public */
 
-void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, unsigned char *jpeg_buffer, unsigned int jpeg_size);
+void kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
+
+void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
 
 krad_v4l2_t *kradv4l2_create();
 void kradv4l2_destroy(krad_v4l2_t *kradv4l2);

@@ -133,6 +133,8 @@ struct krad_link_St {
 	int encoding_fps;
 
 	int mjpeg_mode;
+	
+	int mjpeg_passthru;	
 
 	int capture_buffer_frames;
 	int encoding_buffer_frames;

@@ -757,7 +757,7 @@ static char mjpg_dht[0x1A4] =
 };
 
 
-void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, unsigned char *jpeg_buffer, unsigned int jpeg_size) {
+void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size) {
 
 
 	unsigned long jpeg_size_long;
@@ -766,7 +766,7 @@ void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, un
 	
 	//static int count = 1;
 	
-	jpeg_size_long = jpeg_size;
+	jpeg_size_long = mjpeg_size;
 	stride = kradv4l2->width * 4;
 	
 	int jpg_hedsize = sizeof(jpeg_header);
@@ -783,11 +783,11 @@ void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, un
  	
  	
 	//removing avi header
-	int tmp = *((char *)jpeg_buffer + 4);
+	int tmp = *((char *)mjpeg_buffer + 4);
 	// 	printf("sizeof temp %d \n", tmp);
 	tmp <<= 8;
 	//	printf("sizeof temp %d \n", tmp);
-	tmp += *((char *)jpeg_buffer + 5) + 4;
+	tmp += *((char *)mjpeg_buffer + 5) + 4;
  	
  	//printf("sizeof temp %d \n", tmp);
  	
@@ -795,20 +795,20 @@ void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, un
  	
  	int x = 0;
  	
- 	while (!((jpeg_buffer[tmp + x] == 0xFF) && (jpeg_buffer[tmp + x + 1] == 0xDA))) {
+ 	while (!((mjpeg_buffer[tmp + x] == 0xFF) && (mjpeg_buffer[tmp + x + 1] == 0xDA))) {
  		x++;
  	}
  	
  	//printf("got %d for X!\n", x);
 
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize, jpeg_buffer + tmp, x);
+	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize, mjpeg_buffer + tmp, x);
 
 
  	
 	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x, mjpg_dht, hufsize);
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x + hufsize, jpeg_buffer + tmp + x, jpeg_size - tmp - x);
+	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x + hufsize, mjpeg_buffer + tmp + x, mjpeg_size - tmp - x);
  	
- 	jpeg_size_long = jpg_hedsize + x + hufsize + (jpeg_size - tmp - x);
+ 	jpeg_size_long = jpg_hedsize + x + hufsize + (mjpeg_size - tmp - x);
  	
 	ret = tjDecompress2 ( kradv4l2->jpeg_dec, kradv4l2->jpeg_buffer, jpeg_size_long, argb_buffer, kradv4l2->width, 
 						  stride, kradv4l2->height, TJPF_BGRA, 0 );
@@ -816,6 +816,81 @@ void kradv4l2_jpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, un
 	if (ret != 0) {
 		printf("JPEG decoding error: %s\n", tjGetErrorStr());
 	}
+	/*
+	int fd;
+	char filename[512];
+	sprintf(filename, "/home/oneman/kode/testfilex_%d.jpg", count++);
+
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	write(fd, kradv4l2->jpeg_buffer, jpeg_size_long);
+	close(fd);
+	
+	if (count > 30) {
+		exit(0);
+	}
+	*/
+}
+
+
+void kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size) {
+
+
+	unsigned long jpeg_size_long;
+	int stride;
+	int ret;
+	
+	//static int count = 1;
+	
+	jpeg_size_long = mjpeg_size;
+	stride = kradv4l2->width * 4;
+	
+	int jpg_hedsize = sizeof(jpeg_header);
+	int hufsize = sizeof(mjpg_dht);
+ 
+ 	//printf("sizeof jpeghed %d \n", jpg_hedsize);
+ 	//printf("sizeof huf %d \n", hufsize);
+ 
+	memcpy (kradv4l2->jpeg_buffer, jpeg_header, jpg_hedsize);
+
+
+ 	jpeg_size_long += jpg_hedsize;
+ 	jpeg_size_long += hufsize;
+ 	
+ 	
+	//removing avi header
+	int tmp = *((char *)mjpeg_buffer + 4);
+	// 	printf("sizeof temp %d \n", tmp);
+	tmp <<= 8;
+	//	printf("sizeof temp %d \n", tmp);
+	tmp += *((char *)mjpeg_buffer + 5) + 4;
+ 	
+ 	//printf("sizeof temp %d \n", tmp);
+ 	
+
+ 	
+ 	int x = 0;
+ 	
+ 	while (!((mjpeg_buffer[tmp + x] == 0xFF) && (mjpeg_buffer[tmp + x + 1] == 0xDA))) {
+ 		x++;
+ 	}
+ 	
+ 	//printf("got %d for X!\n", x);
+
+	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize, mjpeg_buffer + tmp, x);
+
+
+ 	
+	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x, mjpg_dht, hufsize);
+	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x + hufsize, mjpeg_buffer + tmp + x, mjpeg_size - tmp - x);
+ 	
+ 	jpeg_size_long = jpg_hedsize + x + hufsize + (mjpeg_size - tmp - x);
+ 	
+	//ret = tjDecompress2 ( kradv4l2->jpeg_dec, kradv4l2->jpeg_buffer, jpeg_size_long, argb_buffer, kradv4l2->width, 
+	//					  stride, kradv4l2->height, TJPF_BGRA, 0 );
+
+	//if (ret != 0) {
+	//	printf("JPEG decoding error: %s\n", tjGetErrorStr());
+	//}
 	/*
 	int fd;
 	char filename[512];

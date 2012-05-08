@@ -26,6 +26,10 @@ void krad_framepool_unref_frame (krad_frame_t *frame) {
 
 	frame->refs--;
 
+	if ((frame->refs == 0) && (frame->mjpeg_size > 0)) {
+		frame->mjpeg_size = 0;
+	}
+
 }
 
 void krad_framepool_destroy (krad_framepool_t *krad_framepool) {

@@ -51,6 +51,7 @@ typedef enum {
 	THEORA,
 	NOCODEC,
 	SKELETON,
+	MJPEG
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif

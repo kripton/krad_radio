@@ -13,6 +13,7 @@ struct krad_frame_St {
 
 	int *pixels;
 	int refs;
+	int mjpeg_size;	
 
 };
 

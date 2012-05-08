@@ -1,7 +1,8 @@
 All Knobs VIA IPC
+TCP IPC Option
+Catch Handle term/kill signals proper
 Javascript IPC Translator
 Ogg Output
-MJPEG Passthru
 Wayland Output
 UDP Video
 OSC IPC Translator
@@ -12,7 +13,7 @@ Notes:
 
 GTK:
 Remove/Display differently output mixer portgroups?
-Taging
+Tagging
 Port Add/Remove
 
 IPC:
