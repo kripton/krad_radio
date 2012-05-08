@@ -676,7 +676,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
 	
 	
-	printf("Type : %s\n", string);	
+	printf("Type: %s\n", string);	
 	
 		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -694,7 +694,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_MIXGROUP) {
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS) {
 		printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
@@ -702,7 +702,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 
 	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);	
 	
-		printf("Mix Group : %s\n", string);	
+		printf("Bus: %s\n", string);	
 	
 	return bytes_read;
 	
@@ -711,7 +711,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 #define EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS 0xE3
 #define EBML_ID_KRAD_MIXER_PORTGROUP_TYPE 0xE4
 #define EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME 0xE5
-#define EBML_ID_KRAD_MIXER_PORTGROUP_MIXGROUP 0xE6
+#define EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS 0xE6
 
 void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_name, char **tag_value ) {
 

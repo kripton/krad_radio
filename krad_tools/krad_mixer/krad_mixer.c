@@ -662,7 +662,7 @@ krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 	
 	krad_mixer->krad_audio = krad_audio_create (krad_mixer);
 	
-	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterMix", MIX, 2, NULL, MIXBUS, NULL, 0);
+	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "Master", MIX, 2, NULL, MIXBUS, NULL, 0);
 	
 	return krad_mixer;
 	
@@ -749,7 +749,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 			krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval);
 
-			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
+			krad_ipc_server_mixer_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			//*output_len = 666;
 			return 2;
 			break;
@@ -801,8 +801,11 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 				direction = INPUT;
 			}
 
-			krad_mixer_portgroup_create (krad_mixer, portgroupname, direction, 2,
+			portgroup = krad_mixer_portgroup_create (krad_mixer, portgroupname, direction, 2,
 										 krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);			
+
+			krad_ipc_server_broadcast_portgroup_created ( krad_ipc, portgroup->sysname, portgroup->channels,
+											  	   		  portgroup->io_type, portgroup->volume[0], portgroup->mixbus->sysname );
 		
 			break;
 		case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:	
@@ -818,6 +821,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
 			
 			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname));
+		
+			krad_ipc_server_simple_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);		
 		
 			break;			
 	}
