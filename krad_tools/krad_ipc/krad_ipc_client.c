@@ -595,7 +595,7 @@ int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portg
 	
 	*value = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
 
-	printf("krad_ipc_client_read_mixer_control %s %s %f\n", *portgroup_name, *control_name, *value );
+	//printf("krad_ipc_client_read_mixer_control %s %s %f\n", *portgroup_name, *control_name, *value );
 		
 	return 0;		
 						
