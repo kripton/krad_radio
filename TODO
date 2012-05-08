@@ -6,3 +6,15 @@ Wayland Output
 UDP Video
 OSC IPC Translator
 Gstreamer Input / Output
+
+
+Notes:
+
+GTK:
+Remove/Display differently output mixer portgroups?
+Taging
+Port Add/Remove
+
+IPC:
+make clients request to be broadcasted to
+level monitoring
