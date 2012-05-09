@@ -743,7 +743,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	
 	
 	if (strlen(crossfade_name)) {
-		printf("Crossfade With: %s\n", string);	
+		printf("Crossfade With: %s\n", crossfade_name);	
 	}
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
