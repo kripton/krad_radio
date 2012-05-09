@@ -2037,7 +2037,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 			if (krad_link->krad_x11 == NULL) {
 				krad_link->krad_x11 = krad_x11_create();
 			}
-			krad_x11_enable_capture(krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
+			krad_x11_enable_capture (krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 		}
 		
 		if (krad_link->video_source == V4L2) {
