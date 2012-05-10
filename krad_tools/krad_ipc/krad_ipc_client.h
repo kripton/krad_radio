@@ -4,9 +4,9 @@
 #include <malloc.h>
 #include <math.h>
 #include <signal.h>
-
+#include <inttypes.h>
 #include <sys/utsname.h>
-
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -23,6 +23,7 @@
 #include <pthread.h>
 
 #include "krad_ebml.h"
+
 
 #define KRAD_IPC_BUFFER_SIZE 16384
 #ifndef KRAD_IPC_CLIENT

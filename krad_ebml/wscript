@@ -36,6 +36,7 @@ def build(bld):
 		source = sources + depsources, 
 		includes = includedirs, 
 		target = "kradebml",
+		lib = ["m"],
 		vnum = KRADEBML_VERSION)
 		
 	bld.add_post_fun(post)

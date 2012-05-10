@@ -5,9 +5,15 @@
 
 programs = """
 krad_radio.c
+""".split()
+
+programs2 = """
 krad_radio_gtk.c
 krad_radio_cmd.c
 krad_ebml_fileinfo.c
+""".split()
+
+programs3 = """
 krad_xpdr.c
 """.split()
 
@@ -63,6 +69,11 @@ depsources = """
 ../krad_tools/krad_decklink/krad_decklink.c
 ../krad_tools/krad_decklink/krad_decklink_capture.cpp
 ../krad_tools/krad_decklink/vendor/DeckLinkAPIDispatch.cpp
+""".split()
+
+depsources2 = """
+../krad_tools/krad_system/krad_system.c
+../krad_tools/krad_ipc/krad_ipc_client.c
 """.split()
 
 includedirs = """
@@ -125,6 +136,15 @@ def build(bld):
 
 		bld(features = 'c cprogram cxx cxxprogram', 
 			source = sources + depsources + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			use = ["kradebml", "m"],
+			uselib = libs)
+
+	for p in programs2:
+
+		bld(features = 'c cprogram', 
+			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
 			use = ["kradebml", "m"],
