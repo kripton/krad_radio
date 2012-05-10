@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 top = '.'
+out = '.waf_build_directory'
 
 from waflib.Errors import ConfigurationError
 from waflib import Configure, Logs

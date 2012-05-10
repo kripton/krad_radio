@@ -101,6 +101,31 @@ Libs: -L${libdir} -lcodec2
 Cflags: -I${includedir}
 
 
+
+
+git clone git://git.warmcat.com/libwebsockets
+cd libwebsockets && ./configure && make && sudo make install
+
+
+
+# libwebsockets installed pkg-config file
+
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: websockets
+Description: libwebsockets
+Version: 0.0.3
+Conflicts:
+Libs: -L${libdir} -lwebsockets
+Cflags: -I${includedir}
+
+
+
+
+
 And most importantly...
 
 -David Richards March 10, 2012
