@@ -47,6 +47,7 @@ typedef struct krad_radio_St krad_radio_t;
 
 extern int verbose;
 extern int do_shutdown;
+extern krad_system_t krad_system;
 
 struct krad_radio_St {
 

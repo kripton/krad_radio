@@ -2196,48 +2196,46 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->krad_linker = krad_linker;
 					
-					
 					krad_link->interface_mode = COMMAND;
 
-					
-
-					krad_link->audio_codec = VORBIS;
-					krad_link->video_source = DECKLINK;
-					krad_link->video_codec = VP8;
-					krad_link->av_mode = AUDIO_AND_VIDEO;
-
 					sprintf (krad_link->sysname, "link%d", k);
-					
-					
 					
 					krad_link->verbose = 1;
 					
-					//krad_link->audio_codec = NOCODEC;
-					//krad_link->av_mode = VIDEO_ONLY;
-					//krad_link->video_source = NOVIDEO;
-					//krad_link->mjpeg_mode = 1;
-			
-					//krad_link->mjpeg_passthru = 1;
-			
-					if (krad_link->mjpeg_passthru == 1) {
-						krad_link->video_codec = MJPEG;
-					} else {
-						krad_link->video_codec = VP8;
-					}
-					
-					sprintf (krad_link->sysname, "link%d", k);
-
 					if (k == 0) {
-						krad_link->operation_mode = CAPTURE;
-						krad_link->capture_fps = 30;
+					
+						krad_link->audio_codec = VORBIS;
+						krad_link->video_source = NOVIDEO;
+						krad_link->video_codec = NOCODEC;
+						krad_link->av_mode = AUDIO_ONLY;
+						krad_link->operation_mode = TRANSMIT;
+						strcpy (krad_link->password, "secretkode");
 					}
 					
 					if (k == 1) {
+						krad_link->operation_mode = CAPTURE;
+						krad_link->capture_fps = 30;
+						krad_link->audio_codec = NOCODEC;
+						krad_link->video_source = V4L2;
+						krad_link->av_mode = VIDEO_ONLY;
+						krad_link->mjpeg_passthru = 1;
+			
+						if (krad_link->mjpeg_passthru == 1) {
+							krad_link->video_codec = MJPEG;
+						} else {
+							krad_link->video_codec = VP8;
+						}
+					}
+						
+					if (k == 2) {
+						krad_link->audio_codec = NOCODEC;
+						krad_link->video_source = V4L2;
+						krad_link->video_codec = MJPEG;
+						krad_link->av_mode = VIDEO_ONLY;
 						krad_link->operation_mode = TRANSMIT;
-						strcpy (krad_link->password, "firefox");					
-						//strcpy (krad_link->password, "secretkode");
-					}	
-					
+						strcpy (krad_link->password, "secretkode");
+					}
+
 					krad_linker_ebml_to_link ( krad_ipc, krad_link);
 					
 					krad_link_run (krad_link);
