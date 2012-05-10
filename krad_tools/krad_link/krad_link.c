@@ -1945,10 +1945,10 @@ void krad_link_activate (krad_link_t *krad_link) {
 	krad_link->encoding_fps = krad_link->capture_fps;
 	
 	if (krad_link->video_source == DECKLINK) {
-		krad_link->composite_width = 640;
-		krad_link->composite_height = 360;
-		krad_link->encoding_width = 640;
-		krad_link->encoding_height = 360;
+		krad_link->composite_width = 1280;
+		krad_link->composite_height = 720;
+		krad_link->encoding_width = 1280;
+		krad_link->encoding_height = 720;
 	} else {
 		krad_link->encoding_width = krad_link->capture_width;
 		krad_link->encoding_height = krad_link->capture_height;
@@ -2003,7 +2003,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 
-		krad_link->krad_framepool = krad_framepool_create ( 640, 360, 75);
+		krad_link->krad_framepool = krad_framepool_create ( 1280, 720, 75);
 
 		//FIXME temp kludge
 		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;
