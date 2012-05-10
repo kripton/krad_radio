@@ -116,10 +116,10 @@ def build(bld):
 
 		print includedirs
 
-		bld(features = 'c cprogram', 
+		bld(features = 'c cprogram cxx cxxprogram', 
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = ["kradebml"],
+			use = ["kradebml", "m"],
 			uselib = libs)
 
