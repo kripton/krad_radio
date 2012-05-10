@@ -104,8 +104,8 @@ Cflags: -I${includedir}
 
 
 git clone git://git.warmcat.com/libwebsockets
-cd libwebsockets && ./configure && make && sudo make install
 
+cd libwebsockets && ./configure && make && sudo make install && sudo ldconfig
 
 
 # libwebsockets installed pkg-config file
