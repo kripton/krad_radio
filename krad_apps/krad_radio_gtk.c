@@ -352,7 +352,7 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					
 					break;
 				case EBML_ID_KRAD_MIXER_PORTGROUP_UPDATED:
-					printf("PORTGROUP_UPDATED msg %zu bytes  \n", ebml_data_size );
+					printf("PORTGROUP_UPDATED msg %"PRIu64" bytes  \n", ebml_data_size );
 				
 					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 
