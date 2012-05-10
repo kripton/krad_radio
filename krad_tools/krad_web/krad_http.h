@@ -17,7 +17,6 @@
 
 #define BUFSIZE 8192
 
-
 typedef struct krad_http_St krad_http_t;
 typedef struct krad_http_client_St krad_http_client_t;
 
@@ -33,6 +32,12 @@ struct krad_http_St {
 	char *homedir;
 	
 	int shutdown;
+	
+	int websocket_port;	
+	char *html;
+	int html_len;
+	char *js;
+	int js_len;
 	
 	pthread_t server_thread;	
 	
@@ -65,7 +70,7 @@ void krad_http_write_headers (krad_http_client_t *client, char *content_type);
 void krad_http_404 (krad_http_client_t *client);
 
 void *krad_http_server_run (void *arg);
-krad_http_t *krad_http_server_create (int port);
+krad_http_t *krad_http_server_create (int port, int websocket_port);
 void krad_http_server_destroy (krad_http_t *krad_http);
 
 

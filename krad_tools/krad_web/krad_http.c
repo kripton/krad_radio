@@ -1,5 +1,8 @@
 #include "krad_http.h"
 
+#include "krad_radio.html.h"
+#include "krad_radio.js.h"
+
 krad_http_client_t *krad_http_create_client(krad_http_t *krad_http) {
 
 	krad_http_client_t *client = calloc(1, sizeof(krad_http_client_t));
@@ -16,9 +19,9 @@ void krad_http_destroy_client(krad_http_t *krad_http, krad_http_client_t *client
 	
 	close (client->sd);
 		
-	if (client->file_fd) {
-		close (client->file_fd);
-	}
+	//if (client->file_fd) {
+	//	close (client->file_fd);
+	//}
 		
 	free (client);
 	
@@ -209,7 +212,7 @@ void *krad_http_client_thread (void *arg) {
 	}
 
 	
-	printf("\nsdfdsf: %s\n", client->in_buffer);
+	printf("Krad HTTP Request: %s\n", client->in_buffer);
 	
 	while (client->in_buffer_pos <= 256) {
 	
@@ -223,26 +226,19 @@ void *krad_http_client_thread (void *arg) {
 		
 			if (strncmp("favicon.ico", client->get, 11) == 0) {
 		
-				printf("favicon web client done\n");
+				//printf("favicon web client done\n");
 
 				krad_http_destroy_client(client->krad_http, client);
 
 			}
 		
 			if (strncmp("krad_radio.js", client->get, 13) == 0) {
-		
-
-				sprintf(client->filename, "%s/kode/krad_radio/krad_apps/krad_radio.js", client->krad_http->homedir);
-
-				if ((client->file_fd = open (client->filename, O_RDONLY)) == -1) {
-					printf("failed to open js api file");
-				}
 
 				krad_http_write_headers (client, "text/javascript");
 
-				while (	(client->ret = read(client->file_fd, client->out_buffer, BUFSIZE)) > 0 ) {
-					client->wrote = write(client->sd, client->out_buffer, client->ret);
-				}
+
+				client->wrote = write(client->sd, client->krad_http->js, client->krad_http->js_len);
+
 		
 				//printf("js web client done\n");
 
@@ -253,17 +249,9 @@ void *krad_http_client_thread (void *arg) {
 		
 			if ((strlen(client->get) == 0) || (strncmp("krad_radio.html", client->get, 15) == 0)) {
 
-				sprintf(client->filename, "%s/kode/krad_radio/krad_apps/krad_radio.html", client->krad_http->homedir);
-
-				if ((client->file_fd = open (client->filename, O_RDONLY)) == -1) {
-					printf("failed to open html file");
-				}
-
 				krad_http_write_headers (client, "text/html");
 
-				while (	(client->ret = read(client->file_fd, client->out_buffer, BUFSIZE)) > 0 ) {
-					client->wrote = write(client->sd, client->out_buffer, client->ret);
-				}
+				client->wrote = write(client->sd, client->krad_http->html, client->krad_http->html_len);
 		
 				//printf("html web client done\n");
 
@@ -276,7 +264,7 @@ void *krad_http_client_thread (void *arg) {
 		}
 		
 		client->in_buffer_pos += strcspn(client->in_buffer + client->in_buffer_pos, "\r") + 2;
-		printf("spin %d\n", client->in_buffer_pos);
+		//printf("spin %d\n", client->in_buffer_pos);
 		if (strncmp(client->in_buffer + client->in_buffer_pos, "\r\n", 2) == 0) {
 			client->in_buffer_pos = client->in_buffer_pos + 2;
 			//printf("Headers Length: %d\n", client->in_buffer_pos );
@@ -285,7 +273,7 @@ void *krad_http_client_thread (void *arg) {
 		
 	}
 
-	printf ("web client fail\n");
+	printf ("Krad HTTP client fail\n");
 
 	krad_http_destroy_client (client->krad_http, client);
 	
@@ -346,21 +334,31 @@ void *krad_http_server_run (void *arg) {
 	
 }
 
-krad_http_t *krad_http_server_create (int port) {
+krad_http_t *krad_http_server_create (int port, int websocket_port) {
 	
 	krad_http_t *krad_http = calloc(1, sizeof(krad_http_t));
 
 	static struct sockaddr_in serv_addr;
 	int on = 1;
+	char string[7];
 
 	krad_http->port = port;
+	krad_http->websocket_port = websocket_port;
+	
+	krad_http->js = (char *)krad_tools_krad_web_res_krad_radio_js;
+	krad_http->html = (char *)krad_tools_krad_web_res_krad_radio_html;
+	krad_http->js_len = krad_tools_krad_web_res_krad_radio_js_len;
+	krad_http->html_len = krad_tools_krad_web_res_krad_radio_html_len;
+	
+	snprintf (string, 7, "%6d", krad_http->websocket_port);		
+	memcpy (strstr (krad_http->html, "WSPORT"), string, 6);	
 	
 	if (krad_http->port < 0 || krad_http->port > 60000) {
 		printf("krad_http port number error\n");
 		exit(1);
 	}
 	
-	printf("Krad web Starting Up on port %d\n", krad_http->port);
+	printf("Krad Web Starting Up on port %d\n", krad_http->port);
 
 	krad_http->homedir = getenv ("HOME");
  	

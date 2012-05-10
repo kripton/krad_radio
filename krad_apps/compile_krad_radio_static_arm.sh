@@ -11,6 +11,12 @@
 
 
 echo "----krad radio -----"
+
+cd ../
+xxd -i krad_tools/krad_web/res/krad_radio.html krad_tools/krad_web/res/krad_radio.html.h
+xxd -i krad_tools/krad_web/res/krad_radio.js krad_tools/krad_web/res/krad_radio.js.h
+cd krad_apps
+
 rm *.o
 rm ../krad_tools/krad_decklink/krad_decklink_capture.a
 
@@ -20,6 +26,7 @@ ar -cvq ../krad_tools/krad_decklink/krad_decklink_capture.a krad_decklink_captur
 rm *.o
 
 gcc -g -Wall krad_radio.c \
+-I../krad_tools/krad_web/res/ \
 -I../krad_tools/krad_ipc ../krad_tools/krad_ipc/krad_ipc_client.c -I../krad_tools/krad_web/ -I../krad_tools/krad_radio \
 ../krad_tools/krad_effects/util/rms.c ../krad_tools/krad_effects/util/db.c ../krad_tools/krad_effects/digilogue.c ../krad_tools/krad_effects/djeq.c ../krad_tools/krad_effects/fastlimiter.c \
 ../krad_tools/krad_effects/sidechain_comp.c ../krad_tools/krad_effects/hardlimiter.c -I../krad_tools/krad_effects/ -I../krad_tools/krad_effects/util \

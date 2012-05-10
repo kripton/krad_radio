@@ -1,3 +1,41 @@
+		
+function add_portgroup (name, volume) {
+
+	$('#studio').append("<div class='sliders'><div id='" + name + "'></div> <h2>" + name + "</h2></div>");
+
+	$('#' + name).slider();
+
+	$('#' + name).slider({orientation: 'vertical', value: volume });
+
+	$( "#" + name ).bind( "slide", function(event, ui) {
+		kradwebsocket.send("KIPCset_control:" + name + ":volume:" + ui.value);
+	});
+
+	if (name == "Music2") {
+		$('#studio').append("<div class='sliders'><div id='xfader_" + name + "'></div> <h2>xfader " + name + "</h2></div>");
+
+		$('#xfader_' + name).slider();
+
+		$('#xfader_' + name).slider({orientation: 'horizontal', value: 0, min: -100 });
+
+		$( "#xfader_" + name ).bind( "slide", function(event, ui) {
+			kradwebsocket.send("KIPCset_control:" + name + ":xfader:" + ui.value);
+		});
+	
+	}
+
+}
+
+function set_control (name, volume) {
+
+	if ($('#' + name)) {
+		$('#' + name).slider( "value" , volume )
+	}
+}
+		
+		
+		
+
 function create_handler(inst, func){
     
     return (function(e){

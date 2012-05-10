@@ -68,6 +68,7 @@ includedirs = """
 ../krad_tools/krad_compositor/
 ../krad_tools/krad_framepool/
 ../krad_tools/krad_web/
+../krad_tools/krad_web/res/
 ../krad_tools/krad_effects/
 ../krad_tools/krad_tone/
 ../krad_tools/krad_ipc/
@@ -111,6 +112,12 @@ def configure(conf):
 
 
 def build(bld):
+
+	cmd = 'xxd -i krad_tools/krad_web/res/krad_radio.html krad_tools/krad_web/res/krad_radio.html.h'
+	bld.exec_command(cmd)
+
+	cmd = 'xxd -i krad_tools/krad_web/res/krad_radio.js krad_tools/krad_web/res/krad_radio.js.h'
+	bld.exec_command(cmd)
 
 	for p in programs:
 
