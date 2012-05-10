@@ -246,7 +246,7 @@ void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 	client->active = 0;
 	krad_ipc_server_update_pollfds (client->krad_ipc_server);
 	printf("Krad IPC Server: Client Disconnected\n\n");
-	
+
 }
 
 /*
@@ -579,6 +579,8 @@ void *krad_ipc_server_run (void *arg) {
 
 	while (!krad_ipc_server->shutdown) {
 
+		usleep (200000);
+
 		ret = poll (krad_ipc_server->sockets, krad_ipc_server->socket_count, KRAD_IPC_SERVER_TIMEOUT_MS);
 
 		if (ret > 0) {
@@ -599,12 +601,19 @@ void *krad_ipc_server_run (void *arg) {
 			if ((krad_ipc_server->tcp_sd != 0) && (krad_ipc_server->sockets[s].revents & POLLIN)) {
 				krad_ipc_server_accept_client (krad_ipc_server, krad_ipc_server->tcp_sd);
 				ret--;
-				s++;
 			}			
+
+			if (krad_ipc_server->tcp_sd != 0) {
+				s++;
+			}
 	
 			for (; ret > 0; s++) {
 
+				printf("s is %d\n", s);
+
 				if (krad_ipc_server->sockets[s].revents) {
+
+					printf("event on %d\n", s);
 					
 					ret--;
 				
@@ -615,13 +624,19 @@ void *krad_ipc_server_run (void *arg) {
 					}
 
 					if (krad_ipc_server->sockets[s].revents & POLLHUP) {
-						//printf("Krad IPC Server: POLLHUP\n");
+						printf("Krad IPC Server: POLLHUP\n");
 						krad_ipc_disconnect_client (client);
 						continue;
 					}
 
 					if (krad_ipc_server->sockets[s].revents & POLLERR) {
 						printf("Krad IPC Server: POLLERR\n");
+						krad_ipc_disconnect_client (client);
+						continue;
+					}
+
+					if (krad_ipc_server->sockets[s].revents & POLLNVAL) {
+						printf("Krad IPC Server: POLLNVAL\n");
 						krad_ipc_disconnect_client (client);
 						continue;
 					}

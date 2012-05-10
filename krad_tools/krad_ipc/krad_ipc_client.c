@@ -1,9 +1,6 @@
 #include "krad_ipc_client.h"
 
-#include "krad_radio_ipc.h"
-
-krad_ipc_client_t *krad_ipc_connect (char *sysname)
-{
+krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 	
 	krad_ipc_client_t *client = calloc (1, sizeof (krad_ipc_client_t));
 	
@@ -44,8 +41,47 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname)
 }
 
 
-int krad_ipc_client_init (krad_ipc_client_t *client)
-{
+int krad_ipc_client_init (krad_ipc_client_t *client) {
+
+	struct sockaddr_in serveraddr;
+	struct hostent *hostp;
+	int sent;
+	
+	char *temphost = "127.0.0.1";
+	int tempport = 7777;
+
+
+	if (strcmp(client->ipc_path, "@krad_radio_monkey2_ipc") == 0) {
+
+	printk("Krad IPC Client: Connecting to remote %s:%d\n", temphost, tempport);
+
+	if ((client->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		printke ("Krad IPC Client: Socket Error\n");
+		exit(1);
+	}
+
+	memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_port = htons (tempport);
+	
+	if ((serveraddr.sin_addr.s_addr = inet_addr(temphost)) == (unsigned long)INADDR_NONE) {
+		// get host address 
+		hostp = gethostbyname(temphost);
+		if (hostp == (struct hostent *)NULL) {
+			printke ("Krad IPC Client: Remote Host Error\n");
+			close (client->sd);
+			exit (1);
+		}
+		memcpy (&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
+	}
+
+	// connect() to server. 
+	if ((sent = connect(client->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
+		printke ("Krad IPC Client: Remote Connect Error\n");
+		exit(1);
+	}
+
+	} else {
 
 	client->sd = socket (AF_UNIX, SOCK_STREAM, 0);
 	if (client->sd == -1) {
@@ -76,6 +112,11 @@ int krad_ipc_client_init (krad_ipc_client_t *client)
 		printf ("Krad IPC Client: socket get flag fail\n");
 		return 0;
 	}
+	
+	
+	}
+	
+	
 /*
 	client->flags |= O_NONBLOCK;
 
