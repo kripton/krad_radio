@@ -21,9 +21,9 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname)
 
 	if (strncmp(client->unixname.sysname, "Linux", 5) == 0) {
 		client->on_linux = 1;
-		client->ipc_path_pos = sprintf(client->ipc_path, "@%s_ipc", sysname);
+		client->ipc_path_pos = sprintf(client->ipc_path, "@krad_radio_%s_ipc", sysname);
 	} else {
-		client->ipc_path_pos = sprintf(client->ipc_path, "%s/%s_ipc", getenv ("HOME"), sysname);
+		client->ipc_path_pos = sprintf(client->ipc_path, "%s/krad_radio_%s_ipc", getenv ("HOME"), sysname);
 	}
 	
 	if (!client->on_linux) {
@@ -35,7 +35,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname)
 	}
 	
 	if (krad_ipc_client_init (client) == 0) {
-		printf ("Failed to init krad ipc client!\n");
+		printf ("Krad IPC Client: Failed to init!\n");
 		krad_ipc_disconnect (client);
 		return NULL;
 	}
@@ -64,7 +64,7 @@ int krad_ipc_client_init (krad_ipc_client_t *client)
 	if (connect (client->sd, (struct sockaddr *) &client->saddr, sizeof (client->saddr)) == -1) {
 		close (client->sd);
 		client->sd = 0;
-		printf ("Can't connect to socket %s\n", client->ipc_path);
+		printf ("Krad IPC Client: Can't connect to socket %s\n", client->ipc_path);
 		return 0;
 	}
 

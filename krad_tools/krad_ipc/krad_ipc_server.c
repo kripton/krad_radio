@@ -36,7 +36,7 @@ krad_ipc_server_t *krad_ipc_server_create (char *sysname) {
 	krad_ipc_server->saddr.sun_family = AF_UNIX;
 
 	if (krad_ipc_server->on_linux) {
-		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "@%s_ipc", sysname);	
+		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "@krad_radio_%s_ipc", sysname);	
 		krad_ipc_server->saddr.sun_path[0] = '\0';
 		if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 			/* active socket already exists! */
@@ -45,7 +45,7 @@ krad_ipc_server_t *krad_ipc_server_create (char *sysname) {
 			return NULL;
 		}
 	} else {
-		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "%s/%s_ipc", getenv ("HOME"), sysname);	
+		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "%s/krad_radio_%s_ipc", getenv ("HOME"), sysname);	
 		if (access (krad_ipc_server->saddr.sun_path, F_OK) == 0) {
 			if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 				/* active socket already exists! */

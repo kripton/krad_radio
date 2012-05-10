@@ -13,8 +13,8 @@ typedef struct krad_radio_St krad_radio_t;
 #ifndef KRAD_RADIO_H
 #define KRAD_RADIO_H
 
-extern int verbose;
-extern int do_shutdown;
+#define KRAD_SYSNAME_MIN 4
+#define KRAD_SYSNAME_MAX 32
 
 #include "krad_system.h"
 #include "krad_tags.h"
@@ -47,6 +47,9 @@ extern int do_shutdown;
 #include "krad_decklink.h"
 #include "krad_compositor.h"
 #include "krad_link.h"
+
+extern int verbose;
+extern int do_shutdown;
 
 struct krad_radio_St {
 

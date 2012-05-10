@@ -5,24 +5,28 @@ int krad_radio_valid_sysname (char *sysname) {
 	int i = 0;
 	char j;
 	
-	char requirements[] = "Sysnames must be atleast 4 numbers or lowercase letters, start with a letter, and be no longer than 40 characters.";
+	char requirements[512];
+	
+	sprintf (requirements, "sysname's must be atleast %d characters long, only lowercase letters and numbers, "
+						    "begin with a letter, and no longer than %d characters.",
+						    KRAD_SYSNAME_MIN, KRAD_SYSNAME_MAX);
 	
 	
-	if (strlen(sysname) < 4) {
-		fprintf (stderr, "Sysname Name %s is invalid, too short!\n", sysname);
+	if (strlen(sysname) < KRAD_SYSNAME_MIN) {
+		fprintf (stderr, "sysname %s is invalid, too short!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;
 	}
 	
-	if (strlen(sysname) > 40) {
-		fprintf (stderr, "Sysname %s is invalid, too long!\n", sysname);
+	if (strlen(sysname) > KRAD_SYSNAME_MAX) {
+		fprintf (stderr, "sysname %s is invalid, too long!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;
 	}
 	
 	j = sysname[i];
 	if (!((isalpha (j)) && (islower (j)))) {
-		fprintf (stderr, "Sysname %s is invalid, must start with a lowercase letter!\n", sysname);
+		fprintf (stderr, "sysname %s is invalid, must start with a lowercase letter!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;
 	}
@@ -31,7 +35,7 @@ int krad_radio_valid_sysname (char *sysname) {
 	while (sysname[i]) {
 		j = sysname[i];
 			if (!isalnum (j)) {
-				fprintf (stderr, "Sysname %s is invalid, alphanumeric only!\n", sysname);
+				fprintf (stderr, "sysname %s is invalid, alphanumeric only!\n", sysname);
 				fprintf (stderr, "%s\n", requirements);
 				return 0;
 			}
