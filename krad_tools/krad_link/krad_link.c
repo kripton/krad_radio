@@ -338,7 +338,7 @@ void *audio_encoding_thread (void *arg) {
 	switch (krad_link->audio_codec) {
 		case VORBIS:
 			printk ("Vorbis quality is %f\n", krad_link->vorbis_quality);
-			krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, 48000, krad_link->vorbis_quality);
+			krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, 44100, krad_link->vorbis_quality);
 			framecnt = 1024;
 			break;
 		case FLAC:
@@ -544,22 +544,22 @@ void *stream_output_thread(void *arg) {
 															krad_link->encoding_width, krad_link->encoding_height);
 	} else {
 		
-		krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_VP8", 30000, 1000,
-															krad_link->encoding_width, krad_link->encoding_height);
+		//krad_link->video_track = krad_ebml_add_video_track (krad_link->krad_ebml, "V_VP8", 30000, 1000,
+		//													krad_link->encoding_width, krad_link->encoding_height);
 	}
 	
 	if (krad_link->audio_codec != NOCODEC) {
 	
 		switch (krad_link->audio_codec) {
 			case VORBIS:
-				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_VORBIS", 48000, krad_link->audio_channels, krad_link->krad_vorbis->header, 
+				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_VORBIS", 44100, krad_link->audio_channels, krad_link->krad_vorbis->header, 
 																 krad_link->krad_vorbis->headerpos);
 				break;
 			case FLAC:
 				//krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_FLAC", krad_link->krad_audio->sample_rate, krad_link->audio_channels, (unsigned char *)krad_link->krad_flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
 				break;
 			case OPUS:
-				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_OPUS", 48000, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
+				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_OPUS", 44100, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
 				break;
 			default:
 				failfast ("Unknown audio codec\n");
@@ -1945,10 +1945,10 @@ void krad_link_activate (krad_link_t *krad_link) {
 	krad_link->encoding_fps = krad_link->capture_fps;
 	
 	if (krad_link->video_source == DECKLINK) {
-		krad_link->composite_width = 1280;
-		krad_link->composite_height = 720;
-		krad_link->encoding_width = 1280;
-		krad_link->encoding_height = 720;
+		krad_link->composite_width = 640;
+		krad_link->composite_height = 360;
+		krad_link->encoding_width = 640;
+		krad_link->encoding_height = 360;
 	} else {
 		krad_link->encoding_width = krad_link->capture_width;
 		krad_link->encoding_height = krad_link->capture_height;
@@ -2003,7 +2003,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 
-		krad_link->krad_framepool = krad_framepool_create ( 1280, 720, 75);
+		krad_link->krad_framepool = krad_framepool_create ( 640, 360, 75);
 
 		//FIXME temp kludge
 		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;
@@ -2239,6 +2239,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_linker_ebml_to_link ( krad_ipc, krad_link);
 					
 					krad_link_run (krad_link);
+
 					break;
 				}
 			}
