@@ -838,13 +838,13 @@ int kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, u
 
 
 	unsigned long jpeg_size_long;
-	int stride;
-	int ret;
+	//int stride;
+	//int ret;
 	
 	//static int count = 1;
 	
 	jpeg_size_long = mjpeg_size;
-	stride = kradv4l2->width * 4;
+	//stride = kradv4l2->width * 4;
 	
 	int jpg_hedsize = sizeof(jpeg_header);
 	int hufsize = sizeof(mjpg_dht);

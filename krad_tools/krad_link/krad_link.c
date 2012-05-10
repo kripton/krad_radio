@@ -1920,7 +1920,7 @@ krad_link_t *krad_link_create() {
 	strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
 	strncpy(krad_link->alsa_capture_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(krad_link->alsa_capture_device));
 	strncpy(krad_link->alsa_playback_device, DEFAULT_ALSA_PLAYBACK_DEVICE, sizeof(krad_link->alsa_playback_device));
-	sprintf(krad_link->output, "%s/Videos/krad_link_%zu.webm", getenv ("HOME"), time(NULL));
+	sprintf(krad_link->output, "%s/Videos/krad_link_%"PRIuMAX".webm", getenv ("HOME"), (uintmax_t)time(NULL));
 
 	krad_link->udp_recv_port = KRAD_LINK_DEFAULT_UDP_PORT;
 	krad_link->udp_send_port = KRAD_LINK_DEFAULT_UDP_PORT;

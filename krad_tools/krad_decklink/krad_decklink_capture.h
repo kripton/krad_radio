@@ -6,7 +6,8 @@ typedef struct krad_decklink_capture_St krad_decklink_capture_t;
 #ifdef __cplusplus
 
 #include "DeckLinkAPI.h"
-
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 class DeckLinkCaptureDelegate : public IDeckLinkInputCallback
 {

@@ -1166,7 +1166,7 @@ uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size)
 
 	ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 	if (ret != ebml_data_size) {
-		printf("Failurea reading %d %zu\n", ret, ebml_data_size);
+		printf("Failurea reading %d %"PRIu64"\n", ret, ebml_data_size);
 		exit(1);
 	}
 
@@ -1187,7 +1187,7 @@ float krad_ebml_read_float (krad_ebml_t *krad_ebml, uint64_t ebml_data_size) {
 
 	ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 	if (ret != ebml_data_size) {
-		printf("Failurea reading %d %zu\n", ret, ebml_data_size);
+		printf("Failurea reading %d %"PRIu64"\n", ret, ebml_data_size);
 		exit(1);
 	}
 
@@ -1202,7 +1202,7 @@ uint64_t krad_ebml_read_string (krad_ebml_t *krad_ebml, char *string, uint64_t e
 
 	ret = krad_ebml_read ( krad_ebml, string, ebml_data_size );
 	if (ret != ebml_data_size) {
-		printf("Failurea reading %d %zu\n", ret, ebml_data_size);
+		printf("Failurea reading %d %"PRIu64"\n", ret, ebml_data_size);
 		exit(1);
 	}
 	string[ebml_data_size] = '\0';
@@ -1250,7 +1250,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 			krad_ebml->current_laced_frame += 1;
 			krad_ebml->read_laced_frames -= 1;
-			printf("reading %d laced frame %zu bytes\n", krad_ebml->current_laced_frame, krad_ebml->frame_sizes[krad_ebml->current_laced_frame]);
+			printf("reading %d laced frame %"PRIu64" bytes\n", krad_ebml->current_laced_frame, krad_ebml->frame_sizes[krad_ebml->current_laced_frame]);
 			return krad_ebml_read ( krad_ebml, buffer, krad_ebml->frame_sizes[krad_ebml->current_laced_frame] );
 		}
 	
@@ -1469,7 +1469,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 
 
-				printf("got xiph headers codec data size %zu -- %d %d %d\n",
+				printf("got xiph headers codec data size %"PRIu64" -- %d %d %d\n",
 						ebml_data_size,
 						krad_ebml->tracks[krad_ebml->current_track].header_len[0],
 						krad_ebml->tracks[krad_ebml->current_track].header_len[1],
@@ -1614,13 +1614,13 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 void krad_ebml_print_ebml_header (struct ebml_header *ebml_head) {
 
 	printf ("EBML Header:\n");
-	printf ("EBML Version: %zu\n", ebml_head->ebml_version.v.u);
-	printf ("EBML Read Version: %zu\n", ebml_head->ebml_read_version.v.u);
-	printf ("EBML Max ID Length: %zu\n", ebml_head->ebml_max_id_length.v.u);
-	printf ("EBML Max Size Length: %zu\n", ebml_head->ebml_max_size_length.v.u);
+	printf ("EBML Version: %"PRIu64"\n", ebml_head->ebml_version.v.u);
+	printf ("EBML Read Version: %"PRIu64"\n", ebml_head->ebml_read_version.v.u);
+	printf ("EBML Max ID Length: %"PRIu64"\n", ebml_head->ebml_max_id_length.v.u);
+	printf ("EBML Max Size Length: %"PRIu64"\n", ebml_head->ebml_max_size_length.v.u);
 	printf ("EBML Doctype: %s\n", ebml_head->doctype.v.s);				
-	printf ("EBML Doctype Version: %zu\n", ebml_head->doctype_version.v.u);
-	printf ("EBML Doctype Read Version: %zu\n", ebml_head->doctype_read_version.v.u);
+	printf ("EBML Doctype Version: %"PRIu64"\n", ebml_head->doctype_version.v.u);
+	printf ("EBML Doctype Read Version: %"PRIu64"\n", ebml_head->doctype_read_version.v.u);
 	printf ("\n");
 }
 

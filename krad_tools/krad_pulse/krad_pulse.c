@@ -39,7 +39,7 @@ static void krad_pulse_capture_cb(pa_stream *stream, size_t length, void *userda
 	pa_usec_t usec;
 	int neg;
 	const void *samples;
-	int c, s;
+	//int c, s;
 	
 	pa_stream_get_latency(stream, &usec, &neg);
 	
@@ -85,7 +85,7 @@ static void krad_pulse_playback_cb(pa_stream *stream, size_t length, void *userd
 	pa_usec_t usec;
 	int neg;
 	
-	int c, s;
+	//int c, s;
 	
 	pa_stream_get_latency(stream, &usec, &neg);
 	

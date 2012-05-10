@@ -93,7 +93,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			
 			switch ( ebml_id ) {
 				case EBML_ID_KRAD_MIXER_CONTROL:
-					printf("Received mixer control list %zu bytes of data.\n", ebml_data_size);
+					printf("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
 					
@@ -104,7 +104,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					
 					break;	
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
-					printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
+					printf("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade )) <= list_size)) {
 						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval);
@@ -115,7 +115,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					break;
 				case EBML_ID_KRAD_MIXER_PORTGROUP:
 					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-					printf("PORTGROUP %zu bytes  \n", ebml_data_size );
+					printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
 					break;
 			}
 		
@@ -185,11 +185,11 @@ int ebml_frag_to_js (char *js_data, unsigned char *ebml_frag) {
 
 	a_number = krad_ebml_read_number_from_frag (&ebml_frag[ebml_frag_pos], ebml_data_size);
 
-	printf( "frag got %u %zu - %zu\n", ebml_id, ebml_data_size, a_number);
+	printf( "frag got %u %"PRIu64" - %"PRIu64"\n", ebml_id, ebml_data_size, a_number);
 	
 	
 	
-	return sprintf(js_data, "KM%u:%zu", ebml_id, a_number);
+	return sprintf(js_data, "KM%u:%"PRIu64"", ebml_id, a_number);
 
 }
 

@@ -855,7 +855,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 			switch ( ebml_id ) {
 	
 				case EBML_ID_KRAD_RADIO_TAG_LIST:
-					printf("Received Tag list %zu bytes of data.\n", ebml_data_size);
+					printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_name, &tag_value )) <= list_size)) {
 						printf("Tag %s - %s.\n", tag_name, tag_value);
@@ -866,19 +866,19 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					break;
 				case EBML_ID_KRAD_RADIO_TAG:
 					krad_ipc_client_read_tag_inner ( client, &tag_name, &tag_value );
-					printf("Tag %zu bytes %s - %s.\n", ebml_data_size, tag_name, tag_value);
+					printf("Tag %"PRIu64" bytes %s - %s.\n", ebml_data_size, tag_name, tag_value);
 					break;
 			}
 		
 		
 			break;
 		case EBML_ID_KRAD_MIXER_MSG:
-			printf("Received KRAD_MIXER_MSG %zu bytes of data.\n", ebml_data_size);
+			printf("Received KRAD_MIXER_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
 			
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 			switch ( ebml_id ) {
 				case EBML_ID_KRAD_MIXER_CONTROL:
-					printf("Received mixer control list %zu bytes of data.\n", ebml_data_size);
+					printf("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 
 	
@@ -895,7 +895,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					break;
 				case EBML_ID_KRAD_MIXER_PORTGROUP:
 					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-					printf("PORTGROUP %zu bytes  \n", ebml_data_size );
+					printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
 					break;
 			}
 		
@@ -903,7 +903,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 			break;
 
 		case EBML_ID_KRAD_LINK_MSG:
-			printf("Received KRAD_LINK_MSG %zu bytes of data.\n", ebml_data_size);				
+			printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);				
 			break;
 	}
 }

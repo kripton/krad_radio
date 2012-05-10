@@ -19,3 +19,11 @@ Port Add/Remove
 IPC:
 make clients request to be broadcasted to
 level monitoring
+
+
+Pulseaudio support needs updates to work again
+
+Replace sleep/check loops with locked signal conds before
+anyone notices them
+
+Write two tests so we can say we have tests
