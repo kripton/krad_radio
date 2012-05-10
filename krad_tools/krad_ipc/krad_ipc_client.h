@@ -12,7 +12,6 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <fcntl.h>
-
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -22,6 +21,8 @@
 
 #include <pthread.h>
 
+#include "krad_radio_ipc.h"
+#include "krad_system.h"
 #include "krad_ebml.h"
 
 

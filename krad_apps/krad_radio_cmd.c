@@ -1,11 +1,14 @@
 #include "krad_ipc_client.h"
-#include "krad_radio_ipc.h"
 
 int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
 	
 	if (argc > 2) {
+
+		if (!krad_valid_sysname(argv[1])) {
+			failfast ("");
+		}
 
 		client = krad_ipc_connect (argv[1]);
 	

@@ -1,7 +1,6 @@
 #include <gtk/gtk.h>
 
 #include "krad_ipc_client.h"
-#include "krad_radio_ipc.h"
 
 #define PORTGROUPS_MAX 25
 
@@ -395,7 +394,15 @@ int main (int argc, char *argv[]) {
 	
 	strcpy (krad_radio_gtk->sysname, argv[1]);
 	
+	if (!krad_valid_sysname(krad_radio_gtk->sysname)) {
+		failfast ("");
+	}
+	
 	krad_radio_gtk->client = krad_ipc_connect (krad_radio_gtk->sysname);
+	
+	if (krad_radio_gtk->client == NULL) {
+		failfast ("");
+	}
 	
 	krad_ipc_set_handler_callback (krad_radio_gtk->client, krad_radio_gtk_ipc_handler, krad_radio_gtk);
 	

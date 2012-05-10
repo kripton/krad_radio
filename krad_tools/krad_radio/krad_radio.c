@@ -1,58 +1,5 @@
 #include "krad_radio.h"
 
-int krad_radio_valid_sysname (char *sysname) {
-	
-	int i = 0;
-	char j;
-	
-	char requirements[512];
-	
-	sprintf (requirements, "sysname's must be atleast %d characters long, only lowercase letters and numbers, "
-						    "begin with a letter, and no longer than %d characters.",
-						    KRAD_SYSNAME_MIN, KRAD_SYSNAME_MAX);
-	
-	
-	if (strlen(sysname) < KRAD_SYSNAME_MIN) {
-		fprintf (stderr, "sysname %s is invalid, too short!\n", sysname);
-		fprintf (stderr, "%s\n", requirements);
-		return 0;
-	}
-	
-	if (strlen(sysname) > KRAD_SYSNAME_MAX) {
-		fprintf (stderr, "sysname %s is invalid, too long!\n", sysname);
-		fprintf (stderr, "%s\n", requirements);
-		return 0;
-	}
-	
-	j = sysname[i];
-	if (!((isalpha (j)) && (islower (j)))) {
-		fprintf (stderr, "sysname %s is invalid, must start with a lowercase letter!\n", sysname);
-		fprintf (stderr, "%s\n", requirements);
-		return 0;
-	}
-	i++;
-
-	while (sysname[i]) {
-		j = sysname[i];
-			if (!isalnum (j)) {
-				fprintf (stderr, "sysname %s is invalid, alphanumeric only!\n", sysname);
-				fprintf (stderr, "%s\n", requirements);
-				return 0;
-			}
-			if (isalpha (j)) {
-				if (!islower (j)) {
-					fprintf (stderr, "Sysname %s is invalid lowercase letters only!\n", sysname);
-					fprintf (stderr, "%s\n", requirements);
-					return 0;
-				}
-			}
-		i++;
-	}
-
-	return 1;
-
-}
-
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
 	krad_http_server_destroy (krad_radio->krad_http);
@@ -72,7 +19,7 @@ krad_radio_t *krad_radio_create (char *sysname) {
 	krad_radio_t *krad_radio = calloc(1, sizeof(krad_radio_t));
 
 
-	if (!krad_radio_valid_sysname(sysname)) {
+	if (!krad_valid_sysname(sysname)) {
 		return NULL;
 	}
 	krad_radio->sysname = strdup (sysname);
