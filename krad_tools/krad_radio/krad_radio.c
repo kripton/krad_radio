@@ -225,6 +225,26 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			return 0;
 			
+		case EBML_ID_KRAD_RADIO_CMD_REMOTE_ENABLE:
+			
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
+				printk ("hrm wtf6\n");
+			}
+			
+			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
+			
+			krad_ipc_server_enable_remote (krad_radio_station->krad_ipc, numbers[0]);
+			
+			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_REMOTE_DISABLE:
+			
+			krad_ipc_server_disable_remote (krad_radio_station->krad_ipc);
+			
+			return 0;
+			
 		default:
 			printf("Krad Radio Command Unknown! %u\n", command);
 			return 0;

@@ -378,13 +378,13 @@ krad_http_t *krad_http_server_create (int port, int websocket_port) {
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serv_addr.sin_port = htons(krad_http->port);
 	
-	if (bind(krad_http->listenfd, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0) {
+	if (bind (krad_http->listenfd, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0) {
 		printf ("krad_http system call bind error\n");
 		close (krad_http->listenfd);
 		exit (1);
 	}
 
-	if( listen(krad_http->listenfd, 5) <0) {
+	if (listen (krad_http->listenfd, SOMAXCONN) <0) {
 		printf("krad_http system call listen error\n");
 		close (krad_http->listenfd);
 		exit(1);

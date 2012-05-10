@@ -243,6 +243,44 @@ void krad_ipc_weboff (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_enable_remote (krad_ipc_client_t *client, int port) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t enable_remote;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_REMOTE_ENABLE, &enable_remote);	
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_TCP_PORT, port);
+
+	krad_ebml_finish_element (client->krad_ebml, enable_remote);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_disable_remote (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t radio_command;
+	uint64_t disable_remote;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_REMOTE_DISABLE, &disable_remote);
+
+	krad_ebml_finish_element (client->krad_ebml, disable_remote);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction) {
 
 	//uint64_t ipc_command;

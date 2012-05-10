@@ -61,6 +61,8 @@ struct krad_ipc_server_St {
 	struct utsname unixname;
 	int on_linux;
 	int sd;
+	int tcp_sd;
+	int tcp_port;		
 	int flags;
 	int shutdown;
 
@@ -71,8 +73,8 @@ struct krad_ipc_server_St {
 
 	pthread_t server_thread;
 
-	struct pollfd sockets[KRAD_IPC_SERVER_MAX_CLIENTS + 1];
-	krad_ipc_server_client_t *sockets_clients[KRAD_IPC_SERVER_MAX_CLIENTS + 1];	
+	struct pollfd sockets[KRAD_IPC_SERVER_MAX_CLIENTS + 2];
+	krad_ipc_server_client_t *sockets_clients[KRAD_IPC_SERVER_MAX_CLIENTS + 2];	
 
 	int (*handler)(void *, int *, void *);
 	void *pointer;
@@ -123,7 +125,7 @@ void krad_ipc_server_client_broadcast (krad_ipc_server_t *krad_ipc_server, char 
 void krad_ipc_disconnect_client (krad_ipc_server_client_t *client);
 void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
 krad_ipc_server_t *krad_ipc_server_create (char *sysname);
-krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server);
+krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server, int sd);
 
 void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
 											  	   int io_type, float volume, char *mixbus );
@@ -137,6 +139,10 @@ uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64
 
 void *krad_ipc_server_run (void *arg);
 void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server);
+
+int krad_ipc_server_tcp_socket_create (int port);
+void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server);
+int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, int port);
 
 krad_ipc_server_t *krad_ipc_server (char *sysname, int handler (void *, int *, void *), void *pointer);
 

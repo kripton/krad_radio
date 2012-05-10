@@ -64,6 +64,9 @@ void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size)
 void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction);
 void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *portgroupname);
 
+void krad_ipc_disable_remote (krad_ipc_client_t *client);
+void krad_ipc_enable_remote (krad_ipc_client_t *client, int port);
+
 void krad_ipc_weboff (krad_ipc_client_t *client);
 void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_port);
 

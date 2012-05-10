@@ -30,6 +30,7 @@ int transponder_socket_create (char *port) {
 	struct addrinfo *result, *rp;
 	int s;
 	int sfd = 0;
+	int on = 1;	
 
 	memset (&hints, 0, sizeof (struct addrinfo));
 	hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
@@ -58,8 +59,6 @@ int transponder_socket_create (char *port) {
 
 	  close (sfd);
 	}
-	
-	int on = 1;
 	
 	//if ((setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0)
 	//{

@@ -34,6 +34,20 @@ int main (int argc, char *argv[]) {
 					}
 				}
 			}
+
+			if (strncmp(argv[2], "remoteon", 8) == 0) {
+				if (argc == 4) {
+					krad_ipc_enable_remote (client, atoi(argv[3]));
+					krad_ipc_print_response (client);
+				}
+			}			
+			
+			if (strncmp(argv[2], "remoteoff", 9) == 0) {
+				if (argc == 3) {
+					krad_ipc_disable_remote (client);
+					krad_ipc_print_response (client);
+				}
+			}
 			
 			if (strncmp(argv[2], "webon", 5) == 0) {
 				if (argc == 5) {

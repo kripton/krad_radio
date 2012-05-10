@@ -64,7 +64,7 @@ krad_ipc_server_t *krad_ipc_server_create (char *sysname) {
 		return NULL;
 	}
 
-	listen (krad_ipc_server->sd, 5);
+	listen (krad_ipc_server->sd, SOMAXCONN);
 
 	krad_ipc_server->flags = fcntl (krad_ipc_server->sd, F_GETFL, 0);
 
@@ -85,9 +85,95 @@ krad_ipc_server_t *krad_ipc_server_create (char *sysname) {
 
 }
 
+int krad_ipc_server_tcp_socket_create (int port) {
+
+	char port_string[6];
+	struct addrinfo hints;
+	struct addrinfo *result, *rp;
+	int s;
+	int sfd = 0;
+	int on = 1;
+
+	snprintf (port_string, 6, "%d", port);
+
+	memset (&hints, 0, sizeof (struct addrinfo));
+	hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
+	hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
+	hints.ai_flags = AI_PASSIVE;     /* All interfaces */
+
+	s = getaddrinfo (NULL, port_string, &hints, &result);
+	if (s != 0) {
+		fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
+		return -1;
+	}
+
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		
+		sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		
+		if (sfd == -1) {
+			continue;
+		}
+
+		s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
+		
+		if (s == 0) {
+			/* We managed to bind successfully! */
+			break;
+		}
+
+		close (sfd);
+	}
+	
+	freeaddrinfo (result);	
+	
+	//if ((setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0) {
+	//	fprintf (stderr, "failed to set SO_REUSEADDR on port %s\n", port);
+	//	abort();
+	//}
+
+	if (rp == NULL) {
+		fprintf (stderr, "Could not bind %d\n", port);
+		return -1;
+	}
+
+	return sfd;
+}
+
+void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server) {
+
+	//FIXME needs to loop thru clients and disconnect remote ones
+
+	if (krad_ipc_server->tcp_sd != 0) {
+		close (krad_ipc_server->tcp_sd);
+		krad_ipc_server->tcp_port = 0;
+		krad_ipc_server->tcp_sd = 0;
+	}
+}
+
+int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, int port) {
+
+	if (krad_ipc_server->tcp_sd != 0) {
+		krad_ipc_server_disable_remote (krad_ipc_server);
+	}
+	
+	krad_ipc_server->tcp_port = port;
+
+	krad_ipc_server->tcp_sd = krad_ipc_server_tcp_socket_create (krad_ipc_server->tcp_port);
+
+	if (krad_ipc_server->tcp_sd != 0) {
+		listen (krad_ipc_server->tcp_sd, SOMAXCONN);
+		krad_ipc_server_update_pollfds (krad_ipc_server);
+	} else {
+		krad_ipc_server->tcp_port = 0;
+	}
+
+	return 0;
+
+}
 
 
-krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server) {
+krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server, int sd) {
 
 	krad_ipc_server_client_t *client = NULL;
 	
@@ -110,7 +196,7 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 	}
 
 	sin_len = sizeof (sin);
-	client->sd = accept (krad_ipc_server->sd, (struct sockaddr *)&sin, &sin_len);
+	client->sd = accept (sd, (struct sockaddr *)&sin, &sin_len);
 
 	if (client->sd >= 0) {
 
@@ -235,6 +321,12 @@ void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) {
 	krad_ipc_server->sockets[s].events = POLLIN;
 
 	s++;
+	
+	if (krad_ipc_server->tcp_sd != 0) {
+		krad_ipc_server->sockets[s].fd = krad_ipc_server->tcp_sd;
+		krad_ipc_server->sockets[s].events = POLLIN;
+		s++;
+	}
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
 		if (krad_ipc_server->clients[c].active == 1) {
@@ -495,12 +587,22 @@ void *krad_ipc_server_run (void *arg) {
 				break;
 			}
 	
-			if (krad_ipc_server->sockets[0].revents & POLLIN) {
-				krad_ipc_server_accept_client (krad_ipc_server);
+			s = 0;
+	
+			if (krad_ipc_server->sockets[s].revents & POLLIN) {
+				krad_ipc_server_accept_client (krad_ipc_server, krad_ipc_server->sd);
 				ret--;
 			}
+			
+			s++;
+			
+			if ((krad_ipc_server->tcp_sd != 0) && (krad_ipc_server->sockets[s].revents & POLLIN)) {
+				krad_ipc_server_accept_client (krad_ipc_server, krad_ipc_server->tcp_sd);
+				ret--;
+				s++;
+			}			
 	
-			for (s = 1; ret > 0; s++) {
+			for (; ret > 0; s++) {
 
 				if (krad_ipc_server->sockets[s].revents) {
 					
@@ -646,6 +748,10 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 			patience -= KRAD_IPC_SERVER_TIMEOUT_US / 4;
 		}
 	}
+	
+	if (krad_ipc_server->tcp_sd != 0) {
+		krad_ipc_server_disable_remote (krad_ipc_server);
+	}	
 
 	if (krad_ipc_server->sd != 0) {
 		close (krad_ipc_server->sd);
