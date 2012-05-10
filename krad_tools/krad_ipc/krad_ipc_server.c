@@ -645,7 +645,13 @@ void *krad_ipc_server_run (void *arg) {
 							printf("Krad IPC Server: Client EOF\n");
 							krad_ipc_disconnect_client (client);
 							continue;
-						}	
+						}
+
+						if (client->input_buffer_pos == -1) {
+							printf("Krad IPC Server: Client Socket Error\n");
+							krad_ipc_disconnect_client (client);
+							continue;
+						}
 					
 						// big enough to read element id and data size
 						if ((client->input_buffer_pos > 7) && (client->confirmed == 0)) {

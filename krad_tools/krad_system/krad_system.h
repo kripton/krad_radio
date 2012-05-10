@@ -9,25 +9,35 @@
 #include <sys/stat.h>
 #include <stdarg.h>
 #include <ctype.h>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <fcntl.h>
-
+#include <sys/utsname.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
 
+typedef struct krad_system_St krad_system_t;
+
 #ifndef KRAD_SYSTEM_H
 #define KRAD_SYSTEM_H
 
 #define KRAD_SYSNAME_MIN 4
 #define KRAD_SYSNAME_MAX 32
+
+struct krad_system_St {
+
+	struct utsname unix_info;
+	time_t krad_start_time;
+};
+
+void krad_system_info_print ();
+void krad_system_info_collect ();
 
 void failfast (char* format, ...);
 void printke (char* format, ...);

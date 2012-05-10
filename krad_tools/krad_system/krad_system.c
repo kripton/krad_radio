@@ -3,6 +3,24 @@
 int do_shutdown;
 int verbose;
 int krad_system_initialized;
+krad_system_t krad_system;
+
+void krad_system_info_print () {
+		
+	printk ("%s %s %s %s %s\n", krad_system.unix_info.sysname, krad_system.unix_info.nodename, krad_system.unix_info.release,
+			krad_system.unix_info.version, krad_system.unix_info.machine);
+
+	printk ("%llu\n", (unsigned long long)krad_system.krad_start_time);
+
+}
+
+void krad_system_info_collect () {
+	
+	krad_system.krad_start_time = time (NULL);
+	
+	uname (&krad_system.unix_info);
+
+}
 
 void failfast (char* format, ...) {
 
@@ -46,6 +64,8 @@ void krad_system_init () {
 		krad_system_initialized = 31337;
 		do_shutdown = 0;
 		verbose = 1;
+		krad_system_info_collect ();
+		krad_system_info_print ();
 	}
 }
 
