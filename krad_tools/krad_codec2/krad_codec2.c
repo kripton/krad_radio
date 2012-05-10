@@ -153,7 +153,7 @@ krad_codec2_t *krad_codec2_encoder_create(int input_channels, int input_sample_r
 	
 	printf("krad_codec2_encoder_create src resampler ratio is: %f\n", krad_codec2->src_data.src_ratio);
 	
-	krad_codec2->codec2 = codec2_create();
+	krad_codec2->codec2 = codec2_create(0);
 	
 	return krad_codec2;
 
@@ -186,7 +186,7 @@ krad_codec2_t *krad_codec2_decoder_create(int output_channels, int output_sample
 	
 	printf("krad_codec2_decoder_create src resampler ratio is: %f\n", krad_codec2->src_data.src_ratio);
 	
-	krad_codec2->codec2 = codec2_create();
+	krad_codec2->codec2 = codec2_create(0);
 	
 	return krad_codec2;
 

@@ -75,7 +75,7 @@ Cflags: -I${includedir}
 
 And now the same stuff for codec2!
 
-svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2 codec2
+svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2-dev codec2-dev
 cd codec2
 ./configure
 make
