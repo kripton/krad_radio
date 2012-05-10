@@ -579,8 +579,6 @@ void *krad_ipc_server_run (void *arg) {
 
 	while (!krad_ipc_server->shutdown) {
 
-		//usleep (200000);
-
 		ret = poll (krad_ipc_server->sockets, krad_ipc_server->socket_count, KRAD_IPC_SERVER_TIMEOUT_MS);
 
 		if (ret > 0) {
@@ -609,11 +607,7 @@ void *krad_ipc_server_run (void *arg) {
 	
 			for (; ret > 0; s++) {
 
-				printf("s is %d\n", s);
-
 				if (krad_ipc_server->sockets[s].revents) {
-
-					printf("event on %d\n", s);
 					
 					ret--;
 				
@@ -646,6 +640,12 @@ void *krad_ipc_server_run (void *arg) {
 						client->input_buffer_pos += recv(krad_ipc_server->sockets[s].fd, client->input_buffer + client->input_buffer_pos, (sizeof (client->input_buffer) - client->input_buffer_pos), 0);
 					
 						printf("Krad IPC Server: Got %d bytes\n", client->input_buffer_pos);
+					
+						if (client->input_buffer_pos == 0) {
+							printf("Krad IPC Server: Client EOF\n");
+							krad_ipc_disconnect_client (client);
+							continue;
+						}	
 					
 						// big enough to read element id and data size
 						if ((client->input_buffer_pos > 7) && (client->confirmed == 0)) {
