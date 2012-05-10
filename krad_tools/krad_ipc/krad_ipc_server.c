@@ -579,7 +579,7 @@ void *krad_ipc_server_run (void *arg) {
 
 	while (!krad_ipc_server->shutdown) {
 
-		usleep (200000);
+		//usleep (200000);
 
 		ret = poll (krad_ipc_server->sockets, krad_ipc_server->socket_count, KRAD_IPC_SERVER_TIMEOUT_MS);
 
