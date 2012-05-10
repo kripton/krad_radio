@@ -2,8 +2,8 @@
 
 int kxpdr_shutdown;
 
-int set_socket_mode (int sfd)
-{
+int set_socket_mode (int sfd) {
+
 	int flags, s;
 
 	flags = fcntl (sfd, F_GETFL, 0);
@@ -24,8 +24,8 @@ int set_socket_mode (int sfd)
 	return 0;
 }
 
-int transponder_socket_create (char *port)
-{
+int transponder_socket_create (char *port) {
+
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;
 	int s;
@@ -78,7 +78,7 @@ int transponder_socket_create (char *port)
 	return sfd;
 }
 
-void receiver_activate(kxpdr_receiver_t *kxpdr_receiver, int sd) {
+void receiver_activate (kxpdr_receiver_t *kxpdr_receiver, int sd) {
 
 	kxpdr_receiver->sd = sd;
 
@@ -144,11 +144,11 @@ void receiver_activate(kxpdr_receiver_t *kxpdr_receiver, int sd) {
 	pthread_create(&kxpdr_receiver->receiver_thread, NULL, receiver_thread, (void *)kxpdr_receiver);
 }
 
-void transmitter_activate(kxpdr_receiver_t *kxpdr_receiver) {
+void transmitter_activate (kxpdr_receiver_t *kxpdr_receiver) {
 	pthread_create(&kxpdr_receiver->transmitter_thread, NULL, transmitter_thread, (void *)kxpdr_receiver);
 }
 
-void close_receiver(kxpdr_receiver_t *kxpdr_receiver) {
+void close_receiver (kxpdr_receiver_t *kxpdr_receiver) {
 
 	kxpdr_receiver->active = 3;
 	pthread_join (kxpdr_receiver->transmitter_thread, NULL);
@@ -196,7 +196,7 @@ void close_receiver(kxpdr_receiver_t *kxpdr_receiver) {
 
 }
 
-void *receiver_thread(void *arg) {
+void *receiver_thread (void *arg) {
 
 	kxpdr_receiver_t *kxpdr_receiver = (kxpdr_receiver_t *)arg;
 
@@ -444,7 +444,7 @@ void *receiver_thread(void *arg) {
 
 }
 
-void close_transmitter(kxpdr_transmitter_t *transmitter) {
+void close_transmitter (kxpdr_transmitter_t *transmitter) {
 		
 	close (transmitter->sd);
 	transmitter->http_header_position = 0;
@@ -457,7 +457,7 @@ void close_transmitter(kxpdr_transmitter_t *transmitter) {
 
 }
 
-void kxpdr_receiver_add_ready(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter) {
+void kxpdr_receiver_add_ready (kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter) {
 
 	transmitter->ready = 1;
 
@@ -480,7 +480,7 @@ void kxpdr_receiver_add_ready(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitte
 	printf("added to ready list ready is %d\n", kxpdr_receiver->ready);
 }
 
-void kxpdr_receiver_remove_ready(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter) {
+void kxpdr_receiver_remove_ready (kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter) {
 
 	transmitter->ready = 0;
 
@@ -523,7 +523,7 @@ void kxpdr_receiver_remove_ready(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmi
 
 }
 
-int transmit(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter) {
+int transmit (kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter) {
 
 	int vec_avail_len;
 	int offset;
@@ -626,7 +626,7 @@ int transmit(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter)
 	
 }
 
-void *transmitter_thread(void *arg) {
+void *transmitter_thread (void *arg) {
 
 	kxpdr_receiver_t *kxpdr_receiver = (kxpdr_receiver_t *)arg;
 
@@ -777,14 +777,14 @@ void *transmitter_thread(void *arg) {
 	
 	close(kxpdr_receiver->transmitter_efd);
 	
-	printf("transmitter thread dactivating!\n");
+	printf ("transmitter thread dactivating!\n");
 
 	return NULL;
 
 }
 
 
-void *incoming_receiver_connections_thread(void *arg) {
+void *incoming_receiver_connections_thread (void *arg) {
 
 	kxpdr_t *kxpdr = (kxpdr_t *)arg;
 
@@ -951,7 +951,7 @@ void *incoming_receiver_connections_thread(void *arg) {
 
 }
 
-void *incoming_transmitter_connections_thread(void *arg) {
+void *incoming_transmitter_connections_thread (void *arg) {
 
 	kxpdr_t *kxpdr = (kxpdr_t *)arg;
 
@@ -1124,7 +1124,7 @@ void *incoming_transmitter_connections_thread(void *arg) {
 
 }
 
-kxpdr_t *kxpdr_create(char *incoming_receiver_connection_port, char *incoming_transmitter_connection_port) {
+kxpdr_t *kxpdr_create (char *incoming_receiver_connection_port, char *incoming_transmitter_connection_port) {
 
 	kxpdr_t *kxpdr = calloc(1, sizeof(kxpdr_t));
 	
@@ -1235,7 +1235,7 @@ kxpdr_t *kxpdr_create(char *incoming_receiver_connection_port, char *incoming_tr
 
 }
 
-void kxpdr_destroy(kxpdr_t *kxpdr) {
+void kxpdr_destroy (kxpdr_t *kxpdr) {
 
 	pthread_join (kxpdr->incoming_transmitter_connections_thread, NULL);
 	pthread_join (kxpdr->incoming_receiver_connections_thread, NULL);
@@ -1256,7 +1256,7 @@ void kxpdr_destroy(kxpdr_t *kxpdr) {
 
 }
 
-void kxpdr_initiate_shutdown() {
+void kxpdr_initiate_shutdown () {
 
 	if (kxpdr_shutdown == 0) {
 		printf("kxpdr initiating shutdown sequence\n");

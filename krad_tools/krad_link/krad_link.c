@@ -4,17 +4,6 @@ extern int verbose;
 
 void krad_link_activate(krad_link_t *krad_link);
 
-void dbg (char* format, ...) {
-
-	va_list args;
-
-	if (verbose) {
-		va_start(args, format);
-		vfprintf(stdout, format, args);
-		va_end(args);
-	}
-}
-
 char *krad_codec_to_string(krad_codec_t codec) {
 
 	switch (codec) {
@@ -49,7 +38,7 @@ void *video_capture_thread(void *arg) {
 	unsigned char *captured_frame_rgb = malloc(krad_link->composited_frame_byte_size); 
 	krad_frame_t *krad_frame;
 	
-	dbg("Video capture thread started\n");
+	printk ("Video capture thread started\n");
 	
 	krad_link->krad_v4l2 = kradv4l2_create();
 
@@ -82,7 +71,7 @@ void *video_capture_thread(void *arg) {
 		
 				clock_gettime(CLOCK_MONOTONIC, &current_time);
 				elapsed_time = timespec_diff(start_time, current_time);
-				printf("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_link->captured_frames, elapsed_time.tv_sec * krad_link->capture_fps, krad_link->capture_fps, elapsed_time.tv_sec);
+				printk ("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", krad_link->captured_frames, elapsed_time.tv_sec * krad_link->capture_fps, krad_link->capture_fps, elapsed_time.tv_sec);
 	
 			}
 			
@@ -151,7 +140,7 @@ void *video_capture_thread(void *arg) {
 	krad_link->capture_audio = 2;
 	krad_link->encoding = 2;
 
-	dbg("Video capture thread exited\n");
+	printk ("Video capture thread exited\n");
 	
 	return NULL;
 	
@@ -164,7 +153,7 @@ void *video_encoding_thread(void *arg) {
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	if (krad_link->verbose) {
-		printf("Video encoding thread started\n");
+		printk ("Video encoding thread started\n");
 	}
 	
 	krad_frame_t *krad_frame;
@@ -184,7 +173,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
 
-	dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+	printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "VP8Enc", OUTPUT);
 	
@@ -199,13 +188,13 @@ void *video_encoding_thread(void *arg) {
 			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 2)) ) {
 			
 				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 2LU;
-				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+				printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 						
 			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 4)) ) {
 			
 				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 4LU;
-				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+				printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 			
 			*/					 
@@ -223,7 +212,7 @@ void *video_encoding_thread(void *arg) {
 										 
 			packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder, (unsigned char **)&vpx_packet, &keyframe);
 								 
-			//printf("packet size was %d\n", packet_size);
+			//printk ("packet size was %d\n", packet_size);
 	
 			
 	
@@ -245,7 +234,7 @@ void *video_encoding_thread(void *arg) {
 		
 			if (krad_link->krad_vpx_encoder->quality != (600 / krad_link->encoding_fps) * 1000) {
 				krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
-				dbg("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+				printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 			}
 
 			*/
@@ -271,7 +260,7 @@ void *video_encoding_thread(void *arg) {
 		krad_link->encoding = 4;
 	}
 	
-	dbg("Video encoding thread exited\n");
+	printk ("Video encoding thread exited\n");
 	
 	return NULL;
 	
@@ -330,7 +319,7 @@ void *audio_encoding_thread (void *arg) {
 
 	krad_mixer_portgroup_t *mixer_portgroup;
 
-	dbg("Audio encoding thread starting\n");
+	printk ("Audio encoding thread starting\n");
 	
 	krad_link->audio_channels = 2;	
 	
@@ -348,7 +337,7 @@ void *audio_encoding_thread (void *arg) {
 		
 	switch (krad_link->audio_codec) {
 		case VORBIS:
-			printf("Vorbis quality is %f\n", krad_link->vorbis_quality);
+			printk ("Vorbis quality is %f\n", krad_link->vorbis_quality);
 			krad_link->krad_vorbis = krad_vorbis_encoder_create(krad_link->audio_channels, 48000, krad_link->vorbis_quality);
 			framecnt = 1024;
 			break;
@@ -361,8 +350,7 @@ void *audio_encoding_thread (void *arg) {
 			framecnt = 960;
 			break;
 		default:
-			printf("unknown audio codec\n");
-			exit(1);
+			failfast ("unknown audio codec\n");
 	}
 	
 	krad_link->audio_encoder_ready = 1;
@@ -443,7 +431,7 @@ void *audio_encoding_thread (void *arg) {
 				}
 			}
 
-			//printf("audio_encoding_thread %zu !\n", krad_link->audio_frames_encoded);			
+			//printk ("audio_encoding_thread %zu !\n", krad_link->audio_frames_encoded);			
 
 		}
 	
@@ -465,7 +453,7 @@ void *audio_encoding_thread (void *arg) {
 
 	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, mixer_portgroup);
 	
-	dbg("Audio encoding thread exiting\n");
+	printk ("Audio encoding thread exiting\n");
 	
 	krad_link->encoding = 4;
 	
@@ -507,7 +495,7 @@ void *stream_output_thread(void *arg) {
 	
 	audio_frames_per_video_frame = 0;
 
-	dbg("Output/Muxing thread starting\n");
+	printk ("Output/Muxing thread starting\n");
 	
 	audio_frames_muxed = 0;
 	video_frames_muxed = 0;
@@ -530,7 +518,7 @@ void *stream_output_thread(void *arg) {
 	if (krad_link->host[0] != '\0') {
 		krad_link->krad_ebml = krad_ebml_open_stream(krad_link->host, krad_link->tcp_port, krad_link->mount, krad_link->password);
 	} else {
-		printf("Outputing to file: %s\n", krad_link->output);
+		printk ("Outputing to file: %s\n", krad_link->output);
 		krad_link->krad_ebml = krad_ebml_open_file(krad_link->output, KRAD_EBML_IO_WRITEONLY);
 	}
 	
@@ -574,13 +562,12 @@ void *stream_output_thread(void *arg) {
 				krad_link->audio_track = krad_ebml_add_audio_track(krad_link->krad_ebml, "A_OPUS", 48000, krad_link->audio_channels, krad_link->krad_opus->header_data, krad_link->krad_opus->header_data_size);
 				break;
 			default:
-				printf("Unknown audio codec\n");
-				exit(1);
+				failfast ("Unknown audio codec\n");
 		}
 	
 	}
 	
-	dbg("Output/Muxing thread waiting..\n");
+	printk ("Output/Muxing thread waiting..\n");
 		
 	while ( krad_link->encoding ) {
 
@@ -658,7 +645,7 @@ void *stream_output_thread(void *arg) {
 
 				audio_frames_muxed += frames;
 				
-				//printf("ebml muxed audio frames: %d\n\n", audio_frames_muxed);
+				//printk ("ebml muxed audio frames: %d\n\n", audio_frames_muxed);
 				
 			}
 
@@ -720,7 +707,7 @@ void *stream_output_thread(void *arg) {
 		krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 	}
 
-	dbg("Output/Muxing thread exiting\n");
+	printk ("Output/Muxing thread exiting\n");
 	
 	return NULL;
 	
@@ -731,7 +718,7 @@ void *udp_output_thread(void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_udpout", 0, 0, 0);
 
-	dbg("UDP Output thread starting\n");
+	printk ("UDP Output thread starting\n");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -782,7 +769,7 @@ void *udp_output_thread(void *arg) {
 	
 	free (buffer);
 
-	dbg("UDP Output thread exiting\n");
+	printk ("UDP Output thread exiting\n");
 	
 	return NULL;
 
@@ -846,7 +833,7 @@ void *stream_input_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	dbg("Input/Demuxing thread starting\n");
+	printk ("Input/Demuxing thread starting\n");
 
 	unsigned char *buffer;
 	unsigned char *header_buffer;
@@ -889,14 +876,14 @@ void *stream_input_thread(void *arg) {
 		header_size = 0;
 
 		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
-		//printf("packet track %d timecode: %zu\n", current_track, packet_timecode);
+		//printk ("packet track %d timecode: %zu\n", current_track, packet_timecode);
 		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 20))  {
-			printf("\nstream input thread packet size was: %d\n", packet_size);
+			printk ("\nstream input thread packet size was: %d\n", packet_size);
 			break;
 		}
 		
 		if (krad_container_track_changed(krad_link->krad_container, current_track)) {
-			printf("track %d changed! status is %d header count is %d\n", current_track, krad_container_track_active(krad_link->krad_container, current_track), krad_container_track_header_count(krad_link->krad_container, current_track));
+			printk ("track %d changed! status is %d header count is %d\n", current_track, krad_container_track_active(krad_link->krad_container, current_track), krad_container_track_header_count(krad_link->krad_container, current_track));
 			
 			track_codecs[current_track] = krad_container_track_codec(krad_link->krad_container, current_track);
 			
@@ -907,7 +894,7 @@ void *stream_input_thread(void *arg) {
 			writeheaders = 1;
 			
 			for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
-				printf("header %d is %d bytes\n", h, krad_container_track_header_size(krad_link->krad_container, current_track, h));
+				printk ("header %d is %d bytes\n", h, krad_container_track_header_size(krad_link->krad_container, current_track, h));
 				total_header_size += krad_container_track_header_size(krad_link->krad_container, current_track, h);
 			}
 
@@ -977,8 +964,8 @@ void *stream_input_thread(void *arg) {
 		}
 
 		//if (krad_link->krad_audio != NULL) {
-		//	dbg("Input ACodec %s :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_codec_to_string(track_codecs[current_track]), video_packets, audio_packets, codec_bytes);
-		//	//dbg("Input Timecode: %6.1f :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_link->krad_ebml->current_timecode / 1000.0, video_packets, audio_packets, codec_bytes);
+		//	printk ("Input ACodec %s :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_codec_to_string(track_codecs[current_track]), video_packets, audio_packets, codec_bytes);
+		//	//printk ("Input Timecode: %6.1f :: Video Packets %d Audio Packets: %d Codec bytes Read %d\r", krad_link->krad_ebml->current_timecode / 1000.0, video_packets, audio_packets, codec_bytes);
 		//	fflush(stdout);
 		//}
 
@@ -986,8 +973,8 @@ void *stream_input_thread(void *arg) {
 
 
 	
-	printf("\n");
-	dbg("Input/Demuxing thread exiting\n");
+	printk ("\n");
+	printk ("Input/Demuxing thread exiting\n");
 	
 	krad_container_destroy(krad_link->krad_container);
 	
@@ -1003,7 +990,7 @@ void *udp_input_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	dbg("UDP Input thread starting\n");
+	printk ("UDP Input thread starting\n");
 
 	int sd;
 	int ret;
@@ -1032,8 +1019,7 @@ void *udp_input_thread(void *arg) {
 	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind (sd, (struct sockaddr *)&local_address, sizeof(local_address)) == -1 ) {
-		printf("bind error\n");
-		exit(1);
+		failfast ("UDP Input bind error\n");
 	}
 	
 	//kludge to get header
@@ -1046,7 +1032,7 @@ void *udp_input_thread(void *arg) {
 	memcpy (opus_header, opus_temp->header_data, opus_header_size);
 	kradopus_encoder_destroy(opus_temp);
 	
-	printf("placing opus header size is %d\n", opus_header_size);
+	printk ("placing opus header size is %d\n", opus_header_size);
 	
 	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
 	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
@@ -1058,12 +1044,12 @@ void *udp_input_thread(void *arg) {
 		ret = recvfrom(sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
 		
 		if (ret == -1) {
-			printf("failed recvin udp\n");
+			printk ("failed recvin udp\n");
 			krad_link->destroy = 1;
 			continue;
 		}
 		
-		//printf("Received packet from %s:%d\n", 
+		//printk ("Received packet from %s:%d\n", 
 		//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
 
 
@@ -1072,7 +1058,7 @@ void *udp_input_thread(void *arg) {
 		ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
 		
 		if (ret != 0) {
-			//printf("read a packet with %d bytes\n", ret);
+			//printk ("read a packet with %d bytes\n", ret);
 
 			if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			
@@ -1096,7 +1082,7 @@ void *udp_input_thread(void *arg) {
 	close (sd);
 	free (buffer);
 	free (packet_buffer);
-	dbg("UDP Input thread exiting\n");
+	printk ("UDP Input thread exiting\n");
 	
 	return NULL;
 
@@ -1131,7 +1117,7 @@ void *video_decoding_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	dbg("Video decoding thread starting\n");
+	printk ("Video decoding thread starting\n");
 
 	int bytes;
 	unsigned char *buffer;	
@@ -1163,7 +1149,7 @@ void *video_decoding_thread(void *arg) {
 		
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&krad_link->video_codec, 4);
 		if ((krad_link->last_video_codec != krad_link->video_codec) || (krad_link->video_codec == NOCODEC)) {
-			dbg("\nvideo codec is %d\n", krad_link->video_codec);
+			printk ("\nvideo codec is %d\n", krad_link->video_codec);
 			if (krad_link->last_video_codec != NOCODEC)	{
 				if (krad_link->last_video_codec == VP8) {
 					krad_vpx_decoder_destroy (krad_link->krad_vpx_decoder);
@@ -1210,7 +1196,7 @@ void *video_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)header[h], header_len[h]);
 				}
 
-				dbg("\n\nTheora Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
+				printk ("\n\nTheora Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
 				krad_link->krad_theora_decoder = krad_theora_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 			}
 	
@@ -1227,7 +1213,7 @@ void *video_decoding_thread(void *arg) {
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&timecode, 8);
 	
-		//printf("\nframe timecode: %zu\n", timecode);
+		//printk ("\nframe timecode: %zu\n", timecode);
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&bytes, 4);
 		
@@ -1259,7 +1245,7 @@ void *video_decoding_thread(void *arg) {
 			
 			krad_theora_decoder_timecode(krad_link->krad_theora_decoder, &timecode2);
 			
-			///printf("\n\ntimecode1: %zu timecode2: %zu\n\n", timecode, timecode2);
+			///printk ("\n\ntimecode1: %zu timecode2: %zu\n\n", timecode, timecode2);
 			
 			timecode = timecode2;
 			
@@ -1347,7 +1333,7 @@ void *video_decoding_thread(void *arg) {
 	for (h = 0; h < 3; h++) {
 		free(header[h]);
 	}
-	dbg("Video decoding thread exiting\n");
+	printk ("Video decoding thread exiting\n");
 
 	return NULL;
 
@@ -1359,7 +1345,7 @@ void *audio_decoding_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	dbg("Audio decoding thread starting\n");
+	printk ("Audio decoding thread starting\n");
 
 	int c;
 	int h;
@@ -1415,7 +1401,7 @@ void *audio_decoding_thread(void *arg) {
 		
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&krad_link->audio_codec, 4);
 		if ((krad_link->last_audio_codec != krad_link->audio_codec) || (krad_link->audio_codec == NOCODEC)) {
-			dbg("\n\naudio codec is %d\n", krad_link->audio_codec);
+			printk ("\n\naudio codec is %d\n", krad_link->audio_codec);
 			if (krad_link->last_audio_codec != NOCODEC)	{
 				if (krad_link->last_audio_codec == FLAC) {
 					krad_flac_decoder_destroy (krad_link->krad_flac);
@@ -1472,7 +1458,7 @@ void *audio_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
 
-				dbg("\n\nVorbis Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
+				printk ("\n\nVorbis Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
 				krad_link->krad_vorbis = krad_vorbis_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 
 
@@ -1497,7 +1483,7 @@ void *audio_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
 			
-				dbg("Opus Header size: %d\n", header_len[0]);
+				printk ("Opus Header size: %d\n", header_len[0]);
 				//krad_link->krad_opus = kradopus_decoder_create(header[0], header_len[0], krad_link->krad_audio->sample_rate);
 			}
 		}
@@ -1528,7 +1514,7 @@ void *audio_decoding_thread(void *arg) {
 				if (len) {
 				
 					while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[0]) < len) {
-						//printf("wait!\n");
+						//printk ("wait!\n");
 						usleep(25000);
 					}
 				
@@ -1540,7 +1526,7 @@ void *audio_decoding_thread(void *arg) {
 				if (len) {
 
 					while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[1]) < len) {
-						//printf("wait!\n");
+						//printk ("wait!\n");
 						usleep(25000);
 					}
 
@@ -1572,11 +1558,10 @@ void *audio_decoding_thread(void *arg) {
 				for (c = 0; c < 2; c++) {
 					bytes = kradopus_read_audio(krad_link->krad_opus, c + 1, (char *)audio, 960 * 4);
 					if (bytes) {
-						//printf("\nAudio data! %d samplers\n", bytes / 4);
+						//printk ("\nAudio data! %d samplers\n", bytes / 4);
 						
 						if ((bytes / 4) != 960) {
-							printf("uh oh crazyto\n");
-							exit(1);
+							failfast ("uh oh crazyto\n");
 						}
 						if (codec2_test == 1) {
 							//krad_smash (audio, 960);
@@ -1629,7 +1614,7 @@ void *audio_decoding_thread(void *arg) {
 		free(header[h]);
 	}
 
-	dbg("Audio decoding thread exiting\n");
+	printk ("Audio decoding thread exiting\n");
 
 	return NULL;
 
@@ -1639,7 +1624,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	//printf("krad link decklink frame received %d bytes\n", length);
+	//printk ("krad link decklink frame received %d bytes\n", length);
 
 	krad_frame_t *krad_frame;
 
@@ -1681,7 +1666,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	} else {
 	
-		printf("oh no! captured frames ringbuffer overflow!\n");
+		printk ("oh no! captured frames ringbuffer overflow!\n");
 	
 	}
 	*/
@@ -1709,7 +1694,7 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 	int c;
 
-	//printf("krad link decklink audio %d frames\n", frames);
+	//printk ("krad link decklink audio %d frames\n", frames);
 
 	for (c = 0; c < 2; c++) {
 		krad_link_int16_to_float ( krad_link->krad_decklink->samples[c], (char *)buffer + (c * 2), frames, 4);
@@ -1765,7 +1750,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 
 	int c;
 
-	dbg ("Link shutting down\n");
+	printk ("Link shutting down\n");
 	
 	krad_link->destroy = 1;	
 	
@@ -1890,7 +1875,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		krad_codec2_encoder_destroy(krad_link->krad_codec2_encoder);
 	}
 	
-	dbg ("Link shutoff cleanly.\n", APPVERSION);
+	printk ("Link shutoff cleanly.\n", APPVERSION);
 	
 	free (krad_link);
 }
@@ -2108,17 +2093,17 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK) {
-		printf("hrm wtf\n");
+		printk ("hrm wtf\n");
 	} else {
-		//printf("tag size %zu\n", ebml_data_size);
+		//printk ("tag size %zu\n", ebml_data_size);
 	}
 	
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-		printf("hrm wtf2\n");
+		printk ("hrm wtf2\n");
 	} else {
-		//printf("tag name size %zu\n", ebml_data_size);
+		//printk ("tag name size %zu\n", ebml_data_size);
 	}
 
 	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->host, ebml_data_size);
@@ -2126,9 +2111,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-		printf("hrm wtf3\n");
+		printk ("hrm wtf3\n");
 	} else {
-		//printf("tag value size %zu\n", ebml_data_size);
+		//printk ("tag value size %zu\n", ebml_data_size);
 	}
 
 	krad_link->tcp_port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
@@ -2136,9 +2121,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-		printf("hrm wtf2\n");
+		printk ("hrm wtf2\n");
 	} else {
-		//printf("tag name size %zu\n", ebml_data_size);
+		//printk ("tag name size %zu\n", ebml_data_size);
 	}
 
 	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
@@ -2185,14 +2170,14 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	switch ( command ) {
 
 		case EBML_ID_KRAD_LINK_CMD_LIST_LINKS:
-			printf("krad linker handler! LIST_LINKS\n");
+			printk ("krad linker handler! LIST_LINKS\n");
 			
 			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_LINK_MSG, &response);
 			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_LINK_LINK_LIST, &element);	
 			
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] != NULL) {
-					printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+					printk ("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
 					krad_linker_link_to_ebml ( krad_ipc, krad_linker->krad_link[k]);
 				}
 			}
@@ -2202,7 +2187,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						
 			break;
 		case EBML_ID_KRAD_LINK_CMD_CREATE_LINK:
-			printf("krad linker handler! CREATE_LINK\n");
+			printk ("krad linker handler! CREATE_LINK\n");
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] == NULL) {
 					verbose = 1;
@@ -2262,11 +2247,11 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			}
 			break;
 		case EBML_ID_KRAD_LINK_CMD_DESTROY_LINK:
-			printf("krad linker handler! DESTROY_LINK\n");
+			printk ("krad linker handler! DESTROY_LINK\n");
 			
 			tinyint = krad_ipc_server_read_number (krad_ipc, ebml_data_size);
 			k = tinyint;
-			printf("krad linker handler! DESTROY_LINK: %d %u\n", k, tinyint);
+			printk ("krad linker handler! DESTROY_LINK: %d %u\n", k, tinyint);
 			
 			if (krad_linker->krad_link[k] != NULL) {
 				krad_link_destroy (krad_linker->krad_link[k]);
@@ -2275,7 +2260,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			
 			break;
 		case EBML_ID_KRAD_LINK_CMD_UPDATE_LINK:
-			printf("krad linker handler! UPDATE_LINK\n");		
+			printk ("krad linker handler! UPDATE_LINK\n");		
 			break;
 	}
 

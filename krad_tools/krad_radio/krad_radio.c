@@ -1,40 +1,5 @@
 #include "krad_radio.h"
 
-int do_shutdown;
-int verbose;
-
-void krad_radio_daemonize () {
-
-	pid_t pid, sid;
-
-	close (STDIN_FILENO);
-	close (STDOUT_FILENO);
-	close (STDERR_FILENO);
-
-	pid = fork();
-
-	if (pid < 0) {
-		exit (EXIT_FAILURE);
-	}
-
-	if (pid > 0) {
-		exit (EXIT_SUCCESS);
-	}
-	
-	umask(0);
- 
-	sid = setsid();
-	
-	if (sid < 0) {
-		exit(EXIT_FAILURE);
-	}
-
-	if ((chdir("/")) < 0) {
-		exit(EXIT_FAILURE);
-	}
-        
-}
-
 int krad_radio_valid_sysname (char *sysname) {
 	
 	int i = 0;
@@ -152,15 +117,15 @@ void krad_radio (char *sysname) {
 
 	krad_radio_t *krad_radio_station;
 
-	do_shutdown = 0;
-	verbose = 1;
+	krad_system_init ();
 
 	krad_radio_station = krad_radio_create (sysname);
 
 	if (krad_radio_station != NULL) {
 	
-		printf("Krad Radio Station %s Daemonizing..\n", krad_radio_station->sysname);
-		//krad_radio_daemonize ();
+		printf ("Krad Radio Station %s Daemonizing..\n", krad_radio_station->sysname);
+		
+		//krad_system_daemonize ();
 
 		krad_radio_run ( krad_radio_station );
 

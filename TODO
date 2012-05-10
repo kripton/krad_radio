@@ -1,13 +1,13 @@
 All Knobs VIA IPC
 TCP IPC Option
 Catch Handle term/kill signals proper
-Javascript IPC Translator
+JSON IPC Translator
 Ogg Output
 Wayland Output
 UDP Video
 OSC IPC Translator
 Gstreamer Input / Output
-
+WebRTC Support
 
 Notes:
 

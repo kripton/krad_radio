@@ -246,7 +246,6 @@ void krad_link_shutdown();
 
 
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
-void dbg (char* format, ...);
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create();
 void krad_link_run (krad_link_t *krad_link);

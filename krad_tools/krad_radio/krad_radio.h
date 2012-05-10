@@ -12,6 +12,11 @@ typedef struct krad_radio_St krad_radio_t;
 
 #ifndef KRAD_RADIO_H
 #define KRAD_RADIO_H
+
+extern int verbose;
+extern int do_shutdown;
+
+#include "krad_system.h"
 #include "krad_tags.h"
 #include "krad_ipc_server.h"
 #include "krad_radio_ipc.h"
@@ -57,11 +62,8 @@ struct krad_radio_St {
 
 };
 
-
-
 void krad_radio_destroy (krad_radio_t *krad_radio);
 krad_radio_t *krad_radio_create (char *sysname);
-void krad_radio_daemonize ();
 void krad_radio_run (krad_radio_t *krad_radio);
 void krad_radio (char *sysname);
 

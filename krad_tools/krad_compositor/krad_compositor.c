@@ -196,7 +196,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 									  krad_compositor->frame_byte_size );
 
 	} else {
-		dbg("Krad Compositor output full! encoding to slow! overflow! :(\n");
+		printke ("Krad Compositor output full! encoding to slow! overflow! :(\n");
 	}
 	*/	
 	

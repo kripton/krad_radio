@@ -33,6 +33,8 @@ gcc -g -Wall krad_radio.c \
 ../krad_tools/krad_tags/krad_tags.c -I../krad_tools/krad_tags/ \
 ../krad_tools/krad_web/krad_websocket.c ../krad_tools/krad_web/krad_http.c \
 -I../krad_tools/krad_opus \
+-I../krad_tools/krad_system \
+../krad_tools/krad_system/krad_system.c \
 ../krad_tools/krad_dirac/krad_dirac.c \
 -I../krad_tools/krad_dirac \
 ../krad_tools/krad_flac/krad_flac.c \
