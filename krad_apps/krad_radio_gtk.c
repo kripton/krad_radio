@@ -394,8 +394,10 @@ int main (int argc, char *argv[]) {
 	
 	strcpy (krad_radio_gtk->sysname, argv[1]);
 	
-	if (!krad_valid_sysname(krad_radio_gtk->sysname)) {
-		failfast ("");
+	if (!krad_valid_host_and_port (krad_radio_gtk->sysname)) {
+		if (!krad_valid_sysname(krad_radio_gtk->sysname)) {
+			failfast ("");
+		}
 	}
 	
 	krad_radio_gtk->client = krad_ipc_connect (krad_radio_gtk->sysname);

@@ -6,7 +6,6 @@ int main (int argc, char *argv[]) {
 	
 	if (argc > 2) {
 
-
 		if (!krad_valid_host_and_port (argv[1])) {
 			if (!krad_valid_sysname(argv[1])) {
 				failfast ("");
