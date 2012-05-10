@@ -2,6 +2,7 @@
 
 int do_shutdown;
 int verbose;
+int krad_system_initialized;
 
 void failfast (char* format, ...) {
 
@@ -41,9 +42,11 @@ void printk (char* format, ...) {
 
 void krad_system_init () {
 
-	do_shutdown = 0;
-	verbose = 1;
-
+	if (krad_system_initialized != 31337) {
+		krad_system_initialized = 31337;
+		do_shutdown = 0;
+		verbose = 1;
+	}
 }
 
 void krad_system_daemonize () {
@@ -128,5 +131,41 @@ int krad_valid_sysname (char *sysname) {
 	}
 
 	return 1;
+
+}
+
+void krad_get_host_and_port (char *string, char *host, int *port) {
+		
+	*port = atoi (strchr(string, ':') + 1);
+	memset (host, '\0', 128);
+	memcpy (host, string, strcspn (string, ":"));
+
+}
+
+//FIXME not actually any good
+
+int krad_valid_host_and_port (char *string) {
+
+	int port;
+	struct in_addr ia;
+	char host[128];
+			
+	if (strchr(string, ':') != NULL) {
+			
+		port = atoi (strchr(string, ':') + 1);
+		memset (host, '\0', 128);
+		memcpy (host, string, strcspn (string, ":"));
+
+//		if (((port > 1) && (port < 65000)) && (inet_aton(host, &ia) != 0)) {
+		if (((port > 1) && (port < 65000)) && (strlen(host) > 3)) {
+
+			//printk ("Got host %s and port %d\n", host, port);
+			return 1;
+		} else {
+			printke ("INVALID host %s port %d\n", host, port);
+		}
+	}
+	
+	return 0;
 
 }

@@ -14,21 +14,31 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 		return NULL;
 	}
 	
+	krad_system_init ();
+	
 	uname(&client->unixname);
 
-	if (strncmp(client->unixname.sysname, "Linux", 5) == 0) {
-		client->on_linux = 1;
-		client->ipc_path_pos = sprintf(client->ipc_path, "@krad_radio_%s_ipc", sysname);
-	} else {
-		client->ipc_path_pos = sprintf(client->ipc_path, "%s/krad_radio_%s_ipc", getenv ("HOME"), sysname);
-	}
+	if (krad_valid_host_and_port (sysname)) {
 	
-	if (!client->on_linux) {
-		if(stat(client->ipc_path, &client->info) != 0) {
-			krad_ipc_disconnect(client);
-			printf ("Krad IPC Client: IPC PATH Failure\n");
-			return NULL;
+		krad_get_host_and_port (sysname, client->host, &client->tcp_port);
+	
+	} else {
+
+		if (strncmp(client->unixname.sysname, "Linux", 5) == 0) {
+			client->on_linux = 1;
+			client->ipc_path_pos = sprintf(client->ipc_path, "@krad_radio_%s_ipc", sysname);
+		} else {
+			client->ipc_path_pos = sprintf(client->ipc_path, "%s/krad_radio_%s_ipc", getenv ("HOME"), sysname);
 		}
+	
+		if (!client->on_linux) {
+			if(stat(client->ipc_path, &client->info) != 0) {
+				krad_ipc_disconnect(client);
+				printf ("Krad IPC Client: IPC PATH Failure\n");
+				return NULL;
+			}
+		}
+		
 	}
 	
 	if (krad_ipc_client_init (client) == 0) {
@@ -36,6 +46,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 		krad_ipc_disconnect (client);
 		return NULL;
 	}
+
 
 	return client;
 }
@@ -46,73 +57,68 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	struct sockaddr_in serveraddr;
 	struct hostent *hostp;
 	int sent;
-	
-	char *temphost = "127.0.0.1";
-	int tempport = 7777;
 
+	if (client->tcp_port != 0) {
 
-	if (strcmp(client->ipc_path, "@krad_radio_monkey2_ipc") == 0) {
+		printk("Krad IPC Client: Connecting to remote %s:%d\n", client->host, client->tcp_port);
 
-	printk("Krad IPC Client: Connecting to remote %s:%d\n", temphost, tempport);
-
-	if ((client->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		printke ("Krad IPC Client: Socket Error\n");
-		exit(1);
-	}
-
-	memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_port = htons (tempport);
-	
-	if ((serveraddr.sin_addr.s_addr = inet_addr(temphost)) == (unsigned long)INADDR_NONE) {
-		// get host address 
-		hostp = gethostbyname(temphost);
-		if (hostp == (struct hostent *)NULL) {
-			printke ("Krad IPC Client: Remote Host Error\n");
-			close (client->sd);
-			exit (1);
+		if ((client->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+			printke ("Krad IPC Client: Socket Error\n");
+			exit(1);
 		}
-		memcpy (&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
-	}
 
-	// connect() to server. 
-	if ((sent = connect(client->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
-		printke ("Krad IPC Client: Remote Connect Error\n");
-		exit(1);
-	}
+		memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
+		serveraddr.sin_family = AF_INET;
+		serveraddr.sin_port = htons (client->tcp_port);
+	
+		if ((serveraddr.sin_addr.s_addr = inet_addr(client->host)) == (unsigned long)INADDR_NONE) {
+			// get host address 
+			hostp = gethostbyname(client->host);
+			if (hostp == (struct hostent *)NULL) {
+				printke ("Krad IPC Client: Remote Host Error\n");
+				close (client->sd);
+				exit (1);
+			}
+			memcpy (&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
+		}
+
+		// connect() to server. 
+		if ((sent = connect(client->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
+			printke ("Krad IPC Client: Remote Connect Error\n");
+			exit(1);
+		}
 
 	} else {
 
-	client->sd = socket (AF_UNIX, SOCK_STREAM, 0);
-	if (client->sd == -1) {
-		printf ("Krad IPC Client: socket fail\n");
-		return 0;
-	}
+		client->sd = socket (AF_UNIX, SOCK_STREAM, 0);
+		if (client->sd == -1) {
+			printf ("Krad IPC Client: socket fail\n");
+			return 0;
+		}
 
-	client->saddr.sun_family = AF_UNIX;
-	snprintf (client->saddr.sun_path, sizeof(client->saddr.sun_path), "%s", client->ipc_path);
+		client->saddr.sun_family = AF_UNIX;
+		snprintf (client->saddr.sun_path, sizeof(client->saddr.sun_path), "%s", client->ipc_path);
 
-	if (client->on_linux) {
-		client->saddr.sun_path[0] = '\0';
-	}
+		if (client->on_linux) {
+			client->saddr.sun_path[0] = '\0';
+		}
 
 
-	if (connect (client->sd, (struct sockaddr *) &client->saddr, sizeof (client->saddr)) == -1) {
-		close (client->sd);
-		client->sd = 0;
-		printf ("Krad IPC Client: Can't connect to socket %s\n", client->ipc_path);
-		return 0;
-	}
+		if (connect (client->sd, (struct sockaddr *) &client->saddr, sizeof (client->saddr)) == -1) {
+			close (client->sd);
+			client->sd = 0;
+			printf ("Krad IPC Client: Can't connect to socket %s\n", client->ipc_path);
+			return 0;
+		}
 
-	client->flags = fcntl (client->sd, F_GETFL, 0);
+		client->flags = fcntl (client->sd, F_GETFL, 0);
 
-	if (client->flags == -1) {
-		close (client->sd);
-		client->sd = 0;
-		printf ("Krad IPC Client: socket get flag fail\n");
-		return 0;
-	}
-	
+		if (client->flags == -1) {
+			close (client->sd);
+			client->sd = 0;
+			printf ("Krad IPC Client: socket get flag fail\n");
+			return 0;
+		}
 	
 	}
 	

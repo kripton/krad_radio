@@ -43,6 +43,7 @@ struct krad_ipc_client_St {
 	struct sockaddr_un saddr;
 	int sd;
 	int tcp_port;
+	char host[256];
 	char ipc_path[256];
 	int ipc_path_pos;
 	int on_linux;
