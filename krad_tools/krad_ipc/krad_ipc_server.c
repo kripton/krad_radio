@@ -125,8 +125,6 @@ int krad_ipc_server_tcp_socket_create (int port) {
 		close (sfd);
 	}
 	
-	freeaddrinfo (result);	
-	
 	//if ((setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0) {
 	//	fprintf (stderr, "failed to set SO_REUSEADDR on port %s\n", port);
 	//	abort();
@@ -136,6 +134,8 @@ int krad_ipc_server_tcp_socket_create (int port) {
 		fprintf (stderr, "Could not bind %d\n", port);
 		return -1;
 	}
+
+	freeaddrinfo (result);
 
 	return sfd;
 }

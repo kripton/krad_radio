@@ -13,11 +13,11 @@ int main (int argc, char *argv[]) {
 
 
 	if (argc == 1) {
-		kxpdr = kxpdr_create(DEFAULT_RECEIVER_PORT, DEFAULT_TRANSMITTER_PORT);
+		kxpdr = kxpdr_create (DEFAULT_RECEIVER_PORT, DEFAULT_TRANSMITTER_PORT);
 	} else if (argc == 2) {
-		kxpdr = kxpdr_create(argv[1], DEFAULT_TRANSMITTER_PORT);
+		kxpdr = kxpdr_create (argv[1], DEFAULT_TRANSMITTER_PORT);
 	} else if (argc == 3) {
-		kxpdr = kxpdr_create(argv[1], argv[2]);
+		kxpdr = kxpdr_create (argv[1], argv[2]);
 	}
   
 	if (kxpdr != NULL) {

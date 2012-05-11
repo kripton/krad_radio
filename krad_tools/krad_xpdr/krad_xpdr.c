@@ -7,16 +7,14 @@ int set_socket_mode (int sfd) {
 	int flags, s;
 
 	flags = fcntl (sfd, F_GETFL, 0);
-	if (flags == -1)
-	{
+	if (flags == -1) {
 	  fprintf (stderr, "fcntl");
 	  return -1;
 	}
 
 	flags |= O_NONBLOCK;
 	s = fcntl (sfd, F_SETFL, flags);
-	if (s == -1)
-	{
+	if (s == -1) {
 	  fprintf (stderr, "fcntl");
 	  return -1;
 	}
@@ -38,26 +36,25 @@ int transponder_socket_create (char *port) {
 	hints.ai_flags = AI_PASSIVE;     /* All interfaces */
 
 	s = getaddrinfo (NULL, port, &hints, &result);
-	if (s != 0)
-	{
-	  fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
-	  return -1;
+	if (s != 0) {
+		fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
+		return -1;
 	}
 
-	for (rp = result; rp != NULL; rp = rp->ai_next)
-	{
-	  sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-	  if (sfd == -1)
-		continue;
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (sfd == -1) {
+			continue;
+		}
+		
+		s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
 
-	  s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
-	  if (s == 0)
-		{
-		  /* We managed to bind successfully! */
-		  break;
+		if (s == 0) {
+			/* We managed to bind successfully! */
+			break;
 		}
 
-	  close (sfd);
+		close (sfd);
 	}
 	
 	//if ((setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0)
@@ -66,10 +63,9 @@ int transponder_socket_create (char *port) {
 	//  abort();
 	//}
 
-	if (rp == NULL)
-	{
-	  fprintf (stderr, "Could not bind %s\n", port);
-	  return -1;
+	if (rp == NULL) {
+		fprintf (stderr, "Could not bind %s\n", port);
+		return -1;
 	}
 
 	freeaddrinfo (result);
@@ -85,8 +81,8 @@ void receiver_activate (kxpdr_receiver_t *kxpdr_receiver, int sd) {
 	kxpdr_receiver->stream_header = calloc(1, 128000);
 	
 	strcpy(kxpdr_receiver->name, "");
-	kxpdr_receiver->transmitters = calloc(TRANSMITTERS_PER_RECEIVER, sizeof(kxpdr_transmitter_t));
-	kxpdr_receiver->ringbuffer = krad_ringbuffer_create(RING_SIZE);
+	kxpdr_receiver->transmitters = calloc (TRANSMITTERS_PER_RECEIVER, sizeof(kxpdr_transmitter_t));
+	kxpdr_receiver->ringbuffer = krad_ringbuffer_create (RING_SIZE);
 
 	kxpdr_receiver->receiver_events = calloc (MAXEVENTS, sizeof kxpdr_receiver->receiver_events);
 	

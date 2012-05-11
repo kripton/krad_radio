@@ -17,7 +17,7 @@
 
 #include "krad_ring.h"
 
-#define KXPDR_VERSION "KXPDR Version 0.8a"
+#define KXPDR_VERSION "KXPDR Version 1.6b"
 
 #define RECEIVER_COUNT 16
 #define TRANSMITTERS_PER_RECEIVER 128
@@ -28,7 +28,7 @@
 #define SERVER "Icecast 2.3.2"
 
 #define MAXEVENTS 64
-#define RING_SIZE 30000000
+#define RING_SIZE 10000000
 
 #define BURST_SIZE 64000
 
@@ -157,17 +157,17 @@ struct ogg_stream_St {
 };
 
 
-void kxpdr_initiate_shutdown();
-void kxpdr_destroy(kxpdr_t *kxpdr);
-kxpdr_t *kxpdr_create(char *incoming_receiver_connection_port, char *incoming_transmitter_connection_port);
+void kxpdr_initiate_shutdown ();
+void kxpdr_destroy (kxpdr_t *kxpdr);
+kxpdr_t *kxpdr_create (char *incoming_receiver_connection_port, char *incoming_transmitter_connection_port);
 
-void kxpdr_receiver_add_ready(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter);
-void kxpdr_receiver_remove_ready(kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter);
+void kxpdr_receiver_add_ready (kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter);
+void kxpdr_receiver_remove_ready (kxpdr_receiver_t *kxpdr_receiver, kxpdr_transmitter_t *transmitter);
 
-void *receiver_thread(void *arg);
-void *transmitter_thread(void *arg);
-void *incoming_receiver_connections_thread(void *arg);
-void *incoming_transmitter_connections_thread(void *arg);
+void *receiver_thread (void *arg);
+void *transmitter_thread (void *arg);
+void *incoming_receiver_connections_thread (void *arg);
+void *incoming_transmitter_connections_thread (void *arg);
 /*
 receiver connection thread-> -> receiver thread -> recieves -- single reciever
 								transmitter thread -> transmitts -> X number of fd's
