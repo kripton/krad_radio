@@ -37,9 +37,12 @@ struct krad_ipc_session_data_St {
 
 	krad_websocket_t *krad_websocket;
 	krad_ipc_client_t *krad_ipc_client;
+	cJSON *msgs;
+	char *msgstext;
+	int msgstextlen;
 	int krad_ipc_info;
-	int krad_ipc_data_len;
-	char krad_ipc_data[4096 * 4];
+//	int krad_ipc_data_len;
+//	char krad_ipc_data[4096 * 4];
 	struct libwebsocket_context *context;
 	struct libwebsocket *wsi;
 	

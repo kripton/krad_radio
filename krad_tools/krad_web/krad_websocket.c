@@ -30,52 +30,61 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
 
-
-	if (memcmp(value, "set_control:Music1:volume:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
+	cJSON *cmd;
+	cJSON *part;
+	cJSON *part2;
+	char *out;	
 	
+	part = NULL;
+	part2 = NULL;
+	cmd = cJSON_Parse (value);
+	
+	if (!cmd) {
+		printke ("Error before: [%s]\n", cJSON_GetErrorPtr());
+	} else {
+		out = cJSON_Print (cmd);
+		
+		part = cJSON_GetObjectItem (cmd, "com");
+		
+		if ((part != NULL) && (strcmp(part->valuestring, "kradmixer") == 0)) {
+			part = cJSON_GetObjectItem (cmd, "cmd");		
+			if ((part != NULL) && (strcmp(part->valuestring, "update_portgroup") == 0)) {
+				part = cJSON_GetObjectItem (cmd, "portgroup_name");
+				part2 = cJSON_GetObjectItem (cmd, "volume");
+				if ((part != NULL) && (part2 != NULL)) {
+					floatval = part2->valuedouble;
+					krad_ipc_set_control (pss->krad_ipc_client, part->valuestring, "volume", floatval);
+				}
+			}		
+		}
+		
+		cJSON_Delete (cmd);
+		printk ("%s\n", out);
+		free (out);
 	}
 
-	if (memcmp(value, "set_control:Music2:volume:", 26) == 0) {
 
-		floatval = atof (value + 26);
+	//krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
 
-		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
-	
-	}
-	
-	
-	if (memcmp(value, "set_control:Music1:xfader:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "crossfade", floatval);
-	
-	}
-
-	if (memcmp(value, "set_control:Music2:xfader:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "crossfade", floatval);
-	
-	}
 	
 
 }
 
 /* callbacks from ipc handler to add JSON to websocket message */
 
-void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data,  char *portname, float floatval) {
+void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval ) {
 
 	printf("add a portgroup called %s withe a volume of %f\n", portname, floatval);
 
-
-	krad_ipc_session_data->krad_ipc_data_len += sprintf(krad_ipc_session_data->krad_ipc_data + krad_ipc_session_data->krad_ipc_data_len, "kradmixer:add_portgroup:%s:%f|", portname, floatval);
-
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradmixer");
+	
+	cJSON_AddStringToObject (msg, "cmd", "add_portgroup");
+	cJSON_AddStringToObject (msg, "portgroup_name", portname);
+	cJSON_AddNumberToObject (msg, "volume", floatval);
 
 }
 
@@ -83,7 +92,15 @@ void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data
 
 	printf("set portgroup called %s control %s with a value %f\n", portname, controlname, floatval);
 	
-	krad_ipc_session_data->krad_ipc_data_len += sprintf(krad_ipc_session_data->krad_ipc_data + krad_ipc_session_data->krad_ipc_data_len, "kradmixer:set_control:%s:%s:%f|", portname, controlname, floatval);
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradmixer");
+	
+	cJSON_AddStringToObject (msg, "cmd", "update_portgroup");
+	cJSON_AddStringToObject (msg, "portgroup_name", portname);
+	cJSON_AddNumberToObject (msg, "volume", floatval);
 	
 }
 
@@ -384,15 +401,16 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 			if (pss->krad_ipc_info == 1) {
 				
-				printf ("wanted to write %d bytes to browser\n", pss->krad_ipc_data_len);
-				memcpy (p, pss->krad_ipc_data, pss->krad_ipc_data_len);
-				ret = libwebsocket_write(wsi, p, pss->krad_ipc_data_len, LWS_WRITE_TEXT);
+				//printf ("wanted to write %d bytes to browser\n", pss->krad_ipc_data_len);
+				memcpy (p, pss->msgstext, pss->msgstextlen + 1);
+				ret = libwebsocket_write(wsi, p, pss->msgstextlen, LWS_WRITE_TEXT);
 				if (ret < 0) {
 					fprintf(stderr, "krad_ipc ERROR writing to socket");
 					return 1;
 				}
 				pss->krad_ipc_info = 0;
-				pss->krad_ipc_data_len = 0;
+				pss->msgstextlen = 0;
+				free (pss->msgstext);
 			}
 
 			break;
@@ -511,7 +529,21 @@ void *krad_websocket_server_run (void *arg) {
 							switch ( krad_websocket->fdof[n] ) {
 								case KRAD_IPC:
 								
+									krad_websocket->sessions[n]->msgs = cJSON_CreateArray();
+	
+									cJSON *msg;
+	
+									cJSON_AddItemToArray (krad_websocket->sessions[n]->msgs, msg = cJSON_CreateObject());
+	
+									cJSON_AddStringToObject (msg, "com", "kradradio");
+									cJSON_AddStringToObject (msg, "info", "kradradio json alpha");
+									
 									krad_ipc_client_handle (krad_websocket->sessions[n]->krad_ipc_client);
+									
+									krad_websocket->sessions[n]->msgstext = cJSON_Print (krad_websocket->sessions[n]->msgs);
+									krad_websocket->sessions[n]->msgstextlen = strlen (krad_websocket->sessions[n]->msgstext);
+									cJSON_Delete (krad_websocket->sessions[n]->msgs);
+									
 									krad_websocket->sessions[n]->krad_ipc_info = 1;
 									libwebsocket_callback_on_writable(krad_websocket->sessions[n]->context, krad_websocket->sessions[n]->wsi);
 									break;
