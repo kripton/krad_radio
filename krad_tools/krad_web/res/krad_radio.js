@@ -51,15 +51,17 @@ Kradwebsocket.prototype.on_open = function(evt) {
 	this.connected = true;
 	this.debug ("Connected!");
 	this.connecting = false;
-	
-	kradradio = new Kradradio ("testname");
-	
+
+	kradradio = new Kradradio ();	
 }
 
 Kradwebsocket.prototype.on_close = function(evt) {
 	this.connected = false;
 	this.debug ("Disconnected!");
-	kradradio.destroy ();
+	if (kradradio != false) {
+		kradradio.destroy ();
+		kradradio = false;
+	}
 }
 
 Kradwebsocket.prototype.send = function(message) {
@@ -82,24 +84,22 @@ Kradwebsocket.prototype.debug = function(message) {
 
 Kradwebsocket.prototype.on_message = function(evt) {
 	this.debug ("got message: " + evt.data);
-	kradradio.got_messages (evt.data);
+
+	kradradio.got_messages (evt.data);	
 }
 	
 
-function Kradradio (sysname) {
+function Kradradio () {
 
-	this.sysname = sysname;
-	this.controls = "";
+	this.sysname = "";
 	this.real_interfaces = new Array();
-	this.ignoreupdate = false;
-	this.update_rate = 50;
+	//this.ignoreupdate = false;
+	//this.update_rate = 50;
 	//this.timer;
 	
-	$('body').append("<div class='kradradio' id='" + this.sysname + "'><h2>" + this.sysname + "</h2><div class='kradmixer'></div></div>");
-	
 }
 
-Kradradio.prototype.destroy = function() {
+Kradradio.prototype.destroy = function () {
 
 
 	$('#' + this.sysname).remove();
@@ -110,6 +110,13 @@ Kradradio.prototype.destroy = function() {
 	//	this.real_interfaces[real_interface].destroy();
 	//}
 
+}
+
+Kradradio.prototype.got_sysname = function (sysname) {
+
+	this.sysname = sysname;
+
+	$('body').append("<div class='kradradio' id='" + this.sysname + "'><h2>" + this.sysname + "</h2><div class='kradmixer'></div></div>");
 }
 
 Kradradio.prototype.got_messages = function (msgs) {
@@ -129,7 +136,9 @@ Kradradio.prototype.got_messages = function (msgs) {
 			}			
 		}
 		if (msg_arr[m].com == "kradradio") {
-			console.log ("got info!" + msg_arr[m].info);
+			if (msg_arr[m].info == "sysname") {
+				kradradio.got_sysname (msg_arr[m].infoval);
+			}
 		}		
 	}
 

@@ -370,6 +370,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->krad_websocket = krad_websocket_glob;
 			pss->krad_ipc_client = krad_ipc_connect (pss->krad_websocket->sysname);
 			pss->krad_ipc_info = 0;
+			pss->hello_sent = 0;			
 			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
 			add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
@@ -380,7 +381,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 			krad_ipc_disconnect (pss->krad_ipc_client);
 			del_poll_fd(pss->krad_ipc_client->sd);
-		
+			pss->hello_sent = 0;
 			pss->context = NULL;
 			pss->wsi = NULL;
 		
@@ -533,10 +534,23 @@ void *krad_websocket_server_run (void *arg) {
 	
 									cJSON *msg;
 	
-									cJSON_AddItemToArray (krad_websocket->sessions[n]->msgs, msg = cJSON_CreateObject());
+									if (krad_websocket->sessions[n]->hello_sent == 0) {
+										cJSON_AddItemToArray (krad_websocket->sessions[n]->msgs, msg = cJSON_CreateObject());
 	
-									cJSON_AddStringToObject (msg, "com", "kradradio");
-									cJSON_AddStringToObject (msg, "info", "kradradio json alpha");
+										cJSON_AddStringToObject (msg, "com", "kradradio");
+										cJSON_AddStringToObject (msg, "info", "sysname");
+										cJSON_AddStringToObject (msg, "infoval", krad_websocket->sysname);
+	
+	
+										cJSON_AddItemToArray (krad_websocket->sessions[n]->msgs, msg = cJSON_CreateObject());
+	
+										cJSON_AddStringToObject (msg, "com", "kradradio");
+										cJSON_AddStringToObject (msg, "info", "motd");
+										cJSON_AddStringToObject (msg, "infoval", "kradradio json alpha");
+										
+										krad_websocket->sessions[n]->hello_sent = 1;
+									
+									}
 									
 									krad_ipc_client_handle (krad_websocket->sessions[n]->krad_ipc_client);
 									

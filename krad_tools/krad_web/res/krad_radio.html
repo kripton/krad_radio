@@ -9,8 +9,8 @@
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="/krad_radio.js"></script>
 	<script>
-		var kradradio;
-		var kradwebsocket;
+		var kradradio = false;
+		var kradwebsocket = false;
 		$(document).ready(function() {
 			var websocket_port = WSPORT;
 			kradwebsocket = new Kradwebsocket (websocket_port);

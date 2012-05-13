@@ -46,6 +46,8 @@ struct krad_ipc_session_data_St {
 	struct libwebsocket_context *context;
 	struct libwebsocket *wsi;
 	
+	int hello_sent;
+	
 };
 
 struct krad_websocket_St {
