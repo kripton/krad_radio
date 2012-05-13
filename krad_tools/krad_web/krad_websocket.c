@@ -33,6 +33,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	cJSON *cmd;
 	cJSON *part;
 	cJSON *part2;
+	cJSON *part3;
 	char *out;	
 	
 	part = NULL;
@@ -50,10 +51,11 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 			part = cJSON_GetObjectItem (cmd, "cmd");		
 			if ((part != NULL) && (strcmp(part->valuestring, "update_portgroup") == 0)) {
 				part = cJSON_GetObjectItem (cmd, "portgroup_name");
-				part2 = cJSON_GetObjectItem (cmd, "volume");
-				if ((part != NULL) && (part2 != NULL)) {
-					floatval = part2->valuedouble;
-					krad_ipc_set_control (pss->krad_ipc_client, part->valuestring, "volume", floatval);
+				part2 = cJSON_GetObjectItem (cmd, "control_name");
+				part3 = cJSON_GetObjectItem (cmd, "value");
+				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
+					floatval = part3->valuedouble;
+					krad_ipc_set_control (pss->krad_ipc_client, part->valuestring, part2->valuestring, floatval);
 				}
 			}		
 		}
@@ -72,7 +74,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 
 /* callbacks from ipc handler to add JSON to websocket message */
 
-void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval ) {
+void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
 
 	printf("add a portgroup called %s withe a volume of %f\n", portname, floatval);
 
@@ -85,6 +87,11 @@ void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_da
 	cJSON_AddStringToObject (msg, "cmd", "add_portgroup");
 	cJSON_AddStringToObject (msg, "portgroup_name", portname);
 	cJSON_AddNumberToObject (msg, "volume", floatval);
+	
+	cJSON_AddStringToObject (msg, "crossfade_name", crossfade_name);
+	cJSON_AddNumberToObject (msg, "crossfade", crossfade_val);
+	
+	
 
 }
 
@@ -100,7 +107,8 @@ void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data
 	
 	cJSON_AddStringToObject (msg, "cmd", "update_portgroup");
 	cJSON_AddStringToObject (msg, "portgroup_name", portname);
-	cJSON_AddNumberToObject (msg, "volume", floatval);
+	cJSON_AddStringToObject (msg, "control_name", controlname);
+	cJSON_AddNumberToObject (msg, "value", floatval);
 	
 }
 
@@ -173,7 +181,8 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					printf("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade )) <= list_size)) {
-						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval);
+						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade);
+						
 						if (bytes_read == list_size) {
 							break;
 						}

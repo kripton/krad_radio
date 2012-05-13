@@ -126,10 +126,10 @@ Kradradio.prototype.got_messages = function (msgs) {
 	for (m in msg_arr) {
 		if (msg_arr[m].com == "kradmixer") {
 			if (msg_arr[m].cmd == "update_portgroup") {
-				kradradio.got_update_portgroup (msg_arr[m].portgroup_name, msg_arr[m].volume);
+				kradradio.got_update_portgroup (msg_arr[m].portgroup_name, msg_arr[m].control_name, msg_arr[m].value);
 			}
 			if (msg_arr[m].cmd == "add_portgroup") {
-				kradradio.got_add_portgroup (msg_arr[m].portgroup_name, msg_arr[m].volume);
+				kradradio.got_add_portgroup (msg_arr[m].portgroup_name, msg_arr[m].volume, msg_arr[m].crossfade_name, msg_arr[m].crossfade );
 			}
 			if (msg_arr[m].cmd == "remove_portgroup") {
 				kradradio.got_remove_portgroup (msg_arr[m].portgroup_name);
@@ -144,13 +144,14 @@ Kradradio.prototype.got_messages = function (msgs) {
 
 }
 
-Kradradio.prototype.update_portgroup = function (portgroup_name, value) {
+Kradradio.prototype.update_portgroup = function (portgroup_name, control_name, value) {
 
 	var cmd = {};  
 	cmd.com = "kradmixer";  
 	cmd.cmd = "update_portgroup";
   	cmd.portgroup_name = portgroup_name;  
-	cmd.volume = value;
+  	cmd.control_name = control_name;  
+	cmd.value = value;
 	
 	var JSONcmd = JSON.stringify(cmd); 
 
@@ -159,26 +160,42 @@ Kradradio.prototype.update_portgroup = function (portgroup_name, value) {
 	console.log (JSONcmd);
 }
 
-Kradradio.prototype.got_update_portgroup = function (portgroup_name, value) {
+Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
 
 	console.log ("update portgroup " + portgroup_name + " " + value);
 
 	if ($('#' + portgroup_name)) {
-		$('#' + portgroup_name).slider( "value" , value )
+		if (control_name == "volume") {
+			$('#' + portgroup_name).slider( "value" , value )
+		} else {
+			$('#' + portgroup_name + '_crossfade').slider( "value" , value )
+		}
 	}
 }
 
-Kradradio.prototype.got_add_portgroup = function (name, volume) {
+Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossfade_name, crossfade) {
 
-	$('.kradmixer').append("<div id='" + name + "'></div> <h2>" + name + "</h2></div>");
+	$('.kradmixer').append("<div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2></div>");
 
-	$('#' + name).slider();
+	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume });
 
-	$('#' + name).slider({orientation: 'vertical', value: volume });
-
-	$( "#" + name ).bind( "slide", function(event, ui) {
-		kradradio.update_portgroup (name, ui.value);
+	$( '#' + portgroup_name ).bind( "slide", function(event, ui) {
+		kradradio.update_portgroup (portgroup_name, "volume", ui.value);
 	});
+	
+	
+	if (crossfade_name.length > 0) {
+	
+		$('.kradmixer').append("<div id='" + portgroup_name + "_crossfade'></div> <h2>" + portgroup_name + " - " + crossfade_name + "</h2></div>");
+
+		$('#' + portgroup_name + '_crossfade').slider({orientation: 'horizontal', value: crossfade, min: -100, max: 100 });
+
+		$( '#' + portgroup_name + '_crossfade' ).bind( "slide", function(event, ui) {
+			kradradio.update_portgroup (portgroup_name, "crossfade", ui.value);
+		});	
+	
+	
+	}
 	
 	//		$('#xfader_' + name).slider({orientation: 'horizontal', value: 0, min: -100 });
 
