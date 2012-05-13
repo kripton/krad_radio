@@ -92,7 +92,7 @@ Kradwebsocket.prototype.on_message = function(evt) {
 function Kradradio () {
 
 	this.sysname = "";
-	this.real_interfaces = new Array();
+	//this.real_interfaces = new Array();
 	//this.ignoreupdate = false;
 	//this.update_rate = 50;
 	//this.timer;
@@ -116,7 +116,7 @@ Kradradio.prototype.got_sysname = function (sysname) {
 
 	this.sysname = sysname;
 
-	$('body').append("<div class='kradradio' id='" + this.sysname + "'><h2>" + this.sysname + "</h2><div class='kradmixer'></div></div>");
+	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'><div class='kradradio'><h2>" + this.sysname + "</h2></div><div class='kradmixer'></div><div class='kradlink'></div><div class='kradcompositor'></div></div>");
 }
 
 Kradradio.prototype.got_messages = function (msgs) {
@@ -175,7 +175,7 @@ Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_nam
 
 Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossfade_name, crossfade) {
 
-	$('.kradmixer').append("<div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2></div>");
+	$('.kradmixer').append("<div class='kradmixer_control volume_control'> <div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2></div>");
 
 	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume });
 
@@ -186,7 +186,7 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 	
 	if (crossfade_name.length > 0) {
 	
-		$('.kradmixer').append("<div id='" + portgroup_name + "_crossfade'></div> <h2>" + portgroup_name + " - " + crossfade_name + "</h2></div>");
+		$('.kradmixer').append("<div class='kradmixer_control crossfade_control'> <div id='" + portgroup_name + "_crossfade'></div> <h2>" + portgroup_name + " - " + crossfade_name + "</h2></div>");
 
 		$('#' + portgroup_name + '_crossfade').slider({orientation: 'horizontal', value: crossfade, min: -100, max: 100 });
 
@@ -196,9 +196,6 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 	
 	
 	}
-	
-	//		$('#xfader_' + name).slider({orientation: 'horizontal', value: 0, min: -100 });
-
 }
 
 Kradradio.prototype.got_remove_portgroup = function (name) {
