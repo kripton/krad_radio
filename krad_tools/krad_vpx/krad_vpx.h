@@ -60,13 +60,12 @@ struct krad_vpx_decoder_St {
 	int quality;
     int dec_flags;
 
-    vpx_codec_ctx_t codec;
     vpx_codec_err_t	res;
-    vpx_dec_ctx_t decoder;
+    vpx_codec_ctx_t decoder;
     vp8_postproc_cfg_t ppcfg;
     vpx_codec_dec_cfg_t cfg;
 	vpx_codec_stream_info_t stream_info;
-	vpx_dec_iter_t iter;
+	vpx_codec_iter_t iter;
 	vpx_image_t *img;
 
     uint8_t *buf;

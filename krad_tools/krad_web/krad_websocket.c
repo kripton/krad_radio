@@ -22,6 +22,53 @@ struct libwebsocket_protocols protocols[] = {
 krad_websocket_t *krad_websocket_glob;
 
 
+/* interpret JSON to speak Krad IPC */
+
+void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
+	
+	float floatval;
+	
+	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
+
+
+	if (memcmp(value, "set_control:Music1:volume:", 26) == 0) {
+
+		floatval = atof (value + 26);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
+	
+	}
+
+	if (memcmp(value, "set_control:Music2:volume:", 26) == 0) {
+
+		floatval = atof (value + 26);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
+	
+	}
+	
+	
+	if (memcmp(value, "set_control:Music1:xfader:", 26) == 0) {
+
+		floatval = atof (value + 26);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "crossfade", floatval);
+	
+	}
+
+	if (memcmp(value, "set_control:Music2:xfader:", 26) == 0) {
+
+		floatval = atof (value + 26);
+
+		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "crossfade", floatval);
+	
+	}
+	
+
+}
+
+/* callbacks from ipc handler to add JSON to websocket message */
+
 void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data,  char *portname, float floatval) {
 
 	printf("add a portgroup called %s withe a volume of %f\n", portname, floatval);
@@ -40,6 +87,8 @@ void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data
 	
 }
 
+
+/* IPC Handler */
 
 int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
@@ -128,50 +177,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 }
 
-void krad_ipc_control (krad_ipc_session_data_t *pss, char *value, int len) {
-	
-	float floatval;
-	
-	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
-
-
-	if (memcmp(value, "set_control:Music1:volume:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
-	
-	}
-
-	if (memcmp(value, "set_control:Music2:volume:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "volume", floatval);
-	
-	}
-	
-	
-	if (memcmp(value, "set_control:Music1:xfader:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music1", "crossfade", floatval);
-	
-	}
-
-	if (memcmp(value, "set_control:Music2:xfader:", 26) == 0) {
-
-		floatval = atof (value + 26);
-
-		krad_ipc_set_control (pss->krad_ipc_client, "Music2", "crossfade", floatval);
-	
-	}
-	
-
-}
-
-
+/*
 int ebml_frag_to_js (char *js_data, unsigned char *ebml_frag) {
 
 	uint32_t ebml_id;
@@ -192,7 +198,7 @@ int ebml_frag_to_js (char *js_data, unsigned char *ebml_frag) {
 	return sprintf(js_data, "KM%u:%"PRIu64"", ebml_id, a_number);
 
 }
-
+*/
 
 /****	Poll Functions	****/
 
@@ -393,10 +399,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 		case LWS_CALLBACK_RECEIVE:
 
-			if (memcmp(in, "KIPC", 4) == 0) {
-				krad_ipc_control (pss, in + 4, len - 4);
-				break;
-			}
+			krad_ipc_from_json (pss, in, len);
 		
 			break;
 
