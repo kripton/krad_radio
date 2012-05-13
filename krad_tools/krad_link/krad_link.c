@@ -2197,9 +2197,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_link->krad_linker = krad_linker;
 					
 					krad_link->interface_mode = COMMAND;
-
 					sprintf (krad_link->sysname, "link%d", k);
-					
 					krad_link->verbose = 1;
 					
 					if (k == 0) {

@@ -24,6 +24,7 @@ depsources = """
 ../krad_tools/krad_system/krad_system.c
 ../krad_tools/krad_compositor/krad_compositor.c
 ../krad_tools/krad_framepool/krad_framepool.c
+../krad_tools/krad_web/ext/cJSON.c
 ../krad_tools/krad_web/krad_http.c
 ../krad_tools/krad_web/krad_websocket.c
 ../krad_tools/krad_effects/digilogue.c
@@ -80,6 +81,7 @@ includedirs = """
 ../krad_tools/krad_compositor/
 ../krad_tools/krad_framepool/
 ../krad_tools/krad_web/
+../krad_tools/krad_web/ext/
 ../krad_tools/krad_web/res/
 ../krad_tools/krad_effects/
 ../krad_tools/krad_tone/

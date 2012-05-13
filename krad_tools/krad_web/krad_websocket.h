@@ -11,6 +11,8 @@
 #include "krad_ipc_client.h"
 #include "krad_radio_ipc.h"
 
+#include "cJSON.h"
+
 #define KRAD_WEBSOCKET_MAX_POLL_FDS 200
 #define KRAD_WEBSOCKET_SERVER_TIMEOUT_MS 250
 #define KRAD_WEBSOCKET_SERVER_TIMEOUT_US KRAD_WEBSOCKET_SERVER_TIMEOUT_MS * 1000
