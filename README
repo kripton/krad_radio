@@ -1,5 +1,7 @@
 This is experimental software intended for developers only, you have been warned.
 
+Last Updated: May 13, 2012
+
 To build things, we have waf, which should be way awesome fun, because waf 
 is perfect and everything always builds everywhere, as we all know.
 
@@ -11,15 +13,18 @@ sudo ./waf install
 
 ./waf clean and ./waf distclean can be usefull
 
-Need to add option builds currently all deps need to be met for tools.
 
-These are for the apps/tools only, krad ebml library has no deps.
+The instructions:
 
-ubuntu hint:
+If on ubuntu do this (if not, you can probably figure it out):
 
 sudo apt-get install libasound2-dev libpulse-dev libvorbis-dev freeglut3-dev build-essential autoconf git-core libtool libxml2-dev\
 libgtk-3-dev libswscale-dev libflac-dev libschroedinger-dev libavutil-dev libjack-jackd2-dev git subversion yasm build-essential \
 libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 libxcb-image0-dev libtheora-dev
+
+
+
+
 
 And install opus from git: http://opus-codec.org/downloads/
 
@@ -94,7 +99,7 @@ Libs: -L${libdir} -lcodec2
 Cflags: -I${includedir}
 
 
-
+And finally libwebsockets:
 
 git clone git://git.warmcat.com/libwebsockets
 
@@ -116,9 +121,3 @@ Libs: -L${libdir} -lwebsockets
 Cflags: -I${includedir}
 
 
-
-
-
-And most importantly...
-
--David Richards March 10, 2012
