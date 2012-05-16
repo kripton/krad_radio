@@ -2360,7 +2360,15 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							if ((bigint == 120) || (bigint == 240) || (bigint == 480) || (bigint == 960) || (bigint == 1920) || (bigint == 2880)) {
 								kradopus_set_frame_size (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
-						}	
+						}
+						
+						//FIXME verify ogg container
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE) {
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+							if ((bigint > 0) && (bigint < 200)) {					
+								krad_ogg_set_max_packets_per_page (krad_linker->krad_link[k]->krad_container->krad_ogg, bigint);
+							}
+						}
 				
 					}
 

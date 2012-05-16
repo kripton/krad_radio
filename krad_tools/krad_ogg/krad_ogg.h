@@ -38,6 +38,8 @@
 typedef struct krad_ogg_St krad_ogg_t;
 typedef struct krad_ogg_track_St krad_ogg_track_t;
 
+
+#define KRAD_OGG_DEFAULT_MAX_PACKETS_PER_PAGE 7
 #define KRAD_OGG_MAX_TRACKS 10
 
 #define KRAD_OGG_NO_SERIAL -420
@@ -134,7 +136,7 @@ krad_ogg_t *krad_ogg_create();
 void krad_ogg_destroy(krad_ogg_t *krad_ogg);
 
 
-
+void krad_ogg_set_max_packets_per_page (krad_ogg_t *krad_ogg, int max_packets);
 
 int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height);
 int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 

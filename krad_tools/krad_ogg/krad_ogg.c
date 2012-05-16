@@ -465,8 +465,15 @@ krad_ogg_t *krad_ogg_open_stream (char *host, int port, char *mount, char *passw
 
 
 
+void krad_ogg_set_max_packets_per_page (krad_ogg_t *krad_ogg, int max_packets) {
 
+	int t;	
 
+	for (t = 0; t < KRAD_OGG_MAX_TRACKS; t++ ) {
+		krad_ogg->tracks[t].max_packets_per_page = max_packets;
+	}
+	
+}
 
 
 
@@ -497,6 +504,9 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 
 	krad_ogg->tracks[track].serial = rand();
 	krad_ogg->tracks[track].packet_num = 0;
+	
+	krad_ogg->tracks[track].max_packets_per_page = KRAD_OGG_DEFAULT_MAX_PACKETS_PER_PAGE;
+	krad_ogg->tracks[track].packets_on_current_page = 0;
 
 	ogg_stream_init (&krad_ogg->tracks[track].stream_state, krad_ogg->tracks[track].serial);
 
@@ -570,14 +580,39 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 	krad_ogg->tracks[track].packet_num++;
 	krad_ogg->tracks[track].last_granulepos += frames;
 	
-	while (ogg_stream_pageout(&krad_ogg->tracks[track].stream_state, &page) != 0) {
+	krad_ogg->tracks[track].packets_on_current_page++;	
+	
+	
+	if (krad_ogg->tracks[track].packets_on_current_page < krad_ogg->tracks[track].max_packets_per_page) {
+	
+		while (ogg_stream_pageout(&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
-		krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-		krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
 		
-		//printk ("created page sized %lu\n", page.header_len + page.body_len);
+			//printk ("created page sized %lu\n", page.header_len + page.body_len);
 		
-		krad_io_write_sync (krad_ogg->krad_io);
+			krad_io_write_sync (krad_ogg->krad_io);
+
+			krad_ogg->tracks[track].packets_on_current_page = 0;
+		
+		}
+	
+	} else {
+	
+		while (ogg_stream_flush(&krad_ogg->tracks[track].stream_state, &page) != 0) {
+		
+			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+		
+			//printk ("created page sized %lu\n", page.header_len + page.body_len);
+		
+			krad_io_write_sync (krad_ogg->krad_io);
+
+			krad_ogg->tracks[track].packets_on_current_page = 0;
+		
+		}
+	
 	}
 
 }
