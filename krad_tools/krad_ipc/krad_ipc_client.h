@@ -77,6 +77,7 @@ void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
 void krad_ipc_update_link (krad_ipc_client_t *client, int number, int newval);
 void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t ebml_id, char *newval);
+void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32_t ebml_id, int newval);
 
 void krad_ipc_radio_uptime (krad_ipc_client_t *client);
 void krad_ipc_radio_info (krad_ipc_client_t *client);

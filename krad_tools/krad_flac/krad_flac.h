@@ -16,7 +16,7 @@
 #define FLAC_MINIMAL_HEADER_SIZE 42
 #define FLAC_STREAMINFO_BLOCK_SIZE 38
 #define FLAC_MARKER "fLaC"
-
+#define DEFAULT_FLAC_FRAME_SIZE 4096
 
 typedef struct krad_flac_St krad_flac_t;
 

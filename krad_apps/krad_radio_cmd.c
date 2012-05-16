@@ -153,9 +153,15 @@ int main (int argc, char *argv[]) {
 					if (strcmp(argv[4], "signal") == 0) {
 						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
 					}
-					if (strcmp(argv[4], "app") == 0) {
-						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_APPLICATION, argv[5]);
+					//if (strcmp(argv[4], "app") == 0) {
+					//	krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_APPLICATION, argv[5]);
+					//}
+					if (strcmp(argv[4], "comp") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, atoi(argv[5]));
 					}
+					if (strcmp(argv[4], "framesize") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, atoi(argv[5]));
+					}										
 				}				
 			}			
 			

@@ -15,9 +15,13 @@
 #include "opus_header.h"
 #include "krad_ring.h"
 
-#define OPUS_MAX_FRAME_SIZE (960*6)
+// where did this come from?
 #define OPUS_MAX_FRAME_BYTES 61295
-
+#define DEFAULT_OPUS_COMPLEXITY 10
+#define DEFAULT_OPUS_BITRATE 128000
+#define DEFAULT_OPUS_FRAME_SIZE 960
+#define MIN_OPUS_FRAME_SIZE 120
+#define MAX_OPUS_FRAME_SIZE 2880
 #ifndef RINGBUFFER_SIZE
 #define RINGBUFFER_SIZE 2000000
 #endif
@@ -42,7 +46,7 @@ struct kradopus_St {
 	float *samples[MAX_CHANNELS];
 	float *read_samples[MAX_CHANNELS];
 	float *interleaved_samples;
-	float interleaved_resampled_samples[960 * 2];
+	float interleaved_resampled_samples[MAX_OPUS_FRAME_SIZE * MAX_CHANNELS];
 	krad_ringbuffer_t *resampled_ringbuf[MAX_CHANNELS];
 
 	krad_ringbuffer_t *ringbuf[MAX_CHANNELS];
@@ -52,8 +56,6 @@ struct kradopus_St {
 	int err;
 	int extra_samples;
 
-	opus_int32 frame_size;
-
 	unsigned char mapping[256];
 	opus_int32 lookahead;
 
@@ -62,12 +64,16 @@ struct kradopus_St {
 	float output_sample_rate;
 	float speed;
 
+	int complexity;
 	int bitrate;
 	int application;
 	int signal;
-
+	opus_int32 frame_size;
+	
+	opus_int32 new_frame_size;	
+	int new_complexity;
 	int new_bitrate;
-	int new_application;
+	//int new_application;
 	int new_signal;
 
 	int id;
@@ -86,9 +92,10 @@ struct kradopus_St {
 	
 };
 
-
+void kradopus_set_complexity (krad_opus_t *kradopus, int complexity);
+void kradopus_set_frame_size (krad_opus_t *kradopus, int frame_size);
 void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate);
-void kradopus_set_application (krad_opus_t *kradopus, int application);
+//void kradopus_set_application (krad_opus_t *kradopus, int application);
 void kradopus_set_signal (krad_opus_t *kradopus, int signal);
 
 

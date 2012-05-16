@@ -84,6 +84,11 @@ struct krad_ogg_track_St {
 	
 	uint64_t packet_num;
 	
+	
+	int max_packets_per_page;
+	int packets_on_current_page;
+	
+	
 };
 
 struct krad_ogg_St {

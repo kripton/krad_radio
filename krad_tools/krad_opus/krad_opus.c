@@ -71,7 +71,7 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 	
 	opus->channels = opus->opus_header->channels;
 	
-	opus->interleaved_samples = malloc(8192 * 2);
+	opus->interleaved_samples = malloc(16 * 8192);
 	
 	for (c = 0; c < opus->opus_header->channels; c++) {
 		opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
@@ -82,12 +82,12 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 
 		//printf("Ringbuffer created with %5zu bytes (opus decoder resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
 
-		opus->samples[c] = malloc(4 * 8192);
+		opus->samples[c] = malloc(16 * 8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
-		opus->read_samples[c] = malloc(4 * 8192);
+		opus->read_samples[c] = malloc(16 * 8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
 
-		opus->resampled_samples[c] = malloc(8192);
+		opus->resampled_samples[c] = malloc(16 * 8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
 		
 	
@@ -138,10 +138,15 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->channels = channels;
 	opus->bitrate = bitrate;
 	opus->application = application;
-	
-	opus->new_application = opus->application;
+	opus->complexity = DEFAULT_OPUS_COMPLEXITY;
+	opus->signal = OPUS_SIGNAL_MUSIC;
+	opus->frame_size = DEFAULT_OPUS_FRAME_SIZE;
+
+	opus->new_frame_size = opus->frame_size;	
+	opus->new_complexity = opus->complexity;
+//	opus->new_application = opus->application;
 	opus->new_bitrate = opus->bitrate;
-	opus->new_signal = OPUS_SIGNAL_MUSIC;
+	opus->new_signal = opus->signal;
 	
 	int c;
 	
@@ -150,9 +155,9 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 		//printf("Ringbuffer created with %5zu bytes (opus)\n", krad_ringbuffer_write_space(opus->ringbuf[c]));
 		opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 		//printf("Ringbuffer created with %5zu bytes (opus resampler)\n", krad_ringbuffer_write_space(opus->resampled_ringbuf[c]));
-		opus->samples[c] = malloc(8192);
+		opus->samples[c] = malloc(16 * 8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
-		opus->resampled_samples[c] = malloc(8192);
+		opus->resampled_samples[c] = malloc(16 * 8192);
 		//printf("opus decoder malloced %d bytes\n", 8192);
 		
 
@@ -181,8 +186,6 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	//}
 
 	printf("krad opus input sample rate %f\n", input_sample_rate);
-
-	opus->frame_size = 960;
 
 	opus->st = opus_multistream_encoder_create(48000, opus->channels, 1, opus->channels==2, opus->mapping, opus->application, &opus->err);
 
@@ -323,9 +326,17 @@ void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate) {
 	kradopus->new_bitrate = bitrate;
 }
 
-void kradopus_set_application (krad_opus_t *kradopus, int application) { 
-	kradopus->new_application = application;
+void kradopus_set_complexity (krad_opus_t *kradopus, int complexity) { 
+	kradopus->new_complexity = complexity;
 }
+
+void kradopus_set_frame_size (krad_opus_t *kradopus, int frame_size) { 
+	kradopus->new_frame_size = frame_size;
+}
+
+//void kradopus_set_application (krad_opus_t *kradopus, int application) { 
+//	kradopus->new_application = application;
+//}
 
 void kradopus_set_signal (krad_opus_t *kradopus, int signal) { 
 	kradopus->new_signal = signal;
@@ -385,7 +396,23 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 			printf  ("set opus bitrate %d\n", kradopus->bitrate);
 		}
 	}
-
+	
+	if (kradopus->new_frame_size != kradopus->frame_size) {
+		kradopus->frame_size = kradopus->new_frame_size;
+		printf ("frame size is now %d\n", kradopus->frame_size);		
+	}
+	
+	if (kradopus->new_complexity != kradopus->complexity) {
+		kradopus->complexity = kradopus->new_complexity;
+		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_COMPLEXITY(kradopus->complexity));
+		if (resp != OPUS_OK) {
+			fprintf (stderr, "complexity request failed %s. \n", opus_strerror(resp));
+			exit(1);
+		} else {
+			printf  ("set opus complexity %d\n", kradopus->complexity);
+		}
+	}	
+	/*
 	if (kradopus->new_application != kradopus->application) {
 		kradopus->application = kradopus->new_application;
 		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_APPLICATION(kradopus->application));
@@ -396,7 +423,7 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 			printf  ("set opus application mode %d\n", kradopus->application);
 		}
 	}
-
+	*/
 	if (kradopus->new_signal != kradopus->signal) {
 		kradopus->signal = kradopus->new_signal;
 		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_SIGNAL(kradopus->signal));
@@ -410,13 +437,13 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 	}
 	
 
-	if ((krad_ringbuffer_read_space (kradopus->resampled_ringbuf[1]) >= 960 * 4 ) && (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[0]) >= 960 * 4 )) {
+	if ((krad_ringbuffer_read_space (kradopus->resampled_ringbuf[1]) >= kradopus->frame_size * 4 ) && (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[0]) >= kradopus->frame_size * 4 )) {
 
 		for (c = 0; c < kradopus->channels; c++) {
-			kradopus->ret = krad_ringbuffer_read (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (960 * 4) );
+			kradopus->ret = krad_ringbuffer_read (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (kradopus->frame_size * 4) );
 		}
 
-		for (i = 0; i < 960; i++) {
+		for (i = 0; i < kradopus->frame_size; i++) {
 			for (j = 0; j < 2; j++) {
 				kradopus->interleaved_resampled_samples[i * 2 + j] = kradopus->resampled_samples[j][i];
 				//printf("sample num %d chan %d is %f\n", i, j, kradopus->interleaved_resampled_samples[i * 2 + j]); 
