@@ -1035,6 +1035,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	
 	float floatval;
 	
+	int updays, uphours, upminutes;	
 	uint64_t number;
 	
 	floatval = 0;
@@ -1074,7 +1075,21 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 
 				case EBML_ID_KRAD_RADIO_UPTIME:
 					number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-					printf("Uptime %"PRIu64" seconds.\n", number);
+					printf("up ");
+					updays = number / (60*60*24);
+					if (updays) {
+						printf("%d day%s, ", updays, (updays != 1) ? "s" : "");
+					}
+					upminutes = number / 60;
+					uphours = (upminutes / 60) % 24;
+					upminutes %= 60;
+					if (uphours) {
+						printf("%2d:%02d ", uphours, upminutes);
+					} else {
+						printf("%d min ", upminutes);
+					}
+					printf("\n");
+					
 					break;
 				case EBML_ID_KRAD_RADIO_INFO:
 					krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
