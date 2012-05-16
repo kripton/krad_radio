@@ -128,7 +128,7 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 }
 
 
-krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int bitrate, int mode) {
+krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int bitrate, int application) {
 
 	krad_opus_t *opus = calloc(1, sizeof(krad_opus_t));
 
@@ -137,7 +137,11 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->input_sample_rate = input_sample_rate;
 	opus->channels = channels;
 	opus->bitrate = bitrate;
-	opus->mode = mode;
+	opus->application = application;
+	
+	opus->new_application = opus->application;
+	opus->new_bitrate = opus->bitrate;
+	opus->new_signal = OPUS_SIGNAL_MUSIC;
 	
 	int c;
 	
@@ -180,22 +184,12 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 
 	opus->frame_size = 960;
 
-	opus->st = opus_multistream_encoder_create(48000, opus->channels, 1, opus->channels==2, opus->mapping, opus->mode, &opus->err);
+	opus->st = opus_multistream_encoder_create(48000, opus->channels, 1, opus->channels==2, opus->mapping, opus->application, &opus->err);
 
 	if (opus->err != OPUS_OK) {
 		fprintf(stderr, "Cannot create encoder: %s\n", opus_strerror(opus->err));
 		exit(1);
 	}
-
-	/*
-	if (opus->bitrate < 64) {
-		printf("Using voice mode\n");
-		opus_multistream_encoder_ctl(opus->st, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-	} else {
-		printf("Using music mode\n");
-		opus_multistream_encoder_ctl(opus->st, OPUS_SET_SIGNAL(OPUS_SIGNAL_MUSIC));
-	}
-	*/
 	
 	opus->opus_header->channels = opus->channels;
 	opus_multistream_encoder_ctl(opus->st, OPUS_GET_LOOKAHEAD(&opus->lookahead));
@@ -325,8 +319,21 @@ int kradopus_write_opus(krad_opus_t *kradopus, unsigned char *buffer, int length
 }
 
 
+void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate) { 
+	kradopus->new_bitrate = bitrate;
+}
+
+void kradopus_set_application (krad_opus_t *kradopus, int application) { 
+	kradopus->new_application = application;
+}
+
+void kradopus_set_signal (krad_opus_t *kradopus, int signal) { 
+	kradopus->new_signal = signal;
+}
+
 int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 
+	int resp;
 	
 	int i, j, c;
 
@@ -367,6 +374,41 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 
 	}
 	
+	
+	if (kradopus->new_bitrate != kradopus->bitrate) {
+		kradopus->bitrate = kradopus->new_bitrate;
+		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_BITRATE(kradopus->bitrate));
+		if (resp != OPUS_OK) {
+			fprintf (stderr, "bitrate request failed %s\n", opus_strerror (resp));
+			exit(1);
+		} else {
+			printf  ("set opus bitrate %d\n", kradopus->bitrate);
+		}
+	}
+
+	if (kradopus->new_application != kradopus->application) {
+		kradopus->application = kradopus->new_application;
+		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_APPLICATION(kradopus->application));
+		if (resp != OPUS_OK) {
+			fprintf (stderr, "application request failed %s. \n", opus_strerror(resp));
+			exit(1);
+		} else {
+			printf  ("set opus application mode %d\n", kradopus->application);
+		}
+	}
+
+	if (kradopus->new_signal != kradopus->signal) {
+		kradopus->signal = kradopus->new_signal;
+		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_SIGNAL(kradopus->signal));
+		if (resp != OPUS_OK) {
+			fprintf (stderr, "SIGNAL request failed %s\n", opus_strerror(resp));
+			exit(1);
+		} else {
+			printf ("set opus signal mode %d\n", kradopus->signal);
+		}
+		
+	}
+	
 
 	if ((krad_ringbuffer_read_space (kradopus->resampled_ringbuf[1]) >= 960 * 4 ) && (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[0]) >= 960 * 4 )) {
 
@@ -383,7 +425,7 @@ int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
 
 		//opus->id++;
 
-		kradopus->num_bytes = opus_multistream_encode_float(kradopus->st, kradopus->interleaved_resampled_samples, kradopus->frame_size, buffer, 9000);
+		kradopus->num_bytes = opus_multistream_encode_float(kradopus->st, kradopus->interleaved_resampled_samples, kradopus->frame_size, buffer, 500000);
 
 		//printf("opus encoder: nb frames is %d samples per frame %d\n", opus_packet_get_nb_frames ( buffer, kradopus->num_bytes ), opus_packet_get_samples_per_frame ( buffer, 48000 ));
 

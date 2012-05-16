@@ -536,7 +536,7 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 		krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
 		krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
 		
-		printk ("created page sized %lu\n", page.header_len + page.body_len);
+		//printk ("created page sized %lu\n", page.header_len + page.body_len);
 		
 		krad_io_write_sync (krad_ogg->krad_io);
 		
@@ -575,7 +575,7 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 		krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
 		krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
 		
-		printk ("created page sized %lu\n", page.header_len + page.body_len);
+		//printk ("created page sized %lu\n", page.header_len + page.body_len);
 		
 		krad_io_write_sync (krad_ogg->krad_io);
 	}

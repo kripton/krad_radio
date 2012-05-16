@@ -144,6 +144,21 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "update", 2) == 0) {
+				if (argc == 5) {
+					krad_ipc_update_link (client, atoi(argv[3]), atoi(argv[4]));
+				}
+				
+				if (argc == 6) {
+					if (strcmp(argv[4], "signal") == 0) {
+						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
+					}
+					if (strcmp(argv[4], "app") == 0) {
+						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_APPLICATION, argv[5]);
+					}
+				}				
+			}			
+			
 			/* Krad Compositor Commands */			
 
 			if (strncmp(argv[2], "hex", 3) == 0) {

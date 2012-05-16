@@ -573,6 +573,55 @@ void krad_ipc_destroy_link (krad_ipc_client_t *client, int number) {
 
 }
 
+void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t ebml_id, char *newval) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t update_link;
+	
+	linker_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_UPDATE_LINK, &update_link);
+
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_write_string (client->krad_ebml, ebml_id, newval);
+
+	krad_ebml_finish_element (client->krad_ebml, update_link);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_update_link (krad_ipc_client_t *client, int number, int newval) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t update_link;
+	
+	linker_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_UPDATE_LINK, &update_link);
+
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, newval);
+
+	krad_ebml_finish_element (client->krad_ebml, update_link);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+
 void krad_ipc_send (krad_ipc_client_t *client, char *cmd) {
 
 
