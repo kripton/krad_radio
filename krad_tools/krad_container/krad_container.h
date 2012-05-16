@@ -34,3 +34,14 @@ int krad_container_read_packet (krad_container_t *krad_container, int *track, ui
 krad_container_t *krad_container_open_stream (char *host, int port, char *mount, char *password);
 krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode);
 void krad_container_destroy (krad_container_t *krad_container);
+
+
+
+
+int krad_container_add_video_track (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height);
+int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec_t codec, int sample_rate, int channels, 
+									unsigned char *header, int header_size);	
+
+void krad_container_add_video (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int keyframe);
+void krad_container_add_audio (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int frames);
+

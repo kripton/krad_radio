@@ -94,6 +94,7 @@ void krad_system_init () {
 		do_shutdown = 0;
 		verbose = 1;
 		krad_system_info_collect ();
+	  	srand(time(NULL));
 	}
 }
 

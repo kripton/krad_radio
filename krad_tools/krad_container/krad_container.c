@@ -88,18 +88,18 @@ int krad_container_read_packet (krad_container_t *krad_container, int *track, ui
 
 }
 
-krad_container_t *krad_container_open_stream(char *host, int port, char *mount, char *password) {
+krad_container_t *krad_container_open_stream (char *host, int port, char *mount, char *password) {
 
 	krad_container_t *krad_container;
 	
 	krad_container = calloc(1, sizeof(krad_container_t));
 
-	krad_container->container_type = krad_link_select_container(mount);
+	krad_container->container_type = krad_link_select_container (mount);
 
 	if (krad_container->container_type == OGG) {
-		krad_container->krad_ogg = krad_ogg_open_stream(host, port, mount, NULL);
+		krad_container->krad_ogg = krad_ogg_open_stream (host, port, mount, password);
 	} else {
-		krad_container->krad_ebml = krad_ebml_open_stream(host, port, mount, NULL);
+		krad_container->krad_ebml = krad_ebml_open_stream (host, port, mount, password);
 	}
 
 	return krad_container;
@@ -107,18 +107,18 @@ krad_container_t *krad_container_open_stream(char *host, int port, char *mount, 
 }
 
 
-krad_container_t *krad_container_open_file(char *filename, krad_io_mode_t mode) {
+krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode) {
 
 	krad_container_t *krad_container;
 	
 	krad_container = calloc(1, sizeof(krad_container_t));
 
-	krad_container->container_type = krad_link_select_container(filename);
+	krad_container->container_type = krad_link_select_container (filename);
 
 	if (krad_container->container_type == OGG) {
-		krad_container->krad_ogg = krad_ogg_open_file(filename, KRAD_IO_READONLY);
+		krad_container->krad_ogg = krad_ogg_open_file (filename, KRAD_IO_READONLY);
 	} else {
-		krad_container->krad_ebml = krad_ebml_open_file(filename, KRAD_EBML_IO_READONLY);
+		krad_container->krad_ebml = krad_ebml_open_file (filename, KRAD_EBML_IO_READONLY);
 	}
 
 	return krad_container;
@@ -127,13 +127,63 @@ krad_container_t *krad_container_open_file(char *filename, krad_io_mode_t mode) 
 
 
 
-void krad_container_destroy(krad_container_t *krad_container) {
+void krad_container_destroy (krad_container_t *krad_container) {
 						
 	if (krad_container->container_type == OGG) {
-		krad_ogg_destroy(krad_container->krad_ogg);
+		krad_ogg_destroy (krad_container->krad_ogg);
 	} else {
-		krad_ebml_destroy(krad_container->krad_ebml);
+		krad_ebml_destroy (krad_container->krad_ebml);
 	}
 
 }	
+
+
+
+
+
+
+int krad_container_add_video_track (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, int fps_denominator, 
+									int width, int height) {
+									
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_add_video_track (krad_container->krad_ogg, codec, fps_numerator, fps_denominator, width, height);
+	} else {
+		return krad_ebml_add_video_track (krad_container->krad_ebml, codec, fps_numerator, fps_denominator, width, height);
+	}									
+									
+}
+
+
+int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec_t codec, int sample_rate, int channels, 
+									unsigned char *header, int header_size) {
+
+	if (krad_container->container_type == OGG) {
+		return krad_ogg_add_audio_track (krad_container->krad_ogg, codec, sample_rate, channels, header, header_size);
+	} else {
+		return krad_ebml_add_audio_track (krad_container->krad_ebml, codec, sample_rate, channels, header, header_size);
+	}
+									
+}
+
+void krad_container_add_video (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int keyframe) {
+
+	if (krad_container->container_type == OGG) {
+		krad_ogg_add_video (krad_container->krad_ogg, track, buffer, buffer_size, keyframe);
+	} else {
+		krad_ebml_add_video (krad_container->krad_ebml, track, buffer, buffer_size, keyframe);
+	}
+
+}
+
+
+void krad_container_add_audio (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int frames) {
+
+	if (krad_container->container_type == OGG) {
+		krad_ogg_add_audio (krad_container->krad_ogg, track, buffer, buffer_size, frames);
+	} else {
+		krad_ebml_add_audio (krad_container->krad_ebml, track, buffer, buffer_size, frames);
+	}
+
+}
+
 

@@ -274,10 +274,21 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 		
 		if (krad_io->mode == KRAD_IO_WRITEONLY) {
 		
-			strcpy(content_type, "video/webm");
-			//strcpy(krad_mkvsource->content_type, "video/x-matroska");
-			//strcpy(krad_mkvsource->content_type, "audio/mpeg");
-			//strcpy(krad_mkvsource->content_type, "application/ogg");
+		
+
+			if ((strstr(krad_io->mount, ".ogg")) ||
+				(strstr(krad_io->mount, ".OGG")) ||
+				(strstr(krad_io->mount, ".Ogg")) ||
+				(strstr(krad_io->mount, ".oga")) ||
+				(strstr(krad_io->mount, ".ogv")) ||
+				(strstr(krad_io->mount, ".Oga")) ||		
+				(strstr(krad_io->mount, ".OGV")))
+			{
+				strcpy(content_type, "application/ogg");
+			} else {
+				strcpy(content_type, "video/webm");
+			}
+
 			sprintf(auth, "source:%s", krad_io->password );
 			krad_io_base64_encode( auth_base64, auth );
 			http_string_pos = sprintf( http_string, "SOURCE %s ICE/1.0\r\n", krad_io->mount);

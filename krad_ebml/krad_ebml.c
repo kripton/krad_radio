@@ -6,6 +6,28 @@ char *krad_ebml_version() {
 
 }
 
+char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec) {
+
+	switch (codec) {
+		case VORBIS:
+			return "A_VORBIS";
+		case FLAC:
+			return "A_FLAC";
+		case OPUS:
+			return "A_OPUS";
+		case VP8:
+			return "V_VP8";
+		case THEORA:
+			return "V_THEORA";
+		case DIRAC:
+			return "V_DIRAC";
+		case MJPEG:
+			return "V_MJPEG";
+		default:
+			return "No Codec";
+	}
+}
+
 inline void rmemcpy(void *dst, void *src, int len) {
 
 	unsigned char *a_dst;
@@ -321,7 +343,7 @@ int krad_ebml_new_tracknumber(krad_ebml_t *krad_ebml) {
 
 }
 
-int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size) {
+int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size) {
 
 	int track_number;
 	uint64_t track_info;
@@ -336,7 +358,7 @@ int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *c
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKNUMBER, track_number);
 	// Track UID?
-	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, codec_id);
+	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, krad_ebml_codec_to_ebml_codec_id (codec));
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKTYPE, 1);
 
 	if (private_data_size > 0) {
@@ -354,8 +376,8 @@ int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *c
 
 }
 
-int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height) {
-	return krad_ebml_add_video_track_with_private_data(krad_ebml, codec_id, fps_numerator, fps_denominator, width, height, NULL, 0);
+int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height) {
+	return krad_ebml_add_video_track_with_private_data(krad_ebml, codec, fps_numerator, fps_denominator, width, height, NULL, 0);
 }
 
 int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id) {
@@ -377,7 +399,7 @@ int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id) {
 
 }
 
-int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, int sample_rate, int channels, unsigned char *private_data, int private_data_size) {
+int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int sample_rate, int channels, unsigned char *private_data, int private_data_size) {
 
 	int track_number;
 	uint64_t track_info;
@@ -392,7 +414,7 @@ int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, int sample
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKNUMBER, track_number);
 	// Track UID?
-	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, codec_id);
+	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, krad_ebml_codec_to_ebml_codec_id (codec));
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKTYPE, 2);
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_AUDIOSETTINGS, &audio_info);

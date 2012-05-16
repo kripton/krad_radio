@@ -306,13 +306,15 @@ struct krad_ebml_St {
 
 /* writing functions */
 
+char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec);
+
 void krad_ebml_sync (krad_ebml_t *krad_ebml);
-int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height);
+int krad_ebml_add_video_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height);
 void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion);
 void krad_ebml_header_advanced (krad_ebml_t *krad_ebml, char *doctype, int doctype_version, int doctype_read_version);
-int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, char *codec_id, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size);
+int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size);
 int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id);
-int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, char *codec_id, int sample_rate, int channels, unsigned char *private_data, int private_data_size);
+int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int sample_rate, int channels, unsigned char *private_data, int private_data_size);
 void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *buffer, int buffer_len, int keyframe);
 void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *buffer, int buffer_len, int frames);
 void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode);

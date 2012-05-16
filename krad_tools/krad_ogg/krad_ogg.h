@@ -33,6 +33,7 @@
 #include <theora/theoraenc.h>
 
 #include "krad_io.h"
+#include "krad_system.h"
 
 typedef struct krad_ogg_St krad_ogg_t;
 typedef struct krad_ogg_track_St krad_ogg_track_t;
@@ -81,6 +82,8 @@ struct krad_ogg_track_St {
 	
 	uint64_t last_granulepos;
 	
+	uint64_t packet_num;
+	
 };
 
 struct krad_ogg_St {
@@ -124,4 +127,16 @@ krad_ogg_t *krad_ogg_open_stream(char *host, int port, char *mount, char *passwo
 
 krad_ogg_t *krad_ogg_create();
 void krad_ogg_destroy(krad_ogg_t *krad_ogg);
+
+
+
+
+int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height);
+int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 
+									unsigned char *header, int header_size);	
+
+void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int keyframe);
+void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int frames);
+
+
 #endif
