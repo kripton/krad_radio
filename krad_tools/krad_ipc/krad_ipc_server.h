@@ -104,6 +104,8 @@ struct krad_ipc_server_client_St {
 
 };
 
+void krad_ipc_server_respond_string ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, char *string);
+
 void krad_ipc_server_response_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t response);
 void krad_ipc_server_response_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *response);
 void krad_ipc_server_response_list_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *list);

@@ -321,6 +321,7 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion);
 void krad_ebml_write_element (krad_ebml_t *krad_ebml, uint32_t element);
 void krad_ebml_write_int8 (krad_ebml_t *krad_ebml, uint64_t element, int8_t number);
 void krad_ebml_write_int32 (krad_ebml_t *krad_ebml, uint64_t element, int32_t number);
+void krad_ebml_write_int64 (krad_ebml_t *krad_ebml, uint64_t element, int64_t number);
 void krad_ebml_write_string (krad_ebml_t *krad_ebml, uint64_t element, char *string);
 void krad_ebml_write_data_size (krad_ebml_t *krad_ebml, uint64_t data_size);
 void krad_ebml_write_reversed (krad_ebml_t *krad_ebml, void *buffer, uint32_t len);

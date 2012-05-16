@@ -14,11 +14,40 @@ void krad_system_info_print () {
 
 }
 
+char *krad_system_daemon_info () {
+
+	return krad_system.info_string;
+
+}
+
 void krad_system_info_collect () {
+	
+	krad_system.info_string_len = 0;
 	
 	krad_system.krad_start_time = time (NULL);
 	
 	uname (&krad_system.unix_info);
+	
+	//krad_system.info_string_len += sprintf (krad_system.info_string, "System Info: %s %s %s %s %s\n", krad_system.unix_info.sysname, krad_system.unix_info.nodename, krad_system.unix_info.release,
+	//		krad_system.unix_info.version, krad_system.unix_info.machine);
+
+	krad_system.info_string_len += sprintf (krad_system.info_string, "Host: %s\n", krad_system.unix_info.nodename);
+	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, "System: %s %s (%s)\n", 
+											krad_system.unix_info.machine, krad_system.unix_info.sysname, krad_system.unix_info.release);
+
+	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, "Krad Start Time: %llu\n", (unsigned long long)krad_system.krad_start_time);
+
+}
+
+uint64_t krad_system_daemon_uptime () {
+
+	uint64_t now;
+
+	now = time (NULL);
+	
+	krad_system.uptime = now - krad_system.krad_start_time;
+	
+	return krad_system.uptime;
 
 }
 
@@ -65,7 +94,6 @@ void krad_system_init () {
 		do_shutdown = 0;
 		verbose = 1;
 		krad_system_info_collect ();
-		krad_system_info_print ();
 	}
 }
 

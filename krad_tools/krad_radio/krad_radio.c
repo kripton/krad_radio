@@ -245,6 +245,19 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			return 0;
 			
+		case EBML_ID_KRAD_RADIO_CMD_UPTIME:
+		
+			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_respond_number ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_UPTIME, krad_system_daemon_uptime());
+			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
+		
+			return 1;
+		case EBML_ID_KRAD_RADIO_CMD_INFO:
+			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_INFO, krad_system_daemon_info());
+			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
+			return 1;
+			
 		default:
 			printf("Krad Radio Command Unknown! %u\n", command);
 			return 0;

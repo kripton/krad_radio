@@ -32,10 +32,17 @@ typedef struct krad_system_St krad_system_t;
 
 struct krad_system_St {
 
+	char info_string[1024];
+	int info_string_len;
+	
+	
 	struct utsname unix_info;
 	time_t krad_start_time;
+	uint64_t uptime;	
 };
 
+char *krad_system_daemon_info();
+uint64_t krad_system_daemon_uptime ();
 void krad_system_info_print ();
 void krad_system_info_collect ();
 

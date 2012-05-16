@@ -18,6 +18,16 @@ int main (int argc, char *argv[]) {
 	
 			/* Krad Radio Commands */
 			
+			if (strncmp(argv[2], "uptime", 6) == 0) {
+				krad_ipc_radio_uptime (client);
+				krad_ipc_print_response (client);
+			}
+
+			if (strncmp(argv[2], "info", 4) == 0) {
+				krad_ipc_radio_info (client);
+				krad_ipc_print_response (client);
+			}
+			
 			if (strncmp(argv[2], "tag", 3) == 0) {
 			
 				if (strncmp(argv[2], "tags", 4) == 0) {

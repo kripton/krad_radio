@@ -76,6 +76,12 @@ void krad_ipc_create_link (krad_ipc_client_t *client, char *host, int port, char
 void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
 
+
+void krad_ipc_radio_uptime (krad_ipc_client_t *client);
+void krad_ipc_radio_info (krad_ipc_client_t *client);
+
+int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text);
+
 int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade );
 
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );

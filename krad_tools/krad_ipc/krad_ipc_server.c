@@ -492,7 +492,13 @@ void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, 
 
 void krad_ipc_server_respond_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t number) {
 
-	krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, ebml_id, number);
+	krad_ebml_write_int64 (krad_ipc_server->current_client->krad_ebml2, ebml_id, number);
+
+}
+
+void krad_ipc_server_respond_string ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, char *string) {
+
+	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, ebml_id, string);
 
 }
 
