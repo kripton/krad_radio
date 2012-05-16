@@ -795,6 +795,18 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 		bytes_read += ebml_data_size + 9;
 	}
 	
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_LINK_LINK_AV_MODE) {
+		printk ("hrm wtf2\n");
+	} else {
+		//printk ("tag name size %zu\n", ebml_data_size);
+	}
+
+	textpos += krad_ebml_read_string (client->krad_ebml, text, ebml_data_size);
+	
+	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
@@ -802,8 +814,11 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 	} else {
 		//printk ("tag name size %zu\n", ebml_data_size);
 	}
+	
+	strcat (text, " - ");
+	textpos = textpos + 2;
 
-	textpos += krad_ebml_read_string (client->krad_ebml, text, ebml_data_size);
+	textpos += krad_ebml_read_string (client->krad_ebml, text + textpos, ebml_data_size);
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
