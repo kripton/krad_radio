@@ -43,3 +43,4 @@ krad_tools/krad_web/res/krad_radio.js.h
 krad_apps/krad_radio
 krad_apps/krad_radio_cmd
 krad_apps/krad_radio_gtk
+debian/kradradio*

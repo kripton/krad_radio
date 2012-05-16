@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	./waf configure --prefix=/usr
+	./waf --prefix=/usr
+
+override_dh_auto_install:
+	./waf install --destdir=debian/kradradio
+
+override_dh_auto_clean:
+	./waf distclean
+	
+override_dh_shlibdeps:
+	ls
