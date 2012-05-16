@@ -1,0 +1,128 @@
+Krad Radio Building Instructions - Last Updated: May 15, 2012 - http://kradradio.com
+
+#### GITTING
+
+git clone git://github.com/krad-radio/krad_radio.git
+
+#### BUILDING
+
+Krad Radio uses waf
+
+./waf configure
+./waf
+sudo ./waf install
+
+#### UPDATING
+
+git pull && ./waf distclean && ./waf configure && ./waf && sudo ./waf install
+
+
+#### DEPENDENCIES
+
+If on ubuntu do this (if not, you can probably figure it out):
+
+sudo apt-get install libasound2-dev libpulse-dev libvorbis-dev freeglut3-dev build-essential autoconf git-core libtool libxml2-dev\
+libgtk-3-dev libswscale-dev libflac-dev libschroedinger-dev libavutil-dev libjack-jackd2-dev git subversion yasm build-essential \
+libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 libxcb-image0-dev libtheora-dev
+
+
+There are dependencies not found in the ubuntu universe, atleast up to date enough, so they must be built manually:
+opus, libvpx, libjpeg-turbo, codec2 and libwebsockets.
+
+
+******** opus ******** 
+
+git clone http://git.xiph.org/opus.git
+cd opus && ./autogen.sh && ./configure && make && sudo make install && sudo ldconfig
+
+******** libvpx ******** 
+
+git clone http://git.chromium.org/webm/libvpx.git
+cd libvpx && ./configure && make && sudo make install && sudo ldconfig
+
+******** libjpeg-turbo ******** 
+
+libjpeg-turbo and its confusingly differently named api turbojpeg seems to be missing a pkg-config (.pc) file
+on most linux distros. http://www.libjpeg-turbo.org/
+so install libjpeg-turbo:
+
+*PITFALL*
+be sure to set the prefix to /usr/local! it defaults to /opt (who know why?)
+
+svn co https://libjpeg-turbo.svn.sourceforge.net/svnroot/libjpeg-turbo/branches/1.2.x libjpeg-turbo
+cd libjpeg-turbo/
+mkdir build
+autoreconf -fiv
+cd build/
+sh ../configure --prefix=/usr/local
+make
+sudo make install && sudo ldconfig
+
+Put this pkg-config file in: /usr/local/lib/pkgconfig/turbojpeg.pc
+
+# turbojpeg installed pkg-config file
+
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: turbojpeg
+Description: turbojpeg
+Version: 1.2.0
+Conflicts:
+Libs: -L${libdir} -lturbojpeg
+Cflags: -I${includedir}
+
+
+
+
+******** codec2 ******** 
+
+svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2-dev codec2-dev
+cd codec2-dev && ./configure && make && sudo make install && sudo ldconfig
+
+codec2 missing package config file oh no! make one:
+
+Put this pkg-config file in: /usr/local/lib/pkgconfig/codec2.pc
+
+
+# codec2 installed pkg-config file
+
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: codec2
+Description: codec2
+Version: 1.2.0
+Conflicts:
+Libs: -L${libdir} -lcodec2
+Cflags: -I${includedir}
+
+
+
+
+
+******** libwebsockets ********
+
+git clone git://git.warmcat.com/libwebsockets
+cd libwebsockets && ./configure && make && sudo make install && sudo ldconfig
+Put this pkg-config file in: /usr/local/lib/pkgconfig/websockets.pc
+
+# libwebsockets installed pkg-config file
+
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: websockets
+Description: libwebsockets
+Version: 0.0.3
+Conflicts:
+Libs: -L${libdir} -lwebsockets
+Cflags: -I${includedir}
+
+
