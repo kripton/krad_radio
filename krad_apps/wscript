@@ -21,6 +21,7 @@ sources = """
 """.split()
 
 depsources = """
+../krad_tools/krad_link/krad_link_common.c
 ../krad_tools/krad_system/krad_system.c
 ../krad_tools/krad_compositor/krad_compositor.c
 ../krad_tools/krad_framepool/krad_framepool.c
@@ -74,6 +75,7 @@ depsources = """
 
 depsources2 = """
 ../krad_tools/krad_system/krad_system.c
+../krad_tools/krad_link/krad_link_common.c
 ../krad_tools/krad_ipc/krad_ipc_client.c
 """.split()
 

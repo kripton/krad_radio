@@ -4,28 +4,6 @@ extern int verbose;
 
 void krad_link_activate (krad_link_t *krad_link);
 
-char *krad_codec_to_string (krad_codec_t codec) {
-
-	switch (codec) {
-		case VORBIS:
-			return "Vorbis";
-		case FLAC:
-			return "FLAC";
-		case OPUS:
-			return "Opus";
-		case VP8:
-			return "VP8";
-		case THEORA:
-			return "Theora";
-		case DIRAC:
-			return "Dirac";
-		case MJPEG:
-			return "Mjpeg";
-		default:
-			return "No Codec";
-	}
-}
-
 void *video_capture_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_vidcap", 0, 0, 0);
@@ -2134,13 +2112,13 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	switch ( krad_link->av_mode ) {
 
 		case AUDIO_ONLY:
-			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "Audio Only");
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "audio only");
 			break;
 		case VIDEO_ONLY:
-			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "Video Only");
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "video only");
 			break;
 		case AUDIO_AND_VIDEO:		
-			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "Audio and Video");
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "audio and video");
 			break;
 	}
 	
@@ -2148,10 +2126,19 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	switch ( krad_link->operation_mode ) {
 
 		case TRANSMIT:
-			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "Transmit");
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "transmit");
+			break;
+		case RECORD:
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "record");
+			break;
+		case PLAYBACK:
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "playback");
+			break;
+		case RECEIVE:
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "receive");
 			break;
 		case CAPTURE:
-			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "Capture");
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "capture");
 			break;
 		default:		
 			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, "Other/Unknown");

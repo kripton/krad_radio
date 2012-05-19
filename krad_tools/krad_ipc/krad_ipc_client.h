@@ -24,7 +24,7 @@
 #include "krad_radio_ipc.h"
 #include "krad_system.h"
 #include "krad_ebml.h"
-
+#include "krad_link_common.h"
 
 #define KRAD_IPC_BUFFER_SIZE 16384
 #ifndef KRAD_IPC_CLIENT
@@ -55,8 +55,11 @@ struct krad_ipc_client_St {
 	int (*handler)(krad_ipc_client_t *, void *);
 	void *ptr;
 	
+	int nowait;
 
 };
+
+int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text);
 
 void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string);
 

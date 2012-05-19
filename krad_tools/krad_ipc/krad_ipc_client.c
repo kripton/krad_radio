@@ -844,17 +844,39 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char 
 	
 }
 
+
+int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
+
+	int pos;
+	
+	pos = 0;
+	
+	pos = sprintf (text, "%s - %s - %s:%d%s", 
+			krad_link_av_mode_to_string (krad_link->av_mode),
+			krad_link_operation_mode_to_string (krad_link->operation_mode),
+			krad_link->host, krad_link->tcp_port, krad_link->mount);
+	
+	return pos;
+
+}
+
+
 int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
 	int bytes_read;
 	
-	char string[1024];
+	krad_link_rep_t *krad_link;
 	float floaty;
 	int textpos;
 	
 	int number;
+	
+	char string[1024];
+	memset (string, '\0', 1024);
+	
+	krad_link = calloc (1, sizeof (krad_link_rep_t));
 	
 	bytes_read = 0;	
 	textpos = 0;
@@ -869,62 +891,89 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 	}
 	
 	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-	if (ebml_id != EBML_ID_KRAD_LINK_LINK_AV_MODE) {
-		printk ("hrm wtf2\n");
-	} else {
-		//printk ("tag name size %zu\n", ebml_data_size);
-	}
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_AV_MODE) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
 
-	textpos += krad_ebml_read_string (client->krad_ebml, text, ebml_data_size);
+		krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
 	
+		if (strcmp(string, "audio only") == 0) {
+			krad_link->av_mode = AUDIO_ONLY;
+		}
+		
+		if (strcmp(string, "video only") == 0) {
+			krad_link->av_mode = VIDEO_ONLY;
+		}
+		
+		if (strcmp(string, "audio and video") == 0) {
+			krad_link->av_mode = AUDIO_AND_VIDEO;
+		}
+		
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_OPERATION_MODE) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
 	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_LINK_LINK_OPERATION_MODE) {
-		printk ("hrm wtf2\n");
-	} else {
-		//printk ("tag name size %zu\n", ebml_data_size);
-	}
+		krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
 	
-	strcat (text, " - ");
-	textpos = textpos + 2;
+		if (strcmp(string, "capture") == 0) {
+			krad_link->operation_mode = CAPTURE;
+		}
+		
+		if (strcmp(string, "receive") == 0) {
+			krad_link->operation_mode = RECEIVE;
+		}
+		
+		if (strcmp(string, "transmit") == 0) {
+			krad_link->operation_mode = TRANSMIT;
+		}
+		
+		if (strcmp(string, "playback") == 0) {
+			krad_link->operation_mode = PLAYBACK;
+		}			
 
-	textpos += krad_ebml_read_string (client->krad_ebml, text + textpos, ebml_data_size);	
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
+
+		krad_ebml_read_string (client->krad_ebml, krad_link->host, ebml_data_size);
 	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-	if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-		printk ("hrm wtf2\n");
-	} else {
-		//printk ("tag name size %zu\n", ebml_data_size);
-	}
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+			printk ("hrm wtf3\n");
+		} else {
+			//printk ("tag value size %zu\n", ebml_data_size);
+		}
+
+		krad_link->tcp_port = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
+
+		krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
+
+
+		krad_link_rep_to_string ( krad_link, text );
 	
-	strcat (text, " - ");
-	textpos = textpos + 2;
 
-	textpos += krad_ebml_read_string (client->krad_ebml, text + textpos, ebml_data_size);
-	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-		printk ("hrm wtf3\n");
-	} else {
-		//printk ("tag value size %zu\n", ebml_data_size);
-	}
-
-	number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-		printk ("hrm wtf2\n");
-	} else {
-		//printk ("tag name size %zu\n", ebml_data_size);
-	}
-
-	textpos += krad_ebml_read_string (client->krad_ebml, text + textpos, ebml_data_size);
+	free (krad_link);
 
 	return bytes_read;
 
@@ -1120,127 +1169,143 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	bytes_read = 0;
 	
 	float floatval;
-	
+	int i;
 	int updays, uphours, upminutes;	
 	uint64_t number;
 	
-	floatval = 0;
+  	struct timeval tv;
+    int ret;
+    
+    ret = 0;
+    if (client->tcp_port) {
+	    tv.tv_sec = 1;
+	} else {
+	    tv.tv_sec = 0;
+	}
+    tv.tv_usec = 500000;
 	
+	floatval = 0;
+	i = 0;
 	ebml_id = 0;
 	ebml_data_size = 0;
 	
 	FD_ZERO (&set);
 	FD_SET (client->sd, &set);	
 
-	select (client->sd+1, &set, NULL, NULL, NULL);
+	ret = select (client->sd+1, &set, NULL, NULL, &tv);
+	
+	if (ret > 0) {
 
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 	
-	switch ( ebml_id ) {
+		switch ( ebml_id ) {
 	
-		case EBML_ID_KRAD_RADIO_MSG:
-			//printf("Received KRAD_RADIO_MSG %zu bytes of data.\n", ebml_data_size);		
+			case EBML_ID_KRAD_RADIO_MSG:
+				//printf("Received KRAD_RADIO_MSG %zu bytes of data.\n", ebml_data_size);		
 		
-			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-			switch ( ebml_id ) {
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				switch ( ebml_id ) {
 	
-				case EBML_ID_KRAD_RADIO_TAG_LIST:
-					printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
-					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_name, &tag_value )) <= list_size)) {
-						printf("Tag %s - %s.\n", tag_name, tag_value);
-						if (bytes_read == list_size) {
-							break;
-						}
-					}	
-					break;
-				case EBML_ID_KRAD_RADIO_TAG:
-					krad_ipc_client_read_tag_inner ( client, &tag_name, &tag_value );
-					printf("Tag %"PRIu64" bytes %s - %s.\n", ebml_data_size, tag_name, tag_value);
-					break;
+					case EBML_ID_KRAD_RADIO_TAG_LIST:
+						//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
+						list_size = ebml_data_size;
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_name, &tag_value )) <= list_size)) {
+							printf("Tag %s - %s.\n", tag_name, tag_value);
+							if (bytes_read == list_size) {
+								break;
+							}
+						}	
+						break;
+					case EBML_ID_KRAD_RADIO_TAG:
+						krad_ipc_client_read_tag_inner ( client, &tag_name, &tag_value );
+						printf("Tag %"PRIu64" bytes %s - %s.\n", ebml_data_size, tag_name, tag_value);
+						break;
 
-				case EBML_ID_KRAD_RADIO_UPTIME:
-					number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-					printf("up ");
-					updays = number / (60*60*24);
-					if (updays) {
-						printf("%d day%s, ", updays, (updays != 1) ? "s" : "");
-					}
-					upminutes = number / 60;
-					uphours = (upminutes / 60) % 24;
-					upminutes %= 60;
-					if (uphours) {
-						printf("%2d:%02d ", uphours, upminutes);
-					} else {
-						printf("%d min ", upminutes);
-					}
-					printf("\n");
+					case EBML_ID_KRAD_RADIO_UPTIME:
+						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						printf("up ");
+						updays = number / (60*60*24);
+						if (updays) {
+							printf("%d day%s, ", updays, (updays != 1) ? "s" : "");
+						}
+						upminutes = number / 60;
+						uphours = (upminutes / 60) % 24;
+						upminutes %= 60;
+						if (uphours) {
+							printf("%2d:%02d ", uphours, upminutes);
+						} else {
+							printf("%d min ", upminutes);
+						}
+						printf("\n");
 					
-					break;
-				case EBML_ID_KRAD_RADIO_INFO:
-					krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-					printf("%s\n", tag_name);
-					break;
+						break;
+					case EBML_ID_KRAD_RADIO_INFO:
+						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
+						printf("%s\n", tag_name);
+						break;
 
-			}
+				}
 		
 		
-			break;
-		case EBML_ID_KRAD_MIXER_MSG:
-			printf("Received KRAD_MIXER_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+				break;
+			case EBML_ID_KRAD_MIXER_MSG:
+				//printf("Received KRAD_MIXER_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
 			
-			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-			switch ( ebml_id ) {
-				case EBML_ID_KRAD_MIXER_CONTROL:
-					printf("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				switch ( ebml_id ) {
+					case EBML_ID_KRAD_MIXER_CONTROL:
+						printf("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 
 	
-					break;	
-				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
-					//printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
-					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval, crossfadename, &crossfade )) <= list_size)) {
-						//printf("Tag %s - %s.\n", tag_name, tag_value);
-						if (bytes_read == list_size) {
-							break;
-						}
-					}	
-					break;
-				case EBML_ID_KRAD_MIXER_PORTGROUP:
-					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-					printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
-					break;
-			}
+						break;	
+					case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+						//printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
+						list_size = ebml_data_size;
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval, crossfadename, &crossfade )) <= list_size)) {
+							//printf("Tag %s - %s.\n", tag_name, tag_value);
+							if (bytes_read == list_size) {
+								break;
+							}
+						}	
+						break;
+					case EBML_ID_KRAD_MIXER_PORTGROUP:
+						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+						printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
+						break;
+				}
 		
 		
-			break;
+				break;
 
-		case EBML_ID_KRAD_LINK_MSG:
+			case EBML_ID_KRAD_LINK_MSG:
 
-			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 
-			switch ( ebml_id ) {
-				case EBML_ID_KRAD_LINK_LINK_LIST:
-					printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
+				switch ( ebml_id ) {
+					case EBML_ID_KRAD_LINK_LINK_LIST:
+						//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
 	
-					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value)) <= list_size)) {
-						printf("Link: %s\n\n", tag_value);
-						if (bytes_read == list_size) {
-							break;
-						}
-					}	
-					break;
+						list_size = ebml_data_size;
+						i = 0;
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value)) <= list_size)) {
+							printf("%d: %s\n", i, tag_value);
+							i++;
+							if (bytes_read == list_size) {
+								break;
+							}
+						}	
+						break;
 					
 	
-					break;
-				default:
-					printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
-					break;
-			}
+						break;
+					default:
+						printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+						break;
+				}
 			
-			break;
+				break;
+		}
 	}
 }
 
@@ -1302,10 +1367,10 @@ void krad_ipc_disconnect(krad_ipc_client_t *client) {
 
 	if (client != NULL) {
 		if (client->buffer != NULL) {
-			free(client->buffer);
+			free (client->buffer);
 		}
 		if (client->sd != 0) {
-			close(client->sd);
+			close (client->sd);
 		}
 		if (client->krad_ebml != NULL) {
 			krad_ebml_destroy (client->krad_ebml);

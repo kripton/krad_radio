@@ -28,40 +28,7 @@ struct krad_linker_St {
 	krad_radio_t *krad_radio;
 };
 
-typedef enum {
-	AUDIO_ONLY = 150,
-	VIDEO_ONLY,
-	AUDIO_AND_VIDEO,
-} krad_link_av_mode_t;
 
-typedef enum {
-	CAPTURE = 200,
-	RECEIVE,
-	TRANSMIT,
-	PLAYBACK,
-	FAILURE,
-} krad_link_operation_mode_t;
-
-typedef enum {
-	TCP = 250,
-	UDP,
-	FILESYSTEM,
-	FAIL,
-} krad_link_transport_mode_t;
-
-typedef enum {
-	WINDOW = 300,
-	COMMAND,
-	DAEMON,
-} krad_link_interface_mode_t;
-
-typedef enum {
-	TEST = 500,
-	V4L2,
-	DECKLINK,
-	X11,
-	NOVIDEO,
-} krad_video_source_t;
 
 struct krad_link_St {
 

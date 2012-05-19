@@ -4,6 +4,14 @@ int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
 	
+	if (argc == 1) {
+		printf("Specify a station..\n");
+	}
+	
+	if (argc == 2) {
+		printf("Specify a command..\n");
+	}	
+	
 	if (argc > 2) {
 
 		if (!krad_valid_host_and_port (argv[1])) {
@@ -57,21 +65,18 @@ int main (int argc, char *argv[]) {
 			if (strncmp(argv[2], "remoteoff", 9) == 0) {
 				if (argc == 3) {
 					krad_ipc_disable_remote (client);
-					krad_ipc_print_response (client);
 				}
 			}
 			
 			if (strncmp(argv[2], "webon", 5) == 0) {
 				if (argc == 5) {
 					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]));
-					krad_ipc_print_response (client);
 				}
 			}			
 			
 			if (strncmp(argv[2], "weboff", 5) == 0) {
 				if (argc == 3) {
 					krad_ipc_weboff (client);
-					krad_ipc_print_response (client);
 				}
 			}			
 			
@@ -87,39 +92,33 @@ int main (int argc, char *argv[]) {
 			if (strncmp(argv[2], "input", 5) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_create_portgroup (client, argv[3], "input");
-					krad_ipc_print_response (client);
 				}
 			}			
 
 			if (strncmp(argv[2], "output", 6) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_create_portgroup (client, argv[3], "output");
-					krad_ipc_print_response (client);
 				}
 			}
 
 			if (strncmp(argv[2], "unplug", 6) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_remove_portgroup (client, argv[3]);
-					krad_ipc_print_response (client);
 				}
 			}
 			
 			if (strncmp(argv[2], "xfade", 5) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
-					krad_ipc_print_response (client);
 				}
 				if (argc == 5) {
 					krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, argv[4]);
-					krad_ipc_print_response (client);
 				}
 			}			
 		
 			if (strncmp(argv[2], "set", 3) == 0) {
 				if (argc == 6) {
 					krad_ipc_set_control (client, argv[3], argv[4], atof(argv[5]));
-					//krad_ipc_print_response (client);
 				}
 			}
 			
@@ -166,7 +165,7 @@ int main (int argc, char *argv[]) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
 					}
 				}				
-			}			
+			}
 			
 			/* Krad Compositor Commands */			
 
@@ -176,20 +175,9 @@ int main (int argc, char *argv[]) {
 				}
 			}			
 			
-			
-			usleep(80000);
 			krad_ipc_disconnect (client);
 		}
 	
-	} else {
-	
-		if (argc == 1) {
-			printf("Specify a station..\n");
-		}
-		if (argc == 2) {
-			printf("Specify a command..\n");
-		}
-		
 	}
 	
 	return 0;

@@ -619,28 +619,6 @@ void *krad_ipc_server_run (void *arg) {
 				
 					client = krad_ipc_server->sockets_clients[s];
 				
-					if (krad_ipc_server->sockets[s].revents & POLLOUT) {
-						//printf("I could write\n");
-					}
-
-					if (krad_ipc_server->sockets[s].revents & POLLHUP) {
-						printf("Krad IPC Server: POLLHUP\n");
-						krad_ipc_disconnect_client (client);
-						continue;
-					}
-
-					if (krad_ipc_server->sockets[s].revents & POLLERR) {
-						printf("Krad IPC Server: POLLERR\n");
-						krad_ipc_disconnect_client (client);
-						continue;
-					}
-
-					if (krad_ipc_server->sockets[s].revents & POLLNVAL) {
-						printf("Krad IPC Server: POLLNVAL\n");
-						krad_ipc_disconnect_client (client);
-						continue;
-					}
-				
 					if (krad_ipc_server->sockets[s].revents & POLLIN) {
 	
 						client->input_buffer_pos += recv(krad_ipc_server->sockets[s].fd, client->input_buffer + client->input_buffer_pos, (sizeof (client->input_buffer) - client->input_buffer_pos), 0);
@@ -748,6 +726,35 @@ void *krad_ipc_server_run (void *arg) {
 						}
 	*/	
 					}
+					
+					
+					
+				
+					if (krad_ipc_server->sockets[s].revents & POLLOUT) {
+						//printf("I could write\n");
+					}
+
+					if (krad_ipc_server->sockets[s].revents & POLLHUP) {
+						printf("Krad IPC Server: POLLHUP\n");
+						krad_ipc_disconnect_client (client);
+						continue;
+					}
+
+					if (krad_ipc_server->sockets[s].revents & POLLERR) {
+						printf("Krad IPC Server: POLLERR\n");
+						krad_ipc_disconnect_client (client);
+						continue;
+					}
+
+					if (krad_ipc_server->sockets[s].revents & POLLNVAL) {
+						printf("Krad IPC Server: POLLNVAL\n");
+						krad_ipc_disconnect_client (client);
+						continue;
+					}
+					
+					
+					
+					
 				}
 			}
 		}
