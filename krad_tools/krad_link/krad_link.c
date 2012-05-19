@@ -2057,7 +2057,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 }
 
-void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t *krad_link) {
+void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t *krad_link ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -2099,6 +2099,17 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	}
 
 	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
+
+	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_LINK_LINK_PASSWORD) {
+		printk ("hrm wtf2\n");
+	} else {
+		//printk ("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->password, ebml_data_size);
+
 
 }
 
@@ -2240,7 +2251,6 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						krad_link->video_codec = NOCODEC;
 						krad_link->av_mode = AUDIO_ONLY;
 						krad_link->operation_mode = TRANSMIT;
-						strcpy (krad_link->password, "secretkode");
 					}
 					
 					if (k == 1) {
@@ -2249,7 +2259,6 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						krad_link->video_codec = NOCODEC;
 						krad_link->av_mode = AUDIO_ONLY;
 						krad_link->operation_mode = TRANSMIT;
-						strcpy (krad_link->password, "secretkode");
 					}
 						
 					if (k == 2) {
@@ -2258,10 +2267,9 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						krad_link->video_codec = NOCODEC;
 						krad_link->av_mode = AUDIO_ONLY;
 						krad_link->operation_mode = TRANSMIT;
-						strcpy (krad_link->password, "secretkode");
 					}
 
-					krad_linker_ebml_to_link ( krad_ipc, krad_link);
+					krad_linker_ebml_to_link ( krad_ipc, krad_link );
 					
 					krad_link_run (krad_link);
 
