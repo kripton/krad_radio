@@ -1,3 +1,5 @@
+#include <string.h>
+
 typedef struct krad_link_rep_St krad_link_rep_t;
 
 #ifndef KRAD_LINK_COMMON_H
@@ -52,12 +54,15 @@ typedef enum {
 	DECKLINK,
 	X11,
 	NOVIDEO,
-} krad_video_source_t;
+} krad_link_video_source_t;
 
 char *krad_link_transport_mode_to_string (krad_link_transport_mode_t transport_mode);
-char *krad_video_source_to_string (krad_video_source_t video_source);
+char *krad_link_video_source_to_string (krad_link_video_source_t video_source);
+krad_link_video_source_t krad_link_string_to_video_source (char *string);
 char *krad_link_operation_mode_to_string (krad_link_operation_mode_t operation_mode);
+krad_link_operation_mode_t krad_link_string_to_operation_mode (char *string);
 char *krad_link_av_mode_to_string (krad_link_av_mode_t av_mode);
+krad_link_av_mode_t krad_link_string_to_av_mode (char *string);
 char *krad_codec_to_string (krad_codec_t codec);
 
 struct krad_link_rep_St {

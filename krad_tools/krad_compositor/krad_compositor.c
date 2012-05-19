@@ -267,6 +267,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if (krad_compositor->port[p].active == 0) {
 			krad_compositor_port = &krad_compositor->port[p];
+			krad_compositor_port->active = 2;
 			break;
 		}
 	}
@@ -279,11 +280,11 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	
 	strcpy (krad_compositor_port->sysname, sysname);	
 	
-	krad_compositor_port->direction = direction;	
+	krad_compositor_port->direction = direction;
 	
-	krad_compositor_port->active = 1;	
+	krad_compositor_port->frame_ring = krad_ringbuffer_create ( 128 * 8 );
 	
-	krad_compositor_port->frame_ring = krad_ringbuffer_create ( 128 * 8 );	
+	krad_compositor_port->active = 1;
 	
 	return krad_compositor_port;
 
@@ -303,6 +304,8 @@ krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *kr
 
 
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port) {
+
+	krad_compositor_port->active = 3;
 
 	krad_ringbuffer_free ( krad_compositor_port->frame_ring );
 

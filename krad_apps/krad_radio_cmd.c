@@ -131,11 +131,38 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
-			if (strncmp(argv[2], "link", 4) == 0) {
+			if ((strncmp(argv[2], "link", 4) == 0) || (strncmp(argv[2], "transmit", 8) == 0)) {
 				if (argc == 7) {
-					krad_ipc_create_link (client, argv[3], atoi(argv[4]), argv[5], argv[6]);
+					if (strncmp(argv[2], "transmitav", 10) == 0) {
+						krad_ipc_create_transmit_link (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6]);
+					} else {
+						krad_ipc_create_transmit_link (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6]);
+					}
 				}
+				if (argc == 8) {
+					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7]);
+				}
+				
 			}		
+
+			if (strncmp(argv[2], "capture", 7) == 0) {
+				if (argc == 4) {
+					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]));
+				}
+			}
+			
+			if (strncmp(argv[2], "record", 6) == 0) {
+				//if (argc ==  ) {
+					//krad_ipc_create_record_link (client, );
+				//}
+			}
+			
+			if (strncmp(argv[2], "play", 4) == 0) {
+				//if (argc ==  ) {
+					//krad_ipc_create_playback_link (client, );
+				//}
+			}	
+
 			
 			if (strncmp(argv[2], "rm", 2) == 0) {
 				if (argc == 4) {

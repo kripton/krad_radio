@@ -22,6 +22,20 @@ char *krad_codec_to_string (krad_codec_t codec) {
 	}
 }
 
+krad_link_av_mode_t krad_link_string_to_av_mode (char *string) {
+
+	if ((strcmp(string, "av") == 0) || (strcmp(string, "audiovideo") == 0) || (strcmp(string, "audio and video") == 0)) {
+		return AUDIO_AND_VIDEO;
+	}
+
+	if ((strcmp(string, "video") == 0) || (strcmp(string, "videoonly") == 0) || (strcmp(string, "video only") == 0)) {
+		return VIDEO_ONLY;
+	}
+
+	return AUDIO_ONLY;
+
+}
+
 char *krad_link_av_mode_to_string (krad_link_av_mode_t av_mode) {
 
 	switch (av_mode) {
@@ -56,7 +70,55 @@ char *krad_link_operation_mode_to_string (krad_link_operation_mode_t operation_m
 	}
 }
 
-char *krad_video_source_to_string (krad_video_source_t video_source) {
+krad_link_operation_mode_t krad_link_string_to_operation_mode (char *string) {
+
+	if (strcmp(string, "capture") == 0) {
+		return CAPTURE;
+	}
+
+	if (strcmp(string, "receive") == 0) {
+		return RECEIVE;
+	}
+
+	if (strcmp(string, "record") == 0) {
+		return RECORD;
+	}
+
+	if (strcmp(string, "transmit") == 0) {
+		return TRANSMIT;
+	}
+
+	if (strcmp(string, "playback") == 0) {
+		return PLAYBACK;
+	}
+
+	return FAILURE;
+
+}
+
+krad_link_video_source_t krad_link_string_to_video_source (char *string) {
+
+	if (strcmp(string, "test") == 0) {
+		return TEST;
+	}
+
+	if ((strcmp(string, "x11") == 0) || (strcmp(string, "X11") == 0)) {
+		return X11;
+	}
+	
+	if (strcmp(string, "decklink") == 0) {
+		return DECKLINK;
+	}
+	
+	if ((strcmp(string, "V4L2") == 0) || (strcmp(string, "v4l2") == 0) || (strcmp(string, "v4l") == 0)) {
+		return V4L2;
+	}	
+
+	return NOVIDEO;
+
+}
+
+char *krad_link_video_source_to_string (krad_link_video_source_t video_source) {
 
 	switch (video_source) {
 		case TEST:

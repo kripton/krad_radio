@@ -17,8 +17,8 @@ typedef struct krad_linker_St krad_linker_t;
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 75
 #define DEFAULT_ENCODING_BUFFER_FRAMES 75
 #define DEFAULT_VORBIS_QUALITY 0.7
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 360
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
 #define DEFAULT_FPS 30
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
@@ -65,7 +65,7 @@ struct krad_link_St {
 	
 	krad_link_operation_mode_t operation_mode;
 	krad_link_interface_mode_t interface_mode;
-	krad_video_source_t video_source;
+	krad_link_video_source_t video_source;
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
 	

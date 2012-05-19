@@ -18,14 +18,14 @@ krad_frame_t *krad_framepool_getframe (krad_framepool_t *krad_framepool) {
 void krad_framepool_ref_frame (krad_frame_t *frame) {
 
 	frame->refs++;
-
+	//printf("refs = %d\n", frame->refs);
 }
 
 
 void krad_framepool_unref_frame (krad_frame_t *frame) {
 
 	frame->refs--;
-
+	//printf("refs = %d\n", frame->refs);
 }
 
 void krad_framepool_destroy (krad_framepool_t *krad_framepool) {
