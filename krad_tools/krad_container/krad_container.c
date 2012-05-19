@@ -3,6 +3,9 @@
 krad_container_type_t krad_link_select_container (char *string) {
 
 	if ((strstr(string, ".ogg")) ||
+		(strstr(string, ".opus")) ||
+		(strstr(string, ".Opus")) ||
+		(strstr(string, ".OPUS")) ||
 		(strstr(string, ".OGG")) ||
 		(strstr(string, ".Ogg")) ||
 		(strstr(string, ".oga")) ||

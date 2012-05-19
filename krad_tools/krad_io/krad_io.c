@@ -277,6 +277,9 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 		
 
 			if ((strstr(krad_io->mount, ".ogg")) ||
+				(strstr(krad_io->mount, ".opus")) ||
+				(strstr(krad_io->mount, ".Opus")) ||
+				(strstr(krad_io->mount, ".OPUS")) ||			
 				(strstr(krad_io->mount, ".OGG")) ||
 				(strstr(krad_io->mount, ".Ogg")) ||
 				(strstr(krad_io->mount, ".oga")) ||
