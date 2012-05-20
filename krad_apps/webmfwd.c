@@ -233,8 +233,8 @@ int main (int argc, char *argv[]) {
 	
 	// this will write out a generated header copying the needed webm information
 	krad_ebml_header(output, "webm", APPVERSION);
-	krad_ebml_add_video_track(output, "V_VP8", 0, input->tracks[1].width, input->tracks[1].height);		 
-	krad_ebml_add_audio_track(output, "A_VORBIS", input->tracks[2].sample_rate, input->tracks[2].channels, input->tracks[2].codec_data, input->tracks[2].codec_data_size);
+	krad_ebml_add_video_track(output, VP8, 30, 1, input->tracks[1].width, input->tracks[1].height);		 
+	krad_ebml_add_audio_track(output, VORBIS, input->tracks[2].sample_rate, input->tracks[2].channels, input->tracks[2].codec_data, input->tracks[2].codec_data_size);
 	krad_ebml_finish_element (output, output->tracks_info);
 	krad_ebml_write_sync (output);
 	
