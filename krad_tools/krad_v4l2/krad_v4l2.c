@@ -399,7 +399,7 @@ void kradv4l2_init_mmap (krad_v4l2_t *kradv4l2) {
 
     CLEAR (req);
 
-    req.count = 60;
+    req.count = 16;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
