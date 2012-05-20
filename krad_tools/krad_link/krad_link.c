@@ -126,6 +126,46 @@ void *video_capture_thread (void *arg) {
 	
 }
 
+
+
+void *x11_capture_thread (void *arg) {
+
+	prctl (PR_SET_NAME, (unsigned long) "kradlink_x11cap", 0, 0, 0);
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+	
+	printk ("X11 capture thread begins\n");
+	
+	krad_frame_t *krad_frame;
+	
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "X11In", INPUT);
+
+	while (krad_link->capturing == 1) {
+	
+		
+		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+
+		krad_x11_capture (krad_link->krad_x11, (unsigned char *)krad_frame->pixels);
+		
+		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+
+		krad_framepool_unref_frame (krad_frame);
+
+		krad_compositor_process (krad_link->krad_radio->krad_compositor);
+
+		usleep (30000);
+
+	}
+
+	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
+
+	printk ("X11 capture thread exited\n");
+	
+	return NULL;
+	
+}
+
+
 void *video_encoding_thread(void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_videnc", 0, 0, 0);
@@ -1729,7 +1769,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	
 	if (krad_link->capturing) {
 		krad_link->capturing = 0;
-		if (krad_link->video_source == V4L2) {
+		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11)) {
 			pthread_join(krad_link->video_capture_thread, NULL);
 		}
 		if (krad_link->video_source == DECKLINK) {
@@ -1996,6 +2036,8 @@ void krad_link_activate (krad_link_t *krad_link) {
 				krad_link->krad_x11 = krad_x11_create();
 			}
 			krad_x11_enable_capture (krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
+			krad_link->capturing = 1;
+			pthread_create(&krad_link->video_capture_thread, NULL, x11_capture_thread, (void *)krad_link);
 		}
 		
 		if (krad_link->video_source == V4L2) {
