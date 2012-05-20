@@ -64,7 +64,7 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 		audio_frame->GetBytes(&audio_data);
 		audio_frames = audio_frame->GetSampleFrameCount();
 		if (krad_decklink_capture->verbose) {
-			printf("Audio Frame received %d frames\r", audio_frames);
+		//	printf("Audio Frame received %d frames\r", audio_frames);
 		}
 		if (krad_decklink_capture->audio_frames_callback != NULL) {
 			krad_decklink_capture->audio_frames_callback (krad_decklink_capture->callback_pointer, audio_data, audio_frames);
@@ -85,7 +85,7 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 	if (video_frame) {
 
 		if (video_frame->GetFlags() & bmdFrameHasNoInputSource) {
-			printf("Frame received (#%"PRIu64") - No input signal detected\n", krad_decklink_capture->video_frames);
+		//	printf("Frame received (#%"PRIu64") - No input signal detected\n", krad_decklink_capture->video_frames);
 		} else {
 
 			if (timecodeFormat != 0) {
@@ -96,12 +96,12 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 			
 			frame_data_size = video_frame->GetRowBytes() * video_frame->GetHeight();
 
-			if (krad_decklink_capture->verbose) {
-				printf("Frame received (#%"PRIu64") [%s] - Size: %li bytes ", 
-						krad_decklink_capture->video_frames, 
-						timecodeString != NULL ? timecodeString : "No timecode",
-						frame_data_size);
-			}
+			//if (krad_decklink_capture->verbose) {
+			//	printf("Frame received (#%"PRIu64") [%s] - Size: %li bytes ", 
+			//			krad_decklink_capture->video_frames, 
+			//			timecodeString != NULL ? timecodeString : "No timecode",
+			//			frame_data_size);
+			//}
 			
 			if (timecodeString) {
 				free ((void*)timecodeString);
