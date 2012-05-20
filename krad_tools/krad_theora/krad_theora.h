@@ -37,6 +37,11 @@ struct krad_theora_encoder_St {
 	int header_len[10];
 	int header_count;
 
+	unsigned char *header_combined;
+	int header_combined_size;
+	int header_combined_pos;
+	int demented;
+	
 	th_info	info;
 	th_comment comment;
 	ogg_packet packet;

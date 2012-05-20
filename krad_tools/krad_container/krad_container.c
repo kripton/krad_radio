@@ -141,9 +141,18 @@ void krad_container_destroy (krad_container_t *krad_container) {
 }	
 
 
-
-
-
+int krad_container_add_video_track_with_private_data (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, int fps_denominator, 
+									int width, int height, unsigned char *private_data, int private_data_size) {
+									
+	if (krad_container->container_type == OGG) {
+		printk ("missing feature\n");
+		exit (1);
+		//return krad_ogg_add_video_track (krad_container->krad_ogg, codec, fps_numerator, fps_denominator, width, height);
+	} else {
+		return krad_ebml_add_video_track_with_private_data (krad_container->krad_ebml, codec, fps_numerator, fps_denominator, width, height, private_data, private_data_size);
+	}									
+									
+}
 
 int krad_container_add_video_track (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, int fps_denominator, 
 									int width, int height) {

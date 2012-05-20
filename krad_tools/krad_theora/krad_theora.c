@@ -1,7 +1,7 @@
 #include "krad_theora.h"
 
 
-krad_theora_encoder_t *krad_theora_encoder_create(int width, int height, int quality) {
+krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int quality) {
 
 	krad_theora_encoder_t *krad_theora;
 	
@@ -23,10 +23,13 @@ krad_theora_encoder_t *krad_theora_encoder_create(int width, int height, int qua
 	krad_theora->info.pic_y = 0;
 	krad_theora->info.target_bitrate = 0;
 	krad_theora->info.quality = krad_theora->quality;
+	krad_theora->info.pixel_fmt = TH_PF_420;
 
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
 	while (th_encode_flushheader ( krad_theora->encoder, &krad_theora->comment, &krad_theora->packet) > 0) {
+	
+		krad_theora->header_combined_size += krad_theora->packet.bytes;
 	
 		krad_theora->header[krad_theora->header_count] = malloc(krad_theora->packet.bytes);
 		memcpy (krad_theora->header[krad_theora->header_count], krad_theora->packet.packet, krad_theora->packet.bytes);
@@ -34,11 +37,68 @@ krad_theora_encoder_t *krad_theora_encoder_create(int width, int height, int qua
 		krad_theora->header_count++;
 		
 		
-		//printf("krad_theora_encoder_create th_encode_flushheader got header packet %ld which is %ld bytes\n", 
-		//		krad_theora->packet.packetno, krad_theora->packet.bytes);
+		printf("krad_theora_encoder_create th_encode_flushheader got header packet %ld which is %ld bytes\n", 
+				krad_theora->packet.packetno, krad_theora->packet.bytes);
 	}
 	
-	//printf("krad_theora_encoder_create Got %d header packets\n", krad_theora->header_count);
+	printf("krad_theora_encoder_create Got %d header packets\n", krad_theora->header_count);
+
+
+	krad_theora->header_combined = calloc (1, krad_theora->header_combined_size + 10);
+
+	krad_theora->header_combined[0] = 0x02;
+	krad_theora->header_combined_pos++;
+
+	//printf("main is %ld\n", vorbis->header_main.bytes);
+	if (krad_theora->header_len[0] > 255) {
+		printf("theora mainheader to long for code\n");
+		exit(1);
+	}
+	
+	krad_theora->demented = krad_theora->header_len[0];
+	krad_theora->header_combined[1] = (char)krad_theora->demented;
+	krad_theora->header_combined_pos++;
+	
+	//printf("comments is %ld\n", vorbis->header_comments.bytes);
+	if (krad_theora->header_len[1] > 255) {
+		printf("theora comments header to long for code\n");
+		exit(1);
+	}
+	
+	krad_theora->demented = krad_theora->header_len[1];
+	krad_theora->header_combined[2] = (char)krad_theora->demented;
+	krad_theora->header_combined_pos++;
+	
+	krad_theora->header_combined_size += 3;
+	
+	memcpy (krad_theora->header_combined + krad_theora->header_combined_pos, krad_theora->header[0], krad_theora->header_len[0]);
+	krad_theora->header_combined_pos += krad_theora->header_len[0];
+		
+	//printf("main is %ld bytes headerpos is  %d \n", vorbis->header_main.bytes, vorbis->headerpos);
+		
+	memcpy (krad_theora->header_combined + krad_theora->header_combined_pos, krad_theora->header[1], krad_theora->header_len[1]);
+	krad_theora->header_combined_pos += krad_theora->header_len[1];
+
+	//printf("comments is %ld bytes headerpos is  %d \n", vorbis->header_comments.bytes, vorbis->headerpos);
+		
+	memcpy (krad_theora->header_combined + krad_theora->header_combined_pos, krad_theora->header[2], krad_theora->header_len[2]);
+	krad_theora->header_combined_pos += krad_theora->header_len[2];
+
+	krad_theora->ycbcr[0].stride =  krad_theora->width;
+	krad_theora->ycbcr[0].width =  krad_theora->width;	
+	krad_theora->ycbcr[0].height =  krad_theora->height;	
+	
+	krad_theora->ycbcr[1].stride =  krad_theora->width / 2;
+	krad_theora->ycbcr[1].width =  krad_theora->width / 2;
+	krad_theora->ycbcr[1].height =  krad_theora->height / 2;
+		
+	krad_theora->ycbcr[2].stride =  krad_theora->width / 2;
+	krad_theora->ycbcr[2].width =  krad_theora->width / 2;
+	krad_theora->ycbcr[2].height =  krad_theora->height / 2;
+
+	krad_theora->ycbcr[0].data = calloc(1, krad_theora->width * krad_theora->height * 4);
+	krad_theora->ycbcr[1].data = calloc(1, krad_theora->width * krad_theora->height * 4);
+	krad_theora->ycbcr[2].data = calloc(1, krad_theora->width * krad_theora->height * 4);
 
 	return krad_theora;
 
@@ -54,6 +114,12 @@ void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora) {
 	th_info_clear (&krad_theora->info);
 	th_comment_clear (&krad_theora->comment);
 	th_encode_free (krad_theora->encoder);
+	free (krad_theora->header_combined);
+	
+	free (krad_theora->ycbcr[0].data);
+	free (krad_theora->ycbcr[1].data);
+	free (krad_theora->ycbcr[2].data);
+	
 	free(krad_theora);
 
 }

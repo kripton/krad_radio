@@ -177,25 +177,42 @@ void *video_encoding_thread(void *arg) {
 	}
 	
 	krad_frame_t *krad_frame;
-	void *vpx_packet;
+	void *video_packet;
 	int keyframe;
 	int packet_size;
 	char keyframe_char[1];
 
 	krad_frame = NULL;
 
-	krad_link->krad_vpx_encoder = krad_vpx_encoder_create(krad_link->encoding_width, krad_link->encoding_height, krad_link->vpx_encoder_config.rc_target_bitrate);
-
-	krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
-	krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
-
-	krad_vpx_encoder_set(krad_link->krad_vpx_encoder, &krad_link->vpx_encoder_config);
-
-	krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
-
-	printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+	if (krad_link->video_codec == VP8) {
+		vpx_codec_enc_config_default(interface, &krad_link->vpx_encoder_config, 0);
 	
-	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "VP8Enc", OUTPUT);
+		krad_link->vpx_encoder_config.rc_target_bitrate = DEFAULT_VPX_BITRATE;
+		krad_link->vpx_encoder_config.kf_max_dist = krad_link->capture_fps * 3;	
+		krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
+		krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
+		krad_link->vpx_encoder_config.g_threads = 4;
+		krad_link->vpx_encoder_config.kf_mode = VPX_KF_AUTO;
+		krad_link->vpx_encoder_config.rc_end_usage = VPX_VBR;
+
+		krad_link->krad_vpx_encoder = krad_vpx_encoder_create(krad_link->encoding_width, krad_link->encoding_height, krad_link->vpx_encoder_config.rc_target_bitrate);
+
+		krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
+		krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
+
+		krad_vpx_encoder_set(krad_link->krad_vpx_encoder, &krad_link->vpx_encoder_config);
+
+		krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
+
+		printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+	
+	}
+	
+	if (krad_link->video_codec == THEORA) {
+		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, krad_link->encoding_height, 33);
+	}
+	
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "VIDEnc", OUTPUT);
 	
 	printk ("Encoding loop start\n");
 	
@@ -205,61 +222,59 @@ void *video_encoding_thread(void *arg) {
 
 		if (krad_frame != NULL) {
 								 
-			/*		
-						
-			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 2)) ) {
-			
-				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 2LU;
-				printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
-			}
-						
-			if (krad_ringbuffer_read_space(krad_link->composited_frames_buffer) >= (krad_link->composited_frame_byte_size * (krad_link->encoding_buffer_frames / 4)) ) {
-			
-				krad_link->krad_vpx_encoder->quality = ((600 / krad_link->encoding_fps) * 1000) / 4LU;
-				printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
-			}
-			
-			*/					 
+				 
 
 			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
 			const uint8_t *rgb_arr[4];
 	
 			rgb_arr[0] = (unsigned char *)krad_frame->pixels;
 
-			sws_scale(krad_link->encoding_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
-					  krad_link->krad_vpx_encoder->image->planes, krad_link->krad_vpx_encoder->image->stride);
-							
+			if (krad_link->video_codec == VP8) {
+				sws_scale(krad_link->encoding_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
+						  krad_link->krad_vpx_encoder->image->planes, krad_link->krad_vpx_encoder->image->stride);
+			}
+			
+			if (krad_link->video_codec == THEORA) {
+				
+				unsigned char *planes[3];
+				int strides[3];
+				
+				planes[0] = krad_link->krad_theora_encoder->ycbcr[0].data;
+				planes[1] = krad_link->krad_theora_encoder->ycbcr[1].data;
+				planes[2] = krad_link->krad_theora_encoder->ycbcr[2].data;
+				strides[0] = krad_link->krad_theora_encoder->ycbcr[0].stride;
+				strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
+				strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;
+				
+				sws_scale(krad_link->encoding_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
+						  planes, strides);			
+			
+			}						
 							
 			krad_framepool_unref_frame (krad_frame);
-										 
-			packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder, (unsigned char **)&vpx_packet, &keyframe);
-								 
-			//printk ("packet size was %d\n", packet_size);
-	
+									
 			
-	
+			if (krad_link->video_codec == VP8) {		 
+				packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder, (unsigned char **)&video_packet, &keyframe);
+			}
+			
+			if (krad_link->video_codec == THEORA) {
+				packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder, (unsigned char **)&video_packet, &keyframe);
+			}
+			
 			if (packet_size) {
 
 				keyframe_char[0] = keyframe;
 
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)vpx_packet, packet_size);
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
 				
 				krad_link->video_frames_encoded++;
 
 			}
 	
 		} else {
-		
-			/*
-		
-			if (krad_link->krad_vpx_encoder->quality != (600 / krad_link->encoding_fps) * 1000) {
-				krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
-				printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
-			}
-
-			*/
 			
 			usleep(5000);
 		
@@ -271,12 +286,20 @@ void *video_encoding_thread(void *arg) {
 	
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);	
 	
-	while (packet_size) {
-		krad_vpx_encoder_finish(krad_link->krad_vpx_encoder);
-		packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder, (unsigned char **)&vpx_packet, &keyframe);
-	}
+	
+	if (krad_link->video_codec == VP8) {	
+		while (packet_size) {
+			krad_vpx_encoder_finish(krad_link->krad_vpx_encoder);
+			packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder, (unsigned char **)&video_packet, &keyframe);
+		}
 
-	krad_vpx_encoder_destroy (krad_link->krad_vpx_encoder);
+		krad_vpx_encoder_destroy (krad_link->krad_vpx_encoder);
+	}
+	
+	if (krad_link->video_codec == THEORA) {
+		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
+	}
+	
 	
 	krad_link->encoding = 3;
 
@@ -564,8 +587,18 @@ void *stream_output_thread(void *arg) {
 
 		}
 		
-		krad_link->video_track = krad_container_add_video_track (krad_link->krad_container, krad_link->video_codec, 30000, 1000,
-															krad_link->encoding_width, krad_link->encoding_height);		
+		if (krad_link->video_codec == VP8) {
+		
+			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container, krad_link->video_codec, 30000, 1000,
+															krad_link->encoding_width, krad_link->encoding_height);
+		} else {
+		
+			usleep (50000);
+		
+			krad_link->video_track = krad_container_add_video_track_with_private_data (krad_link->krad_container, krad_link->video_codec, 30000, 1000,
+															krad_link->encoding_width, krad_link->encoding_height, krad_link->krad_theora_encoder->header_combined, krad_link->krad_theora_encoder->header_combined_size);
+		
+		}
 	}
 	
 	if (krad_link->av_mode != VIDEO_ONLY) {
@@ -1926,27 +1959,12 @@ krad_link_t *krad_link_create() {
 
 	krad_link->operation_mode = CAPTURE;
 	krad_link->interface_mode = COMMAND;
-	krad_link->video_codec = VP8;
+	krad_link->video_codec = THEORA;
 	krad_link->audio_codec = VORBIS;
 	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
 	krad_link->video_source = NOVIDEO;
 	krad_link->transport_mode = TCP;
 
-
-
-	//strncpy(krad_link->tone_preset, DEFAULT_TONE_PRESET, sizeof(krad_link->tone_preset));
-
-	//FIXME wrong place for this vp8 stuff
-	vpx_codec_enc_config_default(interface, &krad_link->vpx_encoder_config, 0);
-	
-	krad_link->vpx_encoder_config.rc_target_bitrate = DEFAULT_VPX_BITRATE;
-	krad_link->vpx_encoder_config.kf_max_dist = krad_link->capture_fps * 3;	
-	krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
-	krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
-	krad_link->vpx_encoder_config.g_threads = 4;
-	krad_link->vpx_encoder_config.kf_mode = VPX_KF_AUTO;
-	krad_link->vpx_encoder_config.rc_end_usage = VPX_VBR;
-	
 	return krad_link;
 }
 
