@@ -587,7 +587,7 @@ void *stream_output_thread(void *arg) {
 
 		}
 		
-		if (krad_link->video_codec == VP8) {
+		if (krad_link->video_codec != THEORA) {
 		
 			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container, krad_link->video_codec, 30000, 1000,
 															krad_link->encoding_width, krad_link->encoding_height);
