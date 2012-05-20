@@ -1686,7 +1686,7 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 
 	krad_link->krad_decklink = krad_decklink_create ();
-	krad_decklink_info ( krad_link->krad_decklink );
+	//krad_decklink_info ( krad_link->krad_decklink );
 	
 	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "DecklinkIn", INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
