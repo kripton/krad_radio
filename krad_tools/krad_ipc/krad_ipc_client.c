@@ -946,8 +946,8 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	if (krad_link->operation_mode == TRANSMIT) {
 	
 		pos += sprintf (text + pos, "%s - %s - %s:%d%s",
-						krad_link_av_mode_to_string (krad_link->av_mode),
 						krad_link_operation_mode_to_string (krad_link->operation_mode),
+						krad_link_av_mode_to_string (krad_link->av_mode),
 						krad_link->host, krad_link->tcp_port, krad_link->mount);
 				
 				
@@ -967,8 +967,8 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 				
 	} else {
 		pos += sprintf (text + pos, "%s - %s", 
-						krad_link_av_mode_to_string (krad_link->av_mode),
-						krad_link_operation_mode_to_string (krad_link->operation_mode));
+						krad_link_operation_mode_to_string (krad_link->operation_mode),
+						krad_link_av_mode_to_string (krad_link->av_mode));
 	}
 	
 	if (krad_link->operation_mode == CAPTURE) {
