@@ -32,10 +32,13 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
-	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
-	printf("Theora encoder speed: %d\n", krad_theora->speed);
-	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
-
+	if (strstr(krad_system.unix_info.machine, "x86") == NULL) {
+		//FOR ARM
+		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
+		printf("Theora encoder speed: %d\n", krad_theora->speed);
+		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
+	}
+	
 	while (th_encode_flushheader ( krad_theora->encoder, &krad_theora->comment, &krad_theora->packet) > 0) {
 	
 		krad_theora->header_combined_size += krad_theora->packet.bytes;
