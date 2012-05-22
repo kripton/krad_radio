@@ -13,9 +13,13 @@ typedef enum {
 	VP8,
 	DIRAC,
 	THEORA,
-	NOCODEC,
 	MJPEG,
+	PNG,
 	CODEC2,
+	SKELETON,
+	HEXON,
+	DAALA,
+	NOCODEC,
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif
