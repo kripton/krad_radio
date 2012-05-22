@@ -55,6 +55,7 @@ struct krad_theora_encoder_St {
 	th_ycbcr_buffer ycbcr;
 	
 	int speed;
+	unsigned int keyframe_distance;
 	
 };
 
