@@ -53,6 +53,10 @@ struct krad_compositor_St {
 	int hex_y;
 	int hex_size;
 
+	int bug_x;
+	int bug_y;
+	char *bug_filename;
+
 	krad_framepool_t *krad_framepool;
 
 	krad_compositor_port_t *port;

@@ -63,6 +63,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text);
 
 void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string);
 
+void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *filename);
 void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size);
 
 // FIXME creation is functionally incomplete

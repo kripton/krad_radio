@@ -429,6 +429,31 @@ void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char
 
 }
 
+void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *filename) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t bug;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SET_BUG, &bug);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_X, x);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_Y, y);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_FILENAME, filename);
+
+	krad_ebml_finish_element (client->krad_ebml, bug);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size) {
 
 	//uint64_t ipc_command;
@@ -442,9 +467,9 @@ void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size)
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_HEX_DEMO, &hexdemo);
 
-	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_HEX_X, x);
-	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_HEX_Y, y);
-	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_HEX_SIZE, size);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_X, x);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_Y, y);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_SIZE, size);
 
 	krad_ebml_finish_element (client->krad_ebml, hexdemo);
 	krad_ebml_finish_element (client->krad_ebml, compositor_command);

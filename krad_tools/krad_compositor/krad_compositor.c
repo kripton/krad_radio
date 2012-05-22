@@ -154,6 +154,12 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	*/
 	
+	if (krad_compositor->bug_filename != NULL) {
+		kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);	
+		free (krad_compositor->bug_filename);
+		krad_compositor->bug_filename = NULL;
+	}
+	
 	krad_compositor->krad_gui->clear = 0;
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
@@ -345,6 +351,8 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	krad_compositor->hex_x = 150;
 	krad_compositor->hex_y = 100;
 	krad_compositor->hex_size = 33;
+
+	krad_compositor->bug_filename = NULL;	
 	
 	return krad_compositor;
 
@@ -369,6 +377,9 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 	uint8_t tinyint;
 	int k;
 	
+	char string[1024];
+	
+	string[0] = '\0';
 	bigint = 0;
 	k = 0;
 	floatval = 0;
@@ -376,12 +387,69 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 
 	switch ( command ) {
+	
+	
+		//krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y
+	
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_BUG:
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_X) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_compositor->bug_x = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_Y) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_compositor->bug_y = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_FILENAME) {
+				printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+
+			if (strlen(string)) {
+				krad_compositor->bug_filename = strdup (string);
+			}
+
+			/*
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_LINK_MSG, &response);
+			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_LINK_LINK_LIST, &element);	
+			
+			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
+				if (krad_linker->krad_link[k] != NULL) {
+					printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+					krad_linker_link_to_ebml ( krad_ipc, krad_linker->krad_link[k]);
+				}
+			}
+			
+			krad_ipc_server_response_list_finish ( krad_ipc, element );
+			krad_ipc_server_response_finish ( krad_ipc, response );	
+			*/		
+			break;
+	
 
 		case EBML_ID_KRAD_COMPOSITOR_CMD_HEX_DEMO:
 
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_HEX_X) {
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_X) {
 				printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
@@ -391,7 +459,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_HEX_Y) {
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_Y) {
 				printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
@@ -401,7 +469,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_HEX_SIZE) {
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_SIZE) {
 				printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
