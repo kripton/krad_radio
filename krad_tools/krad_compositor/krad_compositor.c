@@ -155,6 +155,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	*/
 	
 	if (krad_compositor->bug_filename != NULL) {
+		printk ("setting bug to %s %d %d\n", krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);
 		kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);	
 		free (krad_compositor->bug_filename);
 		krad_compositor->bug_filename = NULL;
@@ -353,6 +354,7 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	krad_compositor->hex_size = 33;
 
 	krad_compositor->bug_filename = NULL;	
+	
 	
 	return krad_compositor;
 

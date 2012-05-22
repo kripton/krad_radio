@@ -326,7 +326,7 @@ void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y) {
 		kradgui->bug_y = y;
 		//kradgui_load_bug ( kradgui, filename );
 		kradgui->render_bug = 1;
-		kradgui->next_bug = filename;
+		kradgui->next_bug = strdup ( filename );
 	}
 
 }
@@ -334,7 +334,7 @@ void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y) {
 void kradgui_remove_bug (kradgui_t *kradgui) {
 
 	//kradgui_load_bug ( kradgui, NULL );
-	kradgui->next_bug = "none";
+	kradgui->next_bug = strdup ("none");
 }
 
 void kradgui_load_bug (kradgui_t *kradgui, char *filename) {
@@ -383,6 +383,7 @@ void kradgui_render_bug (kradgui_t *kradgui) {
 			} else {
 				kradgui_load_bug (kradgui, kradgui->next_bug);
 			}
+			free (kradgui->next_bug);			
 			kradgui->next_bug = NULL;
 		} else {
 		
