@@ -905,11 +905,20 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	
 	pos = 0;
 	
-	pos = sprintf (text, "%s - %s - %s:%d%s", 
-			krad_link_av_mode_to_string (krad_link->av_mode),
-			krad_link_operation_mode_to_string (krad_link->operation_mode),
-			krad_link->host, krad_link->tcp_port, krad_link->mount);
+	if (krad_link->operation_mode == TRANSMIT) {	
 	
+		pos = sprintf (text, "%s - %s - %s:%d%s",
+				krad_link_av_mode_to_string (krad_link->av_mode),
+				krad_link_operation_mode_to_string (krad_link->operation_mode),
+				krad_link->host, krad_link->tcp_port, krad_link->mount);
+	} else {
+		pos = sprintf (text, "%s - %s", 
+				krad_link_av_mode_to_string (krad_link->av_mode),
+				krad_link_operation_mode_to_string (krad_link->operation_mode)
+	}
+	
+	
+		
 	return pos;
 
 }
@@ -993,39 +1002,41 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 			krad_link->operation_mode = PLAYBACK;
 		}			
 
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+		if (krad_link->operation_mode == TRANSMIT) {
 
-		if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-			printk ("hrm wtf2\n");
-		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
-		}
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-		krad_ebml_read_string (client->krad_ebml, krad_link->host, ebml_data_size);
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
+				printk ("hrm wtf2\n");
+			} else {
+				//printk ("tag name size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (client->krad_ebml, krad_link->host, ebml_data_size);
 	
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-			printk ("hrm wtf3\n");
-		} else {
-			//printk ("tag value size %zu\n", ebml_data_size);
-		}
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+				printk ("hrm wtf3\n");
+			} else {
+				//printk ("tag value size %zu\n", ebml_data_size);
+			}
 
-		krad_link->tcp_port = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			krad_link->tcp_port = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 
-		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-		if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-			printk ("hrm wtf2\n");
-		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
-		}
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
+				printk ("hrm wtf2\n");
+			} else {
+				//printk ("tag name size %zu\n", ebml_data_size);
+			}
 
-		krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
+			krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
 
 
-		krad_link_rep_to_string ( krad_link, text );
-	
+			krad_link_rep_to_string ( krad_link, text );
+	}
 
 	free (krad_link);
 
