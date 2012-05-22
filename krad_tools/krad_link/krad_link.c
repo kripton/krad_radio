@@ -1754,8 +1754,8 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 	
 	peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 0);
 	peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 1);
-	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, peakval[0]);
-	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, peakval[1]);
+	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
+	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
 	
 	krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
 	

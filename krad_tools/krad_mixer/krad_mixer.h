@@ -111,5 +111,6 @@ void krad_mixer_portgroup_compute_channel_peak (krad_mixer_portgroup_t *portgrou
 void krad_mixer_portgroup_compute_peaks (krad_mixer_portgroup_t *portgroup, uint32_t nframes);
 float krad_mixer_portgroup_read_peak (krad_mixer_portgroup_t *portgroup);
 float krad_mixer_portgroup_read_channel_peak (krad_mixer_portgroup_t *portgroup, int channel);
+float krad_mixer_peak_scale (float value);
 //int krad_mixer_jack_xrun_callback (void *arg);
 #endif
