@@ -178,12 +178,12 @@ int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char 
 	
 	
 	// Double check
-	ogg_packet test_packet;
-	ret = th_encode_packetout (krad_theora->encoder, krad_theora->finish, &test_packet);
-	if (ret != 0) {
-		printf("krad_theora_encoder_write th_encode_packetout offerd up an extra packet! %d\n", ret);
-		exit(1);
-	}
+	//ogg_packet test_packet;
+	//ret = th_encode_packetout (krad_theora->encoder, krad_theora->finish, &test_packet);
+	//if (ret != 0) {
+	//	printf("krad_theora_encoder_write th_encode_packetout offerd up an extra packet! %d\n", ret);
+	//	exit(1);
+	//}
 	
 	return krad_theora->packet.bytes;
 }
