@@ -26,6 +26,8 @@ typedef struct krad_theora_decoder_St krad_theora_decoder_t;
 #ifndef KRAD_THEORA_H
 #define KRAD_THEORA_H
 
+#define DEFAULT_THEORA_QUALITY 20
+
 struct krad_theora_encoder_St {
 
 	int width;

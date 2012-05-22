@@ -33,9 +33,15 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
 	if (strstr(krad_system.unix_info.machine, "x86") == NULL) {
-		//FOR ARM
+		//FOR ARM Realtime
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
-		printf("Theora encoder speed: %d\n", krad_theora->speed);
+		printf("Theora encoder speed: %d quality: %d\n", krad_theora->speed, krad_theora->quality);
+		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
+	} else {
+		//FOR x86 Realtime
+		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
+		krad_theora->speed -= 1;
+		printf("Theora encoder speed: %d quality: %d\n", krad_theora->speed, krad_theora->quality);
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
 	}
 	
