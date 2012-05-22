@@ -2033,8 +2033,8 @@ void krad_link_activate (krad_link_t *krad_link) {
 		
 	krad_link->captured_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->capture_buffer_frames);
 	krad_link->composited_frames_buffer = krad_link->krad_linker->krad_radio->krad_compositor->composited_frames_buffer;
-	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
-	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (2000000);
+	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (3000000);
+	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (7000000);
 
 	krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
 
