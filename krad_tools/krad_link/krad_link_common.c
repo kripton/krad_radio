@@ -17,9 +17,65 @@ char *krad_codec_to_string (krad_codec_t codec) {
 			return "Dirac";
 		case MJPEG:
 			return "Mjpeg";
+		case PNG:
+			return "PNG";
+		case HEXON:
+			return "Hexon";
+		case DAALA:
+			return "Daala";			
 		default:
 			return "No Codec";
 	}
+}
+
+krad_codec_t krad_string_to_codec (char *string) {
+
+	if (strcmp(string, "Vorbis") == 0) {
+		return VORBIS;
+	}
+
+	if (strcmp(string, "FLAC") == 0) {
+		return FLAC;
+	}
+
+	if (strcmp(string, "Opus") == 0) {
+		return OPUS;
+	}
+
+	if (strcmp(string, "VP8") == 0) {
+		return VP8;
+	}
+
+	if (strcmp(string, "VP8") == 0) {
+		return TRANSMIT;
+	}
+	
+	if (strcmp(string, "Theora") == 0) {
+		return THEORA;
+	}
+
+	if (strcmp(string, "Dirac") == 0) {
+		return DIRAC;
+	}
+	
+	if (strcmp(string, "Mjpeg") == 0) {
+		return MJPEG;
+	}
+	
+	if (strcmp(string, "PNG") == 0) {
+		return PNG;
+	}
+	
+	if (strcmp(string, "Hexon") == 0) {
+		return HEXON;
+	}
+	
+	if (strcmp(string, "Daala") == 0) {
+		return DAALA;
+	}
+
+	return NOCODEC;
+
 }
 
 krad_link_av_mode_t krad_link_string_to_av_mode (char *string) {

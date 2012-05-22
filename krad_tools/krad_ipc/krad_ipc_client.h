@@ -81,7 +81,7 @@ void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_por
 //void krad_ipc_create_record_link (krad_ipc_client_t *client, char *host, int port, char *mount, char *password);
 void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source);
 
-void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *host, int port, char *mount, char *password);
+void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *host, int port, char *mount, char *password, char *codecs);
 void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
 void krad_ipc_update_link (krad_ipc_client_t *client, int number, int newval);

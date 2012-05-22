@@ -68,6 +68,7 @@ krad_link_operation_mode_t krad_link_string_to_operation_mode (char *string);
 char *krad_link_av_mode_to_string (krad_link_av_mode_t av_mode);
 krad_link_av_mode_t krad_link_string_to_av_mode (char *string);
 char *krad_codec_to_string (krad_codec_t codec);
+krad_codec_t krad_string_to_codec (char *string);
 
 struct krad_link_rep_St {
 
