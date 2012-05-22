@@ -262,7 +262,7 @@ void *video_encoding_thread(void *arg) {
 				packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder, (unsigned char **)&video_packet, &keyframe);
 			}
 			
-			if (packet_size) {
+			if ((packet_size) || (krad_link->video_codec == THEORA)) {
 
 				keyframe_char[0] = keyframe;
 

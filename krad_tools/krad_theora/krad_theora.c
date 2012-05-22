@@ -45,7 +45,7 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	} else {
 		//FOR x86 Realtime
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
-		krad_theora->speed -= 1;
+		//krad_theora->speed -= 1;
 		printk ("Theora encoder speed: %d quality: %d\n", krad_theora->speed, krad_theora->quality);
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
 	}
@@ -147,7 +147,7 @@ void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora) {
 
 }
 
-int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe) {
+int krad_theora_encoder_write (krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe) {
 	
 	int ret;
 	
