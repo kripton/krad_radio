@@ -255,7 +255,28 @@ Kradradio.prototype.got_add_link = function (link) {
 		
 		if ((link.audio_codec == "Opus") && ((link.av_mode == "audio only") || (link.av_mode == "audio and video"))) {
 		
-			$('#link_' + link.link_num).append("<h5>Opus frame size: " + link.opus_frame_size + "</h5>");
+			$('#link_' + link.link_num).append("<h5>Opus frame size: </h5>");
+			
+			
+			
+			frame_size_controls = '<div id="radio">\
+				<input type="radio" id="radio1" name="link_' + link.link_num + '_opus_frame_size" value="120"/><label for="radio1">120</label>\
+				<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" checked="checked" value="240"/><label for="radio2">240</label>\
+				<input type="radio" id="radio3" name="link_' + link.link_num + '_opus_frame_size" value="480"/><label for="radio3">480</label>\
+				<input type="radio" id="radio4" name="link_' + link.link_num + '_opus_frame_size" value="960"/><label for="radio4">960</label>\
+				<input type="radio" id="radio5" name="link_' + link.link_num + '_opus_frame_size" value="1920"/><label for="radio5">1920</label>\
+				<input type="radio" id="radio6" name="link_' + link.link_num + '_opus_frame_size" value="2880"/><label for="radio6">2880</label>\
+			</div>';
+			
+			$('#link_' + link.link_num).append(frame_size_controls);
+
+			$("input[name=link_" + link.link_num + "_opus_frame_size][value=" + link.opus_frame_size + "]").attr('checked', 'checked');
+			
+			$( "input[name=link_" + link.link_num + "_opus_frame_size]" ).bind( "change", function(event, ui) {
+				var valu = $('input[name=link_" + link.link_num + "_opus_frame_size]:checked').val();
+				kradradio.update_link (link.link_num, "opus_frame_size", parseInt (valu));
+			});				
+			
 			$('#link_' + link.link_num).append("<h5>Opus bitrate: <span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h5><div id='link_" + link.link_num + "_opus_bitrate_slider'></div>");
 			$('#link_' + link.link_num).append("<h5>Opus complexity: <span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h5><div id='link_" + link.link_num + "_opus_complexity_slider'></div>");
 

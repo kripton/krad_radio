@@ -78,6 +78,10 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 					if (strcmp(part2->valuestring, "opus_complexity") == 0) {
 						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, part3->valueint);
 					}
+
+					if (strcmp(part2->valuestring, "opus_frame_size") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, part3->valueint);
+					}
 				}
 			}		
 		}		
