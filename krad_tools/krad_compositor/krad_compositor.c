@@ -200,7 +200,6 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT)) {
 			krad_compositor_port_push_frame (&krad_compositor->port[p], krad_frame);
-			break;
 		}
 	}
 	
