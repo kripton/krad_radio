@@ -24,6 +24,11 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	krad_theora->info.target_bitrate = 0;
 	krad_theora->info.quality = krad_theora->quality;
 	krad_theora->info.pixel_fmt = TH_PF_420;
+	
+	
+	//FIXME hardcoded
+	krad_theora->info.fps_numerator = 30000;
+	krad_theora->info.fps_denominator = 1000;
 
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
