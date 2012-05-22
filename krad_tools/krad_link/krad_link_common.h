@@ -78,6 +78,7 @@ struct krad_link_rep_St {
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
 	krad_link_av_mode_t av_mode;
+	krad_link_video_source_t video_source;
 
 	char host[512];
 	int tcp_port;

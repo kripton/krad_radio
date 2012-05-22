@@ -943,12 +943,12 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	
 	pos = 0;
 	
-	if (krad_link->operation_mode == TRANSMIT) {	
+	if (krad_link->operation_mode == TRANSMIT) {
 	
-		pos += sprintf (text, "%s - %s - %s:%d%s",
-				krad_link_av_mode_to_string (krad_link->av_mode),
-				krad_link_operation_mode_to_string (krad_link->operation_mode),
-				krad_link->host, krad_link->tcp_port, krad_link->mount);
+		pos += sprintf (text + pos, "%s - %s - %s:%d%s",
+						krad_link_av_mode_to_string (krad_link->av_mode),
+						krad_link_operation_mode_to_string (krad_link->operation_mode),
+						krad_link->host, krad_link->tcp_port, krad_link->mount);
 				
 				
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
@@ -966,11 +966,17 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 				
 				
 	} else {
-		pos = sprintf (text, "%s - %s", 
-				krad_link_av_mode_to_string (krad_link->av_mode),
-				krad_link_operation_mode_to_string (krad_link->operation_mode));
+		pos += sprintf (text + pos, "%s - %s", 
+						krad_link_av_mode_to_string (krad_link->av_mode),
+						krad_link_operation_mode_to_string (krad_link->operation_mode));
 	}
 	
+	if (krad_link->operation_mode == CAPTURE) {
+		
+		pos += sprintf (text + pos, " %s", 
+						krad_link_video_source_to_string (krad_link->video_source));
+	
+	}
 	
 		
 	return pos;
@@ -1054,7 +1060,23 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 		
 		if (strcmp(string, "playback") == 0) {
 			krad_link->operation_mode = PLAYBACK;
-		}			
+		}
+		
+		if (krad_link->operation_mode == CAPTURE) {
+		
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE) {
+					printk ("hrm wtf2v\n");
+				} else {
+					//printk ("tag name size %zu\n", ebml_data_size);
+				}
+
+				krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+			
+				krad_link->video_source = krad_link_string_to_video_source (string);
+				
+		}
 
 		if (krad_link->operation_mode == TRANSMIT) {
 		

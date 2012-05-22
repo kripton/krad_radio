@@ -2318,6 +2318,10 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			break;
 	}
 	
+	if (krad_link->operation_mode == CAPTURE) {
+		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE, krad_link_video_source_to_string (krad_link->video_source));
+	}
+	
 	if (krad_link->operation_mode == TRANSMIT) {
 		switch ( krad_link->av_mode ) {
 
