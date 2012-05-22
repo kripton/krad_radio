@@ -182,6 +182,11 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		kradgui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, krad_compositor->hex_size);	
 	}
 	
+	if (krad_compositor->render_vu_meters > 0) {
+		kradgui_render_meter (krad_compositor->krad_gui, 110, krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[0]);
+		kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110, krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
+	}
+	
 	krad_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
 	
 	memcpy ( krad_frame->pixels, krad_compositor->krad_gui->data, krad_compositor->frame_byte_size );	
@@ -351,15 +356,51 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	
 	krad_compositor->hex_x = 150;
 	krad_compositor->hex_y = 100;
-	krad_compositor->hex_size = 33;
+	krad_compositor->hex_size = 0;
 
 	krad_compositor->bug_filename = NULL;	
 	
+	krad_compositor->render_vu_meters = 1;
 	
 	return krad_compositor;
 
 }
 
+
+void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value) {
+	
+	int c;
+	int fps;
+	float kick;
+	
+	kick = 0.0;
+	
+	c = channel;
+	fps = 30;
+
+	if (value >= krad_compositor->krad_gui->output_peak[c]) {
+		if (value > 2.7f) {
+			krad_compositor->krad_gui->output_peak[c] = value;
+			kick = ((krad_compositor->krad_gui->output_peak[channel] - krad_compositor->krad_gui->output_current[c]) / 300.0);
+		}
+	} else {
+		if (krad_compositor->krad_gui->output_peak[c] == krad_compositor->krad_gui->output_current[c]) {
+			krad_compositor->krad_gui->output_peak[c] -= (0.9 * (60/fps));
+			if (krad_compositor->krad_gui->output_peak[c] < 0.0f) {
+				krad_compositor->krad_gui->output_peak[c] = 0.0f;
+			}
+			krad_compositor->krad_gui->output_current[c] = krad_compositor->krad_gui->output_peak[c];
+		}
+	}
+
+	if (krad_compositor->krad_gui->output_peak[c] > krad_compositor->krad_gui->output_current[c]) {
+		krad_compositor->krad_gui->output_current[c] = (krad_compositor->krad_gui->output_current[c] + 1.4) * (1.3 + kick);
+	}
+
+	if (krad_compositor->krad_gui->output_peak[c] < krad_compositor->krad_gui->output_current[c]) {
+		krad_compositor->krad_gui->output_current[c] = krad_compositor->krad_gui->output_peak[c];
+	}
+}
 
 int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc ) {
 

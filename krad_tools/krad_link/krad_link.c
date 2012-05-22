@@ -589,13 +589,13 @@ void *stream_output_thread(void *arg) {
 		
 		if (krad_link->video_codec != THEORA) {
 		
-			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container, krad_link->video_codec, 30000, 1000,
+			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container, krad_link->video_codec, DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
 															krad_link->encoding_width, krad_link->encoding_height);
 		} else {
 		
 			usleep (50000);
 		
-			krad_link->video_track = krad_container_add_video_track_with_private_data (krad_link->krad_container, krad_link->video_codec, 30000, 1000,
+			krad_link->video_track = krad_container_add_video_track_with_private_data (krad_link->krad_container, krad_link->video_codec, DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
 															krad_link->encoding_width, krad_link->encoding_height, krad_link->krad_theora_encoder->header_combined, krad_link->krad_theora_encoder->header_combined_size);
 		
 		}
@@ -1073,7 +1073,7 @@ void *udp_input_thread(void *arg) {
 	unsigned char opus_header[256];
 	int opus_header_size;
 	
-	opus_temp = kradopus_encoder_create(48000.0, 2, 192000, OPUS_APPLICATION_AUDIO);
+	opus_temp = kradopus_encoder_create(48000.0, 2, 110000, OPUS_APPLICATION_AUDIO);
 	opus_header_size = opus_temp->header_data_size;
 	memcpy (opus_header, opus_temp->header_data, opus_header_size);
 	kradopus_encoder_destroy(opus_temp);
@@ -1750,6 +1750,13 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 	krad_link->audio_frames_captured += frames;
 	
+	float peakval[2];
+	
+	peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 0);
+	peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 1);
+	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, peakval[0]);
+	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, peakval[1]);
+	
 	krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
 	
 	return 0;
@@ -1959,8 +1966,8 @@ krad_link_t *krad_link_create() {
 
 	krad_link->operation_mode = CAPTURE;
 	krad_link->interface_mode = COMMAND;
-	krad_link->video_codec = THEORA;
-	krad_link->audio_codec = VORBIS;
+	krad_link->video_codec = KRAD_LINK_DEFAULT_VIDEO_CODEC;
+	krad_link->audio_codec = KRAD_LINK_DEFAULT_AUDIO_CODEC;
 	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
 	krad_link->video_source = NOVIDEO;
 	krad_link->transport_mode = TCP;

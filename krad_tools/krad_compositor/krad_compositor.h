@@ -55,6 +55,8 @@ struct krad_compositor_St {
 	int bug_x;
 	int bug_y;
 	char *bug_filename;
+	
+	int render_vu_meters;
 
 	krad_framepool_t *krad_framepool;
 
@@ -64,6 +66,8 @@ struct krad_compositor_St {
 	krad_ringbuffer_t *composited_frames_buffer;
 
 };
+
+void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value);
 
 void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port);
