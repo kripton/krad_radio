@@ -956,7 +956,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 		}
 
 		if (krad_link->av_mode == AUDIO_AND_VIDEO) {
-			pos += sprintf (text + pos, " + ");
+			pos += sprintf (text + pos, " +");
 		}
 
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
