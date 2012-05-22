@@ -41,7 +41,7 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 		krad_theora->header_count++;
 		
 		
-		printf("krad_theora_encoder_create th_encode_flushheader got header packet %ld which is %ld bytes\n", 
+		printf("krad_theora_encoder_create th_encode_flushheader got header packet %"PRIi64" which is %"PRIi64" bytes\n", 
 				krad_theora->packet.packetno, krad_theora->packet.bytes);
 	}
 	
