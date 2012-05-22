@@ -89,6 +89,12 @@ struct krad_link_rep_St {
 	float vorbis_quality;
 	int audio_channels;
 
+
+
+	int opus_bitrate;
+	int opus_complexity;
+	int opus_frame_size;
+
 };
 
 

@@ -454,6 +454,29 @@ void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *fil
 
 }
 
+void krad_ipc_compositor_vu (krad_ipc_client_t *client, int on_off) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t vu;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_VU_MODE, &vu);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_VU_ON, on_off);
+
+	krad_ebml_finish_element (client->krad_ebml, vu);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size) {
 
 	//uint64_t ipc_command;
@@ -963,7 +986,11 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 			pos += sprintf (text + pos, " %s", krad_codec_to_string (krad_link->audio_codec));
 		}
 
-				
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+			pos += sprintf (text + pos, " Complexity: %d Bitrate: %d Frame Size: %d", krad_link->opus_complexity,
+							krad_link->opus_bitrate, krad_link->opus_frame_size);
+
+		}				
 				
 	} else {
 		pos += sprintf (text + pos, "%s - %s", 
@@ -1142,6 +1169,28 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			}
 
 			krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
+
+
+			if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+
+
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE) {
+					krad_link->opus_bitrate = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				}
+				
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY) {
+					krad_link->opus_complexity = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				}
+				
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE) {
+					krad_link->opus_frame_size = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				}								
+
+			}
+
 	}
 	
 	krad_link_rep_to_string ( krad_link, text );

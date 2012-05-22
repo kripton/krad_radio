@@ -322,6 +322,23 @@ int kradopus_write_opus(krad_opus_t *kradopus, unsigned char *buffer, int length
 }
 
 
+int kradopus_get_bitrate (krad_opus_t *kradopus) { 
+	return kradopus->bitrate;
+}
+
+int kradopus_get_complexity (krad_opus_t *kradopus) { 
+	return kradopus->complexity;
+}
+
+int kradopus_get_frame_size (krad_opus_t *kradopus) { 
+	return kradopus->frame_size;
+}
+
+int kradopus_get_signal (krad_opus_t *kradopus) { 
+	return kradopus->signal;
+}
+
+
 void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate) { 
 	kradopus->new_bitrate = bitrate;
 }
@@ -342,7 +359,7 @@ void kradopus_set_signal (krad_opus_t *kradopus, int signal) {
 	kradopus->new_signal = signal;
 }
 
-int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer) {
+int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer) {
 
 	int resp;
 	

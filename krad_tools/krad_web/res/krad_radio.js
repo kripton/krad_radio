@@ -116,7 +116,7 @@ Kradradio.prototype.got_sysname = function (sysname) {
 
 	this.sysname = sysname;
 
-	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'><div class='kradradio'><h2>" + this.sysname + "</h2></div><div class='kradmixer'></div><div class='kradlink'></div><div class='kradcompositor'></div></div>");
+	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'><div class='kradradio'><h2>" + this.sysname + "</h2></div><div class='kradmixer'></div><br clear='both'><div class='kradlink'></div><br clear='both'><div class='kradcompositor'></div></div>");
 }
 
 Kradradio.prototype.got_messages = function (msgs) {
@@ -139,7 +139,12 @@ Kradradio.prototype.got_messages = function (msgs) {
 			if (msg_arr[m].info == "sysname") {
 				kradradio.got_sysname (msg_arr[m].infoval);
 			}
-		}		
+		}
+		if (msg_arr[m].com == "kradlink") {
+			if (msg_arr[m].cmd == "add_link") {
+				kradradio.got_add_link (msg_arr[m]);
+			}
+		}			
 	}
 
 }
@@ -203,8 +208,81 @@ Kradradio.prototype.got_remove_portgroup = function (name) {
 	$('#' + name).remove();
 
 }
+
+
+Kradradio.prototype.update_link = function (link_num, control_name, value) {
+
+	var cmd = {};  
+	cmd.com = "kradlink";  
+	cmd.cmd = "update_link";
+  	cmd.link_num = link_num;  
+  	cmd.control_name = control_name;  
+	cmd.value = value;
 	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send (JSONcmd);
+
+	console.log (JSONcmd);
+}
+	
+
+Kradradio.prototype.got_add_link = function (link) {
+
+	$('.kradlink').append("<div class='kradlink_link'> <div id='link_" + link.link_num + "'></div></div>");
+
+	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + "</h3>");
+
+	$('#link_' + link.link_num).append("<h4>" + link.av_mode + "</h4>");
+
+
+	if (link.operation_mode == "capture") {
+		$('#link_' + link.link_num).append("<h5>" + link.video_source + "</h5>");
+	}
+
+
+	if (link.operation_mode == "transmit") {
+		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
+
+
+		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
+			$('#link_' + link.link_num).append("<h5>" + link.video_codec + "</h5>");
+		}
+		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
+			$('#link_' + link.link_num).append("<h5>" + link.audio_codec + "</h5>");
+		}
 		
+		
+		if ((link.audio_codec == "Opus") && ((link.av_mode == "audio only") || (link.av_mode == "audio and video"))) {
+		
+			$('#link_' + link.link_num).append("<h5>Opus frame size: " + link.opus_frame_size + "</h5>");
+			$('#link_' + link.link_num).append("<h5>Opus bitrate: <span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h5><div id='link_" + link.link_num + "_opus_bitrate_slider'></div>");
+			$('#link_' + link.link_num).append("<h5>Opus complexity: <span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h5><div id='link_" + link.link_num + "_opus_complexity_slider'></div>");
+
+
+			$('#link_' + link.link_num + '_opus_bitrate_slider').slider({orientation: 'vertical', value: link.opus_bitrate, min: 3000, max: 320000 });
+
+			$( '#link_' + link.link_num + '_opus_bitrate_slider' ).bind( "slide", function(event, ui) {
+				$( '#link_' + link.link_num + '_opus_bitrate_value' ).html(ui.value);			
+				kradradio.update_link (link.link_num, "opus_bitrate", ui.value);
+			});		
+
+
+			$('#link_' + link.link_num + '_opus_complexity_slider').slider({orientation: 'vertical', value: link.opus_complexity, min: 0, max: 10 });
+
+			$( '#link_' + link.link_num + '_opus_complexity_slider' ).bind( "slide", function(event, ui) {
+				$( '#link_' + link.link_num + '_opus_complexity_value' ).html(ui.value);
+				kradradio.update_link (link.link_num, "opus_complexity", ui.value);
+			});	
+		
+		
+		
+		}
+		
+		
+
+	}
+}
 	
 	
 	

@@ -100,6 +100,17 @@ void *video_capture_thread (void *arg) {
 		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
+
+
+		float peakval[2];
+	
+		if (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "Music1") != NULL) {
+	
+			peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "Music1"), 0);
+			peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "Music1"), 1);
+			krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
+			krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
+		}
 		
 		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
 			krad_compositor_mjpeg_process (krad_link->krad_radio->krad_compositor);
@@ -2340,6 +2351,21 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_HOST, krad_link->host);
 		krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->tcp_port);
 		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_MOUNT, krad_link->mount);
+
+
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+
+			//krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, krad_link->mount);
+			//int kradopus_get_signal (krad_link->krad_opus);
+
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, kradopus_get_bitrate (krad_link->krad_opus));
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, kradopus_get_complexity (krad_link->krad_opus));
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, kradopus_get_frame_size (krad_link->krad_opus));
+
+			//EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));		
+
+		}
+
 	}
 	
 	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, link);

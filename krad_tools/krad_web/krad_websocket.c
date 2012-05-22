@@ -28,6 +28,10 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
 	
+	int intval;
+	
+	int link_num;
+	
 	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
 
 	cJSON *cmd;
@@ -60,6 +64,24 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 			}		
 		}
 		
+		if ((part != NULL) && (strcmp(part->valuestring, "kradlink") == 0)) {
+			part = cJSON_GetObjectItem (cmd, "cmd");		
+			if ((part != NULL) && (strcmp(part->valuestring, "update_link") == 0)) {
+				part = cJSON_GetObjectItem (cmd, "link_num");
+				part2 = cJSON_GetObjectItem (cmd, "control_name");
+				part3 = cJSON_GetObjectItem (cmd, "value");
+				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
+					if (strcmp(part2->valuestring, "opus_bitrate") == 0) {
+						krad_ipc_update_link (pss->krad_ipc_client, part->valueint, part3->valueint);
+					}
+
+					if (strcmp(part2->valuestring, "opus_complexity") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, part3->valueint);
+					}
+				}
+			}		
+		}		
+		
 		cJSON_Delete (cmd);
 		printk ("%s\n", out);
 		free (out);
@@ -73,6 +95,53 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 }
 
 /* callbacks from ipc handler to add JSON to websocket message */
+
+void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, krad_link_rep_t *krad_link, int link_num) {
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradlink");
+	cJSON_AddStringToObject (msg, "cmd", "add_link");
+	cJSON_AddNumberToObject (msg, "link_num", link_num);
+	cJSON_AddStringToObject (msg, "operation_mode", krad_link_operation_mode_to_string(krad_link->operation_mode));
+
+	cJSON_AddStringToObject (msg, "av_mode",  krad_link_av_mode_to_string(krad_link->av_mode));
+
+	if (krad_link->operation_mode == CAPTURE) {
+	
+		cJSON_AddStringToObject (msg, "video_source",  krad_link_video_source_to_string(krad_link->video_source));
+	
+	}
+
+	if (krad_link->operation_mode == TRANSMIT) {
+	
+		cJSON_AddStringToObject (msg, "host",  krad_link->host);
+		cJSON_AddNumberToObject (msg, "port",  krad_link->tcp_port);
+		cJSON_AddStringToObject (msg, "mount",  krad_link->mount);
+
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			cJSON_AddStringToObject (msg, "video_codec",  krad_codec_to_string (krad_link->video_codec));
+		}
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			cJSON_AddStringToObject (msg, "audio_codec",  krad_codec_to_string (krad_link->audio_codec));
+		}
+		
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+			cJSON_AddNumberToObject (msg, "opus_complexity",  krad_link->opus_complexity);
+			cJSON_AddNumberToObject (msg, "opus_bitrate",  krad_link->opus_bitrate);
+			cJSON_AddNumberToObject (msg, "opus_frame_size",  krad_link->opus_frame_size);			
+		
+		}		
+
+	
+	}	
+	
+
+
+}
+
 
 void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
 
@@ -174,9 +243,9 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					list_size = ebml_data_size;
 					i = 0;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep)) <= list_size)) {
-						printf("%d: %s\n", i, string);
+						printf("%d: %s\n", i, string);						
+						krad_websocket_add_link (krad_ipc_session_data, krad_link_rep, i);
 						i++;
-						
 						free (krad_link_rep);
 						
 						if (bytes_read == list_size) {

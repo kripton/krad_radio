@@ -365,7 +365,7 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 
 	krad_compositor->bug_filename = NULL;	
 	
-	krad_compositor->render_vu_meters = 1;
+	krad_compositor->render_vu_meters = 0;
 	
 	return krad_compositor;
 
@@ -435,9 +435,21 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 
 	switch ( command ) {
-	
-	
-		//krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y
+
+		case  EBML_ID_KRAD_COMPOSITOR_CMD_VU_MODE:
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_VU_ON) {
+				printf("hrm wtf3vu\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_compositor->render_vu_meters = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+
+			break;
+
 	
 		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_BUG:
 

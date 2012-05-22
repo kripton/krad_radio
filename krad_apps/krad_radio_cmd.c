@@ -207,7 +207,16 @@ int main (int argc, char *argv[]) {
 				if (argc == 6) {
 					krad_ipc_compositor_bug (client, atoi(argv[3]), atoi(argv[4]), argv[5]);
 				}
-			}		
+			}
+			
+			if (strncmp(argv[2], "vuon", 4) == 0) {
+				krad_ipc_compositor_vu (client, 1);
+			}			
+
+			if (strncmp(argv[2], "vuoff", 5) == 0) {
+				krad_ipc_compositor_vu (client, 0);
+			}			
+
 			
 			krad_ipc_disconnect (client);
 		}
