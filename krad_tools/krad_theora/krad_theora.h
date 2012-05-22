@@ -47,6 +47,8 @@ struct krad_theora_encoder_St {
 	ogg_packet packet;
 	th_ycbcr_buffer ycbcr;
 	
+	int speed;
+	
 };
 
 struct krad_theora_decoder_St {

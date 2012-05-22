@@ -209,7 +209,7 @@ void *video_encoding_thread(void *arg) {
 	}
 	
 	if (krad_link->video_codec == THEORA) {
-		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, krad_link->encoding_height, 33);
+		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, krad_link->encoding_height, 50);
 	}
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "VIDEnc", OUTPUT);

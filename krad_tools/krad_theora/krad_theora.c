@@ -27,14 +27,9 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
-	int val;
-	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &val, sizeof(int));
-	
-	val -= 1;
-	
-	printf("speed level %d\n", val);
-	
-	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &val, sizeof(int));
+	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
+	printf("Theora encoder speed: %d\n", krad_theora->speed);
+	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
 
 	while (th_encode_flushheader ( krad_theora->encoder, &krad_theora->comment, &krad_theora->packet) > 0) {
 	
