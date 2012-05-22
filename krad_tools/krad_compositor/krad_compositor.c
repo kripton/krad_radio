@@ -155,8 +155,14 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	*/
 	
 	if (krad_compositor->bug_filename != NULL) {
-		printk ("setting bug to %s %d %d\n", krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);
-		kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);	
+	
+		if (strlen(krad_compositor->bug_filename)) {
+			printk ("setting bug to %s %d %d\n", krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);
+			kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);
+		} else {
+			printk ("removing bug\n");
+			kradgui_remove_bug (krad_compositor->krad_gui);
+		}
 		free (krad_compositor->bug_filename);
 		krad_compositor->bug_filename = NULL;
 	}
@@ -467,9 +473,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 
 			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 
-			if (strlen(string)) {
-				krad_compositor->bug_filename = strdup (string);
-			}
+			krad_compositor->bug_filename = strdup (string);
 
 			/*
 			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_LINK_MSG, &response);
