@@ -973,7 +973,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	
 	if (krad_link->operation_mode == CAPTURE) {
 		
-		pos += sprintf (text + pos, " %s", 
+		pos += sprintf (text + pos, " - %s", 
 						krad_link_video_source_to_string (krad_link->video_source));
 	
 	}
