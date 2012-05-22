@@ -151,6 +151,8 @@ int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char 
 	
 	int ret;
 	
+	int key;
+	
 	ret = th_encode_ycbcr_in (krad_theora->encoder, krad_theora->ycbcr);
 	if (ret != 0) {
 		printf("krad_theora_encoder_write th_encode_ycbcr_in failed! %d\n", ret);
@@ -167,7 +169,8 @@ int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char 
 	
 	*packet = krad_theora->packet.packet;
 	
-	*keyframe = th_packet_iskeyframe (&krad_theora->packet);
+	key = th_packet_iskeyframe (&krad_theora->packet);
+	*keyframe = key;
 	if (*keyframe == -1) {
 		printf("krad_theora_encoder_write th_packet_iskeyframe failed! %d\n", *keyframe);
 		exit(1);
