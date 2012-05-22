@@ -2134,6 +2134,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	
 	memset (string, '\0', 512);
 
+	//FIXME default
+	krad_link->av_mode = AUDIO_AND_VIDEO;
+
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK) {
