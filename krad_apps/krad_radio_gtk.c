@@ -265,18 +265,21 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	uint64_t ebml_data_size;
 	//uint64_t element;
 	int list_size;
-	//int p;
+	int i;
 	float floatval;	
 	char portname_actual[256];
 	char controlname_actual[1024];
 	char crossfadename_actual[1024];
+	char string_actual[1024];
 	int bytes_read;
+	string_actual[0] = '\0';
 	portname_actual[0] = '\0';
 	controlname_actual[0] = '\0';
 	
 	char *portname = portname_actual;
 	char *controlname = controlname_actual;
 	char *crossfadename = crossfadename_actual;
+	char *string = string_actual;
 	float crossfade;
 	bytes_read = 0;
 	ebml_id = 0;
@@ -284,6 +287,7 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	floatval = 0;
 	message = 0;
 	ebml_data_size = 0;
+	i = 0;
 	//element = 0;
 	//p = 0;
 	
@@ -300,7 +304,28 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			break;
 	
 		case EBML_ID_KRAD_LINK_MSG:
-			//printf("krad_radio_gtk_ipc_handler got message from krad link\n");
+			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+
+			switch ( ebml_id ) {
+				case EBML_ID_KRAD_LINK_LINK_LIST:
+					//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
+
+					list_size = ebml_data_size;
+					i = 0;
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( krad_ipc, string, NULL)) <= list_size)) {
+						printf("%d: %s\n", i, string);
+						i++;
+						if (bytes_read == list_size) {
+							break;
+						}
+					}	
+					break;
+
+				default:
+					printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+					break;
+			}
+
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
@@ -409,6 +434,7 @@ int main (int argc, char *argv[]) {
 	krad_ipc_set_handler_callback (krad_radio_gtk->client, krad_radio_gtk_ipc_handler, krad_radio_gtk);
 	
 	krad_ipc_get_portgroups (krad_radio_gtk->client);
+	krad_ipc_list_links (krad_radio_gtk->client);
 	
 	gtk_init (&argc, &argv);
 

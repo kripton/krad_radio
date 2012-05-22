@@ -124,20 +124,26 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	uint64_t ebml_data_size;
 	//uint64_t element;
 	int list_size;
-	//int p;
+	int i;
 	float floatval;	
 	char portname_actual[256];
 	char controlname_actual[1024];
+	char string_actual[1024];	
 	int bytes_read;
+	string_actual[0] = '\0';	
 	portname_actual[0] = '\0';
 	controlname_actual[0] = '\0';
 	
 	char *portname = portname_actual;
 	char *controlname = controlname_actual;
-	
+	char *string = string_actual;	
 	char crossfadename_actual[1024];	
 	char *crossfadename = crossfadename_actual;
 	float crossfade;	
+	
+	krad_link_rep_t *krad_link_rep;
+	
+	krad_link_rep = NULL;
 	
 	bytes_read = 0;
 	ebml_id = 0;
@@ -146,18 +152,48 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	message = 0;
 	ebml_data_size = 0;
 	//element = 0;
-	//p = 0;
+	i = 0;
 	
 	krad_ebml_read_element ( krad_ipc->krad_ebml, &message, &ebml_data_size);
 
 	switch ( message ) {
+
+
 	
 		case EBML_ID_KRAD_RADIO_MSG:
 			printf("krad_radio_gtk_ipc_handler got message from krad radio\n");
 			break;
 	
 		case EBML_ID_KRAD_LINK_MSG:
-			printf("krad_radio_gtk_ipc_handler got message from krad link\n");
+			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+
+			switch ( ebml_id ) {
+				case EBML_ID_KRAD_LINK_LINK_LIST:
+					//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
+
+					list_size = ebml_data_size;
+					i = 0;
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep)) <= list_size)) {
+						printf("%d: %s\n", i, string);
+						i++;
+						
+						free (krad_link_rep);
+						
+						if (bytes_read == list_size) {
+							break;
+						}
+					}	
+					break;
+
+				default:
+					printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+					break;
+			}
+
+			break;
+
+		case EBML_ID_KRAD_COMPOSITOR_MSG:
+			printf("krad_radio_gtk_ipc_handler got message from krad COMPOSITOR\n");
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
@@ -382,6 +418,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->hello_sent = 0;			
 			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
+			krad_ipc_list_links (pss->krad_ipc_client);			
 			add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
 
 			break;

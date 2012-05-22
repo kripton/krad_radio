@@ -91,7 +91,7 @@ void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32
 void krad_ipc_radio_uptime (krad_ipc_client_t *client);
 void krad_ipc_radio_info (krad_ipc_client_t *client);
 
-int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text);
+int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
 
 int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade );
 

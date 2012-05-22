@@ -984,7 +984,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 }
 
 
-int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
+int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -1146,8 +1146,13 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text) {
 	
 	krad_link_rep_to_string ( krad_link, text );
 
-	free (krad_link);
 
+	if (krad_link_rep != NULL) {
+		*krad_link_rep = krad_link;
+	} else {
+		free (krad_link);
+	}
+	
 	return bytes_read;
 
 }
@@ -1461,7 +1466,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	
 						list_size = ebml_data_size;
 						i = 0;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value)) <= list_size)) {
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, NULL)) <= list_size)) {
 							printf("%d: %s\n", i, tag_value);
 							i++;
 							if (bytes_read == list_size) {
@@ -1469,9 +1474,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 							}
 						}	
 						break;
-					
-	
-						break;
+
 					default:
 						printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
 						break;
