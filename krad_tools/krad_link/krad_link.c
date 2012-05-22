@@ -678,7 +678,7 @@ void *stream_output_thread(void *arg) {
 		
 		}
 		
-		if (krad_link->audio_codec != NOCODEC) {
+		if (krad_link->av_mode != AUDIO_ONLY) {
 		
 			while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) >= 4) && 
 				  ((krad_link->av_mode == AUDIO_ONLY) || ((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed))) {
