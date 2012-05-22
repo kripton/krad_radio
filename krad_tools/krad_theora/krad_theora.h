@@ -18,8 +18,13 @@
 #include <theora/theoradec.h>
 #include <theora/theoraenc.h>
 
+#include "krad_radio.h"
+
 typedef struct krad_theora_encoder_St krad_theora_encoder_t;
 typedef struct krad_theora_decoder_St krad_theora_decoder_t;
+
+#ifndef KRAD_THEORA_H
+#define KRAD_THEORA_H
 
 struct krad_theora_encoder_St {
 
@@ -92,3 +97,5 @@ krad_theora_decoder_t *krad_theora_decoder_create();
 void krad_theora_decoder_destroy(krad_theora_decoder_t *krad_theora);
 void krad_theora_decoder_write(krad_theora_decoder_t *krad_theora);
 void krad_theora_decoder_decode(krad_theora_decoder_t *krad_theora, void *buffer, int len);
+
+#endif
