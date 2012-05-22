@@ -1,6 +1,6 @@
 #include "krad_theora.h"
 
-#define TEST_COUNT 500
+#define TEST_COUNT 1
 
 int main (int argc, char *argv[]) {
 
@@ -13,8 +13,8 @@ int main (int argc, char *argv[]) {
 	int count;
 	int test_count;
 	
-	width = 640;
-	height = 480;
+	width = 1280;
+	height = 720;
 	count = 0;
 	quality = 33;
 	
