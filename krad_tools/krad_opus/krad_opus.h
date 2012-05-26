@@ -34,14 +34,11 @@ typedef struct kradopus_St krad_opus_t;
 
 struct kradopus_St {
 
-
-   int opus_decoder_error;
-   OpusMSDecoder *decoder;
-
+	int opus_decoder_error;
+	OpusMSDecoder *decoder;
 
 	OpusMSEncoder *st;
 	OpusHeader *opus_header;
-	//SpeexResamplerState *resampler;	
 	float *resampled_samples[MAX_CHANNELS];
 	float *samples[MAX_CHANNELS];
 	float *read_samples[MAX_CHANNELS];
@@ -62,7 +59,6 @@ struct kradopus_St {
 	char *st_string;
 	float input_sample_rate;
 	float output_sample_rate;
-	float speed;
 
 	int complexity;
 	int bitrate;
@@ -73,7 +69,6 @@ struct kradopus_St {
 	opus_int32 new_frame_size;	
 	int new_complexity;
 	int new_bitrate;
-	//int new_application;
 	int new_signal;
 
 	int id;
@@ -83,8 +78,6 @@ struct kradopus_St {
 	
 	unsigned char header_data[100];
 	int header_data_size;
-	
-	
 	
 	SRC_STATE *src_resampler[MAX_CHANNELS];
 	SRC_DATA src_data[MAX_CHANNELS];
@@ -101,20 +94,15 @@ int kradopus_get_signal (krad_opus_t *kradopus);
 void kradopus_set_complexity (krad_opus_t *kradopus, int complexity);
 void kradopus_set_frame_size (krad_opus_t *kradopus, int frame_size);
 void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate);
-//void kradopus_set_application (krad_opus_t *kradopus, int application);
 void kradopus_set_signal (krad_opus_t *kradopus, int signal);
 
 
-void kradopus_decoder_set_speed(krad_opus_t *kradopus, float speed);
-float kradopus_decoder_get_speed(krad_opus_t *kradopus);
-
-
-krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_length, float output_sample_rate);
-void kradopus_decoder_destroy(krad_opus_t *kradopus);
-int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
-int kradopus_write_opus(krad_opus_t *kradopus,  unsigned char *buffer, int length);
+krad_opus_t *kradopus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
+void kradopus_decoder_destroy (krad_opus_t *kradopus);
+int kradopus_read_audio (krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
+int kradopus_write_opus (krad_opus_t *kradopus,  unsigned char *buffer, int length);
 
 int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nframes);
-int kradopus_write_audio(krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
-void kradopus_encoder_destroy(krad_opus_t *kradopus);
-krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int bitrate, int application);
+int kradopus_write_audio (krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
+void kradopus_encoder_destroy (krad_opus_t *kradopus);
+krad_opus_t *kradopus_encoder_create (float input_sample_rate, int channels, int bitrate, int application);
