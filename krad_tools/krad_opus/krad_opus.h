@@ -114,7 +114,7 @@ void kradopus_decoder_destroy(krad_opus_t *kradopus);
 int kradopus_read_audio(krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
 int kradopus_write_opus(krad_opus_t *kradopus,  unsigned char *buffer, int length);
 
-int kradopus_read_opus(krad_opus_t *kradopus, unsigned char *buffer);
+int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nframes);
 int kradopus_write_audio(krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
 void kradopus_encoder_destroy(krad_opus_t *kradopus);
 krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int bitrate, int application);

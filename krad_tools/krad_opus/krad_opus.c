@@ -359,7 +359,7 @@ void kradopus_set_signal (krad_opus_t *kradopus, int signal) {
 	kradopus->new_signal = signal;
 }
 
-int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer) {
+int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nframes) {
 
 	int resp;
 	
@@ -477,6 +477,8 @@ int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer) {
 			fprintf(stderr, "Encoding failed: %s. Aborting.\n", opus_strerror(kradopus->num_bytes));
 		 	exit(1);
 		}
+
+		*nframes = kradopus->frame_size;
 
 		return kradopus->num_bytes;
 	}

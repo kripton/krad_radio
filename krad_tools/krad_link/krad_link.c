@@ -429,7 +429,7 @@ void *audio_encoding_thread (void *arg) {
 					kradopus_write_audio(krad_link->krad_opus, c + 1, (char *)samples[c], framecnt * 4);
 				}
 
-				bytes = kradopus_read_opus (krad_link->krad_opus, buffer);
+				bytes = kradopus_read_opus (krad_link->krad_opus, buffer, &framecnt);
 			
 			}
 			
@@ -463,7 +463,7 @@ void *audio_encoding_thread (void *arg) {
 					bytes = 0;
 					
 					if (krad_link->audio_codec == OPUS) {
-						bytes = kradopus_read_opus (krad_link->krad_opus, buffer);
+						bytes = kradopus_read_opus (krad_link->krad_opus, buffer, &framecnt);
 					}
 					
 				}
