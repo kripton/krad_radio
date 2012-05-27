@@ -512,7 +512,7 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 	if (codec == FLAC) {
 		// adding ogg flac mapping to flac header
 		temp_header = calloc (1, 9 + 42);
-		memcpy (temp_header, "\x7F\x46\x4C\x41\x43\x01\x00\x00\x00", 9);
+		memcpy (temp_header, "\x7F\x46\x4C\x41\x43\x01\x00\x00\x01", 9);
 		memcpy (temp_header + 9, header[0], 42);
 	}
 	
