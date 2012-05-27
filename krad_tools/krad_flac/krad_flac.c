@@ -143,7 +143,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		
 		vorbis_commentheader_out (&flac->vc, &op);
 		
-		flac->comment = calloc (1, 4 + (op.bytes - 1);		
+		flac->comment = calloc (1, 4 + (op.bytes - 1));		
 		// 0x84 = final metadata block and is a vorbis comment
 		flac->comment[0] = 0x84;
 		flac->comment[1] = 0x00;
