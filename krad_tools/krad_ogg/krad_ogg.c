@@ -493,6 +493,7 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 
 	int h;
 	int track;
+	unsigned char *temp_header;
 	ogg_packet packet;
 	ogg_page page;
 	
@@ -507,12 +508,24 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 
 	ogg_stream_init (&krad_ogg->tracks[track].stream_state, krad_ogg->tracks[track].serial);
 
+
+	if (codec == FLAC) {
+		// adding ogg flac mapping to flac header
+		temp_header = calloc (1, 9 + 42);
+		memcpy (temp_header, "\x7F\x46\x4C\x41\x43\x01\x00\x00\x00", 9);
+		memcpy (temp_header + 9, header[0], 42);
+	}
+	
 	for (h = 0; h < header_count; h++) {
 	
-		printk ("header packet %d sized %d\n", h, header_size[h]);
-	
-		packet.packet = header[h];
-		packet.bytes = header_size[h];
+		if ((h == 0) && (codec == FLAC)) {
+			packet.packet = temp_header;
+			packet.bytes = 9 + 42;	
+		} else {
+			printk ("ogg header packet %d sized %d\n", h, header_size[h]);		
+			packet.packet = header[h];
+			packet.bytes = header_size[h];
+		}	
 		packet.b_o_s = 0;
 		packet.e_o_s = 0;
 		packet.granulepos = 0;
@@ -532,6 +545,10 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 		
 			krad_io_write_sync (krad_ogg->krad_io);
 		}
+	}
+
+	if (codec == FLAC) {
+		free (temp_header);
 	}
 
 	return track;								
