@@ -7,7 +7,7 @@
 
 #include "FLAC/stream_encoder.h"
 #include "FLAC/stream_decoder.h"
-//#include "krad_audio.h"
+#include "krad_codec_header.h"
 
 #define MAX_CHANNELS 8
 #ifndef RINGBUFFER_SIZE
@@ -41,6 +41,7 @@ struct krad_flac_St {
 	
 	int have_min_header;
 	int streaminfo_rewrite;
+	krad_codec_header_t krad_codec_header;
 
 	unsigned long long total_frames_input;
 	unsigned long long total_frames;

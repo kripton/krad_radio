@@ -167,14 +167,16 @@ int krad_container_add_video_track (krad_container_t *krad_container, krad_codec
 
 
 int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec_t codec, int sample_rate, int channels, 
-									unsigned char *header, int header_size) {
+									krad_codec_header_t *krad_codec_header) {
 
 	if (krad_container->container_type == OGG) {
-		return krad_ogg_add_audio_track (krad_container->krad_ogg, codec, sample_rate, channels, header, header_size);
+		return krad_ogg_add_audio_track (krad_container->krad_ogg, codec, sample_rate, channels, 
+										 krad_codec_header->header, krad_codec_header->header_size, 
+										 krad_codec_header->header_count);
 	} else {
-		return krad_ebml_add_audio_track (krad_container->krad_ebml, codec, sample_rate, channels, header, header_size);
+		return krad_ebml_add_audio_track (krad_container->krad_ebml, codec, sample_rate, channels, 
+										  krad_codec_header->header_combined, krad_codec_header->header_combined_size);
 	}
-									
 }
 
 void krad_container_add_video (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int keyframe) {

@@ -31,7 +31,7 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
-	krad_radio->krad_mixer = krad_mixer_create (krad_radio);
+	krad_radio->krad_mixer = krad_mixer_create ();
 	
 	if (krad_radio->krad_mixer == NULL) {
 		krad_radio_destroy (krad_radio);

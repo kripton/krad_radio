@@ -489,9 +489,9 @@ int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_
 }
 
 int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 
-							  unsigned char *header, int header_size) { 
+							  unsigned char *header[], int header_size[], int header_count) { 
 
-
+	int h;
 	int track;
 	ogg_packet packet;
 	ogg_page page;
@@ -507,44 +507,28 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 
 	ogg_stream_init (&krad_ogg->tracks[track].stream_state, krad_ogg->tracks[track].serial);
 
-	// create opus header page 1
-	packet.packet = header;
-	packet.bytes = header_size;
-	packet.b_o_s = 1;
-	packet.e_o_s = 0;
-	packet.granulepos = 0;
-	packet.packetno = krad_ogg->tracks[track].packet_num;
-	krad_ogg->tracks[track].packet_num++;
-	ogg_stream_packetin (&krad_ogg->tracks[track].stream_state, &packet);
+	for (h = 0; h < header_count; h++) {
+		packet.packet = header[h];
+		packet.bytes = header_size[h];
+		packet.b_o_s = 0;
+		packet.e_o_s = 0;
+		packet.granulepos = 0;
+		packet.packetno = krad_ogg->tracks[track].packet_num;
+		if (packet.packetno == 0) {
+			packet.b_o_s = 1;
+		}
+		krad_ogg->tracks[track].packet_num++;
+		ogg_stream_packetin (&krad_ogg->tracks[track].stream_state, &packet);
 	
-	while (ogg_stream_flush(&krad_ogg->tracks[track].stream_state, &page) != 0) {
+		while (ogg_stream_flush(&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
-		krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-		krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
 		
-		//printk ("created page sized %lu\n", page.header_len + page.body_len);
+			//printk ("created page sized %lu\n", page.header_len + page.body_len);
 		
-		krad_io_write_sync (krad_ogg->krad_io);
-	}
-
-	// create opus header page 2
-	packet.packet = (unsigned char *)"OpusTags\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
-	packet.bytes = 25;
-	packet.b_o_s = 0;
-	packet.e_o_s = 0;
-	packet.granulepos = 0;
-	packet.packetno = krad_ogg->tracks[track].packet_num;
-	ogg_stream_packetin (&krad_ogg->tracks[track].stream_state, &packet);
-	krad_ogg->tracks[track].packet_num++;
-
-	while (ogg_stream_flush(&krad_ogg->tracks[track].stream_state, &page) != 0) {
-		
-		krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-		krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
-		
-		//printk ("created page sized %lu\n", page.header_len + page.body_len);
-		
-		krad_io_write_sync (krad_ogg->krad_io);
+			krad_io_write_sync (krad_ogg->krad_io);
+		}
 	}
 
 	return track;								

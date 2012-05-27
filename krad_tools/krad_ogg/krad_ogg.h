@@ -129,7 +129,7 @@ int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_
 							  int width, int height);
 
 int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 
-							  unsigned char *header, int header_size);	
+							  unsigned char *header[], int header_size[], int header_count);	
 
 void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int keyframe);
 void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int frames);

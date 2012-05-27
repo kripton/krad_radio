@@ -170,6 +170,14 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	}
 
 	opus->header_data_size = opus_header_to_packet(opus->opus_header, opus->header_data, 100);
+	opus->krad_codec_header.header[0] = opus->header_data;
+	opus->krad_codec_header.header_size[0] = opus->header_data_size;
+	opus->krad_codec_header.header_combined = opus->header_data;
+	opus->krad_codec_header.header_combined_size = opus->header_data_size;
+	opus->krad_codec_header.header_count = 2;
+
+	opus->krad_codec_header.header[1] = (unsigned char *)"OpusTags\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
+	opus->krad_codec_header.header_size[1] = 25;
 
 	return opus;
 

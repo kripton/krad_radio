@@ -118,6 +118,13 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 
 		flac->header_size = FLAC_MINIMAL_HEADER_SIZE;
 		flac->have_min_header = 1;
+		
+		flac->krad_codec_header.header[0] = flac->min_header;
+		flac->krad_codec_header.header_size[0] = flac->header_size;
+		flac->krad_codec_header.header_combined = flac->min_header;
+		flac->krad_codec_header.header_combined_size = flac->header_size;
+		flac->krad_codec_header.header_count = 1;
+		
 	}
 	
 	// needs to be above the below

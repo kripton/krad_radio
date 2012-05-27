@@ -14,6 +14,7 @@
 
 #include "opus_header.h"
 #include "krad_ring.h"
+#include "krad_codec_header.h"
 
 // where did this come from?
 #define OPUS_MAX_FRAME_BYTES 61295
@@ -39,6 +40,8 @@ struct kradopus_St {
 
 	OpusMSEncoder *st;
 	OpusHeader *opus_header;
+	krad_codec_header_t krad_codec_header;
+		
 	float *resampled_samples[MAX_CHANNELS];
 	float *samples[MAX_CHANNELS];
 	float *read_samples[MAX_CHANNELS];

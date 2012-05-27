@@ -7,7 +7,8 @@
 #include <time.h>
 
 #include <vorbis/vorbisenc.h>
-#include <krad_ring.h>
+#include "krad_ring.h"
+#include "krad_codec_header.h"
 
 #define MAX_CHANNELS 8
 #ifndef RINGBUFFER_SIZE
@@ -38,6 +39,7 @@ struct krad_vorbis_St {
 	int samples_since_flush;
 	int last_flush_samples;
 	float **buffer;
+	krad_codec_header_t krad_codec_header;
 	ogg_packet header_main;
 	ogg_packet header_comments;
 	ogg_packet header_codebooks;

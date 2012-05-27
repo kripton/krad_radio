@@ -398,18 +398,18 @@ void *audio_encoding_thread (void *arg) {
 		case VORBIS:
 			printk ("Vorbis quality is %f\n", krad_link->vorbis_quality);
 			krad_link->krad_vorbis = krad_vorbis_encoder_create (krad_link->audio_channels,
-																 KRAD_LINK_DEFAULT_SAMPLE_RATE,
+																 krad_link->krad_radio->krad_mixer->sample_rate,
 																 krad_link->vorbis_quality);
 			framecnt = 1024;
 			break;
 		case FLAC:
 			krad_link->krad_flac = krad_flac_encoder_create (krad_link->audio_channels,
-															 KRAD_LINK_DEFAULT_SAMPLE_RATE,
+															 krad_link->krad_radio->krad_mixer->sample_rate,
 															 24);
 			framecnt = DEFAULT_FLAC_FRAME_SIZE;
 			break;
 		case OPUS:
-			krad_link->krad_opus = kradopus_encoder_create (KRAD_LINK_DEFAULT_SAMPLE_RATE,
+			krad_link->krad_opus = kradopus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate,
 															krad_link->audio_channels,
 															DEFAULT_OPUS_BITRATE,
 															OPUS_APPLICATION_AUDIO);
@@ -558,9 +558,9 @@ void *stream_output_thread (void *arg) {
 	if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 
 		if (krad_link->audio_codec == OPUS) {
-			audio_frames_per_video_frame = KRAD_LINK_DEFAULT_SAMPLE_RATE / krad_link->capture_fps;
+			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / krad_link->capture_fps;
 		} else {
-			audio_frames_per_video_frame = KRAD_LINK_DEFAULT_SAMPLE_RATE / krad_link->capture_fps;
+			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / krad_link->capture_fps;
 			//audio_frames_per_video_frame = 1602;
 		}
 	}
@@ -594,18 +594,18 @@ void *stream_output_thread (void *arg) {
 	}
 	
 	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-		if (krad_link->mjpeg_passthru == 1) {
-	
+		if (krad_link->mjpeg_passthru == 1) {	
 			krad_link->krad_compositor_port = krad_compositor_mjpeg_port_create (krad_link->krad_radio->krad_compositor,
 																				 "StreamOut",
 																				 OUTPUT);
-
 		}
 		
 		if (krad_link->video_codec != THEORA) {
 		
-			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container, krad_link->video_codec,
-																	 DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
+			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container,
+																	 krad_link->video_codec,
+																	 DEFAULT_FPS_NUMERATOR,
+																	 DEFAULT_FPS_DENOMINATOR,
 																	 krad_link->encoding_width,
 																	 krad_link->encoding_height);
 		} else {
@@ -631,26 +631,23 @@ void *stream_output_thread (void *arg) {
 			case VORBIS:
 				krad_link->audio_track = krad_container_add_audio_track (krad_link->krad_container,
 																		 krad_link->audio_codec,
-																		 KRAD_LINK_DEFAULT_SAMPLE_RATE,
+																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->audio_channels, 
-																		 krad_link->krad_vorbis->header,
-																		 krad_link->krad_vorbis->headerpos);
+																		 &krad_link->krad_flac->krad_codec_header);
 				break;
 			case FLAC:
 				krad_link->audio_track = krad_container_add_audio_track (krad_link->krad_container,
 																		 krad_link->audio_codec,
-																		 KRAD_LINK_DEFAULT_SAMPLE_RATE,
+																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->audio_channels,
-														(unsigned char *)krad_link->krad_flac->min_header,
-																		 FLAC_MINIMAL_HEADER_SIZE);
+																		 &krad_link->krad_flac->krad_codec_header);
 				break;
 			case OPUS:
 				krad_link->audio_track = krad_container_add_audio_track (krad_link->krad_container,
 																		 krad_link->audio_codec,
-																		 KRAD_LINK_DEFAULT_SAMPLE_RATE,
+																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->audio_channels, 
-																		 krad_link->krad_opus->header_data,
-																		 krad_link->krad_opus->header_data_size);
+																		 &krad_link->krad_flac->krad_codec_header);
 				break;
 			default:
 				failfast ("Unknown audio codec\n");
@@ -1117,7 +1114,9 @@ void *udp_input_thread(void *arg) {
 	unsigned char opus_header[256];
 	int opus_header_size;
 	
-	opus_temp = kradopus_encoder_create(KRAD_LINK_DEFAULT_SAMPLE_RATE, 2, 110000, OPUS_APPLICATION_AUDIO);
+	opus_temp = kradopus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate, 2, 110000, 
+										 OPUS_APPLICATION_AUDIO);
+										 
 	opus_header_size = opus_temp->header_data_size;
 	memcpy (opus_header, opus_temp->header_data, opus_header_size);
 	kradopus_encoder_destroy(opus_temp);
@@ -2126,12 +2125,15 @@ void krad_link_activate (krad_link_t *krad_link) {
 	
 	if (krad_link->operation_mode == RECEIVE) {
 
-		krad_link->decoded_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
+		krad_link->decoded_frames_buffer = 
+			krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
 		
 		if (krad_link->udp_mode) {
 			//FIXME move codec2 experimental stuff
-			krad_link->krad_codec2_decoder = krad_codec2_decoder_create(1, KRAD_LINK_DEFAULT_SAMPLE_RATE);
-			krad_link->krad_codec2_encoder = krad_codec2_encoder_create(1, KRAD_LINK_DEFAULT_SAMPLE_RATE);
+			krad_link->krad_codec2_decoder = 
+				krad_codec2_decoder_create(1, krad_link->krad_radio->krad_mixer->sample_rate);
+			krad_link->krad_codec2_encoder = 
+				krad_codec2_encoder_create(1, krad_link->krad_radio->krad_mixer->sample_rate);
 			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	
 		} else {
 			pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	

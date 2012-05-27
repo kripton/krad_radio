@@ -26,7 +26,6 @@ typedef struct krad_linker_St krad_linker_t;
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 #define KRAD_LINK_DEFAULT_VIDEO_CODEC VP8
 #define KRAD_LINK_DEFAULT_AUDIO_CODEC VORBIS
-#define KRAD_LINK_DEFAULT_SAMPLE_RATE 48000
 
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];

@@ -651,24 +651,15 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	
 }
 
-/*
-void krad_mixer_default_setup (krad_mixer_t *krad_mixer) {
-
-	// default portgroups setup
-
-	krad_mixer_portgroup_t *music1, *music2;
-
-	music1 = krad_mixer_portgroup_create (krad_mixer, "Music1", INPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);
-	music2 = krad_mixer_portgroup_create (krad_mixer, "Music2", INPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);
-
-	krad_mixer_portgroup_create (krad_mixer, "Master", OUTPUT, 2, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);	
-	
-	krad_mixer_crossfade_group_create (krad_mixer, music1, music2);
-
+int krad_mixer_get_sample_rate (krad_mixer_t *krad_mixer) {
+	return krad_mixer->sample_rate;
 }
-*/
 
-krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
+void krad_mixer_set_sample_rate (krad_mixer_t *krad_mixer, int sample_rate) {
+	krad_mixer->sample_rate = sample_rate;
+}
+
+krad_mixer_t *krad_mixer_create () {
 
 	int p;
 
@@ -679,7 +670,7 @@ krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio) {
 		exit (1);
 	}
 	
-	krad_mixer->krad_radio = krad_radio;
+	krad_mixer->sample_rate = KRAD_MIXER_DEFAULT_SAMPLE_RATE;
 	
 	krad_mixer->crossfade_group = calloc (KRAD_MIXER_MAX_PORTGROUPS / 2, sizeof (krad_mixer_crossfade_group_t));
 
@@ -732,9 +723,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	switch ( command ) {
 	
 		case EBML_ID_KRAD_MIXER_CMD_GET_CONTROL:
-			printf("Get Control\n");			
-			//printf("GET CONTROL! %d\n", krad_radio_station->test_value);
-			//krad_ipc_server_respond_number ( krad_radio_station->ipc, EBML_ID_KRAD_RADIO_CONTROL, krad_radio_station->test_value);
+			printf("Get Control\n");
 			return 1;
 			break;	
 		case EBML_ID_KRAD_MIXER_CMD_SET_CONTROL:

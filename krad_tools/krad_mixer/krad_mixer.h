@@ -5,6 +5,7 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
 #define KRAD_MIXER_MAX_PORTGROUPS 20
 #define KRAD_MIXER_MAX_CHANNELS 8
+#define KRAD_MIXER_DEFAULT_SAMPLE_RATE 48000
 
 #include "krad_radio.h"
 
@@ -77,7 +78,7 @@ struct krad_mixer_St {
 	krad_radio_t *krad_radio;
 	krad_audio_t *krad_audio;
     
-    //int sample_rate;
+	int sample_rate;
     
 	krad_mixer_mixbus_t *master_mix;
     
@@ -86,8 +87,12 @@ struct krad_mixer_St {
 
 };
 
+
+int krad_mixer_get_sample_rate ();
+void krad_mixer_set_sample_rate ();
+
 int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer);
-krad_mixer_t *krad_mixer_create (krad_radio_t *krad_radio);
+krad_mixer_t *krad_mixer_create ();
 void krad_mixer_destroy (krad_mixer_t *krad_mixer);
 
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );

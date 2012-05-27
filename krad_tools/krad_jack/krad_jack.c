@@ -293,6 +293,11 @@ krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 
 	krad_jack->sample_rate = jack_get_sample_rate ( krad_jack->client );
 
+	if (krad_jack->sample_rate != krad_mixer_get_sample_rate (krad_jack->krad_audio->krad_mixer)) {
+		krad_mixer_set_sample_rate (krad_jack->krad_audio->krad_mixer, krad_jack->sample_rate);
+		printk ("Jack set Krad Mixer Sample Rate to %d\n", krad_jack->sample_rate);		
+	}
+
 	// Set up Callbacks
 
 	jack_set_process_callback (krad_jack->client, krad_jack_process, krad_jack);
