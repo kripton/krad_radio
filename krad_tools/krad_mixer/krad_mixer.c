@@ -646,6 +646,8 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		free ( krad_mixer->portgroup[p] );
 	}
+	
+	free ( krad_mixer->name );
 
 	free ( krad_mixer );
 	
@@ -659,7 +661,7 @@ void krad_mixer_set_sample_rate (krad_mixer_t *krad_mixer, int sample_rate) {
 	krad_mixer->sample_rate = sample_rate;
 }
 
-krad_mixer_t *krad_mixer_create () {
+krad_mixer_t *krad_mixer_create (char *name) {
 
 	int p;
 
@@ -670,6 +672,7 @@ krad_mixer_t *krad_mixer_create () {
 		exit (1);
 	}
 	
+	krad_mixer->name = strdup (name);
 	krad_mixer->sample_rate = KRAD_MIXER_DEFAULT_SAMPLE_RATE;
 	
 	krad_mixer->crossfade_group = calloc (KRAD_MIXER_MAX_PORTGROUPS / 2, sizeof (krad_mixer_crossfade_group_t));

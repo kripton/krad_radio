@@ -268,7 +268,7 @@ krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 
 	krad_jack->krad_audio = krad_audio;
 
-	krad_jack->name = krad_jack->krad_audio->krad_mixer->krad_radio->sysname;
+	krad_jack->name = krad_jack->krad_audio->krad_mixer->name;
 
 	krad_jack->server_name = NULL;
 	krad_jack->options = JackNoStartServer;

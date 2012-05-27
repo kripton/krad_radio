@@ -230,7 +230,7 @@ krad_pulse_t *krad_pulse_create (krad_audio_t *krad_audio) {
 	// Create a mainloop API and connection to the default server
 	krad_pulse->pa_ml = pa_mainloop_new();
 	krad_pulse->pa_mlapi = pa_mainloop_get_api (krad_pulse->pa_ml);
-	krad_pulse->pa_ctx = pa_context_new (krad_pulse->pa_mlapi, krad_pulse->krad_audio->krad_mixer->krad_radio->sysname);
+	krad_pulse->pa_ctx = pa_context_new (krad_pulse->pa_mlapi, krad_pulse->krad_audio->krad_mixer->name);
 	
 	pa_context_connect(krad_pulse->pa_ctx, NULL, 0, NULL);
 
