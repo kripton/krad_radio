@@ -212,11 +212,7 @@ struct krad_link_St {
 krad_linker_t *krad_linker_create ();
 void krad_linker_destroy (krad_linker_t *krad_linker);
 int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ipc );
-
-
 void krad_link_shutdown();
-
-
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create();
