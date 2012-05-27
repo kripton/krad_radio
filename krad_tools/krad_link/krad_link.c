@@ -667,14 +667,16 @@ void *stream_output_thread (void *arg) {
 
 				krad_ringbuffer_read (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
 		
-				while ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < packet_size + 1) &&
-					   (krad_link->encoding < 3)) {
-							usleep(10000);
+				while ((krad_ringbuffer_read_space (krad_link->encoded_video_ringbuffer) < packet_size + 1) &&
+					   (krad_link->encoding < 3)) {		
+
+					usleep(10000);
 				}
 			
-				if ((krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < packet_size + 1) &&
+				if ((krad_ringbuffer_read_space (krad_link->encoded_video_ringbuffer) < packet_size + 1) &&
 					(krad_link->encoding > 2)) {
-						continue;
+					
+					continue;
 				}
 			
 				krad_ringbuffer_read (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
@@ -689,7 +691,6 @@ void *stream_output_thread (void *arg) {
 										  keyframe);
 
 				video_frames_muxed++;
-		
 			}
 		}
 		
@@ -728,7 +729,7 @@ void *stream_output_thread (void *arg) {
 		
 				while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) &&
 					   (krad_link->encoding != 4)) {
-							usleep(10000);
+							usleep (5000);
 				}
 			
 				if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) &&
@@ -736,8 +737,8 @@ void *stream_output_thread (void *arg) {
 					break;
 				}
 			
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)packet, packet_size);
+				krad_ringbuffer_read (krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
+				krad_ringbuffer_read (krad_link->encoded_audio_ringbuffer, (char *)packet, packet_size);
 
 				krad_container_add_audio (krad_link->krad_container,
 										  krad_link->audio_track,
@@ -757,7 +758,7 @@ void *stream_output_thread (void *arg) {
 		
 		if (krad_link->av_mode == AUDIO_ONLY) {
 		
-			if (krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) {
+			if (krad_ringbuffer_read_space (krad_link->encoded_audio_ringbuffer) < 4) {
 				
 				if (krad_link->encoding == 4) {
 					break;
@@ -777,22 +778,20 @@ void *stream_output_thread (void *arg) {
 				}
 
 				usleep (8000);
-			
 			}
 		}
 
 		if (krad_link->av_mode == AUDIO_AND_VIDEO) {
 
-			if (((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) || 
+			if (((krad_ringbuffer_read_space (krad_link->encoded_audio_ringbuffer) < 4) || 
 				((video_frames_muxed * audio_frames_per_video_frame) > audio_frames_muxed)) && 
-			   (krad_ringbuffer_read_space(krad_link->encoded_video_ringbuffer) < 4)) {
+			     (krad_ringbuffer_read_space (krad_link->encoded_video_ringbuffer) < 4)) {
 		
 				if (krad_link->encoding == 4) {
 					break;
 				}
 
 				usleep (8000);
-			
 			}
 		}
 		

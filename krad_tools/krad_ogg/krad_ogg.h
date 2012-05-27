@@ -108,9 +108,6 @@ struct krad_ogg_St {
 };
 
 
-// READING FUNCS
-
-//int krad_ogg_track_header_data_size(krad_ogg_t *krad_ogg, int track, int header);
 int krad_ogg_track_count (krad_ogg_t *krad_ogg);
 krad_codec_t krad_ogg_track_codec (krad_ogg_t *krad_ogg, int track);
 int krad_ogg_track_header_count (krad_ogg_t *krad_ogg, int track);
@@ -121,30 +118,18 @@ int krad_ogg_track_changed (krad_ogg_t *krad_ogg, int track);
 int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, uint64_t *timecode, unsigned char *buffer);
 int krad_ogg_write (krad_ogg_t *krad_ogg, unsigned char *buffer, int length);
 void krad_ogg_process (krad_ogg_t *krad_ogg);
-
-// WRITING FUNCS
-
-/*	
-krad_link->video_track = krad_ogg_add_video_track (krad_link->krad_ebml, "V_VP8", 30000, 1000,
-															krad_link->encoding_width, krad_link->encoding_height);	
-krad_link->audio_track = krad_ogg_add_audio_track(krad_link->krad_ebml, "A_VORBIS", 48000, krad_link->audio_channels, krad_link->krad_vorbis->header, 
-																 krad_link->krad_vorbis->headerpos);
-krad_ogg_add_video(krad_link->krad_ebml, krad_link->video_track, packet, packet_size, keyframe);
-krad_ogg_add_audio(krad_link->krad_ebml, krad_link->audio_track, packet, packet_size, frames);
-*/
-
-krad_ogg_t *krad_ogg_open_file(char *filename, krad_io_mode_t mode);
-krad_ogg_t *krad_ogg_open_stream(char *host, int port, char *mount, char *password);
+krad_ogg_t *krad_ogg_open_file (char *filename, krad_io_mode_t mode);
+krad_ogg_t *krad_ogg_open_stream (char *host, int port, char *mount, char *password);
 
 krad_ogg_t *krad_ogg_create();
 void krad_ogg_destroy(krad_ogg_t *krad_ogg);
-
-
 void krad_ogg_set_max_packets_per_page (krad_ogg_t *krad_ogg, int max_packets);
 
-int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height);
+int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, int fps_denominator,
+							  int width, int height);
+
 int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 
-									unsigned char *header, int header_size);	
+							  unsigned char *header, int header_size);	
 
 void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int keyframe);
 void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int frames);
