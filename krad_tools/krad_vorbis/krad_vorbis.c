@@ -34,7 +34,7 @@ krad_vorbis_t *krad_vorbis_encoder_create (int channels, int sample_rate, float 
 	
 	vorbis_comment_init (&vorbis->vc);
 
-	//vorbis_comment_add (&vorbis->vc, "ENCODEDBY=KradRadio");
+	vorbis_comment_add (&vorbis->vc, "ENCODEDBY=KradRadio");
 
 	vorbis_analysis_headerout (&vorbis->vdsp, &vorbis->vc, 
 							   &vorbis->header_main,

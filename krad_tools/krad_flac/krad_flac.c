@@ -23,7 +23,13 @@ int krad_flac_encoder_finish(krad_flac_t *flac, unsigned char *encode_buffer) {
 }
 
 
-void krad_flac_encoder_destroy(krad_flac_t *flac) {
+void krad_flac_encoder_destroy (krad_flac_t *flac) {
+
+	vorbis_comment_clear (&flac->vc);
+	
+	if (flac->comment != NULL) {
+		free (flac->comment);
+	}
 
 	krad_flac_encoder_finish(flac, NULL);
 	FLAC__stream_encoder_delete(flac->encoder);
@@ -113,17 +119,41 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		memcpy(flac->header + 4, flac->streaminfo_block, FLAC_STREAMINFO_BLOCK_SIZE);
 
 		memcpy(flac->min_header, flac->header, FLAC_MINIMAL_HEADER_SIZE);
+
 		// the following marks the streaminfo block as the final metadata block
+		// for the minimal header only!
 		flac->min_header[4] = '\x80';
 
 		flac->header_size = FLAC_MINIMAL_HEADER_SIZE;
 		flac->have_min_header = 1;
 		
-		flac->krad_codec_header.header[0] = flac->min_header;
-		flac->krad_codec_header.header_size[0] = flac->header_size;
+		// combined header just has fLaC + streaminfo and is marked as final metadata
 		flac->krad_codec_header.header_combined = flac->min_header;
-		flac->krad_codec_header.header_combined_size = flac->header_size;
-		flac->krad_codec_header.header_count = 1;
+		flac->krad_codec_header.header_combined_size = FLAC_MINIMAL_HEADER_SIZE;		
+		
+		//split headers are 1 = fLaC + streaminfo not marked as final and 2 = a vorbis comment
+		flac->krad_codec_header.header[0] = flac->header;
+		flac->krad_codec_header.header_size[0] = FLAC_MINIMAL_HEADER_SIZE;
+
+		ogg_packet op;
+		
+		vorbis_comment_init (&flac->vc);
+		
+		vorbis_comment_add (&flac->vc, "ENCODEDBY=KradRadio");
+		
+		vorbis_commentheader_out (&flac->vc, &op);
+		
+		flac->comment = calloc (1, 4 + op.bytes);		
+		// 0x84 = final metadata block and is a vorbis comment
+		flac->comment[0] = 0x84;
+		flac->comment[2] = 0x00;
+		flac->comment[3] = 0x00;
+		flac->comment[4] = op.bytes;
+		
+		flac->krad_codec_header.header[1] = flac->comment;
+		flac->krad_codec_header.header_size[1] = 4 + op.bytes;
+
+		flac->krad_codec_header.header_count = 2;
 		
 	}
 	
@@ -139,7 +169,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 	// rewrites streaminfo block with samples, min/max blocksize and md5
 	if (flac->streaminfo_rewrite) {
 		//printf("yeehaw %d bytes on ye streaminfo rewrite at %d\n", bytes, flac->streaminfo_rewrite);
-
+		/*
 		if (bytes == 16) {
 		
 					int b;
@@ -161,7 +191,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		// the following marks the streaminfo block as the final metadata block
 		flac->min_header[4] = '\x80';
 		memcpy(flac->header + 4, flac->streaminfo_block, FLAC_STREAMINFO_BLOCK_SIZE);
-
+		*/
 		flac->streaminfo_rewrite = 0;
 	}
 	
