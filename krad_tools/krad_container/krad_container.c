@@ -171,7 +171,7 @@ int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec
 
 	if (krad_container->container_type == OGG) {
 		return krad_ogg_add_audio_track (krad_container->krad_ogg, codec, sample_rate, channels, 
-										 krad_codec_header->header, krad_codec_header->header_size, 
+										 krad_codec_header->header, krad_codec_header->header_size,
 										 krad_codec_header->header_count);
 	} else {
 		return krad_ebml_add_audio_track (krad_container->krad_ebml, codec, sample_rate, channels, 

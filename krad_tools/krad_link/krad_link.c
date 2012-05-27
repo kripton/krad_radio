@@ -633,7 +633,7 @@ void *stream_output_thread (void *arg) {
 																		 krad_link->audio_codec,
 																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->audio_channels, 
-																		 &krad_link->krad_flac->krad_codec_header);
+																		 &krad_link->krad_vorbis->krad_codec_header);
 				break;
 			case FLAC:
 				krad_link->audio_track = krad_container_add_audio_track (krad_link->krad_container,
@@ -647,7 +647,7 @@ void *stream_output_thread (void *arg) {
 																		 krad_link->audio_codec,
 																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->audio_channels, 
-																		 &krad_link->krad_flac->krad_codec_header);
+																		 &krad_link->krad_opus->krad_codec_header);
 				break;
 			default:
 				failfast ("Unknown audio codec\n");
