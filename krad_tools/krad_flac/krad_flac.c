@@ -150,6 +150,8 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		flac->comment[3] = 0x00;
 		flac->comment[4] = op.bytes;
 		
+		memcpy (flac->comment + 4, op.packet, op.bytes);
+		
 		flac->krad_codec_header.header[1] = flac->comment;
 		flac->krad_codec_header.header_size[1] = 4 + op.bytes;
 
