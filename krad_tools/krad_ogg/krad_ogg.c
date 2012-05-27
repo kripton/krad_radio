@@ -508,6 +508,9 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 	ogg_stream_init (&krad_ogg->tracks[track].stream_state, krad_ogg->tracks[track].serial);
 
 	for (h = 0; h < header_count; h++) {
+	
+		printk ("header packet %d sized %d\n", h, header_size[h]);
+	
 		packet.packet = header[h];
 		packet.bytes = header_size[h];
 		packet.b_o_s = 0;
@@ -525,7 +528,7 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
 			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
 		
-			//printk ("created page sized %lu\n", page.header_len + page.body_len);
+			printk ("created page sized %lu\n", page.header_len + page.body_len);
 		
 			krad_io_write_sync (krad_ogg->krad_io);
 		}

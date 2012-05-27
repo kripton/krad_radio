@@ -65,32 +65,29 @@ krad_vorbis_t *krad_vorbis_encoder_create (int channels, int sample_rate, float 
 	vorbis->headerpos++;
 	
 	memcpy (vorbis->header + vorbis->headerpos, vorbis->header_main.packet, vorbis->header_main.bytes);
+	vorbis->krad_codec_header.header[0] = vorbis->header + vorbis->headerpos;
 	vorbis->headerpos += vorbis->header_main.bytes;
+	vorbis->krad_codec_header.header_size[0] = vorbis->header_main.bytes;
 		
 	//printf("main is %ld bytes headerpos is  %d \n", vorbis->header_main.bytes, vorbis->headerpos);
 		
 	memcpy (vorbis->header + vorbis->headerpos, vorbis->header_comments.packet, vorbis->header_comments.bytes);
+	vorbis->krad_codec_header.header[1] = vorbis->header + vorbis->headerpos;
 	vorbis->headerpos += vorbis->header_comments.bytes;
+	vorbis->krad_codec_header.header_size[1] = vorbis->header_comments.bytes;
 
 	//printf("comments is %ld bytes headerpos is  %d \n", vorbis->header_comments.bytes, vorbis->headerpos);
 		
 	memcpy (vorbis->header + vorbis->headerpos, vorbis->header_codebooks.packet, vorbis->header_codebooks.bytes);
+	vorbis->krad_codec_header.header[2] = vorbis->header + vorbis->headerpos;
 	vorbis->headerpos += vorbis->header_codebooks.bytes;
+	vorbis->krad_codec_header.header_size[2] = vorbis->header_codebooks.bytes;
 
 	//printf("codebooks is %ld bytes headerpos is  %d \n", vorbis->header_codebooks.bytes, vorbis->headerpos);
 	//printf("Vorbis header is %d bytes\n", vorbis->headerpos);
 
 	vorbis->krad_codec_header.header_combined = vorbis->header;
 	vorbis->krad_codec_header.header_combined_size = vorbis->headerpos;
-
-	vorbis->krad_codec_header.header[0] = vorbis->header_main.packet;
-	vorbis->krad_codec_header.header_size[0] = vorbis->header_main.bytes;
-	
-	vorbis->krad_codec_header.header[1] = vorbis->header_comments.packet;
-	vorbis->krad_codec_header.header_size[1] = vorbis->header_comments.bytes;	
-		
-	vorbis->krad_codec_header.header[2] = vorbis->header_codebooks.packet;
-	vorbis->krad_codec_header.header_size[2] = vorbis->header_codebooks.bytes;
 	vorbis->krad_codec_header.header_count = 3;
 
 
