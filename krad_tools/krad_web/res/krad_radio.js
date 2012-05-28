@@ -277,7 +277,7 @@ Kradradio.prototype.got_add_link = function (link) {
 				kradradio.update_link (link.link_num, "opus_frame_size", parseInt (valu));
 			});
 
-			signal_controls = '<div id="radios">\
+			signal_controls = '<h5>Opus Signal Type: </h5><div id="radios">\
 				<input type="radio" id="radio7" name="link_' + link.link_num + '_opus_signal" value="OPUS_AUTO"/><label for="radio7">Auto</label>\
 				<input type="radio" id="radio8" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_VOICE"/><label for="radio8">Voice</label>\
 				<input type="radio" id="radio9" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_MUSIC"/><label for="radio9">Music</label>\
@@ -293,7 +293,7 @@ Kradradio.prototype.got_add_link = function (link) {
 			});	
 			
 			
-			bandwidth_controls = '<div id="radiob">\
+			bandwidth_controls = '<h5>Opus Audio Bandwidth: </h5><div id="radiob">\
 				<input type="radio" id="radio10" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_AUTO"/><label for="radio10">Auto</label>\
 				<input type="radio" id="radio11" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_NARROWBAND"/><label for="radio11">Narrowband</label>\
 				<input type="radio" id="radio12" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_MEDIUMBAND"/><label for="radio12">Mediumband</label>\
