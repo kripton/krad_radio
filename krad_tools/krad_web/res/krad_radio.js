@@ -261,7 +261,7 @@ Kradradio.prototype.got_add_link = function (link) {
 			
 			frame_size_controls = '<div id="radio">\
 				<input type="radio" id="radio1" name="link_' + link.link_num + '_opus_frame_size" value="120"/><label for="radio1">120</label>\
-				<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" checked="checked" value="240"/><label for="radio2">240</label>\
+				<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" value="240"/><label for="radio2">240</label>\
 				<input type="radio" id="radio3" name="link_' + link.link_num + '_opus_frame_size" value="480"/><label for="radio3">480</label>\
 				<input type="radio" id="radio4" name="link_' + link.link_num + '_opus_frame_size" value="960"/><label for="radio4">960</label>\
 				<input type="radio" id="radio5" name="link_' + link.link_num + '_opus_frame_size" value="1920"/><label for="radio5">1920</label>\
@@ -275,7 +275,42 @@ Kradradio.prototype.got_add_link = function (link) {
 			$( "input[name=link_" + link.link_num + "_opus_frame_size]" ).bind( "change", function(event, ui) {
 				var valu = $('input[name=link_" + link.link_num + "_opus_frame_size]:checked').val();
 				kradradio.update_link (link.link_num, "opus_frame_size", parseInt (valu));
-			});				
+			});
+
+			signal_controls = '<div id="radio">\
+				<input type="radio" id="radio7" name="link_' + link.link_num + '_opus_signal" value="OPUS_AUTO"/><label for="radio7">Auto</label>\
+				<input type="radio" id="radio8" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_VOICE"/><label for="radio8">Voice</label>\
+				<input type="radio" id="radio9" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_MUSIC"/><label for="radio9">Music</label>\
+			</div>';
+			
+			$('#link_' + link.link_num).append(signal_controls);
+
+			$("input[name=link_" + link.link_num + "_opus_signal][value=" + link.opus_signal + "]").attr('checked', 'checked');
+			
+			$( "input[name=link_" + link.link_num + "_opus_signal]" ).bind( "change", function(event, ui) {
+				var valu = $('input[name=link_" + link.link_num + "_opus_signal]:checked').val();
+				kradradio.update_link (link.link_num, "opus_signal", valu);
+			});	
+			
+			
+			bandwidth_controls = '<div id="radio">\
+				<input type="radio" id="radio10" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_AUTO"/><label for="radio10">Auto</label>\
+				<input type="radio" id="radio11" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_NARROWBAND"/><label for="radio11">Norrowband</label>\
+				<input type="radio" id="radio12" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_MEDIUMBAND"/><label for="radio12">Mediumband</label>\
+				<input type="radio" id="radio13" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_WIDEBAND"/><label for="radio13">Wideband</label>\
+				<input type="radio" id="radio14" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_SUPERWIDEBAND"/><label for="radio14">Super Wideband</label>\
+				<input type="radio" id="radio15" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_FULLBAND"/><label for="radio15">Fullband</label>\
+			</div>';
+			
+			$('#link_' + link.link_num).append(bandwidth_controls);
+
+			$("input[name=link_" + link.link_num + "_opus_bandwidth][value=" + link.opus_bandwidth + "]").attr('checked', 'checked');
+			
+			$( "input[name=link_" + link.link_num + "_opus_bandwidth]" ).bind( "change", function(event, ui) {
+				var valu = $('input[name=link_" + link.link_num + "_opus_bandwidth]:checked').val();
+				kradradio.update_link (link.link_num, "opus_bandwidth", valu);
+			});
+			
 			
 			$('#link_' + link.link_num).append("<h5>Opus bitrate: <span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h5><div id='link_" + link.link_num + "_opus_bitrate_slider'></div>");
 			$('#link_' + link.link_num).append("<h5>Opus complexity: <span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h5><div id='link_" + link.link_num + "_opus_complexity_slider'></div>");

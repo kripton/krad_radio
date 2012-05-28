@@ -75,6 +75,14 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 						krad_ipc_update_link (pss->krad_ipc_client, part->valueint, part3->valueint);
 					}
 
+					if (strcmp(part2->valuestring, "opus_signal") == 0) {
+						krad_ipc_update_link_adv (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, part3->valuestring);
+					}
+					
+					if (strcmp(part2->valuestring, "opus_bandwidth") == 0) {
+						krad_ipc_update_link_adv (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, part3->valuestring);
+					}
+
 					if (strcmp(part2->valuestring, "opus_complexity") == 0) {
 						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, part3->valueint);
 					}
@@ -133,6 +141,8 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 		}
 		
 		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+			cJSON_AddStringToObject (msg, "opus_signal",  krad_opus_signal_to_string (krad_link->opus_signal));
+			cJSON_AddStringToObject (msg, "opus_bandwidth",  krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
 			cJSON_AddNumberToObject (msg, "opus_complexity",  krad_link->opus_complexity);
 			cJSON_AddNumberToObject (msg, "opus_bitrate",  krad_link->opus_bitrate);
 			cJSON_AddNumberToObject (msg, "opus_frame_size",  krad_link->opus_frame_size);			

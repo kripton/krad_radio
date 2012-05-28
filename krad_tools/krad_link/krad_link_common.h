@@ -1,5 +1,7 @@
 #include <string.h>
 
+#include <opus_defines.h>
+
 typedef struct krad_link_rep_St krad_link_rep_t;
 
 #ifndef KRAD_LINK_COMMON_H
@@ -60,6 +62,12 @@ typedef enum {
 	NOVIDEO,
 } krad_link_video_source_t;
 
+
+int krad_opus_string_to_bandwidth (char *string);
+int krad_opus_string_to_signal (char *string);
+char *krad_opus_bandwidth_to_string (int bandwidth);
+char *krad_opus_signal_to_string (int signal);
+
 char *krad_link_transport_mode_to_string (krad_link_transport_mode_t transport_mode);
 char *krad_link_video_source_to_string (krad_link_video_source_t video_source);
 krad_link_video_source_t krad_link_string_to_video_source (char *string);
@@ -89,8 +97,8 @@ struct krad_link_rep_St {
 	float vorbis_quality;
 	int audio_channels;
 
-
-
+	int opus_bandwidth;
+	int opus_signal;
 	int opus_bitrate;
 	int opus_complexity;
 	int opus_frame_size;

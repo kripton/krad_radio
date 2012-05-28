@@ -94,7 +94,6 @@ struct kradopus_St {
 	
 };
 
-
 int kradopus_get_bitrate (krad_opus_t *kradopus);
 int kradopus_get_complexity (krad_opus_t *kradopus);
 int kradopus_get_frame_size (krad_opus_t *kradopus);
