@@ -288,8 +288,8 @@ Kradradio.prototype.got_add_link = function (link) {
 			$("input[name=link_" + link.link_num + "_opus_signal][value=" + link.opus_signal + "]").attr('checked', 'checked');
 			
 			$( "input[name=link_" + link.link_num + "_opus_signal]" ).bind( "change", function(event, ui) {
-				var valu = $('input[name=link_" + link.link_num + "_opus_signal]:checked').val();
-				kradradio.update_link (link.link_num, "opus_signal", valu);
+				var valus = $('input[name=link_" + link.link_num + "_opus_signal]:checked').val();
+				kradradio.update_link (link.link_num, "opus_signal", valus);
 			});	
 			
 			
@@ -307,8 +307,8 @@ Kradradio.prototype.got_add_link = function (link) {
 			$("input[name=link_" + link.link_num + "_opus_bandwidth][value=" + link.opus_bandwidth + "]").attr('checked', 'checked');
 			
 			$( "input[name=link_" + link.link_num + "_opus_bandwidth]" ).bind( "change", function(event, ui) {
-				var valu = $('input[name=link_" + link.link_num + "_opus_bandwidth]:checked').val();
-				kradradio.update_link (link.link_num, "opus_bandwidth", valu);
+				var valub = $('input[name=link_" + link.link_num + "_opus_bandwidth]:checked').val();
+				kradradio.update_link (link.link_num, "opus_bandwidth", valub);
 			});
 			
 			
