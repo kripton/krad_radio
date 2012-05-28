@@ -13,6 +13,7 @@ typedef struct krad_radio_St krad_radio_t;
 #ifndef KRAD_RADIO_H
 #define KRAD_RADIO_H
 
+#include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_tags.h"
 #include "krad_ipc_server.h"

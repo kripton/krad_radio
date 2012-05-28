@@ -508,7 +508,6 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 
 	ogg_stream_init (&krad_ogg->tracks[track].stream_state, krad_ogg->tracks[track].serial);
 
-
 	if (codec == FLAC) {
 		// adding ogg flac mapping to flac header
 		temp_header = calloc (1, 9 + 42);

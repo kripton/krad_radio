@@ -10,7 +10,6 @@ typedef struct krad_linker_St krad_linker_t;
 #include <sys/prctl.h>
 #include <libswscale/swscale.h>
 
-#define APPVERSION "Krad Radio 3.10"
 #define KRAD_LINKER_MAX_LINKS 42
 #define DEFAULT_VPX_BITRATE 190 * 8
 #define HELP -1337

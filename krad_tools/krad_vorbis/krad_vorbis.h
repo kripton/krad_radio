@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include <vorbis/vorbisenc.h>
+#include "krad_radio_version.h"
 #include "krad_ring.h"
 #include "krad_codec_header.h"
 
