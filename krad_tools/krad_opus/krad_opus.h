@@ -12,6 +12,7 @@
 #include <opus_multistream.h>
 #include <ogg/ogg.h>
 
+#include "krad_radio_version.h"
 #include "opus_header.h"
 #include "krad_ring.h"
 #include "krad_codec_header.h"
@@ -41,6 +42,7 @@ struct kradopus_St {
 	OpusMSEncoder *st;
 	OpusHeader *opus_header;
 	krad_codec_header_t krad_codec_header;
+	unsigned char *opustags_header;
 		
 	float *resampled_samples[MAX_CHANNELS];
 	float *samples[MAX_CHANNELS];

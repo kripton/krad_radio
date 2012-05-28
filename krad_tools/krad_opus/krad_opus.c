@@ -32,6 +32,8 @@ void kradopus_encoder_destroy(krad_opus_t *kradopus) {
 		src_delete (kradopus->src_resampler[c]);
 	}
 	
+	
+	free (kradopus->opustags_header);
 	free (kradopus->opus_header);
 	opus_multistream_encoder_destroy (kradopus->st);
 	free (kradopus);
@@ -164,7 +166,7 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 		opus->st_string = "stereo";
 	}
 	
-	if (opus_multistream_encoder_ctl (opus->st, OPUS_SET_BITRATE(opus->bitrate)) != OPUS_OK) {
+	if (opus_multistream_encoder_ctl (opus->st, OPUS_SET_BITRATE (opus->bitrate)) != OPUS_OK) {
 		fprintf (stderr, "bitrate request failed\n");
 		exit (1);
 	}
@@ -176,9 +178,26 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->krad_codec_header.header_combined_size = opus->header_data_size;
 	opus->krad_codec_header.header_count = 2;
 
-	opus->krad_codec_header.header[1] = (unsigned char *)"OpusTags\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
-	opus->krad_codec_header.header_size[1] = 25;
+	//opus->krad_codec_header.header_size[1] = 25;
+	//opus->krad_codec_header.header[1] = (unsigned char *)"OpusTags\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
+	opus->krad_codec_header.header_size[1] = 8 + 4 + strlen (opus_get_version_string ()) + 4 + 4 + strlen (APPVERSION);
+	
+	opus->opustags_header = calloc (1, opus->krad_codec_header.header_size[1]);
+	
+	memcpy (opus->opustags_header, "OpusTags", 8);
+	
+	opus->opustags_header[8] = strlen (opus_get_version_string ());
+	
+	memcpy (opus->opustags_header + 12, opus_get_version_string (), strlen (opus_get_version_string ()));
 
+	opus->opustags_header[12 + strlen (opus_get_version_string ())] = 1;
+
+	opus->opustags_header[12 + strlen (opus_get_version_string ()) + 4] = strlen (APPVERSION);
+	
+	memcpy (opus->opustags_header + 12 + strlen (opus_get_version_string ()) + 4 + 4, APPVERSION, strlen (APPVERSION));
+	
+	opus->krad_codec_header.header[1] = opus->opustags_header;
+	
 	return opus;
 
 }
