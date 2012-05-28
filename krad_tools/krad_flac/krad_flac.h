@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <math.h>
 
+#include "krad_radio_version.h"
 #include "FLAC/stream_encoder.h"
 #include "FLAC/stream_decoder.h"
 #include "krad_codec_header.h"
@@ -38,6 +39,8 @@ struct krad_flac_St {
 	
 	unsigned char header[256];
 	int header_size;
+	
+	unsigned char *comment_header;
 	
 	int have_min_header;
 	int streaminfo_rewrite;

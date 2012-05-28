@@ -25,6 +25,10 @@ int krad_flac_encoder_finish(krad_flac_t *flac, unsigned char *encode_buffer) {
 
 void krad_flac_encoder_destroy (krad_flac_t *flac) {
 
+	if (flac->comment_header != NULL) {
+		free (flac->comment_header);
+	}
+
 	krad_flac_encoder_finish(flac, NULL);
 	FLAC__stream_encoder_delete(flac->encoder);
 	
@@ -129,8 +133,33 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		flac->krad_codec_header.header[0] = flac->header;
 		flac->krad_codec_header.header_size[0] = FLAC_MINIMAL_HEADER_SIZE;
 		
-		flac->krad_codec_header.header[1] = "\x84\x00\x00\x11\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
-		flac->krad_codec_header.header_size[1] = 4 + 4 + 9 + 4;
+		//flac->krad_codec_header.header[1] = "\x84\x00\x00\x11\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
+		//flac->krad_codec_header.header_size[1] = 4 + 4 + 9 + 4;
+		//FLAC__VENDOR_STRING
+		flac->krad_codec_header.header_size[1] = 
+		4 + 4 + strlen (FLAC__VENDOR_STRING) + 4 + 4 + strlen ("ENCODER=") + strlen (APPVERSION);
+	
+		flac->comment_header = calloc (1, flac->krad_codec_header.header_size[1]);
+	
+		memcpy (flac->comment_header, "\x84\x00\x00", 3);
+	
+		flac->comment_header[3] = flac->krad_codec_header.header_size[1] - 4;
+		
+		flac->comment_header[4] = strlen (FLAC__VENDOR_STRING);
+	
+		memcpy (flac->comment_header + 8, FLAC__VENDOR_STRING, strlen (FLAC__VENDOR_STRING));
+
+		flac->comment_header[8 + strlen (FLAC__VENDOR_STRING)] = 1;
+
+		flac->comment_header[8 + strlen (FLAC__VENDOR_STRING) + 4] = strlen ("ENCODER=") + strlen (APPVERSION);
+	
+		memcpy (flac->comment_header + 8 + strlen (FLAC__VENDOR_STRING) + 4 + 4, "ENCODER=", strlen ("ENCODER="));
+	
+		memcpy (flac->comment_header + 8 + strlen (FLAC__VENDOR_STRING) + 4 + 4 + strlen ("ENCODER="),
+				APPVERSION,
+				strlen (APPVERSION));	
+	
+		flac->krad_codec_header.header[1] = flac->comment_header;
 
 		flac->krad_codec_header.header_count = 2;
 		
