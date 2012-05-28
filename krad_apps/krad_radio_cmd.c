@@ -180,6 +180,9 @@ int main (int argc, char *argv[]) {
 				}
 				
 				if (argc == 6) {
+					if (strcmp(argv[4], "bandwidth") == 0) {
+						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, argv[5]);
+					}
 					if (strcmp(argv[4], "signal") == 0) {
 						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
 					}

@@ -2529,7 +2529,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						*/
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL) {
 							krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
-							if (strncmp(string, "OPUS_SIGNAL_AUTO", 16) == 0) {
+							if (strncmp(string, "OPUS_AUTO", 9) == 0) {
 								kradopus_set_signal (krad_linker->krad_link[k]->krad_opus, OPUS_AUTO);
 							}
 							if (strncmp(string, "OPUS_SIGNAL_VOICE", 17) == 0) {
@@ -2539,6 +2539,32 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 								kradopus_set_signal (krad_linker->krad_link[k]->krad_opus, OPUS_SIGNAL_MUSIC);
 							}						
 						}
+						
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH) {
+							krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+							if ((strlen(string) == 9) && (strncmp(string, "OPUS_AUTO", 9) == 0)) {
+								kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, OPUS_AUTO);
+							}
+							if ((strlen(string) == 25) && (strncmp(string, "OPUS_BANDWIDTH_NARROWBAND", 25) == 0)) {
+								kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, OPUS_BANDWIDTH_NARROWBAND);
+							}
+							
+							if ((strlen(string) == 25) && (strncmp(string, "OPUS_BANDWIDTH_MEDIUMBAND", 25) == 0)) {
+								kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, OPUS_BANDWIDTH_MEDIUMBAND);
+							}
+							
+							if ((strlen(string) == 23) && (strncmp(string, "OPUS_BANDWIDTH_WIDEBAND", 23) == 0)) {
+								kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, OPUS_BANDWIDTH_WIDEBAND);
+							}
+							
+							if ((strlen(string) == 28) && (strncmp(string, "OPUS_BANDWIDTH_SUPERWIDEBAND", 28) == 0)) {
+								kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, OPUS_BANDWIDTH_SUPERWIDEBAND);
+							}
+							
+							if ((strlen(string) == 23) && (strncmp(string, "OPUS_BANDWIDTH_FULLBAND", 23) == 0)) {
+								kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, OPUS_BANDWIDTH_FULLBAND);
+							}
+						}						
 
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE) {
 							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
