@@ -180,7 +180,8 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 
 	//opus->krad_codec_header.header_size[1] = 25;
 	//opus->krad_codec_header.header[1] = (unsigned char *)"OpusTags\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
-	opus->krad_codec_header.header_size[1] = 8 + 4 + strlen (opus_get_version_string ()) + 4 + 4 + strlen (APPVERSION);
+	opus->krad_codec_header.header_size[1] = 
+	8 + 4 + strlen (opus_get_version_string ()) + 4 + 4 + strlen ("ENCODER=") + strlen (APPVERSION);
 	
 	opus->opustags_header = calloc (1, opus->krad_codec_header.header_size[1]);
 	
@@ -192,9 +193,13 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 
 	opus->opustags_header[12 + strlen (opus_get_version_string ())] = 1;
 
-	opus->opustags_header[12 + strlen (opus_get_version_string ()) + 4] = strlen (APPVERSION);
+	opus->opustags_header[12 + strlen (opus_get_version_string ()) + 4] = strlen ("ENCODER=") + strlen (APPVERSION);
 	
-	memcpy (opus->opustags_header + 12 + strlen (opus_get_version_string ()) + 4 + 4, APPVERSION, strlen (APPVERSION));
+	memcpy (opus->opustags_header + 12 + strlen (opus_get_version_string ()) + 4 + 4, "ENCODER=", strlen ("ENCODER="));
+	
+	memcpy (opus->opustags_header + 12 + strlen (opus_get_version_string ()) + 4 + 4 + strlen ("ENCODER="),
+			APPVERSION,
+			strlen (APPVERSION));	
 	
 	opus->krad_codec_header.header[1] = opus->opustags_header;
 	
