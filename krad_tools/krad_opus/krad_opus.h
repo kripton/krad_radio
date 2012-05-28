@@ -13,6 +13,7 @@
 #include <ogg/ogg.h>
 
 #include "krad_radio_version.h"
+#include "krad_system.h"
 #include "opus_header.h"
 #include "krad_ring.h"
 #include "krad_codec_header.h"
@@ -65,16 +66,19 @@ struct kradopus_St {
 	float input_sample_rate;
 	float output_sample_rate;
 
+	int application;
+
+	opus_int32 frame_size;	
 	int complexity;
 	int bitrate;
-	int application;
 	int signal;
-	opus_int32 frame_size;
-	
+	int bandwidth;
+		
 	opus_int32 new_frame_size;	
 	int new_complexity;
 	int new_bitrate;
 	int new_signal;
+	int new_bandwidth;
 
 	int id;
 	int num_bytes;
@@ -95,12 +99,13 @@ int kradopus_get_bitrate (krad_opus_t *kradopus);
 int kradopus_get_complexity (krad_opus_t *kradopus);
 int kradopus_get_frame_size (krad_opus_t *kradopus);
 int kradopus_get_signal (krad_opus_t *kradopus);
+int kradopus_get_bandwidth (krad_opus_t *kradopus);
 
 void kradopus_set_complexity (krad_opus_t *kradopus, int complexity);
 void kradopus_set_frame_size (krad_opus_t *kradopus, int frame_size);
 void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate);
 void kradopus_set_signal (krad_opus_t *kradopus, int signal);
-
+void kradopus_set_bandwidth (krad_opus_t *kradopus, int bandwidth);
 
 krad_opus_t *kradopus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
 void kradopus_decoder_destroy (krad_opus_t *kradopus);

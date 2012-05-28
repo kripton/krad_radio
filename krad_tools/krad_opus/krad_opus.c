@@ -106,13 +106,15 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->bitrate = bitrate;
 	opus->application = application;
 	opus->complexity = DEFAULT_OPUS_COMPLEXITY;
-	opus->signal = OPUS_SIGNAL_MUSIC;
+	opus->signal = OPUS_AUTO;
 	opus->frame_size = DEFAULT_OPUS_FRAME_SIZE;
+	opus->bandwidth = OPUS_BANDWIDTH_FULLBAND;
 
-	opus->new_frame_size = opus->frame_size;	
+	opus->new_frame_size = opus->frame_size;
 	opus->new_complexity = opus->complexity;
 	opus->new_bitrate = opus->bitrate;
 	opus->new_signal = opus->signal;
+	opus->new_bandwidth = opus->bandwidth;
 	
 	int c;
 	
@@ -305,6 +307,10 @@ int kradopus_get_signal (krad_opus_t *kradopus) {
 	return kradopus->signal;
 }
 
+int kradopus_get_bandwidth (krad_opus_t *kradopus) { 
+	return kradopus->bandwidth;
+}
+
 void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate) { 
 	kradopus->new_bitrate = bitrate;
 }
@@ -319,6 +325,10 @@ void kradopus_set_frame_size (krad_opus_t *kradopus, int frame_size) {
 
 void kradopus_set_signal (krad_opus_t *kradopus, int signal) { 
 	kradopus->new_signal = signal;
+}
+
+void kradopus_set_bandwidth (krad_opus_t *kradopus, int bandwidth) { 
+	kradopus->new_bandwidth = bandwidth;
 }
 
 int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nframes) {
@@ -338,42 +348,35 @@ int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nfram
 			kradopus->src_data[c].output_frames = 2048;
 			kradopus->src_error[c] = src_process (kradopus->src_resampler[c], &kradopus->src_data[c]);
 			if (kradopus->src_error[c] != 0) {
-				printf("kradopus_read_opus src resampler error: %s\n", src_strerror(kradopus->src_error[c]));
-				exit(1);
+				failfast ("kradopus_read_opus src resampler error: %s\n", src_strerror(kradopus->src_error[c]));
 			}
-
 			krad_ringbuffer_read_advance (kradopus->ringbuf[c], (kradopus->src_data[c].input_frames_used * 4) );
-
 			kradopus->ret = krad_ringbuffer_write (kradopus->resampled_ringbuf[c], (char *)kradopus->resampled_samples[c], (kradopus->src_data[c].output_frames_gen * 4) );
-
-		}	
-
+		}
 	}
 	
 	if (kradopus->new_bitrate != kradopus->bitrate) {
 		kradopus->bitrate = kradopus->new_bitrate;
 		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_BITRATE(kradopus->bitrate));
 		if (resp != OPUS_OK) {
-			fprintf (stderr, "bitrate request failed %s\n", opus_strerror (resp));
-			exit(1);
+			failfast ("Krad Opus Encoder: bitrate request failed %s\n", opus_strerror (resp));
 		} else {
-			printf  ("set opus bitrate %d\n", kradopus->bitrate);
+			printk  ("Krad Opus Encoder: set opus bitrate %d\n", kradopus->bitrate);
 		}
 	}
 	
 	if (kradopus->new_frame_size != kradopus->frame_size) {
 		kradopus->frame_size = kradopus->new_frame_size;
-		printf ("frame size is now %d\n", kradopus->frame_size);		
+		printk ("Krad Opus Encoder: frame size is now %d\n", kradopus->frame_size);		
 	}
 	
 	if (kradopus->new_complexity != kradopus->complexity) {
 		kradopus->complexity = kradopus->new_complexity;
 		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_COMPLEXITY(kradopus->complexity));
 		if (resp != OPUS_OK) {
-			fprintf (stderr, "complexity request failed %s. \n", opus_strerror(resp));
-			exit(1);
+			failfast ("Krad Opus Encoder: complexity request failed %s. \n", opus_strerror(resp));
 		} else {
-			printf  ("set opus complexity %d\n", kradopus->complexity);
+			printk ("Krad Opus Encoder: set opus complexity %d\n", kradopus->complexity);
 		}
 	}	
 
@@ -381,12 +384,20 @@ int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nfram
 		kradopus->signal = kradopus->new_signal;
 		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_SIGNAL(kradopus->signal));
 		if (resp != OPUS_OK) {
-			fprintf (stderr, "SIGNAL request failed %s\n", opus_strerror(resp));
-			exit(1);
+			failfast ("Krad Opus Encoder: signal request failed %s\n", opus_strerror(resp));
 		} else {
-			printf ("set opus signal mode %d\n", kradopus->signal);
+			printk ("Krad Opus Encoder: set opus signal mode %d\n", kradopus->signal);
 		}
-		
+	}
+	
+	if (kradopus->new_bandwidth != kradopus->bandwidth) {
+		kradopus->bandwidth = kradopus->new_bandwidth;
+		resp = opus_multistream_encoder_ctl (kradopus->st, OPUS_SET_BANDWIDTH(kradopus->bandwidth));
+		if (resp != OPUS_OK) {
+			failfast ("Krad Opus Encoder: bandwidth request failed %s\n", opus_strerror(resp));
+		} else {
+			printk ("Krad Opus Encoder: set opus bandwidth mode %d\n", kradopus->bandwidth);
+		}
 	}
 
 	if ((krad_ringbuffer_read_space (kradopus->resampled_ringbuf[1]) >= kradopus->frame_size * 4 ) && (krad_ringbuffer_read_space (kradopus->resampled_ringbuf[0]) >= kradopus->frame_size * 4 )) {
