@@ -161,12 +161,12 @@ krad_opus_t *kradopus_encoder_create(float input_sample_rate, int channels, int 
 	opus->extra_samples = (int)opus->opus_header->preskip * (opus->input_sample_rate/48000.);
 
 	if (opus->channels == 2) {
-		opus->st_string="stereo";
+		opus->st_string = "stereo";
 	}
 	
 	if (opus_multistream_encoder_ctl (opus->st, OPUS_SET_BITRATE(opus->bitrate)) != OPUS_OK) {
 		fprintf (stderr, "bitrate request failed\n");
-		exit(1);
+		exit (1);
 	}
 
 	opus->header_data_size = opus_header_to_packet(opus->opus_header, opus->header_data, 100);
