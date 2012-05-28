@@ -7,11 +7,6 @@
 
 #include "FLAC/stream_encoder.h"
 #include "FLAC/stream_decoder.h"
-
-
-#include <ogg/ogg.h>
-#include <vorbis/vorbisenc.h>
-
 #include "krad_codec_header.h"
 
 #define MAX_CHANNELS 8
@@ -29,9 +24,6 @@ struct krad_flac_St {
 
 	FLAC__StreamEncoder *encoder;
 	FLAC__StreamDecoder *decoder;
-	
-	vorbis_comment vc;
-	unsigned char *comment;
 	
 	int sample_rate;
 	int bit_depth;

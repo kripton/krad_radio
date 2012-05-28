@@ -25,12 +25,6 @@ int krad_flac_encoder_finish(krad_flac_t *flac, unsigned char *encode_buffer) {
 
 void krad_flac_encoder_destroy (krad_flac_t *flac) {
 
-	vorbis_comment_clear (&flac->vc);
-	
-	if (flac->comment != NULL) {
-		free (flac->comment);
-	}
-
 	krad_flac_encoder_finish(flac, NULL);
 	FLAC__stream_encoder_delete(flac->encoder);
 	
@@ -134,26 +128,9 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		//split headers are 1 = fLaC + streaminfo not marked as final and 2 = a vorbis comment
 		flac->krad_codec_header.header[0] = flac->header;
 		flac->krad_codec_header.header_size[0] = FLAC_MINIMAL_HEADER_SIZE;
-
-		ogg_packet op;
 		
-		vorbis_comment_init (&flac->vc);
-		
-		vorbis_comment_add (&flac->vc, "ENCODEDBY=KradRadio");
-		
-		vorbis_commentheader_out (&flac->vc, &op);
-		
-		flac->comment = calloc (1, 4 + (op.bytes - 1));		
-		// 0x84 = final metadata block and is a vorbis comment
-		flac->comment[0] = 0x84;
-		flac->comment[1] = 0x00;
-		flac->comment[2] = 0x00;
-		flac->comment[3] = (op.bytes - 1);
-		
-		memcpy (flac->comment + 4, op.packet, (op.bytes - 1));
-		
-		flac->krad_codec_header.header[1] = flac->comment;
-		flac->krad_codec_header.header_size[1] = 4 + (op.bytes - 1);
+		flac->krad_codec_header.header[1] = "\x84\x00\x00\x09\x09\x00\x00\x00KradRadio";
+		flac->krad_codec_header.header_size[1] = 4 + 9;
 
 		flac->krad_codec_header.header_count = 2;
 		
