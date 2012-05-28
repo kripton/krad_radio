@@ -130,7 +130,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		flac->krad_codec_header.header_size[0] = FLAC_MINIMAL_HEADER_SIZE;
 		
 		flac->krad_codec_header.header[1] = "\x84\x00\x00\x09\x09\x00\x00\x00KradRadio";
-		flac->krad_codec_header.header_size[1] = 4 + 9;
+		flac->krad_codec_header.header_size[1] = 8 + 9;
 
 		flac->krad_codec_header.header_count = 2;
 		
