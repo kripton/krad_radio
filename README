@@ -1,1 +1,50 @@
-Instructions coming soon, plese see http://kradradio.com
+Krad Radio - http://kradradio.com
+
+Note: This document is highly incomplete.
+
+### Overview
+
+Krad Radio is a daemon that is controlled locally or remotely by Krad Radio clients.
+Clients are written using the Krad Radio clientlib, writing clients that directly speak
+the Krad Radio IPC protocol is not advisable or supported. Clients can be command line, 
+ncurses, GUI or web based, and any number of clients can be connected to the daemon at 
+any time. This design is directly inspired from the design of XMMS2.
+
+The Krad Radio daemon can be thought of in three parts, the mixer, the compositor and 
+the linker.
+
+                      [Krad Compositor]
+ [Incoming Links] >>                     >>  [Outgoing Links]
+                      [Krad Mixer]
+
+
+Links can be a variety of things, files, network streams, or local A/V hardware.
+
+Capture Support: V4L2, Decklink, X11, Jack, PulseAudio, ALSA
+
+### Codec and container support
+
+Krad Radio natively supports a certain set of container and codecs that
+are suited for its purpose. Native support meaning that KR interfaces
+directly with the codecs and containers for the most precise control possible.
+
+Support of non-native codecs will be though Jack for audio, and gstreamer audio
+and video sinks. Videojack should it come back to life will also be supported, or 
+should there be some other local shared memory video routing software come into
+existence. 
+
+All native codecs will work in Ogg and MKV containers for incoming and outgoing links.
+For UDP and WebRTC connections, only a subset will be supported, Opus for audio and TBD
+for video.
+
+Native Containers Ogg, MKV/WebM, Krad UDP*
+Planned Containers: TransOgg, WebRTC 
+
+Native Codec Support List
+
+Current Video: VP8 (libvpx), Theora, Dirac*
+Planned Video: VP8 (xvp8), daala
+
+Current Audio: Opus, Vorbis, FLAC, Codec2*
+
+* Code existing, but not fully baked
