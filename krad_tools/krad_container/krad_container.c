@@ -119,9 +119,16 @@ krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode)
 	krad_container->container_type = krad_link_select_container (filename);
 
 	if (krad_container->container_type == OGG) {
-		krad_container->krad_ogg = krad_ogg_open_file (filename, KRAD_IO_READONLY);
+		krad_container->krad_ogg = krad_ogg_open_file (filename, mode);
 	} else {
-		krad_container->krad_ebml = krad_ebml_open_file (filename, KRAD_EBML_IO_READONLY);
+	
+		if (mode == KRAD_IO_WRITEONLY) {
+			krad_container->krad_ebml = krad_ebml_open_file (filename, KRAD_EBML_IO_WRITEONLY);
+		}
+
+		if (mode == KRAD_IO_READONLY) {
+			krad_container->krad_ebml = krad_ebml_open_file (filename, KRAD_EBML_IO_READONLY);
+		}
 	}
 
 	return krad_container;

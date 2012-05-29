@@ -88,6 +88,7 @@ struct krad_link_rep_St {
 	krad_link_av_mode_t av_mode;
 	krad_link_video_source_t video_source;
 
+	char filename[512];
 	char host[512];
 	int tcp_port;
 	char mount[512];

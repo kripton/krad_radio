@@ -42,10 +42,18 @@ Planned Containers: TransOgg, WebRTC
 
 Native Codec Support List
 
-Current Video: VP8 (libvpx), Theora, Dirac*
+Current Video: VP8 (libvpx), Theora, Dirac*, MJPEG, PNG*
 Planned Video: VP8 (xvp8), daala
 Thinking about it: DNxHD, CinemaDNG
 
 Current Audio: Opus, Vorbis, FLAC, Codec2*
 
 * Code existing, but not fully baked
+
+
+
+### Host system support
+
+Krad Radio is built and tested on x86, x86_64 and ARM CPU's running linux. Support for other
+CPU types and legacy operating systems is not currently planned, but is possible. Krad makes 
+use of the Linux only unix abstract socket namespace and epoll(), but these are both optional.

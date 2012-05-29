@@ -156,9 +156,20 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "record", 6) == 0) {
-				//if (argc ==  ) {
-					//krad_ipc_create_record_link (client, );
-				//}
+				if (argc == 4) {
+					if (strncmp(argv[2], "recordav", 8) == 0) {
+						krad_ipc_create_record_link (client, AUDIO_AND_VIDEO, argv[3], NULL);
+					} else {
+						krad_ipc_create_record_link (client, AUDIO_ONLY, argv[3], NULL);
+					}
+				}
+				if (argc == 5) {
+					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], NULL);
+				}
+
+				if (argc == 6) {
+					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5] );
+				}
 			}
 			
 			if (strncmp(argv[2], "play", 4) == 0) {

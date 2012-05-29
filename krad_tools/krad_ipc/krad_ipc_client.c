@@ -641,6 +641,73 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 
 }
 
+void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t create_link;
+	uint64_t link;
+	
+	krad_codec_t audio_codec;
+	krad_codec_t video_codec;
+	
+	audio_codec = VORBIS;
+	video_codec = VP8;
+	
+	if (codecs != NULL) {
+	
+		if (strstr(codecs, "flac") != NULL) {
+			audio_codec = FLAC;
+		}
+		if (strstr(codecs, "vorbis") != NULL) {
+			audio_codec = VORBIS;
+		}
+		if (strstr(codecs, "opus") != NULL) {
+			audio_codec = OPUS;
+		}			
+		if (strstr(codecs, "vp8") != NULL) {
+			video_codec = VP8;
+		}
+		if (strstr(codecs, "dirac") != NULL) {
+			video_codec = DIRAC;
+		}
+		if (strstr(codecs, "theora") != NULL) {
+			video_codec = THEORA;
+		}
+	}
+	
+	
+	linker_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (RECORD));
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AV_MODE, krad_link_av_mode_to_string (av_mode));
+
+	if ((av_mode == VIDEO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
+		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC, krad_codec_to_string (video_codec));
+	}
+
+	if ((av_mode == AUDIO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
+		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (audio_codec));
+	}
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FILENAME, filename);
+	
+	krad_ebml_finish_element (client->krad_ebml, link);
+
+	krad_ebml_finish_element (client->krad_ebml, create_link);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_list_links (krad_ipc_client_t *client) {
 
 	//uint64_t ipc_command;
@@ -966,13 +1033,23 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	
 	pos = 0;
 	
-	if (krad_link->operation_mode == TRANSMIT) {
+	if ((krad_link->operation_mode == RECORD) || (krad_link->operation_mode == TRANSMIT)) {
+
+		if (krad_link->operation_mode == TRANSMIT) {
 	
-		pos += sprintf (text + pos, "%s - %s - %s:%d%s",
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_av_mode_to_string (krad_link->av_mode),
-						krad_link->host, krad_link->tcp_port, krad_link->mount);
-				
+			pos += sprintf (text + pos, "%s - %s - %s:%d%s",
+							krad_link_operation_mode_to_string (krad_link->operation_mode),
+							krad_link_av_mode_to_string (krad_link->av_mode),
+							krad_link->host, krad_link->tcp_port, krad_link->mount);
+		}
+
+		if (krad_link->operation_mode == RECORD) {
+	
+			pos += sprintf (text + pos, "%s - %s - %s",
+							krad_link_operation_mode_to_string (krad_link->operation_mode),
+							krad_link_av_mode_to_string (krad_link->av_mode),
+							krad_link->filename);
+		}
 				
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			pos += sprintf (text + pos, " %s", krad_codec_to_string (krad_link->video_codec));
@@ -994,10 +1071,12 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 		}				
 				
 	} else {
+	
 		pos += sprintf (text + pos, "%s - %s", 
 						krad_link_operation_mode_to_string (krad_link->operation_mode),
 						krad_link_av_mode_to_string (krad_link->av_mode));
-	}
+	
+	}	
 	
 	if (krad_link->operation_mode == CAPTURE) {
 		
@@ -1086,6 +1165,10 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_link->operation_mode = TRANSMIT;
 		}
 		
+		if (strcmp(string, "record") == 0) {
+			krad_link->operation_mode = RECORD;
+		}		
+		
 		if (strcmp(string, "playback") == 0) {
 			krad_link->operation_mode = PLAYBACK;
 		}
@@ -1106,7 +1189,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 				
 		}
 
-		if (krad_link->operation_mode == TRANSMIT) {
+		if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
 		
 		
 			if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
@@ -1140,36 +1223,52 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 				krad_link->audio_codec = krad_string_to_codec (string);
 			}
 		
+			if (krad_link->operation_mode == TRANSMIT) {
 
-			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-				printk ("hrm wtf4\n");
-			} else {
-				//printk ("tag name size %zu\n", ebml_data_size);
-			}
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
+					printk ("hrm wtf4\n");
+				} else {
+					//printk ("tag name size %zu\n", ebml_data_size);
+				}
 
-			krad_ebml_read_string (client->krad_ebml, krad_link->host, ebml_data_size);
+				krad_ebml_read_string (client->krad_ebml, krad_link->host, ebml_data_size);
 	
-			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-				printk ("hrm wtf5\n");
-			} else {
-				//printk ("tag value size %zu\n", ebml_data_size);
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+					printk ("hrm wtf5\n");
+				} else {
+					//printk ("tag value size %zu\n", ebml_data_size);
+				}
+
+				krad_link->tcp_port = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
+					printk ("hrm wtf6\n");
+				} else {
+					//printk ("tag name size %zu\n", ebml_data_size);
+				}
+
+				krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
 			}
+			
+			if (krad_link->operation_mode == RECORD) {
+			
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-			krad_link->tcp_port = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
+					printk ("hrm wtf4\n");
+				} else {
+					//printk ("tag name size %zu\n", ebml_data_size);
+				}
 
-			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-				printk ("hrm wtf6\n");
-			} else {
-				//printk ("tag name size %zu\n", ebml_data_size);
+				krad_ebml_read_string (client->krad_ebml, krad_link->filename, ebml_data_size);			
+			
 			}
-
-			krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
 
 
 			if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
