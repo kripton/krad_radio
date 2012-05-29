@@ -44,6 +44,7 @@ Native Codec Support List
 
 Current Video: VP8 (libvpx), Theora, Dirac*
 Planned Video: VP8 (xvp8), daala
+Thinking about it: DNxHD, CinemaDNG
 
 Current Audio: Opus, Vorbis, FLAC, Codec2*
 
