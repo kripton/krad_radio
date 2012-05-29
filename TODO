@@ -1,4 +1,5 @@
 All Knobs VIA IPC
+Knob introspection/help for discoverability
 TCP IPC Option
 Catch Handle term/kill signals proper
 JSON IPC Translator
