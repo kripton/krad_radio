@@ -89,6 +89,12 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "tone", 4) == 0) {
+				if (argc == 4) {
+					krad_ipc_mixer_push_tone (client, argv[3]);
+				}
+			}			
+			
 			if (strncmp(argv[2], "input", 5) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_create_portgroup (client, argv[3], "input");

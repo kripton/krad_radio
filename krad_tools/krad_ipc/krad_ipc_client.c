@@ -332,16 +332,37 @@ void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, cha
 
 	//uint64_t ipc_command;
 	uint64_t command;
-	uint64_t destroy;
+	uint64_t create;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_CREATE_PORTGROUP, &destroy);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_CREATE_PORTGROUP, &create);
 
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION, direction);
 	
-	krad_ebml_finish_element (client->krad_ebml, destroy);
+	krad_ebml_finish_element (client->krad_ebml, create);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+
+void krad_ipc_mixer_push_tone (krad_ipc_client_t *client, char *tone) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t push;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_PUSH_TONE, &push);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_TONE_NAME, tone);
+	
+	krad_ebml_finish_element (client->krad_ebml, push);
 	krad_ebml_finish_element (client->krad_ebml, command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
 		

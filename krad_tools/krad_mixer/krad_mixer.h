@@ -23,6 +23,7 @@ typedef enum {
 } krad_mixer_portgroup_direction_t;
 
 typedef enum {
+	KRAD_TONE,
 	KRAD_AUDIO, /* i.e local audio i/o */
 	KRAD_LINK, /* i.e. remote audio i/o */
 	MIXBUS,	/* i.e. mixer internal i/o */
@@ -81,6 +82,10 @@ struct krad_mixer_St {
 	int sample_rate;
     
 	krad_mixer_mixbus_t *master_mix;
+
+	krad_mixer_portgroup_t *tone_port;
+	char *push_tone;	
+	char push_tone_value[64];
     
 	krad_mixer_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];
 	krad_mixer_crossfade_group_t *crossfade_group;

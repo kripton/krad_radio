@@ -19,6 +19,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_ipc_server.h"
 #include "krad_radio_ipc.h"
 #include "krad_ring.h"
+#include "krad_tone.h"
 #include "krad_audio.h"
 #include "krad_jack.h"
 #include "krad_alsa.h"
