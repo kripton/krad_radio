@@ -948,6 +948,7 @@ void *stream_input_thread(void *arg) {
 	int h;
 	int total_header_size;
 	int writeheaders;
+	int audio_frames;
 	
 	nocodec = NOCODEC;
 	packet_size = 0;
@@ -958,7 +959,8 @@ void *stream_input_thread(void *arg) {
 	video_packets = 0;
 	audio_packets = 0;
 	current_track = -1;
-
+	audio_frames = 0;
+	
 	header_buffer = malloc (4096 * 512);
 	buffer = malloc (4096 * 512);
 	
@@ -1051,7 +1053,11 @@ void *stream_input_thread(void *arg) {
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
 				}
 				
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_timecode, 8);
+				//packet_timecode
+				// FIXME audio frames
+				audio_frames = 960;
+				
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&audio_frames, 8);
 				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 				codec_bytes += packet_size;
