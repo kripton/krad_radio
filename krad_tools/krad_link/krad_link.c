@@ -1082,6 +1082,7 @@ void *udp_input_thread(void *arg) {
 	unsigned char *packet_buffer;
 	struct sockaddr_in local_address;
 	struct sockaddr_in remote_address;
+	struct pollfd sockets[1];	
 	int nocodec;
 	int opus_codec;
 	int packets;
@@ -1126,41 +1127,54 @@ void *udp_input_thread(void *arg) {
 
 	while (!krad_link->destroy) {
 	
-		ret = recvfrom(sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
-		
-		if (ret == -1) {
-			printk ("failed recvin udp\n");
+		sockets[0].fd = sd;
+		sockets[0].events = POLLIN;
+
+		ret = poll (sockets, 1, 250);	
+	
+		if (ret < 0) {
+			printk ("Krad Link UDP Poll Failure\n");
 			krad_link->destroy = 1;
 			continue;
 		}
+	
+		if (ret > 0) {
 		
-		//printk ("Received packet from %s:%d\n", 
-		//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
-
-
-		krad_rebuilder_write (krad_link->krad_rebuilder, buffer, ret);
-
-		ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
+			ret = recvfrom (sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
 		
-		if (ret != 0) {
-			//printk ("read a packet with %d bytes\n", ret);
-
-			if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			
-				while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!krad_link->destroy)) {
-					usleep(10000);
-				}
-				
-				if (packets > 0) {
-					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
-				}
-				krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&ret, 4);
-				krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)packet_buffer, ret);
-				packets++;
+			if (ret == -1) {
+				printk ("Krad Link UDP Recv Failure\n");
+				krad_link->destroy = 1;
+				continue;
 			}
+		
+			//printk ("Received packet from %s:%d\n", 
+			//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
 
+
+			krad_rebuilder_write (krad_link->krad_rebuilder, buffer, ret);
+
+			ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
+		
+			if (ret != 0) {
+				//printk ("read a packet with %d bytes\n", ret);
+
+				if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			
+					while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!krad_link->destroy)) {
+						usleep(10000);
+					}
+				
+					if (packets > 0) {
+						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
+					}
+					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&ret, 4);
+					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)packet_buffer, ret);
+					packets++;
+				}
+
+			}
 		}
-
 	}
 
 	krad_rebuilder_destroy (krad_link->krad_rebuilder);
