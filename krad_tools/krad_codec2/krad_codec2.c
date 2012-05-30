@@ -1,35 +1,43 @@
 #include "krad_codec2.h"
 
 /*
-void krad_speex_resampler_info() {
+		krad_link->krad_codec2_decoder = 
+			krad_codec2_decoder_create(1, krad_link->krad_radio->krad_mixer->sample_rate);
+		krad_link->krad_codec2_encoder = 
+			krad_codec2_encoder_create(1, krad_link->krad_radio->krad_mixer->sample_rate);
+	
+	if (krad_link->krad_codec2_decoder != NULL) {
+		krad_codec2_decoder_destroy(krad_link->krad_codec2_decoder);
+	}
+	
+	if (krad_link->krad_codec2_encoder != NULL) {
+		krad_codec2_encoder_destroy(krad_link->krad_codec2_encoder);
+	}
+	
+*/
 
-	int in_rate, out_rate, qual;
-	int in_rates[] = {8000, 16000, 32000, 44100, 48000};
-	int out_rates[] = {8000, 16000, 32000, 44100, 48000};
-	int qualities[] = {0,1,2,3,4,5,6,7,8,9,10};
-	
-	SpeexResamplerState *speex_resampler;
-	int speex_resampler_error;
-	int input_latency;
-	int output_latency;
-	
-	for (in_rate = 0; in_rate < 5; in_rate++) {
-		for (out_rate = 0; out_rate < 5; out_rate++) {
-			for (qual = 0; qual < 11; qual++) {
-				speex_resampler = speex_resampler_init(1, in_rates[in_rate], out_rates[out_rate], qualities[qual], &speex_resampler_error);
-				if (speex_resampler_error != 0) {
-					printf("speex resampler error! %s\n", speex_resampler_strerror(speex_resampler_error));
-				}
-				
-				input_latency = speex_resampler_get_input_latency(speex_resampler);
-				output_latency = speex_resampler_get_output_latency(speex_resampler);
-				printf("Speex Resampler Info: Input Rate: %d Output Rate: %d Quality %d Input Delay %d Output Delay %d\n",
-					    in_rates[in_rate], out_rates[out_rate], qualities[qual], input_latency, output_latency);
-				speex_resampler_destroy(speex_resampler);
-			}
+/*
+	unsigned char *codec2_buffer;
+	int codec2_bytes;
+
+	codec2_bytes = 0;
+	codec2_buffer = calloc(1, 8192 * 4 * 4);
+
+	if (codec2_test == 1) {
+		//krad_smash (audio, 960);
+		if (c == 0) {
+			codec2_bytes = krad_codec2_encode(krad_link->krad_codec2_encoder, audio, 960, codec2_buffer);
+			memset(audio, '0', 960 * 4);
+			returned_samples = krad_codec2_decode(krad_link->krad_codec2_decoder, codec2_buffer, codec2_bytes, audio);
+			//kradaudio_write (krad_link->krad_audio, c, (char *)audio, returned_samples * 4 );
+		} else {
+			memset(audio, '0', 960 * 4);
+			//kradaudio_write (krad_link->krad_audio, c, (char *)audio, returned_samples * 4 );
 		}
 	}
-}
+
+	free(codec2_buffer);
+	
 */
 
 int krad_codec2_encode(krad_codec2_t *krad_codec2, float *audio, int frames, unsigned char *buffer) {
@@ -56,11 +64,10 @@ int krad_codec2_encode(krad_codec2_t *krad_codec2, float *audio, int frames, uns
 		krad_codec2->src_data.output_frames = KRAD_CODEC2_SLICE_SIZE_MAX;
 		krad_codec2->src_error = src_process (krad_codec2->src_resampler, &krad_codec2->src_data);
 		if (krad_codec2->src_error != 0) {
-			printf("krad_codec2_encode src resampler error: %s\n", src_strerror(krad_codec2->src_error));
+			printke ("krad_codec2_encode src resampler error: %s\n", src_strerror(krad_codec2->src_error));
 		}
 		if (krad_codec2->src_data.input_frames_used != frames) {
-			printf("\n\n\n******oh no src resampler did not consume all samples!\n\n\n*********\n");
-			exit(1);
+			failfast ("\n\n\n******oh no src resampler did not consume all samples!\n\n\n*********\n");
 		}
 		
 		if (krad_codec2->src_run_count == 0) {
@@ -73,34 +80,15 @@ int krad_codec2_encode(krad_codec2_t *krad_codec2, float *audio, int frames, uns
 				krad_codec2->src_run_count++;
 			} else {
 				if ((krad_codec2->src_data.input_frames_used != krad_codec2->expected_input_frames_used) || (krad_codec2->src_data.output_frames_gen != krad_codec2->expected_output_frames_gen)) {
-					printf("krad_codec2_encode src resampler took %ld gave %ld\n", krad_codec2->src_data.input_frames_used, krad_codec2->src_data.output_frames_gen);
-					exit(1);
+					failfast ("krad_codec2_encode src resampler took %ld gave %ld\n", krad_codec2->src_data.input_frames_used, krad_codec2->src_data.output_frames_gen);
 				}
 			}
 		}
 	
 		krad_codec2_float_to_int16 (krad_codec2->short_samples_out, krad_codec2->float_samples_out, krad_codec2->src_data.output_frames_gen);
 	} else {
-	
-		if (KRAD_CODEC2_USE_SPEEX_RESAMPLER) {
-	
-			//krad_codec2->samples_in = frames;
-			//krad_codec2->samples_out = KRAD_CODEC2_SLICE_SIZE_MAX;
-			//krad_codec2->speex_resampler_error = speex_resampler_process_float(krad_codec2->speex_resampler, 0, audio, &krad_codec2->samples_in, krad_codec2->float_samples_out, &krad_codec2->samples_out);
-			//if (krad_codec2->speex_resampler_error != 0) {
-			//	printf("speex resampler error! %s\n", speex_resampler_strerror(krad_codec2->speex_resampler_error));
-			//}
-			//printf("codec2 encode speex resampler took %d gave %d\n", krad_codec2->samples_in, krad_codec2->samples_out);
-			//if (krad_codec2->samples_in != frames) {
-			//	printf("\n\n\n******oh no speex resampler did not consume all samples!\n\n\n*********\n");
-			//	exit(1);
-			//}
-			//krad_codec2_float_to_int16 (krad_codec2->short_samples_out, krad_codec2->float_samples_out, krad_codec2->samples_out);
-	
-		} else {
-			krad_codec2_float_to_int16 (krad_codec2->short_samples_in, audio, frames);
-			krad_linear_resample_48_8 (krad_codec2->short_samples_out, krad_codec2->short_samples_in, frames);	
-		}
+		krad_codec2_float_to_int16 (krad_codec2->short_samples_in, audio, frames);
+		krad_linear_resample_48_8 (krad_codec2->short_samples_out, krad_codec2->short_samples_in, frames);
 	}
 	
 	while (codec2_frames) {
@@ -116,14 +104,13 @@ int krad_codec2_encode(krad_codec2_t *krad_codec2, float *audio, int frames, uns
 
 void krad_codec2_encoder_destroy(krad_codec2_t *krad_codec2) {
 
-	codec2_destroy(krad_codec2->codec2);
-	free(krad_codec2->float_samples_in);
-	free(krad_codec2->float_samples_out);
-	free(krad_codec2->short_samples_in);
-	free(krad_codec2->short_samples_out);
-	//speex_resampler_destroy(krad_codec2->speex_resampler);
+	codec2_destroy (krad_codec2->codec2);
+	free (krad_codec2->float_samples_in);
+	free (krad_codec2->float_samples_out);
+	free (krad_codec2->short_samples_in);
+	free (krad_codec2->short_samples_out);
 	src_delete (krad_codec2->src_resampler);
-	free(krad_codec2);
+	free (krad_codec2);
 
 }
 
@@ -138,11 +125,6 @@ krad_codec2_t *krad_codec2_encoder_create(int input_channels, int input_sample_r
 	krad_codec2->short_samples_out = calloc(1, KRAD_CODEC2_SLICE_SIZE_MAX * 4);
 	krad_codec2->float_samples_in = calloc(1, KRAD_CODEC2_SLICE_SIZE_MAX * 4);
 	krad_codec2->float_samples_out = calloc(1, KRAD_CODEC2_SLICE_SIZE_MAX * 4);
-
-	//krad_codec2->speex_resampler = speex_resampler_init(1, input_sample_rate, 8000, 5, &krad_codec2->speex_resampler_error);
-	//if (krad_codec2->speex_resampler_error != 0) {
-	//	printf("krad_codec2_encoder_create speex resampler error! %s\n", speex_resampler_strerror(krad_codec2->speex_resampler_error));
-	//}
 	
 	krad_codec2->src_resampler = src_new (KRAD_CODEC2_SRC_QUALITY, 1, &krad_codec2->src_error);
 	if (krad_codec2->src_resampler == NULL) {
@@ -172,11 +154,6 @@ krad_codec2_t *krad_codec2_decoder_create(int output_channels, int output_sample
 	krad_codec2->float_samples_in = calloc(1, KRAD_CODEC2_SLICE_SIZE_MAX * 4);
 	krad_codec2->float_samples_out = calloc(1, KRAD_CODEC2_SLICE_SIZE_MAX * 4);
 	
-	//krad_codec2->speex_resampler = speex_resampler_init(1, 8000, output_sample_rate, 5, &krad_codec2->speex_resampler_error);
-	//if (krad_codec2->speex_resampler_error != 0) {
-	//	printf("speex resampler error! %s\n", speex_resampler_strerror(krad_codec2->speex_resampler_error));
-	//}
-	
 	krad_codec2->src_resampler = src_new (KRAD_CODEC2_SRC_QUALITY, 1, &krad_codec2->src_error);
 	if (krad_codec2->src_resampler == NULL) {
 		printf("krad_codec2_decoder_create src resampler error: %s\n", src_strerror(krad_codec2->src_error));
@@ -195,14 +172,13 @@ krad_codec2_t *krad_codec2_decoder_create(int output_channels, int output_sample
 
 void krad_codec2_decoder_destroy(krad_codec2_t *krad_codec2) {
 
-	codec2_destroy(krad_codec2->codec2);
-	free(krad_codec2->float_samples_in);
-	free(krad_codec2->float_samples_out);
-	free(krad_codec2->short_samples_in);
-	free(krad_codec2->short_samples_out);
-	//speex_resampler_destroy(krad_codec2->speex_resampler);
+	codec2_destroy (krad_codec2->codec2);
+	free (krad_codec2->float_samples_in);
+	free (krad_codec2->float_samples_out);
+	free (krad_codec2->short_samples_in);
+	free (krad_codec2->short_samples_out);
 	src_delete (krad_codec2->src_resampler);
-	free(krad_codec2);
+	free (krad_codec2);
 
 }
 
@@ -263,27 +239,10 @@ int krad_codec2_decode(krad_codec2_t *krad_codec2, unsigned char *buffer, int le
 		return krad_codec2->src_data.output_frames_gen;
 	
 	} else {
-		if (KRAD_CODEC2_USE_SPEEX_RESAMPLER) {
-			//krad_codec2_int16_to_float (krad_codec2->float_samples_in, krad_codec2->short_samples_in, sample_position);
-			//krad_codec2->samples_in = sample_position;
-			//krad_codec2->samples_out = KRAD_CODEC2_SLICE_SIZE_MAX;
-			//krad_codec2->speex_resampler_error = speex_resampler_process_float(krad_codec2->speex_resampler, 0, krad_codec2->float_samples_in, &krad_codec2->samples_in, audio, &krad_codec2->samples_out);
-			//if (krad_codec2->speex_resampler_error != 0) {
-			//	printf("speex resampler error! %s\n", speex_resampler_strerror(krad_codec2->speex_resampler_error));
-			//}
-			//printf("codec2 decode speex resampler took %d gave %d\n", krad_codec2->samples_in, krad_codec2->samples_out);
-			//if (krad_codec2->samples_in != sample_position) {
-			//	printf("\n\n\n******oh no speex resampler did not consume all samples!\n\n\n*********\n");
-			//	exit(1);
-			//}
-		
-			return krad_codec2->samples_out;
-		} else {
-			krad_linear_resample_8_48 (krad_codec2->short_samples_out, krad_codec2->short_samples_in, sample_position);
-			krad_codec2_int16_to_float (audio, krad_codec2->short_samples_out, sample_position * 6);
-			//printf("decode end f%d bp%d sp%d\n", codec2_frames, byte_position, sample_position);
-			return sample_position * 6;
-		}
+		krad_linear_resample_8_48 (krad_codec2->short_samples_out, krad_codec2->short_samples_in, sample_position);
+		krad_codec2_int16_to_float (audio, krad_codec2->short_samples_out, sample_position * 6);
+		//printf("decode end f%d bp%d sp%d\n", codec2_frames, byte_position, sample_position);
+		return sample_position * 6;
 	}
 	
 }

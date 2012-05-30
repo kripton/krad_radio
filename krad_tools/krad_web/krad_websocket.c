@@ -130,7 +130,7 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 	if (krad_link->operation_mode == TRANSMIT) {
 	
 		cJSON_AddStringToObject (msg, "host",  krad_link->host);
-		cJSON_AddNumberToObject (msg, "port",  krad_link->tcp_port);
+		cJSON_AddNumberToObject (msg, "port",  krad_link->port);
 		cJSON_AddStringToObject (msg, "mount",  krad_link->mount);
 
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {

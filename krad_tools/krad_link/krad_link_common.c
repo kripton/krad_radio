@@ -266,6 +266,24 @@ char *krad_link_video_source_to_string (krad_link_video_source_t video_source) {
 	}
 }
 
+krad_link_transport_mode_t krad_link_string_to_transport_mode (char *string) {
+
+	if ((strcmp(string, "UDP") == 0) || (strcmp(string, "udp") == 0)) {
+		return UDP;
+	}
+	
+	if ((strcmp(string, "TCP") == 0) || (strcmp(string, "tcp") == 0)) {
+		return TCP;
+	}
+	
+	if ((strcmp(string, "filesystem") == 0) || (strcmp(string, "FILESYSTEM") == 0)) {
+		return FILESYSTEM;
+	}	
+
+	return FAIL;
+
+}
+
 char *krad_link_transport_mode_to_string (krad_link_transport_mode_t transport_mode) {
 
 	switch (transport_mode) {

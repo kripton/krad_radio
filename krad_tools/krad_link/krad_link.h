@@ -57,6 +57,8 @@ struct krad_link_St {
 	krad_vpx_decoder_t *krad_vpx_decoder;
 	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
+	krad_codec2_t *krad_codec2_decoder;
+	krad_codec2_t *krad_codec2_encoder;	
 	krad_dirac_t *krad_dirac;	
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
@@ -67,7 +69,6 @@ struct krad_link_St {
 	krad_v4l2_t *krad_v4l2;
 	
 	krad_link_operation_mode_t operation_mode;
-	krad_link_interface_mode_t interface_mode;
 	krad_link_video_source_t video_source;
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
@@ -85,7 +86,7 @@ struct krad_link_St {
 	char output[512];
 	char input[512];
 	char host[512];
-	int tcp_port;
+	int port;
 	char mount[512];
 	char password[512];
 
@@ -194,17 +195,10 @@ struct krad_link_St {
 	int bug_y;
 
 	struct stat file_stat;
-		
-	int udp_mode;
-	
-	int udp_recv_port;
-	int udp_send_port;
 	
 	krad_rebuilder_t *krad_rebuilder;
 	krad_slicer_t *krad_slicer;
-	
-	krad_codec2_t *krad_codec2_decoder;
-	krad_codec2_t *krad_codec2_encoder;
+
 };
 
 krad_linker_t *krad_linker_create ();

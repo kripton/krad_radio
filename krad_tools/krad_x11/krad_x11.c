@@ -1,5 +1,18 @@
 #include "krad_x11.h"
 
+/*
+
+	krad_link->display_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32,
+														  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32,
+														  SWS_BICUBIC, NULL, NULL, NULL);
+	
+	krad_link->krad_x11 = krad_x11_create_glx_window (krad_link->krad_x11, APPVERSION, krad_link->display_width, 
+													  krad_link->display_height, &krad_link->destroy);
+	
+	
+	krad_x11_destroy (krad_link->krad_x11);
+	
+*/
 
 int saveimage (char *filename, int width, int height, uint8_t *imagedata) {
                                               

@@ -49,12 +49,6 @@ typedef enum {
 } krad_link_transport_mode_t;
 
 typedef enum {
-	WINDOW = 300,
-	COMMAND,
-	DAEMON,
-} krad_link_interface_mode_t;
-
-typedef enum {
 	TEST = 500,
 	V4L2,
 	DECKLINK,
@@ -70,6 +64,7 @@ char *krad_opus_signal_to_string (int signal);
 
 char *krad_link_transport_mode_to_string (krad_link_transport_mode_t transport_mode);
 char *krad_link_video_source_to_string (krad_link_video_source_t video_source);
+krad_link_transport_mode_t krad_link_string_to_transport_mode (char *string);
 krad_link_video_source_t krad_link_string_to_video_source (char *string);
 char *krad_link_operation_mode_to_string (krad_link_operation_mode_t operation_mode);
 krad_link_operation_mode_t krad_link_string_to_operation_mode (char *string);
@@ -90,7 +85,7 @@ struct krad_link_rep_St {
 
 	char filename[512];
 	char host[512];
-	int tcp_port;
+	int port;
 	char mount[512];
 	char password[512];
 	int width;

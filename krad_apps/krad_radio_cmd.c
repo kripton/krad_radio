@@ -172,6 +172,12 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "receive", 7) == 0) {
+				if (argc == 4) {
+					krad_ipc_create_receive_link (client, atoi(argv[3]));
+				}
+			}				
+			
 			if (strncmp(argv[2], "play", 4) == 0) {
 				//if (argc ==  ) {
 					//krad_ipc_create_playback_link (client, );

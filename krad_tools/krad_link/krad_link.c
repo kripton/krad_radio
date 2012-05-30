@@ -569,7 +569,7 @@ void *stream_output_thread (void *arg) {
 	
 	if (krad_link->host[0] != '\0') {
 		krad_link->krad_container = krad_container_open_stream (krad_link->host,
-																krad_link->tcp_port,
+																krad_link->port,
 																krad_link->mount,
 																krad_link->password);
 	} else {
@@ -823,23 +823,22 @@ void *udp_output_thread(void *arg) {
 	int packet_size;
 	int frames;
 	
-	
 	count = 0;
 	
 	buffer = malloc(250000);
 	
 	krad_link->krad_slicer = krad_slicer_create ();
 	
-	while ( krad_link->encoding ) {
+	if (krad_link->audio_codec == OPUS) {	
 	
-		if (krad_link->audio_codec != NOCODEC) {
+		while ( krad_link->encoding ) {
 		
 			if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) >= 4)) {
 
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 		
 				while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (krad_link->encoding != 4)) {
-					usleep(10000);
+					usleep(4000);
 				}
 			
 				if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (krad_link->encoding == 4)) {
@@ -849,14 +848,14 @@ void *udp_output_thread(void *arg) {
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 
-				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, krad_link->host, krad_link->udp_send_port);
+				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, krad_link->host, krad_link->port);
 				count++;
 				
 			} else {
 				if (krad_link->encoding == 4) {
 					break;
 				}
-				usleep(5000);
+				usleep(4000);
 			}
 		}
 	}
@@ -960,7 +959,7 @@ void *stream_input_thread(void *arg) {
 	buffer = malloc (4096 * 512);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad_container = krad_container_open_stream (krad_link->host, krad_link->tcp_port, krad_link->mount, NULL);
+		krad_link->krad_container = krad_container_open_stream (krad_link->host, krad_link->port, krad_link->mount, NULL);
 	} else {
 		krad_link->krad_container = krad_container_open_file (krad_link->input, KRAD_IO_READONLY);
 	}
@@ -1001,30 +1000,27 @@ void *stream_input_thread(void *arg) {
 
 			video_packets++;
 
-			if (krad_link->interface_mode == WINDOW) {
-
-				while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!krad_link->destroy)) {
-					usleep(10000);
-				}
-				
-				if (writeheaders == 1) {
-					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&nocodec, 4);
-					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
-					for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
-						header_size = krad_container_track_header_size(krad_link->krad_container, current_track, h);
-						krad_container_read_track_header(krad_link->krad_container, header_buffer, current_track, h);
-						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
-						krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)header_buffer, header_size);
-						codec_bytes += packet_size;
-					}
-				} else {
-					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
-				}
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_timecode, 8);
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)buffer, packet_size);
-				codec_bytes += packet_size;
+			while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!krad_link->destroy)) {
+				usleep(10000);
 			}
+			
+			if (writeheaders == 1) {
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&nocodec, 4);
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
+				for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
+					header_size = krad_container_track_header_size(krad_link->krad_container, current_track, h);
+					krad_container_read_track_header(krad_link->krad_container, header_buffer, current_track, h);
+					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
+					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)header_buffer, header_size);
+					codec_bytes += packet_size;
+				}
+			} else {
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
+			}
+			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_timecode, 8);
+			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)buffer, packet_size);
+			codec_bytes += packet_size;
 		}
 		
 		if ((track_codecs[current_track] == VORBIS) || (track_codecs[current_track] == OPUS) || (track_codecs[current_track] == FLAC)) {
@@ -1102,7 +1098,7 @@ void *udp_input_thread(void *arg) {
 
 	memset((char *) &local_address, 0, sizeof(local_address));
 	local_address.sin_family = AF_INET;
-	local_address.sin_port = htons (krad_link->udp_recv_port);
+	local_address.sin_port = htons (krad_link->port);
 	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind (sd, (struct sockaddr *)&local_address, sizeof(local_address)) == -1 ) {
@@ -1439,9 +1435,8 @@ void *audio_decoding_thread(void *arg) {
 	int c;
 	int h;
 	int bytes;
+	int len;	
 	unsigned char *buffer;
-	unsigned char *codec2_buffer;
-	int codec2_bytes;
 	unsigned char *header[3];
 	int header_len[3];
 	float *audio;
@@ -1465,9 +1460,6 @@ void *audio_decoding_thread(void *arg) {
 	
 	buffer = malloc(2000000);
 	audio = calloc(1, 8192 * 4 * 4);
-
-	codec2_bytes = 0;
-	codec2_buffer = calloc(1, 8192 * 4 * 4);
 	
 	krad_link->last_audio_codec = NOCODEC;
 	krad_link->audio_codec = NOCODEC;
@@ -1475,11 +1467,6 @@ void *audio_decoding_thread(void *arg) {
 	
 	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, INPUT, 2, 
 												   krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);
-	
-	
-	if (krad_link->udp_mode == 1) {
-		//usleep(150000);
-	}
 	
 	while (!krad_link->destroy) {
 
@@ -1501,7 +1488,7 @@ void *audio_decoding_thread(void *arg) {
 					krad_link->krad_vorbis = NULL;
 				}			
 				if (krad_link->last_audio_codec == OPUS) {
-					kradopus_decoder_destroy(krad_link->krad_opus);
+					kradopus_decoder_destroy (krad_link->krad_opus);
 					krad_link->krad_opus = NULL;
 				}
 			}
@@ -1527,7 +1514,7 @@ void *audio_decoding_thread(void *arg) {
 		
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
-				krad_flac_decode(krad_link->krad_flac, header[0], header_len[0], NULL);
+				krad_flac_decode (krad_link->krad_flac, header[0], header_len[0], NULL);
 			}
 	
 			if (krad_link->audio_codec == VORBIS) {
@@ -1548,11 +1535,8 @@ void *audio_decoding_thread(void *arg) {
 				}
 
 				printk ("\n\nVorbis Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
-				krad_link->krad_vorbis = krad_vorbis_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 
-
-
-				//kradaudio_set_process_callback(krad_link->krad_audio, krad_link_audio_callback, krad_link);
+				krad_link->krad_vorbis = krad_vorbis_decoder_create (header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 			}
 	
 			if (krad_link->audio_codec == OPUS) {
@@ -1573,20 +1557,20 @@ void *audio_decoding_thread(void *arg) {
 				}
 			
 				printk ("Opus Header size: %d\n", header_len[0]);
-				//krad_link->krad_opus = kradopus_decoder_create(header[0], header_len[0], krad_link->krad_audio->sample_rate);
+				krad_link->krad_opus = kradopus_decoder_create (header[0], header_len[0], krad_link->krad_radio->krad_mixer->sample_rate);
 			}
 		}
 
 		krad_link->last_audio_codec = krad_link->audio_codec;
 	
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->destroy)) {
-			usleep(5000);
+			usleep(4000);
 		}
 	
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
 		
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < bytes) && (!krad_link->destroy)) {
-			usleep(5000);
+			usleep(1000);
 		}
 		
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, bytes);
@@ -1594,7 +1578,7 @@ void *audio_decoding_thread(void *arg) {
 		if (krad_link->audio_codec == VORBIS) {
 			krad_vorbis_decoder_decode(krad_link->krad_vorbis, buffer, bytes);
 			
-			int len = 1;
+			len = 1;
 			
 			while (len ) {
 			
@@ -1635,37 +1619,25 @@ void *audio_decoding_thread(void *arg) {
 		}
 			
 		if (krad_link->audio_codec == OPUS) {
-		
-			//kradopus_decoder_set_speed(krad_link->krad_opus, 100);
-			kradopus_write_opus(krad_link->krad_opus, buffer, bytes);
 
-			int c;
-			int returned_samples = 0;
-			int codec2_test = 0;
-			bytes = -1;			
+			kradopus_write_opus (krad_link->krad_opus, buffer, bytes);
+			
+			bytes = -1;
+
 			while (bytes != 0) {
 				for (c = 0; c < 2; c++) {
-					bytes = kradopus_read_audio(krad_link->krad_opus, c + 1, (char *)audio, 960 * 4);
+					bytes = kradopus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 240 * 4);
 					if (bytes) {
-						//printk ("\nAudio data! %d samplers\n", bytes / 4);
-						
-						if ((bytes / 4) != 960) {
+						if ((bytes / 4) != 240) {
 							failfast ("uh oh crazyto\n");
 						}
-						if (codec2_test == 1) {
-							//krad_smash (audio, 960);
-							if (c == 0) {
-								codec2_bytes = krad_codec2_encode(krad_link->krad_codec2_encoder, audio, 960, codec2_buffer);
-								memset(audio, '0', 960 * 4);
-								returned_samples = krad_codec2_decode(krad_link->krad_codec2_decoder, codec2_buffer, codec2_bytes, audio);
-								//kradaudio_write (krad_link->krad_audio, c, (char *)audio, returned_samples * 4 );
-							} else {
-								memset(audio, '0', 960 * 4);
-								//kradaudio_write (krad_link->krad_audio, c, (char *)audio, returned_samples * 4 );
-							}
-						} else {
-							//kradaudio_write (krad_link->krad_audio, c, (char *)audio, bytes );
+
+						while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[c]) < bytes) {
+							usleep(20000);
 						}
+
+						krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)audio, bytes);
+
 					}
 				}
 			}
@@ -1689,9 +1661,8 @@ void *audio_decoding_thread(void *arg) {
 		krad_link->krad_opus = NULL;
 	}
 
-	free(buffer);
-	free(audio);
-	free(codec2_buffer);
+	free (buffer);
+	free (audio);
 	
 	for (c = 0; c < krad_link->audio_channels; c++) {
 		free(krad_link->samples[c]);
@@ -1853,7 +1824,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	if (krad_link->capturing) {
 		krad_link->capturing = 0;
 		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11)) {
-			pthread_join(krad_link->video_capture_thread, NULL);
+			pthread_join (krad_link->video_capture_thread, NULL);
 		}
 		if (krad_link->video_source == DECKLINK) {
 			if (krad_link->krad_decklink != NULL) {
@@ -1865,17 +1836,26 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		krad_link->encoding = 2;
 	}
 	
-	if (krad_link->video_source != NOVIDEO) {
-		pthread_join(krad_link->video_encoding_thread, NULL);
-	} else {
-		krad_link->encoding = 3;
+	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
+		if (krad_link->video_source != NOVIDEO) {
+			pthread_join (krad_link->video_encoding_thread, NULL);
+		} else {
+			krad_link->encoding = 3;
+		}
+	
+		if (krad_link->audio_codec != NOCODEC) {
+			pthread_join (krad_link->audio_encoding_thread, NULL);
+		}
 	}
 	
-	if (krad_link->audio_codec != NOCODEC) {
-		pthread_join(krad_link->audio_encoding_thread, NULL);
+	if (((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == TCP)) ||
+	     (krad_link->operation_mode == RECORD)) {
+			pthread_join (krad_link->stream_output_thread, NULL);
 	}
-	
-	pthread_join(krad_link->stream_output_thread, NULL);
+
+	if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == UDP)) {
+		pthread_join (krad_link->udp_output_thread, NULL);
+	}
 
 	if (krad_link->operation_mode == RECEIVE) {
 
@@ -1888,8 +1868,14 @@ void krad_link_destroy (krad_link_t *krad_link) {
 			pthread_join(krad_link->audio_decoding_thread, NULL);
 		}
 		
-		pthread_join(krad_link->stream_input_thread, NULL);
+		if ((krad_link->transport_mode == TCP) || (krad_link->transport_mode == FILESYSTEM)) {
+			pthread_join (krad_link->stream_input_thread, NULL);
+		}
 		
+		if (krad_link->transport_mode == UDP) {
+			pthread_join (krad_link->udp_input_thread, NULL);
+		}		
+			
 	}
 	
 	if (krad_link->operation_mode == CAPTURE) {
@@ -1901,7 +1887,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 			krad_framepool_destroy (krad_link->krad_framepool);
 			krad_link->krad_framepool = NULL;
 		}
-		
 	}
 	
 	if (krad_link->krad_vpx_decoder) {
@@ -1943,11 +1928,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		kradopus_encoder_destroy(krad_link->krad_opus);
 	}
 	
-	if (krad_link->interface_mode == WINDOW) {
-		//krad_sdl_opengl_display_destroy(krad_link->krad_opengl_display);
-		krad_x11_destroy (krad_link->krad_x11);
-	}
-	
 	if (krad_link->decoded_frames_buffer != NULL) {
 		krad_ringbuffer_free ( krad_link->decoded_frames_buffer );
 	}
@@ -1958,20 +1938,11 @@ void krad_link_destroy (krad_link_t *krad_link) {
 
 	free (krad_link->current_encoding_frame);
 
-
 	if (krad_link->video_source == X11) {
 		krad_x11_destroy (krad_link->krad_x11);
 	}
 	
-	if (krad_link->krad_codec2_decoder != NULL) {
-		krad_codec2_decoder_destroy(krad_link->krad_codec2_decoder);
-	}
-	
-	if (krad_link->krad_codec2_encoder != NULL) {
-		krad_codec2_encoder_destroy(krad_link->krad_codec2_encoder);
-	}
-	
-	printk ("Link shutoff cleanly.\n", APPVERSION);
+	printk ("Krad Link Closed Clean\n");
 	
 	free (krad_link);
 }
@@ -2002,13 +1973,8 @@ krad_link_t *krad_link_create() {
 	strncpy(krad_link->alsa_capture_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(krad_link->alsa_capture_device));
 	strncpy(krad_link->alsa_playback_device, DEFAULT_ALSA_PLAYBACK_DEVICE, sizeof(krad_link->alsa_playback_device));
 	sprintf(krad_link->output, "%s/Videos/krad_link_%"PRIuMAX".webm", getenv ("HOME"), (uintmax_t)time(NULL));
-
-	krad_link->udp_recv_port = KRAD_LINK_DEFAULT_UDP_PORT;
-	krad_link->udp_send_port = KRAD_LINK_DEFAULT_UDP_PORT;
-	krad_link->tcp_port = KRAD_LINK_DEFAULT_TCP_PORT;
-
+	krad_link->port = 0;
 	krad_link->operation_mode = CAPTURE;
-	krad_link->interface_mode = COMMAND;
 	krad_link->video_codec = KRAD_LINK_DEFAULT_VIDEO_CODEC;
 	krad_link->audio_codec = KRAD_LINK_DEFAULT_AUDIO_CODEC;
 	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
@@ -2037,13 +2003,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 	krad_link->display_width = krad_link->capture_width;
 	krad_link->display_height = krad_link->capture_height;
-
-	if (krad_link->interface_mode == WINDOW) {
-
-		krad_link->krad_x11 = krad_x11_create_glx_window (krad_link->krad_x11, APPVERSION, krad_link->display_width, krad_link->display_height, 
-														  &krad_link->destroy);
-
-	}
 	
 	krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
 
@@ -2065,13 +2024,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 		krad_link->encoding_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
 															  krad_link->encoding_width, krad_link->encoding_height, PIX_FMT_YUV420P, 
 															  SWS_BICUBIC, NULL, NULL, NULL);
-	}
-	
-	if (krad_link->interface_mode == WINDOW) {
-															
-		krad_link->display_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
-															 krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-															 SWS_BICUBIC, NULL, NULL, NULL);
 	}
 		
 	krad_link->captured_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->capture_buffer_frames);
@@ -2128,18 +2080,13 @@ void krad_link_activate (krad_link_t *krad_link) {
 		krad_link->decoded_frames_buffer = 
 			krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
 		
-		if (krad_link->udp_mode) {
-			//FIXME move codec2 experimental stuff
-			krad_link->krad_codec2_decoder = 
-				krad_codec2_decoder_create(1, krad_link->krad_radio->krad_mixer->sample_rate);
-			krad_link->krad_codec2_encoder = 
-				krad_codec2_encoder_create(1, krad_link->krad_radio->krad_mixer->sample_rate);
+		if (krad_link->transport_mode == UDP) {
 			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	
 		} else {
 			pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	
 		}
 		
-		if (krad_link->interface_mode == WINDOW) {
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			pthread_create(&krad_link->video_decoding_thread, NULL, video_decoding_thread, (void *)krad_link);
 		}
 	
@@ -2162,7 +2109,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 			pthread_create (&krad_link->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_link);
 		}
 	
-		if (krad_link->udp_mode) {
+		if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == UDP)) {
 			pthread_create (&krad_link->udp_output_thread, NULL, udp_output_thread, (void *)krad_link);	
 		} else {
 			pthread_create (&krad_link->stream_output_thread, NULL, stream_output_thread, (void *)krad_link);	
@@ -2203,6 +2150,32 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
 	
 	krad_link->operation_mode = krad_link_string_to_operation_mode (string);
+
+	if (krad_link->operation_mode == RECEIVE) {
+	
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
+
+		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
+		
+		krad_link->transport_mode = krad_link_string_to_transport_mode (string);
+	
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+			printk ("hrm wtf3\n");
+		} else {
+			//printk ("tag value size %zu\n", ebml_data_size);
+		}
+
+		krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+	
+	}
 	
 	if (krad_link->operation_mode == CAPTURE) {
 	
@@ -2284,6 +2257,18 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
+
+		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
+		
+		krad_link->transport_mode = krad_link_string_to_transport_mode (string);
+	
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
 			printk ("hrm wtf2\n");
 		} else {
@@ -2300,7 +2285,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			//printk ("tag value size %zu\n", ebml_data_size);
 		}
 
-		krad_link->tcp_port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+		krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -2352,6 +2337,8 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_link->audio_codec = OPUS;
 		}
 
+		krad_link->transport_mode = FILESYSTEM;
+
 	}	
 	
 	
@@ -2401,6 +2388,16 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			break;
 	}
 	
+	if (krad_link->operation_mode == RECEIVE) {
+
+		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, 
+								krad_link_transport_mode_to_string (krad_link->transport_mode));
+
+		if ((krad_link->transport_mode == UDP) || (krad_link->transport_mode == TCP)) {
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->port);
+		}
+	}	
+	
 	if (krad_link->operation_mode == CAPTURE) {
 		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE, krad_link_video_source_to_string (krad_link->video_source));
 	}
@@ -2422,8 +2419,11 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		
 		if (krad_link->operation_mode == TRANSMIT) {
 	
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, 
+									krad_link_transport_mode_to_string (krad_link->transport_mode));
+	
 			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_HOST, krad_link->host);
-			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->tcp_port);
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->port);
 			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_MOUNT, krad_link->mount);
 		}
 		
