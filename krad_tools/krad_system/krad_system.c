@@ -5,6 +5,82 @@ int verbose;
 int krad_system_initialized;
 krad_system_t krad_system;
 
+
+void krad_system_monitor_cpu_on () {
+
+	if (krad_system.kcm.on == 0) {
+		krad_system.kcm.on = 1;
+		pthread_create (&krad_system.kcm.monitor_thread, NULL, krad_system_monitor_cpu_thread, NULL);
+	}
+}
+
+void krad_system_monitor_cpu_off () {
+
+	if (krad_system.kcm.on == 1) {
+		krad_system.kcm.on = 2;	
+		pthread_join (krad_system.kcm.monitor_thread, NULL);
+		krad_system.kcm.on = 0;
+	}
+}
+
+void *krad_system_monitor_cpu_thread (void *arg) {
+
+	krad_system_cpu_monitor_t *kcm;
+	
+	printk ("Krad System CPU Monitor On\n");
+
+	kcm = &krad_system.kcm;
+
+	kcm->fd = open ( "/proc/stat", O_RDONLY );
+
+	kcm->interval = KRAD_CPU_MONITOR_INTERVAL;
+
+	while (kcm->on == 1) {
+	
+		kcm->ret = lseek (kcm->fd, 0, SEEK_SET);
+
+		if (kcm->ret != 0) {
+			break;
+		}
+		
+		kcm->ret = read (kcm->fd, kcm->buffer, KRAD_BUFLEN_CPUSTAT);
+
+		if (kcm->ret != KRAD_BUFLEN_CPUSTAT) {
+			break;
+		}
+
+		sscanf (kcm->buffer + 3, "%d %d %d %d", &kcm->user, &kcm->nice, &kcm->system, &kcm->idle );
+
+		kcm->total = kcm->user + kcm->nice + kcm->system + kcm->idle;
+
+		if (kcm->total != kcm->last_total) {
+
+			kcm->diff_idle = kcm->idle - kcm->last_idle;
+			kcm->diff_total = kcm->total - kcm->last_total;
+
+			kcm->usage = (1000 * (kcm->diff_total - kcm->diff_idle) / kcm->diff_total + 5) / 10;
+
+			krad_system.system_cpu_usage = kcm->usage;
+
+			//printk ("user %d nice %d system %d idle %d usage %d\n", 
+			//		kcm->user, kcm->nice, kcm->system, kcm->idle, kcm->usage);
+
+			kcm->last_idle = kcm->idle;
+			kcm->last_total = kcm->total;
+
+		}
+
+		usleep (kcm->interval * 1000);
+	}
+	
+	close (kcm->fd);
+	
+	printk ("Krad System CPU Monitor Off\n");
+	
+	return NULL;
+
+}
+
 void krad_system_info_print () {
 		
 	printk ("%s %s %s %s %s\n", krad_system.unix_info.sysname, krad_system.unix_info.nodename, krad_system.unix_info.release,
@@ -92,7 +168,7 @@ void krad_system_init () {
 	if (krad_system_initialized != 31337) {
 		krad_system_initialized = 31337;
 		do_shutdown = 0;
-		verbose = 1;
+		verbose = 0;
 		krad_system_info_collect ();
 	  	srand(time(NULL));
 	}

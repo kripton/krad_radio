@@ -2,6 +2,8 @@
 
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
+  	krad_system_monitor_cpu_off ();
+
 	krad_http_server_destroy (krad_radio->krad_http);
 	krad_websocket_server_destroy (krad_radio->krad_websocket);
 	krad_ipc_server_destroy (krad_radio->krad_ipc);
@@ -58,6 +60,8 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
+	
+  	krad_system_monitor_cpu_on ();	
 		
 	return krad_radio;
 
