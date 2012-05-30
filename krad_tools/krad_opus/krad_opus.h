@@ -109,7 +109,7 @@ void kradopus_set_bandwidth (krad_opus_t *kradopus, int bandwidth);
 krad_opus_t *kradopus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
 void kradopus_decoder_destroy (krad_opus_t *kradopus);
 int kradopus_read_audio (krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
-int kradopus_write_opus (krad_opus_t *kradopus,  unsigned char *buffer, int length);
+int kradopus_write_opus (krad_opus_t *kradopus, int frame_size, unsigned char *buffer, int length);
 
 int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nframes);
 int kradopus_write_audio (krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);

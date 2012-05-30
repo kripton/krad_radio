@@ -822,7 +822,9 @@ void *udp_output_thread(void *arg) {
 	int count;
 	int packet_size;
 	int frames;
+	uint64_t frames_big;
 	
+	frames_big = 0;
 	count = 0;
 	
 	buffer = malloc(250000);
@@ -846,9 +848,11 @@ void *udp_output_thread(void *arg) {
 				}
 			
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
+				frames_big = frames;
+				memcpy (buffer, &frames_big, 8);
+				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer + 8, packet_size);
 
-				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, krad_link->host, krad_link->port);
+				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size + 8, 1, krad_link->host, krad_link->port);
 				count++;
 				
 			} else {
@@ -1047,7 +1051,7 @@ void *stream_input_thread(void *arg) {
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
 				}
 				
-
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_timecode, 8);
 				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 				codec_bytes += packet_size;
@@ -1634,15 +1638,17 @@ void *audio_decoding_thread(void *arg) {
 			
 		if (krad_link->audio_codec == OPUS) {
 
-			kradopus_write_opus (krad_link->krad_opus, buffer, bytes);
+			memcpy (&audio_frames, buffer, 8);
+
+			kradopus_write_opus (krad_link->krad_opus, audio_frames, buffer + 8, bytes - 8);
 			
 			bytes = -1;
 
 			while (bytes != 0) {
 				for (c = 0; c < 2; c++) {
-					bytes = kradopus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 240 * 4);
+					bytes = kradopus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 120 * 4);
 					if (bytes) {
-						if ((bytes / 4) != 240) {
+						if ((bytes / 4) != 120) {
 							failfast ("uh oh crazyto\n");
 						}
 
