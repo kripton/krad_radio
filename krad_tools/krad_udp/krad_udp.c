@@ -149,7 +149,7 @@ void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data
 	//printf("packet size: %d track %d slice num %d slice size %d %s\n", length, track, slice_num, slice_size, data);
 
 	if (slice_num < krad_rebuilder->slice_position - 7) {
-		printf("krad packet to damn old\n");
+		printf("krad packet too damn old\n");
 		return;
 	}
 	
