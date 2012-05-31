@@ -31,7 +31,7 @@ void krad_pulse_state_cb(pa_context *c, void *userdata) {
 			break;
 	}
 }
-
+/*
 static void krad_pulse_capture_cb(pa_stream *stream, size_t length, void *userdata) {
 
 	krad_pulse_t *krad_pulse = (krad_pulse_t *)userdata;
@@ -46,7 +46,7 @@ static void krad_pulse_capture_cb(pa_stream *stream, size_t length, void *userda
 	//printf("  latency %8d us wanted %d frames\n", (int)usec, length / 4 / 2 );
 	 
 	pa_stream_peek(stream, &samples, &length);
-/*	 
+
 	if ((krad_ringbuffer_write_space (krad_pulse->krad_audio->input_ringbuffer[1]) >= length / 2 ) && (krad_ringbuffer_write_space (krad_pulse->krad_audio->input_ringbuffer[0]) >= length / 2 )) {
 
 
@@ -75,7 +75,7 @@ static void krad_pulse_capture_cb(pa_stream *stream, size_t length, void *userda
 	if (krad_pulse->krad_audio->process_callback != NULL) {
 		krad_pulse->krad_audio->process_callback(length / 4 / 2, krad_pulse->krad_audio->userdata);
 	}
-*/
+
 }
 
 static void krad_pulse_playback_cb(pa_stream *stream, size_t length, void *userdata) {
@@ -90,12 +90,12 @@ static void krad_pulse_playback_cb(pa_stream *stream, size_t length, void *userd
 	pa_stream_get_latency(stream, &usec, &neg);
 	
 	//printf("  latency %8d us wanted %d frames\n", (int)usec, length / 4 / 2 );
-/*	 
+
 	if (krad_pulse->krad_audio->process_callback != NULL) {
 		krad_pulse->krad_audio->process_callback(length / 4 / 2, krad_pulse->krad_audio->userdata);
 	}
-*/
-/* 
+
+
 	if ((krad_ringbuffer_read_space (krad_pulse->krad_audio->output_ringbuffer[1]) >= length / 2 ) && (krad_ringbuffer_read_space (krad_pulse->krad_audio->output_ringbuffer[0]) >= length / 2 )) {
 	
 		for (c = 0; c < 2; c++) {
@@ -122,7 +122,7 @@ static void krad_pulse_playback_cb(pa_stream *stream, size_t length, void *userd
 		}
 	
 	}
-*/	
+
 	pa_stream_write(stream, krad_pulse->interleaved_samples, length, NULL, 0LL, PA_SEEK_RELATIVE);
 
 }
@@ -145,7 +145,7 @@ static void krad_pulse_stream_underflow_cb(pa_stream *s, void *userdata) {
 	}
 }
 
-
+*/
 void *krad_pulse_loop_thread(void *arg) {
 
 	krad_pulse_t *krad_pulse = (krad_pulse_t *)arg;

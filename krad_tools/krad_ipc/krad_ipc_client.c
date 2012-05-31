@@ -178,7 +178,7 @@ void krad_ipc_get_portgroups (krad_ipc_client_t *client) {
 }
 
 
-void krad_ipc_get_tags (krad_ipc_client_t *client) {
+void krad_ipc_get_tags (krad_ipc_client_t *client, char *item) {
 
 	//uint64_t ipc_command;
 	uint64_t radio_command;
@@ -188,8 +188,14 @@ void krad_ipc_get_tags (krad_ipc_client_t *client) {
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_LIST_TAGS, &get_tags);	
-	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
 
+	if (item == NULL) {
+		item = "station";
+	}
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_ITEM, item);
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
 	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
 	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, "");	
 
@@ -202,7 +208,7 @@ void krad_ipc_get_tags (krad_ipc_client_t *client) {
 
 }
 
-void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name) {
+void krad_ipc_get_tag (krad_ipc_client_t *client, char *item, char *tag_name) {
 
 	//uint64_t ipc_command;
 	uint64_t radio_command;
@@ -214,6 +220,11 @@ void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name) {
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_TAG, &get_tag);	
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
 
+	if (item == NULL) {
+		item = "station";
+	}
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_ITEM, item);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, "");	
 
@@ -227,7 +238,7 @@ void krad_ipc_get_tag (krad_ipc_client_t *client, char *tag_name) {
 }
 
 
-void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_value) {
+void krad_ipc_set_tag (krad_ipc_client_t *client, char *item, char *tag_name, char *tag_value) {
 
 	//uint64_t ipc_command;
 	uint64_t radio_command;
@@ -239,6 +250,11 @@ void krad_ipc_set_tag (krad_ipc_client_t *client, char *tag_name, char *tag_valu
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SET_TAG, &set_tag);	
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG, &tag);	
 
+	if (item == NULL) {
+		item = "station";
+	}
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_ITEM, item);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_TAG_VALUE, tag_value);	
 
@@ -1167,19 +1183,13 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 	int bytes_read;
 	
 	krad_link_rep_t *krad_link;
-	float floaty;
-	int textpos;
-	
-	int number;
 	
 	char string[1024];
 	memset (string, '\0', 1024);
 	
 	krad_link = calloc (1, sizeof (krad_link_rep_t));
 	
-	bytes_read = 0;	
-	textpos = 0;
-	
+	bytes_read = 0;
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 	

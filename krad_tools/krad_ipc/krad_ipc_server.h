@@ -116,7 +116,7 @@ void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, 
 void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
 											  int io_type, float volume,  char *mixgroup, char *crossfade_name, float crossfade_value );
 											  
-void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_name, char **tag_value );
+void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_item, char **tag_name, char **tag_value );
 
 
 

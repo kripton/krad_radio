@@ -268,7 +268,6 @@ void krad_get_host_and_port (char *string, char *host, int *port) {
 int krad_valid_host_and_port (char *string) {
 
 	int port;
-	struct in_addr ia;
 	char host[128];
 			
 	if (strchr(string, ':') != NULL) {
@@ -277,9 +276,7 @@ int krad_valid_host_and_port (char *string) {
 		memset (host, '\0', 128);
 		memcpy (host, string, strcspn (string, ":"));
 
-//		if (((port > 1) && (port < 65000)) && (inet_aton(host, &ia) != 0)) {
 		if (((port > 1) && (port < 65000)) && (strlen(host) > 3)) {
-
 			//printk ("Got host %s and port %d\n", host, port);
 			return 1;
 		} else {

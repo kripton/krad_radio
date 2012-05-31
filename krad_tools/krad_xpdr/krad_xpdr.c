@@ -28,7 +28,6 @@ int transponder_socket_create (char *port) {
 	struct addrinfo *result, *rp;
 	int s;
 	int sfd = 0;
-	int on = 1;	
 
 	memset (&hints, 0, sizeof (struct addrinfo));
 	hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
@@ -56,12 +55,6 @@ int transponder_socket_create (char *port) {
 
 		close (sfd);
 	}
-	
-	//if ((setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0)
-	//{
-	//  fprintf (stderr, "failed to set SO_REUSEADDR on port %s\n", port);
-	//  abort();
-	//}
 
 	if (rp == NULL) {
 		fprintf (stderr, "Could not bind %s\n", port);
@@ -631,7 +624,6 @@ void *transmitter_thread (void *arg) {
 
 	int done = 0;
 	size_t len;
-	int ret;
 	char buf[4096];
 
 	
@@ -685,7 +677,7 @@ void *transmitter_thread (void *arg) {
 
 				if (kxpdr_receiver->transmitter_events[i].events & EPOLLOUT) {						
 
-					ret = transmit(kxpdr_receiver, transmitter);
+					transmit (kxpdr_receiver, transmitter);
 
 				} else {
 
@@ -795,8 +787,6 @@ void *incoming_receiver_connections_thread (void *arg) {
 	char content_type[256];
 	int r;
 	int len1;
-	int len2;
-	int len3;
 	int wrote;
       
 	while (!kxpdr_shutdown) {

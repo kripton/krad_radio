@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+#include "ladspa-util.h"
+
 /* header file for IIR framework */
 
 typedef struct iir_stage iir_stage_t;

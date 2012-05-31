@@ -28,10 +28,6 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
 	
-	int intval;
-	
-	int link_num;
-	
 	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
 
 	cJSON *cmd;

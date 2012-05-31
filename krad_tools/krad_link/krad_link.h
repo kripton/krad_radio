@@ -201,6 +201,10 @@ struct krad_link_St {
 
 };
 
+krad_link_t *krad_linker_get_link_from_sysname (krad_linker_t *krad_linker, char *sysname);
+krad_tags_t *krad_linker_get_tags_for_link (krad_linker_t *krad_linker, char *sysname);
+krad_tags_t *krad_link_get_tags (krad_link_t *krad_link);
+
 krad_linker_t *krad_linker_create ();
 void krad_linker_destroy (krad_linker_t *krad_linker);
 int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ipc );

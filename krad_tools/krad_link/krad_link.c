@@ -1839,6 +1839,11 @@ void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
 }
 
 
+krad_tags_t *krad_link_get_tags (krad_link_t *krad_link) {
+	return krad_link->krad_tags;
+}
+
+
 void krad_link_destroy (krad_link_t *krad_link) {
 
 	int c;
@@ -2489,9 +2494,6 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	uint64_t element;
 	uint64_t response;
 	
-	char linkname[64];	
-	float floatval;
-	
 	char string[128];	
 	
 	uint64_t bigint;
@@ -2501,7 +2503,6 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	string[0] = '\0';
 	bigint = 0;
 	k = 0;
-	floatval = 0;
 
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 
@@ -2645,6 +2646,37 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 
 	return 0;
 }
+
+krad_link_t *krad_linker_get_link_from_sysname (krad_linker_t *krad_linker, char *sysname) {
+
+	int i;
+	krad_link_t *krad_link;
+
+	for (i = 0; i < KRAD_LINKER_MAX_LINKS; i++) {
+		krad_link = krad_linker->krad_link[i];
+		if (krad_link != NULL) {
+			if (strcmp(sysname, krad_link->sysname) == 0) {	
+				return krad_link;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+krad_tags_t *krad_linker_get_tags_for_link (krad_linker_t *krad_linker, char *sysname) {
+
+	krad_link_t *krad_link;
+	
+	krad_link = krad_linker_get_link_from_sysname (krad_linker, sysname);
+
+	if (krad_link != NULL) {
+		return krad_link_get_tags (krad_link);
+	} else {
+		return NULL;
+	}
+}
+
 
 krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 

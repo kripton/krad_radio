@@ -36,22 +36,38 @@ int main (int argc, char *argv[]) {
 				krad_ipc_print_response (client);
 			}
 			
-			if (strncmp(argv[2], "tag", 3) == 0) {
-			
-				if (strncmp(argv[2], "tags", 4) == 0) {
-	
-					krad_ipc_get_tags (client);		
+			if (strncmp(argv[2], "tags", 4) == 0) {
+
+				if (argc == 3) {
+					krad_ipc_get_tags (client, NULL);		
 					krad_ipc_print_response (client);
-				} else {
+				}
+				if (argc == 4) {
+					krad_ipc_get_tags (client, argv[3]);		
+					krad_ipc_print_response (client);
+				}					
+				
+			} else {
+			
+				if (strncmp(argv[2], "tag", 3) == 0) {
 			
 					if (argc == 4) {
-						krad_ipc_get_tag (client, argv[3]);
+						krad_ipc_get_tag (client, NULL, argv[3]);
 						krad_ipc_print_response (client);	
 					}
 				
 					if (argc == 5) {
-						krad_ipc_set_tag (client, argv[3], argv[4]);
-					}
+						krad_ipc_get_tag (client, argv[3], argv[4]);
+					}				
+				}
+			}
+			
+			if (strncmp(argv[2], "stag", 4) == 0) {
+				if (argc == 5) {
+					krad_ipc_set_tag (client, NULL, argv[3], argv[4]);
+				}
+				if (argc == 6) {
+					krad_ipc_set_tag (client, argv[3], argv[4], argv[5]);
 				}
 			}
 

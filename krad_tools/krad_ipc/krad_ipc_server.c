@@ -92,7 +92,6 @@ int krad_ipc_server_tcp_socket_create (int port) {
 	struct addrinfo *result, *rp;
 	int s;
 	int sfd = 0;
-	int on = 1;
 
 	snprintf (port_string, 6, "%d", port);
 
@@ -124,11 +123,6 @@ int krad_ipc_server_tcp_socket_create (int port) {
 
 		close (sfd);
 	}
-	
-	//if ((setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0) {
-	//	fprintf (stderr, "failed to set SO_REUSEADDR on port %s\n", port);
-	//	abort();
-	//}
 
 	if (rp == NULL) {
 		fprintf (stderr, "Could not bind %d\n", port);
@@ -354,7 +348,7 @@ uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64
 	return krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, data_size);
 }
 
-void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_name, char **tag_value ) {
+void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_item, char **tag_name, char **tag_value ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -366,6 +360,16 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_n
 	} else {
 		//printf("tag size %zu\n", ebml_data_size);
 	}
+	
+	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, *tag_item, ebml_data_size);	
 	
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 

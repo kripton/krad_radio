@@ -37,16 +37,16 @@ def configure(conf):
 	if conf.env['IS_MACOSX']:
 		print("MacOS X detected :(")
 
-
 	conf.load('compiler_c')	
 	conf.load('compiler_cxx')
 
 	conf.check_tool('gcc')
 	conf.check_tool('gnu_dirs')
-	conf.env.append_unique('CFLAGS', ['-g', '-Wall', '-Wno-unused-variable', '-Wno-unused-but-set-variable'])
+#	conf.env.append_unique('CFLAGS', ['-g', '-Wall', '-Wno-unused-variable', '-Wno-unused-but-set-variable'])
+	conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
 	conf.recurse(subdirs, mandatory = False)
 	
-	print("\nHello to you " + os.getlogin() + "! Much thanks for testing this software, do enjoy!\n")
+	print("\n" + os.getlogin() + ", your almost ready to rock!\n")
 	
 def build(bld):
     bld.recurse(subdirs, mandatory = False)

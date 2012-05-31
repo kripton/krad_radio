@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-#krad_ebml_test.c
-#krad_ebml_write_test.c
-
 programs = """
 krad_radio.c
 """.split()
@@ -10,11 +7,6 @@ krad_radio.c
 programs2 = """
 krad_radio_gtk.c
 krad_radio_cmd.c
-krad_ebml_fileinfo.c
-""".split()
-
-programs3 = """
-krad_xpdr.c
 """.split()
 
 sources = """

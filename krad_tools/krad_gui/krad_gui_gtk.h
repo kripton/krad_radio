@@ -24,6 +24,9 @@ struct kradgui_gtk_St {
 	GtkWidget *frame;
 	GtkWidget *da;
 	
+	GdkDevice *pointer;
+	GdkWindow *gdk_window;
+	
 	pthread_t gui_thread;
 	
 	int width;
@@ -33,7 +36,7 @@ struct kradgui_gtk_St {
 
 
 
-void kradgui_gtk_start(kradgui_t *kradgui);
-void kradgui_gtk_end(kradgui_t *kradgui);
+void kradgui_gtk_start (kradgui_t *kradgui);
+void kradgui_gtk_end (kradgui_t *kradgui);
 
 

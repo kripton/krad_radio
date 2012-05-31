@@ -7,7 +7,6 @@
 
 void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
-	int c;	
 	int p;
 	
 	krad_frame_t *krad_frame;
@@ -221,7 +220,6 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) { 
 
-	int c;	
 	int p;
 	
 	krad_frame_t *krad_frame;
@@ -414,23 +412,10 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 	
 	uint32_t command;
 	uint64_t ebml_data_size;
-
-	uint64_t element;
-	uint64_t response;
-	
-	char linkname[64];	
-	float floatval;
-	
-	uint64_t bigint;
-	uint8_t tinyint;
-	int k;
 	
 	char string[1024];
 	
 	string[0] = '\0';
-	bigint = 0;
-	k = 0;
-	floatval = 0;
 
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 

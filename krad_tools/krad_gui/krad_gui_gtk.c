@@ -16,6 +16,11 @@ static gboolean configure_event_cb (GtkWidget *widget, GdkEventConfigure *event,
                                            		 gtk_widget_get_allocated_width (widget),
                                                  gtk_widget_get_allocated_height (widget));
 
+	kradgui_gtk->pointer = 
+	gdk_device_manager_get_client_pointer (gdk_display_get_device_manager (gtk_widget_get_display (widget)));
+
+	kradgui_gtk->gdk_window = gtk_widget_get_window (widget);
+
 	return TRUE;
 }
 
@@ -24,11 +29,14 @@ static gboolean draw_cb (GtkWidget *widget, cairo_t *cr, gpointer data) {
 
 	kradgui_gtk_t *kradgui_gtk = (kradgui_gtk_t *)data;
 
-	gtk_widget_get_pointer (widget, &kradgui_gtk->kradgui->cursor_x, &kradgui_gtk->kradgui->cursor_y);
+	gdk_window_get_device_position (kradgui_gtk->gdk_window, kradgui_gtk->pointer,
+									&kradgui_gtk->kradgui->cursor_x, 
+									&kradgui_gtk->kradgui->cursor_y, 
+									NULL);
 
-	kradgui_gtk->kradgui->cr = cairo_create(kradgui_gtk->kradgui->cst);
-	kradgui_render(kradgui_gtk->kradgui);
-	cairo_destroy(kradgui_gtk->kradgui->cr);
+	kradgui_gtk->kradgui->cr = cairo_create (kradgui_gtk->kradgui->cst);
+	kradgui_render (kradgui_gtk->kradgui);
+	cairo_destroy (kradgui_gtk->kradgui->cr);
 
 	cairo_set_source_surface (cr, kradgui_gtk->kradgui->cst, 0, 0);
 	cairo_paint (cr);
@@ -54,13 +62,11 @@ static void close_window (gpointer data) {
 
 	kradgui_gtk_t *kradgui_gtk = (kradgui_gtk_t *)data;
 
-	kradgui_gtk_end(kradgui_gtk->kradgui);
+	kradgui_gtk_end (kradgui_gtk->kradgui);
 	
 }
 
-void kradgui_gtk_end(kradgui_t *kradgui) {
-
-	kradgui_gtk_t *kradgui_gtk = (kradgui_gtk_t *)kradgui->gui_ptr;
+void kradgui_gtk_end (kradgui_t *kradgui) {
 
 	gtk_main_quit ();
 	
@@ -106,6 +112,8 @@ static void *kradgui_gtk_init(gpointer data) {
 	gtk_window_set_position (GTK_WINDOW(kradgui_gtk->window), GTK_WIN_POS_CENTER);
     //gtk_window_set_decorated (GTK_WINDOW(kradgui_gtk->window), FALSE);
     gtk_window_set_has_resize_grip (GTK_WINDOW(kradgui_gtk->window), FALSE);
+    gtk_window_set_resizable (GTK_WINDOW(kradgui_gtk->window), FALSE);
+    gtk_window_set_focus_on_map  (GTK_WINDOW(kradgui_gtk->window), TRUE);
 	gtk_widget_set_size_request (kradgui_gtk->da, kradgui_gtk->width, kradgui_gtk->height);
 
 	gtk_container_add (GTK_CONTAINER (kradgui_gtk->window), kradgui_gtk->da);
@@ -118,6 +126,7 @@ static void *kradgui_gtk_init(gpointer data) {
 		            G_CALLBACK (configure_event_cb), kradgui_gtk);
 
 	gtk_widget_show_all (kradgui_gtk->window);
+	gtk_window_present (GTK_WINDOW(kradgui_gtk->window));
 
 	g_timeout_add (30, update_gui, kradgui_gtk);
 

@@ -220,6 +220,7 @@ struct kradgui_playback_state_status_St {
 
 };
 
+void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w);
 void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y);
 void kradgui_remove_bug (kradgui_t *kradgui);
 void kradgui_load_bug (kradgui_t *kradgui, char *filename);

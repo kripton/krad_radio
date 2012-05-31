@@ -404,7 +404,8 @@ char *krad_mixer_channel_number_to_string (int channel) {
 
 
 krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, 
-													 krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api) {
+													 krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, 
+													 void *io_ptr, krad_audio_api_t api) {
 
 	int p;
 	int c;
@@ -433,12 +434,6 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 	}
 
 	portgroup->krad_mixer = krad_mixer;
-
-	portgroup->krad_tags = krad_tags_create ();
-
-	if (portgroup->krad_tags == NULL) {
-		return NULL;
-	}
 
 	strcpy (portgroup->sysname, sysname);
 	portgroup->channels = channels;
@@ -479,7 +474,17 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 		case KRAD_LINK:
 			portgroup->io_ptr = io_ptr;
 			break;
-	}	
+	}
+	
+	if (portgroup->io_type != KRAD_LINK) {
+		portgroup->krad_tags = krad_tags_create ();
+	} else {
+		portgroup->krad_tags = krad_link_get_tags (portgroup->io_ptr);
+	}
+
+	if (portgroup->krad_tags == NULL) {
+		failfast ("Oh I couldn't find me tags\n");
+	}
 
 	portgroup->active = 1;
 
@@ -501,8 +506,6 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 	while (portgroup->active != 0) {
 		usleep(15000);
 	}
-	
-	krad_tags_destroy (portgroup->krad_tags);	
 
 	printf("Krad Mixer: Removing %d channel Portgroup %s\n", portgroup->channels, portgroup->sysname);
 
@@ -534,6 +537,10 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 		case KRAD_LINK:
 			break;
 	}
+	
+	if (portgroup->io_type != KRAD_LINK) {
+		krad_tags_destroy (portgroup->krad_tags);	
+	}	
 	
 }
 

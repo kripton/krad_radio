@@ -86,6 +86,7 @@ static struct io_method methods[] = {
 };
 
 //recovery callback in case of error
+/*
 static int xrun_recovery(snd_pcm_t *handle, int error)
 {
     switch(error)
@@ -122,7 +123,7 @@ static int xrun_recovery(snd_pcm_t *handle, int error)
     return error;
 }
 
-
+*/
 /*****************************************************************************************/
 /*********************  Case: Async with read/write functions ****************************/
 /*****************************************************************************************/
@@ -133,7 +134,7 @@ static int xrun_recovery(snd_pcm_t *handle, int error)
 //Size of one period (bytes) = n_channels * sizeof(short) * period_size
 //The asynchronous callback is called when period boundary elapses
 void async_rw_callback(snd_async_handler_t *ahandler) {
-
+/*
     int error;
 
 	int c, s;
@@ -141,7 +142,7 @@ void async_rw_callback(snd_async_handler_t *ahandler) {
 	
     snd_pcm_t *device = snd_async_handler_get_pcm(ahandler);
     krad_alsa = snd_async_handler_get_callback_private(ahandler);
-/*
+
 	if (krad_alsa->capture) {
 
 		if ((krad_ringbuffer_write_space (krad_alsa->krad_audio->input_ringbuffer[1]) >= krad_alsa->period_size * 4 ) && (krad_ringbuffer_write_space (krad_alsa->krad_audio->input_ringbuffer[0]) >= krad_alsa->period_size * 4 )) {
