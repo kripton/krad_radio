@@ -469,7 +469,8 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 		case MIXBUS:
 			break;
 		case KRAD_AUDIO:
-			portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, portgroup->sysname, portgroup->direction, portgroup->channels, api);
+			portgroup->io_ptr = krad_audio_portgroup_create (krad_mixer->krad_audio, portgroup->sysname, 
+															 portgroup->direction, portgroup->channels, api);
 			break;
 		case KRAD_LINK:
 			portgroup->io_ptr = io_ptr;
@@ -689,7 +690,7 @@ void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer) {
 }
 
 int krad_mixer_has_pusher (krad_mixer_t *krad_mixer) {
-	if (krad_mixer->pusher != 0) {
+	if (krad_mixer->pusher == 0) {
 		return FALSE;
 	} else {
 		return TRUE;

@@ -268,12 +268,12 @@ krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 		exit (1);
 	}
 
+	krad_jack->krad_audio = krad_audio;
+
 	if (krad_mixer_has_pusher(krad_jack->krad_audio->krad_mixer)) {
 		printke ("oh no already have a pusher...");
 		return NULL;
 	}
-
-	krad_jack->krad_audio = krad_audio;
 
 	krad_jack->name = krad_jack->krad_audio->krad_mixer->name;
 
