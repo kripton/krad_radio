@@ -53,11 +53,12 @@ int main (int argc, char *argv[]) {
 			
 					if (argc == 4) {
 						krad_ipc_get_tag (client, NULL, argv[3]);
-						krad_ipc_print_response (client);	
+						krad_ipc_print_response (client);
 					}
 				
 					if (argc == 5) {
 						krad_ipc_get_tag (client, argv[3], argv[4]);
+						krad_ipc_print_response (client);						
 					}				
 				}
 			}

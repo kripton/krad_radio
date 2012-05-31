@@ -1658,8 +1658,9 @@ void *audio_decoding_thread(void *arg) {
 							failfast ("uh oh crazyto\n");
 						}
 
-						while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[c]) < bytes) {
-							usleep(20000);
+						while ((krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[c]) < bytes) &&
+							   (!krad_link->destroy)) {
+								usleep(20000);
 						}
 
 						krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)audio, bytes);
@@ -1797,7 +1798,9 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
 	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
 	
-	krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
+	if (krad_mixer_get_pusher(krad_link->krad_radio->krad_mixer) == DECKLINKAUDIO) {
+		krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
+	}
 	
 	return 0;
 
@@ -1819,6 +1822,10 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	
 	krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
 	
+	if (krad_mixer_has_pusher(krad_link->krad_radio->krad_mixer) == 0) {
+		krad_mixer_set_pusher (krad_link->krad_radio->krad_mixer, DECKLINKAUDIO);
+	}
+	
 	krad_decklink_start (krad_link->krad_decklink);
 }
 
@@ -1835,6 +1842,8 @@ void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
 	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, krad_link->krad_mixer_portgroup);
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
+
+	krad_mixer_unset_pusher (krad_link->krad_radio->krad_mixer);
 
 }
 
@@ -1973,6 +1982,8 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		krad_x11_destroy (krad_link->krad_x11);
 	}
 	
+	krad_tags_destroy (krad_link->krad_tags);	
+	
 	printk ("Krad Link Closed Clean\n");
 	
 	free (krad_link);
@@ -2011,6 +2022,8 @@ krad_link_t *krad_link_create() {
 	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
 	krad_link->video_source = NOVIDEO;
 	krad_link->transport_mode = TCP;
+
+	krad_link->krad_tags = krad_tags_create ();
 
 	return krad_link;
 }

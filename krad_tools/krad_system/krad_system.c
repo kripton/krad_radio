@@ -164,7 +164,7 @@ void krad_system_init () {
 	if (krad_system_initialized != 31337) {
 		krad_system_initialized = 31337;
 		do_shutdown = 0;
-		verbose = 0;
+		verbose = 1;
 		krad_system_info_collect ();
 	  	srand(time(NULL));
 	}

@@ -104,12 +104,9 @@ krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, c
 	portgroup = krad_mixer_get_portgroup_from_sysname (krad_radio_station->krad_mixer, item);
 	
 	if (portgroup != NULL) {
-	
 		return portgroup->krad_tags;
-	
 	} else {
-	
-	
+		return krad_linker_get_tags_for_link (krad_radio_station->krad_linker, item);
 	}
 
 	return NULL;
@@ -175,16 +172,41 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return krad_radio_handler ( output, output_len, ptr );
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
 			printk ("LIST_TAGS\n");
-			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_response_list_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
 			
-			while (krad_tags_get_next_tag ( krad_radio_station->krad_tags, &i, &tag_name, &tag_value)) {
-				krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
-				printk ("Tag %d: %s - %s\n", i, tag_name, tag_value);
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
+				failfast ("missing item\n");
 			}
 			
-			krad_ipc_server_response_list_finish ( krad_radio_station->krad_ipc, element );
-			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response );
+			krad_ebml_read_string (krad_radio_station->krad_ipc->current_client->krad_ebml, tag_item, ebml_data_size);
+			
+			printk ("Get Tags for %s\n", tag_item);
+
+			if (strncmp("station", tag_item, 7) == 0) {
+				krad_tags = krad_radio_station->krad_tags;
+			} else {
+				krad_tags = krad_radio_find_tags_for_item ( krad_radio_station, tag_item );
+			}
+			
+			if (krad_tags != NULL) {
+				printk ("Got Tags for %s\n", tag_item);
+		
+				krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+				krad_ipc_server_response_list_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
+			
+				while (krad_tags_get_next_tag ( krad_tags, &i, &tag_name, &tag_value)) {
+					krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
+					printk ("Tag %d: %s - %s\n", i, tag_name, tag_value);
+				}
+			
+				krad_ipc_server_response_list_finish ( krad_radio_station->krad_ipc, element );
+				krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response );
+
+			} else {
+				printke ("Could not find %s\n", tag_item);
+			}
+
 			return 1;
 
 		case EBML_ID_KRAD_RADIO_CMD_SET_TAG:
@@ -194,7 +216,6 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			if (strncmp("station", tag_item, 7) == 0) {
 				krad_tags_set_tag ( krad_radio_station->krad_tags, tag_name, tag_value);
 			} else {
-			
 				krad_tags = krad_radio_find_tags_for_item ( krad_radio_station, tag_item );
 				if (krad_tags != NULL) {
 					krad_tags_set_tag ( krad_tags, tag_name, tag_value);
@@ -209,15 +230,24 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 		case EBML_ID_KRAD_RADIO_CMD_GET_TAG:
 			krad_ipc_server_read_tag ( krad_radio_station->krad_ipc, &tag_item, &tag_name, &tag_value );
+			printk ("Get Tag %s - %s - %s\n", tag_item, tag_name, tag_value);
+			if (strncmp("station", tag_item, 7) == 0) {
+				tag_value = krad_tags_get_tag (krad_radio_station->krad_tags, tag_name);
+			} else {
+				krad_tags = krad_radio_find_tags_for_item ( krad_radio_station, tag_item );
+				if (krad_tags != NULL) {
+					tag_value = krad_tags_get_tag ( krad_tags, tag_name );
+					printk ("Got Tag %s on %s - %s\n", tag_name, tag_item, tag_value);
+				} else {
+					printke ("Could not find %s\n", tag_item);
+				}
+			}
 			
-			tag_value = krad_tags_get_tag (krad_radio_station->krad_tags, tag_name);
-			
-			printk ("Get Tag %s - %s\n", tag_name, tag_value);
-			
-			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
-			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
-
+			if (strlen(tag_value)) {
+				krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+				krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
+				krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
+			}
 			return 1;
 			
 		case EBML_ID_KRAD_RADIO_CMD_WEB_ENABLE:

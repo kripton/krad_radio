@@ -78,6 +78,8 @@ struct krad_mixer_St {
 
 	krad_audio_t *krad_audio;
 
+	krad_audio_api_t pusher;
+
 	char *name;
 	int sample_rate;
     
@@ -92,6 +94,10 @@ struct krad_mixer_St {
 
 };
 
+krad_audio_api_t krad_mixer_get_pusher (krad_mixer_t *krad_mixer);
+int krad_mixer_has_pusher (krad_mixer_t *krad_mixer);
+void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher);
+void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer);
 
 int krad_mixer_get_sample_rate ();
 void krad_mixer_set_sample_rate ();

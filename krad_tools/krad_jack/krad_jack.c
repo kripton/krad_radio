@@ -253,6 +253,8 @@ void krad_jack_destroy (krad_jack_t *krad_jack) {
 
 	jack_client_close (krad_jack->client);
 	
+	krad_mixer_unset_pusher (krad_jack->krad_audio->krad_mixer);
+	
 	free (krad_jack);
 
 }
@@ -264,6 +266,11 @@ krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 	if ((krad_jack = calloc (1, sizeof (krad_jack_t))) == NULL) {
 		fprintf(stderr, "mem alloc fail\n");
 		exit (1);
+	}
+
+	if (krad_mixer_has_pusher(krad_jack->krad_audio->krad_mixer)) {
+		printke ("oh no already have a pusher...");
+		return NULL;
 	}
 
 	krad_jack->krad_audio = krad_audio;
@@ -290,6 +297,7 @@ krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 		fprintf(stderr, "unique name `%s' assigned\n", krad_jack->name);
 	}
 
+	krad_mixer_set_pusher (krad_jack->krad_audio->krad_mixer, JACK);
 
 	krad_jack->sample_rate = jack_get_sample_rate ( krad_jack->client );
 

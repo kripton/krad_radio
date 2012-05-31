@@ -504,6 +504,10 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 	portgroup->active = 2;
 
 	while (portgroup->active != 0) {
+		if (krad_mixer->pusher == 0) {
+			portgroup->active = 0;
+			break;
+		}
 		usleep(15000);
 	}
 
@@ -678,6 +682,30 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 
 	free ( krad_mixer );
 	
+}
+
+void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer) {
+	krad_mixer->pusher = 0;
+}
+
+int krad_mixer_has_pusher (krad_mixer_t *krad_mixer) {
+	if (krad_mixer->pusher != 0) {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+}
+
+krad_audio_api_t krad_mixer_get_pusher (krad_mixer_t *krad_mixer) {
+	return krad_mixer->pusher;
+}
+
+void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher) {
+	if (pusher == 0) {
+		krad_mixer_unset_pusher (krad_mixer);
+	} else {
+		krad_mixer->pusher = pusher;
+	}
 }
 
 int krad_mixer_get_sample_rate (krad_mixer_t *krad_mixer) {
