@@ -14,7 +14,7 @@ void receiver_test() {
 	struct sockaddr_in local_address;
 	struct sockaddr_in remote_address;
 	
-	slen = sizeof(remote_address);
+	slen = sizeof (remote_address);
 	
 	buffer = calloc (1, 2000);
 	packet_buffer = calloc (1, 200000);

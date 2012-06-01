@@ -17,6 +17,7 @@ depsources = """
 ../krad_tools/krad_system/krad_system.c
 ../krad_tools/krad_compositor/krad_compositor.c
 ../krad_tools/krad_framepool/krad_framepool.c
+../krad_tools/krad_osc/krad_osc.c
 ../krad_tools/krad_web/ext/cJSON.c
 ../krad_tools/krad_web/krad_http.c
 ../krad_tools/krad_web/krad_websocket.c
@@ -88,6 +89,9 @@ includedirs = """
 ../krad_tools/krad_pulse/
 ../krad_tools/krad_alsa/
 ../krad_tools/krad_mixer/
+../krad_tools/krad_osc/
+../krad_tools/krad_xmms2/
+../krad_tools/krad_wayland/
 ../krad_tools/krad_vpx/
 ../krad_tools/krad_v4l2/
 ../krad_tools/krad_flac/

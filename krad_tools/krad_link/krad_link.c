@@ -164,7 +164,7 @@ void *x11_capture_thread (void *arg) {
 
 		krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
-		usleep (30000);
+		usleep (33000);
 
 	}
 

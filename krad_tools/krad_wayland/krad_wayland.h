@@ -21,6 +21,6 @@ struct krad_wayland_St {
 
 
 
-void krad_wayland_destroy(krad_wayland_t *wayland);
-krad_wayland_t *krad_wayland_create();
+void krad_wayland_destroy (krad_wayland_t *krad_wayland);
+krad_wayland_t *krad_wayland_create ();
 
