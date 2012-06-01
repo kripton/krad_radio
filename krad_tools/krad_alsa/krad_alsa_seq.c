@@ -58,12 +58,12 @@ void *krad_alsa_seq_running_thread (void *arg) {
 
 								#ifdef KLUDGE
 									// 10 cross, 13, 14
-									if (ev->data.control.param == 10) {
+									if ((ev->data.control.param == 10) || (ev->data.control.param == 17)) {
 										value = ((ev->data.control.value / 127.0) * 200.0) - 100.0;
 										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music1", 
 															  "crossfade", value);
 									}
-									if (ev->data.control.param == 13) {
+									if ((ev->data.control.param == 12) || (ev->data.control.param == 13)) {
 										value = (ev->data.control.value / 127.0) * 100.0;
 										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music1", 
 															  "volume", value);

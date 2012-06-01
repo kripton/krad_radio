@@ -476,7 +476,7 @@ int main (int argc, char *argv[]) {
 	gtk_box_pack_end (GTK_BOX(krad_radio_gtk->vbox), krad_radio_gtk->hbox_crossfades, FALSE, FALSE, 5);	
 	gtk_box_pack_end (GTK_BOX(krad_radio_gtk->vbox), krad_radio_gtk->hbox_volumes, TRUE, TRUE, 5);	
 	
-	gdk_threads_add_timeout (25, krad_ipc_poll, krad_radio_gtk);
+	gdk_threads_add_timeout (13, krad_ipc_poll, krad_radio_gtk);
 
 	gtk_container_add (GTK_CONTAINER (krad_radio_gtk->window), krad_radio_gtk->vbox);
 	
