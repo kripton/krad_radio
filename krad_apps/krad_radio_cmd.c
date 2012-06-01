@@ -91,11 +91,23 @@ int main (int argc, char *argv[]) {
 				}
 			}			
 			
-			if (strncmp(argv[2], "weboff", 5) == 0) {
+			if (strncmp(argv[2], "weboff", 6) == 0) {
 				if (argc == 3) {
 					krad_ipc_weboff (client);
 				}
+			}
+			
+			if (strncmp(argv[2], "oscon", 5) == 0) {
+				if (argc == 4) {
+					krad_ipc_enable_osc (client, atoi(argv[3]));
+				}
 			}			
+			
+			if (strncmp(argv[2], "oscoff", 6) == 0) {
+				if (argc == 3) {
+					krad_ipc_disable_osc (client);
+				}
+			}					
 			
 			/* Krad Mixer Commands */
 			

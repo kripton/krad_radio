@@ -1,5 +1,27 @@
 #include "krad_osc.h"
 
+void krad_osc_parse_message (krad_osc_t *krad_osc, unsigned char *message, int size) {
+
+	int len;
+	char *typetag;
+
+	if (message[0] == '#') {
+		printk ("Krad OSC message is a bundle %d bytes big\n", size);
+	} else {
+		printk ("Krad OSC message address pattern: %s\n", message);
+		len = strlen ((char *)message) + 1;
+		while ((len % 4) != 0) {
+			len++;
+		}
+		typetag = (char *)message + len;
+		printk ("Krad OSC message typetag: %s\n", typetag);
+		
+		
+		
+	}
+
+}
+
 void *krad_osc_listening_thread (void *arg) {
 
 	krad_osc_t *krad_osc = (krad_osc_t *)arg;
@@ -7,7 +29,8 @@ void *krad_osc_listening_thread (void *arg) {
 	int ret;
 	int addr_size;
 	struct sockaddr_in remote_address;
-
+	struct pollfd sockets[1];
+	
 	addr_size = 0;
 	ret = 0;
 	memset (&remote_address, 0, sizeof(remote_address));	
@@ -15,19 +38,32 @@ void *krad_osc_listening_thread (void *arg) {
 	addr_size = sizeof (remote_address);
 	
 	while (krad_osc->stop_listening == 0) {
-	
-		ret = recvfrom (krad_osc->sd, krad_osc->buffer, 4000, 0, 
-						(struct sockaddr *)&remote_address, (socklen_t *)&addr_size);
-		
-		if (ret == -1) {
-			printf("Krad OSC Failed on recvfrom\n");
+
+		sockets[0].fd = krad_osc->sd;
+		sockets[0].events = POLLIN;
+
+		ret = poll (sockets, 1, 250);	
+
+		if (ret < 0) {
+			printf("Krad OSC Failed on poll\n");
 			krad_osc->stop_listening = 1;
 			break;
 		}
 	
-	
-	//	usleep (250000);
-	
+		if (ret > 0) {
+			ret = recvfrom (krad_osc->sd, krad_osc->buffer, 4000, 0, 
+							(struct sockaddr *)&remote_address, (socklen_t *)&addr_size);
+		
+			if (ret == -1) {
+				printf("Krad OSC Failed on recvfrom\n");
+				krad_osc->stop_listening = 1;
+				break;
+			}
+			
+			if (ret > 0) {
+				krad_osc_parse_message (krad_osc, krad_osc->buffer, ret);
+			}
+		}
 	}
 	
 	close (krad_osc->sd);
@@ -49,6 +85,9 @@ void krad_osc_stop_listening (krad_osc_t *krad_osc) {
 
 int krad_osc_listen (krad_osc_t *krad_osc, int port) {
 
+	if (krad_osc->listening == 1) {
+		krad_osc_stop_listening (krad_osc);
+	}
 
 	krad_osc->port = port;
 	krad_osc->listening = 1;
@@ -66,7 +105,7 @@ int krad_osc_listen (krad_osc_t *krad_osc, int port) {
 		return 1;
 	}
 	
-	pthread_create (&krad_osc->listening_thread, NULL, krad_osc_listening_thread, NULL);
+	pthread_create (&krad_osc->listening_thread, NULL, krad_osc_listening_thread, (void *)krad_osc);
 	
 	return 0;
 }

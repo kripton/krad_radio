@@ -32,11 +32,12 @@ struct krad_osc_St {
 	int port;
 	int sd;
 	struct sockaddr_in local_address;
-//	struct sockaddr_in remote_address;
 	int listening;
 	int stop_listening;
 	pthread_t listening_thread;
 };
+
+void krad_osc_parse_message (krad_osc_t *krad_osc, unsigned char *message, int size);
 
 void *krad_osc_listening_thread (void *arg);
 

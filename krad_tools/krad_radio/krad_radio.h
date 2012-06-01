@@ -18,6 +18,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_tags.h"
 #include "krad_ipc_server.h"
 #include "krad_radio_ipc.h"
+#include "krad_osc.h"
 #include "krad_ring.h"
 #include "krad_tone.h"
 #include "krad_audio.h"
@@ -57,6 +58,7 @@ struct krad_radio_St {
 	char *sysname;
 	
 	krad_ipc_server_t *krad_ipc;
+	krad_osc_t *krad_osc;	
 	krad_websocket_t *krad_websocket;
 	krad_http_t *krad_http;
 	krad_linker_t *krad_linker;

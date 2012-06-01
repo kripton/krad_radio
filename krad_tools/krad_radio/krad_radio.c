@@ -3,17 +3,41 @@
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
   	krad_system_monitor_cpu_off ();
-
-	krad_http_server_destroy (krad_radio->krad_http);
-	krad_websocket_server_destroy (krad_radio->krad_websocket);
-	krad_ipc_server_destroy (krad_radio->krad_ipc);
-	krad_linker_destroy (krad_radio->krad_linker);
-	krad_mixer_destroy (krad_radio->krad_mixer);
-	krad_compositor_destroy (krad_radio->krad_compositor);
-	krad_tags_destroy (krad_radio->krad_tags);	
+	if (krad_radio->krad_osc != NULL) {
+		krad_osc_destroy (krad_radio->krad_osc);
+		krad_radio->krad_osc = NULL;
+	}
+	if (krad_radio->krad_http != NULL) {
+		krad_http_server_destroy (krad_radio->krad_http);
+		krad_radio->krad_http = NULL;
+	}
+	if (krad_radio->krad_websocket != NULL) {
+		krad_websocket_server_destroy (krad_radio->krad_websocket);
+		krad_radio->krad_websocket = NULL;
+	}
+	if (krad_radio->krad_ipc != NULL) {
+		krad_ipc_server_destroy (krad_radio->krad_ipc);
+		krad_radio->krad_ipc = NULL;
+	}
+	if (krad_radio->krad_linker != NULL) {
+		krad_linker_destroy (krad_radio->krad_linker);
+		krad_radio->krad_linker = NULL;		
+	}
+	if (krad_radio->krad_mixer != NULL) {
+		krad_mixer_destroy (krad_radio->krad_mixer);
+		krad_radio->krad_mixer = NULL;		
+	}
+	if (krad_radio->krad_compositor != NULL) {
+		krad_compositor_destroy (krad_radio->krad_compositor);
+		krad_radio->krad_compositor = NULL;
+	}
+	if (krad_radio->krad_tags != NULL) {
+		krad_tags_destroy (krad_radio->krad_tags);
+		krad_radio->krad_tags = NULL;
+	}	
+	
 	free (krad_radio->sysname);
 	free (krad_radio);
-
 }
 
 krad_radio_t *krad_radio_create (char *sysname) {
@@ -52,6 +76,13 @@ krad_radio_t *krad_radio_create (char *sysname) {
 	if (krad_radio->krad_linker == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
+	}
+	
+	krad_radio->krad_osc = krad_osc_create ();
+	
+	if (krad_radio->krad_osc == NULL) {
+		krad_radio_destroy (krad_radio);
+		return NULL;
 	}	
 	
 	krad_radio->krad_ipc = krad_ipc_server ( sysname, krad_radio_handler, krad_radio );
@@ -59,7 +90,7 @@ krad_radio_t *krad_radio_create (char *sysname) {
 	if (krad_radio->krad_ipc == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
-	}
+	}	
 	
   	krad_system_monitor_cpu_on ();	
 		
@@ -308,6 +339,26 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		case EBML_ID_KRAD_RADIO_CMD_REMOTE_DISABLE:
 			
 			krad_ipc_server_disable_remote (krad_radio_station->krad_ipc);
+			
+			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_OSC_ENABLE:
+			
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_UDP_PORT) {
+				printke ("hrm wtf6\n");
+			}
+			
+			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
+			
+			krad_osc_listen (krad_radio_station->krad_osc, numbers[0]);
+			
+			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_OSC_DISABLE:
+			
+			krad_osc_stop_listening (krad_radio_station->krad_osc);
 			
 			return 0;
 			
