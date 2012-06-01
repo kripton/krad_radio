@@ -70,6 +70,7 @@ depsources2 = """
 ../krad_tools/krad_system/krad_system.c
 ../krad_tools/krad_link/krad_link_common.c
 ../krad_tools/krad_ipc/krad_ipc_client.c
+../krad_tools/krad_osc/krad_osc.c
 """.split()
 
 includedirs = """

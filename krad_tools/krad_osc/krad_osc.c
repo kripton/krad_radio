@@ -31,6 +31,8 @@ void *krad_osc_listening_thread (void *arg) {
 	struct sockaddr_in remote_address;
 	struct pollfd sockets[1];
 	
+	printk ("Krad OSC Listening thread starting\n");
+	
 	addr_size = 0;
 	ret = 0;
 	memset (&remote_address, 0, sizeof(remote_address));	
@@ -45,7 +47,7 @@ void *krad_osc_listening_thread (void *arg) {
 		ret = poll (sockets, 1, 250);	
 
 		if (ret < 0) {
-			printf("Krad OSC Failed on poll\n");
+			printke ("Krad OSC Failed on poll\n");
 			krad_osc->stop_listening = 1;
 			break;
 		}
@@ -55,7 +57,7 @@ void *krad_osc_listening_thread (void *arg) {
 							(struct sockaddr *)&remote_address, (socklen_t *)&addr_size);
 		
 			if (ret == -1) {
-				printf("Krad OSC Failed on recvfrom\n");
+				printke ("Krad OSC Failed on recvfrom\n");
 				krad_osc->stop_listening = 1;
 				break;
 			}
@@ -69,6 +71,8 @@ void *krad_osc_listening_thread (void *arg) {
 	close (krad_osc->sd);
 	krad_osc->port = 0;
 	krad_osc->listening = 0;	
+
+	printk ("Krad OSC Listening thread exiting\n");
 
 	return NULL;
 }

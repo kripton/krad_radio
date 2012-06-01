@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 
 #include "krad_ipc_client.h"
+#include "krad_osc.h"
 
 #define PORTGROUPS_MAX 25
 
@@ -28,6 +29,8 @@ struct krad_radio_gtk_portgroup_St {
 struct krad_radio_gtk_St {
 
 	krad_ipc_client_t *client;
+	
+	krad_osc_t *krad_osc;
 	
 	char sysname[128];
 	
@@ -417,6 +420,12 @@ int main (int argc, char *argv[]) {
 	
 	krad_radio_gtk->portgroups = calloc (PORTGROUPS_MAX, sizeof(krad_radio_gtk_portgroup_t));
 	
+	krad_radio_gtk->krad_osc = krad_osc_create ();
+	
+	if (argc == 3) {
+		krad_osc_listen (krad_radio_gtk->krad_osc, atoi(argv[2]));
+	}
+	
 	strcpy (krad_radio_gtk->sysname, argv[1]);
 	
 	if (!krad_valid_host_and_port (krad_radio_gtk->sysname)) {
@@ -467,6 +476,11 @@ int main (int argc, char *argv[]) {
 	gtk_widget_show_all (krad_radio_gtk->window);
 
 	gtk_main ();
+
+	if (krad_radio_gtk->krad_osc != NULL) {
+		krad_osc_destroy (krad_radio_gtk->krad_osc);
+		krad_radio_gtk->krad_osc = NULL;
+	}
 
 	free (krad_radio_gtk);
 
