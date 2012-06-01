@@ -1,5 +1,3 @@
-#include <cairo/cairo.h>
-#include <gtk/gtk.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +9,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+
+#include <cairo/cairo.h>
+#include <gtk/gtk.h>
 
 #define PRO_REEL_SIZE 26.67
 #define PRO_REEL_SPEED 38.1

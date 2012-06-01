@@ -1,5 +1,50 @@
 #include "krad_radio.h"
 
+//FIXME test temp home
+void krad_x11_test (char *title) {
+
+	krad_x11_t *krad_x11;
+	kradgui_t *kradgui;
+
+	int count;
+	int w;
+	int h;
+	
+	w = 1280;
+	h = 720;
+	
+	count = 0;
+	
+	kradgui = kradgui_create_with_internal_surface (w, h);		
+	krad_x11 = krad_x11_create ();
+	
+	//krad_x11_test_capture(krad_x11);
+
+	kradgui_test_screen (kradgui, title);
+	
+	krad_x11_create_glx_window (krad_x11, title, w, h, NULL);
+	
+	while ((count < 600) && (krad_x11->close_window == 0)) {
+		//krad_x11_capture(krad_x11, NULL);
+
+		kradgui_render (kradgui);
+		memcpy (krad_x11->pixels, kradgui->data, w * h * 4);
+		
+		krad_x11_glx_render (krad_x11);
+		count++;
+		//printf("count is %d\n", count);
+		//usleep (50000);
+	}
+	
+	printf("count is %d\n", count);
+	
+	krad_x11_destroy_glx_window (krad_x11);
+
+	krad_x11_destroy (krad_x11);
+	kradgui_destroy (kradgui);
+	
+}
+
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
   	krad_system_monitor_cpu_off ();
@@ -124,7 +169,11 @@ void krad_radio (char *sysname) {
 void krad_radio_run (krad_radio_t *krad_radio) {
 
 	while (1) {
-		sleep (25);
+		//krad_x11_test (krad_radio->sysname);
+		//krad_x11_test (krad_radio->sysname);
+		//krad_x11_test (krad_radio->sysname);
+		//krad_x11_test (krad_radio->sysname);
+		sleep (5);
 	}
 }
 
