@@ -2,6 +2,7 @@
 
 #include "krad_ipc_client.h"
 #include "krad_osc.h"
+#include "krad_alsa_seq.h"
 
 #define PORTGROUPS_MAX 25
 
@@ -30,6 +31,7 @@ struct krad_radio_gtk_St {
 
 	krad_ipc_client_t *client;
 	
+	krad_alsa_seq_t *krad_alsa_seq;
 	krad_osc_t *krad_osc;
 	
 	char sysname[128];
@@ -418,15 +420,22 @@ int main (int argc, char *argv[]) {
 	
 	krad_radio_gtk_t *krad_radio_gtk = calloc (1, sizeof(krad_radio_gtk_t));
 	
+	strcpy (krad_radio_gtk->sysname, argv[1]);
+	
 	krad_radio_gtk->portgroups = calloc (PORTGROUPS_MAX, sizeof(krad_radio_gtk_portgroup_t));
 	
 	krad_radio_gtk->krad_osc = krad_osc_create ();
+
+	krad_radio_gtk->krad_alsa_seq = krad_alsa_seq_create ();
 	
 	if (argc == 3) {
-		krad_osc_listen (krad_radio_gtk->krad_osc, atoi(argv[2]));
-	}
+		if (strncmp(argv[2], "alsa", 4) == 0) {
+			krad_alsa_seq_run (krad_radio_gtk->krad_alsa_seq, argv[1]);
+		} else {
 	
-	strcpy (krad_radio_gtk->sysname, argv[1]);
+			krad_osc_listen (krad_radio_gtk->krad_osc, atoi(argv[2]));
+		}
+	}
 	
 	if (!krad_valid_host_and_port (krad_radio_gtk->sysname)) {
 		if (!krad_valid_sysname(krad_radio_gtk->sysname)) {
@@ -480,6 +489,11 @@ int main (int argc, char *argv[]) {
 	if (krad_radio_gtk->krad_osc != NULL) {
 		krad_osc_destroy (krad_radio_gtk->krad_osc);
 		krad_radio_gtk->krad_osc = NULL;
+	}
+
+	if (krad_radio_gtk->krad_alsa_seq != NULL) {
+		krad_alsa_seq_destroy (krad_radio_gtk->krad_alsa_seq);
+		krad_radio_gtk->krad_alsa_seq = NULL;
 	}
 
 	free (krad_radio_gtk);
