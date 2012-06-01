@@ -448,6 +448,8 @@ int main (int argc, char *argv[]) {
 	if (krad_radio_gtk->client == NULL) {
 		failfast ("");
 	}
+	//FIXME TEMP KLUDGE
+	krad_alsa_seq_set_ipc_client (krad_radio_gtk->krad_alsa_seq, krad_radio_gtk->client);
 	
 	krad_ipc_set_handler_callback (krad_radio_gtk->client, krad_radio_gtk_ipc_handler, krad_radio_gtk);
 	

@@ -25,9 +25,20 @@
 
 #include "krad_system.h"
 
+#define KLUDGE 1
+
+#ifdef KLUDGE
+#include "krad_ipc_client.h"
+#endif
+
 typedef struct krad_alsa_seq_St krad_alsa_seq_t;
 
 struct krad_alsa_seq_St {
+
+	#ifdef KLUDGE
+	krad_ipc_client_t *krad_ipc_client;
+	#endif
+	
 
 	unsigned char *buffer;
 	char name[128];
@@ -39,6 +50,10 @@ struct krad_alsa_seq_St {
 	snd_seq_t *seq_handle;
 	
 };
+
+#ifdef KLUDGE
+void krad_alsa_seq_set_ipc_client (krad_alsa_seq_t *krad_alsa_seq, krad_ipc_client_t *krad_ipc_client);
+#endif
 
 //void krad_alsa_seq_parse_message (krad_alsa_seq_t *krad_alsa_seq, unsigned char *message, int size);
 

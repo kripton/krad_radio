@@ -1,5 +1,12 @@
 #include "krad_alsa_seq.h"
 
+
+#ifdef KLUDGE
+void krad_alsa_seq_set_ipc_client (krad_alsa_seq_t *krad_alsa_seq, krad_ipc_client_t *krad_ipc_client) {
+		krad_alsa_seq->krad_ipc_client = krad_ipc_client;
+}
+#endif
+
 void *krad_alsa_seq_running_thread (void *arg) {
 
 	krad_alsa_seq_t *krad_alsa_seq = (krad_alsa_seq_t *)arg;
@@ -9,6 +16,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 	struct pollfd sockets[16];
 	snd_seq_event_t *ev;
 	unsigned int c;
+	float value;
 	
 	usleep (100000);
 	
@@ -19,7 +27,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 	sock_count = snd_seq_poll_descriptors_count (krad_alsa_seq->seq_handle, POLLIN);
 	snd_seq_poll_descriptors (krad_alsa_seq->seq_handle, sockets, sock_count, POLLIN);
 
-	printk ("sock_count %d\n", sock_count);
+	//printk ("sock_count %d\n", sock_count);
 	
 	while (krad_alsa_seq->stop == 0) {
 
@@ -46,7 +54,26 @@ void *krad_alsa_seq_running_thread (void *arg) {
 						
 							c = ev->data.control.channel;
 							printk ("Krad ALSA Seq Control event Channel %2d: %2d %5d\n",
-									c,  ev->data.control.param, ev->data.control.value);
+									c, ev->data.control.param, ev->data.control.value);
+
+								#ifdef KLUDGE
+									// 10 cross, 13, 14
+									if (ev->data.control.param == 10) {
+										value = ((ev->data.control.value / 127.0) * 200.0) - 100.0;
+										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music1", 
+															  "crossfade", value);
+									}
+									if (ev->data.control.param == 13) {
+										value = (ev->data.control.value / 127.0) * 100.0;
+										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music1", 
+															  "volume", value);
+									}
+									if (ev->data.control.param == 14) {
+										value = (ev->data.control.value / 127.0) * 100.0;
+										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music2", 
+															  "volume", value);
+									}
+								#endif
 
 							break;
 						
