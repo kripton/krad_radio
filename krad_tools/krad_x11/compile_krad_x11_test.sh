@@ -1,1 +1,0 @@
-gcc -Wall -pthread krad_x11_test.c ../krad_gui/krad_gui.c krad_x11.c ../krad_system/krad_system.c -I../krad_system/ -I../krad_gui/ -o krad_x11_test -std=c99 `pkg-config --libs --cflags gtk+-3.0 xcb x11 gl xext xcb-atom cairo` -lX11-xcb -lrt -lxcb-image -lm
