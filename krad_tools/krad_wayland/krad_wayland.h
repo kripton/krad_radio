@@ -26,7 +26,6 @@ struct krad_wayland_display_St {
 };
 
 struct krad_wayland_window_St {
-	struct display *display;
 	int width;
 	int height;
 	struct wl_surface *surface;
