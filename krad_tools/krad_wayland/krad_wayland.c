@@ -264,7 +264,7 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 
 	krad_wayland->running = 1;
 
-	krad_wayland_frame_listener (krad_wayland, krad_wayland->window, NULL, 0);
+	krad_wayland_frame_listener (krad_wayland, NULL, 0);
 
 	while (krad_wayland->running) {
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
