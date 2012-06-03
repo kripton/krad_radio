@@ -258,12 +258,12 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	redraw (krad_wayland->window, NULL, 0);
 
 	while (krad_wayland->running) {
-		wl_display_iterate (display->display, display->mask);
+		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
 	}
 
 	printf ("simple-shm exiting\n");
-	destroy_window (window);
-	destroy_display (display);
+	destroy_window (krad_wayland->window);
+	destroy_display (krad_wayland->display);
 
 	return 0;
 }
