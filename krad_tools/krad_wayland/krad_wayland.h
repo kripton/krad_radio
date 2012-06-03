@@ -25,7 +25,7 @@ struct krad_wayland_display_St {
 	uint32_t formats;
 	uint32_t mask;
 	
-	struct wl_shm_listener shm_listenter;
+	struct wl_shm_listener shm_listener;
 	
 };
 

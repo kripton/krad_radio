@@ -146,7 +146,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display->display = wl_display_connect (NULL);
 	assert (krad_wayland->display->display);
 
-	krad_wayland->display->shm_listenter.format = krad_wayland_shm_format;
+	krad_wayland->display->shm_listener.format = krad_wayland_shm_format;
 
 	krad_wayland->display->formats = 0;
 	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
@@ -270,7 +270,7 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
 		count++;
 		printf ("iterate happened %d\n", count);
-		if (count > 5) {
+		if (count > 11) {
 			break;
 		}
 	}
