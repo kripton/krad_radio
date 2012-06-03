@@ -158,7 +158,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 		exit(1);
 	}
 
-	wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland->display);
+	wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland);
 
 }
 
