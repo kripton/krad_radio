@@ -109,9 +109,9 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 	}
 
 
-	krad_wayland->window->wl_shell_surface_listener.handle_ping = krad_wayland_handle_ping;
-	krad_wayland->window->wl_shell_surface_listener.handle_configure = krad_wayland_handle_configure;
-	krad_wayland->window->wl_shell_surface_listener.handle_popup_done = krad_wayland_handle_popup_done;
+	krad_wayland->window->surface_listener.handle_ping = krad_wayland_handle_ping;
+	krad_wayland->window->surface_listener.handle_configure = krad_wayland_handle_configure;
+	krad_wayland->window->surface_listener.handle_popup_done = krad_wayland_handle_popup_done;
 
 
 	krad_wayland->window->callback = NULL;
