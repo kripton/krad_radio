@@ -194,7 +194,7 @@ static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
 		krad_wayland->display->shell = wl_display_bind(display, id, &wl_shell_interface);
 	} else if (strcmp(interface, "wl_shm") == 0) {
 		krad_wayland->display->shm = wl_display_bind(display, id, &wl_shm_interface);
-		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->shm_listenter, d);
+		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->shm_listenter, krad_wayland->display);
 	}
 	
 	printf ("display_handle_global happened\n");	
@@ -265,7 +265,7 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 
 	krad_wayland->running = 1;
 
-	redraw (krad_wayland->window, NULL, 0);
+	krad_wayland_render (krad_wayland, NULL, 0);
 
 	while (krad_wayland->running) {
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
