@@ -185,7 +185,7 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 
 	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
 
-	krad_wayland_create_shm_buffer (krad_wayland->display, width, height, KRAD_WAYLAND_BUFFER_COUNT,
+	krad_wayland_create_shm_buffer (krad_wayland, width, height, KRAD_WAYLAND_BUFFER_COUNT,
 									WL_SHM_FORMAT_XRGB8888, &krad_wayland->window->shm_data);
 
 	krad_wayland->window->buffer = krad_wayland->buffer[0];
