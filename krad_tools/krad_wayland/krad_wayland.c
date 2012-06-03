@@ -165,7 +165,7 @@ static const struct wl_callback_listener frame_listener = {
 	redraw
 };
 
-static void shm_format(void *data, struct wl_shm *wl_shm, uint32_t format) {
+static void shm_format (void *data, struct wl_shm *wl_shm, uint32_t format) {
 
 	krad_wayland_display_t *d = data;
 
@@ -192,7 +192,7 @@ static void display_handle_global (struct wl_display *display, uint32_t id,
 	}
 }
 
-static int event_mask_update(uint32_t mask, void *data) {
+static int event_mask_update (uint32_t mask, void *data) {
 
 	krad_wayland_display_t *d = data;
 
@@ -201,13 +201,13 @@ static int event_mask_update(uint32_t mask, void *data) {
 	return 0;
 }
 
-static krad_wayland_display_t *create_display (void) {
+static krad_wayland_display_t *krad_wayland_create_display (void) {
 
 	krad_wayland_display_t *display;
 
 	display = calloc (1, sizeof (krad_wayland_display_t));
 	display->display = wl_display_connect (NULL);
-	assert (display->display);
+	//assert (display->display);
 
 	display->formats = 0;
 	wl_display_add_global_listener (display->display, display_handle_global, display);
@@ -262,8 +262,8 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	}
 
 	printf ("simple-shm exiting\n");
-	destroy_window (krad_wayland->window);
-	destroy_display (krad_wayland->display);
+	krad_wayland_destroy_window (krad_wayland->window);
+	krad_wayland_destroy_display (krad_wayland->display);
 
 	return 0;
 }
