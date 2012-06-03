@@ -10,7 +10,6 @@ static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t
 static int krad_wayland_event_mask_update (uint32_t mask, void *data);
 static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
 												const char *interface, uint32_t version, void *data);
-static void krad_wayland_render (void *image, int width, int height, uint32_t time);
 static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
 											int width, int height, uint32_t format, void **data_out);
 
