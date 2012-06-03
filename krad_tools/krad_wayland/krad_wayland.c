@@ -33,8 +33,7 @@ static struct wl_buffer *create_shm_buffer (krad_wayland_display_t *krad_wayland
 	}
 
 	pool = wl_shm_create_pool (krad_wayland_display->shm, fd, size);
-	buffer = wl_shm_pool_create_buffer(pool, 0,
-					   width, height, stride, format);
+	buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, format);
 	wl_shm_pool_destroy (pool);
 	close (fd);
 
@@ -45,13 +44,17 @@ static struct wl_buffer *create_shm_buffer (krad_wayland_display_t *krad_wayland
 
 static void handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial) {
 	wl_shell_surface_pong (shell_surface, serial);
+	printf ("handle ping happened\n");	
 }
 
 static void handle_configure (void *data, struct wl_shell_surface *shell_surface,
 							  uint32_t edges, int32_t width, int32_t height) {
+	printf ("handle configure happened\n");
+							  
 }
 
 static void handle_popup_done (void *data, struct wl_shell_surface *shell_surface) {
+	printf ("handle popup_done happened\n");	
 }
 
 static const struct wl_shell_surface_listener shell_surface_listener = {
@@ -141,6 +144,9 @@ static void shm_format (void *data, struct wl_shm *wl_shm, uint32_t format) {
 	krad_wayland_display_t *d = data;
 
 	d->formats |= (1 << format);
+	
+	printf ("shm_format happened\n");	
+	
 }
 
 struct wl_shm_listener shm_listenter = {
@@ -161,6 +167,9 @@ static void display_handle_global (struct wl_display *display, uint32_t id,
 		d->shm = wl_display_bind(display, id, &wl_shm_interface);
 		wl_shm_add_listener(d->shm, &shm_listenter, d);
 	}
+	
+	printf ("display_handle_global happened\n");	
+	
 }
 
 static int event_mask_update (uint32_t mask, void *data) {
@@ -168,7 +177,7 @@ static int event_mask_update (uint32_t mask, void *data) {
 	krad_wayland_display_t *d = data;
 
 	d->mask = mask;
-
+	printf ("event_mask_update happened\n");	
 	return 0;
 }
 
