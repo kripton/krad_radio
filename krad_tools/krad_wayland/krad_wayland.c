@@ -2,8 +2,8 @@
 
 /* static for once, more clean you say? I do prototype them, in order. */
 
-static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
-											int width, int height, uint32_t format, void **data_out);
+static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames, 
+											uint32_t format, void **data_out);
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
 static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *shell_surface,
 											uint32_t edges, int32_t width, int32_t height);
@@ -26,8 +26,8 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 /* end of protos */
 
 
-static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
-											int width, int height, uint32_t format, void **data_out) {
+static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames,
+											uint32_t format, void **data_out) {
 
 
 	char filename[] = "/tmp/wayland-shm-XXXXXX";
@@ -35,6 +35,9 @@ static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t 
 	struct wl_buffer *buffer;
 	int fd, size, stride;
 	void *data;
+	int b;
+	
+	b = 0;
 
 	fd = mkstemp (filename);
 	if (fd < 0) {
@@ -42,7 +45,8 @@ static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t 
 		return NULL;
 	}
 	stride = width * 4;
-	size = stride * height;
+	krad_wayland->frame_size = stride * height;
+	size = krad_wayland->frame_size * frames;
 	if (ftruncate (fd, size) < 0) {
 		fprintf (stderr, "ftruncate failed: %m\n");
 		close (fd);
@@ -58,8 +62,11 @@ static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t 
 		return NULL;
 	}
 
-	pool = wl_shm_create_pool (krad_wayland_display->shm, fd, size);
-	buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, format);
+	pool = wl_shm_create_pool (krad_wayland->display->shm, fd, size);
+	for (b = 0; b < KRAD_WAYLAND_BUFFER_COUNT; b++) {
+		krad_wayland->buffer[b] = wl_shm_pool_create_buffer (pool, b * krad_wayland->frame_size, 
+															 width, height, stride, format);
+	}
 	wl_shm_pool_destroy (pool);
 	close (fd);
 
@@ -178,10 +185,10 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 
 	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
 
-	krad_wayland->window->buffer = krad_wayland_create_shm_buffer (krad_wayland->display, 
-																   width, height, 
-																   WL_SHM_FORMAT_XRGB8888, 
-																   &krad_wayland->window->shm_data);
+	krad_wayland_create_shm_buffer (krad_wayland->display, width, height, KRAD_WAYLAND_BUFFER_COUNT,
+									WL_SHM_FORMAT_XRGB8888, &krad_wayland->window->shm_data);
+
+	krad_wayland->window->buffer = krad_wayland->buffer[0];
 
 	if (!krad_wayland->window->buffer) {
 		free (krad_wayland->window);

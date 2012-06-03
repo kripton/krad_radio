@@ -13,6 +13,8 @@
 #include <wayland-client.h>
 #include <wayland-egl.h>
 
+#define KRAD_WAYLAND_BUFFER_COUNT 2
+
 typedef struct krad_wayland_St krad_wayland_t;
 typedef struct krad_wayland_display_St krad_wayland_display_t;
 typedef struct krad_wayland_window_St krad_wayland_window_t;
@@ -27,6 +29,8 @@ struct krad_wayland_display_St {
 	
 	struct wl_shm_listener shm_listener;
 	
+	int frame_size;
+	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
 };
 
 struct krad_wayland_window_St {
