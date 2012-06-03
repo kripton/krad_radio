@@ -28,8 +28,8 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 
 static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
 											int width, int height, uint32_t format, void **data_out) {
-											
-											
+
+
 	char filename[] = "/tmp/wayland-shm-XXXXXX";
 	struct wl_shm_pool *pool;
 	struct wl_buffer *buffer;
