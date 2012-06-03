@@ -76,7 +76,8 @@ static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_w
 	krad_wayland->window->width = width;
 	krad_wayland->window->height = height;
 	krad_wayland->window->surface = wl_compositor_create_surface (krad_wayland->display->compositor);
-	krad_wayland->window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, window->surface);
+	krad_wayland->window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, 
+																	  krad_wayland->window->surface);
 
 	if (window->shell_surface) {
 		wl_shell_surface_add_listener (krad_wayland->window->shell_surface, &shell_surface_listener, krad_wayland->window);
