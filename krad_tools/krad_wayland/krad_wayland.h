@@ -34,6 +34,10 @@ struct krad_wayland_window_St {
 	struct wl_buffer *buffer;
 	void *shm_data;
 	struct wl_callback *callback;
+	
+	struct wl_shell_surface_listener;
+	struct wl_callback_listener frame_listener;
+	struct wl_shm_listener shm_listenter;
 };
 
 
