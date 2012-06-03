@@ -216,7 +216,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	assert (krad_wayland->display->display);
 
 	display->formats = 0;
-	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_display_handle_global, krad_wayland);
+	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
 	wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
 	wl_display_roundtrip (krad_wayland->display->display);
 
