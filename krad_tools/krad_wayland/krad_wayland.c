@@ -173,7 +173,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 		wl_callback_destroy (callback);
 	}
 
-	window->callback = wl_surface_frame (krad_wayland->window->surface);
+	krad_wayland->window->callback = wl_surface_frame (krad_wayland->window->surface);
 	
 	krad_wayland->window->frame_listener.done = krad_wayland_frame_listener;
 	
