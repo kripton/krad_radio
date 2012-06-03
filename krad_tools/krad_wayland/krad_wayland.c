@@ -64,19 +64,19 @@ static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_w
 
 	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
 
-	window->buffer = create_shm_buffer (krad_wayland->display, width, height, WL_SHM_FORMAT_XRGB8888, &window->shm_data);
+	krad_wayland->window->buffer = create_shm_buffer (krad_wayland->display, width, height, WL_SHM_FORMAT_XRGB8888, &window->shm_data);
 
 	if (!krad_wayland->window->buffer) {
 		free(window);
 		return NULL;
 	}
 
-	window->callback = NULL;
-	window->display = display;
-	window->width = width;
-	window->height = height;
-	window->surface = wl_compositor_create_surface (krad_wayland->display->compositor);
-	window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, window->surface);
+	krad_wayland->window->callback = NULL;
+	krad_wayland->window->display = display;
+	krad_wayland->window->width = width;
+	krad_wayland->window->height = height;
+	krad_wayland->window->surface = wl_compositor_create_surface (krad_wayland->display->compositor);
+	krad_wayland->window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, window->surface);
 
 	if (window->shell_surface) {
 		wl_shell_surface_add_listener (krad_wayland->window->shell_surface, &shell_surface_listener, krad_wayland->window);
