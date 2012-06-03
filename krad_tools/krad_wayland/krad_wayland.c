@@ -233,6 +233,8 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	krad_wayland->window->frame_listener.done = krad_wayland_frame_listener;
 	
 	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland);
+	
+	printf ("redraw done\n");
 
 }
 
@@ -267,6 +269,7 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	krad_wayland_frame_listener (krad_wayland, NULL, 0);
 
 	while (krad_wayland->running) {
+		printf ("iterate start %d\n", count);	
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
 		count++;
 		printf ("iterate happened %d\n", count);
