@@ -175,9 +175,9 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 
 	window->callback = wl_surface_frame (krad_wayland->window->surface);
 	
-	krad_wayland->frame_listener.done = krad_wayland_frame_listener;
+	krad_wayland->display->frame_listener.done = krad_wayland_frame_listener;
 	
-	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->frame_listener, krad_wayland->window);
+	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->display->frame_listener, krad_wayland->window);
 
 }
 
@@ -193,7 +193,7 @@ static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
 		krad_wayland->display->shell = wl_display_bind(display, id, &wl_shell_interface);
 	} else if (strcmp(interface, "wl_shm") == 0) {
 		krad_wayland->display->shm = wl_display_bind(display, id, &wl_shm_interface);
-		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->shm_listenter, krad_wayland->display);
+		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->display->shm_listenter, krad_wayland->display);
 	}
 	
 	printf ("display_handle_global happened\n");	
@@ -215,7 +215,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display->display = wl_display_connect (NULL);
 	assert (krad_wayland->display->display);
 
-	display->formats = 0;
+	krad_wayland->display->formats = 0;
 	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
 	wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
 	wl_display_roundtrip (krad_wayland->display->display);
