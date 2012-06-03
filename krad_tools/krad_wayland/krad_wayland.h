@@ -28,9 +28,7 @@ struct krad_wayland_display_St {
 	uint32_t mask;
 	
 	struct wl_shm_listener shm_listener;
-	
-	int frame_size;
-	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
+
 };
 
 struct krad_wayland_window_St {
@@ -51,6 +49,9 @@ struct krad_wayland_St {
 
 	krad_wayland_window_t *window;
 	krad_wayland_display_t *display;
+	
+	int frame_size;
+	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
 	
 	int running;
 
