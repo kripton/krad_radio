@@ -32,7 +32,6 @@ static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wid
 
 	char filename[] = "/tmp/wayland-shm-XXXXXX";
 	struct wl_shm_pool *pool;
-	struct wl_buffer *buffer;
 	int fd, size, stride;
 	void *data;
 	int b;
