@@ -1,29 +1,29 @@
 #include "krad_wayland.h"
 
-/* static for once, more clean you say? I do prototype. */
+/* static for once, more clean you say? I do prototype them, in order. */
 
-static void krad_wayland_handle_popup_done (void *data, struct wl_shell_surface *shell_surface);
+static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
+											int width, int height, uint32_t format, void **data_out);
+static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
 static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *shell_surface,
 											uint32_t edges, int32_t width, int32_t height);
-static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
+static void krad_wayland_handle_popup_done (void *data, struct wl_shell_surface *shell_surface);											
+
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format);
 static int krad_wayland_event_mask_update (uint32_t mask, void *data);
 static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
 												const char *interface, uint32_t version, void *data);
-static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
-											int width, int height, uint32_t format, void **data_out);
 
 static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland);
 static void krad_wayland_create_display (krad_wayland_t *krad_wayland);
 
-
-static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height);
 static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland);
-
-static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int width, int height, uint32_t time);
+static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height);
 
 static void krad_wayland_frame_listener (void *data, struct wl_callback *callback, uint32_t time);
+static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int width, int height, uint32_t time);
 
+/* end of protos */
 
 
 static struct wl_buffer *krad_wayland_create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
@@ -93,6 +93,86 @@ static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t
 	
 }
 
+static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
+
+	krad_wayland_t *krad_wayland = data;
+
+	krad_wayland->display->mask = mask;
+	printf ("event_mask_update happened %u\n", mask);
+	return 0;
+}
+
+static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
+												const char *interface, uint32_t version, void *data) {
+
+	krad_wayland_t *krad_wayland = data;
+
+	if (strcmp(interface, "wl_compositor") == 0) {
+		krad_wayland->display->compositor =
+			wl_display_bind(display, id, &wl_compositor_interface);
+	} else if (strcmp(interface, "wl_shell") == 0) {
+		krad_wayland->display->shell = wl_display_bind(display, id, &wl_shell_interface);
+	} else if (strcmp(interface, "wl_shm") == 0) {
+		krad_wayland->display->shm = wl_display_bind(display, id, &wl_shm_interface);
+		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->display->shm_listenter, krad_wayland->display);
+	}
+	
+	printf ("display_handle_global happened\n");	
+	
+}
+
+static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
+
+	if (krad_wayland->display->shm) {
+		wl_shm_destroy (krad_wayland->display->shm);
+	}
+
+	if (krad_wayland->display->shell) {
+		wl_shell_destroy (krad_wayland->display->shell);
+	}
+
+	if (krad_wayland->display->compositor) {
+		wl_compositor_destroy (krad_wayland->display->compositor);
+	}
+
+	wl_display_flush (krad_wayland->display->display);
+	wl_display_disconnect (krad_wayland->display->display);
+	free (krad_wayland->display);
+}
+
+static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
+
+	krad_wayland->display = calloc (1, sizeof (krad_wayland_display_t));
+	krad_wayland->display->display = wl_display_connect (NULL);
+	assert (krad_wayland->display->display);
+
+	krad_wayland->display->shm_listenter.format = krad_wayland_shm_format;
+
+	krad_wayland->display->formats = 0;
+	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
+	wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
+	wl_display_roundtrip (krad_wayland->display->display);
+
+	if (!(krad_wayland->display->formats & (1 << WL_SHM_FORMAT_XRGB8888))) {
+		fprintf(stderr, "WL_SHM_FORMAT_XRGB32 not available\n");
+		exit(1);
+	}
+
+	wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland->display);
+
+}
+
+static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland) {
+
+	if (krad_wayland->window->callback) {
+		wl_callback_destroy (krad_wayland->window->callback);
+	}
+
+	wl_buffer_destroy (krad_wayland->window->buffer);
+	wl_shell_surface_destroy (krad_wayland->window->shell_surface);
+	wl_surface_destroy (krad_wayland->window->surface);
+	free (krad_wayland->window);
+}
 
 static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height) {
 
@@ -132,31 +212,6 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 	return 0;
 }
 
-static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland) {
-
-	if (krad_wayland->window->callback) {
-		wl_callback_destroy (krad_wayland->window->callback);
-	}
-
-	wl_buffer_destroy (krad_wayland->window->buffer);
-	wl_shell_surface_destroy (krad_wayland->window->shell_surface);
-	wl_surface_destroy (krad_wayland->window->surface);
-	free (krad_wayland->window);
-}
-
-static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int width, int height, uint32_t time) {
-
-	uint32_t *p;
-	int i, end, offset;
-
-	p = image;
-	end = width * height;
-	offset = time >> 4;
-	for (i = 0; i < end; i++) {
-		p[i] = (i + offset) * 0x0080401;
-	}
-}
-
 static void krad_wayland_frame_listener (void *data, struct wl_callback *callback, uint32_t time) {
 
 	krad_wayland_t *krad_wayland = data;
@@ -181,75 +236,18 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 
 }
 
-static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
-												const char *interface, uint32_t version, void *data) {
+static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int width, int height, uint32_t time) {
 
-	krad_wayland_t *krad_wayland = data;
+	uint32_t *p;
+	int i, end, offset;
 
-	if (strcmp(interface, "wl_compositor") == 0) {
-		krad_wayland->display->compositor =
-			wl_display_bind(display, id, &wl_compositor_interface);
-	} else if (strcmp(interface, "wl_shell") == 0) {
-		krad_wayland->display->shell = wl_display_bind(display, id, &wl_shell_interface);
-	} else if (strcmp(interface, "wl_shm") == 0) {
-		krad_wayland->display->shm = wl_display_bind(display, id, &wl_shm_interface);
-		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->display->shm_listenter, krad_wayland->display);
+	p = image;
+	end = width * height;
+	offset = time >> 4;
+	for (i = 0; i < end; i++) {
+		p[i] = (i + offset) * 0x0080401;
 	}
-	
-	printf ("display_handle_global happened\n");	
-	
 }
-
-static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
-
-	krad_wayland_t *krad_wayland = data;
-
-	krad_wayland->display->mask = mask;
-	printf ("event_mask_update happened %u\n", mask);
-	return 0;
-}
-
-static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
-
-	krad_wayland->display = calloc (1, sizeof (krad_wayland_display_t));
-	krad_wayland->display->display = wl_display_connect (NULL);
-	assert (krad_wayland->display->display);
-
-	krad_wayland->display->shm_listenter.format = krad_wayland_shm_format;
-
-	krad_wayland->display->formats = 0;
-	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
-	wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
-	wl_display_roundtrip (krad_wayland->display->display);
-
-	if (!(krad_wayland->display->formats & (1 << WL_SHM_FORMAT_XRGB8888))) {
-		fprintf(stderr, "WL_SHM_FORMAT_XRGB32 not available\n");
-		exit(1);
-	}
-
-	wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland->display);
-
-}
-
-static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
-
-	if (krad_wayland->display->shm) {
-		wl_shm_destroy (krad_wayland->display->shm);
-	}
-
-	if (krad_wayland->display->shell) {
-		wl_shell_destroy (krad_wayland->display->shell);
-	}
-
-	if (krad_wayland->display->compositor) {
-		wl_compositor_destroy (krad_wayland->display->compositor);
-	}
-
-	wl_display_flush (krad_wayland->display->display);
-	wl_display_disconnect (krad_wayland->display->display);
-	free (krad_wayland->display);
-}
-
 
 int krad_wayland_run (krad_wayland_t *krad_wayland) {
 
@@ -287,17 +285,11 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 void krad_wayland_destroy (krad_wayland_t *krad_wayland) {
 
 	free (krad_wayland);
-
 }
 
 krad_wayland_t *krad_wayland_create () {
 
 	krad_wayland_t *krad_wayland = calloc (1, sizeof(krad_wayland_t));
-
-
-
-
 	
 	return krad_wayland;
-
 }
