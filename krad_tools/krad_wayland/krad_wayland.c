@@ -232,7 +232,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	
 	krad_wayland->window->frame_listener.done = krad_wayland_frame_listener;
 	
-	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland->window);
+	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland);
 
 }
 
