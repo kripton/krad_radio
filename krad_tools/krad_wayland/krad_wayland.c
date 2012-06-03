@@ -7,7 +7,7 @@ static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *
 											uint32_t edges, int32_t width, int32_t height);
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format);
-static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
+static int krad_wayland_event_mask_update (uint32_t mask, void *data);
 static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
 												const char *interface, uint32_t version, void *data);
 static void krad_wayland_render (void *image, int width, int height, uint32_t time);
