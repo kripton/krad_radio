@@ -215,7 +215,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display->display = wl_display_connect (NULL);
 	assert (krad_wayland->display->display);
 
-	krad_wayland->display->shm_listenter.format = krad_wayland_shm_listener;
+	krad_wayland->display->shm_listenter.format = krad_wayland_shm_format;
 
 	krad_wayland->display->formats = 0;
 	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
