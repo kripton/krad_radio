@@ -1,5 +1,17 @@
 #include "krad_wayland.h"
 
+static const struct wl_shell_surface_listener shell_surface_listener = {
+	handle_ping,
+	handle_configure,
+	handle_popup_done
+};
+
+static const struct wl_callback_listener frame_listener;
+
+static const struct wl_callback_listener frame_listener = {
+	redraw
+};
+
 static struct wl_buffer *create_shm_buffer (krad_wayland_display_t *krad_wayland_display,
 											int width, int height, uint32_t format, void **data_out) {
 											
@@ -57,12 +69,6 @@ static void handle_popup_done (void *data, struct wl_shell_surface *shell_surfac
 	printf ("handle popup_done happened\n");	
 }
 
-static const struct wl_shell_surface_listener shell_surface_listener = {
-	handle_ping,
-	handle_configure,
-	handle_popup_done
-};
-
 int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height) {
 
 	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
@@ -116,8 +122,6 @@ static void krad_wayland_render (void *image, int width, int height, uint32_t ti
 	}
 }
 
-static const struct wl_callback_listener frame_listener;
-
 static void redraw (void *data, struct wl_callback *callback, uint32_t time) {
 
 	krad_wayland_window_t *window = data;
@@ -136,10 +140,6 @@ static void redraw (void *data, struct wl_callback *callback, uint32_t time) {
 	wl_callback_add_listener (window->callback, &frame_listener, window);
 
 }
-
-static const struct wl_callback_listener frame_listener = {
-	redraw
-};
 
 static void shm_format (void *data, struct wl_shm *wl_shm, uint32_t format) {
 
