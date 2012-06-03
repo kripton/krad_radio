@@ -2,7 +2,7 @@
 
 /* static for once, more clean you say? I do prototype them, in order. */
 
-static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames, 
+static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames, 
 											uint32_t format, void **data_out);
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
 static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *shell_surface,
@@ -26,7 +26,7 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 /* end of protos */
 
 
-static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames,
+static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames,
 											uint32_t format, void **data_out) {
 
 
@@ -42,7 +42,7 @@ static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wi
 	fd = mkstemp (filename);
 	if (fd < 0) {
 		fprintf(stderr, "open %s failed: %m\n", filename);
-		return NULL;
+		return 1;
 	}
 	stride = width * 4;
 	krad_wayland->frame_size = stride * height;
@@ -50,7 +50,7 @@ static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wi
 	if (ftruncate (fd, size) < 0) {
 		fprintf (stderr, "ftruncate failed: %m\n");
 		close (fd);
-		return NULL;
+		return 1;
 	}
 
 	data = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -59,7 +59,7 @@ static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wi
 	if (data == MAP_FAILED) {
 		fprintf (stderr, "mmap failed: %m\n");
 		close (fd);
-		return NULL;
+		return 1;
 	}
 
 	pool = wl_shm_create_pool (krad_wayland->display->shm, fd, size);
@@ -72,7 +72,7 @@ static void krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wi
 
 	*data_out = data;
 
-	return buffer;
+	return 0;
 }
 											
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial) {
