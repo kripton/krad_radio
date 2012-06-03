@@ -60,15 +60,13 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 	handle_popup_done
 };
 
-static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_display_t *display, int width, int height) {
+static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height) {
 
-	krad_wayland_window_t *window;
-	
-	window = malloc (sizeof *window);
+	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
 
-	window->buffer = create_shm_buffer(display, width, height, WL_SHM_FORMAT_XRGB8888, &window->shm_data);
+	window->buffer = create_shm_buffer (krad_wayland->display, width, height, WL_SHM_FORMAT_XRGB8888, &window->shm_data);
 
-	if (!window->buffer) {
+	if (!krad_wayland->window->buffer) {
 		free(window);
 		return NULL;
 	}
@@ -77,28 +75,28 @@ static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_display_t
 	window->display = display;
 	window->width = width;
 	window->height = height;
-	window->surface = wl_compositor_create_surface (display->compositor);
-	window->shell_surface = wl_shell_get_shell_surface (display->shell, window->surface);
+	window->surface = wl_compositor_create_surface (krad_wayland->display->compositor);
+	window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, window->surface);
 
 	if (window->shell_surface) {
-		wl_shell_surface_add_listener (window->shell_surface, &shell_surface_listener, window);
+		wl_shell_surface_add_listener (krad_wayland->window->shell_surface, &shell_surface_listener, krad_wayland->window);
 	}
 
-	wl_shell_surface_set_toplevel (window->shell_surface);
+	wl_shell_surface_set_toplevel (krad_wayland->window->shell_surface);
 
 	return window;
 }
 
-static void krad_wayland_destroy_window (krad_wayland_window_t *window) {
+static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland) {
 
-	if (window->callback) {
-		wl_callback_destroy(window->callback);
+	if (krad_wayland->window->callback) {
+		wl_callback_destroy (krad_wayland->window->callback);
 	}
 
-	wl_buffer_destroy (window->buffer);
-	wl_shell_surface_destroy (window->shell_surface);
-	wl_surface_destroy (window->surface);
-	free (window);
+	wl_buffer_destroy (krad_wayland->window->buffer);
+	wl_shell_surface_destroy (krad_wayland->window->shell_surface);
+	wl_surface_destroy (krad_wayland->window->surface);
+	free (krad_wayland->window);
 }
 
 static void krad_wayland_render (void *image, int width, int height, uint32_t time) {
@@ -262,8 +260,8 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	}
 
 	printf ("simple-shm exiting\n");
-	krad_wayland_destroy_window (krad_wayland->window);
-	krad_wayland_destroy_display (krad_wayland->display);
+	krad_wayland_destroy_window (krad_wayland);
+	krad_wayland_destroy_display (krad_wayland);
 
 	return 0;
 }
