@@ -60,7 +60,7 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 	handle_popup_done
 };
 
-static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height) {
+int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height) {
 
 	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
 
@@ -69,7 +69,7 @@ static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_w
 
 	if (!krad_wayland->window->buffer) {
 		free (krad_wayland->window);
-		return NULL;
+		return 1;
 	}
 
 	krad_wayland->window->callback = NULL;
@@ -85,7 +85,7 @@ static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_w
 
 	wl_shell_surface_set_toplevel (krad_wayland->window->shell_surface);
 
-	return window;
+	return 0;
 }
 
 static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland) {
@@ -246,7 +246,7 @@ static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
 int krad_wayland_run (krad_wayland_t *krad_wayland) {
 
 	krad_wayland->display = krad_wayland_create_display ();
-	krad_wayland->window = krad_wayland_create_window (krad_wayland, 1280, 720);
+	krad_wayland_create_window (krad_wayland, 1280, 720);
 
 	if (!krad_wayland->window) {
 		return 1;
