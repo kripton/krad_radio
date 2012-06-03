@@ -68,7 +68,7 @@ static krad_wayland_window_t *krad_wayland_create_window (krad_wayland_t *krad_w
 													  WL_SHM_FORMAT_XRGB8888, &krad_wayland->window->shm_data);
 
 	if (!krad_wayland->window->buffer) {
-		free(window);
+		free (krad_wayland->window);
 		return NULL;
 	}
 
@@ -245,7 +245,7 @@ static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
 int krad_wayland_run (krad_wayland_t *krad_wayland) {
 
 	krad_wayland->display = krad_wayland_create_display ();
-	krad_wayland->window = krad_wayland_create_window (krad_wayland->display, 1280, 720);
+	krad_wayland->window = krad_wayland_create_window (krad_wayland, 1280, 720);
 
 	if (!krad_wayland->window) {
 		return 1;
