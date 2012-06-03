@@ -123,7 +123,7 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 
 	if (krad_wayland->window->shell_surface) {
 		wl_shell_surface_add_listener (krad_wayland->window->shell_surface, 
-									   &krad_wayland->window->wl_shell_surface_listener,
+									   &krad_wayland->window->surface_listener,
 									   krad_wayland);
 	}
 
