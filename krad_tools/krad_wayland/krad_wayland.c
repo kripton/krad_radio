@@ -293,6 +293,13 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	return 0;
 }
 
+void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, void *), void *pointer) {
+
+	krad_ipc_server->frame_callback = frame_callback;
+	krad_ipc_server->callback_pointer = pointer;
+
+}
+
 void krad_wayland_destroy (krad_wayland_t *krad_wayland) {
 
 	free (krad_wayland);

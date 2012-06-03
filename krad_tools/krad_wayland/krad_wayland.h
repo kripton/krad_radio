@@ -54,9 +54,15 @@ struct krad_wayland_St {
 	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
 	int current_buffer;
 	
+	int (*frame_callback)(void *, void *);	
+	void *callback_pointer;
+	
 	int running;
 
 };
+
+
+void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, void *), void *pointer);
 
 int krad_wayland_run (krad_wayland_t *krad_wayland);
 
