@@ -187,7 +187,9 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 	krad_wayland_create_shm_buffer (krad_wayland, width, height, KRAD_WAYLAND_BUFFER_COUNT,
 									WL_SHM_FORMAT_XRGB8888, &krad_wayland->window->shm_data);
 
-	krad_wayland->window->buffer = krad_wayland->buffer[0];
+	krad_wayland->current_buffer = 0;
+	
+	krad_wayland->window->buffer = krad_wayland->buffer[krad_wayland->current_buffer];
 
 	if (!krad_wayland->window->buffer) {
 		free (krad_wayland->window);

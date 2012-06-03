@@ -52,6 +52,7 @@ struct krad_wayland_St {
 	
 	int frame_size;
 	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
+	int current_buffer;
 	
 	int running;
 
