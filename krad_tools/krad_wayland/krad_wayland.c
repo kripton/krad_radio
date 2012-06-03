@@ -122,6 +122,8 @@ static void redraw (void *data, struct wl_callback *callback, uint32_t time) {
 
 	krad_wayland_window_t *window = data;
 
+	printf ("redraw happened %u\n", time);
+
 	krad_wayland_render (window->shm_data, window->width, window->height, time);
 	wl_surface_attach (window->surface, window->buffer, 0, 0);
 	wl_surface_damage (window->surface, 0, 0, window->width, window->height);
@@ -177,7 +179,7 @@ static int event_mask_update (uint32_t mask, void *data) {
 	krad_wayland_display_t *d = data;
 
 	d->mask = mask;
-	printf ("event_mask_update happened\n");	
+	printf ("event_mask_update happened %u\n", mask);
 	return 0;
 }
 
@@ -229,6 +231,10 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	krad_wayland->display = krad_wayland_create_display ();
 	krad_wayland_create_window (krad_wayland, 1280, 720);
 
+	int count;
+
+	count = 0;
+
 	if (!krad_wayland->window) {
 		return 1;
 	}
@@ -239,6 +245,11 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 
 	while (krad_wayland->running) {
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
+		count++;
+		printf ("iterate happened %d\n", count);
+		if (count > 5) {
+			break;
+		}
 	}
 
 	printf ("simple-shm exiting\n");
