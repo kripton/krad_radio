@@ -237,7 +237,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 		updated = krad_wayland->frame_callback (krad_wayland->window->shm_data, krad_wayland->callback_pointer);
 	}
 	
-	if (1) {
+	if (updated) {
 						 
 		wl_surface_attach (krad_wayland->window->surface, krad_wayland->window->buffer, 0, 0);
 		wl_surface_damage (krad_wayland->window->surface, 0, 0, krad_wayland->window->width, krad_wayland->window->height);
