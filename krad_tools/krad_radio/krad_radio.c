@@ -45,6 +45,52 @@ void krad_x11_test (char *title) {
 	
 }
 
+int krad_wayland_test_frame_callback (void *buffer, void *pointer) {
+
+	kradgui_t *kradgui;
+
+	kradgui = (kradgui_t *)pointer;
+
+	int updated;
+	
+	
+	kradgui_render (kradgui);
+	memcpy (buffer, kradgui->data, kradgui->width * kradgui->height * 4);
+	
+	updated = 1;
+	
+	
+	return updated;
+}
+
+void krad_wayland_test (char *title) {
+
+	krad_wayland_t *krad_wayland;
+	kradgui_t *kradgui;
+
+	int count;
+	int w;
+	int h;
+	
+	w = 1280;
+	h = 720;
+	
+	count = 0;
+	
+	kradgui = kradgui_create_with_internal_surface (w, h);		
+	krad_wayland = krad_wayland_create ();
+	
+	krad_wayland_set_frame_callback (krad_wayland, krad_wayland_test_frame_callback, kradgui);
+
+	kradgui_test_screen (kradgui, title);
+	
+	krad_wayland_run (krad_wayland);
+		
+	krad_wayland_destroy (krad_wayland);
+	kradgui_destroy (kradgui);
+	
+}
+
 void krad_radio_destroy (krad_radio_t *krad_radio) {
 
   	krad_system_monitor_cpu_off ();
@@ -170,9 +216,7 @@ void krad_radio_run (krad_radio_t *krad_radio) {
 
 	while (1) {
 		//krad_x11_test (krad_radio->sysname);
-		//krad_x11_test (krad_radio->sysname);
-		//krad_x11_test (krad_radio->sysname);
-		//krad_x11_test (krad_radio->sysname);
+		krad_wayland_test (krad_radio->sysname);
 		sleep (5);
 	}
 }
