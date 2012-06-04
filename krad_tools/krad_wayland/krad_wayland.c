@@ -150,7 +150,10 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 
 	krad_wayland->display = calloc (1, sizeof (krad_wayland_display_t));
 	krad_wayland->display->display = wl_display_connect (NULL);
-	assert (krad_wayland->display->display);
+	if (krad_wayland->display->display == NULL) {
+		printf ("Can't connect to wayland\n");
+		exit (1);
+	}
 
 	krad_wayland->display->shm_listener.format = krad_wayland_shm_format;
 

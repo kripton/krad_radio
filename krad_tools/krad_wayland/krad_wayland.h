@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <signal.h>
-#include <assert.h>
 
 #include <wayland-client.h>
 #include <wayland-egl.h>
