@@ -287,7 +287,7 @@ void krad_radio_run (krad_radio_t *krad_radio) {
 			krad_wayland_test (krad_radio->sysname);
 		}
 		if (strcmp(krad_radio->sysname, "radio1wt2") == 0) {
-			krad_wayland_test (krad_radio, krad_radio->sysname);
+			krad_wayland_test2 (krad_radio, krad_radio->sysname);
 		}
 		sleep (5);
 	}
