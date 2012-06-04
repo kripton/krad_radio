@@ -102,7 +102,7 @@ int krad_wayland_test_frame_callback2 (void *buffer, void *pointer) {
 
 	int updated;
 	
-	krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
+	krad_frame = krad_compositor_port_pull_frame (krad_compositor_port);
 
 	if (krad_frame != NULL) {
 								 
