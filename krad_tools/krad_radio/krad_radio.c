@@ -68,14 +68,14 @@ void krad_wayland_test (char *title) {
 	krad_wayland_t *krad_wayland;
 	kradgui_t *kradgui;
 
-	int count;
+	//int count;
 	int w;
 	int h;
 	
 	w = 1280;
 	h = 720;
 	
-	count = 0;
+	//count = 0;
 	
 	kradgui = kradgui_create_with_internal_surface (w, h);		
 	krad_wayland = krad_wayland_create ();
