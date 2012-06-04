@@ -96,7 +96,8 @@ void krad_wayland_test (char *title) {
 int krad_wayland_test_frame_callback2 (void *buffer, void *pointer) {
 
 	krad_frame_t *krad_frame;
-
+	krad_compositor_port_t *krad_compositor_port;
+	
 	krad_compositor_port = (krad_compositor_port_t *)pointer;
 
 	int updated;
