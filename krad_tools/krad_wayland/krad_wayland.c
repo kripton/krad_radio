@@ -295,9 +295,6 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
 		count++;
 		//printf ("iterate happened %d\n", count);
-		if (count > 10000) {
-			break;
-		}
 	}
 
 	printf ("simple-shm exiting\n");
