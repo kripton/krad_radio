@@ -104,7 +104,7 @@ static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
 	krad_wayland_t *krad_wayland = data;
 
 	krad_wayland->display->mask = mask;
-	printf ("event_mask_update happened %u\n", mask);
+	//printf ("event_mask_update happened %u\n", mask);
 	return 0;
 }
 
@@ -231,7 +231,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	
 	updated = 0;
 
-	printf ("redraw happened %u\n", time);
+	//printf ("redraw happened %u\n", time);
 
 	krad_wayland_render (krad_wayland, krad_wayland->window->shm_data, 
 						 krad_wayland->window->width, krad_wayland->window->height, time);
@@ -256,7 +256,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	
 	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland);
 	
-	printf ("redraw done\n");
+	//printf ("redraw done\n");
 
 }
 
@@ -291,10 +291,10 @@ int krad_wayland_run (krad_wayland_t *krad_wayland) {
 	krad_wayland_frame_listener (krad_wayland, NULL, 0);
 
 	while (krad_wayland->running) {
-		printf ("iterate start %d\n", count);	
+		//printf ("iterate start %d\n", count);	
 		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
 		count++;
-		printf ("iterate happened %d\n", count);
+		//printf ("iterate happened %d\n", count);
 		if (count > 10000) {
 			break;
 		}
