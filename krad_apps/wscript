@@ -43,7 +43,6 @@ depsources = """
 ../krad_tools/krad_pulse/krad_pulse.c
 ../krad_tools/krad_alsa/krad_alsa.c
 ../krad_tools/krad_alsa/krad_alsa_seq.c
-../krad_tools/krad_wayland/krad_wayland.c
 ../krad_tools/krad_vpx/krad_vpx.c
 ../krad_tools/krad_dirac/krad_dirac.c
 ../krad_tools/krad_theora/krad_theora.c
@@ -66,6 +65,7 @@ depsources = """
 ../krad_tools/krad_decklink/krad_decklink.c
 ../krad_tools/krad_decklink/krad_decklink_capture.cpp
 ../krad_tools/krad_decklink/vendor/DeckLinkAPIDispatch.cpp
+../krad_tools/krad_wayland/krad_wayland.c
 """.split()
 
 depsources2 = """
