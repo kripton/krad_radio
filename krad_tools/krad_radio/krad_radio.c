@@ -68,6 +68,8 @@ void krad_wayland_test (char *title) {
 	krad_wayland_t *krad_wayland;
 	kradgui_t *kradgui;
 
+	char string[128];
+
 	//int count;
 	int w;
 	int h;
@@ -75,14 +77,14 @@ void krad_wayland_test (char *title) {
 	w = 1280;
 	h = 720;
 	
-	//count = 0;
+	sprintf (string, "Krad Radio %s Wayland Test Output\n", title);
 	
 	kradgui = kradgui_create_with_internal_surface (w, h);		
 	krad_wayland = krad_wayland_create ();
 	
 	krad_wayland_set_frame_callback (krad_wayland, krad_wayland_test_frame_callback, kradgui);
 
-	kradgui_test_screen (kradgui, title);
+	kradgui_test_screen (kradgui, string);
 	
 	krad_wayland_run (krad_wayland);
 		
