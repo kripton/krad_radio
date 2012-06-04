@@ -77,7 +77,7 @@ void krad_wayland_test (char *title) {
 	w = 1280;
 	h = 720;
 	
-	sprintf (string, "Krad Radio %s Wayland Test Output\n", title);
+	sprintf (string, "Krad Radio %s Wayland Test Output", title);
 	
 	kradgui = kradgui_create_with_internal_surface (w, h);		
 	krad_wayland = krad_wayland_create ();
@@ -90,6 +90,68 @@ void krad_wayland_test (char *title) {
 		
 	krad_wayland_destroy (krad_wayland);
 	kradgui_destroy (kradgui);
+	
+}
+
+int krad_wayland_test_frame_callback2 (void *buffer, void *pointer) {
+
+	krad_frame_t *krad_frame;
+
+	krad_compositor_port = (krad_compositor_port_t *)pointer;
+
+	int updated;
+	
+	krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
+
+	if (krad_frame != NULL) {
+								 
+		memcpy (buffer, krad_frame->pixels, 1280 * 720 * 4);
+		krad_framepool_unref_frame (krad_frame);
+
+	}
+	
+	updated = 1;
+	
+	
+	return updated;
+}
+
+void krad_wayland_test2 (krad_radio_t *krad_radio, char *title) {
+
+	krad_wayland_t *krad_wayland;
+	kradgui_t *kradgui;
+	krad_compositor_port_t *krad_compositor_port;
+
+	krad_compositor_port = krad_compositor_port_create (krad_radio->krad_compositor, "WayOut", OUTPUT);
+
+
+	char string[128];
+
+	//int count;
+	int w;
+	int h;
+	
+	w = 1280;
+	h = 720;
+	
+	sprintf (string, "Krad Radio %s Wayland Test Output", title);
+	
+	kradgui = kradgui_create_with_internal_surface (w, h);
+	
+	//kradgui->clear = 0;
+		
+	krad_wayland = krad_wayland_create ();
+	
+	krad_wayland_set_frame_callback (krad_wayland, krad_wayland_test_frame_callback2, krad_compositor_port);
+
+	kradgui_test_screen (kradgui, string);
+	
+	krad_wayland_run (krad_wayland);
+		
+	krad_wayland_destroy (krad_wayland);
+	kradgui_destroy (kradgui);
+	
+	krad_compositor_port_destroy (krad_radio->krad_compositor, krad_compositor_port);	
 	
 }
 
@@ -218,7 +280,7 @@ void krad_radio_run (krad_radio_t *krad_radio) {
 
 	while (1) {
 		//krad_x11_test (krad_radio->sysname);
-		krad_wayland_test (krad_radio->sysname);
+		krad_wayland_test2 (krad_radio, krad_radio->sysname);
 		sleep (5);
 	}
 }
