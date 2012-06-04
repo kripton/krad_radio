@@ -280,13 +280,13 @@ void krad_radio (char *sysname) {
 void krad_radio_run (krad_radio_t *krad_radio) {
 
 	while (1) {
-		if (strcmp(sysname, "radio1xt") == 0) {
+		if (strcmp(krad_radio->sysname, "radio1xt") == 0) {
 			krad_x11_test (krad_radio->sysname);
 		}
-		if (strcmp(sysname, "radio1wt") == 0) {
+		if (strcmp(krad_radio->sysname, "radio1wt") == 0) {
 			krad_wayland_test (krad_radio->sysname);
 		}
-		if (strcmp(sysname, "radio1wt2") == 0) {
+		if (strcmp(krad_radio->sysname, "radio1wt2") == 0) {
 			krad_wayland_test (krad_radio, krad_radio->sysname);
 		}
 		sleep (5);
