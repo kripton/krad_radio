@@ -233,8 +233,8 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 
 	//printf ("redraw happened %u\n", time);
 
-	krad_wayland_render (krad_wayland, krad_wayland->window->shm_data, 
-						 krad_wayland->window->width, krad_wayland->window->height, time);
+	//krad_wayland_render (krad_wayland, krad_wayland->window->shm_data, 
+	//					 krad_wayland->window->width, krad_wayland->window->height, time);
 	
 	if (krad_wayland->frame_callback != NULL) {
 		updated = krad_wayland->frame_callback (krad_wayland->window->shm_data, krad_wayland->callback_pointer);
