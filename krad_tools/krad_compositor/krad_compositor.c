@@ -54,15 +54,19 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	krad_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
 	
-	memcpy ( krad_frame->pixels, krad_compositor->krad_gui->data, krad_compositor->frame_byte_size );	
+	if (krad_frame != NULL) {
+		memcpy ( krad_frame->pixels, krad_compositor->krad_gui->data, krad_compositor->frame_byte_size );	
 	
-	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT)) {
-			krad_compositor_port_push_frame (&krad_compositor->port[p], krad_frame);
+		for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
+			if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT)) {
+				krad_compositor_port_push_frame (&krad_compositor->port[p], krad_frame);
+			}
 		}
-	}
 	
-	krad_framepool_unref_frame (krad_frame);	
+		krad_framepool_unref_frame (krad_frame);
+	} else {
+		failfast ("Krad Compositor Underflow");
+	}
 	
 }
 
