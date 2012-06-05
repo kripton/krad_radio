@@ -13,6 +13,9 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate) 
 		failfast ("Failed to allocate vpx image\n");
 	}
 	
+	printk ("Krad Radio using libvpx version: %s", vpx_codec_version_str ()); 	
+
+	
 	kradvpx->quality = 24 * 1000;
 	
 	//printf("\n\n encoding quality set to %ld\n\n", kradvpx->quality);
