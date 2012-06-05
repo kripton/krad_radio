@@ -126,7 +126,6 @@ void krad_ipc_server_client_broadcast (krad_ipc_server_t *krad_ipc_server, char 
 
 void krad_ipc_disconnect_client (krad_ipc_server_client_t *client);
 void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
-krad_ipc_server_t *krad_ipc_server_create (char *sysname);
 krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server, int sd);
 
 void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
@@ -139,14 +138,14 @@ int krad_ipc_server_read_command (krad_ipc_server_t *krad_ipc_server, uint32_t *
 uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64_t data_size);
 //void krad_ipc_server_client_send (void *client, char *data);
 
-void *krad_ipc_server_run (void *arg);
+void *krad_ipc_server_run_thread (void *arg);
 void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server);
-
+void krad_ipc_server_run (krad_ipc_server_t *krad_ipc_server);
 int krad_ipc_server_tcp_socket_create (int port);
 void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server);
 int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, int port);
-
-krad_ipc_server_t *krad_ipc_server (char *sysname, int handler (void *, int *, void *), void *pointer);
+krad_ipc_server_t *krad_ipc_server_init (char *sysname);
+krad_ipc_server_t *krad_ipc_server_create (char *sysname, int handler (void *, int *, void *), void *pointer);
 
 #endif
 

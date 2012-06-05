@@ -1,6 +1,12 @@
 #include "krad_radio.h"
 
-void krad_radio_destroy (krad_radio_t *krad_radio) {
+static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item );
+static void krad_radio_destroy (krad_radio_t *krad_radio);
+static krad_radio_t *krad_radio_create (char *sysname);
+static void krad_radio_run (krad_radio_t *krad_radio);
+static int krad_radio_handler ( void *output, int *output_len, void *ptr );
+
+static void krad_radio_destroy (krad_radio_t *krad_radio) {
 
   	krad_system_monitor_cpu_off ();
 	if (krad_radio->krad_osc != NULL) {
@@ -40,10 +46,9 @@ void krad_radio_destroy (krad_radio_t *krad_radio) {
 	free (krad_radio);
 }
 
-krad_radio_t *krad_radio_create (char *sysname) {
+static krad_radio_t *krad_radio_create (char *sysname) {
 
 	krad_radio_t *krad_radio = calloc (1, sizeof(krad_radio_t));
-
 
 	if (!krad_valid_sysname(sysname)) {
 		return NULL;
@@ -85,50 +90,56 @@ krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}	
 	
-	krad_radio->krad_ipc = krad_ipc_server ( sysname, krad_radio_handler, krad_radio );
+	krad_radio->krad_ipc = krad_ipc_server_create ( sysname, krad_radio_handler, krad_radio );
 	
 	if (krad_radio->krad_ipc == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
-	}	
-	
-  	krad_system_monitor_cpu_on ();	
+	}
 		
 	return krad_radio;
 
 }
 
 
-void krad_radio (char *sysname) {
+void krad_radio_daemon (char *sysname) {
 
+	pid_t pid;
 	krad_radio_t *krad_radio_station;
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		return;
+	}
 
 	krad_system_init ();
 
 	krad_radio_station = krad_radio_create (sysname);
 
 	if (krad_radio_station != NULL) {
-	
-		printf ("Krad Radio Station %s Daemonizing..\n", krad_radio_station->sysname);
-		
-		//krad_system_daemonize ();
-
 		krad_radio_run ( krad_radio_station );
-
 		krad_radio_destroy (krad_radio_station);
-
 	}
 }
 
 
-void krad_radio_run (krad_radio_t *krad_radio) {
+static void krad_radio_run (krad_radio_t *krad_radio_station) {
+
+	//krad_system_daemonize ();
+  	krad_system_monitor_cpu_on ();
+	krad_ipc_server_run (krad_radio_station->krad_ipc);
 
 	while (1) {
 		sleep (5);
 	}
 }
 
-krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item ) {
+static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item ) {
 
 	krad_mixer_portgroup_t *portgroup;
 
@@ -145,7 +156,7 @@ krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, c
 }
 
 
-int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
+static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 	krad_radio_t *krad_radio_station = (krad_radio_t *)ptr;
 	

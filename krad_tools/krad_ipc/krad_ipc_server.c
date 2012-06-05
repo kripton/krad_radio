@@ -1,7 +1,7 @@
 #include "krad_ipc_server.h"
 
 
-krad_ipc_server_t *krad_ipc_server_create (char *sysname) {
+krad_ipc_server_t *krad_ipc_server_init (char *sysname) {
 
 	krad_ipc_server_t *krad_ipc_server = calloc (1, sizeof (krad_ipc_server_t));
 	int i;
@@ -577,7 +577,7 @@ void krad_ipc_server_mixer_broadcast ( krad_ipc_server_t *krad_ipc_server, uint3
 }
 
 
-void *krad_ipc_server_run (void *arg) {
+void *krad_ipc_server_run_thread (void *arg) {
 
 	krad_ipc_server_t *krad_ipc_server = (krad_ipc_server_t *)arg;
 	krad_ipc_server_client_t *client;
@@ -810,13 +810,17 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 	
 }
 
+void krad_ipc_server_run (krad_ipc_server_t *krad_ipc_server) {
+	pthread_create (&krad_ipc_server->server_thread, NULL, krad_ipc_server_run_thread, (void *)krad_ipc_server);
+	pthread_detach (krad_ipc_server->server_thread);
+}
 
-krad_ipc_server_t *krad_ipc_server (char *sysname, int handler (void *, int *, void *), void *pointer) {
+krad_ipc_server_t *krad_ipc_server_create (char *sysname, int handler (void *, int *, void *), void *pointer) {
 
 
 	krad_ipc_server_t *krad_ipc_server;
 	
-	krad_ipc_server = krad_ipc_server_create (sysname);
+	krad_ipc_server = krad_ipc_server_init (sysname);
 
 	if (krad_ipc_server == NULL) {
 		return NULL;
@@ -824,9 +828,6 @@ krad_ipc_server_t *krad_ipc_server (char *sysname, int handler (void *, int *, v
 	
 	krad_ipc_server->handler = handler;
 	krad_ipc_server->pointer = pointer;
-
-	pthread_create (&krad_ipc_server->server_thread, NULL, krad_ipc_server_run, (void *)krad_ipc_server);
-	pthread_detach (krad_ipc_server->server_thread);
 
 	return krad_ipc_server;	
 

@@ -69,13 +69,6 @@ struct krad_radio_St {
 
 };
 
-krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item );
-
-void krad_radio_destroy (krad_radio_t *krad_radio);
-krad_radio_t *krad_radio_create (char *sysname);
-void krad_radio_run (krad_radio_t *krad_radio);
-void krad_radio (char *sysname);
-
-int krad_radio_handler ( void *output, int *output_len, void *ptr );
+void krad_radio_daemon (char *sysname);
 
 #endif
