@@ -186,7 +186,17 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 
 void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
+	int p;
+
+	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
+		if (krad_compositor->port[p].active == 1) {
+			krad_compositor_port_destroy (krad_compositor, &krad_compositor->port[p]);
+		}
+	}
+
 	krad_ringbuffer_free ( krad_compositor->composited_frames_buffer );
+
+	krad_framepool_destroy ( krad_compositor->krad_framepool );
 
 	kradgui_destroy (krad_compositor->krad_gui);
 
