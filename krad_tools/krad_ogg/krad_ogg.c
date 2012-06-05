@@ -518,14 +518,11 @@ int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg) {
 int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator,
 												   int fps_denominator, int width, int height) {
 
-	int track;
+	// invent vp8 header?
 	
-	track = krad_ogg->track_count;
-	krad_ogg->track_count++;
-	
-	// Insert the needed first header page vp8?
-	
-	return track;
+	return krad_ogg_add_video_track_with_private_data (krad_ogg, codec, fps_numerator,
+													   fps_denominator, width, height,
+													   NULL, 0, 0);
 
 }
 
@@ -535,16 +532,34 @@ int krad_ogg_add_video_track_with_private_data (krad_ogg_t *krad_ogg, krad_codec
 
 	int track;
 	
-	track = krad_ogg->track_count;
-	krad_ogg->track_count++;
+	track = krad_ogg_add_track (krad_ogg, codec, header, header_size, header_count);
 	
+	krad_ogg->tracks[track].width = width;
+	krad_ogg->tracks[track].height = height;
+	krad_ogg->tracks[track].width = fps_numerator;
+	krad_ogg->tracks[track].height = fps_denominator;
 	
-	return track;
+	return track;	
 
 }
 
 int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 
-							  unsigned char *header[], int header_size[], int header_count) { 
+							  unsigned char *header[], int header_size[], int header_count) {
+
+	int track;
+	
+	track = krad_ogg_add_track (krad_ogg, codec, header, header_size, header_count);
+	
+	krad_ogg->tracks[track].sample_rate = sample_rate;
+	krad_ogg->tracks[track].channels = channels;
+	
+	return track;					  
+							  
+}
+
+
+int krad_ogg_add_track (krad_ogg_t *krad_ogg, krad_codec_t codec, 
+						unsigned char *header[], int header_size[], int header_count) { 
 
 	int h;
 	int track;
@@ -555,6 +570,7 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 	track = krad_ogg->track_count;
 	krad_ogg->track_count++;
 
+	krad_ogg->tracks[track].codec = codec;
 	krad_ogg->tracks[track].serial = rand();
 	krad_ogg->tracks[track].packet_num = 0;
 	
