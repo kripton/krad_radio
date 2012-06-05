@@ -38,6 +38,7 @@ typedef enum {
 	TRANSMIT,
 	PLAYBACK,
 	RECORD,
+	DISPLAY,
 	FAILURE,
 } krad_link_operation_mode_t;
 

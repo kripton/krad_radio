@@ -329,7 +329,7 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
-	if (krad_link->operation_mode == RECEIVE) {
+	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
 		if ((krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
 			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[1]) >= frames * 4)) {
 			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
@@ -1637,7 +1637,7 @@ void *audio_decoding_thread(void *arg) {
 			audio_frames = krad_flac_decode(krad_link->krad_flac, buffer, bytes, samples);
 			
 			for (c = 0; c < krad_link->audio_channels; c++) {
-				//kradaudio_write (krad_link->krad_audio, c, (char *)samples[c], audio_frames * 4 );
+				krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)samples[c], audio_frames * 4);
 			}
 		}
 			
@@ -2118,7 +2118,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 	}
 	
-	if (krad_link->operation_mode == RECEIVE) {
+	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
 
 		krad_link->decoded_frames_buffer = 
 			krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
@@ -2217,6 +2217,32 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		}
 
 		krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+	
+	}
+	
+	if (krad_link->operation_mode == PLAYBACK) {
+	
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
+			printk ("hrm wtf2\n");
+		} else {
+			//printk ("tag name size %zu\n", ebml_data_size);
+		}
+
+		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
+		
+		krad_link->transport_mode = krad_link_string_to_transport_mode (string);
+	
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
+			printk ("hrm wtf3\n");
+		} else {
+			//printk ("tag value size %zu\n", ebml_data_size);
+		}
+
+		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->input, ebml_data_size);
 	
 	}
 	
@@ -2443,6 +2469,14 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	
 	if (krad_link->operation_mode == CAPTURE) {
 		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE, krad_link_video_source_to_string (krad_link->video_source));
+	}
+	
+	if (krad_link->operation_mode == PLAYBACK) {
+	
+		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, 
+								krad_link_transport_mode_to_string (krad_link->transport_mode));
+	
+		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_FILENAME, krad_link->input);
 	}
 	
 	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {

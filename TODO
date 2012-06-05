@@ -1,5 +1,4 @@
 # Prerelease
-	Theora + audio in Ogg container
 	nanotime based mixer/video test source compositor driver
 	set resolution / fps for capture, compositor/ encoder
 	Move Test Outputs to Link as DISPLAY
@@ -12,12 +11,6 @@
 
 Fixes:
 	Ensure everything is IPv6 Compat
-
-Features:
-	UDP Video
-	Gstreamer Input / Output
-	WebRTC Support
-	Android App
 
 # GTK Client
 	Remove/Display differently output mixer portgroups?

@@ -61,7 +61,7 @@ struct krad_ipc_client_St {
 
 void krad_ipc_enable_osc (krad_ipc_client_t *client, int port);
 void krad_ipc_disable_osc (krad_ipc_client_t *client);
-
+void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path);
 int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text);
 
 void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string);
