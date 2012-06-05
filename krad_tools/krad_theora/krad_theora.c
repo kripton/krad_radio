@@ -25,17 +25,20 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	krad_theora->info.quality = krad_theora->quality;
 	krad_theora->info.pixel_fmt = TH_PF_420;
 	
+	krad_theora->keyframe_shift = krad_theora->info.keyframe_granule_shift;
+	
+	printk ("Theora keyframe shift %d\n", krad_theora->keyframe_shift);	
 	
 	//FIXME hardcoded
 	krad_theora->info.fps_numerator = 30000;
 	krad_theora->info.fps_denominator = 1000;
-	krad_theora->keyframe_distance = 90;
+	//krad_theora->keyframe_distance = 30;
 
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
 
 
-	th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE, &krad_theora->keyframe_distance, sizeof(int));
-	printk ("Theora keyframe max distance %u\n", krad_theora->keyframe_distance);
+	//th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE, &krad_theora->keyframe_distance, sizeof(int));
+	//printk ("Theora keyframe max distance %u\n", krad_theora->keyframe_distance);
 		
 	if (strstr(krad_system.unix_info.machine, "x86") == NULL) {
 		//FOR ARM Realtime
@@ -49,7 +52,7 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 		printk ("Theora encoder speed: %d quality: %d\n", krad_theora->speed, krad_theora->quality);
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
 	}
-	
+
 	while (th_encode_flushheader ( krad_theora->encoder, &krad_theora->comment, &krad_theora->packet) > 0) {
 	
 		krad_theora->header_combined_size += krad_theora->packet.bytes;
@@ -187,6 +190,9 @@ int krad_theora_encoder_write (krad_theora_encoder_t *krad_theora, unsigned char
 		exit(1);
 	}
 	
+	if (key) {
+		//printk ("its a keyframe\n");
+	}
 	
 	// Double check
 	//ogg_packet test_packet;

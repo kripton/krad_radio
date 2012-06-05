@@ -107,6 +107,7 @@ void krad_radio_daemon (char *sysname) {
 	pid_t pid;
 	krad_radio_t *krad_radio_station;
 
+/*
 	pid = fork();
 
 	if (pid < 0) {
@@ -116,7 +117,7 @@ void krad_radio_daemon (char *sysname) {
 	if (pid > 0) {
 		return;
 	}
-
+*/
 	krad_system_init ();
 
 	krad_radio_station = krad_radio_create (sysname);

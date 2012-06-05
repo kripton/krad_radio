@@ -75,7 +75,10 @@ struct krad_ogg_track_St {
 	
 	int width;
 	int height;
-		
+	
+	int fps_numerator;
+	int fps_denominator;
+	
 	int header_count;
 	unsigned char *header[32];
 	int header_len[32];
@@ -94,6 +97,9 @@ struct krad_ogg_track_St {
 	int max_packets_per_page;
 	int packets_on_current_page;
 	
+	
+	ogg_int64_t frames;
+	ogg_int64_t frames_since_keyframe;
 	
 };
 
@@ -140,6 +146,7 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 
 int krad_ogg_add_track (krad_ogg_t *krad_ogg, krad_codec_t codec, 
 						unsigned char *header[], int header_size[], int header_count);
+
 
 void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int keyframe);
 void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int frames);

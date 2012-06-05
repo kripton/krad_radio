@@ -60,6 +60,8 @@ struct krad_theora_encoder_St {
 	int speed;
 	unsigned int keyframe_distance;
 	
+	int keyframe_shift;
+	
 };
 
 struct krad_theora_decoder_St {
