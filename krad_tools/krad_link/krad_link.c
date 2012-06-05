@@ -1747,29 +1747,23 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 
-	dst[0] = (unsigned char *)krad_frame->pixels;
-
-	sws_scale (krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
+	if (krad_frame != NULL) {
 	
-	krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		dst[0] = (unsigned char *)krad_frame->pixels;
 
-	krad_framepool_unref_frame (krad_frame);
+		sws_scale (krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, krad_link->capture_height, dst, rgb_stride_arr);
+	
+		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
-	krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
+		krad_framepool_unref_frame (krad_frame);
 
-	/*
-	if (krad_ringbuffer_write_space(krad_link->captured_frames_buffer) >= krad_link->composited_frame_byte_size) {
-
-		krad_ringbuffer_write (krad_link->captured_frames_buffer, 
-							  (char *)krad_link->krad_decklink->captured_frame_rgb, 
-							  krad_link->composited_frame_byte_size );
+		krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
 
 	} else {
 	
-		printk ("oh no! captured frames ringbuffer overflow!\n");
+		failfast ("Krad Decklink underflow");
 	
 	}
-	*/
 
 	return 0;
 
