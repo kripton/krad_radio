@@ -77,8 +77,8 @@ struct krad_ogg_track_St {
 	int height;
 		
 	int header_count;
-	unsigned char *header[3];
-	int header_len[3];
+	unsigned char *header[32];
+	int header_len[32];
 	
 	ogg_stream_state stream_state;
 	int serial;
@@ -105,6 +105,7 @@ struct krad_ogg_St {
 	krad_io_t *krad_io;
 	unsigned char *input_buffer;
 
+	int output_aux_headers;
 };
 
 
@@ -125,8 +126,14 @@ krad_ogg_t *krad_ogg_create();
 void krad_ogg_destroy(krad_ogg_t *krad_ogg);
 void krad_ogg_set_max_packets_per_page (krad_ogg_t *krad_ogg, int max_packets);
 
-int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, int fps_denominator,
-							  int width, int height);
+int krad_ogg_add_video_track_with_private_data (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator,
+												int fps_denominator, int width, int height, unsigned char *header[],
+												int header_size[], int header_count);
+
+int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, 
+												   int fps_denominator, int width, int height);
+
+int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg);
 
 int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int sample_rate, int channels, 
 							  unsigned char *header[], int header_size[], int header_count);	

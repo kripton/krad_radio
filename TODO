@@ -19,7 +19,6 @@ Features:
 	WebRTC Support
 	Android App
 
-
 # GTK Client
 	Remove/Display differently output mixer portgroups?
 	Tagging
@@ -27,12 +26,10 @@ Features:
 
 # IPC
 	Require Request for broadcasts
-		
 	Levels Via IPC
 
 # Style
-	Replace sleep/check loops with locked signal conds before
-	Cut down anything longer than 120cols
+	Replace sleep/check loops with locked signal conds
 	
 # Audio I/O
 	ALSA/Pulseaudio support need update

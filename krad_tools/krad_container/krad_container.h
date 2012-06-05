@@ -37,7 +37,7 @@ void krad_container_destroy (krad_container_t *krad_container);
 
 int krad_container_add_video_track_with_private_data (krad_container_t *krad_container, krad_codec_t codec,
 													  int fps_numerator, int fps_denominator, int width, int height, 
-													  unsigned char *private_data, int private_data_size);
+													  krad_codec_header_t *krad_codec_header);
 
 int krad_container_add_video_track (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, 
 									int fps_denominator, int width, int height);

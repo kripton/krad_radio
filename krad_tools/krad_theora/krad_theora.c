@@ -107,6 +107,17 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	memcpy (krad_theora->header_combined + krad_theora->header_combined_pos, krad_theora->header[2], krad_theora->header_len[2]);
 	krad_theora->header_combined_pos += krad_theora->header_len[2];
 
+	krad_theora->krad_codec_header.header[0] = krad_theora->header[0];
+	krad_theora->krad_codec_header.header_size[0] = krad_theora->header_len[0];
+	krad_theora->krad_codec_header.header[1] = krad_theora->header[1];
+	krad_theora->krad_codec_header.header_size[1] = krad_theora->header_len[1];
+	krad_theora->krad_codec_header.header[2] = krad_theora->header[2];
+	krad_theora->krad_codec_header.header_size[2] = krad_theora->header_len[2];
+
+	krad_theora->krad_codec_header.header_combined = krad_theora->header_combined;
+	krad_theora->krad_codec_header.header_combined_size = krad_theora->header_combined_size;
+	krad_theora->krad_codec_header.header_count = 3;
+
 	krad_theora->ycbcr[0].stride =  krad_theora->width;
 	krad_theora->ycbcr[0].width =  krad_theora->width;	
 	krad_theora->ycbcr[0].height =  krad_theora->height;	

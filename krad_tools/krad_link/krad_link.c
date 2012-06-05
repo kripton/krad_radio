@@ -619,8 +619,7 @@ void *stream_output_thread (void *arg) {
 															  DEFAULT_FPS_DENOMINATOR,
 															  krad_link->encoding_width,
 															  krad_link->encoding_height,
-															  krad_link->krad_theora_encoder->header_combined,
-															  krad_link->krad_theora_encoder->header_combined_size);
+															  &krad_link->krad_opus->krad_codec_header);
 		
 		}
 	}

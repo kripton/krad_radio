@@ -472,15 +472,70 @@ void krad_ogg_set_max_packets_per_page (krad_ogg_t *krad_ogg, int max_packets) {
 	
 }
 
+int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg) {
+
+	int h;
+	int t;
+	ogg_packet packet;
+	ogg_page page;
+	
+	for (t = 0; t < krad_ogg->track_count; t++) {
+		if (krad_ogg->tracks[t].header_count > 1) {
+			for (h = 1; h < krad_ogg->tracks[t].header_count; h++) {
+			
+				packet.packet = krad_ogg->tracks[t].header[h];
+				packet.bytes = krad_ogg->tracks[t].header_len[h];
+				packet.b_o_s = 0;
+				packet.e_o_s = 0;
+				packet.granulepos = 0;
+				packet.packetno = krad_ogg->tracks[t].packet_num;
+				krad_ogg->tracks[t].packet_num++;
+				
+				ogg_stream_packetin (&krad_ogg->tracks[t].stream_state, &packet);
+	
+				while (ogg_stream_flush(&krad_ogg->tracks[t].stream_state, &page) != 0) {
+		
+					krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+					krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+		
+					printk ("Krad Ogg Track %d created aux page %d sized %lu\n", 
+							t, h,
+							page.header_len + page.body_len);
+		
+					krad_io_write_sync (krad_ogg->krad_io);
+				}
+			}
+		}
+	}
+
+	krad_ogg->output_aux_headers = 1;
+
+	return 0;
+
+}
 
 
-int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator, int fps_denominator, 
-							  int width, int height) {
+int krad_ogg_add_video_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator,
+												   int fps_denominator, int width, int height) {
 
 	int track;
 	
 	track = krad_ogg->track_count;
+	krad_ogg->track_count++;
 	
+	// Insert the needed first header page vp8?
+	
+	return track;
+
+}
+
+int krad_ogg_add_video_track_with_private_data (krad_ogg_t *krad_ogg, krad_codec_t codec, int fps_numerator,
+												int fps_denominator, int width, int height, unsigned char *header[],
+												int header_size[], int header_count) {
+
+	int track;
+	
+	track = krad_ogg->track_count;
 	krad_ogg->track_count++;
 	
 	
@@ -515,15 +570,19 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 		memcpy (temp_header + 9, header[0], 42);
 	}
 	
-	for (h = 0; h < header_count; h++) {
+	if (header_count) {
 	
-		if ((h == 0) && (codec == FLAC)) {
+		krad_ogg->tracks[track].header[0] = malloc (header_size[0]);
+		memcpy (krad_ogg->tracks[track].header[0], header[0], header_size[0]);
+		krad_ogg->tracks[track].header_count++;
+	
+		if (codec == FLAC) {
 			packet.packet = temp_header;
 			packet.bytes = 9 + 42;	
 		} else {
-			printk ("ogg header packet %d sized %d\n", h, header_size[h]);		
-			packet.packet = header[h];
-			packet.bytes = header_size[h];
+			printk ("ogg header packet %d sized %d\n", 0, header_size[0]);		
+			packet.packet = header[0];
+			packet.bytes = header_size[0];
 		}	
 		packet.b_o_s = 0;
 		packet.e_o_s = 0;
@@ -549,12 +608,22 @@ int krad_ogg_add_audio_track (krad_ogg_t *krad_ogg, krad_codec_t codec, int samp
 	if (codec == FLAC) {
 		free (temp_header);
 	}
+	
+	for (h = 1; h < header_count; h++) {
+		krad_ogg->tracks[track].header[h] = malloc (header_size[h]);
+		memcpy (krad_ogg->tracks[track].header[h], header[h], header_size[h]);
+		krad_ogg->tracks[track].header_count++;
+	}	
+	
 
 	return track;								
 }
 
 void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer, int buffer_size, int keyframe) {
 
+	if (krad_ogg->output_aux_headers == 0) {
+		krad_ogg_output_aux_headers (krad_ogg);
+	}
 
 }
 
@@ -563,8 +632,11 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 
 	ogg_packet packet;
 	ogg_page page;
-
-	// only good for opus
+	
+	if (krad_ogg->output_aux_headers == 0) {
+		krad_ogg_output_aux_headers (krad_ogg);
+	}
+	
 	packet.packet = buffer;
 	packet.bytes = buffer_size;
 	packet.b_o_s = 0;

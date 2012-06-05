@@ -19,6 +19,7 @@
 #include <theora/theoraenc.h>
 
 #include "krad_radio.h"
+#include "krad_codec_header.h"
 
 typedef struct krad_theora_encoder_St krad_theora_encoder_t;
 typedef struct krad_theora_decoder_St krad_theora_decoder_t;
@@ -48,6 +49,8 @@ struct krad_theora_encoder_St {
 	int header_combined_size;
 	int header_combined_pos;
 	int demented;
+	
+	krad_codec_header_t krad_codec_header;	
 	
 	th_info	info;
 	th_comment comment;

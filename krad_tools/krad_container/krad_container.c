@@ -81,7 +81,8 @@ int krad_container_track_header_count (krad_container_t *krad_container, int tra
 
 
 
-int krad_container_read_packet (krad_container_t *krad_container, int *track, uint64_t *timecode, unsigned char *buffer) {
+int krad_container_read_packet (krad_container_t *krad_container, int *track, uint64_t *timecode,
+								unsigned char *buffer) {
 
 	if (krad_container->container_type == OGG) {
 		return krad_ogg_read_packet ( krad_container->krad_ogg, track, timecode, buffer );
@@ -148,25 +149,32 @@ void krad_container_destroy (krad_container_t *krad_container) {
 }	
 
 
-int krad_container_add_video_track_with_private_data (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, int fps_denominator, 
-									int width, int height, unsigned char *private_data, int private_data_size) {
+int krad_container_add_video_track_with_private_data (krad_container_t *krad_container, krad_codec_t codec,
+													  int fps_numerator, int fps_denominator, int width, int height,
+													  krad_codec_header_t *krad_codec_header) {
 									
 	if (krad_container->container_type == OGG) {
-		failfast ("missing feature\n");
-		//return krad_ogg_add_video_track (krad_container->krad_ogg, codec, fps_numerator, fps_denominator, width, height);
+		return krad_ogg_add_video_track_with_private_data (krad_container->krad_ogg, codec, fps_numerator, fps_denominator,
+										 width, height, krad_codec_header->header, krad_codec_header->header_size,
+										 krad_codec_header->header_count);
 	} else {
-		return krad_ebml_add_video_track_with_private_data (krad_container->krad_ebml, codec, fps_numerator, fps_denominator, width, height, private_data, private_data_size);
+		return krad_ebml_add_video_track_with_private_data (krad_container->krad_ebml, codec, fps_numerator, 
+															fps_denominator, width, height,
+															krad_codec_header->header_combined,
+															krad_codec_header->header_combined_size);
 	}									
 									
 }
 
-int krad_container_add_video_track (krad_container_t *krad_container, krad_codec_t codec, int fps_numerator, int fps_denominator, 
-									int width, int height) {
+int krad_container_add_video_track (krad_container_t *krad_container, krad_codec_t codec, 
+									int fps_numerator, int fps_denominator, int width, int height) {
 									
 	if (krad_container->container_type == OGG) {
-		return krad_ogg_add_video_track (krad_container->krad_ogg, codec, fps_numerator, fps_denominator, width, height);
+		return krad_ogg_add_video_track (krad_container->krad_ogg, codec, fps_numerator,
+															  fps_denominator, width, height);
 	} else {
-		return krad_ebml_add_video_track (krad_container->krad_ebml, codec, fps_numerator, fps_denominator, width, height);
+		return krad_ebml_add_video_track (krad_container->krad_ebml, codec, fps_numerator, fps_denominator,
+										  width, height);
 	}									
 									
 }
@@ -185,7 +193,8 @@ int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec
 	}
 }
 
-void krad_container_add_video (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int keyframe) {
+void krad_container_add_video (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size,
+							   int keyframe) {
 
 	if (krad_container->container_type == OGG) {
 		krad_ogg_add_video (krad_container->krad_ogg, track, buffer, buffer_size, keyframe);
@@ -196,7 +205,8 @@ void krad_container_add_video (krad_container_t *krad_container, int track, unsi
 }
 
 
-void krad_container_add_audio (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size, int frames) {
+void krad_container_add_audio (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size,
+							   int frames) {
 
 	if (krad_container->container_type == OGG) {
 		krad_ogg_add_audio (krad_container->krad_ogg, track, buffer, buffer_size, frames);
