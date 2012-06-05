@@ -82,11 +82,11 @@ void krad_system_monitor_cpu_on ();
 
 char *krad_system_daemon_info();
 uint64_t krad_system_daemon_uptime ();
-void krad_system_info_print ();
 void krad_system_info_collect ();
 
 void failfast (char* format, ...);
 void printke (char* format, ...);
+void printkd (char* format, ...);
 void printk (char* format, ...);
 void krad_system_daemonize ();
 void krad_system_init ();

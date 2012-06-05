@@ -1,29 +1,42 @@
-All Knobs VIA IPC
-Knob introspection/help for discoverability
-Catch Handle term/kill signals proper
-Ensure everything is IPv6 Compat
-Wayland Output
-UDP Video
-OSC IPC Translator
-Gstreamer Input / Output
-WebRTC Support
-Android App
+# Prerelease
+	Theora + audio in Ogg container
+	nanotime based mixer/video test source compositor driver
+	set resolution / fps for capture, compositor/ encoder
+	Move Test Outputs to Link as DISPLAY
+	Wayland support optional
+	Help in command line
+	Catch Signals
+	Switchout printf's and enable daemon
 
-Notes:
+# General
 
-GTK:
-Remove/Display differently output mixer portgroups?
-Tagging
-Port Add/Remove
+Fixes:
+	Ensure everything is IPv6 Compat
 
-IPC:
-make clients request to be broadcasted to
-level monitoring
+Features:
+	UDP Video
+	Gstreamer Input / Output
+	WebRTC Support
+	Android App
 
 
-Pulseaudio support needs updates to work again
+# GTK Client
+	Remove/Display differently output mixer portgroups?
+	Tagging
+	Port Add/Remove
 
-Replace sleep/check loops with locked signal conds before
-anyone notices them
+# IPC
+	Require Request for broadcasts
+		
+	Levels Via IPC
 
-Write two tests so we can say we have tests
+# Style
+	Replace sleep/check loops with locked signal conds before
+	Cut down anything longer than 120cols
+	
+# Audio I/O
+	ALSA/Pulseaudio support need update
+
+# Krad EBML
+	Logging/Debug callback, nestegg compatible
+	fail cleanly without exit()

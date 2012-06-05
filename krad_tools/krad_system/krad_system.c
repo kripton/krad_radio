@@ -80,14 +80,6 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 }
 
-void krad_system_info_print () {
-		
-	printk ("%s %s %s %s %s\n", krad_system.unix_info.sysname, krad_system.unix_info.nodename, 
-			krad_system.unix_info.release, krad_system.unix_info.version, krad_system.unix_info.machine);
-
-	printk ("%llu\n", (unsigned long long)krad_system.krad_start_time);
-}
-
 char *krad_system_daemon_info () {
 
 	return krad_system.info_string;
@@ -122,7 +114,7 @@ uint64_t krad_system_daemon_uptime () {
 	return krad_system.uptime;
 
 }
-
+//FIXME these prints need locks or single/reader/writer buffers/handles
 void failfast (char* format, ...) {
 
 	va_list args;
@@ -145,6 +137,17 @@ void printke (char* format, ...) {
 	va_start(args, format);
 	vfprintf(stdout, format, args);
 	va_end(args);
+}
+
+void printkd (char* format, ...) {
+
+	va_list args;
+
+	if (verbose) {
+		va_start(args, format);
+		vfprintf(stdout, format, args);
+		va_end(args);
+	}
 }
 
 void printk (char* format, ...) {
