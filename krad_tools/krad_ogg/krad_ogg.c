@@ -494,19 +494,19 @@ int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg) {
 				krad_ogg->tracks[t].packet_num++;
 				
 				ogg_stream_packetin (&krad_ogg->tracks[t].stream_state, &packet);
-	
-				while (ogg_stream_flush(&krad_ogg->tracks[t].stream_state, &page) != 0) {
-		
-					krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-					krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
-		
-					printk ("Krad Ogg Track %d created aux page %d sized %lu\n", 
-							t, h,
-							page.header_len + page.body_len);
-		
-					krad_io_write_sync (krad_ogg->krad_io);
-				}
 			}
+			
+			while (ogg_stream_flush(&krad_ogg->tracks[t].stream_state, &page) != 0) {
+	
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+	
+				printk ("Krad Ogg Track %d created aux page %d sized %lu\n", 
+						t, h,
+						page.header_len + page.body_len);
+	
+				krad_io_write_sync (krad_ogg->krad_io);
+			}			
 		}
 	}
 
