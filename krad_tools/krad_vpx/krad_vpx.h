@@ -21,6 +21,8 @@
 #include <vpx/vpx_decoder.h>
 #include <vpx/vp8dx.h>
 
+#include "krad_system.h"
+
 #define interface (vpx_codec_vp8_cx())
 
 typedef struct krad_vpx_encoder_St krad_vpx_encoder_t;

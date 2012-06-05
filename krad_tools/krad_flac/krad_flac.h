@@ -5,9 +5,11 @@
 #include <unistd.h>
 #include <math.h>
 
+#include <FLAC/stream_encoder.h>
+#include <FLAC/stream_decoder.h>
+
 #include "krad_radio_version.h"
-#include "FLAC/stream_encoder.h"
-#include "FLAC/stream_decoder.h"
+#include "krad_system.h"
 #include "krad_codec_header.h"
 
 #define MAX_CHANNELS 8
@@ -67,8 +69,10 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 	const FLAC__StreamEncoder *encoder, const FLAC__byte fbuffer[], 
 	unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
-FLAC__StreamEncoderSeekStatus krad_flac_encoder_seek_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
-FLAC__StreamEncoderTellStatus krad_flac_encoder_tell_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+FLAC__StreamEncoderSeekStatus krad_flac_encoder_seek_callback (const FLAC__StreamEncoder *encoder, 
+															   FLAC__uint64 absolute_byte_offset, void *client_data);
+FLAC__StreamEncoderTellStatus krad_flac_encoder_tell_callback (const FLAC__StreamEncoder *encoder, 
+															   FLAC__uint64 *absolute_byte_offset, void *client_data);
 
 int krad_flac_encode(krad_flac_t *flac, float *audio, int frames, unsigned char *encode_buffer);
 void krad_flac_encode_test(krad_flac_t *flac);
@@ -94,13 +98,14 @@ void krad_flac_decoder_int16_to_float_array (const int *in, float *out, int len)
 
 void krad_flac_decoder_info(krad_flac_t *flac);
 
-void krad_flac_decoder_callback_error (const FLAC__StreamDecoder *flacdecoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+void krad_flac_decoder_callback_error (const FLAC__StreamDecoder *flacdecoder, 
+									   FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 FLAC__StreamDecoderWriteStatus krad_flac_decoder_callback_write (const FLAC__StreamDecoder *flacdecoder,
 																				   const FLAC__Frame *frame, 
 																				   const FLAC__int32 * const fbuffer[],
 																				   void *client_data);
 
-FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__StreamDecoder *flacdecoder, FLAC__byte fbuffer[],
-																				 size_t *bytes, void *client_data);
+FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__StreamDecoder *flacdecoder,
+															   FLAC__byte fbuffer[], size_t *bytes, void *client_data);
 																				   

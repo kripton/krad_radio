@@ -1,10 +1,5 @@
 #include "krad_compositor.h"
 
-
-
-
-
-
 void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 	int p;
@@ -13,151 +8,13 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	krad_frame = NULL;
 	
-	/*
-	kradgui_remove_bug (krad_link->krad_gui);
-	kradgui_set_bug (krad_link->krad_gui, krad_link->bug, krad_link->bug_x, krad_link->bug_y);
-	krad_link->krad_gui->live = 0;
-	krad_link->krad_gui->live = 1;
-
-	krad_link->krad_gui->bug_alpha += 0.1f;
-	if (krad_link->krad_gui->bug_alpha > 1.0f) {
-		krad_link->krad_gui->bug_alpha = 1.0f;
-	}
-
-	krad_link->krad_gui->bug_alpha -= 0.1f;
-	if (krad_link->krad_gui->bug_alpha < 0.1f) {
-		krad_link->krad_gui->bug_alpha = 0.1f;
-	}
-
-	krad_link->krad_gui->render_ftest = 1;
-
-	krad_link->render_meters = 0;
-
-	krad_link->render_meters = 1;
-	*/
-
-	/*
-
-	if (krad_link->operation_mode == RECEIVE) {
-		
-		krad_link->krad_gui->clear = 0;
-		krad_link->new_capture_frame = 1;
-		
-		kradgui_update_elapsed_time(krad_link->krad_gui);
-
-		if (krad_ringbuffer_read_space(krad_link->decoded_frames_buffer) >= krad_link->composited_frame_byte_size + 8) {
-	
-			if (krad_link->current_frame_timecode == 0) {
-				krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
-									 (char *)&krad_link->current_frame_timecode, 
-									 8 );
-									 
-				if (krad_link->current_frame_timecode == 0) {
-					//first frame kludge
-					krad_link->current_frame_timecode = 1;
-				}
-									 
-			}
-			
-			if (krad_link->current_frame_timecode != 0) {
-			
-				if (krad_link->current_frame_timecode <= krad_link->krad_gui->elapsed_time_ms + 18) {
-					krad_ringbuffer_read(krad_link->decoded_frames_buffer, 
-										 (char *)krad_link->current_frame, 
-										 krad_link->composited_frame_byte_size );
-								 
-					//printf("Current Frame Timecode: %zu Current Elapsed Time %u \r", krad_link->current_frame_timecode, krad_link->krad_gui->elapsed_time_ms);
-					//fflush(stdout);
-					krad_link->current_frame_timecode = 0;
-				}
-			}
-		
-		}
-
-		memcpy( krad_link->krad_gui->data, krad_link->current_frame, krad_link->krad_gui->bytes );
-	
-	}
-	
-	*/
-	
-	/*
-		
-	if (krad_link->video_source == X11) {
-		//kludgey
-		krad_link->krad_gui->frame++;
-	
-		krad_x11_capture(krad_link->krad_x11, (unsigned char *)krad_link->krad_gui->data);
-	} else {
-		kradgui_render( krad_compositor->krad_gui );
-	}
-	
-	*/
-	
-	/*
-	
-	if (krad_link->render_meters) {
-		if ((krad_link->new_capture_frame == 1) || (krad_link->operation_mode == RECEIVE)) {
-			
-			if (krad_link->krad_audio != NULL) {
-				for (c = 0; c < krad_link->audio_channels; c++) {
-				
-					if (krad_link->operation_mode == CAPTURE) {
-						krad_link->temp_peak = read_peak(krad_link->krad_audio, KINPUT, c);
-					} else {
-						krad_link->temp_peak = read_peak(krad_link->krad_audio, KOUTPUT, c);
-					}
-				
-					if (krad_link->temp_peak >= krad_link->krad_gui->output_peak[c]) {
-						if (krad_link->temp_peak > 2.7f) {
-							krad_link->krad_gui->output_peak[c] = krad_link->temp_peak;
-							krad_link->kick = ((krad_link->krad_gui->output_peak[c] - krad_link->krad_gui->output_current[c]) / 300.0);
-						}
-					} else {
-						if (krad_link->krad_gui->output_peak[c] == krad_link->krad_gui->output_current[c]) {
-							krad_link->krad_gui->output_peak[c] -= (0.9 * (60/krad_link->capture_fps));
-							if (krad_link->krad_gui->output_peak[c] < 0.0f) {
-								krad_link->krad_gui->output_peak[c] = 0.0f;
-							}
-							krad_link->krad_gui->output_current[c] = krad_link->krad_gui->output_peak[c];
-						}
-					}
-			
-					if (krad_link->krad_gui->output_peak[c] > krad_link->krad_gui->output_current[c]) {
-						krad_link->krad_gui->output_current[c] = (krad_link->krad_gui->output_current[c] + 1.4) * (1.3 + krad_link->kick); ;
-					}
-		
-					if (krad_link->krad_gui->output_peak[c] < krad_link->krad_gui->output_current[c]) {
-						krad_link->krad_gui->output_current[c] = krad_link->krad_gui->output_peak[c];
-					}
-			
-			
-				}
-			}
-			
-		}
-
-		kradgui_render_meter (krad_link->krad_gui, 110, krad_link->composite_height - 30, 96, krad_link->krad_gui->output_current[0]);
-		kradgui_render_meter (krad_link->krad_gui, krad_link->composite_width - 110, krad_link->composite_height - 30, 96, krad_link->krad_gui->output_current[1]);
-	}
-
-	*/
-	
-	/*
-	if (krad_ringbuffer_read_space (krad_compositor->incoming_frames_buffer) >= krad_compositor->frame_byte_size) {
-
-		krad_ringbuffer_read (krad_compositor->incoming_frames_buffer, 
-							 (char *)krad_compositor->krad_gui->data, 
-							 krad_compositor->frame_byte_size );
-
-	}
-	
-	*/
-	
 	if (krad_compositor->bug_filename != NULL) {
 	
 		if (strlen(krad_compositor->bug_filename)) {
-			printk ("setting bug to %s %d %d\n", krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);
-			kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, krad_compositor->bug_x, krad_compositor->bug_y);
+			printk ("setting bug to %s %d %d\n", krad_compositor->bug_filename, 
+			        krad_compositor->bug_x, krad_compositor->bug_y);
+			kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, 
+							 krad_compositor->bug_x, krad_compositor->bug_y);
 		} else {
 			printk ("removing bug\n");
 			kradgui_remove_bug (krad_compositor->krad_gui);
@@ -184,12 +41,15 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	kradgui_render ( krad_compositor->krad_gui );
 	
 	if (krad_compositor->hex_size > 0) {
-		kradgui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, krad_compositor->hex_size);	
+		kradgui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
+		                    krad_compositor->hex_size);	
 	}
 	
 	if (krad_compositor->render_vu_meters > 0) {
-		kradgui_render_meter (krad_compositor->krad_gui, 110, krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[0]);
-		kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110, krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
+		kradgui_render_meter (krad_compositor->krad_gui, 110, krad_compositor->krad_gui->height - 30, 64,
+		                      krad_compositor->krad_gui->output_current[0]);
+		kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110,
+		                      krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
 	}
 	
 	krad_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
@@ -204,18 +64,6 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	krad_framepool_unref_frame (krad_frame);	
 	
-	/*
-	if (krad_ringbuffer_write_space (krad_compositor->composited_frames_buffer) >= krad_compositor->frame_byte_size) {
-
-				krad_ringbuffer_write(krad_compositor->composited_frames_buffer, 
-									  (char *)krad_compositor->krad_gui->data, 
-									  krad_compositor->frame_byte_size );
-
-	} else {
-		printke ("Krad Compositor output full! encoding to slow! overflow! :(\n");
-	}
-	*/	
-	
 }
 
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) { 
@@ -227,8 +75,9 @@ void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 	krad_frame = NULL;
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT) && (krad_compositor->port[p].mjpeg == 1)) {
-			krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);
+		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT) &&
+			(krad_compositor->port[p].mjpeg == 1)) {
+				krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);
 			break;
 		}
 	}
@@ -238,7 +87,9 @@ void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 	}
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT) && (krad_compositor->port[p].mjpeg == 1)) {
+		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT) &&
+			(krad_compositor->port[p].mjpeg == 1)) {
+
 			krad_compositor_port_push_frame (&krad_compositor->port[p], krad_frame);
 			break;
 		}
@@ -305,7 +156,8 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 
 }
 
-krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction) {
+krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor,
+														   char *sysname, int direction) {
 
 	krad_compositor_port_t *krad_compositor_port;
 	
@@ -351,9 +203,11 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 
 	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
 
-	krad_compositor->composited_frames_buffer = krad_ringbuffer_create (krad_compositor->frame_byte_size * DEFAULT_COMPOSITOR_BUFFER_FRAMES);
+	krad_compositor->composited_frames_buffer = 
+		krad_ringbuffer_create (krad_compositor->frame_byte_size * DEFAULT_COMPOSITOR_BUFFER_FRAMES);
 	
-	krad_compositor->krad_framepool = krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
+	krad_compositor->krad_framepool = 
+		krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
 	
 	krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);	
 	
@@ -384,7 +238,8 @@ void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, 
 	if (value >= krad_compositor->krad_gui->output_peak[c]) {
 		if (value > 2.7f) {
 			krad_compositor->krad_gui->output_peak[c] = value;
-			kick = ((krad_compositor->krad_gui->output_peak[channel] - krad_compositor->krad_gui->output_current[c]) / 300.0);
+			kick = 
+			((krad_compositor->krad_gui->output_peak[channel] - krad_compositor->krad_gui->output_current[c]) / 300.0);
 		}
 	} else {
 		if (krad_compositor->krad_gui->output_peak[c] == krad_compositor->krad_gui->output_current[c]) {
@@ -397,7 +252,8 @@ void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, 
 	}
 
 	if (krad_compositor->krad_gui->output_peak[c] > krad_compositor->krad_gui->output_current[c]) {
-		krad_compositor->krad_gui->output_current[c] = (krad_compositor->krad_gui->output_current[c] + 1.4) * (1.3 + kick);
+		krad_compositor->krad_gui->output_current[c] = 
+		(krad_compositor->krad_gui->output_current[c] + 1.4) * (1.3 + kick);
 	}
 
 	if (krad_compositor->krad_gui->output_peak[c] < krad_compositor->krad_gui->output_current[c]) {
@@ -426,12 +282,13 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_VU_ON) {
-				printf("hrm wtf3vu\n");
+				//printf("hrm wtf3vu\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
 
-			krad_compositor->render_vu_meters = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			krad_compositor->render_vu_meters = krad_ebml_read_number (krad_ipc->current_client->krad_ebml,
+																	   ebml_data_size);
 
 			break;
 
@@ -441,7 +298,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_X) {
-				printf("hrm wtf3\n");
+				//printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
@@ -451,7 +308,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_Y) {
-				printf("hrm wtf3\n");
+				//printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
@@ -461,7 +318,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_FILENAME) {
-				printf("hrm wtf3\n");
+				//printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
@@ -477,7 +334,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] != NULL) {
-					printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+					//printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
 					krad_linker_link_to_ebml ( krad_ipc, krad_linker->krad_link[k]);
 				}
 			}
@@ -493,7 +350,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_X) {
-				printf("hrm wtf3\n");
+				//printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
@@ -503,7 +360,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_Y) {
-				printf("hrm wtf3\n");
+				//printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
@@ -513,7 +370,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_SIZE) {
-				printf("hrm wtf3\n");
+				//printf("hrm wtf3\n");
 			} else {
 				//printf("tag value size %zu\n", ebml_data_size);
 			}
@@ -526,7 +383,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] != NULL) {
-					printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+					//printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
 					krad_linker_link_to_ebml ( krad_ipc, krad_linker->krad_link[k]);
 				}
 			}
