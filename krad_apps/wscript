@@ -43,6 +43,7 @@ depsources = """
 ../krad_tools/krad_pulse/krad_pulse.c
 ../krad_tools/krad_alsa/krad_alsa.c
 ../krad_tools/krad_alsa/krad_alsa_seq.c
+../krad_tools/krad_wayland/krad_wayland.c
 ../krad_tools/krad_vpx/krad_vpx.c
 ../krad_tools/krad_dirac/krad_dirac.c
 ../krad_tools/krad_theora/krad_theora.c
@@ -86,6 +87,7 @@ includedirs = """
 ../krad_tools/krad_ipc/
 ../krad_tools/krad_tags/
 ../krad_tools/krad_audio/
+../krad_tools/krad_wayland/
 ../krad_tools/krad_dirac/
 ../krad_tools/krad_theora/
 ../krad_tools/krad_jack/
@@ -121,7 +123,7 @@ includedirs = """
 
 libs = ["samplerate", "codec2", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", 
-		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets"]
+		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "wayland-client"]
 
 def configure(conf):
 	
