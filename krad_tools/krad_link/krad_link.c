@@ -947,7 +947,6 @@ void *stream_input_thread(void *arg) {
 	int h;
 	int total_header_size;
 	int writeheaders;
-	int audio_frames;
 	
 	nocodec = NOCODEC;
 	packet_size = 0;
@@ -958,7 +957,6 @@ void *stream_input_thread(void *arg) {
 	video_packets = 0;
 	audio_packets = 0;
 	current_track = -1;
-	audio_frames = 0;
 	
 	header_buffer = malloc (4096 * 512);
 	buffer = malloc (4096 * 512);
@@ -1052,11 +1050,6 @@ void *stream_input_thread(void *arg) {
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
 				}
 				
-				//packet_timecode
-				// FIXME audio frames
-				audio_frames = 960;
-				
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&audio_frames, 8);
 				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 				codec_bytes += packet_size;
@@ -1642,10 +1635,8 @@ void *audio_decoding_thread(void *arg) {
 		}
 			
 		if (krad_link->audio_codec == OPUS) {
-
-			memcpy (&audio_frames, buffer, 8);
-
-			kradopus_write_opus (krad_link->krad_opus, audio_frames, buffer + 8, bytes - 8);
+			//fixme 2880
+			kradopus_write_opus (krad_link->krad_opus, 2880, buffer, bytes);
 			
 			bytes = -1;
 
@@ -1896,7 +1887,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		pthread_join (krad_link->udp_output_thread, NULL);
 	}
 
-	if (krad_link->operation_mode == RECEIVE) {
+	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
 
 
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
