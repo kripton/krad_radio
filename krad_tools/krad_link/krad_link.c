@@ -308,7 +308,7 @@ void *video_encoding_thread(void *arg) {
 	
 		} else {
 			
-			usleep(5000);
+			usleep (3000);
 		
 		}
 		

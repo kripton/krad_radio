@@ -31,9 +31,9 @@ krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate) 
 	kradvpx->cfg.rc_target_bitrate = bitrate;
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
-	kradvpx->cfg.g_threads = 5;
+	kradvpx->cfg.g_threads = 4;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
-	kradvpx->cfg.kf_max_dist = 45;
+	kradvpx->cfg.kf_max_dist = 60;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 
 	if (vpx_codec_enc_init(&kradvpx->encoder, interface, &kradvpx->cfg, 0)) {
