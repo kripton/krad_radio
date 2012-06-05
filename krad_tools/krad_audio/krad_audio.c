@@ -142,7 +142,7 @@ krad_audio_t *krad_audio_create (krad_mixer_t *krad_mixer) {
 	int p;
 	
 	if ((krad_audio = calloc (1, sizeof (krad_audio_t))) == NULL) {
-		failfast ("Krad Audio memory alloc fail");
+		failfast ("Krad Audio memory alloc fail\n");
 	}
 
 	krad_audio->krad_mixer = krad_mixer;

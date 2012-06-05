@@ -1761,7 +1761,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	} else {
 	
-		failfast ("Krad Decklink underflow");
+		failfast ("Krad Decklink underflow\n");
 	
 	}
 

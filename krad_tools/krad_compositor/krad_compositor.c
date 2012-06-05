@@ -65,7 +65,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 		krad_framepool_unref_frame (krad_frame);
 	} else {
-		failfast ("Krad Compositor Underflow");
+		failfast ("Krad Compositor Underflown\n");
 	}
 	
 }
