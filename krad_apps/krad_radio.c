@@ -217,6 +217,9 @@ int main (int argc, char *argv[]) {
 				if (argc == 4) {
 					krad_ipc_create_playback_link (client, argv[3]);
 				}
+				if (argc == 6) {
+					krad_ipc_create_remote_playback_link (client, argv[3], atoi(argv[4]), argv[5] );
+				}
 			}	
 
 			

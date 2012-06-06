@@ -675,6 +675,40 @@ void krad_ipc_create_receive_link (krad_ipc_client_t *client, int port) {
 
 }
 
+void krad_ipc_create_remote_playback_link (krad_ipc_client_t *client, char *host, int port, char *mount) {
+
+
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t create_link;
+	uint64_t link;
+	
+	linker_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (PLAYBACK));
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, "tcp");
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_HOST, host);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_PORT, port);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_MOUNT, mount);
+	
+	krad_ebml_finish_element (client->krad_ebml, link);
+
+	krad_ebml_finish_element (client->krad_ebml, create_link);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+
+}
+
 void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
 
 	//uint64_t ipc_command;
@@ -1236,6 +1270,11 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 		if (krad_link->transport_mode == FILESYSTEM) {
 			pos += sprintf (text + pos, " File %s", krad_link->filename);
 		}
+
+		if (krad_link->transport_mode == TCP) {
+			pos += sprintf (text + pos, " %s:%d%s",
+							krad_link->host, krad_link->port, krad_link->mount);
+		}
 	
 	}
 	
@@ -1368,6 +1407,41 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 
 			krad_ebml_read_string (client->krad_ebml, krad_link->filename, ebml_data_size);
 		}
+	
+		if (krad_link->transport_mode == TCP) {
+		
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
+				printk ("hrm wtf4\n");
+			} else {
+				//printk ("tag name size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (client->krad_ebml, krad_link->host, ebml_data_size);
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+				printk ("hrm wtf5\n");
+			} else {
+				//printk ("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_link->port = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
+				printk ("hrm wtf6\n");
+			} else {
+				//printk ("tag name size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (client->krad_ebml, krad_link->mount, ebml_data_size);
+		
+		}	
+	
 	
 	}
 	

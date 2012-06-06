@@ -271,29 +271,33 @@ int kradopus_write_audio(krad_opus_t *kradopus, int channel, char *buffer, int b
 }
 
 
-int kradopus_write_opus (krad_opus_t *kradopus, int frame_size, unsigned char *buffer, int length) {
+int kradopus_write_opus (krad_opus_t *kradopus, unsigned char *buffer, int length) {
 
 	int i;
+	
+	int frames_decoded;
 
 	kradopus->opus_decoder_error = opus_multistream_decode_float (kradopus->decoder,
 																  buffer,
 																  length,
 																  kradopus->interleaved_samples,
-																  frame_size * 2,
+																  2880 * 2,
 																  0);
 
 	if (kradopus->opus_decoder_error < 0) {
 		failfast ("Krad Opus decoder error: %d\n", kradopus->opus_decoder_error);
+	} else {
+		frames_decoded = kradopus->opus_decoder_error;
 	}
 
-	for (i = 0; i < frame_size; i++) {
+	for (i = 0; i < frames_decoded; i++) {
 		kradopus->samples[0][i] = kradopus->interleaved_samples[i * 2 + 0];
 		kradopus->samples[1][i] = kradopus->interleaved_samples[i * 2 + 1];
 	}
 
 
-	krad_ringbuffer_write (kradopus->ringbuf[0], (char *)kradopus->samples[0], (frame_size * 4) );
-	krad_ringbuffer_write (kradopus->ringbuf[1], (char *)kradopus->samples[1], (frame_size * 4) );
+	krad_ringbuffer_write (kradopus->ringbuf[0], (char *)kradopus->samples[0], (frames_decoded * 4) );
+	krad_ringbuffer_write (kradopus->ringbuf[1], (char *)kradopus->samples[1], (frames_decoded * 4) );
 
 
 	return 0;

@@ -233,8 +233,8 @@ void *video_encoding_thread(void *arg) {
 	}
 	
 	if (krad_link->video_codec == THEORA) {
-		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, 
-																	 krad_link->encoding_height,
+		krad_link->krad_theora_encoder = krad_theora_encoder_create (DEFAULT_THEORA_WIDTH, 
+																	 DEFAULT_THEORA_HEIGHT,
 																	 DEFAULT_THEORA_QUALITY);
 	}
 	
@@ -1658,8 +1658,8 @@ void *audio_decoding_thread(void *arg) {
 		}
 			
 		if (krad_link->audio_codec == OPUS) {
-			//fixme 2880
-			kradopus_write_opus (krad_link->krad_opus, 2880, buffer, bytes);
+
+			kradopus_write_opus (krad_link->krad_opus, buffer, bytes);
 			
 			bytes = -1;
 
@@ -2242,15 +2242,50 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		
 		krad_link->transport_mode = krad_link_string_to_transport_mode (string);
 	
-		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+		if (krad_link->transport_mode == FILESYSTEM) {
+	
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-		if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
-			printk ("hrm wtf3\n");
-		} else {
-			//printk ("tag value size %zu\n", ebml_data_size);
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
+				printk ("hrm wtf3\n");
+			} else {
+				//printk ("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->input, ebml_data_size);
 		}
+		
+		if (krad_link->transport_mode == TCP) {
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
-		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->input, ebml_data_size);
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
+				printk ("hrm wtf2\n");
+			} else {
+				//printk ("tag name size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->host, ebml_data_size);
+	
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
+				printk ("hrm wtf3\n");
+			} else {
+				//printk ("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
+				printk ("hrm wtf2\n");
+			} else {
+				//printk ("tag name size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
+		}
 	
 	}
 	
@@ -2484,7 +2519,18 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, 
 								krad_link_transport_mode_to_string (krad_link->transport_mode));
 	
-		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_FILENAME, krad_link->input);
+		if (krad_link->transport_mode == FILESYSTEM) {
+	
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_FILENAME, krad_link->input);
+		}
+		
+		if (krad_link->transport_mode == TCP) {
+	
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_HOST, krad_link->host);
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->port);
+			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_MOUNT, krad_link->mount);
+		}
+		
 	}
 	
 	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
