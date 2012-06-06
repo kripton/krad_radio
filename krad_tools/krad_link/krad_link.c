@@ -195,9 +195,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	if (krad_link->verbose) {
-		printk ("Video encoding thread started\n");
-	}
+	printk ("Video encoding thread started\n");
 	
 	krad_frame_t *krad_frame;
 	void *video_packet;
@@ -205,28 +203,32 @@ void *video_encoding_thread(void *arg) {
 	int packet_size;
 	char keyframe_char[1];
 
+	keyframe = 0;
 	krad_frame = NULL;
+	
+	/* RGB -> YUV CONVERTER AND SCALER SETUP */	
+	
+	krad_link->encoder_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height,
+														   PIX_FMT_RGB32,
+														   krad_link->encoding_width, krad_link->encoding_height,
+														   PIX_FMT_YUV420P, 
+														   SWS_BICUBIC, NULL, NULL, NULL);
+	
+	/* CODEC SETUP */
 
 	if (krad_link->video_codec == VP8) {
-		vpx_codec_enc_config_default(interface, &krad_link->vpx_encoder_config, 0);
-	
-		krad_link->vpx_encoder_config.rc_target_bitrate = DEFAULT_VPX_BITRATE;
-		krad_link->vpx_encoder_config.kf_max_dist = krad_link->capture_fps * 3;	
-		krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
-		krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
-		krad_link->vpx_encoder_config.g_threads = 4;
-		krad_link->vpx_encoder_config.kf_mode = VPX_KF_AUTO;
-		krad_link->vpx_encoder_config.rc_end_usage = VPX_VBR;
 
-		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width, krad_link->encoding_height, 
-															   krad_link->vpx_encoder_config.rc_target_bitrate);
+		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width, krad_link->encoding_height);
 
-		krad_link->vpx_encoder_config.g_w = krad_link->encoding_width;
-		krad_link->vpx_encoder_config.g_h = krad_link->encoding_height;
+		krad_link->krad_vpx_encoder->cfg.rc_target_bitrate = DEFAULT_VPX_BITRATE;
+		krad_link->krad_vpx_encoder->cfg.kf_max_dist = krad_link->capture_fps * 4;
+		krad_link->krad_vpx_encoder->cfg.g_threads = 4;
+		krad_link->krad_vpx_encoder->cfg.kf_mode = VPX_KF_AUTO;
+		krad_link->krad_vpx_encoder->cfg.rc_end_usage = VPX_VBR;
 
-		krad_vpx_encoder_set(krad_link->krad_vpx_encoder, &krad_link->vpx_encoder_config);
+		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
-		krad_link->krad_vpx_encoder->quality = (600 / krad_link->encoding_fps) * 1000;
+		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / krad_link->encoding_fps) / 2) * 1000));
 
 		printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
 	
@@ -237,6 +239,8 @@ void *video_encoding_thread(void *arg) {
 																	 DEFAULT_THEORA_HEIGHT,
 																	 DEFAULT_THEORA_QUALITY);
 	}
+	
+	/* COMPOSITOR CONNECTION */
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "VIDEnc",
@@ -249,16 +253,15 @@ void *video_encoding_thread(void *arg) {
 		krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
 
 		if (krad_frame != NULL) {
-								 
-				 
+
+			/* CONVERT FRAME RGB -> YUV */
 
 			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
 			const uint8_t *rgb_arr[4];
-	
 			rgb_arr[0] = (unsigned char *)krad_frame->pixels;
 
 			if (krad_link->video_codec == VP8) {
-				sws_scale(krad_link->encoding_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
+				sws_scale(krad_link->encoder_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
 						  krad_link->krad_vpx_encoder->image->planes, krad_link->krad_vpx_encoder->image->stride);
 			}
 			
@@ -274,15 +277,28 @@ void *video_encoding_thread(void *arg) {
 				strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
 				strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;
 				
-				sws_scale(krad_link->encoding_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
+				sws_scale(krad_link->encoder_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
 						  planes, strides);			
 			
 			}						
 							
 			krad_framepool_unref_frame (krad_frame);
-									
 			
-			if (krad_link->video_codec == VP8) {		 
+			/* ENCODE FRAME */
+			
+			if (krad_link->video_codec == VP8) {
+			
+				if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) > (30)) {
+					krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, 1);
+					printk ("Alert! Reduced VP8 quality due to frames avail > 30");
+				}
+				
+				if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < (1)) {
+					krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
+												  (((1000 / krad_link->encoding_fps) / 2) * 1000));
+					printk ("Alert! Increased VP8 quality");
+				}				
+				
 				packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
 								    (unsigned char **)&video_packet,
 								    				  &keyframe);
@@ -295,37 +311,47 @@ void *video_encoding_thread(void *arg) {
 			}
 			
 			if ((packet_size) || (krad_link->video_codec == THEORA)) {
-
+				
+				//FIXME un needed memcpy
+				
 				keyframe_char[0] = keyframe;
 
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
+				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
 				
 				krad_link->video_frames_encoded++;
 
 			}
 	
 		} else {
-			
+			// FIXME signal
 			usleep (3000);
-		
 		}
-		
 	}
 	
 	printk ("Encoding loop done\n");	
+
+	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 	
-	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);	
-	
-	
-	if (krad_link->video_codec == VP8) {	
-		while (packet_size) {
-			krad_vpx_encoder_finish(krad_link->krad_vpx_encoder);
-			packet_size = krad_vpx_encoder_write(krad_link->krad_vpx_encoder,
-							   (unsigned char **)&video_packet,
-							   					 &keyframe);
-		}
+	if (krad_link->encoder_frame_converter != NULL) {
+		sws_freeContext ( krad_link->encoder_frame_converter );
+	}	
+		
+	if (krad_link->video_codec == VP8) {
+		krad_vpx_encoder_finish (krad_link->krad_vpx_encoder);
+		do {
+			packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
+							    (unsigned char **)&video_packet,
+							   					  &keyframe);
+			if (packet_size) {
+				//FIXME goes with un needed memcpy above
+				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
+			}
+							   					  
+		} while (packet_size);
 
 		krad_vpx_encoder_destroy (krad_link->krad_vpx_encoder);
 	}
@@ -334,9 +360,8 @@ void *video_encoding_thread(void *arg) {
 		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
 	}
 	
-	
+	// FIXME make shutdown sequence more pretty
 	krad_link->encoding = 3;
-
 	if (krad_link->audio_codec == NOCODEC) {
 		krad_link->encoding = 4;
 	}
@@ -1950,10 +1975,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		sws_freeContext ( krad_link->captured_frame_converter );
 	}
 	
-	if (krad_link->encoding_frame_converter != NULL) {
-		sws_freeContext ( krad_link->encoding_frame_converter );
-	}
-	
 	if (krad_link->display_frame_converter != NULL) {
 		sws_freeContext ( krad_link->display_frame_converter );
 	}
@@ -2068,12 +2089,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->video_source == DECKLINK) {
 		krad_link->captured_frame_converter = sws_getContext ( krad_link->capture_width, krad_link->capture_height, PIX_FMT_UYVY422, 
 															  krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
-															  SWS_BICUBIC, NULL, NULL, NULL);
-	}
-		  
-	if ((krad_link->video_codec != NOCODEC) && (krad_link->mjpeg_passthru == 0)) {
-		krad_link->encoding_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
-															  krad_link->encoding_width, krad_link->encoding_height, PIX_FMT_YUV420P, 
 															  SWS_BICUBIC, NULL, NULL, NULL);
 	}
 		

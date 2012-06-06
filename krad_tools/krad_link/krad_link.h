@@ -144,7 +144,7 @@ struct krad_link_St {
 	
 	struct SwsContext *decoded_frame_converter;
 	struct SwsContext *captured_frame_converter;
-	struct SwsContext *encoding_frame_converter;
+	struct SwsContext *encoder_frame_converter;
 	struct SwsContext *display_frame_converter;
 	
 	int video_track;
@@ -189,8 +189,6 @@ struct krad_link_St {
 
 	int input_ready;
 	int verbose;
-	
-    vpx_codec_enc_cfg_t vpx_encoder_config;
 
 	char bug[512];
 	int bug_x;

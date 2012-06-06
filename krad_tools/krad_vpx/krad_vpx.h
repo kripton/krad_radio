@@ -33,6 +33,7 @@ struct krad_vpx_encoder_St {
 	int width;
 	int height;
 
+	int update_config;
     vpx_codec_ctx_t encoder;
     vpx_codec_enc_cfg_t cfg;
 	vpx_image_t *image;
@@ -41,14 +42,9 @@ struct krad_vpx_encoder_St {
 	const vpx_codec_cx_pkt_t *pkt;
 
     int flags;
-	int frames;
+	unsigned int frames;
+	unsigned int frames_since_keyframe;	
 	unsigned long quality;
-	
-	int frame_byte_size;
-	unsigned char *rgb_frame_data;
-	pthread_rwlock_t frame_lock;
-	
-	float preview_angle;
 	
 };
 
@@ -77,19 +73,17 @@ struct krad_vpx_decoder_St {
 
 };
 
-/* public */
+void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate);
+void krad_vpx_encoder_quality_set (krad_vpx_encoder_t *kradvpx, int quality);
 
-void krad_vpx_encoder_finish(krad_vpx_encoder_t *kradvpx);
-void krad_vpx_encoder_set(krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg);
-krad_vpx_encoder_t *krad_vpx_encoder_create(int width, int height, int bitrate);
-void krad_vpx_encoder_destroy(krad_vpx_encoder_t *kradvpx);
-int krad_vpx_encoder_write(krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe);
+void krad_vpx_encoder_finish (krad_vpx_encoder_t *kradvpx);
+void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg);
+krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height);
+void krad_vpx_encoder_destroy (krad_vpx_encoder_t *kradvpx);
+int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe);
+void krad_vpx_encoder_want_keyframe (krad_vpx_encoder_t *kradvpx);
 
-
-krad_vpx_decoder_t *krad_vpx_decoder_create();
-void krad_vpx_decoder_destroy(krad_vpx_decoder_t *kradvpx);
-void krad_vpx_decoder_decode(krad_vpx_decoder_t *kradvpx, void *buffer, int len);
-
-/* private */
-void krad_vpx_fail(vpx_codec_ctx_t *ctx, const char *s);
+krad_vpx_decoder_t *krad_vpx_decoder_create ();
+void krad_vpx_decoder_destroy (krad_vpx_decoder_t *kradvpx);
+void krad_vpx_decoder_decode (krad_vpx_decoder_t *kradvpx, void *buffer, int len);
 

@@ -104,7 +104,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 
 void krad_radio_daemon (char *sysname) {
 
-	pid_t pid;
+//	pid_t pid;
 	krad_radio_t *krad_radio_station;
 
 /*
