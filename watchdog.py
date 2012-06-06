@@ -9,6 +9,7 @@ class Daemon:
   def __init__(self):
     self.cmd = 'krad_radio_daemon'
     self.station = 'test'
+    self.config = ['krad_radio', self.station, 'info']
     self.running = False
 
   def log(self, msg):
@@ -20,10 +21,17 @@ class Daemon:
       cmd = self.cmd
     self.running = True
     while self.running:
-      self.log('running %s' % cmd)
-      ret = subprocess.call([cmd, self.station])
-      self.log('finished return ' + str(ret))
+      self.log('launching %s' % cmd)
+      proc = subprocess.Popen([cmd, self.station])
+      time.sleep(0.5)
+      self.log('configuring')
+      ret = subprocess.call(self.config)
+      self.log('configuration exited with return code ' + str(ret))
+      ret = proc.wait();
+      self.log('exited with return code ' + str(ret))
 
 if __name__ == '__main__':
   job = Daemon();
+  #job.station = 'test2'
+  #job.config = './capture.sh'
   job.run()
