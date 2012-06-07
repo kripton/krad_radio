@@ -53,6 +53,11 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}
 	
 	krad_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
+	//FIXME TEMP KLUDGE
+	while (krad_frame == NULL) {
+		usleep(10000);
+		krad_frame = krad_framepool_getframe (krad_compositor->krad_framepool);				
+	}	
 	
 	if (krad_frame != NULL) {
 		memcpy ( krad_frame->pixels, krad_compositor->krad_gui->data, krad_compositor->frame_byte_size );	
@@ -67,6 +72,8 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	} else {
 		failfast ("Krad Compositor Underflow\n");
 	}
+	
+	//usleep (25000);
 	
 }
 

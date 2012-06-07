@@ -45,9 +45,6 @@ struct krad_compositor_St {
 //	int frame_rate_numerator;
 //	int frame_rate_denominator;
 
-
-	//FIXME temp kludge
-	krad_ringbuffer_t *incoming_frames_buffer;
 	int hex_x;
 	int hex_y;
 	int hex_size;
