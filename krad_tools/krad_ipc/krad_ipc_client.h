@@ -91,7 +91,7 @@ void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_so
 void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *host, int port, char *mount, char *password, char *codecs);
 void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
-void krad_ipc_update_link (krad_ipc_client_t *client, int number, int newval);
+//void krad_ipc_update_link (krad_ipc_client_t *client, int number, int newval);
 void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t ebml_id, char *newval);
 void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32_t ebml_id, int newval);
 

@@ -11,7 +11,7 @@
 #ifndef KRAD_COMPOSITOR_H
 #define KRAD_COMPOSITOR_H
 
-#define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
+#define DEFAULT_COMPOSITOR_BUFFER_FRAMES 280
 #define KRAD_COMPOSITOR_MAX_PORTS 30
 
 typedef struct krad_compositor_St krad_compositor_t;
@@ -80,6 +80,7 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 
 int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc );
 
+void krad_compositor_get_info (krad_compositor_t *compositor, int *width, int *height);
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor);
 void krad_compositor_process (krad_compositor_t *compositor);
 void krad_compositor_destroy (krad_compositor_t *compositor);

@@ -26,6 +26,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
 	kradvpx->cfg.g_threads = 3;
+	//kradvpx->cfg.kf_max_dist = 30;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
@@ -95,6 +96,7 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 	if (kradvpx->update_config == 1) {
 		krad_vpx_encoder_config_set (kradvpx, &kradvpx->cfg);
 		kradvpx->update_config = 0;
+		//printf ("bitrate should now be: %d", kradvpx->cfg.rc_target_bitrate);
 	}
 
 	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->quality)) {
@@ -115,8 +117,8 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 				kradvpx->frames_since_keyframe++;
 			} else {
 				kradvpx->frames_since_keyframe = 0;
+				printkd ("keyframe is %d pts is -%ld-\n", *keyframe, kradvpx->pkt->data.frame.pts);
 			}
-			//printkd ("keyframe is %d pts is -%ld-\n", *keyframe, kradvpx->pkt->data.frame.pts);
 			return kradvpx->pkt->data.frame.sz;
 		}
 	}

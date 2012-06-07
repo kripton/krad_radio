@@ -230,24 +230,34 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "update", 2) == 0) {
+
 				if (argc == 5) {
-					krad_ipc_update_link (client, atoi(argv[3]), atoi(argv[4]));
+					if (strcmp(argv[4], "vp8_keyframe") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_FORCE_KEYFRAME, 1);
+					}
 				}
-				
+
 				if (argc == 6) {
-					if (strcmp(argv[4], "bandwidth") == 0) {
+				
+					//if (strcmp(argv[4], "vp8_bitrate") == 0) {
+					//	krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, atoi(argv[5]));
+					//}				
+					if (strcmp(argv[4], "opus_bitrate") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(argv[5]));
+					}				
+					if (strcmp(argv[4], "opus_bandwidth") == 0) {
 						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, argv[5]);
 					}
-					if (strcmp(argv[4], "signal") == 0) {
+					if (strcmp(argv[4], "opus_signal") == 0) {
 						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
 					}
-					if (strcmp(argv[4], "comp") == 0) {
+					if (strcmp(argv[4], "opus_comp") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, atoi(argv[5]));
 					}
-					if (strcmp(argv[4], "framesize") == 0) {
+					if (strcmp(argv[4], "opus_framesize") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, atoi(argv[5]));
 					}										
-					if (strcmp(argv[4], "maxpackets") == 0) {
+					if (strcmp(argv[4], "ogg_maxpackets") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
 					}
 				}				

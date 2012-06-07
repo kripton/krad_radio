@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <math.h>
 #include <inttypes.h>
+#include <sys/mman.h>
+
+#include <pthread.h>
 
 typedef struct krad_framepool_St krad_framepool_t;
 typedef struct krad_frame_St krad_frame_t;
@@ -14,7 +17,7 @@ struct krad_frame_St {
 	int *pixels;
 	int refs;
 	int mjpeg_size;	
-
+	pthread_mutex_t ref_lock;
 };
 
 struct krad_framepool_St {

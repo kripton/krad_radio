@@ -68,7 +68,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				part3 = cJSON_GetObjectItem (cmd, "value");
 				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
 					if (strcmp(part2->valuestring, "opus_bitrate") == 0) {
-						krad_ipc_update_link (pss->krad_ipc_client, part->valueint, part3->valueint);
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, part3->valueint);						
 					}
 
 					if (strcmp(part2->valuestring, "opus_signal") == 0) {

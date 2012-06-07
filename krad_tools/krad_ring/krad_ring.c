@@ -52,7 +52,7 @@ krad_ringbuffer_create (size_t sz)
 		return NULL;
 	}
 	rb->mlocked = 0;
-	
+	krad_ringbuffer_mlock (rb);
 	return rb;
 }
 

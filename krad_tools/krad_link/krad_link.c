@@ -208,6 +208,10 @@ void *video_encoding_thread(void *arg) {
 	
 	/* RGB -> YUV CONVERTER AND SCALER SETUP */	
 	
+	krad_compositor_get_info (krad_link->krad_radio->krad_compositor,
+							  &krad_link->composite_width,
+							  &krad_link->composite_height);
+	
 	krad_link->encoder_frame_converter = sws_getContext ( krad_link->composite_width, krad_link->composite_height,
 														   PIX_FMT_RGB32,
 														   krad_link->encoding_width, krad_link->encoding_height,
@@ -220,8 +224,7 @@ void *video_encoding_thread(void *arg) {
 
 		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width, krad_link->encoding_height);
 
-		krad_vpx_encoder_bitrate_set (krad_link->krad_vpx_encoder, DEFAULT_VPX_BITRATE);
-		krad_link->krad_vpx_encoder->cfg.kf_max_dist = krad_link->capture_fps * 4;
+		krad_vpx_encoder_bitrate_set (krad_link->krad_vpx_encoder, krad_link->vp8_bitrate);
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
@@ -232,8 +235,8 @@ void *video_encoding_thread(void *arg) {
 	}
 	
 	if (krad_link->video_codec == THEORA) {
-		krad_link->krad_theora_encoder = krad_theora_encoder_create (DEFAULT_THEORA_WIDTH, 
-																	 DEFAULT_THEORA_HEIGHT,
+		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, 
+																	 krad_link->encoding_height,
 																	 DEFAULT_THEORA_QUALITY);
 	}
 	
@@ -2024,18 +2027,18 @@ krad_link_t *krad_link_create() {
 		
 	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
 	
-	krad_link->capture_width = DEFAULT_WIDTH;
-	krad_link->capture_height = DEFAULT_HEIGHT;
+	krad_link->capture_width = DEFAULT_CAPTURE_WIDTH;
+	krad_link->capture_height = DEFAULT_CAPTURE_HEIGHT;
 	krad_link->capture_fps = DEFAULT_FPS;
 
 	krad_link->composite_fps = krad_link->capture_fps;
 	krad_link->encoding_fps = krad_link->capture_fps;
-	krad_link->composite_width = krad_link->capture_width;
-	krad_link->composite_height = krad_link->capture_height;
-	krad_link->encoding_width = krad_link->capture_width;
-	krad_link->encoding_height = krad_link->capture_height;
+	krad_link->encoding_width = DEFAULT_ENCODER_WIDTH;
+	krad_link->encoding_height = DEFAULT_ENCODER_HEIGHT;
 	krad_link->display_width = krad_link->capture_width;
 	krad_link->display_height = krad_link->capture_height;
+	
+	krad_link->vp8_bitrate = DEFAULT_VPX_BITRATE;
 	
 	strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
 	strncpy(krad_link->alsa_capture_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(krad_link->alsa_capture_device));
@@ -2058,21 +2061,12 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 	int c;
 
-	krad_link->composite_fps = krad_link->capture_fps;
-	krad_link->encoding_fps = krad_link->capture_fps;
 	
-	if (krad_link->video_source == DECKLINK) {
-		krad_link->composite_width = DEFAULT_WIDTH;
-		krad_link->composite_height = DEFAULT_HEIGHT;
-		krad_link->encoding_width = DEFAULT_WIDTH;
-		krad_link->encoding_height = DEFAULT_HEIGHT;
-	} else {
-		krad_link->encoding_width = krad_link->capture_width;
-		krad_link->encoding_height = krad_link->capture_height;
-	}
+	krad_compositor_get_info (krad_link->krad_radio->krad_compositor,
+							  &krad_link->composite_width,
+							  &krad_link->composite_height);
 
-	krad_link->display_width = krad_link->capture_width;
-	krad_link->display_height = krad_link->capture_height;
+	krad_link->encoding_fps = krad_link->capture_fps;
 	
 	krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
 
@@ -2091,7 +2085,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 		
 	krad_link->captured_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->capture_buffer_frames);
-	krad_link->composited_frames_buffer = krad_link->krad_linker->krad_radio->krad_compositor->composited_frames_buffer;
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (3000000);
 	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (7000000);
 
@@ -2100,7 +2093,9 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 
-		krad_link->krad_framepool = krad_framepool_create ( DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_CAPTURE_BUFFER_FRAMES);
+		krad_link->krad_framepool = krad_framepool_create ( DEFAULT_CAPTURE_WIDTH,
+															DEFAULT_CAPTURE_HEIGHT,
+															DEFAULT_CAPTURE_BUFFER_FRAMES);
 
 		//FIXME temp kludge
 		krad_link->krad_linker->krad_radio->krad_compositor->incoming_frames_buffer = krad_link->captured_frames_buffer;
@@ -2356,6 +2351,33 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
 			
 			krad_link->video_codec = krad_string_to_codec (string);
+			
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH) {
+				printk ("hrm wtf2v");
+			} else {
+				krad_link->encoding_width = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT) {
+				printk ("hrm wtf2v");
+			} else {
+				krad_link->encoding_height = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			
+			if (krad_link->video_codec == VP8) {
+				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_VP8_BITRATE) {
+					printk ("hrm wtf2v");
+				} else {
+					krad_link->vp8_bitrate = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+				}
+			}
 			
 		}
 
@@ -2748,6 +2770,23 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							}
 						}
 				
+					}
+					
+					if (krad_linker->krad_link[k]->video_codec == VP8) {
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_BITRATE) {
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+					
+							if (bigint > 0) {
+								krad_vpx_encoder_bitrate_set (krad_linker->krad_link[k]->krad_vpx_encoder, bigint);
+							}
+						}
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_FORCE_KEYFRAME) {
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+					
+							if (bigint > 0) {
+								krad_vpx_encoder_want_keyframe (krad_linker->krad_link[k]->krad_vpx_encoder);
+							}
+						}
 					}
 
 

@@ -11,15 +11,17 @@ typedef struct krad_linker_St krad_linker_t;
 #include <libswscale/swscale.h>
 
 #define KRAD_LINKER_MAX_LINKS 42
-#define DEFAULT_VPX_BITRATE 200 * 8
+#define DEFAULT_VPX_BITRATE 120 * 8
 #define HELP -1337
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 120
 #define DEFAULT_DECODING_BUFFER_FRAMES 120
 #define DEFAULT_VORBIS_QUALITY 0.5
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
-#define DEFAULT_THEORA_WIDTH 1280
-#define DEFAULT_THEORA_HEIGHT 720
+#define DEFAULT_CAPTURE_WIDTH 1920
+#define DEFAULT_CAPTURE_HEIGHT 1080
+#define DEFAULT_COMPOSITOR_WIDTH 1920
+#define DEFAULT_COMPOSITOR_HEIGHT 1080
+#define DEFAULT_ENCODER_WIDTH 1280
+#define DEFAULT_ENCODER_HEIGHT 720
 #define DEFAULT_FPS 30
 #define DEFAULT_FPS_NUMERATOR DEFAULT_FPS * 1000
 #define DEFAULT_FPS_DENOMINATOR 1 * 1000
@@ -92,6 +94,7 @@ struct krad_link_St {
 	char mount[512];
 	char password[512];
 
+	int vp8_bitrate;
 	
 	int capture_width;
 	int capture_height;
@@ -138,7 +141,6 @@ struct krad_link_St {
 	krad_ringbuffer_t *encoded_video_ringbuffer;
 
 	krad_ringbuffer_t *captured_frames_buffer;
-	krad_ringbuffer_t *composited_frames_buffer;
 	krad_ringbuffer_t *decoded_frames_buffer;
 	
 	struct SwsContext *decoded_frame_converter;
