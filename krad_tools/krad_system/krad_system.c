@@ -124,6 +124,7 @@ void failfast (char* format, ...) {
 	vfprintf(stdout, format, args);
 	va_end(args);
 	printf ("\n");
+	fflush (stdout);
 	exit (1);
 	
 }
