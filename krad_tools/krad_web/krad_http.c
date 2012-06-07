@@ -207,7 +207,7 @@ void *krad_http_client_thread (void *arg) {
 	client->ret = read (client->sd, client->in_buffer + client->in_buffer_pos, BUFSIZE);		
 	
 	if (client->ret == 0 || client->ret == -1) {
-		printf("failed to read browser request\n");
+		printk("failed to read browser request\n");
 		krad_http_destroy_client(client->krad_http, client);
 	}
 
@@ -273,7 +273,7 @@ void *krad_http_client_thread (void *arg) {
 		
 	}
 
-	printf ("Krad HTTP client fail\n");
+	printk ("Krad HTTP client fail\n");
 
 	krad_http_destroy_client (client->krad_http, client);
 	
@@ -284,7 +284,7 @@ void *krad_http_client_thread (void *arg) {
 
 void krad_http_server_destroy (krad_http_t *krad_http) {
 
-	printf ("krad_http Shutting Down\n");
+	printk ("krad_http Shutting Down\n");
 
 	if (krad_http != NULL) {
 	
@@ -318,9 +318,8 @@ void *krad_http_server_run (void *arg) {
 		length = sizeof(cli_addr);
 		
 		if ((krad_http->socketfd = accept(krad_http->listenfd, (struct sockaddr *)&cli_addr, &length)) < 0) {
-			close(krad_http->listenfd);
-			printf("krad_http socket error on accept mayb a signal or such\n");
-			exit(1);
+			close (krad_http->listenfd);
+			failfast ("krad_http socket error on accept mayb a signal or such\n");
 		}
 
 		newclient->sd = krad_http->socketfd;
@@ -353,41 +352,36 @@ krad_http_t *krad_http_server_create (int port, int websocket_port) {
 	snprintf (string, 7, "%6d", krad_http->websocket_port);		
 	memcpy (strstr (krad_http->html, "WSPORT"), string, 6);	
 	
-	if (krad_http->port < 0 || krad_http->port > 60000) {
-		printf("krad_http port number error\n");
-		exit(1);
+	if (krad_http->port < 0 || krad_http->port > 65535) {
+		failfast ("krad_http port number error\n");
 	}
 	
-	printf("Krad Web Starting Up on port %d\n", krad_http->port);
+	printk ("Krad Web Starting Up on port %d\n", krad_http->port);
 
 	krad_http->homedir = getenv ("HOME");
  	
+ 	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serv_addr.sin_port = htons(krad_http->port);
+ 	
 	/* setup the network socket */
 	if ((krad_http->listenfd = socket(AF_INET, SOCK_STREAM,0)) < 0) {
-		printf("krad_http system call socket error\n");
-		exit(1);
+		failfast ("krad_http system call socket error");
 	}
 	
 	if ((setsockopt (krad_http->listenfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0) {
-		printf("kradweb system call setsockopt error");
-		close(krad_http->listenfd);
-		exit (1);
-	}	
-	
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_addr.sin_port = htons(krad_http->port);
+		close (krad_http->listenfd);
+		failfast ("kradweb system call setsockopt error");
+	}
 	
 	if (bind (krad_http->listenfd, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0) {
-		printf ("krad_http system call bind error\n");
 		close (krad_http->listenfd);
-		exit (1);
+		failfast ("krad_http system call bind error\n");
 	}
 
 	if (listen (krad_http->listenfd, SOMAXCONN) <0) {
-		printf("krad_http system call listen error\n");
 		close (krad_http->listenfd);
-		exit(1);
+		failfast ("krad_http system call bind error\n");
 	}
 
 	pthread_create (&krad_http->server_thread, NULL, krad_http_server_run, (void *)krad_http);

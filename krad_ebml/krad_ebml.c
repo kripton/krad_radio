@@ -233,9 +233,14 @@ void krad_ebml_finish_element (krad_ebml_t *krad_ebml, uint64_t element_position
 
 	current_position = krad_ebml_tell(krad_ebml);
 	element_data_size = current_position - element_position - EBML_DATA_SIZE_UNKNOWN_LENGTH;
-	krad_ebml_seek(krad_ebml, element_position, SEEK_SET);
-	krad_ebml_write_data_size_update (krad_ebml, element_data_size);
-	krad_ebml_seek(krad_ebml, current_position, SEEK_SET);
+	
+	if ((current_position - element_position) <= krad_ebml->io_adapter.write_buffer_pos) {
+
+		krad_ebml_seek(krad_ebml, element_position, SEEK_SET);
+		krad_ebml_write_data_size_update (krad_ebml, element_data_size);
+		krad_ebml_seek(krad_ebml, current_position, SEEK_SET);
+	
+	}
 }
 
 void krad_ebml_header_advanced (krad_ebml_t *krad_ebml, char *doctype, int doctype_version, int doctype_read_version) {
@@ -473,6 +478,9 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	
 	krad_ebml_write(krad_ebml, &flags, 1);
 	krad_ebml_write(krad_ebml, buffer, buffer_len);
+	
+		krad_ebml_write_sync (krad_ebml);	
+	
 }
 
 void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *buffer, int buffer_len, int frames) {
@@ -2206,7 +2214,11 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 	
 	krad_ebml->stream = 1;
 	
-	krad_ebml->io_adapter.open(&krad_ebml->io_adapter);
+	if (strcmp("ListenSD", krad_ebml->io_adapter.uri) == 0) {
+		krad_ebml->io_adapter.sd = krad_ebml->io_adapter.port;
+	} else {
+		krad_ebml->io_adapter.open(&krad_ebml->io_adapter);
+	}
 	
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READONLY) {
 		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));

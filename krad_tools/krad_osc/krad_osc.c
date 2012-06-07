@@ -96,11 +96,16 @@ int krad_osc_listen (krad_osc_t *krad_osc, int port) {
 	krad_osc->port = port;
 	krad_osc->listening = 1;
 	
-	krad_osc->sd = socket (AF_INET, SOCK_DGRAM, 0);
-
 	krad_osc->local_address.sin_family = AF_INET;
 	krad_osc->local_address.sin_port = htons (krad_osc->port);
 	krad_osc->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
+	
+	if ((krad_osc->sd = socket (AF_INET, SOCK_DGRAM, 0)) < 0) {
+		printf("Krad OSC system call socket error\n");
+		krad_osc->listening = 0;
+		krad_osc->port = 0;		
+		return 1;
+	}
 
 	if (bind (krad_osc->sd, (struct sockaddr *)&krad_osc->local_address, sizeof(krad_osc->local_address)) == -1) {
 		printke ("Krad OSC bind error for udp port %d\n", krad_osc->port);

@@ -4,6 +4,11 @@ extern int verbose;
 
 void krad_link_activate (krad_link_t *krad_link);
 
+static void *krad_linker_listening_thread (void *arg);
+static void krad_linker_listen_destroy_client (krad_linker_listen_client_t *krad_linker_listen_client);
+static void krad_linker_listen_create_client (krad_linker_t *krad_linker, int sd);
+static void *krad_linker_listen_client_thread (void *arg);
+
 void *video_capture_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_vidcap", 0, 0, 0);
@@ -1024,7 +1029,7 @@ void *stream_input_thread(void *arg) {
 		header_size = 0;
 
 		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
-		//printk ("packet track %d timecode: %zu", current_track, packet_timecode);
+		printk ("packet track %d timecode: %zu size %d", current_track, packet_timecode, packet_size);
 		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 20))  {
 			printk ("stream input thread packet size was: %d", packet_size);
 			break;
@@ -2666,6 +2671,8 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	string[0] = '\0';
 	bigint = 0;
 	k = 0;
+	
+	pthread_mutex_lock (&krad_linker->change_lock);	
 
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 
@@ -2820,12 +2827,297 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 
 				}
 			}
-				
+			
 			break;
+	
+		case EBML_ID_KRAD_LINKER_CMD_LISTEN_ENABLE:
+		
+			krad_ebml_read_element ( krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
+				printke ("hrm wtf6");
+			}
+		
+			bigint = krad_ebml_read_number ( krad_ipc->current_client->krad_ebml, ebml_data_size);
+		
+			krad_linker_listen (krad_linker, bigint);
+		
+			break;
+
+		case EBML_ID_KRAD_LINKER_CMD_LISTEN_DISABLE:
+		
+			krad_linker_stop_listening (krad_linker);
+		
+			break;
+
 	}
+
+	pthread_mutex_unlock (&krad_linker->change_lock);
 
 	return 0;
 }
+
+void krad_linker_listen_promote_client (krad_linker_listen_client_t *client) {
+
+	krad_linker_t *krad_linker;
+	krad_link_t *krad_link;	
+	int k;
+
+	krad_linker = client->krad_linker;
+
+	pthread_mutex_lock (&krad_linker->change_lock);
+
+
+	for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
+		if (krad_linker->krad_link[k] == NULL) {
+
+			krad_linker->krad_link[k] = krad_link_create ();
+			krad_link = krad_linker->krad_link[k];
+			krad_link->krad_radio = krad_linker->krad_radio;
+			krad_link->krad_linker = krad_linker;
+			
+			sprintf (krad_link->sysname, "link%d", k);
+
+			krad_link->sd = client->sd;
+			strcpy (krad_link->mount, client->mount);
+			strcpy (krad_link->content_type, client->content_type);
+			strcpy (krad_link->host, "ListenSD");
+			krad_link->port = client->sd;
+			krad_link->operation_mode = PLAYBACK;
+			krad_link->transport_mode = TCP;
+			//FIXME default
+			krad_link->av_mode = AUDIO_AND_VIDEO;
+			
+			krad_link_run (krad_link);
+
+			break;
+		}
+	}
+
+	pthread_mutex_unlock (&krad_linker->change_lock);
+	
+	free (client);
+	
+	pthread_exit(0);	
+
+}
+
+void *krad_linker_listen_client_thread (void *arg) {
+
+
+	krad_linker_listen_client_t *client = (krad_linker_listen_client_t *)arg;
+	
+	int ret;
+	char *string;
+	char byte;
+
+	while (1) {
+		ret = read (client->sd, client->in_buffer + client->in_buffer_pos, 1);		
+	
+		if (ret == 0 || ret == -1) {
+			printk ("done with linker listen client");
+			krad_linker_listen_destroy_client (client);
+		} else {
+	
+			client->in_buffer_pos += ret;
+			
+			byte = client->in_buffer[client->in_buffer_pos - 1];
+			
+			if ((byte == '\n') || (byte == '\r')) {
+			
+				if (client->got_mount == 0) {
+					if (client->in_buffer_pos > 8) {
+					
+						if (strncmp(client->in_buffer, "SOURCE /", 8) == 0) {
+							ret = strcspn (client->in_buffer + 8, "\n\r ");
+							memcpy (client->mount, client->in_buffer + 8, ret);
+							client->mount[ret] = '\0';
+						
+							printk ("Got a mount! its %s", client->mount);
+						
+							client->got_mount = 1;
+						} else {
+							printk ("client no good! %s", client->in_buffer);
+							krad_linker_listen_destroy_client (client);							
+						}
+					
+					} else {
+						printk ("client no good! .. %s", client->in_buffer);
+						krad_linker_listen_destroy_client (client);
+					}
+				} else {
+					printk ("client buffer: %s", client->in_buffer);
+					
+					
+					if (client->got_content_type == 0) {
+						if (((string = strstr(client->in_buffer, "Content-Type:")) != NULL) ||
+						    ((string = strstr(client->in_buffer, "content-type:")) != NULL) ||
+							((string = strstr(client->in_buffer, "Content-type:")) != NULL)) {
+							ret = strcspn(string + 14, "\n\r ");
+							memcpy(client->content_type, string + 14, ret);
+							client->content_type[ret] = '\0';
+							client->got_content_type = 1;
+							printk ("Got a content_type! its %s", client->content_type);							
+						}
+					} else {
+					
+						if (memcmp ("\r\n\r\n", &client->in_buffer[client->in_buffer_pos - 4], 4) == 0) {
+						//if ((string = strstr(client->in_buffer, "\r\n\r\n")) != NULL) {
+							printk ("got to the end of the http headers!");
+							
+							char *goodresp = "HTTP/1.0 200 OK\r\n\r\n";
+							
+							write (client->sd, goodresp, strlen(goodresp));
+							
+							krad_linker_listen_promote_client (client);
+						}
+					}
+				}
+			}
+			
+			
+			if (client->in_buffer_pos > 1000) {
+				printk ("client no good! .. %s", client->in_buffer);
+				krad_linker_listen_destroy_client (client);
+			}
+		}
+	}
+
+	
+	printk ("Krad HTTP Request: %s\n", client->in_buffer);
+	
+
+	krad_linker_listen_destroy_client (client);
+
+	return NULL;	
+	
+}
+
+
+void krad_linker_listen_create_client (krad_linker_t *krad_linker, int sd) {
+
+	krad_linker_listen_client_t *client = calloc(1, sizeof(krad_linker_listen_client_t));
+
+	client->krad_linker = krad_linker;
+	
+	client->sd = sd;
+	
+	pthread_create (&client->client_thread, NULL, krad_linker_listen_client_thread, (void *)client);
+	pthread_detach (client->client_thread);	
+
+}
+
+void krad_linker_listen_destroy_client (krad_linker_listen_client_t *krad_linker_listen_client) {
+
+	close (krad_linker_listen_client->sd);
+		
+	free (krad_linker_listen_client);
+	
+	pthread_exit(0);	
+
+}
+
+void *krad_linker_listening_thread (void *arg) {
+
+	krad_linker_t *krad_linker = (krad_linker_t *)arg;
+
+	int ret;
+	int addr_size;
+	int client_fd;
+	struct sockaddr_in remote_address;
+	struct pollfd sockets[1];
+	
+	printk ("Krad linker Listening thread starting\n");
+	
+	addr_size = 0;
+	ret = 0;
+	memset (&remote_address, 0, sizeof(remote_address));	
+
+	addr_size = sizeof (remote_address);
+	
+	while (krad_linker->stop_listening == 0) {
+
+		sockets[0].fd = krad_linker->sd;
+		sockets[0].events = POLLIN;
+
+		ret = poll (sockets, 1, 250);	
+
+		if (ret < 0) {
+			printke ("Krad linker Failed on poll\n");
+			krad_linker->stop_listening = 1;
+			break;
+		}
+	
+		if (ret > 0) {
+		
+			if ((client_fd = accept(krad_linker->sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size)) < 0) {
+				close (krad_linker->sd);
+				failfast ("krad_linker socket error on accept mayb a signal or such\n");
+			}
+
+			krad_linker_listen_create_client (krad_linker, client_fd);
+
+		}
+	}
+	
+	close (krad_linker->sd);
+	krad_linker->port = 0;
+	krad_linker->listening = 0;	
+
+	printk ("Krad linker Listening thread exiting\n");
+
+	return NULL;
+}
+
+void krad_linker_stop_listening (krad_linker_t *krad_linker) {
+
+	if (krad_linker->listening == 1) {
+		krad_linker->stop_listening = 1;
+		pthread_join (krad_linker->listening_thread, NULL);
+		krad_linker->stop_listening = 0;
+	}
+}
+
+
+int krad_linker_listen (krad_linker_t *krad_linker, int port) {
+
+	if (krad_linker->listening == 1) {
+		krad_linker_stop_listening (krad_linker);
+	}
+
+	krad_linker->port = port;
+	krad_linker->listening = 1;
+	
+	krad_linker->local_address.sin_family = AF_INET;
+	krad_linker->local_address.sin_port = htons (krad_linker->port);
+	krad_linker->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
+	
+	if ((krad_linker->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("Krad linker system call socket error\n");
+		krad_linker->listening = 0;
+		krad_linker->port = 0;		
+		return 1;
+	}
+
+	if (bind (krad_linker->sd, (struct sockaddr *)&krad_linker->local_address, sizeof(krad_linker->local_address)) == -1) {
+		printke ("Krad linker bind error for tcp port %d\n", krad_linker->port);
+		close (krad_linker->sd);
+		krad_linker->listening = 0;
+		krad_linker->port = 0;
+		return 1;
+	}
+	
+	if (listen (krad_linker->sd, SOMAXCONN) <0) {
+		printf("krad_http system call listen error\n");
+		close (krad_linker->sd);
+		exit(1);
+	}	
+	
+	pthread_create (&krad_linker->listening_thread, NULL, krad_linker_listening_thread, (void *)krad_linker);
+	
+	return 0;
+}
+
 
 krad_link_t *krad_linker_get_link_from_sysname (krad_linker_t *krad_linker, char *sysname) {
 
@@ -2866,6 +3158,8 @@ krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 
 	krad_linker->krad_radio = krad_radio;
 
+	pthread_mutex_init (&krad_linker->change_lock, NULL);	
+
 	return krad_linker;
 
 }
@@ -2873,14 +3167,16 @@ krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 void krad_linker_destroy (krad_linker_t *krad_linker) {
 
 	int l;
-	
+
+	pthread_mutex_lock (&krad_linker->change_lock);	
 	for (l = 0; l < KRAD_LINKER_MAX_LINKS; l++) {
 		if (krad_linker->krad_link[l] != NULL) {
 			krad_link_destroy (krad_linker->krad_link[l]);
 			krad_linker->krad_link[l] = NULL;
 		}
 	}
-
+	pthread_mutex_unlock (&krad_linker->change_lock);		
+	pthread_mutex_destroy (&krad_linker->change_lock);
 	free (krad_linker);
 
 }

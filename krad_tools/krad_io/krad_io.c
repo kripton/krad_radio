@@ -184,6 +184,7 @@ int krad_io_stream_read(krad_io_t *krad_io, void *buffer, size_t length) {
 		if (bytes <= 0) {
 			if (bytes == 0) {
 				printf("Krad IO Stream Recv: Got EOF\n");
+				usleep (100000);
 				return total_bytes;
 			}
 			if (bytes < 0) {
@@ -360,7 +361,11 @@ krad_io_t *krad_io_open_stream(char *host, int port, char *mount, char *password
 	
 	//krad_io->stream = 1;
 	
-	krad_io->open(krad_io);
+	if (strcmp("ListenSD", krad_io->host) == 0) {
+		krad_io->sd = krad_io->port;
+	} else {
+		krad_io->open (krad_io);
+	}
 		
 	return krad_io;
 

@@ -317,9 +317,11 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, uint64_t *timecode, 
 	
 	
 		ret = krad_io_read(krad_ogg->krad_io, krad_ogg->input_buffer, 4096);
+		
 		if (ret > 0) {
 			krad_ogg_write (krad_ogg, krad_ogg->input_buffer, ret);
 		} else {
+			*timecode = 0;
 			break;
 		}
 

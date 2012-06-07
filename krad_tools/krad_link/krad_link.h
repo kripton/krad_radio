@@ -1,5 +1,6 @@
 typedef struct krad_link_St krad_link_t;
 typedef struct krad_linker_St krad_linker_t;
+typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 
 #include "krad_radio.h"
 
@@ -33,9 +34,41 @@ typedef struct krad_linker_St krad_linker_t;
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
 	krad_radio_t *krad_radio;
+
+	pthread_mutex_t change_lock;
+
+	/* linker listener */	
+	unsigned char *buffer;
+
+	int port;
+	int sd;
+	struct sockaddr_in local_address;
+	int listening;
+	int stop_listening;
+	pthread_t listening_thread;
+	
 };
 
+struct krad_linker_listen_client_St {
 
+	krad_linker_t *krad_linker;
+	pthread_t client_thread;
+
+	char in_buffer[1024];
+	char out_buffer[1024];
+	char mount[256];
+	char content_type[256];
+	int got_mount;
+	int got_content_type;
+
+	int in_buffer_pos;
+	int out_buffer_pos;
+	
+	int sd;
+	int ret;
+	int wrote;
+
+};
 
 struct krad_link_St {
 
@@ -92,7 +125,10 @@ struct krad_link_St {
 	char host[512];
 	int port;
 	char mount[512];
+	char content_type[512];	
 	char password[512];
+	
+	int sd;
 
 	int vp8_bitrate;
 	
@@ -200,6 +236,11 @@ struct krad_link_St {
 	krad_slicer_t *krad_slicer;
 
 };
+
+
+
+void krad_linker_stop_listening (krad_linker_t *krad_linker);
+int krad_linker_listen (krad_linker_t *krad_linker, int port);
 
 krad_link_t *krad_linker_get_link_from_sysname (krad_linker_t *krad_linker, char *sysname);
 krad_tags_t *krad_linker_get_tags_for_link (krad_linker_t *krad_linker, char *sysname);

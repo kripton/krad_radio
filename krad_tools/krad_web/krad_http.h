@@ -15,6 +15,8 @@
 #include <poll.h>
 #include <pthread.h>
 
+#include "krad_system.h"
+
 #define BUFSIZE 8192
 
 typedef struct krad_http_St krad_http_t;
