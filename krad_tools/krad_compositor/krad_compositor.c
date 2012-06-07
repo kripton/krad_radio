@@ -131,8 +131,8 @@ int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_p
 	
 	frames = krad_ringbuffer_read_space (krad_compositor_port->frame_ring);
 	
-	frames = frames % sizeof (krad_frame_t *);
-	
+	frames = frames / sizeof (krad_frame_t *);
+
 	return frames;
 }
 

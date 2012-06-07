@@ -11,7 +11,7 @@
 #ifndef KRAD_COMPOSITOR_H
 #define KRAD_COMPOSITOR_H
 
-#define DEFAULT_COMPOSITOR_BUFFER_FRAMES 90
+#define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
 #define KRAD_COMPOSITOR_MAX_PORTS 30
 
 typedef struct krad_compositor_St krad_compositor_t;

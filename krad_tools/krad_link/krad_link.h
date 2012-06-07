@@ -14,10 +14,10 @@ typedef struct krad_linker_St krad_linker_t;
 #define DEFAULT_VPX_BITRATE 200 * 8
 #define HELP -1337
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 120
-#define DEFAULT_ENCODING_BUFFER_FRAMES 120
+#define DEFAULT_DECODING_BUFFER_FRAMES 120
 #define DEFAULT_VORBIS_QUALITY 0.5
-#define DEFAULT_WIDTH 1920
-#define DEFAULT_HEIGHT 1080
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
 #define DEFAULT_THEORA_WIDTH 1280
 #define DEFAULT_THEORA_HEIGHT 720
 #define DEFAULT_FPS 30
@@ -110,7 +110,6 @@ struct krad_link_St {
 	int mjpeg_passthru;	
 
 	int capture_buffer_frames;
-	int encoding_buffer_frames;
 	int decoding_buffer_frames;
 	
 	unsigned char *current_encoding_frame;

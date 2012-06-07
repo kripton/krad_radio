@@ -25,6 +25,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
 
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
+	kradvpx->cfg.g_threads = 3;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
@@ -46,6 +47,10 @@ void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate) {
 
 void krad_vpx_encoder_quality_set (krad_vpx_encoder_t *kradvpx, int quality) {
 	kradvpx->quality = quality;
+}
+
+int krad_vpx_encoder_quality_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->quality;
 }
 
 void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg) {

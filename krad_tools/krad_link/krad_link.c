@@ -220,11 +220,8 @@ void *video_encoding_thread(void *arg) {
 
 		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width, krad_link->encoding_height);
 
-		krad_link->krad_vpx_encoder->cfg.rc_target_bitrate = DEFAULT_VPX_BITRATE;
+		krad_vpx_encoder_bitrate_set (krad_link->krad_vpx_encoder, DEFAULT_VPX_BITRATE);
 		krad_link->krad_vpx_encoder->cfg.kf_max_dist = krad_link->capture_fps * 4;
-		krad_link->krad_vpx_encoder->cfg.g_threads = 4;
-		krad_link->krad_vpx_encoder->cfg.kf_mode = VPX_KF_AUTO;
-		krad_link->krad_vpx_encoder->cfg.rc_end_usage = VPX_VBR;
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
@@ -288,17 +285,18 @@ void *video_encoding_thread(void *arg) {
 			
 			if (krad_link->video_codec == VP8) {
 			
-				if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) > (30)) {
+				if (krad_compositor_port_frames_avail (krad_link->krad_compositor_port) > (25)) {
 					krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, 1);
-					printk ("Alert! Reduced VP8 quality due to frames avail > 30");
+					printk ("Alert! Reduced VP8 quality due to frames avail > 25");
 				}
 				
-				//if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < (1)) {
-				//	krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
-				//								  (((1000 / krad_link->encoding_fps) / 2) * 1000));
-				//	printk ("Alert! Increased VP8 quality");
-				//}				
-				
+				if (krad_vpx_encoder_quality_get(krad_link->krad_vpx_encoder) == 1) {
+					if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < (1)) {
+						krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
+												  (((1000 / krad_link->encoding_fps) / 2) * 1000));
+						printk ("Alert! Increased VP8 quality");
+					}				
+				}			
 				packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
 								    (unsigned char **)&video_packet,
 								    				  &keyframe);
@@ -2024,7 +2022,6 @@ krad_link_t *krad_link_create() {
 	krad_link = calloc(1, sizeof(krad_link_t));
 		
 	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
-	krad_link->encoding_buffer_frames = DEFAULT_ENCODING_BUFFER_FRAMES;
 	
 	krad_link->capture_width = DEFAULT_WIDTH;
 	krad_link->capture_height = DEFAULT_HEIGHT;
@@ -2144,7 +2141,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
 
 		krad_link->decoded_frames_buffer = 
-			krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->encoding_buffer_frames);
+			krad_ringbuffer_create (krad_link->composited_frame_byte_size * DEFAULT_DECODING_BUFFER_FRAMES);
 		
 		if (krad_link->transport_mode == UDP) {
 			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	

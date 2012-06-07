@@ -75,6 +75,7 @@ struct krad_vpx_decoder_St {
 
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate);
 void krad_vpx_encoder_quality_set (krad_vpx_encoder_t *kradvpx, int quality);
+int krad_vpx_encoder_quality_get (krad_vpx_encoder_t *kradvpx);
 
 void krad_vpx_encoder_finish (krad_vpx_encoder_t *kradvpx);
 void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg);
