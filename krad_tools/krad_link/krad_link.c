@@ -18,7 +18,7 @@ void *video_capture_thread (void *arg) {
 	unsigned char *captured_frame_rgb = malloc(krad_link->composited_frame_byte_size); 
 	krad_frame_t *krad_frame;
 	
-	printk ("Video capture thread started\n");
+	printk ("Video capture thread started");
 	
 	krad_link->krad_v4l2 = kradv4l2_create();
 
@@ -54,7 +54,7 @@ void *video_capture_thread (void *arg) {
 		
 				clock_gettime(CLOCK_MONOTONIC, &current_time);
 				elapsed_time = timespec_diff(start_time, current_time);
-				printk ("Frames Captured: %u Expected: %ld - %u fps * %ld seconds\n", 
+				printk ("Frames Captured: %u Expected: %ld - %u fps * %ld seconds", 
 						krad_link->captured_frames, elapsed_time.tv_sec * krad_link->capture_fps, 
 						krad_link->capture_fps, elapsed_time.tv_sec);
 	
@@ -141,7 +141,7 @@ void *video_capture_thread (void *arg) {
 	krad_link->capture_audio = 2;
 	krad_link->encoding = 2;
 
-	printk ("Video capture thread exited\n");
+	printk ("Video capture thread exited");
 	
 	return NULL;
 	
@@ -155,7 +155,7 @@ void *x11_capture_thread (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 	
-	printk ("X11 capture thread begins\n");
+	printk ("X11 capture thread begins");
 	
 	krad_frame_t *krad_frame;
 	
@@ -182,7 +182,7 @@ void *x11_capture_thread (void *arg) {
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
-	printk ("X11 capture thread exited\n");
+	printk ("X11 capture thread exited");
 	
 	return NULL;
 	
@@ -195,7 +195,7 @@ void *video_encoding_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	printk ("Video encoding thread started\n");
+	printk ("Video encoding thread started");
 	
 	krad_frame_t *krad_frame;
 	void *video_packet;
@@ -230,7 +230,7 @@ void *video_encoding_thread(void *arg) {
 
 		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / krad_link->encoding_fps) / 2) * 1000));
 
-		printk ("Video encoding quality set to %ld\n", krad_link->krad_vpx_encoder->quality);
+		printk ("Video encoding quality set to %ld", krad_link->krad_vpx_encoder->quality);
 	
 	}
 	
@@ -246,7 +246,7 @@ void *video_encoding_thread(void *arg) {
 																   "VIDEnc",
 																   OUTPUT);
 	
-	printk ("Encoding loop start\n");
+	printk ("Encoding loop start");
 	
 	while (krad_link->encoding == 1) {
 
@@ -330,7 +330,7 @@ void *video_encoding_thread(void *arg) {
 		}
 	}
 	
-	printk ("Encoding loop done\n");	
+	printk ("Encoding loop done");	
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 	
@@ -366,7 +366,7 @@ void *video_encoding_thread(void *arg) {
 		krad_link->encoding = 4;
 	}
 	
-	printk ("Video encoding thread exited\n");
+	printk ("Video encoding thread exited");
 	
 	return NULL;
 	
@@ -425,7 +425,7 @@ void *audio_encoding_thread (void *arg) {
 
 	krad_mixer_portgroup_t *mixer_portgroup;
 
-	printk ("Audio encoding thread starting\n");
+	printk ("Audio encoding thread starting");
 	
 	krad_link->audio_channels = 2;	
 	
@@ -444,7 +444,7 @@ void *audio_encoding_thread (void *arg) {
 		
 	switch (krad_link->audio_codec) {
 		case VORBIS:
-			printk ("Vorbis quality is %f\n", krad_link->vorbis_quality);
+			printk ("Vorbis quality is %f", krad_link->vorbis_quality);
 			krad_link->krad_vorbis = krad_vorbis_encoder_create (krad_link->audio_channels,
 																 krad_link->krad_radio->krad_mixer->sample_rate,
 																 krad_link->vorbis_quality);
@@ -464,7 +464,7 @@ void *audio_encoding_thread (void *arg) {
 			framecnt = MIN_OPUS_FRAME_SIZE;
 			break;
 		default:
-			failfast ("unknown audio codec\n");
+			failfast ("unknown audio codec");
 	}
 	
 	krad_link->audio_encoder_ready = 1;
@@ -542,7 +542,7 @@ void *audio_encoding_thread (void *arg) {
 				}
 			}
 
-			//printk ("audio_encoding_thread %zu !\n", krad_link->audio_frames_encoded);
+			//printk ("audio_encoding_thread %zu !", krad_link->audio_frames_encoded);
 		}
 	
 		while (krad_ringbuffer_read_space (krad_link->audio_input_ringbuffer[1]) < framecnt * 4) {
@@ -560,7 +560,7 @@ void *audio_encoding_thread (void *arg) {
 
 	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, mixer_portgroup);
 	
-	printk ("Audio encoding thread exiting\n");
+	printk ("Audio encoding thread exiting");
 	
 	krad_link->encoding = 4;
 	
@@ -601,7 +601,7 @@ void *stream_output_thread (void *arg) {
 	audio_frames_muxed = 0;
 	video_frames_muxed = 0;
 
-	printk ("Output/Muxing thread starting\n");
+	printk ("Output/Muxing thread starting");
 	
 	if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 
@@ -621,7 +621,7 @@ void *stream_output_thread (void *arg) {
 																krad_link->mount,
 																krad_link->password);
 	} else {
-		printk ("Outputing to file: %s\n", krad_link->output);
+		printk ("Outputing to file: %s", krad_link->output);
 		krad_link->krad_container = krad_container_open_file (krad_link->output, KRAD_EBML_IO_WRITEONLY);
 	}
 	
@@ -697,12 +697,12 @@ void *stream_output_thread (void *arg) {
 																		 &krad_link->krad_opus->krad_codec_header);
 				break;
 			default:
-				failfast ("Unknown audio codec\n");
+				failfast ("Unknown audio codec");
 		}
 	
 	}
 	
-	printk ("Output/Muxing thread waiting..\n");
+	printk ("Output/Muxing thread waiting..");
 		
 	while ( krad_link->encoding ) {
 
@@ -792,7 +792,7 @@ void *stream_output_thread (void *arg) {
 
 				audio_frames_muxed += frames;
 
-				//printk ("ebml muxed audio frames: %d\n\n", audio_frames_muxed);
+				//printk ("ebml muxed audio frames: %d", audio_frames_muxed);
 			}
 
 			if (krad_link->encoding == 4) {
@@ -850,7 +850,7 @@ void *stream_output_thread (void *arg) {
 		krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 	}
 
-	printk ("Output/Muxing thread exiting\n");
+	printk ("Output/Muxing thread exiting");
 	
 	return NULL;
 	
@@ -861,7 +861,7 @@ void *udp_output_thread(void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_udpout", 0, 0, 0);
 
-	printk ("UDP Output thread starting\n");
+	printk ("UDP Output thread starting");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -915,7 +915,7 @@ void *udp_output_thread(void *arg) {
 	
 	free (buffer);
 
-	printk ("UDP Output thread exiting\n");
+	printk ("UDP Output thread exiting");
 	
 	return NULL;
 
@@ -979,7 +979,7 @@ void *stream_input_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	printk ("Input/Demuxing thread starting\n");
+	printk ("Input/Demuxing thread starting");
 
 	unsigned char *buffer;
 	unsigned char *header_buffer;
@@ -1022,14 +1022,14 @@ void *stream_input_thread(void *arg) {
 		header_size = 0;
 
 		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
-		//printk ("packet track %d timecode: %zu\n", current_track, packet_timecode);
+		//printk ("packet track %d timecode: %zu", current_track, packet_timecode);
 		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 20))  {
-			printk ("\nstream input thread packet size was: %d\n", packet_size);
+			printk ("stream input thread packet size was: %d", packet_size);
 			break;
 		}
 		
 		if (krad_container_track_changed (krad_link->krad_container, current_track)) {
-			printk ("track %d changed! status is %d header count is %d\n", current_track, krad_container_track_active(krad_link->krad_container, current_track), krad_container_track_header_count(krad_link->krad_container, current_track));
+			printk ("track %d changed! status is %d header count is %d", current_track, krad_container_track_active(krad_link->krad_container, current_track), krad_container_track_header_count(krad_link->krad_container, current_track));
 			
 			track_codecs[current_track] = krad_container_track_codec (krad_link->krad_container, current_track);
 			
@@ -1040,7 +1040,7 @@ void *stream_input_thread(void *arg) {
 			writeheaders = 1;
 			
 			for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, current_track); h++) {
-				printk ("header %d is %d bytes\n", h, krad_container_track_header_size (krad_link->krad_container, current_track, h));
+				printk ("header %d is %d bytes", h, krad_container_track_header_size (krad_link->krad_container, current_track, h));
 				total_header_size += krad_container_track_header_size (krad_link->krad_container, current_track, h);
 			}
 
@@ -1106,8 +1106,8 @@ void *stream_input_thread(void *arg) {
 		}
 	}
 	
-	printk ("\n");
-	printk ("Input/Demuxing thread exiting\n");
+	printk ("");
+	printk ("Input/Demuxing thread exiting");
 	
 	krad_container_destroy (krad_link->krad_container);
 	
@@ -1123,7 +1123,7 @@ void *udp_input_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	printk ("UDP Input thread starting\n");
+	printk ("UDP Input thread starting");
 
 	int sd;
 	int ret;
@@ -1153,7 +1153,7 @@ void *udp_input_thread(void *arg) {
 	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind (sd, (struct sockaddr *)&local_address, sizeof(local_address)) == -1 ) {
-		failfast ("UDP Input bind error\n");
+		failfast ("UDP Input bind error");
 	}
 	
 	//kludge to get header
@@ -1168,7 +1168,7 @@ void *udp_input_thread(void *arg) {
 	memcpy (opus_header, opus_temp->header_data, opus_header_size);
 	kradopus_encoder_destroy(opus_temp);
 	
-	printk ("placing opus header size is %d\n", opus_header_size);
+	printk ("placing opus header size is %d", opus_header_size);
 	
 	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
 	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
@@ -1183,7 +1183,7 @@ void *udp_input_thread(void *arg) {
 		ret = poll (sockets, 1, 250);	
 	
 		if (ret < 0) {
-			printk ("Krad Link UDP Poll Failure\n");
+			printk ("Krad Link UDP Poll Failure");
 			krad_link->destroy = 1;
 			continue;
 		}
@@ -1193,12 +1193,12 @@ void *udp_input_thread(void *arg) {
 			ret = recvfrom (sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
 		
 			if (ret == -1) {
-				printk ("Krad Link UDP Recv Failure\n");
+				printk ("Krad Link UDP Recv Failure");
 				krad_link->destroy = 1;
 				continue;
 			}
 		
-			//printk ("Received packet from %s:%d\n", 
+			//printk ("Received packet from %s:%d", 
 			//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
 
 
@@ -1207,7 +1207,7 @@ void *udp_input_thread(void *arg) {
 			ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
 		
 			if (ret != 0) {
-				//printk ("read a packet with %d bytes\n", ret);
+				//printk ("read a packet with %d bytes", ret);
 
 				if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			
@@ -1231,7 +1231,7 @@ void *udp_input_thread(void *arg) {
 	close (sd);
 	free (buffer);
 	free (packet_buffer);
-	printk ("UDP Input thread exiting\n");
+	printk ("UDP Input thread exiting");
 	
 	return NULL;
 
@@ -1266,7 +1266,7 @@ void *video_decoding_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	printk ("Video decoding thread starting\n");
+	printk ("Video decoding thread starting");
 
 	int bytes;
 	unsigned char *buffer;	
@@ -1298,7 +1298,7 @@ void *video_decoding_thread(void *arg) {
 		
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&krad_link->video_codec, 4);
 		if ((krad_link->last_video_codec != krad_link->video_codec) || (krad_link->video_codec == NOCODEC)) {
-			printk ("\nvideo codec is %d\n", krad_link->video_codec);
+			printk ("video codec is %d", krad_link->video_codec);
 			if (krad_link->last_video_codec != NOCODEC)	{
 				if (krad_link->last_video_codec == VP8) {
 					krad_vpx_decoder_destroy (krad_link->krad_vpx_decoder);
@@ -1345,7 +1345,7 @@ void *video_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)header[h], header_len[h]);
 				}
 
-				printk ("\n\nTheora Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
+				printk ("Theora Header byte sizes: %d %d %d", header_len[0], header_len[1], header_len[2]);
 				krad_link->krad_theora_decoder = krad_theora_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 			}
 	
@@ -1362,7 +1362,7 @@ void *video_decoding_thread(void *arg) {
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&timecode, 8);
 	
-		//printk ("\nframe timecode: %zu\n", timecode);
+		//printk ("frame timecode: %zu", timecode);
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&bytes, 4);
 		
@@ -1394,7 +1394,7 @@ void *video_decoding_thread(void *arg) {
 			
 			krad_theora_decoder_timecode(krad_link->krad_theora_decoder, &timecode2);
 			
-			///printk ("\n\ntimecode1: %zu timecode2: %zu\n\n", timecode, timecode2);
+			///printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
 			
 			timecode = timecode2;
 			
@@ -1482,7 +1482,7 @@ void *video_decoding_thread(void *arg) {
 	for (h = 0; h < 3; h++) {
 		free(header[h]);
 	}
-	printk ("Video decoding thread exiting\n");
+	printk ("Video decoding thread exiting");
 
 	return NULL;
 
@@ -1494,7 +1494,7 @@ void *audio_decoding_thread(void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	printk ("Audio decoding thread starting\n");
+	printk ("Audio decoding thread starting");
 
 	int c;
 	int h;
@@ -1541,7 +1541,7 @@ void *audio_decoding_thread(void *arg) {
 		
 		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&krad_link->audio_codec, 4);
 		if ((krad_link->last_audio_codec != krad_link->audio_codec) || (krad_link->audio_codec == NOCODEC)) {
-			printk ("\n\naudio codec is %d\n", krad_link->audio_codec);
+			printk ("audio codec is %d", krad_link->audio_codec);
 			if (krad_link->last_audio_codec != NOCODEC)	{
 				if (krad_link->last_audio_codec == FLAC) {
 					krad_flac_decoder_destroy (krad_link->krad_flac);
@@ -1598,7 +1598,7 @@ void *audio_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
 
-				printk ("\n\nVorbis Header byte sizes: %d %d %d\n", header_len[0], header_len[1], header_len[2]);
+				printk ("Vorbis Header byte sizes: %d %d %d", header_len[0], header_len[1], header_len[2]);
 
 				krad_link->krad_vorbis = krad_vorbis_decoder_create (header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 			}
@@ -1620,7 +1620,7 @@ void *audio_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
 			
-				printk ("Opus Header size: %d\n", header_len[0]);
+				printk ("Opus Header size: %d", header_len[0]);
 				krad_link->krad_opus = kradopus_decoder_create (header[0], header_len[0], krad_link->krad_radio->krad_mixer->sample_rate);
 			}
 		}
@@ -1651,7 +1651,7 @@ void *audio_decoding_thread(void *arg) {
 				if (len) {
 				
 					while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[0]) < len) {
-						//printk ("wait!\n");
+						//printk ("wait!");
 						usleep(25000);
 					}
 				
@@ -1663,7 +1663,7 @@ void *audio_decoding_thread(void *arg) {
 				if (len) {
 
 					while (krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[1]) < len) {
-						//printk ("wait!\n");
+						//printk ("wait!");
 						usleep(25000);
 					}
 
@@ -1693,7 +1693,7 @@ void *audio_decoding_thread(void *arg) {
 					bytes = kradopus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 120 * 4);
 					if (bytes) {
 						if ((bytes / 4) != 120) {
-							failfast ("uh oh crazyto\n");
+							failfast ("uh oh crazyto");
 						}
 
 						while ((krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[c]) < bytes) &&
@@ -1739,7 +1739,7 @@ void *audio_decoding_thread(void *arg) {
 		free(header[h]);
 	}
 
-	printk ("Audio decoding thread exiting\n");
+	printk ("Audio decoding thread exiting");
 
 	return NULL;
 
@@ -1749,7 +1749,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	//printk ("krad link decklink frame received %d bytes\n", length);
+	//printk ("krad link decklink frame received %d bytes", length);
 
 	krad_frame_t *krad_frame;
 
@@ -1786,7 +1786,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	} else {
 	
-		failfast ("Krad Decklink underflow\n");
+		failfast ("Krad Decklink underflow");
 	
 	}
 
@@ -1813,7 +1813,7 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 	int c;
 
-	//printk ("krad link decklink audio %d frames\n", frames);
+	//printk ("krad link decklink audio %d frames", frames);
 
 	for (c = 0; c < 2; c++) {
 		krad_link_int16_to_float ( krad_link->krad_decklink->samples[c], (char *)buffer + (c * 2), frames, 4);
@@ -1889,7 +1889,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 
 	int c;
 
-	printk ("Link shutting down\n");
+	printk ("Link shutting down");
 	
 	krad_link->destroy = 1;	
 	
@@ -2012,7 +2012,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	
 	krad_tags_destroy (krad_link->krad_tags);	
 	
-	printk ("Krad Link Closed Clean\n");
+	printk ("Krad Link Closed Clean");
 	
 	free (krad_link);
 }
@@ -2199,17 +2199,17 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK) {
-		printk ("hrm wtf\n");
+		printk ("hrm wtf");
 	} else {
-		//printk ("tag size %zu\n", ebml_data_size);
+		//printk ("tag size %zu", ebml_data_size);
 	}
 	
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_OPERATION_MODE) {
-		printk ("hrm wtf\n");
+		printk ("hrm wtf");
 	} else {
-		//printk ("tag size %zu\n", ebml_data_size);
+		//printk ("tag size %zu", ebml_data_size);
 	}
 	
 	
@@ -2222,9 +2222,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
@@ -2234,9 +2234,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-			printk ("hrm wtf3\n");
+			printk ("hrm wtf3");
 		} else {
-			//printk ("tag value size %zu\n", ebml_data_size);
+			//printk ("tag value size %zu", ebml_data_size);
 		}
 
 		krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
@@ -2248,9 +2248,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
@@ -2262,9 +2262,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
-				printk ("hrm wtf3\n");
+				printk ("hrm wtf3");
 			} else {
-				//printk ("tag value size %zu\n", ebml_data_size);
+				//printk ("tag value size %zu", ebml_data_size);
 			}
 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->input, ebml_data_size);
@@ -2274,9 +2274,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-				printk ("hrm wtf2\n");
+				printk ("hrm wtf2");
 			} else {
-				//printk ("tag name size %zu\n", ebml_data_size);
+				//printk ("tag name size %zu", ebml_data_size);
 			}
 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->host, ebml_data_size);
@@ -2284,9 +2284,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-				printk ("hrm wtf3\n");
+				printk ("hrm wtf3");
 			} else {
-				//printk ("tag value size %zu\n", ebml_data_size);
+				//printk ("tag value size %zu", ebml_data_size);
 			}
 
 			krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
@@ -2294,9 +2294,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-				printk ("hrm wtf2\n");
+				printk ("hrm wtf2");
 			} else {
-				//printk ("tag name size %zu\n", ebml_data_size);
+				//printk ("tag name size %zu", ebml_data_size);
 			}
 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
@@ -2309,9 +2309,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE) {
-			printk ("hrm wtf\n");
+			printk ("hrm wtf");
 		} else {
-			//printk ("tag size %zu\n", ebml_data_size);
+			//printk ("tag size %zu", ebml_data_size);
 		}
 	
 	
@@ -2335,9 +2335,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_AV_MODE) {
-			printk ("hrm wtf\n");
+			printk ("hrm wtf");
 		} else {
-			//printk ("tag size %zu\n", ebml_data_size);
+			//printk ("tag size %zu", ebml_data_size);
 		}
 	
 	
@@ -2350,9 +2350,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC) {
-				printk ("hrm wtf2v\n");
+				printk ("hrm wtf2v");
 			} else {
-				//printk ("tag name size %zu\n", ebml_data_size);
+				//printk ("tag name size %zu", ebml_data_size);
 			}
 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
@@ -2366,9 +2366,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC) {
-				printk ("hrm wtf2a\n");
+				printk ("hrm wtf2a");
 			} else {
-				//printk ("tag name size %zu\n", ebml_data_size);
+				//printk ("tag name size %zu", ebml_data_size);
 			}
 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
@@ -2385,9 +2385,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
@@ -2397,9 +2397,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->host, ebml_data_size);
@@ -2407,9 +2407,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-			printk ("hrm wtf3\n");
+			printk ("hrm wtf3");
 		} else {
-			//printk ("tag value size %zu\n", ebml_data_size);
+			//printk ("tag value size %zu", ebml_data_size);
 		}
 
 		krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
@@ -2417,9 +2417,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
@@ -2427,9 +2427,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PASSWORD) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->password, ebml_data_size);
@@ -2449,9 +2449,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
-			printk ("hrm wtf2\n");
+			printk ("hrm wtf2");
 		} else {
-			//printk ("tag name size %zu\n", ebml_data_size);
+			//printk ("tag name size %zu", ebml_data_size);
 		}
 
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->output, ebml_data_size);
@@ -2624,14 +2624,14 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	switch ( command ) {
 
 		case EBML_ID_KRAD_LINK_CMD_LIST_LINKS:
-			printk ("krad linker handler! LIST_LINKS\n");
+			printk ("krad linker handler! LIST_LINKS");
 			
 			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_LINK_MSG, &response);
 			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_LINK_LINK_LIST, &element);	
 			
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] != NULL) {
-					printk ("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+					printk ("Link %d Active: %s", k, krad_linker->krad_link[k]->mount);
 					krad_linker_link_to_ebml ( krad_ipc, krad_linker->krad_link[k]);
 				}
 			}
@@ -2641,7 +2641,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						
 			break;
 		case EBML_ID_KRAD_LINK_CMD_CREATE_LINK:
-			printk ("krad linker handler! CREATE_LINK\n");
+			printk ("krad linker handler! CREATE_LINK");
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] == NULL) {
 
@@ -2661,11 +2661,11 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			}
 			break;
 		case EBML_ID_KRAD_LINK_CMD_DESTROY_LINK:
-			printk ("krad linker handler! DESTROY_LINK\n");
+			printk ("krad linker handler! DESTROY_LINK");
 			
 			tinyint = krad_ipc_server_read_number (krad_ipc, ebml_data_size);
 			k = tinyint;
-			printk ("krad linker handler! DESTROY_LINK: %d %u\n", k, tinyint);
+			printk ("krad linker handler! DESTROY_LINK: %d %u", k, tinyint);
 			
 			if (krad_linker->krad_link[k] != NULL) {
 				krad_link_destroy (krad_linker->krad_link[k]);
@@ -2674,7 +2674,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			
 			break;
 		case EBML_ID_KRAD_LINK_CMD_UPDATE_LINK:
-			printk ("krad linker handler! UPDATE_LINK\n");
+			printk ("krad linker handler! UPDATE_LINK");
 			
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 			
@@ -2682,7 +2682,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			
 				tinyint = krad_ipc_server_read_number (krad_ipc, ebml_data_size);
 				k = tinyint;
-				printk ("krad linker handler! UPDATE_LINK: %d %u\n", k, tinyint);
+				printk ("krad linker handler! UPDATE_LINK: %d %u", k, tinyint);
 			
 				if (krad_linker->krad_link[k] != NULL) {
 

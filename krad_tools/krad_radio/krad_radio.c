@@ -192,7 +192,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	element = 0;
 	response = 0;
 
-	//printf("handler! \n");
+	//printf("handler! ");
 	
 	krad_ipc_server_read_command ( krad_radio_station->krad_ipc, &command, &ebml_data_size);
 
@@ -200,31 +200,31 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		
 		/* Handoffs */
 		case EBML_ID_KRAD_MIXER_CMD:
-			printk ("Krad Mixer Command\n");
+			printk ("Krad Mixer Command");
 			return krad_mixer_handler ( krad_radio_station->krad_mixer, krad_radio_station->krad_ipc );
 		case EBML_ID_KRAD_COMPOSITOR_CMD:
-			printk ("Krad Compositor Command\n");
+			printk ("Krad Compositor Command");
 			return krad_compositor_handler ( krad_radio_station->krad_compositor, krad_radio_station->krad_ipc );			
 		case EBML_ID_KRAD_LINK_CMD:
-			printk ("Krad Link Command\n");
+			printk ("Krad Link Command");
 			return krad_linker_handler ( krad_radio_station->krad_linker, krad_radio_station->krad_ipc );
 
 		/* Krad Radio Commands */
 		case EBML_ID_KRAD_RADIO_CMD:
-			printk ("Krad Radio Command\n");
+			printk ("Krad Radio Command");
 			return krad_radio_handler ( output, output_len, ptr );
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
-			printk ("LIST_TAGS\n");
+			printk ("LIST_TAGS");
 			
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
-				failfast ("missing item\n");
+				failfast ("missing item");
 			}
 			
 			krad_ebml_read_string (krad_radio_station->krad_ipc->current_client->krad_ebml, tag_item, ebml_data_size);
 			
-			printk ("Get Tags for %s\n", tag_item);
+			printk ("Get Tags for %s", tag_item);
 
 			if (strncmp("station", tag_item, 7) == 0) {
 				krad_tags = krad_radio_station->krad_tags;
@@ -233,21 +233,21 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			}
 			
 			if (krad_tags != NULL) {
-				printk ("Got Tags for %s\n", tag_item);
+				printk ("Got Tags for %s", tag_item);
 		
 				krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 				krad_ipc_server_response_list_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
 			
 				while (krad_tags_get_next_tag ( krad_tags, &i, &tag_name, &tag_value)) {
 					krad_ipc_server_response_add_tag ( krad_radio_station->krad_ipc, tag_name, tag_value);
-					printk ("Tag %d: %s - %s\n", i, tag_name, tag_value);
+					printk ("Tag %d: %s - %s", i, tag_name, tag_value);
 				}
 			
 				krad_ipc_server_response_list_finish ( krad_radio_station->krad_ipc, element );
 				krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response );
 
 			} else {
-				printke ("Could not find %s\n", tag_item);
+				printke ("Could not find %s", tag_item);
 			}
 
 			return 1;
@@ -262,9 +262,9 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				krad_tags = krad_radio_find_tags_for_item ( krad_radio_station, tag_item );
 				if (krad_tags != NULL) {
 					krad_tags_set_tag ( krad_tags, tag_name, tag_value);
-					printk ("Set Tag %s on %s to %s\n", tag_name, tag_item, tag_value);
+					printk ("Set Tag %s on %s to %s", tag_name, tag_item, tag_value);
 				} else {
-					printke ("Could not find %s\n", tag_item);
+					printke ("Could not find %s", tag_item);
 				}
 			}
 
@@ -273,16 +273,16 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 		case EBML_ID_KRAD_RADIO_CMD_GET_TAG:
 			krad_ipc_server_read_tag ( krad_radio_station->krad_ipc, &tag_item, &tag_name, &tag_value );
-			printk ("Get Tag %s - %s - %s\n", tag_item, tag_name, tag_value);
+			printk ("Get Tag %s - %s - %s", tag_item, tag_name, tag_value);
 			if (strncmp("station", tag_item, 7) == 0) {
 				tag_value = krad_tags_get_tag (krad_radio_station->krad_tags, tag_name);
 			} else {
 				krad_tags = krad_radio_find_tags_for_item ( krad_radio_station, tag_item );
 				if (krad_tags != NULL) {
 					tag_value = krad_tags_get_tag ( krad_tags, tag_name );
-					printk ("Got Tag %s on %s - %s\n", tag_name, tag_item, tag_value);
+					printk ("Got Tag %s on %s - %s", tag_name, tag_item, tag_value);
 				} else {
-					printke ("Could not find %s\n", tag_item);
+					printke ("Could not find %s", tag_item);
 				}
 			}
 			
@@ -298,7 +298,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_RADIO_HTTP_PORT) {
-				printke ("hrm wtf5\n");
+				printke ("hrm wtf5");
 			}
 			
 			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);	
@@ -306,7 +306,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_RADIO_WEBSOCKET_PORT) {
-				printke ("hrm wtf6\n");
+				printke ("hrm wtf6");
 			}
 			
 			numbers[1] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
@@ -339,7 +339,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
-				printke ("hrm wtf6\n");
+				printke ("hrm wtf6");
 			}
 			
 			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
@@ -359,7 +359,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_RADIO_UDP_PORT) {
-				printke ("hrm wtf6\n");
+				printke ("hrm wtf6");
 			}
 			
 			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
@@ -388,7 +388,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return 1;
 			
 		default:
-			printke ("Krad Radio Command Unknown! %u\n", command);
+			printke ("Krad Radio Command Unknown! %u", command);
 			return 0;
 	}
 

@@ -123,7 +123,7 @@ void failfast (char* format, ...) {
 	va_start(args, format);
 	vfprintf(stdout, format, args);
 	va_end(args);
-
+	printf ("\n");
 	exit (1);
 	
 }
@@ -147,6 +147,7 @@ void printkd (char* format, ...) {
 		va_start(args, format);
 		vfprintf(stdout, format, args);
 		va_end(args);
+		printf ("\n");		
 	}
 }
 
@@ -158,6 +159,7 @@ void printk (char* format, ...) {
 		va_start(args, format);
 		vfprintf(stdout, format, args);
 		va_end(args);
+		printf ("\n");
 	}
 }
 
