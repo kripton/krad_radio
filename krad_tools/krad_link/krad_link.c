@@ -293,11 +293,11 @@ void *video_encoding_thread(void *arg) {
 					printk ("Alert! Reduced VP8 quality due to frames avail > 30");
 				}
 				
-				if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < (1)) {
-					krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
-												  (((1000 / krad_link->encoding_fps) / 2) * 1000));
-					printk ("Alert! Increased VP8 quality");
-				}				
+				//if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < (1)) {
+				//	krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
+				//								  (((1000 / krad_link->encoding_fps) / 2) * 1000));
+				//	printk ("Alert! Increased VP8 quality");
+				//}				
 				
 				packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
 								    (unsigned char **)&video_packet,
