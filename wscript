@@ -7,15 +7,12 @@ from waflib.Errors import ConfigurationError
 from waflib import Configure, Logs
 import os, sys
 
-klibdir = "krad_ebml"
-toolsdir = "krad_tools"
-appsdir = "krad_apps"
+toolsdir = "tools"
+appsdir = "apps"
 subdirs = os.listdir('./' + toolsdir)
 
 for s in subdirs:
 	subdirs[subdirs.index(s)] = os.getcwd() + "/" + toolsdir + "/" + s
-
-subdirs += [os.getcwd() + "/" + klibdir]
 	
 subdirs += [os.getcwd() + "/" + appsdir]
 	

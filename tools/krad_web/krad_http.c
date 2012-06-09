@@ -344,10 +344,10 @@ krad_http_t *krad_http_server_create (int port, int websocket_port) {
 	krad_http->port = port;
 	krad_http->websocket_port = websocket_port;
 	
-	krad_http->js = (char *)krad_tools_krad_web_res_krad_radio_js;
-	krad_http->html = (char *)krad_tools_krad_web_res_krad_radio_html;
-	krad_http->js_len = krad_tools_krad_web_res_krad_radio_js_len;
-	krad_http->html_len = krad_tools_krad_web_res_krad_radio_html_len;
+	krad_http->js = (char *)tools_krad_web_res_krad_radio_js;
+	krad_http->html = (char *)tools_krad_web_res_krad_radio_html;
+	krad_http->js_len = tools_krad_web_res_krad_radio_js_len;
+	krad_http->html_len = tools_krad_web_res_krad_radio_html_len;
 	
 	snprintf (string, 7, "%6d", krad_http->websocket_port);		
 	memcpy (strstr (krad_http->html, "WSPORT"), string, 6);	

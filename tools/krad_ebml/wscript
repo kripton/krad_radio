@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-KRADEBML_VERSION = '2.42'
+KRADEBML_VERSION = '3.01'
 
 sources = """
 krad_ebml.c
