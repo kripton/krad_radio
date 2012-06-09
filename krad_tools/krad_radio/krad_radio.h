@@ -13,13 +13,16 @@ typedef struct krad_radio_St krad_radio_t;
 #ifndef KRAD_RADIO_H
 #define KRAD_RADIO_H
 
+// FIXME option builds
+// #include "krad_wayland.h"
+// #include "krad_codec2.h"
+
 #include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_tags.h"
 #include "krad_ipc_server.h"
 #include "krad_radio_ipc.h"
 #include "krad_osc.h"
-#include "krad_wayland.h"
 #include "krad_ring.h"
 #include "krad_tone.h"
 #include "krad_audio.h"
@@ -39,7 +42,6 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_vpx.h"
 #include "krad_v4l2.h"
 #include "krad_gui.h"
-#include "krad_codec2.h"
 #include "krad_opus.h"
 #include "krad_vorbis.h"
 #include "krad_flac.h"

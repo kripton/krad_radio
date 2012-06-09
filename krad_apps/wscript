@@ -12,7 +12,9 @@ krad_radio.c
 sources = """
 """.split()
 
+# FIXME option builds
 # FIXME ../krad_tools/krad_wayland/krad_wayland.c
+# FIXME ../krad_tools/krad_codec2/krad_codec2.c
 
 depsources = """
 ../krad_tools/krad_link/krad_link_common.c
@@ -63,7 +65,6 @@ depsources = """
 ../krad_tools/krad_container/krad_container.c
 ../krad_tools/krad_x11/krad_x11.c
 ../krad_tools/krad_udp/krad_udp.c
-../krad_tools/krad_codec2/krad_codec2.c
 ../krad_tools/krad_decklink/krad_decklink.c
 ../krad_tools/krad_decklink/krad_decklink_capture.cpp
 ../krad_tools/krad_decklink/vendor/DeckLinkAPIDispatch.cpp
@@ -122,9 +123,12 @@ includedirs = """
 /usr/include
 """.split()
 
-libs = ["samplerate", "codec2", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
+libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", 
-		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "wayland-client"]
+		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets"]
+
+# FIXME option builds
+# libs = libs + ["wayland-client", "codec2"] 
 
 def configure(conf):
 	

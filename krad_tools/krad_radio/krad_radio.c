@@ -223,7 +223,7 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 	krad_ipc_server_run (krad_radio_station->krad_ipc);
 
 	while (1) {
-		krad_x11_test (krad_radio_station);
+		//krad_x11_test (krad_radio_station);
 		sleep (5);
 	}
 }
