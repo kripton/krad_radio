@@ -26,7 +26,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
 	kradvpx->cfg.g_threads = 3;
-	//kradvpx->cfg.kf_max_dist = 30;
+	kradvpx->cfg.kf_max_dist = 90;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
