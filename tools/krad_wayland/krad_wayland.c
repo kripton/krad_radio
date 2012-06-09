@@ -273,10 +273,10 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 	}
 }
 
-int krad_wayland_run (krad_wayland_t *krad_wayland) {
+int krad_wayland_open_window (krad_wayland_t *krad_wayland, int width, int height) {
 
 	krad_wayland_create_display (krad_wayland);
-	krad_wayland_create_window (krad_wayland, 1280, 720);
+	krad_wayland_create_window (krad_wayland, width, height);
 
 	int count;
 

@@ -63,7 +63,7 @@ struct krad_wayland_St {
 
 void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, void *), void *pointer);
 
-int krad_wayland_run (krad_wayland_t *krad_wayland);
+int krad_wayland_open_window (krad_wayland_t *krad_wayland, int width, int height);
 
 void krad_wayland_destroy (krad_wayland_t *krad_wayland);
 krad_wayland_t *krad_wayland_create ();
