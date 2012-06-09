@@ -25,7 +25,7 @@ struct krad_wayland_display_St {
 	struct wl_shm *shm;
 	uint32_t formats;
 	uint32_t mask;
-	
+
 	struct wl_shm_listener shm_listener;
 
 };
@@ -38,7 +38,7 @@ struct krad_wayland_window_St {
 	struct wl_buffer *buffer;
 	void *shm_data;
 	struct wl_callback *callback;
-	
+
 	struct wl_shell_surface_listener surface_listener;
 	struct wl_callback_listener frame_listener;
 };
@@ -48,24 +48,25 @@ struct krad_wayland_St {
 
 	krad_wayland_window_t *window;
 	krad_wayland_display_t *display;
-	
+
 	int frame_size;
 	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
 	int current_buffer;
-	
-	int (*frame_callback)(void *, void *);	
+
+	int (*frame_callback)(void *, uint32_t);
 	void *callback_pointer;
 
 	int render_test_pattern;
-	
+
 	int running;
 
 };
 
 
-void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, void *), void *pointer);
+void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, uint32_t), void *pointer);
 
-int krad_wayland_open_window (krad_wayland_t *krad_wayland, int width, int height);
+int krad_wayland_prepare_window (krad_wayland_t *krad_wayland, int width, int height, void **buffer);
+int krad_wayland_open_window (krad_wayland_t *krad_wayland);
 
 void krad_wayland_destroy (krad_wayland_t *krad_wayland);
 krad_wayland_t *krad_wayland_create ();

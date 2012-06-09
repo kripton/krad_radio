@@ -54,10 +54,13 @@ struct wcap_decoder {
 	uint32_t msecs;
 	uint32_t count;
 	int width, height;
+	int external_buffer;
 };
 
 int wcap_decoder_get_frame(struct wcap_decoder *decoder);
-struct wcap_decoder *wcap_decoder_create(const char *filename);
+struct wcap_decoder *wcap_decoder_create(const char *filename, int external_buffer);
+
+void wcap_decoder_set_external_buffer(struct wcap_decoder *decoder, void *external_buffer);
 void wcap_decoder_destroy(struct wcap_decoder *decoder);
 
 #endif

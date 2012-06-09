@@ -85,9 +85,9 @@ wcap_decoder_get_frame(struct wcap_decoder *decoder)
 {
 	struct wcap_rectangle *rects;
 	struct wcap_frame_header *header;
-	uint32_t *s;
+	//uint32_t *s;
 	uint32_t i;
-	int width, height;
+	//int width, height;
 
 	if (decoder->p == decoder->end)
 		return 0;
@@ -99,8 +99,8 @@ wcap_decoder_get_frame(struct wcap_decoder *decoder)
 	rects = (void *) (header + 1);
 	decoder->p = (uint32_t *) (rects + header->nrects);
 	for (i = 0; i < header->nrects; i++) {
-		width = rects[i].x2 - rects[i].x1;
-		height = rects[i].y2 - rects[i].y1;
+		//width = rects[i].x2 - rects[i].x1;
+		//height = rects[i].y2 - rects[i].y1;
 		wcap_decoder_decode_rectangle(decoder, &rects[i]);
 	}
 
@@ -108,7 +108,7 @@ wcap_decoder_get_frame(struct wcap_decoder *decoder)
 }
 
 struct wcap_decoder *
-wcap_decoder_create(const char *filename)
+wcap_decoder_create(const char *filename, int external_buffer)
 {
 	struct wcap_decoder *decoder;
 	struct wcap_header *header;
@@ -137,16 +137,28 @@ wcap_decoder_create(const char *filename)
 	decoder->end = decoder->map + decoder->size;
 
 	frame_size = header->width * header->height * 4;
-	decoder->frame = malloc(frame_size);
-	memset(decoder->frame, 0, frame_size);
 
+	if (external_buffer == 1) {
+		decoder->external_buffer = 1;
+	} else {
+		decoder->frame = malloc(frame_size);
+		memset(decoder->frame, 0, frame_size);
+	}
 	return decoder;
+}
+
+void
+wcap_decoder_set_external_buffer(struct wcap_decoder *decoder, void *buffer)
+{
+	decoder->frame = buffer;
 }
 
 void
 wcap_decoder_destroy(struct wcap_decoder *decoder)
 {
 	munmap(decoder->map, decoder->size);
-	free(decoder->frame);
+	if (decoder->external_buffer == 0) {
+		free(decoder->frame);
+	}
 	free(decoder);
 }

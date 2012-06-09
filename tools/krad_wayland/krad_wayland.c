@@ -2,12 +2,12 @@
 
 /* static for once, more clean you say? I do prototype them, in order. */
 
-static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames, 
+static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames,
 											uint32_t format, void **data_out);
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
 static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *shell_surface,
 											uint32_t edges, int32_t width, int32_t height);
-static void krad_wayland_handle_popup_done (void *data, struct wl_shell_surface *shell_surface);											
+static void krad_wayland_handle_popup_done (void *data, struct wl_shell_surface *shell_surface);
 
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format);
 static int krad_wayland_event_mask_update (uint32_t mask, void *data);
@@ -18,7 +18,7 @@ static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland);
 static void krad_wayland_create_display (krad_wayland_t *krad_wayland);
 
 static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland);
-static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height);
+static int krad_wayland_create_window (krad_wayland_t *krad_wayland);
 
 static void krad_wayland_frame_listener (void *data, struct wl_callback *callback, uint32_t time);
 static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int width, int height, uint32_t time);
@@ -76,17 +76,17 @@ static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wid
 											
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial) {
 	wl_shell_surface_pong (shell_surface, serial);
-	printf ("handle ping happened\n");	
+	//printf ("handle ping happened\n");	
 }
 
 static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *shell_surface,
 							  uint32_t edges, int32_t width, int32_t height) {
-	printf ("handle configure happened\n");
+	//printf ("handle configure happened\n");
 							  
 }
 
 static void krad_wayland_handle_popup_done (void *data, struct wl_shell_surface *shell_surface) {
-	printf ("handle popup_done happened\n");	
+	//printf ("handle popup_done happened\n");	
 }
 
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format) {
@@ -94,9 +94,9 @@ static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t
 	krad_wayland_t *krad_wayland = data;
 
 	krad_wayland->display->formats |= (1 << format);
-	
-	printf ("shm_format happened\n");	
-	
+
+	//printf ("shm_format happened\n");
+
 }
 
 static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
@@ -122,9 +122,9 @@ static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
 		krad_wayland->display->shm = wl_display_bind(display, id, &wl_shm_interface);
 		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->display->shm_listener, krad_wayland);
 	}
-	
-	printf ("display_handle_global happened\n");	
-	
+
+	//printf ("display_handle_global happened\n");
+
 }
 
 static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
@@ -151,7 +151,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display = calloc (1, sizeof (krad_wayland_display_t));
 	krad_wayland->display->display = wl_display_connect (NULL);
 	if (krad_wayland->display->display == NULL) {
-		printf ("Can't connect to wayland\n");
+		fprintf (stderr, "Can't connect to wayland\n");
 		exit (1);
 	}
 
@@ -183,15 +183,10 @@ static void krad_wayland_destroy_window (krad_wayland_t *krad_wayland) {
 	free (krad_wayland->window);
 }
 
-static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, int height) {
-
-	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
-
-	krad_wayland_create_shm_buffer (krad_wayland, width, height, KRAD_WAYLAND_BUFFER_COUNT,
-									WL_SHM_FORMAT_XRGB8888, &krad_wayland->window->shm_data);
+static int krad_wayland_create_window (krad_wayland_t *krad_wayland) {
 
 	krad_wayland->current_buffer = 0;
-	
+
 	krad_wayland->window->buffer = krad_wayland->buffer[krad_wayland->current_buffer];
 
 	if (!krad_wayland->window->buffer) {
@@ -199,15 +194,11 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland, int width, 
 		return 1;
 	}
 
-
 	krad_wayland->window->surface_listener.ping = krad_wayland_handle_ping;
 	krad_wayland->window->surface_listener.configure = krad_wayland_handle_configure;
 	krad_wayland->window->surface_listener.popup_done = krad_wayland_handle_popup_done;
 
-
 	krad_wayland->window->callback = NULL;
-	krad_wayland->window->width = width;
-	krad_wayland->window->height = height;
 	krad_wayland->window->surface = wl_compositor_create_surface (krad_wayland->display->compositor);
 	krad_wayland->window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, 
 																	  krad_wayland->window->surface);
@@ -228,7 +219,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	krad_wayland_t *krad_wayland = data;
 
 	int updated;
-	
+
 	updated = 0;
 
 	//printf ("redraw happened %u\n", time);
@@ -239,13 +230,15 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	}
 
 	if (krad_wayland->frame_callback != NULL) {
-		updated = krad_wayland->frame_callback (krad_wayland->window->shm_data, krad_wayland->callback_pointer);
+		updated = krad_wayland->frame_callback (krad_wayland->callback_pointer, time);
 	}
 
 	wl_surface_attach (krad_wayland->window->surface, krad_wayland->window->buffer, 0, 0);
 
 	if (updated) {
 		wl_surface_damage (krad_wayland->window->surface, 0, 0, krad_wayland->window->width, krad_wayland->window->height);
+	} else {
+		wl_surface_damage (krad_wayland->window->surface, 0, 0, 1, 1);
 	}
 
 	if (callback) {
@@ -253,11 +246,11 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	}
 
 	krad_wayland->window->callback = wl_surface_frame (krad_wayland->window->surface);
-	
+
 	krad_wayland->window->frame_listener.done = krad_wayland_frame_listener;
-	
+
 	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland);
-	
+
 	//printf ("redraw done\n");
 
 }
@@ -275,10 +268,38 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 	}
 }
 
-int krad_wayland_open_window (krad_wayland_t *krad_wayland, int width, int height) {
+
+int krad_wayland_prepare_window (krad_wayland_t *krad_wayland, int width, int height, void **buffer) {
+
+	int ret;
 
 	krad_wayland_create_display (krad_wayland);
-	krad_wayland_create_window (krad_wayland, width, height);
+
+	krad_wayland->window = calloc (1, sizeof (krad_wayland_window_t));
+
+	if (krad_wayland->window == NULL) {
+		return 1;
+	}
+
+	krad_wayland->window->width = width;
+	krad_wayland->window->height = height;
+
+	ret = krad_wayland_create_shm_buffer (krad_wayland, width, height, KRAD_WAYLAND_BUFFER_COUNT,
+					      WL_SHM_FORMAT_XRGB8888, &krad_wayland->window->shm_data);
+
+	if (ret == 0) {
+		*buffer = krad_wayland->window->shm_data;
+	} else {
+		free (krad_wayland->window);
+	}
+
+	return ret;
+
+}
+
+int krad_wayland_open_window (krad_wayland_t *krad_wayland) {
+
+	krad_wayland_create_window (krad_wayland);
 
 	int count;
 
@@ -299,14 +320,14 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland, int width, int heigh
 		//printf ("iterate happened %d\n", count);
 	}
 
-	printf ("krad wayland window exiting\n");
+	printf ("Krad Wayland: window closing..\n");
 	krad_wayland_destroy_window (krad_wayland);
 	krad_wayland_destroy_display (krad_wayland);
 
 	return 0;
 }
 
-void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, void *), void *pointer) {
+void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, uint32_t), void *pointer) {
 
 	krad_wayland->frame_callback = frame_callback;
 	krad_wayland->callback_pointer = pointer;
