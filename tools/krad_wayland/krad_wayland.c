@@ -299,7 +299,7 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland, int width, int heigh
 		//printf ("iterate happened %d\n", count);
 	}
 
-	printf ("simple-shm exiting\n");
+	printf ("krad wayland window exiting\n");
 	krad_wayland_destroy_window (krad_wayland);
 	krad_wayland_destroy_display (krad_wayland);
 
