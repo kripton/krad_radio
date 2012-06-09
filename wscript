@@ -43,7 +43,5 @@ def configure(conf):
 	conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
 	conf.recurse(subdirs, mandatory = False)
 	
-	print("\n" + os.getlogin() + ", your almost ready to rock!\n")
-	
 def build(bld):
     bld.recurse(subdirs, mandatory = False)

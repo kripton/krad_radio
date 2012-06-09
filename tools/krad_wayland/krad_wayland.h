@@ -55,6 +55,8 @@ struct krad_wayland_St {
 	
 	int (*frame_callback)(void *, void *);	
 	void *callback_pointer;
+
+	int render_test_pattern;
 	
 	int running;
 

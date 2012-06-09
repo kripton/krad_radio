@@ -46,3 +46,4 @@ krad_apps/krad_radio_gtk
 debian/kradradio*
 tests/krad_cpu_local_test_x11
 tests/krad_cpu_local_test_wayland
+tests/krad_wayland_test
