@@ -5,6 +5,14 @@ int verbose;
 int krad_system_initialized;
 krad_system_t krad_system;
 
+int krad_system_get_cpu_usage () {
+	return krad_system.system_cpu_usage;
+}
+
+void krad_system_set_monitor_cpu_interval (int ms) {
+	krad_system.kcm.interval = ms;
+}
+
 void krad_system_monitor_cpu_on () {
 
 	if (krad_system.kcm.on == 0) {
@@ -31,8 +39,6 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 	kcm = &krad_system.kcm;
 
 	kcm->fd = open ( "/proc/stat", O_RDONLY );
-
-	kcm->interval = KRAD_CPU_MONITOR_INTERVAL;
 
 	while (kcm->on == 1) {
 	
@@ -169,6 +175,7 @@ void krad_system_init () {
 
 	if (krad_system_initialized != 31337) {
 		krad_system_initialized = 31337;
+		krad_system.kcm.interval = KRAD_CPU_MONITOR_INTERVAL;
 		do_shutdown = 0;
 		verbose = 1;
 		krad_system_info_collect ();

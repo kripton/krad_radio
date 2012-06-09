@@ -47,45 +47,7 @@ void krad_wayland_test (krad_radio_t *krad_radio) {
 	
 }
 */
-void krad_x11_test (krad_radio_t *krad_radio) {
 
-	krad_x11_t *krad_x11;
-	krad_compositor_port_t *krad_compositor_port;
-	krad_frame_t *krad_frame;
-
-	int width;
-	int height;
-	
-	krad_compositor_get_info (krad_radio->krad_compositor,
-							  &width,
-							  &height);
-
-	krad_compositor_port = krad_compositor_port_create (krad_radio->krad_compositor, "X11Out", OUTPUT);
-	krad_x11 = krad_x11_create ();
-	
-	krad_x11_create_glx_window (krad_x11, krad_radio->sysname, width, height, NULL);
-	krad_x11_glx_render (krad_x11);
-	while (krad_x11->close_window == 0) {
-
-		krad_frame = krad_compositor_port_pull_frame (krad_compositor_port);
-
-		if (krad_frame != NULL) {
-								 
-			memcpy (krad_x11->pixels, krad_frame->pixels, width * height * 4);
-			krad_framepool_unref_frame (krad_frame);
-			krad_x11_glx_render (krad_x11);
-		} else {
-			usleep (10000);
-		}
-	}
-	
-	krad_x11_destroy_glx_window (krad_x11);
-
-	krad_x11_destroy (krad_x11);
-	
-	krad_compositor_port_destroy (krad_radio->krad_compositor, krad_compositor_port);
-	
-}
 
 static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item );
 static void krad_radio_destroy (krad_radio_t *krad_radio);
@@ -223,7 +185,6 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 	krad_ipc_server_run (krad_radio_station->krad_ipc);
 
 	while (1) {
-		//krad_x11_test (krad_radio_station);
 		sleep (5);
 	}
 }

@@ -44,3 +44,4 @@ krad_apps/krad_radio
 krad_apps/krad_radio_cmd
 krad_apps/krad_radio_gtk
 debian/kradradio*
+tests/krad_cpu_local_test

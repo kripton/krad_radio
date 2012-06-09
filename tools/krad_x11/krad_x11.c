@@ -114,7 +114,7 @@ void krad_x11_glx_render (krad_x11_t *krad_x11) {
 	static float zoomrange = 1.0f;
 	static float rotaterange = 35.0f;
 	
-	static int animate_test = 1;
+	static int animate_test = 0;
 	static int zoom_in = 1;
 
 	k += speed;

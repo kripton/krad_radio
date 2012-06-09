@@ -38,6 +38,49 @@ kradgui_t *kradgui_create_with_internal_surface(int width, int height) {
 
 }
 
+kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *data) {
+
+	kradgui_t *kradgui;
+
+	kradgui = kradgui_create(width, height);
+		
+	kradgui->data = data;
+	kradgui_create_external_surface(kradgui);
+	
+	//incase calloc takes time
+	kradgui_reset_elapsed_time(kradgui);
+	clock_gettime(CLOCK_MONOTONIC, &kradgui->start_time);
+
+	return kradgui;
+
+}
+
+void kradgui_create_external_surface(kradgui_t *kradgui) {
+
+	kradgui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, kradgui->width);
+	kradgui->bytes = kradgui->stride * kradgui->height;
+	kradgui->cst = cairo_image_surface_create_for_data (kradgui->data, CAIRO_FORMAT_ARGB32, kradgui->width, kradgui->height, kradgui->stride);
+	kradgui->cr = cairo_create(kradgui->cst);
+	kradgui->external_surface = 1;
+	
+}
+
+void kradgui_destroy_external_surface(kradgui_t *kradgui) {
+
+	if (kradgui->external_surface == 1) {
+		if (kradgui->cr != NULL) {
+			cairo_destroy (kradgui->cr);
+		}
+		cairo_surface_destroy (kradgui->cst);
+		kradgui->cst = NULL;
+		kradgui->data = NULL;
+		kradgui->stride = 0;
+		kradgui->bytes = 0;
+		kradgui->external_surface = 0;
+	}
+}
+
+
 void kradgui_create_internal_surface(kradgui_t *kradgui) {
 
 	kradgui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, kradgui->width);
@@ -98,6 +141,10 @@ void kradgui_destroy(kradgui_t *kradgui) {
 	if (kradgui->internal_surface == 1) {
 		kradgui_destroy_internal_surface(kradgui);
 	}
+	
+	if (kradgui->external_surface == 1) {
+		kradgui_destroy_external_surface(kradgui);
+	}	
 
 	free(kradgui);
 
@@ -1435,7 +1482,7 @@ void kradgui_render_tearbar(kradgui_t *kradgui) {
 }
 
 
-void kradgui_test_screen(kradgui_t *kradgui, char *info) {
+void kradgui_test_screen (kradgui_t *kradgui, char *info) {
 
 	time_t t;
 
@@ -1450,7 +1497,7 @@ void kradgui_test_screen(kradgui_t *kradgui, char *info) {
 	}
 	
 	
-	kradgui_go_live(kradgui);
+	kradgui_go_live (kradgui);
 	kradgui->render_rgb = 1;
 	kradgui->render_test_text = 1;
 	kradgui->render_rotator = 1;
