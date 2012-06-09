@@ -164,12 +164,12 @@ void inspect_flac_file (char *filename) {
 		//printf("sample rate is %u\n", sample_rate);
 		
 		
-		if ((min_blocksize == 0) || (max_blocksize == 0) || (min_blocksize != max_blocksize) || (sample_rate != 44100) || (bit_depth != 16)
-			|| (channels != 2)) {
+		///if ((min_blocksize == 0) || (max_blocksize == 0) || (min_blocksize != max_blocksize) || (sample_rate != 44100) || (bit_depth != 16)
+		//	|| (channels != 2)) {
 		
-			printf("File: %s\t\tR: %u B: %u C: %u BS %u-%u\n", filename, sample_rate, bit_depth, channels, min_blocksize, max_blocksize);
+			printf("File: %s\t\tR: %u B: %u C: %u BS: %u-%u\n", filename, sample_rate, bit_depth, channels, min_blocksize, max_blocksize);
 		
-		} 
+		//} 
 	
 	} else {
 	
