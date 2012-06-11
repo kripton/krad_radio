@@ -50,14 +50,14 @@ void *krad_transmitter_listening_thread (void *arg) {
 		ret = epoll_wait (krad_transmitter->incoming_connections_efd, krad_transmitter->incoming_connection_events, KRAD_TRANSMITTER_MAXEVENTS, 1000);
 
 		if (ret < 0) {
-			printke ("Krad Transmitter: Failed on poll");
+			printke ("Krad Transmitter: Failed on epoll wait");
 			krad_transmitter->stop_listening = 1;
 			break;
 		}
 	
 		if (ret > 0) {
 		
-			for (e = 0; e < ret; e++) {	
+			for (e = 0; e < ret; e++) {
 	
 				if ((krad_transmitter->incoming_connection_events[e].events & EPOLLERR) ||
 				    (krad_transmitter->incoming_connection_events[e].events & EPOLLHUP))
@@ -105,7 +105,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 						krad_transmitter->event.events = EPOLLIN | EPOLLET;
 						eret = epoll_ctl (krad_transmitter->incoming_connections_efd, EPOLL_CTL_ADD, client_fd, &krad_transmitter->event);
 						if (eret != 0) {
-							failfast ("Krad Transmitter:incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
+							failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
 						}
 					}
 		
@@ -113,10 +113,45 @@ void *krad_transmitter_listening_thread (void *arg) {
 			
 				}
 				
+				if (krad_transmitter->incoming_connection_events[e].events & EPOLLIN) {
 
+					int done = 0;
 
+					while (1) {
+					
+						ssize_t count;
+						char buf[512];
+						int s;
+
+						count = read (krad_transmitter->incoming_connection_events[e].data.fd, buf, sizeof (buf));
+						if (count == -1) {
+							if (errno != EAGAIN) {
+								printke ("Krad Transmitter: error reading from a new incoming connection socket");
+								done = 1;
+							}
+							break;
+						}
+
+						if (count == 0) {
+							//EOF ie. client closed connection
+							done = 1;
+							break;
+						}
+
+						s = write (1, buf, count);
+						if (s == -1) {
+							failfast ("write");
+						}
+					}
+					
+					if (done) {
+						printk ("Closed connection on descriptor %d\n", krad_transmitter->incoming_connection_events[e].data.fd);
+						close (krad_transmitter->incoming_connection_events[e].data.fd);
+					}
+				}
 			}
 		}
+
 		
 		if (ret == 0) {
 			printk ("Krad Transmitter: Listening thread... nothing happened");
