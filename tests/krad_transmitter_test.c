@@ -9,7 +9,7 @@ void krad_transmitter_test (int port) {
 	
 	krad_transmitter_listen_on (krad_transmitter, port);
 	
-	krad_transmitter_transmission_create (krad_transmitter, "Test Ass", "fake/type");
+	krad_transmitter_transmission_create (krad_transmitter, "testass", "fake/type");
 	
 	usleep (2555000);
 	
