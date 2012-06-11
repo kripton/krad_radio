@@ -27,6 +27,8 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	
 	krad_theora->keyframe_shift = krad_theora->info.keyframe_granule_shift;
 	
+	printk ("Loading Theora encoder version %s\n", th_version_string());
+	
 	printk ("Theora keyframe shift %d\n", krad_theora->keyframe_shift);	
 	
 	//FIXME hardcoded
@@ -48,7 +50,7 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	} else {
 		//FOR x86 Realtime
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
-		//krad_theora->speed -= 1;
+		krad_theora->speed -= 1;
 		printk ("Theora encoder speed: %d quality: %d\n", krad_theora->speed, krad_theora->quality);
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
 	}

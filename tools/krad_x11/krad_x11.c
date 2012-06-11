@@ -222,14 +222,15 @@ void krad_x11_glx_wait_or_poll (krad_x11_t *krad_x11, int wait) {
 		krad_x11->close_window = 1;
 	}
 	
-	if (krad_x11->event) {
+	
+	while (krad_x11->event != NULL) {
 
 		switch (krad_x11->event->response_type & ~0x80) {
 
 			case XCB_KEY_PRESS:
 				krad_x11->press = (xcb_button_press_event_t *)krad_x11->event;
-				printf("\nX11 Keypress: %d\n\n", krad_x11->press->detail);
-				krad_x11_capture(krad_x11, NULL);
+				printk ("\nX11 Keypress: %d\n\n", krad_x11->press->detail);
+				//krad_x11_capture(krad_x11, NULL);
 				break;
 			case XCB_EXPOSE:
 				/* Handle expose event, draw and swap buffers */
@@ -242,17 +243,39 @@ void krad_x11_glx_wait_or_poll (krad_x11_t *krad_x11, int wait) {
 		if ((krad_x11->event->response_type & 0x7f) == XCB_CLIENT_MESSAGE) {
 			xcb_client_message_event_t* evt = (xcb_client_message_event_t*)krad_x11->event;
 			if (evt->type == krad_x11->wm_protocols && evt->data.data32[0] == krad_x11->wm_delete_window) {
-				printf("\n\nWM_DELETE_WINDOW received from the Window Manager\n\n");
+				printk ("Window was closed.");
 				krad_x11->close_window = 1;
 				if (krad_x11->krad_x11_shutdown != NULL) {
 					*krad_x11->krad_x11_shutdown = 1;
 				}
 			} else {
-				printf("\n\nunhandled x11 message\n\n");
+				printk ("\n\nunhandled x11 message\n\n");
 			}
 		}
-	
+		
+		if ((krad_x11->event->response_type & 0x7f) == XCB_MOTION_NOTIFY) {
+			xcb_motion_notify_event_t *motion_event = (xcb_motion_notify_event_t *)krad_x11->event;			
+			//printk ("got motion %d %d\n", motion_event->event_x, motion_event->event_y);
+			
+			krad_x11->mouse_x = motion_event->event_x;
+			krad_x11->mouse_y = motion_event->event_y;
+				
+		}
+		
+		if ((krad_x11->event->response_type & 0x7f) == XCB_BUTTON_PRESS) {
+			//printk ("mouseclick down");
+			krad_x11->mouse_clicked = 1;
+		}
+		
+		if ((krad_x11->event->response_type & 0x7f) == XCB_BUTTON_RELEASE) {
+			//printk ("mouseclick up");
+			krad_x11->mouse_clicked = 0;
+		}
+		
+		
 		free (krad_x11->event);
+		
+		krad_x11->event = xcb_poll_for_event (krad_x11->connection);
 	}
 }
 
@@ -363,6 +386,13 @@ krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int w
 	
 	xcb_change_property (krad_x11->connection, XCB_PROP_MODE_REPLACE, krad_x11->window,
 						 krad_x11->wm_protocols, XA_ATOM, 32, 1, wm_protocols);
+
+
+    uint32_t value = XCB_EVENT_MASK_POINTER_MOTION
+                   | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_BUTTON_PRESS
+               | XCB_EVENT_MASK_BUTTON_RELEASE;
+    xcb_change_window_attributes (krad_x11->connection, krad_x11->window, XCB_CW_EVENT_MASK, &value);
+
 
 	xcb_map_window (krad_x11->connection, krad_x11->window);
 
@@ -492,7 +522,7 @@ void krad_x11_enable_capture(krad_x11_t *krad_x11, int width, int height) {
 
 	if (krad_x11->shminfo.shmid == (uint32_t)-1) {
 		xcb_image_destroy(krad_x11->img);
-		printf("shminfo fail\n");         
+		printke ("shminfo fail\n");         
 		exit(1);
 	}
 
@@ -501,7 +531,7 @@ void krad_x11_enable_capture(krad_x11_t *krad_x11, int width, int height) {
 
 	if (krad_x11->img->data == (uint8_t *)-1) {
 		xcb_image_destroy(krad_x11->img);
-		printf("xcb image fail\n");         
+		printke ("xcb image fail\n");         
 		exit(1);
 	}
 
@@ -537,7 +567,7 @@ int krad_x11_capture(krad_x11_t *krad_x11, unsigned char *buffer) {
 	if (buffer == NULL) {
 		sprintf(filename, "%s/krad_link_test_capture_%"PRIuMAX".png", getenv ("HOME"), (uintmax_t)time(NULL));
 		saveimage (filename, krad_x11->img->width, krad_x11->img->height, krad_x11->img->data);
-		printf("\nSaved image to %s\n", filename);
+		printk ("\nSaved image to %s\n", filename);
 		return 0;
 	} else {
 		memcpy (buffer, krad_x11->img->data, krad_x11->img->width * krad_x11->img->height * 4);
@@ -574,7 +604,7 @@ void krad_x11_test_capture(krad_x11_t *krad_x11) {
 
 	if (shminfo.shmid == (uint32_t)-1) {
 		xcb_image_destroy(img);
-		printf("shminfo fail\n");         
+		printke ("shminfo fail\n");         
 		exit(1);
 	}
 
@@ -583,7 +613,7 @@ void krad_x11_test_capture(krad_x11_t *krad_x11) {
 
 	if (img->data == (uint8_t *)-1) {
 		xcb_image_destroy(img);
-		printf("xcb image fail\n");         
+		printke ("xcb image fail\n");         
 		exit(1);
 	}
 
@@ -599,7 +629,7 @@ void krad_x11_test_capture(krad_x11_t *krad_x11) {
 			free(reply);
 		}
 
-		printf("And the numbers are: %s %d %d %d %d \n", img->data, img->width, img->height, depth, number);         
+		printk ("And the numbers are: %s %d %d %d %d \n", img->data, img->width, img->height, depth, number);         
 		sprintf(filename, "/home/oneman/testshots/ts%d.png", count++);
 		saveimage (filename, img->width, img->height, img->data);
 	}

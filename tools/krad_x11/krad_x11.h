@@ -20,6 +20,8 @@
 
 #include <cairo.h>
 
+#include "krad_system.h"
+
 #define KRAD_X11_XCB_ONLY 0
 
 
@@ -76,6 +78,13 @@ struct krad_x11_St {
 	uint8_t screen_bit_depth;
 	int number;
 	int capture_enabled;
+	
+	// mouse pointer location
+	// in window
+	
+	int mouse_x;
+	int mouse_y;
+	int mouse_clicked;
 
 };
 
