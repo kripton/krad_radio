@@ -48,8 +48,10 @@ struct krad_transmitter_St {
 	int incoming_connections_efd;
 
 	krad_transmission_t *krad_transmissions;
+	
 	pthread_t listening_thread;
-
+	pthread_rwlock_t krad_transmissions_rwlock;
+	
 	struct epoll_event *incoming_connection_events;
 	struct epoll_event event;
 	
@@ -63,7 +65,7 @@ struct krad_transmitter_St {
 struct krad_transmission_St {
 
 	krad_transmitter_t *krad_transmitter;
-
+	int active;
 	char sysname[256];
 
 	pthread_t transmission_thread;

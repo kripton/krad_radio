@@ -55,10 +55,89 @@ void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_trans
 
 }
 
+void krad_transmitter_receiver_attach (krad_transmission_receiver_t *krad_transmission_receiver, char *request) {
+	
+	int t;
+	int eret;
+	eret = 0;
+	t = 0;
+			
+	printk ("Krad Transmitter: request was for %s", request);
+	
+	pthread_rwlock_rdlock (&krad_transmission_receiver->krad_transmitter->krad_transmissions_rwlock);
+	
+	for (t = 0; t < DEFAULT_MAX_TRANSMISSIONS; t++) {
+		if (krad_transmission_receiver->krad_transmitter->krad_transmissions[t].active == 1) {
+			if (strcmp (krad_transmission_receiver->krad_transmitter->krad_transmissions[t].sysname, request) == 0) {
+				printk ("Krad Transmitter: request was for %s WAS FOUND!", request);	
+				krad_transmission_receiver->krad_transmission = &krad_transmission_receiver->krad_transmitter->krad_transmissions[t];
+				
+				eret = epoll_ctl (krad_transmission_receiver->krad_transmitter->incoming_connections_efd, EPOLL_CTL_DEL, krad_transmission_receiver->fd, NULL);
+				if (eret != 0) {
+					failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
+				}
+				krad_transmission_receiver->event.events = EPOLLOUT | EPOLLET;				
+				eret = epoll_ctl (krad_transmission_receiver->krad_transmitter->incoming_connections_efd, EPOLL_CTL_ADD, krad_transmission_receiver->fd, &krad_transmission_receiver->event);
+				if (eret != 0) {
+					failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
+				}
+				
+				pthread_rwlock_unlock (&krad_transmission_receiver->krad_transmitter->krad_transmissions_rwlock);
+				return;
+			}
+		}
+	}
+	
+	printk ("Krad Transmitter: request was for %s NOT FOUND", request);	
+	
+	pthread_rwlock_unlock (&krad_transmission_receiver->krad_transmitter->krad_transmissions_rwlock);
+	krad_transmitter_receiver_destroy (krad_transmission_receiver);
+	return;
+}
 
 void krad_transmitter_handle_incoming_connection (krad_transmitter_t *krad_transmitter, krad_transmission_receiver_t *krad_transmission_receiver) {
 
+	int b;
+	int r;
+	char request[256];
+	b = 0;
+	r = 0;
+	
 	printk ("Krad Transmitter: incoming_connection buffer at %d bytes", krad_transmission_receiver->bufpos);
+
+
+	for (b = 0; b < krad_transmission_receiver->bufpos; b++) {
+
+		if ((krad_transmission_receiver->buffer[b] == '\n') || (krad_transmission_receiver->buffer[b] == '\r')) {
+			printk ("Krad Transmitter: incoming_connection got req line %d long", b);
+			
+			krad_transmission_receiver->buffer[b] = '\0';
+			
+			if ((b < 6) || (memcmp(krad_transmission_receiver->buffer, "GET /", 5) != 0)) {
+				krad_transmitter_receiver_destroy (krad_transmission_receiver);
+				return;
+			}
+			
+			for (r = 0; r < b; r++) {
+			
+			
+				request[r] = krad_transmission_receiver->buffer[r + 5];
+				
+				if ((request[r] == ' ') || (request[r] == '\n') || (request[r] == '\r')) {
+					request[r] = '\0';
+					break;
+				}
+			
+			}
+			request[r] = '\0';
+			
+			krad_transmitter_receiver_attach (krad_transmission_receiver, request);
+			
+			break;
+		}
+
+
+	}
 
 }
 
@@ -189,6 +268,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 						if (cret > 0) {
 							krad_transmission_receiver->bufpos += cret;
 							krad_transmitter_handle_incoming_connection (krad_transmitter, krad_transmission_receiver);
+							break;
 						}
 					}
 				}
@@ -325,6 +405,8 @@ krad_transmitter_t *krad_transmitter_create () {
 		failfast ("Krad Transmitter: Out of memory!");
 	}	
 	
+	pthread_rwlock_init (&krad_transmitter->krad_transmissions_rwlock, NULL);
+
 	krad_transmitter->not_found_len += sprintf (krad_transmitter->not_found + krad_transmitter->not_found_len, "HTTP/1.1 404 Not Found\r\n");
 	krad_transmitter->not_found_len += sprintf (krad_transmitter->not_found + krad_transmitter->not_found_len, "Status: 404 Not Found\r\n");
 	krad_transmitter->not_found_len += sprintf (krad_transmitter->not_found + krad_transmitter->not_found_len, "Connection: close\r\n");
@@ -342,6 +424,9 @@ void krad_transmitter_destroy (krad_transmitter_t *krad_transmitter) {
 	}
 	
 	free (krad_transmitter->krad_transmissions);
+	
+	pthread_rwlock_destroy (&krad_transmitter->krad_transmissions_rwlock);
+	
 	free (krad_transmitter);
 	
 	printk ("Krad Transmitter: Destroyed!");
