@@ -20,7 +20,7 @@
 #define DEFAULT_MAX_TRANSMISSIONS 48
 #define TOTAL_RECEIVERS DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION * DEFAULT_MAX_TRANSMISSIONS
 #define DEFAULT_TRANSMITTER_PORT "8080"
-#define SERVER "Icecast 2.3.2"
+#define KRAD_TRANSMITTER_SERVER "Icecast 2.4.2"
 
 #define KRAD_TRANSMITTER_MAXEVENTS 64
 #define DEFAULT_RING_SIZE 10000000
@@ -66,14 +66,22 @@ struct krad_transmission_St {
 
 	krad_transmitter_t *krad_transmitter;
 	int active;
+	int ready;
 	char sysname[256];
 	char content_type[256];	
+
+	char http_header[256];
+	int http_header_len;
 
 	unsigned char *header;
 	int header_len;
 
 	int connections_efd;
 	
+	struct epoll_event *transmission_events;
+	struct epoll_event event;
+
+	krad_ringbuffer_t *ringbuffer;
 
 	uint64_t position;	
 	uint64_t sync_point;
@@ -94,7 +102,11 @@ struct krad_transmission_receiver_St {
 	int fd;
 
 	char buffer[256];
-	int bufpos;
+	uint64_t bufpos;
+
+	int wrote_http_header;
+	int wrote_header;
+
 
 	int ready;
 	int active;	
@@ -127,7 +139,7 @@ void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmissi
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission);
-void krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
+int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 
 // convient for handlign the open/close of file?
 // krad_transmitter_transmission_add_file (krad_transmission_t *krad_transmission, char *filename)
