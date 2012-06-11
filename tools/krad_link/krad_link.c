@@ -3027,7 +3027,7 @@ void *krad_linker_listening_thread (void *arg) {
 	struct sockaddr_in remote_address;
 	struct pollfd sockets[1];
 	
-	printk ("Krad linker Listening thread starting\n");
+	printk ("Krad Linker: Listening thread starting\n");
 	
 	addr_size = 0;
 	ret = 0;
@@ -3043,7 +3043,7 @@ void *krad_linker_listening_thread (void *arg) {
 		ret = poll (sockets, 1, 250);	
 
 		if (ret < 0) {
-			printke ("Krad linker Failed on poll\n");
+			printke ("Krad Linker: Failed on poll\n");
 			krad_linker->stop_listening = 1;
 			break;
 		}
@@ -3052,7 +3052,7 @@ void *krad_linker_listening_thread (void *arg) {
 		
 			if ((client_fd = accept(krad_linker->sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size)) < 0) {
 				close (krad_linker->sd);
-				failfast ("krad_linker socket error on accept mayb a signal or such\n");
+				failfast ("Krad Linker: socket error on accept mayb a signal or such\n");
 			}
 
 			krad_linker_listen_create_client (krad_linker, client_fd);
@@ -3064,7 +3064,7 @@ void *krad_linker_listening_thread (void *arg) {
 	krad_linker->port = 0;
 	krad_linker->listening = 0;	
 
-	printk ("Krad linker Listening thread exiting\n");
+	printk ("Krad Linker: Listening thread exiting\n");
 
 	return NULL;
 }
@@ -3093,14 +3093,14 @@ int krad_linker_listen (krad_linker_t *krad_linker, int port) {
 	krad_linker->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
 	
 	if ((krad_linker->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-		printf("Krad linker system call socket error\n");
+		printke ("Krad Linker: system call socket error\n");
 		krad_linker->listening = 0;
 		krad_linker->port = 0;		
 		return 1;
 	}
 
 	if (bind (krad_linker->sd, (struct sockaddr *)&krad_linker->local_address, sizeof(krad_linker->local_address)) == -1) {
-		printke ("Krad linker bind error for tcp port %d\n", krad_linker->port);
+		printke ("Krad Linker: bind error for tcp port %d\n", krad_linker->port);
 		close (krad_linker->sd);
 		krad_linker->listening = 0;
 		krad_linker->port = 0;
@@ -3108,9 +3108,9 @@ int krad_linker_listen (krad_linker_t *krad_linker, int port) {
 	}
 	
 	if (listen (krad_linker->sd, SOMAXCONN) <0) {
-		printf("krad_http system call listen error\n");
+		printke ("Krad Linker: system call listen error\n");
 		close (krad_linker->sd);
-		exit(1);
+		return 1;
 	}	
 	
 	pthread_create (&krad_linker->listening_thread, NULL, krad_linker_listening_thread, (void *)krad_linker);

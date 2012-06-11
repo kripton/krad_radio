@@ -59,7 +59,7 @@ depsources = """
 ../tools/krad_gui/krad_gui_gtk.c
 ../tools/krad_ring/krad_ring.c
 ../tools/krad_link/krad_link.c
-../tools/krad_xpdr/krad_xpdr.c
+../tools/krad_transmitter/krad_transmitter.c
 ../tools/krad_io/krad_io.c
 ../tools/krad_ogg/krad_ogg.c
 ../tools/krad_container/krad_container.c
@@ -110,7 +110,7 @@ includedirs = """
 ../tools/krad_ogg/
 ../tools/krad_io/
 ../tools/krad_link/
-../tools/krad_xpdr/
+../tools/krad_transmitter/
 ../tools/krad_container/
 ../tools/krad_x11/
 ../tools/krad_udp/

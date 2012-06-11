@@ -125,7 +125,7 @@ void failfast (char* format, ...) {
 
 	va_list args;
 
-
+	printf ("***ERROR! FAILURE!\n");
 	va_start(args, format);
 	vfprintf(stdout, format, args);
 	va_end(args);
@@ -139,11 +139,12 @@ void printke (char* format, ...) {
 
 	va_list args;
 
-	printf ("\nERROR!\n");
+	printf ("***ERROR!\n");
 
 	va_start(args, format);
 	vfprintf(stdout, format, args);
 	va_end(args);
+	printf ("\n");	
 }
 
 void printkd (char* format, ...) {
