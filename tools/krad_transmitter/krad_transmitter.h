@@ -67,6 +67,9 @@ struct krad_transmission_St {
 	krad_transmitter_t *krad_transmitter;
 	int active;
 	char sysname[256];
+	char content_type[256];	
+
+	int connections_efd;
 
 	pthread_t transmission_thread;
 };
@@ -101,7 +104,7 @@ void set_socket_nonblocking (int sd);
 krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter_t *krad_transmitter, int fd);
 void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver);
 
-void *krad_transmission_thread (void *arg);
+void *krad_transmitter_transmission_thread (void *arg);
 void *krad_transmitter_listening_thread (void *arg);
 
 void krad_transmitter_receiver_attach (krad_transmission_receiver_t *krad_transmission_receiver, char *request);

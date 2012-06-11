@@ -21,6 +21,19 @@ void set_socket_nonblocking (int sd) {
 	}
 }
 
+void *krad_transmitter_transmission_thread (void *arg) {
+
+	krad_transmission_t *krad_transmission = (krad_transmission_t *)arg;
+
+	printk ("Krad Transmitter: transmission thread starting for %s", krad_transmission->sysname);
+
+	usleep (3000000);
+
+	printk ("Krad Transmitter: transmission thread exiting for %s", krad_transmission->sysname);
+	return NULL;
+
+}
+
 
 void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
 	failfast ("Krad Transmitter: implement me");
@@ -28,19 +41,6 @@ void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_t
 
 
 void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
-	failfast ("Krad Transmitter: implement me");
-}
-
-krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *krad_transmitter, char *name, char *content_type) {
-
-	failfast ("Krad Transmitter: implement me");
-
-	return NULL;
-
-}
-
-
-void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission) {
 	failfast ("Krad Transmitter: implement me");
 }
 
@@ -52,9 +52,57 @@ void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmi
 	failfast ("Krad Transmitter: implement me");
 }
 
-
 void krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
 	failfast ("Krad Transmitter: implement me");
+}
+
+krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *krad_transmitter, char *name, char *content_type) {
+
+	int t;
+
+	t = 0;
+	for (t = 0; t < DEFAULT_MAX_TRANSMISSIONS; t++) {
+		if (krad_transmitter->krad_transmissions[t].active == 0) {
+			krad_transmitter->krad_transmissions[t].active = 2;
+
+			strcpy (krad_transmitter->krad_transmissions[t].sysname, name);
+			strcpy (krad_transmitter->krad_transmissions[t].content_type, content_type);
+			
+			krad_transmitter->krad_transmissions[t].connections_efd = epoll_create1 (0);
+
+			pthread_create (&krad_transmitter->krad_transmissions[t].transmission_thread, NULL, krad_transmitter_transmission_thread, (void *)&krad_transmitter->krad_transmissions[t]);
+
+			krad_transmitter->krad_transmissions[t].active = 1;			
+			return &krad_transmitter->krad_transmissions[t];
+		}
+	}
+
+	return NULL;
+
+}
+
+
+void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission) {
+
+	int r;
+
+	r = 0;
+	
+	krad_transmission->active = 2;			
+
+	pthread_join (krad_transmission->transmission_thread, NULL);	
+
+	krad_transmission->active = 3;
+
+	for (r = 0; r < TOTAL_RECEIVERS; r++) {
+		if ((krad_transmission->krad_transmitter->krad_transmission_receivers[r].active == 1) && (krad_transmission->krad_transmitter->krad_transmission_receivers[r].krad_transmission == krad_transmission)) {
+			krad_transmitter_receiver_destroy (&krad_transmission->krad_transmitter->krad_transmission_receivers[r]);
+		}
+	}
+
+	close (krad_transmission->connections_efd);
+	krad_transmission->active = 0;
+	
 }
 
 
@@ -64,7 +112,7 @@ krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter
 
 	r = 0;
 
-	while (r < TOTAL_RECEIVERS) {
+	for (r = 0; r < TOTAL_RECEIVERS; r++) {
 		if (krad_transmitter->krad_transmission_receivers[r].active == 0) {
 			krad_transmitter->krad_transmission_receivers[r].active = 1;
 			krad_transmitter->krad_transmission_receivers[r].bufpos = 0;
@@ -86,6 +134,7 @@ void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_trans
 		close (krad_transmission_receiver->fd);
 		krad_transmission_receiver->fd = 0;
 	}
+	krad_transmission_receiver->krad_transmission = NULL;
 	krad_transmission_receiver->bufpos = 0;
 	memset (krad_transmission_receiver->buffer, 0, sizeof(krad_transmission_receiver->buffer));
 	krad_transmission_receiver->active = 0;
@@ -322,7 +371,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 	close (krad_transmitter->incoming_connections_efd);
 	close (krad_transmitter->incoming_connections_sd);
 	free (krad_transmitter->incoming_connection_events);
-	free (krad_transmitter->krad_transmission_receivers);
+
 	
 	krad_transmitter->port = 0;
 	krad_transmitter->listening = 0;	
@@ -430,7 +479,11 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 
 krad_transmitter_t *krad_transmitter_create () {
 
+	int t;
+
 	krad_transmitter_t *krad_transmitter = calloc (1, sizeof(krad_transmitter_t));
+		
+	t = 0;
 		
 	if (krad_transmitter == NULL) {
 		failfast ("Krad Transmitter: Out of memory!");
@@ -440,7 +493,11 @@ krad_transmitter_t *krad_transmitter_create () {
 	
 	if (krad_transmitter->krad_transmissions == NULL) {
 		failfast ("Krad Transmitter: Out of memory!");
-	}	
+	}
+	
+	for (t = 0; t < DEFAULT_MAX_TRANSMISSIONS; t++) {
+		krad_transmitter->krad_transmissions[t].krad_transmitter = krad_transmitter;
+	}
 	
 	pthread_rwlock_init (&krad_transmitter->krad_transmissions_rwlock, NULL);
 
@@ -456,12 +513,25 @@ krad_transmitter_t *krad_transmitter_create () {
 
 void krad_transmitter_destroy (krad_transmitter_t *krad_transmitter) {
 
+	int t;
+	
+	t = 0;
+
 	if (krad_transmitter->listening == 1) {
 		krad_transmitter_stop_listening (krad_transmitter);
 	}
 	
+	pthread_rwlock_wrlock (&krad_transmitter->krad_transmissions_rwlock);		
+	
+	for (t = 0; t < DEFAULT_MAX_TRANSMISSIONS; t++) {
+		if (krad_transmitter->krad_transmissions[t].active == 1) {
+			krad_transmitter_transmission_destroy (&krad_transmitter->krad_transmissions[t]);
+		}
+	}
+	free (krad_transmitter->krad_transmission_receivers);
 	free (krad_transmitter->krad_transmissions);
 	
+	pthread_rwlock_unlock (&krad_transmitter->krad_transmissions_rwlock);	
 	pthread_rwlock_destroy (&krad_transmitter->krad_transmissions_rwlock);
 	
 	free (krad_transmitter);
