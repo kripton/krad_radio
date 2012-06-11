@@ -45,11 +45,16 @@ void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, kra
 }
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
-	failfast ("Krad Transmitter: implement me");
+
+
+	krad_transmission->header_len = length;
+	krad_transmission->header = calloc (1, krad_transmission->header_len);
+	memcpy (krad_transmission->header, buffer, krad_transmission->header_len);
+
 }
 
 void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission) {
-	failfast ("Krad Transmitter: implement me");
+	krad_transmission->sync_point = krad_transmission->position;
 }
 
 void krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
@@ -99,6 +104,14 @@ void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmissi
 			krad_transmitter_receiver_destroy (&krad_transmission->krad_transmitter->krad_transmission_receivers[r]);
 		}
 	}
+
+	memset (krad_transmission->sysname, '\0', sizeof(krad_transmission->sysname));
+	memset (krad_transmission->content_type, '\0', sizeof(krad_transmission->content_type));
+
+	free (krad_transmission->header);
+
+	krad_transmission->sync_point = 0;
+	krad_transmission->position = 0;
 
 	close (krad_transmission->connections_efd);
 	krad_transmission->active = 0;

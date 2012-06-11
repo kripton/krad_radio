@@ -69,7 +69,15 @@ struct krad_transmission_St {
 	char sysname[256];
 	char content_type[256];	
 
+	unsigned char *header;
+	int header_len;
+
 	int connections_efd;
+	
+
+	uint64_t position;	
+	uint64_t sync_point;
+	
 
 	pthread_t transmission_thread;
 };
