@@ -1,28 +1,53 @@
 #include "krad_transmitter.h"
 
+void set_socket_nonblocking (int sd) {
 
+	int ret;
+	int flags;
+	
+	flags = 0;
+	ret = 0;
+
+	flags = fcntl (sd, F_GETFL, 0);
+	if (flags == -1) {
+		failfast ("Krad Transmitter: fcntl on incoming connections sd F_GETFL");
+	}
+
+	flags |= O_NONBLOCK;
+	
+	ret = fcntl (sd, F_SETFL, flags);
+	if (ret == -1) {
+		failfast ("Krad Transmitter: fcntl on incoming connections sd F_SETFL");
+	}
+}
 
 void *krad_transmitter_listening_thread (void *arg) {
 
 	krad_transmitter_t *krad_transmitter = (krad_transmitter_t *)arg;
 
+	int e;
 	int ret;
+	int eret;
 	int addr_size;
 	int client_fd;
 	struct sockaddr_in remote_address;
 	
+	char hbuf[NI_MAXHOST];
+	char sbuf[NI_MAXSERV];
+	
 	printk ("Krad Transmitter: Listening thread starting");
 	
 	addr_size = 0;
+	e = 0;
 	ret = 0;
+	eret = 0;
 	memset (&remote_address, 0, sizeof(remote_address));	
 
 	addr_size = sizeof (remote_address);
 	
 	while (krad_transmitter->stop_listening == 0) {
 
-		ret = 0;
-		usleep (5000);
+		ret = epoll_wait (krad_transmitter->incoming_connections_efd, krad_transmitter->incoming_connection_events, KRAD_TRANSMITTER_MAXEVENTS, 1000);
 
 		if (ret < 0) {
 			printke ("Krad Transmitter: Failed on poll");
@@ -32,14 +57,71 @@ void *krad_transmitter_listening_thread (void *arg) {
 	
 		if (ret > 0) {
 		
-			if ((client_fd = accept(krad_transmitter->incoming_connections_sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size)) < 0) {
-				close (krad_transmitter->incoming_connections_sd);
-				failfast ("Krad Transmitter: socket error on accept mayb a signal or such");
+			for (e = 0; e < ret; e++) {	
+	
+				if ((krad_transmitter->incoming_connection_events[e].events & EPOLLERR) ||
+				    (krad_transmitter->incoming_connection_events[e].events & EPOLLHUP))
+				{
+
+					if (krad_transmitter->incoming_connections_sd == krad_transmitter->incoming_connection_events[e].data.fd) {
+						failfast ("Krad Transmitter: error on listen socket");
+					} else {
+					
+						if (krad_transmitter->incoming_connection_events[e].events & EPOLLHUP) {
+							printke ("Krad Transmitter: incoming transmitter connection hangup");
+						}
+						if (krad_transmitter->incoming_connection_events[e].events & EPOLLERR) {
+							printke ("Krad Transmitter: incoming transmitter connection error");
+						}
+						close (krad_transmitter->incoming_connection_events[e].data.fd);
+						continue;
+					}
+
+				}
+				
+				if (krad_transmitter->incoming_connections_sd == krad_transmitter->incoming_connection_events[e].data.fd) {
+
+					while (1) {
+
+						client_fd = accept (krad_transmitter->incoming_connections_sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size);
+						if (client_fd == -1) {
+							if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+								// We have processed all incoming connections. 
+								break;
+							} else {
+								failfast ("Krad Transmitter: error on listen socket accept");
+							}
+						}
+				
+						if (getnameinfo ((struct sockaddr *)&remote_address, addr_size, hbuf, sizeof hbuf, sbuf, sizeof sbuf, NI_NUMERICHOST | NI_NUMERICSERV) == 0) {
+							printk ("Krad Transmitter: Accepted transmitter connection on descriptor %d (host=%s, port=%s)", client_fd, hbuf, sbuf);
+						} else {
+							printke ("Krad Transmitter: Accepted transmitter connection on descriptor %d ... but could not getnameinfo()?", client_fd, hbuf, sbuf);
+						}
+
+						set_socket_nonblocking (client_fd);
+					
+						krad_transmitter->event.data.fd = client_fd;
+						krad_transmitter->event.events = EPOLLIN | EPOLLET;
+						eret = epoll_ctl (krad_transmitter->incoming_connections_efd, EPOLL_CTL_ADD, client_fd, &krad_transmitter->event);
+						if (eret != 0) {
+							failfast ("Krad Transmitter:incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
+						}
+					}
+		
+					continue;
+			
+				}
+				
+
+
 			}
-
-			//krad_linker_listen_create_client (krad_linker, client_fd);
-
 		}
+		
+		if (ret == 0) {
+			printk ("Krad Transmitter: Listening thread... nothing happened");
+		}
+		
 	}
 
 	close (krad_transmitter->incoming_connections_efd);
@@ -68,9 +150,7 @@ void krad_transmitter_stop_listening (krad_transmitter_t *krad_transmitter) {
 int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) {
 
 	int ret;
-	int flags;
-	
-	flags = 0;
+
 	ret = 0;
 	
 	if (krad_transmitter->listening == 1) {
@@ -107,18 +187,7 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 		return 1;
 	}
 
-	flags = fcntl (krad_transmitter->incoming_connections_sd, F_GETFL, 0);
-	if (flags == -1) {
-		printke ("Krad Transmitter: fcntl on incoming connections sd F_GETFL");
-		return 1;
-	}
-
-	flags |= O_NONBLOCK;
-	ret = fcntl (krad_transmitter->incoming_connections_sd, F_SETFL, flags);
-	if (ret == -1) {
-		printke ("Krad Transmitter: fcntl on incoming connections sd F_SETFL");
-		return 1;
-	}
+	set_socket_nonblocking (krad_transmitter->incoming_connections_sd);	
 
 	krad_transmitter->incoming_connections_efd = epoll_create1 (0);
 	
@@ -136,7 +205,7 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 		return 1;
 	}
 
-	krad_transmitter->incoming_connection_events = calloc (MAXEVENTS, sizeof (struct epoll_event));
+	krad_transmitter->incoming_connection_events = calloc (KRAD_TRANSMITTER_MAXEVENTS, sizeof (struct epoll_event));
 
 	if (krad_transmitter->incoming_connection_events == NULL) {
 		failfast ("Krad Transmitter: Out of memory!");

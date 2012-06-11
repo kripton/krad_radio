@@ -21,7 +21,7 @@
 #define DEFAULT_TRANSMITTER_PORT "8080"
 #define SERVER "Icecast 2.3.2"
 
-#define MAXEVENTS 64
+#define KRAD_TRANSMITTER_MAXEVENTS 64
 #define DEFAULT_RING_SIZE 10000000
 #define DEFAULT_BURST_SIZE 64000
 
@@ -72,6 +72,8 @@ struct krad_transmission_receiver_St {
 //	program writes to output stream ringbuffer, and also sets headers and sync points
 //	thread for listening for incoming connections and determining what they want
 //	thread per output stream
+
+void set_socket_nonblocking (int sd);
 
 void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
 void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);

@@ -9,7 +9,7 @@ void krad_transmitter_test (int port) {
 	
 	krad_transmitter_listen_on (krad_transmitter, port);
 	
-	usleep (555000);
+	usleep (2555000);
 	
 	krad_transmitter_destroy (krad_transmitter);
 
