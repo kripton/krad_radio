@@ -101,17 +101,20 @@ void set_socket_nonblocking (int sd);
 krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter_t *krad_transmitter, int fd);
 void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver);
 
-void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
-void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
-
 void *krad_transmission_thread (void *arg);
 void *krad_transmitter_listening_thread (void *arg);
 
+void krad_transmitter_receiver_attach (krad_transmission_receiver_t *krad_transmission_receiver, char *request);
+void krad_transmitter_handle_incoming_connection (krad_transmitter_t *krad_transmitter, krad_transmission_receiver_t *krad_transmission_receiver);
+
+
+void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
+void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
 
 krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *krad_transmitter, char *name, char *content_type);
+void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission);
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
-
 void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission);
 void krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 
@@ -119,11 +122,10 @@ void krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmiss
 // krad_transmitter_transmission_add_file (krad_transmission_t *krad_transmission, char *filename)
 // krad_transmitter_transmission_remove_file (krad_transmission_t *krad_transmission, char *filename)
 
-void krad_transmitter_transmission_add_fd (krad_transmission_t *krad_transmission, int fd);
+//void krad_transmitter_transmission_add_fd (krad_transmission_t *krad_transmission, int fd);
 // kicking ppl? 
-void krad_transmitter_transmission_remove_fd (krad_transmission_t *krad_transmission, int fd);
+//void krad_transmitter_transmission_remove_fd (krad_transmission_t *krad_transmission, int fd);
 
-void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission);
 
 
 int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port);

@@ -21,6 +21,43 @@ void set_socket_nonblocking (int sd) {
 	}
 }
 
+
+void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
+	failfast ("Krad Transmitter: implement me");
+}
+
+
+void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
+	failfast ("Krad Transmitter: implement me");
+}
+
+krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *krad_transmitter, char *name, char *content_type) {
+
+	failfast ("Krad Transmitter: implement me");
+
+	return NULL;
+
+}
+
+
+void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission) {
+	failfast ("Krad Transmitter: implement me");
+}
+
+void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
+	failfast ("Krad Transmitter: implement me");
+}
+
+void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission) {
+	failfast ("Krad Transmitter: implement me");
+}
+
+
+void krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
+	failfast ("Krad Transmitter: implement me");
+}
+
+
 krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter_t *krad_transmitter, int fd) {
 
 	int r;
