@@ -21,13 +21,58 @@ void set_socket_nonblocking (int sd) {
 	}
 }
 
+krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter_t *krad_transmitter, int fd) {
+
+	int r;
+
+	r = 0;
+
+	while (r < TOTAL_RECEIVERS) {
+		if (krad_transmitter->krad_transmission_receivers[r].active == 0) {
+			krad_transmitter->krad_transmission_receivers[r].active = 1;
+			krad_transmitter->krad_transmission_receivers[r].bufpos = 0;
+			krad_transmitter->krad_transmission_receivers[r].fd = fd;
+			krad_transmitter->krad_transmission_receivers[r].event.data.ptr = &krad_transmitter->krad_transmission_receivers[r];
+			krad_transmitter->krad_transmission_receivers[r].event.events = EPOLLIN | EPOLLET;
+			return &krad_transmitter->krad_transmission_receivers[r];
+		}
+	}
+
+	return NULL;
+
+}
+
+void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver) {
+
+	krad_transmission_receiver->active = 2;
+	if (krad_transmission_receiver->fd != 0) {
+		close (krad_transmission_receiver->fd);
+		krad_transmission_receiver->fd = 0;
+	}
+	krad_transmission_receiver->bufpos = 0;
+	memset (krad_transmission_receiver->buffer, 0, sizeof(krad_transmission_receiver->buffer));
+	krad_transmission_receiver->active = 0;
+
+}
+
+
+void krad_transmitter_handle_incoming_connection (krad_transmitter_t *krad_transmitter, krad_transmission_receiver_t *krad_transmission_receiver) {
+
+	printk ("Krad Transmitter: incoming_connection buffer at %d bytes", krad_transmission_receiver->bufpos);
+
+}
+
+
 void *krad_transmitter_listening_thread (void *arg) {
 
 	krad_transmitter_t *krad_transmitter = (krad_transmitter_t *)arg;
 
+	krad_transmission_receiver_t *krad_transmission_receiver;
+
 	int e;
 	int ret;
 	int eret;
+	int cret;
 	int addr_size;
 	int client_fd;
 	struct sockaddr_in remote_address;
@@ -41,6 +86,8 @@ void *krad_transmitter_listening_thread (void *arg) {
 	e = 0;
 	ret = 0;
 	eret = 0;
+	cret = 0;
+	krad_transmission_receiver = NULL;
 	memset (&remote_address, 0, sizeof(remote_address));	
 
 	addr_size = sizeof (remote_address);
@@ -73,7 +120,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 						if (krad_transmitter->incoming_connection_events[e].events & EPOLLERR) {
 							printke ("Krad Transmitter: incoming transmitter connection error");
 						}
-						close (krad_transmitter->incoming_connection_events[e].data.fd);
+						krad_transmitter_receiver_destroy (krad_transmitter->incoming_connection_events[e].data.ptr);
 						continue;
 					}
 
@@ -100,10 +147,14 @@ void *krad_transmitter_listening_thread (void *arg) {
 						}
 
 						set_socket_nonblocking (client_fd);
-					
-						krad_transmitter->event.data.fd = client_fd;
-						krad_transmitter->event.events = EPOLLIN | EPOLLET;
-						eret = epoll_ctl (krad_transmitter->incoming_connections_efd, EPOLL_CTL_ADD, client_fd, &krad_transmitter->event);
+
+						krad_transmission_receiver = krad_transmitter_receiver_create (krad_transmitter, client_fd);
+
+						if (krad_transmission_receiver == NULL) {
+							failfast ("Krad Transmitter: ran out of connections!");
+						}
+
+						eret = epoll_ctl (krad_transmitter->incoming_connections_efd, EPOLL_CTL_ADD, client_fd, &krad_transmission_receiver->event);
 						if (eret != 0) {
 							failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
 						}
@@ -115,38 +166,30 @@ void *krad_transmitter_listening_thread (void *arg) {
 				
 				if (krad_transmitter->incoming_connection_events[e].events & EPOLLIN) {
 
-					int done = 0;
-
 					while (1) {
-					
-						ssize_t count;
-						char buf[512];
-						int s;
+						krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmitter->incoming_connection_events[e].data.ptr;
 
-						count = read (krad_transmitter->incoming_connection_events[e].data.fd, buf, sizeof (buf));
-						if (count == -1) {
+						cret = read (krad_transmission_receiver->fd,
+									 krad_transmission_receiver->buffer + krad_transmission_receiver->bufpos,
+									 sizeof (krad_transmission_receiver->buffer) -  krad_transmission_receiver->bufpos);
+						if (cret == -1) {
 							if (errno != EAGAIN) {
 								printke ("Krad Transmitter: error reading from a new incoming connection socket");
-								done = 1;
+								krad_transmitter_receiver_destroy (krad_transmitter->incoming_connection_events[e].data.ptr);
 							}
 							break;
 						}
 
-						if (count == 0) {
-							//EOF ie. client closed connection
-							done = 1;
+						if (cret == 0) {
+							printk ("Krad Transmitter: Client EOF Closed connection");
+							krad_transmitter_receiver_destroy (krad_transmitter->incoming_connection_events[e].data.ptr);
 							break;
 						}
 
-						s = write (1, buf, count);
-						if (s == -1) {
-							failfast ("write");
+						if (cret > 0) {
+							krad_transmission_receiver->bufpos += cret;
+							krad_transmitter_handle_incoming_connection (krad_transmitter, krad_transmission_receiver);
 						}
-					}
-					
-					if (done) {
-						printk ("Closed connection on descriptor %d\n", krad_transmitter->incoming_connection_events[e].data.fd);
-						close (krad_transmitter->incoming_connection_events[e].data.fd);
 					}
 				}
 			}
@@ -162,6 +205,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 	close (krad_transmitter->incoming_connections_efd);
 	close (krad_transmitter->incoming_connections_sd);
 	free (krad_transmitter->incoming_connection_events);
+	free (krad_transmitter->krad_transmission_receivers);
 	
 	krad_transmitter->port = 0;
 	krad_transmitter->listening = 0;	
@@ -185,7 +229,9 @@ void krad_transmitter_stop_listening (krad_transmitter_t *krad_transmitter) {
 int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) {
 
 	int ret;
-
+	int r;
+	
+	r = 0;
 	ret = 0;
 	
 	if (krad_transmitter->listening == 1) {
@@ -247,6 +293,17 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 	}
 
 	printk ("Krad Transmitter: Listening on port %d", krad_transmitter->port);
+	
+	
+	krad_transmitter->krad_transmission_receivers = calloc (TOTAL_RECEIVERS, sizeof (krad_transmission_receiver_t));
+	
+	if (krad_transmitter->krad_transmission_receivers == NULL) {
+		failfast ("Krad Transmitter: Out of memory!");
+	}
+	
+	for (r = 0; r < TOTAL_RECEIVERS; r++) {
+		krad_transmitter->krad_transmission_receivers[r].krad_transmitter = krad_transmitter;
+	}	
 	
 	pthread_create (&krad_transmitter->listening_thread, NULL, krad_transmitter_listening_thread, (void *)krad_transmitter);
 

@@ -17,13 +17,19 @@
 #include "krad_ring.h"
 
 #define DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION 256
-#define DEFAULT_MAX_TRANSMISSIONS 256
+#define DEFAULT_MAX_TRANSMISSIONS 48
+#define TOTAL_RECEIVERS DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION * DEFAULT_MAX_TRANSMISSIONS
 #define DEFAULT_TRANSMITTER_PORT "8080"
 #define SERVER "Icecast 2.3.2"
 
 #define KRAD_TRANSMITTER_MAXEVENTS 64
 #define DEFAULT_RING_SIZE 10000000
 #define DEFAULT_BURST_SIZE 64000
+
+typedef enum {
+	IS_FILE = 3150,
+	IS_TCP,
+} krad_transmission_receiver_type_t;
 
 
 typedef struct krad_transmitter_St krad_transmitter_t;
@@ -49,6 +55,9 @@ struct krad_transmitter_St {
 	
 	int listening;
 	int stop_listening;
+	
+	krad_transmission_receiver_t *krad_transmission_receivers;
+	
 };
 
 struct krad_transmission_St {
@@ -62,8 +71,20 @@ struct krad_transmission_St {
 
 struct krad_transmission_receiver_St {
 
+	krad_transmitter_t *krad_transmitter;
 	krad_transmission_t *krad_transmission;
 
+	krad_transmission_receiver_type_t krad_transmission_receiver_type;
+
+	struct epoll_event event;
+
+	int fd;
+
+	char buffer[256];
+	int bufpos;
+
+	int ready;
+	int active;	
 
 };
 
@@ -74,6 +95,9 @@ struct krad_transmission_receiver_St {
 //	thread per output stream
 
 void set_socket_nonblocking (int sd);
+
+krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter_t *krad_transmitter, int fd);
+void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver);
 
 void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
 void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
