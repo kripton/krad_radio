@@ -34,6 +34,7 @@
 
 #include "krad_io.h"
 #include "krad_system.h"
+#include "krad_transmitter.h"
 
 typedef struct krad_ogg_St krad_ogg_t;
 typedef struct krad_ogg_track_St krad_ogg_track_t;
@@ -109,6 +110,7 @@ struct krad_ogg_St {
 	krad_ogg_track_t *tracks;
 	ogg_sync_state sync_state;
 	krad_io_t *krad_io;
+	krad_transmission_t *krad_transmission;
 	unsigned char *input_buffer;
 
 	int output_aux_headers;
@@ -127,7 +129,7 @@ int krad_ogg_write (krad_ogg_t *krad_ogg, unsigned char *buffer, int length);
 void krad_ogg_process (krad_ogg_t *krad_ogg);
 krad_ogg_t *krad_ogg_open_file (char *filename, krad_io_mode_t mode);
 krad_ogg_t *krad_ogg_open_stream (char *host, int port, char *mount, char *password);
-
+krad_ogg_t *krad_ogg_open_transmission (krad_transmission_t *krad_transmission);
 krad_ogg_t *krad_ogg_create();
 void krad_ogg_destroy(krad_ogg_t *krad_ogg);
 void krad_ogg_set_max_packets_per_page (krad_ogg_t *krad_ogg, int max_packets);

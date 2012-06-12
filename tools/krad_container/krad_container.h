@@ -32,6 +32,7 @@ int krad_container_read_packet (krad_container_t *krad_container, int *track, ui
 								unsigned char *buffer);
 krad_container_t *krad_container_open_stream (char *host, int port, char *mount, char *password);
 krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode);
+krad_container_t *krad_container_open_transmission (krad_transmission_t *krad_transmission);
 void krad_container_destroy (krad_container_t *krad_container);
 
 

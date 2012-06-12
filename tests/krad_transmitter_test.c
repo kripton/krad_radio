@@ -54,6 +54,8 @@ void krad_transmitter_test (int port) {
 		usleep (100000);
 	}
 	
+	krad_transmitter_transmission_destroy (krad_transmission);
+	
 	krad_transmitter_destroy (krad_transmitter);
 
 }

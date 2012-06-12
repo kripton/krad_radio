@@ -593,6 +593,7 @@ void *stream_output_thread (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
+	krad_transmission_t *krad_transmission;
 	unsigned char *packet;
 	int packet_size;
 	int keyframe;
@@ -603,6 +604,7 @@ void *stream_output_thread (void *arg) {
 	int audio_frames_per_video_frame;
 	krad_frame_t *krad_frame;
 
+	krad_transmission = NULL;
 	krad_frame = NULL;
 	audio_frames_per_video_frame = 0;
 	audio_frames_muxed = 0;
@@ -623,10 +625,23 @@ void *stream_output_thread (void *arg) {
 	packet = malloc (2000000);
 	
 	if (krad_link->host[0] != '\0') {
-		krad_link->krad_container = krad_container_open_stream (krad_link->host,
-																krad_link->port,
-																krad_link->mount,
-																krad_link->password);
+	
+		if ((strcmp(krad_link->host, "transmitter") == 0) &&
+			(krad_link->krad_linker->krad_transmitter->listening == 1)) {
+			
+			krad_transmission = krad_transmitter_transmission_create (krad_link->krad_linker->krad_transmitter,
+																	  krad_link->mount,
+																	  "application/ogg");
+
+			krad_link->krad_container = krad_container_open_transmission (krad_transmission);
+	
+		} else {
+	
+			krad_link->krad_container = krad_container_open_stream (krad_link->host,
+																	krad_link->port,
+																	krad_link->mount,
+																	krad_link->password);
+		}																	
 	} else {
 		printk ("Outputing to file: %s", krad_link->output);
 		krad_link->krad_container = krad_container_open_file (krad_link->output, KRAD_EBML_IO_WRITEONLY);
@@ -855,6 +870,10 @@ void *stream_output_thread (void *arg) {
 	
 	if (krad_link->mjpeg_passthru == 1) {
 		krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
+	}
+
+	if (krad_transmission != NULL) {
+		krad_transmitter_transmission_destroy (krad_transmission);
 	}
 
 	printk ("Output/Muxing thread exiting");

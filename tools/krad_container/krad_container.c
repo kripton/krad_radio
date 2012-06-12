@@ -136,7 +136,24 @@ krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode)
 
 }
 
+krad_container_t *krad_container_open_transmission (krad_transmission_t *krad_transmission) {
 
+	krad_container_t *krad_container;
+	
+	krad_container = calloc(1, sizeof(krad_container_t));
+
+	krad_container->container_type = krad_link_select_container (krad_transmission->sysname);
+
+	if (krad_container->container_type == OGG) {
+		krad_container->krad_ogg = krad_ogg_open_transmission (krad_transmission);
+	} else {
+	
+		failfast ("not yet implemented");
+	}
+
+	return krad_container;
+
+}
 
 void krad_container_destroy (krad_container_t *krad_container) {
 						

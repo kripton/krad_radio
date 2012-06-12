@@ -424,27 +424,85 @@ void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, kra
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
 
+	int header_temp_len;
+	unsigned char *header_temp;
+	unsigned char *temp;
+	
+	temp = NULL;
 
-	//FIXME replace existing header atomic
+	header_temp_len = length;
+	header_temp = calloc (1, header_temp_len);
+	memcpy (header_temp, buffer, header_temp_len);
 
-	krad_transmission->header_len = length;
-	krad_transmission->header = calloc (1, krad_transmission->header_len);
-	memcpy (krad_transmission->header, buffer, krad_transmission->header_len);
-
+	if (krad_transmission->header != NULL) {
+		temp = krad_transmission->header;
+	}
+	
+	// FIXME this isn't atomic
+	krad_transmission->header_len = 0;
+	krad_transmission->header = header_temp;
+	krad_transmission->header_len = header_temp_len;
+	
+	if (temp != NULL) {
+		free (temp);
+	}
 
 	printk ("Krad Transmitter: transmission %s set header at %d bytes long",
 			krad_transmission->sysname,
 			krad_transmission->header_len);
 
+}
+
+void krad_transmitter_transmission_add_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
+
+	int header_temp_len;
+	unsigned char *header_temp;
+	unsigned char *temp;
+	
+	temp = NULL;
+
+	header_temp_len = length;
+	
+	if (krad_transmission->header_len != 0) {
+		header_temp_len += krad_transmission->header_len;
+	}
+	
+	header_temp = calloc (1, header_temp_len);
+	
+	if (krad_transmission->header_len != 0) {
+		memcpy (header_temp, krad_transmission->header, krad_transmission->header_len);
+		memcpy (header_temp + krad_transmission->header_len, buffer, length);
+	} else {
+		memcpy (header_temp, buffer, header_temp_len);
+	}
+
+	if (krad_transmission->header != NULL) {
+		temp = krad_transmission->header;
+	}
+	
+	// FIXME this isn't atomic
+	krad_transmission->header_len = 0;
+	krad_transmission->header = header_temp;
+	krad_transmission->header_len = header_temp_len;
+	
+	if (temp != NULL) {
+		free (temp);
+	}
+
+	printk ("Krad Transmitter: transmission %s added header of %d bytes total header size is %d",
+			krad_transmission->sysname,
+			length,
+			krad_transmission->header_len);
 
 }
+
 
 void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission) {
 	krad_transmission->sync_point = krad_transmission->position;
 
-	printk ("Krad Transmitter: transmission %s set sync point at %"PRIu64"",
-			krad_transmission->sysname,
-			krad_transmission->sync_point);
+	//printk ("Krad Transmitter: transmission %s set sync point at %"PRIu64"",
+	//		krad_transmission->sysname,
+	//		krad_transmission->sync_point);
 
 }
 
@@ -454,9 +512,9 @@ int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmissi
 	
 	ret = 0;
 	
-	printk ("Krad Transmitter: transmission %s added data %d bytes",
-			krad_transmission->sysname,
-			length);
+	//printk ("Krad Transmitter: transmission %s added data %d bytes",
+	//		krad_transmission->sysname,
+	//		length);
 	
 	
 	//FIXME TESTBUFFER

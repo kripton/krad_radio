@@ -460,7 +460,16 @@ krad_ogg_t *krad_ogg_open_stream (char *host, int port, char *mount, char *passw
 	return krad_ogg;
 }
 
+krad_ogg_t *krad_ogg_open_transmission (krad_transmission_t *krad_transmission) {
 
+	krad_ogg_t *krad_ogg;
+
+	krad_ogg = krad_ogg_create ();
+	
+	krad_ogg->krad_transmission = krad_transmission;
+	
+	return krad_ogg;
+}
 
 
 
@@ -500,14 +509,23 @@ int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg) {
 			
 			while (ogg_stream_flush(&krad_ogg->tracks[t].stream_state, &page) != 0) {
 	
-				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				if (krad_ogg->krad_io) {
 	
+					krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+					krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+					krad_io_write_sync (krad_ogg->krad_io);
+				}
+				
+				if (krad_ogg->krad_transmission) {		
+				
+					krad_transmitter_transmission_add_header (krad_ogg->krad_transmission, page.header, page.header_len);
+					krad_transmitter_transmission_add_header (krad_ogg->krad_transmission, page.body, page.body_len);
+				
+				}
+				
 				printk ("Krad Ogg Track %d created aux page %d sized %lu\n", 
 						t, h,
 						page.header_len + page.body_len);
-	
-				krad_io_write_sync (krad_ogg->krad_io);
 			}			
 		}
 	}
@@ -622,13 +640,23 @@ int krad_ogg_add_track (krad_ogg_t *krad_ogg, krad_codec_t codec,
 		ogg_stream_packetin (&krad_ogg->tracks[track].stream_state, &packet);
 	
 		while (ogg_stream_flush(&krad_ogg->tracks[track].stream_state, &page) != 0) {
-		
-			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
-		
-			printk ("created page sized %lu\n", page.header_len + page.body_len);
-		
-			krad_io_write_sync (krad_ogg->krad_io);
+			
+			if (krad_ogg->krad_io) {
+
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				krad_io_write_sync (krad_ogg->krad_io);
+			}
+			
+			if (krad_ogg->krad_transmission) {		
+			
+				krad_transmitter_transmission_add_header (krad_ogg->krad_transmission, page.header, page.header_len);
+				krad_transmitter_transmission_add_header (krad_ogg->krad_transmission, page.body, page.body_len);
+			
+			}			
+
+			printk ("created page sized %lu\n", page.header_len + page.body_len);			
+			
 		}
 	}
 
@@ -689,12 +717,25 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 	
 		while (ogg_stream_pageout (&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
-			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
-		
+			if (krad_ogg->krad_io) {
+
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				krad_io_write_sync (krad_ogg->krad_io);
+			}
+			
+			if (krad_ogg->krad_transmission) {
+			
+				if (keyframe == 1) {
+					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
+				}			
+			
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
+			
+			}
+
 			//printk ("created page sized %lu\n", page.header_len + page.body_len);
-		
-			krad_io_write_sync (krad_ogg->krad_io);
 
 			krad_ogg->tracks[track].packets_on_current_page = 0;
 		}
@@ -703,8 +744,23 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 	
 		while (ogg_stream_flush (&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
-			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+			if (krad_ogg->krad_io) {
+
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				krad_io_write_sync (krad_ogg->krad_io);
+			}
+			
+			if (krad_ogg->krad_transmission) {		
+			
+				if (keyframe == 1) {
+					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
+				}			
+			
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
+			
+			}
 		
 			//printk ("created page sized %lu\n", page.header_len + page.body_len);
 		
@@ -743,12 +799,25 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 	
 		while (ogg_stream_pageout (&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
-			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+			if (krad_ogg->krad_io) {
+
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				krad_io_write_sync (krad_ogg->krad_io);
+			}
+			
+			if (krad_ogg->krad_transmission) {		
+			
+				if (krad_ogg->track_count == 1) {
+					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
+				}			
+			
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
+			
+			}
 		
 			//printk ("created page sized %lu\n", page.header_len + page.body_len);
-		
-			krad_io_write_sync (krad_ogg->krad_io);
 
 			krad_ogg->tracks[track].packets_on_current_page = 0;
 		}
@@ -757,12 +826,25 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 	
 		while (ogg_stream_flush (&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
-			krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
-			krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+			if (krad_ogg->krad_io) {
+
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				krad_io_write_sync (krad_ogg->krad_io);
+			}
+			
+			if (krad_ogg->krad_transmission) {		
+			
+				if (krad_ogg->track_count == 1) {
+					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
+				}
+			
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
+			
+			}
 		
 			//printk ("created page sized %lu\n", page.header_len + page.body_len);
-		
-			krad_io_write_sync (krad_ogg->krad_io);
 
 			krad_ogg->tracks[track].packets_on_current_page = 0;
 		

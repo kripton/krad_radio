@@ -27,7 +27,7 @@
 #define KRAD_TRANSMITTER_SERVER APPVERSION
 
 #define KRAD_TRANSMITTER_MAXEVENTS 64
-#define DEFAULT_RING_SIZE 30000000
+#define DEFAULT_RING_SIZE 160000000
 #define DEFAULT_BURST_SIZE 64000
 
 typedef enum {
@@ -157,6 +157,7 @@ krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *k
 void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission);
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
+void krad_transmitter_transmission_add_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission);
 int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 
