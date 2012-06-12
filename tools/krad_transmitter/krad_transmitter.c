@@ -21,6 +21,94 @@ void set_socket_nonblocking (int sd) {
 	}
 }
 
+int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
+
+	int ret;
+	int cret;
+	uint64_t bytes_avail;
+	uint64_t bytes_wrote;
+	
+	ret = 0;
+	cret = 0;
+	bytes_avail = 0;
+	bytes_wrote = 0;
+	
+	while (1) {
+	
+		if (krad_transmission_receiver->ready == 0) {
+	
+			printk ("Krad Transmitter: actually this one isn't ready");
+					
+			break;	
+		}
+	
+		if (krad_transmission_receiver->bufpos == krad_transmission->position) {
+
+			printk ("Krad Transmitter: out of avail bytes to write to ready receiver");
+	
+			break;
+		}
+	
+						
+		bytes_avail = krad_transmission->position - krad_transmission_receiver->bufpos;
+
+		printk ("Krad Transmitter: want to write %"PRIu64" bytes to fd %d", 
+				bytes_avail,
+				krad_transmission_receiver->fd);
+
+		cret = write (krad_transmission_receiver->fd,
+					  krad_transmission->test_buffer + krad_transmission_receiver->bufpos,
+					  krad_transmission->position - krad_transmission_receiver->bufpos);
+	
+		printk ("Krad Transmitter: did wrote %d", cret);
+
+		if (cret == -1) {
+			if (errno != EAGAIN) {
+				printke ("Krad Transmitter: transmission error writing to socket");
+				krad_transmitter_receiver_destroy (krad_transmission_receiver);
+			}
+			break;
+		}
+
+		if (cret == 0) {
+			printk ("Krad Transmitter: transmission Client wrote 0 bytes");
+			krad_transmitter_receiver_destroy (krad_transmission_receiver);
+			break;
+		}
+
+		if (cret > 0) {
+			// WROTE BYTES
+			printk ("Krad Transmitter: transmission Client wrote %d bytes", cret);
+			krad_transmission_receiver->bufpos += cret;
+
+				
+					bytes_wrote = cret;
+					
+					
+					if (bytes_wrote < bytes_avail) {
+					
+						printk ("Krad Transmitter: wanted to write %"PRIu64" bytes to fd %d but only wrote %"PRIu64" thus exhasting i/o space", 
+								bytes_avail,
+								krad_transmission_receiver->fd,
+								bytes_wrote);
+					
+					
+						krad_transmission_receiver->ready = 0;
+					
+						break;
+				
+					}
+				
+
+			//break;
+		}
+
+	}
+
+	return ret;
+	
+}
+
 void *krad_transmitter_transmission_thread (void *arg) {
 
 	krad_transmission_t *krad_transmission = (krad_transmission_t *)arg;
@@ -28,18 +116,34 @@ void *krad_transmitter_transmission_thread (void *arg) {
 	krad_transmission_receiver_t *krad_transmission_receiver;
 	int ret;
 	int e;
+	int r;
 	int cret;
+	int wait_time;
+	uint64_t last_position;
+	uint64_t bytes_avail;
+	uint64_t bytes_wrote;
 	
 	e = 0;
+	r = 0;
 	ret = 0;
 	cret = 0;
+	bytes_avail = 0;
+	bytes_wrote = 0;
+	wait_time = 1000;
 	krad_transmission_receiver = NULL;
 	
 	printk ("Krad Transmitter: transmission thread starting for %s", krad_transmission->sysname);
 
 	while (krad_transmission->active == 1) {
+	
+		if (krad_transmission->ready_receiver_count > 0) {
+			wait_time = 8;
+		} else {
+			wait_time = 1000;
+		}
+	
 
-		ret = epoll_wait (krad_transmission->connections_efd, krad_transmission->transmission_events, KRAD_TRANSMITTER_MAXEVENTS, 1000);
+		ret = epoll_wait (krad_transmission->connections_efd, krad_transmission->transmission_events, KRAD_TRANSMITTER_MAXEVENTS, wait_time);
 
 		if (ret < 0) {
 			printke ("Krad Transmitter: Failed on epoll wait");
@@ -66,6 +170,13 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 				}
 				
+				if (krad_transmission->transmission_events[e].events & EPOLLRDHUP) {
+					printk ("Krad Transmitter: client disconnected");
+					krad_transmitter_receiver_destroy (krad_transmission->transmission_events[e].data.ptr);
+					usleep (100000);
+					continue;
+				}
+				
 				if (krad_transmission->transmission_events[e].events & EPOLLOUT) {
 
 					krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;
@@ -73,15 +184,6 @@ void *krad_transmitter_transmission_thread (void *arg) {
 					while (1) {
 
 						usleep (100000);
-
-						// WRITE HTTP HEADER OR HEADER OR DATA STARTING AT SYNC POINT
-						
-						if (krad_transmission_receiver->bufpos == krad_transmission->position) {
-						
-							printk ("Krad Transmitter: adding to ready list..");
-							
-							break;
-						}
 
 						printk ("Krad Transmitter: can and will write to socket");
 
@@ -95,7 +197,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 											  krad_transmission->http_header + krad_transmission_receiver->bufpos,
 											  krad_transmission->http_header_len - krad_transmission_receiver->bufpos);
 											  
-									printk ("Krad Transmitter: cret was %d", cret);
+								printk ("Krad Transmitter: did write %d", cret);
 											  
 						} else {
 
@@ -104,29 +206,41 @@ void *krad_transmitter_transmission_thread (void *arg) {
 											  krad_transmission->header + krad_transmission_receiver->bufpos,
 											  krad_transmission->header_len - krad_transmission_receiver->bufpos);
 							} else {
-								cret = write (krad_transmission_receiver->fd,
-											  "FRAME\n",
-											   strlen("FRAME\n"));
-											   
-								//FIXME kludge
-								
-								cret = krad_transmission->position - krad_transmission_receiver->bufpos;
-											   
 							
+							
+								if (krad_transmission_receiver->bufpos == krad_transmission->position) {
+						
+									printk ("Krad Transmitter: adding to ready list..");
+									krad_transmission_add_ready (krad_transmission, krad_transmission_receiver);
+									break;
+								}							
+							
+								bytes_avail = krad_transmission->position - krad_transmission_receiver->bufpos;
+
+								printk ("Krad Transmitter: want to write %"PRIu64" bytes to fd %d", 
+										bytes_avail,
+										krad_transmission_receiver->fd);
+
+								cret = write (krad_transmission_receiver->fd,
+											  krad_transmission->test_buffer + krad_transmission_receiver->bufpos,
+											  krad_transmission->position - krad_transmission_receiver->bufpos);
+								
+								printk ("Krad Transmitter: did wrote %d", cret);
+
 							}
 						}
 						
 						if (cret == -1) {
 							if (errno != EAGAIN) {
 								printke ("Krad Transmitter: transmission error writing to socket");
-								krad_transmitter_receiver_destroy (krad_transmission->transmission_events[e].data.ptr);
+								krad_transmitter_receiver_destroy (krad_transmission_receiver);
 							}
 							break;
 						}
 
 						if (cret == 0) {
 							printk ("Krad Transmitter: transmission Client wrote 0 bytes");
-							krad_transmitter_receiver_destroy (krad_transmission->transmission_events[e].data.ptr);
+							krad_transmitter_receiver_destroy (krad_transmission_receiver);
 							break;
 						}
 
@@ -143,8 +257,29 @@ void *krad_transmitter_transmission_thread (void *arg) {
 								if (krad_transmission_receiver->wrote_header == 0) {
 									if (krad_transmission_receiver->bufpos == krad_transmission->header_len) {
 										krad_transmission_receiver->wrote_header = 1;
-										krad_transmission_receiver->bufpos = 0;
+										
+										
+										//krad_transmission_receiver->bufpos = 0;
+										
+										//FIXME ensure this is right
+										krad_transmission_receiver->bufpos = krad_transmission->sync_point;
 									}
+								} else {
+								
+									bytes_wrote = cret;
+									
+									
+									if (bytes_wrote < bytes_avail) {
+									
+										printk ("Krad Transmitter: wanted to write %"PRIu64" bytes to fd %d but only wrote %"PRIu64" thus exhasting i/o space", 
+												bytes_avail,
+												krad_transmission_receiver->fd,
+												bytes_wrote);
+									
+										break;
+								
+									}
+								
 								}
 							}
 							//break;
@@ -154,9 +289,46 @@ void *krad_transmitter_transmission_thread (void *arg) {
 			}
 		}
 
+
+		int ready_count_copy;
+		ready_count_copy = krad_transmission->ready_receiver_count;
+		krad_transmission_receiver_t *temp_receiver;
+
+		if ((last_position != krad_transmission->position) && (krad_transmission->ready_receiver_count > 0)) {
 		
-		if (ret == 0) {
-			printk ("Krad Transmitter: transmission thread %s.. nothing happened", krad_transmission->sysname);
+			printk ("Krad Transmitter: processing ready list");
+			last_position = krad_transmission->position;
+
+			temp_receiver = krad_transmission->ready_receivers_head;
+//			for (r = 0; r < krad_transmission->ready_receiver_count; r++) {
+			for (r = 0; r < ready_count_copy; r++) {
+				krad_transmitter_transmission_transmit (krad_transmission, temp_receiver);
+				temp_receiver = temp_receiver->next;
+			}
+			
+			temp_receiver = NULL;
+			
+			
+			// CULL nonready
+			for (r = 0; r < ready_count_copy; r++) {
+				if (temp_receiver == NULL) {
+					temp_receiver = krad_transmission->ready_receivers_head;
+				}
+				
+				if (temp_receiver->ready == 0) {
+					krad_transmission_remove_ready (krad_transmission, temp_receiver);
+					temp_receiver = NULL;
+				} else {
+					temp_receiver = temp_receiver->next;
+				}
+			}
+		
+		} else {
+	
+			if (ret == 0) {
+				printk ("Krad Transmitter: transmission thread %s.. nothing happened", krad_transmission->sysname);
+			}	
+	
 		}
 		
 	}
@@ -170,12 +342,75 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 
 void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
-	failfast ("Krad Transmitter: implement me");
+	krad_transmission_receiver->ready = 1;
+
+	if (krad_transmission->ready_receivers_head == NULL) {
+		krad_transmission->ready_receivers_head = krad_transmission_receiver;
+		krad_transmission_receiver->prev = NULL;
+	}
+	
+	if (krad_transmission->ready_receivers_tail == NULL) {
+		krad_transmission->ready_receivers_tail = krad_transmission_receiver;
+		krad_transmission_receiver->next = NULL;
+	} else {
+		krad_transmission->ready_receivers_tail->next = krad_transmission_receiver;
+		krad_transmission_receiver->prev = krad_transmission->ready_receivers_tail;
+		krad_transmission->ready_receivers_tail = krad_transmission_receiver;
+		krad_transmission_receiver->next = NULL;
+	}
+
+	krad_transmission->ready_receiver_count++;
+	printk ("Krad Transmitter: added to ready list on %s ready count is %d", 
+			krad_transmission->sysname,
+			krad_transmission->ready_receiver_count);
 }
 
 
 void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
-	failfast ("Krad Transmitter: implement me");
+
+
+	printk ("Krad Transmitter: removing ready...");
+
+	krad_transmission_receiver->ready = 0;
+
+	if (krad_transmission_receiver->prev != NULL) {
+		if (krad_transmission_receiver->next != NULL) {
+			krad_transmission_receiver->prev->next = krad_transmission_receiver->next;
+		}
+		if (krad_transmission_receiver->next == NULL) {
+			krad_transmission_receiver->prev->next = NULL;
+		}
+	}
+
+	if (krad_transmission_receiver->next != NULL) {
+		if (krad_transmission_receiver->prev != NULL) {
+			krad_transmission_receiver->next->prev = krad_transmission_receiver->prev;
+		}
+		if (krad_transmission_receiver->prev == NULL) {
+			krad_transmission_receiver->next->prev = NULL;
+		}
+	}
+
+	if ((krad_transmission_receiver->next == NULL) && (krad_transmission_receiver->prev == NULL)) {
+		krad_transmission->ready_receivers_head = NULL;
+		krad_transmission->ready_receivers_tail = NULL;
+	}
+
+	if ((krad_transmission_receiver->next != NULL) && (krad_transmission_receiver->prev == NULL)) {
+		krad_transmission->ready_receivers_head = krad_transmission_receiver->next;
+	}
+	
+	if ((krad_transmission_receiver->next == NULL) && (krad_transmission_receiver->prev != NULL)) {
+		krad_transmission->ready_receivers_tail = krad_transmission_receiver->prev;
+	}
+
+	krad_transmission_receiver->prev = NULL;
+	krad_transmission_receiver->next = NULL;
+
+	krad_transmission->ready_receiver_count--;
+	printk ("Krad Transmitter: removed from ready list on %s ready count is %d", 
+			krad_transmission->sysname,
+			krad_transmission->ready_receiver_count);
 }
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
@@ -214,6 +449,12 @@ int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmissi
 			krad_transmission->sysname,
 			length);
 	
+	
+	//FIXME TESTBUFFER
+	memcpy (krad_transmission->test_buffer + krad_transmission->position, buffer, length);
+	
+	krad_transmission->position += length;
+	
 
 	if ((krad_transmission->ready == 0) && (krad_transmission->header_len > 0) && (length > 0)) {
 		ret = krad_ringbuffer_write (krad_transmission->ringbuffer, (char *)buffer, length);
@@ -221,8 +462,6 @@ int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmissi
 		
 		printk ("Krad Transmitter: transmission %s added now ready!",
 				krad_transmission->sysname);
-		
-		krad_transmission->position += ret;
 		
 		return ret;
 	} else {
@@ -239,6 +478,10 @@ krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *k
 	for (t = 0; t < DEFAULT_MAX_TRANSMISSIONS; t++) {
 		if (krad_transmitter->krad_transmissions[t].active == 0) {
 			krad_transmitter->krad_transmissions[t].active = 2;
+			krad_transmitter->krad_transmissions[t].ready_receivers = NULL;	
+			krad_transmitter->krad_transmissions[t].ready_receivers_head = NULL;
+			krad_transmitter->krad_transmissions[t].ready_receivers_tail = NULL;
+			krad_transmitter->krad_transmissions[t].ready_receiver_count = 0;
 			krad_transmitter->krad_transmissions[t].ready = 0;
 			krad_transmitter->krad_transmissions[t].position = 0;
 			krad_transmitter->krad_transmissions[t].sync_point = -1;
@@ -263,6 +506,13 @@ krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *k
 
 			if (krad_transmitter->krad_transmissions[t].ringbuffer == NULL) {
 				failfast ("Krad Transmitter: Out of memory creating new transmission");
+			}
+			
+			//FIXME TESTBUFFER
+			krad_transmitter->krad_transmissions[t].test_buffer = calloc (1, DEFAULT_RING_SIZE);
+
+			if (krad_transmitter->krad_transmissions[t].test_buffer == NULL) {
+				failfast ("Krad Transmitter: Out of memory creating new transmission t");
 			}
 
 			pthread_create (&krad_transmitter->krad_transmissions[t].transmission_thread, NULL, krad_transmitter_transmission_thread, (void *)&krad_transmitter->krad_transmissions[t]);
@@ -303,11 +553,20 @@ void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmissi
 
 	krad_transmission->http_header_len = 0;
 	krad_transmission->header_len = 0;
-	
+	krad_transmission->ready_receivers = NULL;	
+	krad_transmission->ready_receivers_head = NULL;
+	krad_transmission->ready_receivers_tail = NULL;
+	krad_transmission->ready_receiver_count = 0;
 	krad_transmission->sync_point = -1;
 	krad_transmission->ready = 0;
 	krad_transmission->position = 0;
 	krad_ringbuffer_free (krad_transmission->ringbuffer);
+	
+	
+	//FIXME TESTBUFFER
+	free (krad_transmission->test_buffer);
+	
+	
 	close (krad_transmission->connections_efd);
 	free (krad_transmission->transmission_events);
 	krad_transmission->active = 0;
@@ -337,6 +596,9 @@ krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter
 }
 
 void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver) {
+
+
+	krad_transmission_receiver->ready = 0;
 
 	krad_transmission_receiver->active = 2;
 	if (krad_transmission_receiver->fd != 0) {
@@ -373,7 +635,7 @@ void krad_transmitter_receiver_attach (krad_transmission_receiver_t *krad_transm
 				if (eret != 0) {
 					failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
 				}
-				krad_transmission_receiver->event.events = EPOLLOUT | EPOLLET;
+				krad_transmission_receiver->event.events = EPOLLRDHUP | EPOLLOUT | EPOLLET;
 				eret = epoll_ctl (krad_transmission_receiver->krad_transmission->connections_efd, EPOLL_CTL_ADD, krad_transmission_receiver->fd, &krad_transmission_receiver->event);
 				if (eret != 0) {
 					failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);

@@ -82,10 +82,19 @@ struct krad_transmission_St {
 	struct epoll_event event;
 
 	krad_ringbuffer_t *ringbuffer;
+	
+	unsigned char *test_buffer;
+	
 
 	uint64_t position;	
 	uint64_t sync_point;
 	
+
+	krad_transmission_receiver_t *ready_receivers;
+	krad_transmission_receiver_t *ready_receivers_head;
+	krad_transmission_receiver_t *ready_receivers_tail;
+	int ready_receiver_count;
+
 
 	pthread_t transmission_thread;
 };
@@ -111,6 +120,9 @@ struct krad_transmission_receiver_St {
 	int ready;
 	int active;	
 
+	krad_transmission_receiver_t *prev;
+	krad_transmission_receiver_t *next;
+
 };
 
 
@@ -123,6 +135,8 @@ void set_socket_nonblocking (int sd);
 
 krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter_t *krad_transmitter, int fd);
 void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver);
+
+int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver);
 
 void *krad_transmitter_transmission_thread (void *arg);
 void *krad_transmitter_listening_thread (void *arg);
