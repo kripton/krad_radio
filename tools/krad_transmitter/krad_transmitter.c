@@ -65,14 +65,18 @@ int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmissi
 		if (cret == -1) {
 			if (errno != EAGAIN) {
 				printke ("Krad Transmitter: transmission error writing to socket");
-				krad_transmitter_receiver_destroy (krad_transmission_receiver);
+				krad_transmission_receiver->destroy = 1;
+				krad_transmission_receiver->ready = 0;		
+				//krad_transmitter_receiver_destroy (krad_transmission_receiver);
 			}
 			break;
 		}
 
 		if (cret == 0) {
 			printk ("Krad Transmitter: transmission Client wrote 0 bytes");
-			krad_transmitter_receiver_destroy (krad_transmission_receiver);
+			krad_transmission_receiver->destroy = 1;
+			krad_transmission_receiver->ready = 0;
+			//krad_transmitter_receiver_destroy (krad_transmission_receiver);
 			break;
 		}
 
@@ -142,11 +146,12 @@ void *krad_transmitter_transmission_thread (void *arg) {
 			wait_time = 1000;
 		}
 	
+		//usleep (2500000);
 
 		ret = epoll_wait (krad_transmission->connections_efd, krad_transmission->transmission_events, KRAD_TRANSMITTER_MAXEVENTS, wait_time);
 
 		if (ret < 0) {
-			printke ("Krad Transmitter: Failed on epoll wait");
+			printke ("Krad Transmitter: Failed on epoll wait %s", strerror(errno));
 			krad_transmission->active = 2;
 			break;
 		}
@@ -154,6 +159,8 @@ void *krad_transmitter_transmission_thread (void *arg) {
 		if (ret > 0) {
 		
 			for (e = 0; e < ret; e++) {
+			
+				krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;			
 	
 				if ((krad_transmission->transmission_events[e].events & EPOLLERR) ||
 				    (krad_transmission->transmission_events[e].events & EPOLLHUP))
@@ -165,27 +172,25 @@ void *krad_transmitter_transmission_thread (void *arg) {
 						if (krad_transmission->transmission_events[e].events & EPOLLERR) {
 							printke ("Krad Transmitter: transmitter transmission receiver connection error");
 						}
-						krad_transmitter_receiver_destroy (krad_transmission->transmission_events[e].data.ptr);
+						krad_transmitter_receiver_destroy (krad_transmission_receiver);
 						continue;
 
 				}
 				
 				if (krad_transmission->transmission_events[e].events & EPOLLRDHUP) {
-					printk ("Krad Transmitter: client disconnected");
-					krad_transmitter_receiver_destroy (krad_transmission->transmission_events[e].data.ptr);
-					usleep (100000);
+					printk ("Krad Transmitter: client disconnected %d", krad_transmission_receiver->fd);
+					krad_transmitter_receiver_destroy (krad_transmission_receiver);
+					//usleep (100000);
 					continue;
 				}
 				
 				if (krad_transmission->transmission_events[e].events & EPOLLOUT) {
 
-					krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;
-
 					while (1) {
 
-						usleep (100000);
+						//usleep (100000);
 
-						printk ("Krad Transmitter: can and will write to socket");
+						printk ("Krad Transmitter: can and will write to socket %d", krad_transmission_receiver->fd);
 
 						if (krad_transmission_receiver->wrote_http_header == 0) {
 						
@@ -317,6 +322,10 @@ void *krad_transmitter_transmission_thread (void *arg) {
 				
 				if (temp_receiver->ready == 0) {
 					krad_transmission_remove_ready (krad_transmission, temp_receiver);
+					if (temp_receiver->destroy == 1) {
+						temp_receiver->destroy = 0;
+						krad_transmitter_receiver_destroy (temp_receiver);
+					}
 					temp_receiver = NULL;
 				} else {
 					temp_receiver = temp_receiver->next;
@@ -326,7 +335,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 		} else {
 	
 			if (ret == 0) {
-				printk ("Krad Transmitter: transmission thread %s.. nothing happened", krad_transmission->sysname);
+				//printk ("Krad Transmitter: transmission thread %s.. nothing happened", krad_transmission->sysname);
 			}	
 	
 		}
@@ -598,6 +607,10 @@ krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter
 void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_transmission_receiver) {
 
 
+	if (krad_transmission_receiver->ready == 1) {
+		krad_transmission_remove_ready (krad_transmission_receiver->krad_transmission, krad_transmission_receiver);
+	}
+
 	krad_transmission_receiver->ready = 0;
 
 	krad_transmission_receiver->active = 2;
@@ -732,10 +745,12 @@ void *krad_transmitter_listening_thread (void *arg) {
 	
 	while (krad_transmitter->stop_listening == 0) {
 
+		//usleep (150000);
+
 		ret = epoll_wait (krad_transmitter->incoming_connections_efd, krad_transmitter->incoming_connection_events, KRAD_TRANSMITTER_MAXEVENTS, 1000);
 
 		if (ret < 0) {
-			printke ("Krad Transmitter: Failed on epoll wait");
+			printke ("Krad Transmitter: Failed on epoll wait %s", strerror(errno));
 			krad_transmitter->stop_listening = 1;
 			break;
 		}
@@ -836,7 +851,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 
 		
 		if (ret == 0) {
-			printk ("Krad Transmitter: Listening thread... nothing happened");
+			//printk ("Krad Transmitter: Listening thread... nothing happened");
 		}
 		
 	}
@@ -954,6 +969,8 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 krad_transmitter_t *krad_transmitter_create () {
 
 	int t;
+
+	//usleep (1500000);
 
 	krad_transmitter_t *krad_transmitter = calloc (1, sizeof(krad_transmitter_t));
 		

@@ -118,7 +118,8 @@ struct krad_transmission_receiver_St {
 
 
 	int ready;
-	int active;	
+	int active;
+	int destroy;
 
 	krad_transmission_receiver_t *prev;
 	krad_transmission_receiver_t *next;
