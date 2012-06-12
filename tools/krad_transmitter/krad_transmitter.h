@@ -12,7 +12,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
-
+#include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_ring.h"
 
@@ -20,10 +20,10 @@
 #define DEFAULT_MAX_TRANSMISSIONS 48
 #define TOTAL_RECEIVERS DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION * DEFAULT_MAX_TRANSMISSIONS
 #define DEFAULT_TRANSMITTER_PORT "8080"
-#define KRAD_TRANSMITTER_SERVER "Icecast 2.4.2"
+#define KRAD_TRANSMITTER_SERVER APPVERSION
 
 #define KRAD_TRANSMITTER_MAXEVENTS 64
-#define DEFAULT_RING_SIZE 10000000
+#define DEFAULT_RING_SIZE 30000000
 #define DEFAULT_BURST_SIZE 64000
 
 typedef enum {

@@ -11,7 +11,7 @@ void krad_transmitter_test (int port) {
 	char data[256];
 	int data_len;
 
-	test_count = 30;
+	test_count = 60000;
 	count = 0;
 
 	char *stream_name = "stream.txt";
@@ -25,20 +25,20 @@ void krad_transmitter_test (int port) {
 	
 	krad_transmission = krad_transmitter_transmission_create (krad_transmitter, stream_name, content_type);
 	
-	usleep (1000000);
+	usleep (100000);
 	
 	krad_transmitter_transmission_set_header (krad_transmission, (unsigned char *)stream_header, strlen(stream_header));
 
-	usleep (1000000);
+	usleep (100000);
 	
 	krad_transmitter_transmission_sync_point (krad_transmission);
 	
-	usleep (1000000);	
+	usleep (100000);	
 	
 	data_len = sprintf (data, "The first sentence ever in the stream, key of course.\n");
 	krad_transmitter_transmission_add_data (krad_transmission, (unsigned char *)data, data_len);
 	
-	usleep (1000000);
+	usleep (100000);
 	
 	for (count = 1; count < test_count; count++) {
 
@@ -51,7 +51,7 @@ void krad_transmitter_test (int port) {
 
 		krad_transmitter_transmission_add_data (krad_transmission, (unsigned char *)data, data_len);
 
-		usleep (1000000);
+		usleep (100000);
 	}
 	
 	krad_transmitter_destroy (krad_transmitter);
