@@ -68,16 +68,35 @@ void *krad_transmitter_transmission_thread (void *arg) {
 				
 				if (krad_transmission->transmission_events[e].events & EPOLLOUT) {
 
+					krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;
+
 					while (1) {
-						krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;
+
+						usleep (100000);
+
+						// WRITE HTTP HEADER OR HEADER OR DATA STARTING AT SYNC POINT
+						
+						if (krad_transmission_receiver->bufpos == krad_transmission->position) {
+						
+							printk ("Krad Transmitter: adding to ready list..");
+							
+							break;
+						}
 
 						printk ("Krad Transmitter: can and will write to socket");
-						// WRITE HTTP HEADER OR HEADER OR DATA STARTING AT SYNC POINT
 
 						if (krad_transmission_receiver->wrote_http_header == 0) {
+						
+								printk ("Krad Transmitter: want to write %"PRIu64" bytes to fd %d", 
+										krad_transmission->http_header_len - krad_transmission_receiver->bufpos,
+										krad_transmission_receiver->fd);
+						
 								cret = write (krad_transmission_receiver->fd,
 											  krad_transmission->http_header + krad_transmission_receiver->bufpos,
 											  krad_transmission->http_header_len - krad_transmission_receiver->bufpos);
+											  
+									printk ("Krad Transmitter: cret was %d", cret);
+											  
 						} else {
 
 							if (krad_transmission_receiver->wrote_header == 0) {
@@ -88,6 +107,11 @@ void *krad_transmitter_transmission_thread (void *arg) {
 								cret = write (krad_transmission_receiver->fd,
 											  "FRAME\n",
 											   strlen("FRAME\n"));
+											   
+								//FIXME kludge
+								
+								cret = krad_transmission->position - krad_transmission_receiver->bufpos;
+											   
 							
 							}
 						}
@@ -198,6 +222,8 @@ int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmissi
 		printk ("Krad Transmitter: transmission %s added now ready!",
 				krad_transmission->sysname);
 		
+		krad_transmission->position += ret;
+		
 		return ret;
 	} else {
 		return krad_ringbuffer_write (krad_transmission->ringbuffer, (char *)buffer, length);
@@ -225,7 +251,11 @@ krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *k
 																			   krad_transmitter->krad_transmissions[t].content_type,
 																			   KRAD_TRANSMITTER_SERVER
 																			   );
-																			   
+
+			printk ("Krad Transmitter: http header for %s is %d bytes: %s",
+					krad_transmitter->krad_transmissions[t].sysname,
+					krad_transmitter->krad_transmissions[t].http_header_len,
+					krad_transmitter->krad_transmissions[t].http_header);
 			
 			krad_transmitter->krad_transmissions[t].connections_efd = epoll_create1 (0);
 			krad_transmitter->krad_transmissions[t].transmission_events = calloc (KRAD_TRANSMITTER_MAXEVENTS, sizeof (struct epoll_event));
@@ -344,7 +374,7 @@ void krad_transmitter_receiver_attach (krad_transmission_receiver_t *krad_transm
 					failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
 				}
 				krad_transmission_receiver->event.events = EPOLLOUT | EPOLLET;
-				eret = epoll_ctl (krad_transmission_receiver->krad_transmitter->incoming_connections_efd, EPOLL_CTL_ADD, krad_transmission_receiver->fd, &krad_transmission_receiver->event);
+				eret = epoll_ctl (krad_transmission_receiver->krad_transmission->connections_efd, EPOLL_CTL_ADD, krad_transmission_receiver->fd, &krad_transmission_receiver->event);
 				if (eret != 0) {
 					failfast ("Krad Transmitter: incoming transmitter connection epoll error eret is %d errno is %i", eret, errno);
 				}
@@ -397,7 +427,7 @@ void krad_transmitter_handle_incoming_connection (krad_transmitter_t *krad_trans
 			
 			}
 			request[r] = '\0';
-			
+			krad_transmission_receiver->bufpos = 0;
 			krad_transmitter_receiver_attach (krad_transmission_receiver, request);
 			
 			break;
@@ -602,10 +632,11 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 	if (bind (krad_transmitter->incoming_connections_sd, (struct sockaddr *)&krad_transmitter->local_address,
 		sizeof(krad_transmitter->local_address)) == -1) {
 		
-		printke ("Krad Transmitter: bind error for tcp port %d\n", krad_transmitter->port);
+		//printke ("Krad Transmitter: bind error for tcp port %d\n", krad_transmitter->port);
 		close (krad_transmitter->incoming_connections_sd);
 		krad_transmitter->listening = 0;
 		krad_transmitter->port = 0;
+		failfast ("Krad Transmitter: bind error for tcp port %d\n", krad_transmitter->port);		
 		return 1;
 	}
 	

@@ -71,10 +71,10 @@ struct krad_transmission_St {
 	char content_type[256];	
 
 	char http_header[256];
-	int http_header_len;
+	uint64_t http_header_len;
 
 	unsigned char *header;
-	int header_len;
+	uint64_t header_len;
 
 	int connections_efd;
 	

@@ -10,11 +10,11 @@ void krad_transmitter_test (int port) {
 	
 	krad_transmitter_listen_on (krad_transmitter, port);
 	
-	krad_transmission = krad_transmitter_transmission_create (krad_transmitter, "testass", "fake/type");
+	krad_transmission = krad_transmitter_transmission_create (krad_transmitter, "stream.txt", "text/plain");
 	
 	usleep (2555000);
 	
-	krad_transmitter_transmission_set_header (krad_transmission, (unsigned char *)"header\n", strlen("header\n"));
+	krad_transmitter_transmission_set_header (krad_transmission, (unsigned char *)"The header\n", strlen("The header\n"));
 
 	usleep (2555000);
 	
