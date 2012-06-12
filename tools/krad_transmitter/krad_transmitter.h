@@ -16,6 +16,10 @@
 #include "krad_system.h"
 #include "krad_ring.h"
 
+
+#ifndef KRAD_TRANSMITTER_H
+#define KRAD_TRANSMITTER_H
+
 #define DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION 256
 #define DEFAULT_MAX_TRANSMISSIONS 48
 #define TOTAL_RECEIVERS DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION * DEFAULT_MAX_TRANSMISSIONS
@@ -172,3 +176,4 @@ void krad_transmitter_stop_listening (krad_transmitter_t *krad_transmitter);
 krad_transmitter_t *krad_transmitter_create ();
 void krad_transmitter_destroy (krad_transmitter_t *krad_transmitter);
 
+#endif
