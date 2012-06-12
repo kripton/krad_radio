@@ -382,6 +382,44 @@ void krad_ipc_disable_linker_listen (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t enable_transmitter;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINKER_CMD_TRANSMITTER_ENABLE, &enable_transmitter);	
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_TCP_PORT, port);
+
+	krad_ebml_finish_element (client->krad_ebml, enable_transmitter);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_disable_linker_transmitter (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t disable_transmitter;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINKER_CMD_TRANSMITTER_DISABLE, &disable_transmitter);
+
+	krad_ebml_finish_element (client->krad_ebml, disable_transmitter);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_enable_osc (krad_ipc_client_t *client, int port) {
 
 	//uint64_t ipc_command;

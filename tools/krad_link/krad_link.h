@@ -47,6 +47,9 @@ struct krad_linker_St {
 	int stop_listening;
 	pthread_t listening_thread;
 	
+	/* linker transmitter */	
+	krad_transmitter_t *krad_transmitter;	
+	
 };
 
 struct krad_linker_listen_client_St {

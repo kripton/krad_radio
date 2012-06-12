@@ -58,6 +58,9 @@ struct krad_ipc_client_St {
 	int nowait;
 
 };
+
+void krad_ipc_disable_linker_transmitter (krad_ipc_client_t *client);
+void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port);
 void krad_ipc_enable_linker_listen (krad_ipc_client_t *client, int port);
 void krad_ipc_disable_linker_listen (krad_ipc_client_t *client);
 void krad_ipc_enable_osc (krad_ipc_client_t *client, int port);

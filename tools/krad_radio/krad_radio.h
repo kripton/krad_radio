@@ -65,7 +65,6 @@ struct krad_radio_St {
 	krad_osc_t *krad_osc;	
 	krad_websocket_t *krad_websocket;
 	krad_http_t *krad_http;
-	krad_transmitter_t *krad_transmitter;
 	krad_linker_t *krad_linker;	
 	krad_mixer_t *krad_mixer;
 	krad_compositor_t *krad_compositor;

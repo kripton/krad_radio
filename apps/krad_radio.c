@@ -166,17 +166,29 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
-			if (strncmp(argv[2], "listenon", 8) == 0) {
+			if (strncmp(argv[2], "listen_on", 9) == 0) {
 				if (argc == 4) {
 					krad_ipc_enable_linker_listen (client, atoi(argv[3]));
 				}
 			}
 			
-			if (strncmp(argv[2], "listenoff", 9) == 0) {
+			if (strncmp(argv[2], "listen_off", 10) == 0) {
 				if (argc == 3) {
 					krad_ipc_disable_linker_listen (client);
 				}
-			}				
+			}
+			
+			if (strncmp(argv[2], "transmitter_on", 14) == 0) {
+				if (argc == 4) {
+					krad_ipc_enable_linker_transmitter (client, atoi(argv[3]));
+				}
+			}
+			
+			if (strncmp(argv[2], "transmitter_off", 15) == 0) {
+				if (argc == 3) {
+					krad_ipc_disable_linker_transmitter (client);
+				}
+			}		
 			
 			if ((strncmp(argv[2], "link", 4) == 0) || (strncmp(argv[2], "transmit", 8) == 0)) {
 				if (argc == 7) {

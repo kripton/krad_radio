@@ -2849,6 +2849,27 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			krad_linker_stop_listening (krad_linker);
 		
 			break;
+			
+			
+		case EBML_ID_KRAD_LINKER_CMD_TRANSMITTER_ENABLE:
+		
+			krad_ebml_read_element ( krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
+				printke ("hrm wtf6");
+			}
+		
+			bigint = krad_ebml_read_number ( krad_ipc->current_client->krad_ebml, ebml_data_size);
+		
+			krad_transmitter_listen_on (krad_linker->krad_transmitter, bigint);
+		
+			break;
+
+		case EBML_ID_KRAD_LINKER_CMD_TRANSMITTER_DISABLE:
+		
+			krad_transmitter_stop_listening (krad_linker->krad_transmitter);
+		
+			break;			
 
 	}
 
@@ -3160,6 +3181,8 @@ krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 
 	pthread_mutex_init (&krad_linker->change_lock, NULL);	
 
+	krad_linker->krad_transmitter = krad_transmitter_create ();
+
 	return krad_linker;
 
 }
@@ -3167,6 +3190,8 @@ krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 void krad_linker_destroy (krad_linker_t *krad_linker) {
 
 	int l;
+
+	krad_transmitter_destroy (krad_linker->krad_transmitter);
 
 	pthread_mutex_lock (&krad_linker->change_lock);	
 	for (l = 0; l < KRAD_LINKER_MAX_LINKS; l++) {
