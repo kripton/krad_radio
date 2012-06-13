@@ -1,44 +1,62 @@
 #include "krad_dirac.h"
 
-void krad_dirac_encoder_destroy (krad_dirac_t *dirac) {
+void krad_dirac_encoder_destroy (krad_dirac_t *krad_dirac) {
 
-	schro_encoder_free (dirac->encoder);
+	schro_encoder_free (krad_dirac->encoder);
 
-	free (dirac);
+	schro_frame_unref (krad_dirac->frame);
+
+	free (krad_dirac->format);
+
+	free (krad_dirac->fullpacket);
+
+	free (krad_dirac);
 }
 
 krad_dirac_t *krad_dirac_encoder_create (int width, int height) {
 
-	krad_dirac_t *dirac = calloc(1, sizeof(krad_dirac_t));
+	krad_dirac_t *krad_dirac = calloc(1, sizeof(krad_dirac_t));
 	
-	dirac->width = width;
-	dirac->height = height;
+	krad_dirac->width = width;
+	krad_dirac->height = height;
 	
 	schro_init ();
 
-	dirac->encoder = schro_encoder_new ();
-	dirac->format = schro_encoder_get_video_format (dirac->encoder);
+	krad_dirac->encoder = schro_encoder_new ();
+	krad_dirac->format = schro_encoder_get_video_format (krad_dirac->encoder);
 
-	dirac->format->width = dirac->width;
-	dirac->format->height = dirac->height;
-	dirac->format->clean_width = dirac->width;
-	dirac->format->clean_height = dirac->height;
-	dirac->format->left_offset = 0;
-	dirac->format->top_offset = 0;
-	schro_encoder_set_video_format (dirac->encoder, dirac->format);
-	free (dirac->format);
+	krad_dirac->format->width = krad_dirac->width;
+	krad_dirac->format->height = krad_dirac->height;
+	krad_dirac->format->clean_width = krad_dirac->width;
+	krad_dirac->format->clean_height = krad_dirac->height;
+	krad_dirac->format->left_offset = 0;
+	krad_dirac->format->top_offset = 0;
+	krad_dirac->format->chroma_format = SCHRO_CHROMA_420;
+	schro_encoder_set_video_format (krad_dirac->encoder, krad_dirac->format);
+	
 	//schro_debug_set_level (SCHRO_LEVEL_DEBUG);
 	
-	schro_encoder_setting_set_double (dirac->encoder, "gop_structure", SCHRO_ENCODER_GOP_INTRA_ONLY);
-	schro_encoder_setting_set_double (dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_CONSTANT_BITRATE);
+	schro_encoder_setting_set_double (krad_dirac->encoder, "gop_structure", SCHRO_ENCODER_GOP_INTRA_ONLY);
+	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_CONSTANT_BITRATE);
+//	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_LOW_DELAY);
 
-	schro_encoder_start (dirac->encoder);
+	schro_encoder_setting_set_double (krad_dirac->encoder, "bitrate", 15000000);
 
-	dirac->size = dirac->width * dirac->height;
-	dirac->size += dirac->width/2 * dirac->height/2;
-	dirac->size += dirac->width/2 * dirac->height/2;
+	schro_encoder_start (krad_dirac->encoder);
 
-	return dirac;
+	krad_dirac->size = krad_dirac->width * krad_dirac->height;
+	krad_dirac->size += krad_dirac->width/2 * krad_dirac->height/2;
+	krad_dirac->size += krad_dirac->width/2 * krad_dirac->height/2;
+
+	//fixme dum, but aint going to bigger than uncompressed
+	krad_dirac->fullpacket = calloc (1, krad_dirac->size);
+
+	krad_dirac->frame = schro_frame_new_and_alloc (NULL,
+												   SCHRO_FRAME_FORMAT_U8_420,
+												   krad_dirac->width,
+												   krad_dirac->height);
+
+	return krad_dirac;
 	
 }
 
@@ -46,58 +64,53 @@ void krad_dirac_encoder_frame_free (SchroFrame *frame, void *priv) {
 	//free (priv);
 }
 
-int krad_dirac_encode (krad_dirac_t *dirac, void *frame, void *output) {
+int krad_dirac_encoder_write (krad_dirac_t *krad_dirac, unsigned char **packet) {
 
-	//dirac->n_frames = 0;
-	dirac->go = 1;
-	
-	int headerlen;
-	
+
+	krad_dirac->go = 1;
+		
+	int packet_len;
 	int framenum;
 	
 	framenum = 0;
+	packet_len = 0;
 	
 	
-	headerlen = 0;
-	//dirac->frame = schro_frame_new_from_data_I420 (dirac->picture, dirac->width, dirac->height);
-	dirac->frame = schro_frame_new_from_data_YV12 (frame, dirac->width, dirac->height);
-	schro_frame_set_free_callback (dirac->frame, krad_dirac_encoder_frame_free, dirac->picture);
-	schro_encoder_push_frame (dirac->encoder, dirac->frame);
-	//	*took = 1;
-
-	while (dirac->go) {
-
-		switch (schro_encoder_wait (dirac->encoder)) {
+	//KLUDGE
+	*packet = krad_dirac->fullpacket;
+		
+	//krad_dirac->frame = schro_frame_new_from_data_I420 (krad_dirac->picture, krad_dirac->width, krad_dirac->height);
+	//krad_dirac->frame = schro_frame_new_from_data_YV12 (frame, krad_dirac->width, krad_dirac->height);
+	//schro_frame_set_free_callback (krad_dirac->frame, krad_dirac_encoder_frame_free, krad_dirac->picture);
+	schro_encoder_push_frame (krad_dirac->encoder, krad_dirac->frame);
+	
+	while (krad_dirac->go) {
+		switch (schro_encoder_wait (krad_dirac->encoder)) {
 			case SCHRO_STATE_NEED_FRAME:
-
-		  		return 0;
-
-		  	printk ("need frame!");
-
-			break;
-		  case SCHRO_STATE_HAVE_BUFFER:
-		  	printk ("have buffer!");
-			dirac->buffer = schro_encoder_pull (dirac->encoder, &framenum);
-			memcpy(output + headerlen, dirac->buffer->data, dirac->buffer->length);
-			
-			if (headerlen == 0) {
-				headerlen = dirac->buffer->length;
-				schro_buffer_unref (dirac->buffer);
+				//printk ("need frame!");
+				
+				krad_dirac->frame = schro_frame_new_and_alloc (NULL,
+															   SCHRO_FRAME_FORMAT_U8_420,
+															   krad_dirac->width,
+															   krad_dirac->height);
+				
+				return packet_len;
+			case SCHRO_STATE_HAVE_BUFFER:
+				//printk ("have buffer!");
+				krad_dirac->buffer = schro_encoder_pull (krad_dirac->encoder, &framenum);
+				memcpy (krad_dirac->fullpacket + packet_len, krad_dirac->buffer->data, krad_dirac->buffer->length);
+				packet_len += krad_dirac->buffer->length;
+				schro_buffer_unref (krad_dirac->buffer);
 				break;
-			}
-			
-			schro_buffer_unref (dirac->buffer);
-			return headerlen + dirac->buffer->length;
-		  case SCHRO_STATE_AGAIN:
-		  	printk ("again!");
-			break;
-		  case SCHRO_STATE_END_OF_STREAM:
-		  	printk ("eos!");
-			dirac->go = 0;
-			break;
-		  default:
-		  	printk ("????");
-			break;
+			case SCHRO_STATE_AGAIN:
+				printk ("again!");
+				break;
+			case SCHRO_STATE_END_OF_STREAM:
+				printk ("eos!");
+				return packet_len;
+			default:
+				printk ("????");
+				break;
 		}
 	}
 	

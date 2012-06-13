@@ -163,6 +163,23 @@ void *x11_capture_thread (void *arg) {
 	printk ("X11 capture thread begins");
 	
 	krad_frame_t *krad_frame;
+	krad_frame_t *krad_frame2;
+	
+	if ((krad_link->krad_x11->screen_width != krad_link->composite_width) || (krad_link->krad_x11->screen_height != krad_link->composite_height)) {
+	
+	
+	
+		krad_link->captured_frame_converter = sws_getContext ( krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height,
+														   PIX_FMT_RGB32,
+														   krad_link->composite_width,
+														   krad_link->composite_height,
+														   PIX_FMT_RGB32, 
+														   SWS_BICUBIC, NULL, NULL, NULL);	
+	
+	
+	}
+	
+	
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "X11In",
@@ -175,7 +192,36 @@ void *x11_capture_thread (void *arg) {
 
 		krad_x11_capture (krad_link->krad_x11, (unsigned char *)krad_frame->pixels);
 		
-		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		if ((krad_link->krad_x11->screen_width != krad_link->composite_width) || (krad_link->krad_x11->screen_height != krad_link->composite_height)) {
+		
+			krad_frame2 = krad_framepool_getframe (krad_link->krad_framepool);
+		
+			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
+
+			const uint8_t *yuv_arr[4];
+			int yuv_stride_arr[4];
+		
+			yuv_arr[0] = (unsigned char *)krad_frame->pixels;
+
+			yuv_stride_arr[0] = krad_link->krad_x11->screen_width * 4;
+			yuv_stride_arr[1] = 0;
+			yuv_stride_arr[2] = 0;
+			yuv_stride_arr[3] = 0;
+
+			unsigned char *dst[4];
+
+			dst[0] = (unsigned char *)krad_frame2->pixels;
+
+			sws_scale(krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, 
+					  krad_link->krad_x11->screen_height, dst, rgb_stride_arr);		
+		
+		
+			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame2);
+			krad_framepool_unref_frame (krad_frame2);
+		
+		} else {
+			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		}
 
 		krad_framepool_unref_frame (krad_frame);
 
@@ -245,6 +291,11 @@ void *video_encoding_thread(void *arg) {
 																	 DEFAULT_THEORA_QUALITY);
 	}
 	
+	if (krad_link->video_codec == DIRAC) {
+		krad_link->krad_dirac = krad_dirac_encoder_create (krad_link->encoding_width, 
+														   krad_link->encoding_height);
+	}	
+	
 	/* COMPOSITOR CONNECTION */
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
@@ -285,7 +336,25 @@ void *video_encoding_thread(void *arg) {
 				sws_scale(krad_link->encoder_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
 						  planes, strides);			
 			
-			}						
+			}
+			
+			if (krad_link->video_codec == DIRAC) {
+				
+				unsigned char *planes[3];
+				int strides[3];
+				
+				planes[0] = krad_link->krad_dirac->frame->components[0].data;
+				planes[1] = krad_link->krad_dirac->frame->components[1].data;
+				planes[2] = krad_link->krad_dirac->frame->components[2].data;
+				strides[0] = krad_link->krad_dirac->frame->components[0].stride;
+				strides[1] = krad_link->krad_dirac->frame->components[1].stride;
+				strides[2] = krad_link->krad_dirac->frame->components[2].stride;
+				
+				sws_scale(krad_link->encoder_frame_converter, rgb_arr, rgb_stride_arr, 0, krad_link->composite_height, 
+						  planes, strides);			
+			
+			}			
+
 							
 			krad_framepool_unref_frame (krad_frame);
 			
@@ -316,6 +385,13 @@ void *video_encoding_thread(void *arg) {
 									   (unsigned char **)&video_packet,
 									   					 &keyframe);
 			}
+			
+			if (krad_link->video_codec == DIRAC) {
+				packet_size = krad_dirac_encoder_write (krad_link->krad_dirac,
+									   (unsigned char **)&video_packet);
+									   
+				keyframe = 1;
+			}			
 			
 			if ((packet_size) || (krad_link->video_codec == THEORA)) {
 				
@@ -366,6 +442,10 @@ void *video_encoding_thread(void *arg) {
 	if (krad_link->video_codec == THEORA) {
 		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
 	}
+	
+	if (krad_link->video_codec == DIRAC) {
+		krad_dirac_encoder_destroy (krad_link->krad_dirac);	
+	}	
 	
 	// FIXME make shutdown sequence more pretty
 	krad_link->encoding = 3;
@@ -1481,22 +1561,6 @@ void *video_decoding_thread(void *arg) {
 
 			krad_dirac_decode(krad_link->krad_dirac, buffer, bytes);
 
-			if ((krad_link->krad_dirac->format != NULL) && (krad_link->krad_dirac->format_set == false)) {
-
-				switch (krad_link->krad_dirac->format->chroma_format) {
-					case SCHRO_CHROMA_444:
-						//krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV444P);
-					case SCHRO_CHROMA_422:
-						//krad_sdl_opengl_display_set_input_format(krad_link->krad_opengl_display, PIX_FMT_YUV422P);
-					case SCHRO_CHROMA_420:
-						// default
-						//krad_sdl_opengl_display_set_input_format(krad_sdl_opengl_display, PIX_FMT_YUV420P);
-						break;
-				}
-
-				krad_link->krad_dirac->format_set = true;				
-			}
-
 			if (krad_link->krad_dirac->frame != NULL) {
 			
 				if (krad_link->decoded_frame_converter == NULL) {
@@ -2139,10 +2203,11 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 	if (krad_link->operation_mode == CAPTURE) {
 
-
-		krad_link->krad_framepool = krad_framepool_create ( DEFAULT_CAPTURE_WIDTH,
+		if (krad_link->video_source != X11) {
+			krad_link->krad_framepool = krad_framepool_create ( DEFAULT_CAPTURE_WIDTH,
 															DEFAULT_CAPTURE_HEIGHT,
 															DEFAULT_CAPTURE_BUFFER_FRAMES);
+		}
 		krad_link->audio_channels = 2;
 
 		for (c = 0; c < krad_link->audio_channels; c++) {
@@ -2157,6 +2222,13 @@ void krad_link_activate (krad_link_t *krad_link) {
 			if (krad_link->krad_x11 == NULL) {
 				krad_link->krad_x11 = krad_x11_create();
 			}
+			
+			if (krad_link->video_source == X11) {
+				krad_link->krad_framepool = krad_framepool_create ( krad_link->krad_x11->screen_width,
+																	krad_link->krad_x11->screen_height,
+																	DEFAULT_CAPTURE_BUFFER_FRAMES);
+			}
+			
 			krad_x11_enable_capture (krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 			krad_link->capturing = 1;
 			pthread_create(&krad_link->video_capture_thread, NULL, x11_capture_thread, (void *)krad_link);
