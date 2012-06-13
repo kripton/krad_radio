@@ -19,6 +19,7 @@ sources = """
 depsources = """
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_system/krad_system.c
+../tools/krad_ebml/krad_ebml.c
 ../tools/krad_compositor/krad_compositor.c
 ../tools/krad_framepool/krad_framepool.c
 ../tools/krad_osc/krad_osc.c
@@ -72,6 +73,7 @@ depsources = """
 
 depsources2 = """
 ../tools/krad_system/krad_system.c
+../tools/krad_ebml/krad_ebml.c
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_ipc/krad_ipc_client.c
 ../tools/krad_osc/krad_osc.c
@@ -150,7 +152,7 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = ["kradebml", "m"],
+			use = ["m"],
 			uselib = libs)
 
 	for p in programs2:
@@ -159,6 +161,6 @@ def build(bld):
 			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = ["kradebml", "m"],
+			use = ["m"],
 			uselib = libs)
 
