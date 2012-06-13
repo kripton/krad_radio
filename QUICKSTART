@@ -1,0 +1,79 @@
+QUICKSTART
+----------
+
+Replace "quicktest" with the sysname* of your station.
+
+*What is a sysname? It's just a simple name or 'callsign' for your station
+ for use in the command line. Rules: 4-40 characters, lowercase alphanumeric,
+ starts with a letter. Don't worry you can use fancy UTF8 strings for pretty
+ much everything else.
+
+[Important Notice]
+This document is incomplete.
+
+[Temporary Measure]
+In a screen session or seperate terminal run: krad_radio_daemon quicktest
+[End Temporary Measure]
+
+Now that your krad radio station daemon is running, you can control it with
+krad radio clients.
+
+The command line client will be your friend for the moment. It works like this:
+
+krad_radio [SYSNAME] [COMMAND] [OPTIONS ...]
+
+
+## Station Commands:
+
+  krad_radio quicktest info
+  krad_radio quicktest uptime
+  krad_radio quicktest tags
+  
+
+
+## Linker Commands:
+
+	krad_radio quicktest ls
+
+	This will list the current links.
+	
+	krad_radio quicktest rm 0
+	
+	This will remove link 0.
+
+## Compositor Commands:
+
+	...
+
+## Mixer Commands:
+
+  krad_radio quicktest mix
+
+  This will show the current mixer settings.
+  
+  krad_radio quicktest xfade INPUTNAME1 INPUTNAME2
+
+  This will create a crossfader between two inputs.
+  
+  krad_radio quicktest set Music1 volume 50
+
+  This will set the volume of the portgroup Music1 to 50
+
+## Jack related mixer commands:
+
+  krad_radio quicktest input Music1
+
+  This will create an input called Music1.
+
+  krad_radio quicktest output Main
+
+  This will create an output called Main.
+
+  krad_radio quicktest unplug Main
+
+  This will remove the portgroup.
+
+
+
+
+

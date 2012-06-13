@@ -75,36 +75,6 @@ Libs: -L${libdir} -lturbojpeg
 Cflags: -I${includedir}
 
 
-
-
-******** codec2 ******** 
-
-svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2-dev codec2-dev
-cd codec2-dev && ./configure && make && sudo make install && sudo ldconfig
-
-codec2 missing package config file oh no! make one:
-
-Put this pkg-config file in: /usr/local/lib/pkgconfig/codec2.pc
-
-
-# codec2 installed pkg-config file
-
-prefix=/usr/local
-exec_prefix=/usr/local
-libdir=/usr/local/lib
-includedir=/usr/local/include
-
-Name: codec2
-Description: codec2
-Version: 1.2.0
-Conflicts:
-Libs: -L${libdir} -lcodec2
-Cflags: -I${includedir}
-
-
-
-
-
 ******** libwebsockets ********
 
 git clone git://git.warmcat.com/libwebsockets
