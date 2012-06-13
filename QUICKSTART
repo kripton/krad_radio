@@ -26,10 +26,24 @@ krad_radio [SYSNAME] [COMMAND] [OPTIONS ...]
 ## Station Commands:
 
   krad_radio quicktest info
+  
   krad_radio quicktest uptime
+  
   krad_radio quicktest tags
   
+  krad_radio quicktest remoteon [PORT_NUMBER]
+  
+  Enables TCP based remote control, ex: krad_radio 127.0.0.1:PORT info
+  
+  krad_radio quicktest webon [HTTP_PORT_NUMBER] [WEBSOCKET_PORT_NUMBER]
 
+  Enables Websocket based web control
+
+  krad_radio quicktest weboff
+  krad_radio quicktest remoteoff
+  
+  Disables remote control
+  
 
 ## Linker Commands:
 
@@ -43,7 +57,7 @@ krad_radio [SYSNAME] [COMMAND] [OPTIONS ...]
 
 ## Compositor Commands:
 
-	...
+  krad_radio quicktest vuon
 
 ## Mixer Commands:
 
@@ -58,6 +72,10 @@ krad_radio [SYSNAME] [COMMAND] [OPTIONS ...]
   krad_radio quicktest set Music1 volume 50
 
   This will set the volume of the portgroup Music1 to 50
+
+  krad_radio quicktest tone 6
+
+  Generates a short DTMF tone
 
 ## Jack related mixer commands:
 
