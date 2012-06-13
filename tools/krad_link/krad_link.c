@@ -1435,9 +1435,6 @@ void *video_decoding_thread(void *arg) {
 			
 			timecode = timecode2;
 			
-			//krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
-			//krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
-
 			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
 			krad_framepool_unref_frame (krad_frame);
@@ -1469,10 +1466,6 @@ void *video_decoding_thread(void *arg) {
 									 krad_link->krad_vpx_decoder->img->stride[0], krad_link->krad_vpx_decoder->img->planes[1], 
 									 krad_link->krad_vpx_decoder->img->stride[1], krad_link->krad_vpx_decoder->img->planes[2], 
 									 krad_link->krad_vpx_decoder->img->stride[2], krad_link->krad_vpx_decoder->height);
-
-
-				//krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
-				//krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
 
 				krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
@@ -1524,9 +1517,6 @@ void *video_decoding_thread(void *arg) {
 									 krad_link->krad_dirac->frame->components[0].stride, krad_link->krad_dirac->frame->components[1].data, 
 									 krad_link->krad_dirac->frame->components[1].stride, krad_link->krad_dirac->frame->components[2].data,
 									 krad_link->krad_dirac->frame->components[2].stride, krad_link->krad_dirac->frame->height);
-
-				//krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)&timecode, 8);
-				//krad_ringbuffer_write(krad_link->decoded_frames_buffer, (char *)converted_buffer, krad_link->composited_frame_byte_size);
 
 				krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 

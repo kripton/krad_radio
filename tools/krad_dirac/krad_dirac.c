@@ -144,8 +144,8 @@ krad_dirac_t *krad_dirac_encoder_create(int width, int height) {
 	free (dirac->format);
 	//schro_debug_set_level (SCHRO_LEVEL_DEBUG);
 	
-//	schro_encoder_setting_set_double (dirac->encoder, "gop_structure", SCHRO_ENCODER_GOP_INTRA_ONLY);
-//	schro_encoder_setting_set_double (dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_CONSTANT_BITRATE);
+	schro_encoder_setting_set_double (dirac->encoder, "gop_structure", SCHRO_ENCODER_GOP_INTRA_ONLY);
+	schro_encoder_setting_set_double (dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_CONSTANT_BITRATE);
 
 	schro_encoder_start (dirac->encoder);
 
@@ -211,33 +211,38 @@ void krad_dirac_encode_test (krad_dirac_t *dirac) {
 	}
 }
 
-int krad_dirac_encode (krad_dirac_t *dirac, void *frame, void *output, int *framenum, int *took) {
+int krad_dirac_encode (krad_dirac_t *dirac, void *frame, void *output) {
 
 	//dirac->n_frames = 0;
 	dirac->go = 1;
 	
 	int headerlen;
 	
+	int framenum;
+	
+	framenum = 0;
+	
+	
 	headerlen = 0;
-
+			  //dirac->frame = schro_frame_new_from_data_I420 (dirac->picture, dirac->width, dirac->height);
 			  dirac->frame = schro_frame_new_from_data_YV12 (frame, dirac->width, dirac->height);
 			  schro_frame_set_free_callback (dirac->frame, krad_dirac_encoder_frame_free, dirac->picture);
 			  schro_encoder_push_frame (dirac->encoder, dirac->frame);
-			  	*took = 1;
+			  //	*took = 1;
 
 	while (dirac->go) {
 
 		switch (schro_encoder_wait (dirac->encoder)) {
 		  case SCHRO_STATE_NEED_FRAME:
 		  
-		  	if (*took == 1) {
+		  	//if (*took == 1) {
 		  		return 0;
-		  	}
+		  	//}
 		  
 		  
 		  	printf("need frame!\n");
 		  	
-		  	*took = 1;
+		  	//*took = 1;
 		  	
 			//if (dirac->n_frames < 100) {
 			  //SCHRO_ERROR("frame %d", n_frames);
@@ -253,7 +258,7 @@ int krad_dirac_encode (krad_dirac_t *dirac, void *frame, void *output, int *fram
 			break;
 		  case SCHRO_STATE_HAVE_BUFFER:
 		  	printf("have buffer!\n");
-			dirac->buffer = schro_encoder_pull (dirac->encoder, framenum);
+			dirac->buffer = schro_encoder_pull (dirac->encoder, &framenum);
 			memcpy(output + headerlen, dirac->buffer->data, dirac->buffer->length);
 			
 			if (headerlen == 0) {

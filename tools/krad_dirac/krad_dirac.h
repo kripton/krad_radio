@@ -48,7 +48,7 @@ struct krad_dirac_St {
 };
 
 void krad_dirac_encode_test (krad_dirac_t *dirac);
-int krad_dirac_encode(krad_dirac_t *dirac, void *frame, void *output, int *framenum, int *took);
+int krad_dirac_encoder_write (krad_dirac_t *dirac, void *frame, void *output);
 void krad_dirac_encoder_frame_free(SchroFrame *frame, void *priv);
 void krad_dirac_encoder_destroy(krad_dirac_t *dirac);
 krad_dirac_t *krad_dirac_encoder_create();
