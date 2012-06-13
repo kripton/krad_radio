@@ -2058,7 +2058,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 		kradopus_encoder_destroy(krad_link->krad_opus);
 	}
 	
-	krad_ringbuffer_free ( krad_link->captured_frames_buffer );
 	krad_ringbuffer_free ( krad_link->encoded_audio_ringbuffer );
 	krad_ringbuffer_free ( krad_link->encoded_video_ringbuffer );
 
@@ -2142,8 +2141,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 															  krad_link->composite_width, krad_link->composite_height, PIX_FMT_RGB32, 
 															  SWS_BICUBIC, NULL, NULL, NULL);
 	}
-		
-	krad_link->captured_frames_buffer = krad_ringbuffer_create (krad_link->composited_frame_byte_size * krad_link->capture_buffer_frames);
+
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
 	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (6000000);
 

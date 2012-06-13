@@ -178,8 +178,6 @@ struct krad_link_St {
 	krad_ringbuffer_t *decoded_audio_ringbuffer;
 	krad_ringbuffer_t *encoded_audio_ringbuffer;
 	krad_ringbuffer_t *encoded_video_ringbuffer;
-
-	krad_ringbuffer_t *captured_frames_buffer;
 	
 	struct SwsContext *decoded_frame_converter;
 	struct SwsContext *captured_frame_converter;
