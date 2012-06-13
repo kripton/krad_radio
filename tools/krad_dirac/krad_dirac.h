@@ -11,7 +11,7 @@
 #include <schroedinger/schroparams.h>
 #include <schroedinger/schrovideoformat.h>
 
-
+#include "krad_system.h"
 
 
 /*
