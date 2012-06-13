@@ -351,11 +351,6 @@ krad_dirac_t *krad_dirac_decoder_create() {
 
 void krad_dirac_decoder_destroy(krad_dirac_t *dirac) {
 
-	//test only
-	if (dirac->file != NULL) {
-		fclose (dirac->file);
-	}
-	
 	// ???
 	schro_decoder_push_end_of_stream (dirac->decoder);
 
