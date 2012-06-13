@@ -37,8 +37,8 @@ void krad_framepool_destroy (krad_framepool_t *krad_framepool) {
 	int f;
 
 	for (f = 0; f < krad_framepool->count; f++ ) {
-		free (krad_framepool->frames[f].pixels);
 		munlock (krad_framepool->frames[f].pixels, krad_framepool->frame_byte_size);
+		free (krad_framepool->frames[f].pixels);
 		pthread_mutex_destroy (&krad_framepool->frames[f].ref_lock);
 	}
 
@@ -63,7 +63,9 @@ krad_framepool_t *krad_framepool_create (int width, int height, int count) {
 	
 	for (f = 0; f < krad_framepool->count; f++ ) {
 		krad_framepool->frames[f].pixels = malloc (krad_framepool->frame_byte_size);
-		//FIXME likely place we might run out of mem
+		if (krad_framepool->frames[f].pixels == NULL) {
+			failfast ("Krad Framepool: Out of memory");
+		}
 		mlock (krad_framepool->frames[f].pixels, krad_framepool->frame_byte_size);
 		pthread_mutex_init (&krad_framepool->frames[f].ref_lock, NULL);
 	}

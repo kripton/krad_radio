@@ -161,6 +161,17 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 		return NULL;
 	}
 	
+	//FIXME this is a memory saving kludge to not create this until the first port is created
+	if (krad_compositor->krad_framepool == NULL) {
+		krad_compositor->krad_framepool = 
+			krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
+	}
+	if (krad_compositor->krad_gui == NULL) {
+		krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
+
+	}
+	// end FIXME
+	
 	krad_compositor_port->krad_compositor = krad_compositor;
 	
 	strcpy (krad_compositor_port->sysname, sysname);	
@@ -210,9 +221,13 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 		}
 	}
 
-	krad_framepool_destroy ( krad_compositor->krad_framepool );
+	if (krad_compositor->krad_framepool != NULL) {
+		krad_framepool_destroy ( krad_compositor->krad_framepool );
+	}
 
-	kradgui_destroy (krad_compositor->krad_gui);
+	if (krad_compositor->krad_gui != NULL) {
+		kradgui_destroy (krad_compositor->krad_gui);
+	}
 
 	free (krad_compositor->port);
 
@@ -239,10 +254,10 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 
 	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
 	
-	krad_compositor->krad_framepool = 
-		krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
-	
-	krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);	
+	//krad_compositor->krad_framepool = 
+	//	krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
+	//
+	//krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);	
 	
 	krad_compositor->hex_x = 150;
 	krad_compositor->hex_y = 100;

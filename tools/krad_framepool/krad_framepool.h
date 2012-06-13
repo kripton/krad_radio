@@ -9,6 +9,8 @@
 
 #include <pthread.h>
 
+#include "krad_system.h"
+
 typedef struct krad_framepool_St krad_framepool_t;
 typedef struct krad_frame_St krad_frame_t;
 
