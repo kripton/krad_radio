@@ -411,15 +411,15 @@ void krad_ipc_server_response_list_start ( krad_ipc_server_t *krad_ipc_server, u
 
 }
 
-void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_name, char *tag_value) {
+void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_item, char *tag_name, char *tag_value) {
 
 	uint64_t tag;
 
 	krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_TAG, &tag);	
-
+	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_TAG_ITEM, tag_item);
 	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_TAG_NAME, tag_name);
 	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_TAG_VALUE, tag_value);	
-
+	//krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_TAG_SOURCE, "");
 	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, tag);
 
 }
@@ -569,6 +569,31 @@ void krad_ipc_server_mixer_broadcast ( krad_ipc_server_t *krad_ipc_server, uint3
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portname);
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_CONTROL_NAME, controlname);
 			krad_ebml_write_float (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_CONTROL_VALUE, floatval);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
+			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+		}
+	}
+}
+
+void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *item, char *name, char *value) {
+
+	int c;
+
+	uint64_t element;
+	uint64_t subelement;
+
+	element = 0;
+	subelement = 0;
+
+	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_MSG, &element);	
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG, &subelement);	
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG_ITEM, item);
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG_NAME, name);
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG_VALUE, value);
+			//krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG_SOURCE, "");
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
 			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);

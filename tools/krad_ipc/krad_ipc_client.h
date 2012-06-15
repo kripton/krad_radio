@@ -39,6 +39,7 @@
 typedef struct krad_ipc_client_St krad_ipc_client_t;
 
 struct krad_ipc_client_St {
+	char sysname[64];
 	int flags;
 	struct sockaddr_un saddr;
 	int sd;
@@ -62,6 +63,9 @@ void krad_ipc_compositor_close_display (krad_ipc_client_t *client);
 void krad_ipc_compositor_open_display (krad_ipc_client_t *client, int width, int height);
 void krad_ipc_set_mixer_sample_rate (krad_ipc_client_t *client, int sample_rate);
 void krad_ipc_get_mixer_sample_rate (krad_ipc_client_t *client);
+
+void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_item, char **tag_name, char **tag_value );
+int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_item, char **tag_name, char **tag_value );
 
 void krad_ipc_disable_linker_transmitter (krad_ipc_client_t *client);
 void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port);

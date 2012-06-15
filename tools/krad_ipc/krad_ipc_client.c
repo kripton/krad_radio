@@ -23,6 +23,8 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 		krad_get_host_and_port (sysname, client->host, &client->tcp_port);
 	
 	} else {
+	
+		strncpy (client->sysname, sysname, sizeof (client->sysname));
 
 		if (strncmp(client->unixname.sysname, "Linux", 5) == 0) {
 			client->on_linux = 1;
@@ -1344,7 +1346,7 @@ int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portg
 						
 }						
 
-int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char **tag_value ) {
+int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_item, char **tag_name, char **tag_value ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -1361,6 +1363,16 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_name, char 
 	} else {
 		//printf("tag size %zu\n", ebml_data_size);
 	}
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, *tag_item, ebml_data_size);	
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -1920,7 +1932,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 #define EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME 0xE5
 #define EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS 0xE6
 
-void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_name, char **tag_value ) {
+void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_item, char **tag_name, char **tag_value ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -1933,6 +1945,17 @@ void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_name
 		//printf("tag size %zu\n", ebml_data_size);
 	}
 */
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+
+	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
+		printf("hrm wtf2\n");
+	} else {
+		//printf("tag name size %zu\n", ebml_data_size);
+	}
+
+	krad_ebml_read_string (client->krad_ebml, *tag_item, ebml_data_size);
+
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
@@ -1961,11 +1984,14 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	uint64_t ebml_data_size;
 	fd_set set;
 	char tag_name_actual[256];
+	char tag_item_actual[256];
 	char tag_value_actual[1024];
 	
+	tag_item_actual[0] = '\0';	
 	tag_name_actual[0] = '\0';
 	tag_value_actual[0] = '\0';
 	
+	char *tag_item = tag_item_actual;
 	char *tag_name = tag_name_actual;
 	char *tag_value = tag_value_actual;	
 	
@@ -2020,16 +2046,16 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					case EBML_ID_KRAD_RADIO_TAG_LIST:
 						//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 						list_size = ebml_data_size;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_name, &tag_value )) <= list_size)) {
-							printf("Tag %s - %s.\n", tag_name, tag_value);
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
+							printk ("%s: %s - %s", tag_item, tag_name, tag_value);
 							if (bytes_read == list_size) {
 								break;
 							}
-						}	
+						}
 						break;
 					case EBML_ID_KRAD_RADIO_TAG:
-						krad_ipc_client_read_tag_inner ( client, &tag_name, &tag_value );
-						printf("Tag %"PRIu64" bytes %s - %s.\n", ebml_data_size, tag_name, tag_value);
+						krad_ipc_client_read_tag_inner ( client, &tag_item, &tag_name, &tag_value );
+						printk ("%s: %s - %s", tag_item, tag_name, tag_value);
 						break;
 
 					case EBML_ID_KRAD_RADIO_UPTIME:
@@ -2037,22 +2063,22 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						printf("up ");
 						updays = number / (60*60*24);
 						if (updays) {
-							printf("%d day%s, ", updays, (updays != 1) ? "s" : "");
+							printf ("%d day%s, ", updays, (updays != 1) ? "s" : "");
 						}
 						upminutes = number / 60;
 						uphours = (upminutes / 60) % 24;
 						upminutes %= 60;
 						if (uphours) {
-							printf("%2d:%02d ", uphours, upminutes);
+							printf ("%2d:%02d ", uphours, upminutes);
 						} else {
-							printf("%d min ", upminutes);
+							printf ("%d min ", upminutes);
 						}
-						printf("\n");
+						printf ("\n");
 					
 						break;
 					case EBML_ID_KRAD_RADIO_INFO:
 						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-						printf("%s\n", tag_name);
+						printk ("%s", tag_name);
 						break;
 
 				}

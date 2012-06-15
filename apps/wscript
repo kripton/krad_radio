@@ -5,8 +5,9 @@ krad_radio_daemon.c
 """.split()
 
 programs2 = """
-krad_radio_gtk.c
 krad_radio.c
+krad_radio_ncurses.c
+krad_radio_gtk.c
 """.split()
 
 sources = """
@@ -129,7 +130,7 @@ includedirs = """
 
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", 
-		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets"]
+		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses"]
 
 # FIXME option builds
 # libs = libs + ["wayland-client", "codec2"] 

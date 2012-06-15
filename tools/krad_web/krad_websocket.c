@@ -227,6 +227,20 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	char *crossfadename = crossfadename_actual;
 	float crossfade;	
 	
+	uint64_t number;
+	
+	char tag_item_actual[256];	
+	char tag_name_actual[256];
+	char tag_value_actual[1024];
+	
+	tag_name_actual[0] = '\0';
+	tag_item_actual[0] = '\0';
+	tag_value_actual[0] = '\0';
+	
+	char *tag_item = tag_item_actual;
+	char *tag_name = tag_name_actual;
+	char *tag_value = tag_value_actual;
+	
 	krad_link_rep_t *krad_link_rep;
 	
 	krad_link_rep = NULL;
@@ -247,7 +261,38 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 	
 		case EBML_ID_KRAD_RADIO_MSG:
-			printf("krad_radio_gtk_ipc_handler got message from krad radio\n");
+				//printf("Received KRAD_RADIO_MSG %zu bytes of data.\n", ebml_data_size);		
+		
+			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+			switch ( ebml_id ) {
+
+				case EBML_ID_KRAD_RADIO_TAG_LIST:
+					//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
+					list_size = ebml_data_size;
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( krad_ipc, &tag_item, &tag_name, &tag_value )) <= list_size)) {
+						printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+						if (bytes_read == list_size) {
+							break;
+						}
+					}
+					break;
+				case EBML_ID_KRAD_RADIO_TAG:
+					krad_ipc_client_read_tag_inner ( krad_ipc, &tag_item, &tag_name, &tag_value );
+					printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+					break;
+
+				case EBML_ID_KRAD_RADIO_UPTIME:
+					number = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					printk ("Uptime: %"PRIu64"", number);
+					break;
+				case EBML_ID_KRAD_RADIO_INFO:
+					krad_ebml_read_string (krad_ipc->krad_ebml, string, ebml_data_size);
+					printk ("%s", string);
+					break;
+
+			}
+	
+	
 			break;
 	
 		case EBML_ID_KRAD_LINK_MSG:

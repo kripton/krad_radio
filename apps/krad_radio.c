@@ -319,6 +319,12 @@ int main (int argc, char *argv[]) {
 				if (argc == 3) {
 					krad_ipc_compositor_open_display (client, 0, 0);
 				}
+				if (argc == 4) {
+					krad_ipc_compositor_open_display (client, 1, 1);
+				}					
+				if (argc == 5) {
+					krad_ipc_compositor_open_display (client, atoi(argv[3]), atoi(argv[4]));
+				}				
 			}
 			
 			if (strncmp(argv[2], "closedisplay", 12) == 0) {
