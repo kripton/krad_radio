@@ -59,6 +59,10 @@ struct krad_ipc_client_St {
 
 };
 
+
+void krad_ipc_set_mixer_sample_rate (krad_ipc_client_t *client, int sample_rate);
+void krad_ipc_get_mixer_sample_rate (krad_ipc_client_t *client);
+
 void krad_ipc_disable_linker_transmitter (krad_ipc_client_t *client);
 void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port);
 void krad_ipc_enable_linker_listen (krad_ipc_client_t *client, int port);

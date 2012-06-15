@@ -382,6 +382,43 @@ void krad_ipc_disable_linker_listen (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_set_mixer_sample_rate (krad_ipc_client_t *client, int sample_rate) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t set_sample_rate;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_SET_SAMPLE_RATE, &set_sample_rate);	
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_SAMPLE_RATE, sample_rate);
+
+	krad_ebml_finish_element (client->krad_ebml, set_sample_rate);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_get_mixer_sample_rate (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t get_sample_rate;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE, &get_sample_rate);
+	krad_ebml_finish_element (client->krad_ebml, get_sample_rate);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port) {
 
 	//uint64_t ipc_command;
@@ -1986,7 +2023,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 				switch ( ebml_id ) {
 					case EBML_ID_KRAD_MIXER_CONTROL:
-						printf("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
+						printk ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 
 	
@@ -2005,6 +2042,13 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
 						printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
 						break;
+						
+					case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
+						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						printk ("Krad Mixer Sample Rate: %d", number );
+						break;						
+						
 				}
 		
 		

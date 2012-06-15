@@ -118,6 +118,20 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "rate", 4) == 0) {
+				if (argc == 3) {
+					krad_ipc_get_mixer_sample_rate (client);
+					krad_ipc_print_response (client);
+				}
+			}			
+			
+			if (strncmp(argv[2], "setrate", 7) == 0) {
+				if (argc == 4) {
+					krad_ipc_set_mixer_sample_rate (client, atoi(argv[3]));
+					krad_ipc_print_response (client);
+				}
+			}				
+			
 			if (strncmp(argv[2], "tone", 4) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_push_tone (client, argv[3]);

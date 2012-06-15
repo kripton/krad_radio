@@ -663,9 +663,59 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
 	return 0;
 }
 
+
+void *krad_mixer_ticker_thread (void *arg) {
+
+	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
+
+	krad_mixer->krad_ticker = krad_ticker_create (krad_mixer->sample_rate, krad_mixer->ticker_period);
+
+	krad_ticker_start (krad_mixer->krad_ticker);
+
+	while (krad_mixer->ticker_running == 1) {
+	
+		krad_mixer_process (krad_mixer->ticker_period, krad_mixer);
+	
+		krad_ticker_wait (krad_mixer->krad_ticker);
+
+	}
+
+	krad_ticker_destroy (krad_mixer->krad_ticker);
+
+
+	return NULL;
+
+}
+
+
+void krad_mixer_start_ticker (krad_mixer_t *krad_mixer) {
+
+	if (krad_mixer->ticker_running == 1) {
+		krad_mixer_stop_ticker (krad_mixer);
+	}
+
+	krad_mixer->ticker_running = 1;
+	pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
+
+}
+
+
+void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer) {
+
+	if (krad_mixer->ticker_running == 1) {
+		krad_mixer->ticker_running = 2;
+		pthread_join (krad_mixer->ticker_thread, NULL);
+		krad_mixer->ticker_running = 0;
+	}
+
+}
+
+
 void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 
 	int p;
+	
+	krad_mixer_stop_ticker (krad_mixer);
 
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		if (krad_mixer->portgroup[p]->active == 1) {
@@ -686,7 +736,22 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 }
 
 void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer) {
+	if (krad_mixer->ticker_running == 1) {
+		krad_mixer_stop_ticker (krad_mixer);
+	}
+	krad_mixer_start_ticker (krad_mixer);
 	krad_mixer->pusher = 0;
+}
+
+void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher) {
+	if (pusher == 0) {
+		krad_mixer_unset_pusher (krad_mixer);
+	} else {
+		if (krad_mixer->ticker_running == 1) {
+			krad_mixer_stop_ticker (krad_mixer);
+		}	
+		krad_mixer->pusher = pusher;
+	}
 }
 
 int krad_mixer_has_pusher (krad_mixer_t *krad_mixer) {
@@ -701,14 +766,6 @@ krad_audio_api_t krad_mixer_get_pusher (krad_mixer_t *krad_mixer) {
 	return krad_mixer->pusher;
 }
 
-void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher) {
-	if (pusher == 0) {
-		krad_mixer_unset_pusher (krad_mixer);
-	} else {
-		krad_mixer->pusher = pusher;
-	}
-}
-
 int krad_mixer_get_sample_rate (krad_mixer_t *krad_mixer) {
 	return krad_mixer->sample_rate;
 }
@@ -716,6 +773,12 @@ int krad_mixer_get_sample_rate (krad_mixer_t *krad_mixer) {
 void krad_mixer_set_sample_rate (krad_mixer_t *krad_mixer, int sample_rate) {
 	krad_mixer->sample_rate = sample_rate;
 	krad_tone_set_sample_rate (krad_mixer->tone_port->io_ptr, krad_mixer->sample_rate);
+	
+	if (krad_mixer->ticker_running == 1) {
+		krad_mixer_stop_ticker (krad_mixer);
+		krad_mixer_start_ticker (krad_mixer);
+	}
+	
 }
 
 krad_mixer_t *krad_mixer_create (char *name) {
@@ -731,6 +794,7 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	
 	krad_mixer->name = strdup (name);
 	krad_mixer->sample_rate = KRAD_MIXER_DEFAULT_SAMPLE_RATE;
+	krad_mixer->ticker_period = KRAD_MIXER_DEFAULT_TICKER_PERIOD;
 	
 	krad_mixer->crossfade_group = calloc (KRAD_MIXER_MAX_PORTGROUPS / 2, sizeof (krad_mixer_crossfade_group_t));
 
@@ -745,6 +809,8 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	krad_mixer->tone_port = krad_mixer_portgroup_create (krad_mixer, "DTMF", INPUT, 2,
 										 				 krad_mixer->master_mix, KRAD_TONE, NULL, 0);
 	
+	krad_mixer_start_ticker (krad_mixer);
+
 	return krad_mixer;
 	
 }
@@ -776,7 +842,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 	char string[1024];
 	int direction;
-
+	int number;
+	
+	number = 0;
 	direction = 0;
 	crossfade_name = NULL;
 	//i = 0;
@@ -784,6 +852,33 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 
 	switch ( command ) {
+	
+		case EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE:
+		
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
+			krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE, 
+											 krad_mixer_get_sample_rate (krad_mixer));
+			krad_ipc_server_response_finish ( krad_ipc, response);
+		
+			return 1;
+		case EBML_ID_KRAD_MIXER_CMD_SET_SAMPLE_RATE:
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_SAMPLE_RATE) {
+				printke ("hrm wtf2\n");
+			} else {
+				//printf("tag name size %zu\n", ebml_data_size);
+			}
+
+			number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+
+			if (krad_mixer_has_pusher (krad_mixer) == 0) {
+				krad_mixer_set_sample_rate (krad_mixer, number);
+			}
+
+			break;
+	
 	
 		case EBML_ID_KRAD_MIXER_CMD_GET_CONTROL:
 			//printk ("Get Control\n");
