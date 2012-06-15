@@ -36,7 +36,7 @@ krad_ticker_t *krad_ticker_create (int numerator, int denominator) {
 
 	krad_ticker->wait_time_nanosecs = (1000000000 / krad_ticker->numerator) * krad_ticker->denominator;
 
-	printk ("num %d denom %d nano %llu", numerator, denominator, krad_ticker->wait_time_nanosecs);
+	//printk ("num %d denom %d nano %llu", numerator, denominator, krad_ticker->wait_time_nanosecs);
 
 	return krad_ticker;
 

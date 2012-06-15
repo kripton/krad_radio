@@ -25,7 +25,7 @@ void *video_capture_thread (void *arg) {
 	
 	printk ("Video capture thread started");
 	
-	krad_link->krad_v4l2 = kradv4l2_create();
+	krad_link->krad_v4l2 = kradv4l2_create ();
 
 	krad_link->krad_v4l2->mjpeg_mode = krad_link->mjpeg_mode;
 
@@ -164,6 +164,11 @@ void *x11_capture_thread (void *arg) {
 	
 	krad_frame_t *krad_frame;
 	krad_frame_t *krad_frame2;
+	krad_ticker_t *krad_ticker;
+	
+	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);
+
+	
 	
 	if ((krad_link->krad_x11->screen_width != krad_link->composite_width) || (krad_link->krad_x11->screen_height != krad_link->composite_height)) {
 	
@@ -184,6 +189,8 @@ void *x11_capture_thread (void *arg) {
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "X11In",
 																   INPUT);
+
+	krad_ticker_start (krad_ticker);
 
 	while (krad_link->capturing == 1) {
 	
@@ -227,11 +234,13 @@ void *x11_capture_thread (void *arg) {
 
 		krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
-		usleep (33000);
+		krad_ticker_wait (krad_ticker);
 
 	}
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
+
+	krad_ticker_destroy (krad_ticker);
 
 	printk ("X11 capture thread exited");
 	

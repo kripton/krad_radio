@@ -34,7 +34,7 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 	krad_system_cpu_monitor_t *kcm;
 	
-	printk ("Krad System CPU Monitor On\n");
+	printk ("Krad System CPU Monitor On");
 
 	kcm = &krad_system.kcm;
 
@@ -80,7 +80,7 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 	
 	close (kcm->fd);
 	
-	printk ("Krad System CPU Monitor Off\n");
+	printk ("Krad System CPU Monitor Off");
 	
 	return NULL;
 
@@ -294,7 +294,7 @@ int krad_valid_host_and_port (char *string) {
 			//printk ("Got host %s and port %d\n", host, port);
 			return 1;
 		} else {
-			printke ("INVALID host %s port %d\n", host, port);
+			printke ("INVALID host %s port %d", host, port);
 		}
 	}
 	

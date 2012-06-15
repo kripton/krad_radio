@@ -59,9 +59,6 @@ struct krad_compositor_St {
 
 	krad_compositor_port_t *port;
 
-
-	krad_ringbuffer_t *composited_frames_buffer;
-
 };
 
 void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value);
