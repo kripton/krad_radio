@@ -41,3 +41,10 @@ Fixes:
 	
 # OSC / ALSA SEQ (MIDI)
 	Control binding
+	
+# Mixer
+	EQ
+	Sidechain for mics
+	Limiter
+	Any channel count
+	

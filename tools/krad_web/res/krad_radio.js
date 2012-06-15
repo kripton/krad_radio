@@ -204,26 +204,27 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 	
 	if (portgroup_name == "DTMF") {
 	
-		$('.kradmixer').append("<div class='kradmixer_control dtmf_control'> <div id='" + portgroup_name + "_dtmf'> </div> </div>");
+		$('.kradmixer').append("<div class='kradmixer_control dtmf_pad'> <div id='" + portgroup_name + "_dtmf'> </div> </div>");
 	
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_1'>1</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_2'>2</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_3'>3</span>");
-
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_4'>4</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_5'>5</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_6'>6</span>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_1'>1</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_2'>2</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_3'>3</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button dtmf_button_mil' id='" + portgroup_name + "_dtmf_a'>F0</div>");
 		
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_7'>7</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_8'>8</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_9'>9</span>");		
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_0'>0</span>");		
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_star'>*</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_hash'>#</span>");		
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_a'>A</span>");		
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_b'>B</span>");		
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_c'>C</span>");
-		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_d'>D</span>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_4'>4</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_5'>5</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_6'>6</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button dtmf_button_mil' id='" + portgroup_name + "_dtmf_b'>F</div>");
+		
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_7'>7</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_8'>8</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_9'>9</div>");		
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button dtmf_button_mil' id='" + portgroup_name + "_dtmf_c'>I</div>");
+		
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_star'>*</div>");		
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_0'>0</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button' id='" + portgroup_name + "_dtmf_hash'>#</div>");
+		$('#' + portgroup_name + '_dtmf').append("<div class='dtmf_button dtmf_button_mil' id='" + portgroup_name + "_dtmf_d'>P</div>");
 
 		$( '#' + portgroup_name + '_dtmf_1').bind( "click", function(event, ui) {
 			kradradio.push_dtmf ("1");
