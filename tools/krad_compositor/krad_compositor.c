@@ -1,5 +1,78 @@
 #include "krad_compositor.h"
 
+static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
+static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
+static void *krad_compositor_display_thread (void *arg);
+
+
+static void *krad_compositor_display_thread (void *arg) {
+
+	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
+
+	krad_x11_t *krad_x11;
+	krad_frame_t *krad_frame;
+	krad_compositor_port_t *krad_compositor_port;
+
+	int w;
+	int h;
+	
+	krad_compositor_get_info (krad_compositor,
+							  &w,
+							  &h);
+	
+	krad_compositor_port = krad_compositor_port_create (krad_compositor, "X11Out", OUTPUT);
+	
+	krad_x11 = krad_x11_create ();
+	
+	krad_x11_create_glx_window (krad_x11, "Krad Radio", w, h, NULL);
+	
+	while ((krad_x11->close_window == 0) && (krad_compositor->display_open == 1)) {
+	
+		krad_frame = krad_compositor_port_pull_frame (krad_compositor_port);
+
+		if (krad_frame != NULL) {
+			memcpy (krad_x11->pixels, krad_frame->pixels, w * h * 4);
+			krad_framepool_unref_frame (krad_frame);
+		}
+		
+		krad_x11_glx_render (krad_x11);
+	}
+	
+	krad_compositor_port_destroy (krad_compositor, krad_compositor_port);
+	
+	krad_x11_destroy_glx_window (krad_x11);
+
+	krad_x11_destroy (krad_x11);
+
+	krad_compositor->display_open = 0;
+
+	return NULL;
+
+}
+
+
+static void krad_compositor_open_display (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->display_open == 1) {
+		krad_compositor_close_display (krad_compositor);
+	}
+
+	krad_compositor->display_open = 1;
+	pthread_create (&krad_compositor->display_thread, NULL, krad_compositor_display_thread, (void *)krad_compositor);
+
+}
+
+
+static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->display_open == 1) {
+		krad_compositor->display_open = 2;
+		pthread_join (krad_compositor->display_thread, NULL);
+		krad_compositor->display_open = 0;
+	}
+
+}
+
 void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 	int p;
@@ -392,6 +465,19 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			*/		
 			break;
 	
+		case EBML_ID_KRAD_COMPOSITOR_CMD_CLOSE_DISPLAY:
+		
+			krad_compositor_close_display (krad_compositor);		
+			
+			break;
+		case EBML_ID_KRAD_COMPOSITOR_CMD_OPEN_DISPLAY:
+			
+			krad_compositor->display_width = krad_compositor->width;
+			krad_compositor->display_height = krad_compositor->height;
+			
+			krad_compositor_open_display (krad_compositor);
+			
+			break;
 
 		case EBML_ID_KRAD_COMPOSITOR_CMD_HEX_DEMO:
 

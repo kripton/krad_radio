@@ -315,6 +315,18 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "display", 7) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_open_display (client, 0, 0);
+				}
+			}
+			
+			if (strncmp(argv[2], "closedisplay", 12) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_close_display (client);
+				}
+			}			
+			
 			if (strncmp(argv[2], "vuon", 4) == 0) {
 				krad_ipc_compositor_vu (client, 1);
 			}			

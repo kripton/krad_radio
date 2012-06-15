@@ -42,8 +42,8 @@ struct krad_compositor_St {
 
 	int frame_byte_size;
 
-//	int frame_rate_numerator;
-//	int frame_rate_denominator;
+	int frame_rate_numerator;
+	int frame_rate_denominator;
 
 	int hex_x;
 	int hex_y;
@@ -58,6 +58,11 @@ struct krad_compositor_St {
 	krad_framepool_t *krad_framepool;
 
 	krad_compositor_port_t *port;
+	
+	int display_width;
+	int display_height;
+	int display_open;
+	pthread_t display_thread;	
 
 };
 
