@@ -165,6 +165,20 @@ Kradradio.prototype.update_portgroup = function (portgroup_name, control_name, v
 	console.log (JSONcmd);
 }
 
+Kradradio.prototype.push_dtmf = function (value) {
+
+	var cmd = {};  
+	cmd.com = "kradmixer";  
+	cmd.cmd = "push_dtmf";
+	cmd.dtmf = value;
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send (JSONcmd);
+
+	console.log (JSONcmd);
+}
+
 Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
 
 	console.log ("update portgroup " + portgroup_name + " " + value);
@@ -188,6 +202,103 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 		kradradio.update_portgroup (portgroup_name, "volume", ui.value);
 	});
 	
+	if (portgroup_name == "DTMF") {
+	
+		$('.kradmixer').append("<div class='kradmixer_control dtmf_control'> <div id='" + portgroup_name + "_dtmf'> </div> </div>");
+	
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_1'>1</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_2'>2</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_3'>3</span>");
+
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_4'>4</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_5'>5</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_6'>6</span>");
+		
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_7'>7</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_8'>8</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_9'>9</span>");		
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_0'>0</span>");		
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_star'>*</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_hash'>#</span>");		
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_a'>A</span>");		
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_b'>B</span>");		
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_c'>C</span>");
+		$('#' + portgroup_name + '_dtmf').append("<span class='dtmf_button' id='" + portgroup_name + "_dtmf_d'>D</span>");
+
+		$( '#' + portgroup_name + '_dtmf_1').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("1");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_2').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("2");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_3').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("3");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_4').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("4");
+		});						
+
+		$( '#' + portgroup_name + '_dtmf_5').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("5");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_6').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("6");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_7').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("7");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_8').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("8");
+		});	
+		
+		$( '#' + portgroup_name + '_dtmf_9').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("9");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_0').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("0");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_star').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("*");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_d').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("D");
+		});	
+		
+		$( '#' + portgroup_name + '_dtmf_hash').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("#");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_a').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("A");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_b').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("B");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_c').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("C");
+		});					
+
+		$( '#' + portgroup_name + '_dtmf_d').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("D");
+		});
+		
+		$( '#' + portgroup_name + '_dtmf_d').bind( "click", function(event, ui) {
+			kradradio.push_dtmf ("D");
+		});
+		
+		
+	}
 	
 	if (crossfade_name.length > 0) {
 	

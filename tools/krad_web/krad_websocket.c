@@ -57,7 +57,14 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 					floatval = part3->valuedouble;
 					krad_ipc_set_control (pss->krad_ipc_client, part->valuestring, part2->valuestring, floatval);
 				}
-			}		
+			}
+			
+			if ((part != NULL) && (strcmp(part->valuestring, "push_dtmf") == 0)) {
+				part = cJSON_GetObjectItem (cmd, "dtmf");
+				if (part != NULL) {
+					krad_ipc_mixer_push_tone (pss->krad_ipc_client, part->valuestring);
+				}
+			}					
 		}
 		
 		if ((part != NULL) && (strcmp(part->valuestring, "kradlink") == 0)) {

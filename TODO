@@ -1,7 +1,6 @@
 # Prerelease
-	nanotime based mixer/video test source compositor driver
-	set resolution / fps for capture, compositor/ encoder
-	Move Test Outputs to Link as DISPLAY
+	ticker compositor driver
+	set resolution+fps for capture/compositor/encoder
 	Wayland support optional
 	Help in command line
 	Catch Signals
@@ -26,7 +25,19 @@ Fixes:
 	
 # Audio I/O
 	ALSA/Pulseaudio support need update
+	Resample to mixer sampler rate when decoding - resampler ring
 
 # Krad EBML
 	Logging/Debug callback, nestegg compatible
 	fail cleanly without exit()
+	
+# Compositor
+	frame PTS
+	port scale/crop/position
+	multiport
+	
+# Transmitter
+	Proper ringloopin
+	
+# OSC / ALSA SEQ (MIDI)
+	Control binding
