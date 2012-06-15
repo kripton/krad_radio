@@ -152,7 +152,110 @@ void *video_capture_thread (void *arg) {
 	
 }
 
+void *test_screen_generator_thread (void *arg) {
 
+	prctl (PR_SET_NAME, (unsigned long) "kradlink_tstgen", 0, 0, 0);
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+	
+	printk ("test screen generator thread begins");
+	
+	krad_frame_t *krad_frame;
+	krad_frame_t *krad_frame2;
+	krad_ticker_t *krad_ticker;
+	kradgui_t *kradgui;
+	
+	
+	//kradgui = kradgui_create_with_external_surface (1280, 720, NULL);
+
+	kradgui = kradgui_create_with_internal_surface (1280, 720);
+	
+	kradgui_test_screen (kradgui, krad_link->krad_linker->krad_radio->sysname);
+	
+	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);
+
+	
+	
+	if ((1280 != krad_link->composite_width) || (720 != krad_link->composite_height)) {
+	
+	
+	
+		krad_link->captured_frame_converter = sws_getContext ( 1280, 720,
+														   PIX_FMT_RGB32,
+														   krad_link->composite_width,
+														   krad_link->composite_height,
+														   PIX_FMT_RGB32, 
+														   SWS_BICUBIC, NULL, NULL, NULL);	
+	
+	
+	}
+	
+	
+	
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
+																   "TSTIn",
+																   INPUT);
+
+	krad_ticker_start (krad_ticker);
+
+	while (krad_link->capturing == 1) {
+	
+		
+		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+		//kradgui->data = (unsigned char *)krad_frame->pixels;
+		kradgui_render (kradgui);
+		memcpy (krad_frame->pixels, kradgui->data, kradgui->bytes);
+		
+		if ((1280 != krad_link->composite_width) || (720 != krad_link->composite_height)) {
+		
+			krad_frame2 = krad_framepool_getframe (krad_link->krad_framepool);
+		
+			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
+
+			const uint8_t *yuv_arr[4];
+			int yuv_stride_arr[4];
+		
+			yuv_arr[0] = (unsigned char *)krad_frame->pixels;
+
+			yuv_stride_arr[0] = krad_link->krad_x11->screen_width * 4;
+			yuv_stride_arr[1] = 0;
+			yuv_stride_arr[2] = 0;
+			yuv_stride_arr[3] = 0;
+
+			unsigned char *dst[4];
+
+			dst[0] = (unsigned char *)krad_frame2->pixels;
+
+			sws_scale(krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, 
+					  krad_link->krad_x11->screen_height, dst, rgb_stride_arr);		
+		
+		
+			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame2);
+			krad_framepool_unref_frame (krad_frame2);
+		
+		} else {
+			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		}
+
+		krad_framepool_unref_frame (krad_frame);
+
+		krad_compositor_process (krad_link->krad_radio->krad_compositor);
+
+		krad_ticker_wait (krad_ticker);
+
+	}
+
+	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
+
+	krad_ticker_destroy (krad_ticker);
+
+	kradgui_destroy (kradgui);
+
+	printk ("test_screen_generator thread exited");
+	
+	return NULL;
+	
+}
 
 void *x11_capture_thread (void *arg) {
 
@@ -2255,6 +2358,12 @@ void krad_link_activate (krad_link_t *krad_link) {
 			usleep (150000);
 			krad_link_start_decklink_capture(krad_link);
 		}
+		
+		if (krad_link->video_source == TEST) {
+
+			krad_link->capturing = 1;
+			pthread_create(&krad_link->video_capture_thread, NULL, test_screen_generator_thread, (void *)krad_link);
+		}		
 
 	}
 	
