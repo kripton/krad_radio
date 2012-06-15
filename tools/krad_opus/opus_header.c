@@ -176,8 +176,8 @@ int opus_header_to_packet(const OpusHeader *h, unsigned char *packet, int len)
    p.pos = 0;
    if (!write_chars(&p, (const unsigned char*)"OpusHead", 8))
       return 0;
-   /* Version is 0 */
-   ch = 0;
+   /* Version is 1 */
+   ch = 1;
    if (!write_chars(&p, &ch, 1))
       return 0;
    
