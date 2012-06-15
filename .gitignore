@@ -49,3 +49,4 @@ tests/krad_cpu_local_test_wayland
 tests/krad_wayland_test
 tests/krad_wayland_wcap_player
 tests/krad_transmitter_test
+tests/krad_ticker_test
