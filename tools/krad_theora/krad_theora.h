@@ -27,8 +27,6 @@ typedef struct krad_theora_decoder_St krad_theora_decoder_t;
 #ifndef KRAD_THEORA_H
 #define KRAD_THEORA_H
 
-#define DEFAULT_THEORA_QUALITY 42
-
 struct krad_theora_encoder_St {
 
 	int width;
@@ -94,7 +92,9 @@ struct krad_theora_decoder_St {
 
 /* encoder */
 
-krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int quality);
+krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
+												   int fps_numerator, int fps_denominator, int quality);
+
 void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora);
 int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe);
 

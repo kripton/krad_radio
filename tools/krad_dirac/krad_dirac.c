@@ -13,12 +13,16 @@ void krad_dirac_encoder_destroy (krad_dirac_t *krad_dirac) {
 	free (krad_dirac);
 }
 
-krad_dirac_t *krad_dirac_encoder_create (int width, int height) {
+krad_dirac_t *krad_dirac_encoder_create (int width, int height, int fps_numerator, int fps_denominator, int bitrate) {
 
 	krad_dirac_t *krad_dirac = calloc(1, sizeof(krad_dirac_t));
 	
 	krad_dirac->width = width;
 	krad_dirac->height = height;
+	
+	krad_dirac->fps_numerator = fps_numerator;
+	krad_dirac->fps_denominator = fps_denominator;
+	krad_dirac->bitrate = bitrate;
 	
 	schro_init ();
 
@@ -29,6 +33,8 @@ krad_dirac_t *krad_dirac_encoder_create (int width, int height) {
 	krad_dirac->format->height = krad_dirac->height;
 	krad_dirac->format->clean_width = krad_dirac->width;
 	krad_dirac->format->clean_height = krad_dirac->height;
+	krad_dirac->format->frame_rate_numerator = krad_dirac->fps_numerator;
+	krad_dirac->format->frame_rate_denominator = krad_dirac->fps_denominator;
 	krad_dirac->format->left_offset = 0;
 	krad_dirac->format->top_offset = 0;
 	krad_dirac->format->chroma_format = SCHRO_CHROMA_420;
@@ -40,7 +46,7 @@ krad_dirac_t *krad_dirac_encoder_create (int width, int height) {
 	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_CONSTANT_BITRATE);
 //	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_LOW_DELAY);
 
-	schro_encoder_setting_set_double (krad_dirac->encoder, "bitrate", 15000000);
+	schro_encoder_setting_set_double (krad_dirac->encoder, "bitrate", krad_dirac->bitrate);
 
 	schro_encoder_start (krad_dirac->encoder);
 

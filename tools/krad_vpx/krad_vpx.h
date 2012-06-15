@@ -32,6 +32,10 @@ struct krad_vpx_encoder_St {
 
 	int width;
 	int height;
+	
+	int fps_numerator;
+	int fps_denominator;
+	int bitrate;
 
 	int update_config;
     vpx_codec_ctx_t encoder;
@@ -79,7 +83,8 @@ int krad_vpx_encoder_quality_get (krad_vpx_encoder_t *kradvpx);
 
 void krad_vpx_encoder_finish (krad_vpx_encoder_t *kradvpx);
 void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg);
-krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height);
+krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_numerator,
+											 int fps_denominator, int bitrate);
 void krad_vpx_encoder_destroy (krad_vpx_encoder_t *kradvpx);
 int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe);
 void krad_vpx_encoder_want_keyframe (krad_vpx_encoder_t *kradvpx);

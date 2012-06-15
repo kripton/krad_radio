@@ -11,9 +11,9 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #include <sys/prctl.h>
 #include <libswscale/swscale.h>
 
-#define KRAD_LINKER_MAX_LINKS 42
 #define DEFAULT_VPX_BITRATE 180 * 8
-#define HELP -1337
+#define DEFAULT_DIRAC_BITRATE 15000000
+#define DEFAULT_THEORA_QUALITY 42
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 120
 #define DEFAULT_DECODING_BUFFER_FRAMES 120
 #define DEFAULT_VORBIS_QUALITY 0.6
@@ -30,6 +30,8 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 #define KRAD_LINK_DEFAULT_VIDEO_CODEC VP8
 #define KRAD_LINK_DEFAULT_AUDIO_CODEC VORBIS
+#define KRAD_LINKER_MAX_LINKS 42
+#define HELP -1337
 
 struct krad_linker_St {
 	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
@@ -145,7 +147,11 @@ struct krad_link_St {
 	int display_height;
 	int encoding_width;
 	int encoding_height;
+
 	int encoding_fps;
+	int encoding_fps_numerator;
+	int encoding_fps_denominator;
+
 
 	int mjpeg_mode;
 	

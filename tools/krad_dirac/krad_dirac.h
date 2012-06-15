@@ -37,6 +37,11 @@ struct krad_dirac_St {
 	SchroFrame *frame;
 	SchroFrame *frame2;
 	
+	int fps_numerator;
+	int fps_denominator;
+	int bitrate;
+	
+	
 	unsigned char *fullpacket;
 	
 	int size;
@@ -51,7 +56,7 @@ struct krad_dirac_St {
 int krad_dirac_encoder_write (krad_dirac_t *dirac, unsigned char **packet);
 void krad_dirac_encoder_frame_free (SchroFrame *frame, void *priv);
 void krad_dirac_encoder_destroy (krad_dirac_t *dirac);
-krad_dirac_t *krad_dirac_encoder_create (int width, int height);
+krad_dirac_t *krad_dirac_encoder_create (int width, int height, int fps_numerator, int fps_denominator, int bitrate);
 
 
 void krad_dirac_packet_type (unsigned char p);

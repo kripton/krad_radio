@@ -385,9 +385,11 @@ void *video_encoding_thread(void *arg) {
 
 	if (krad_link->video_codec == VP8) {
 
-		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width, krad_link->encoding_height);
-
-		krad_vpx_encoder_bitrate_set (krad_link->krad_vpx_encoder, krad_link->vp8_bitrate);
+		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width,
+															   krad_link->encoding_height,
+															   krad_link->encoding_fps_numerator,
+															   krad_link->encoding_fps_denominator,
+															   krad_link->vp8_bitrate);
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
@@ -400,12 +402,17 @@ void *video_encoding_thread(void *arg) {
 	if (krad_link->video_codec == THEORA) {
 		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, 
 																	 krad_link->encoding_height,
+																	 krad_link->encoding_fps_numerator,
+																	 krad_link->encoding_fps_denominator,
 																	 DEFAULT_THEORA_QUALITY);
 	}
 	
 	if (krad_link->video_codec == DIRAC) {
 		krad_link->krad_dirac = krad_dirac_encoder_create (krad_link->encoding_width, 
-														   krad_link->encoding_height);
+														   krad_link->encoding_height,
+														   krad_link->encoding_fps_numerator,
+														   krad_link->encoding_fps_denominator,
+														   DEFAULT_DIRAC_BITRATE);
 	}	
 	
 	/* COMPOSITOR CONNECTION */
@@ -2254,6 +2261,10 @@ krad_link_t *krad_link_create() {
 
 	krad_link->composite_fps = krad_link->capture_fps;
 	krad_link->encoding_fps = krad_link->capture_fps;
+	//FIXME hardcoded nonsense
+	krad_link->encoding_fps_numerator = DEFAULT_FPS_NUMERATOR;
+	krad_link->encoding_fps_denominator = DEFAULT_FPS_DENOMINATOR;
+	
 	krad_link->encoding_width = DEFAULT_ENCODER_WIDTH;
 	krad_link->encoding_height = DEFAULT_ENCODER_HEIGHT;
 	krad_link->display_width = krad_link->capture_width;

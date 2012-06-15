@@ -2,7 +2,8 @@
 
 static void krad_vpx_fail (vpx_codec_ctx_t *ctx, const char *s);
 
-krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
+krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_numerator,
+											 int fps_denominator, int bitrate) {
 
 	krad_vpx_encoder_t *kradvpx;
 	
@@ -10,6 +11,9 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
 	
 	kradvpx->width = width;
 	kradvpx->height = height;
+	kradvpx->fps_numerator = fps_numerator;
+	kradvpx->fps_denominator = fps_denominator;
+	kradvpx->bitrate = bitrate;
 	
 	printk ("Krad Radio using libvpx version: %s\n", vpx_codec_version_str ());
 
@@ -25,6 +29,10 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
 
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
+	/* Next two lines are really right */
+	kradvpx->cfg.g_timebase.num = kradvpx->fps_denominator;
+	kradvpx->cfg.g_timebase.den = kradvpx->fps_numerator;
+	kradvpx->cfg.rc_target_bitrate = bitrate;	
 	kradvpx->cfg.g_threads = 3;
 	kradvpx->cfg.kf_max_dist = 90;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
@@ -42,7 +50,8 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height) {
 
 
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate) {
-	kradvpx->cfg.rc_target_bitrate = bitrate;
+	kradvpx->bitrate = bitrate;
+	kradvpx->cfg.rc_target_bitrate = kradvpx->bitrate;
 	kradvpx->update_config = 1;
 }
 

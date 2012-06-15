@@ -1,7 +1,8 @@
 #include "krad_theora.h"
 
 
-krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int quality) {
+krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
+												   int fps_numerator, int fps_denominator, int quality) {
 
 	krad_theora_encoder_t *krad_theora;
 	
@@ -23,21 +24,18 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 	krad_theora->info.pic_y = 0;
 	krad_theora->info.target_bitrate = 0;
 	krad_theora->info.quality = krad_theora->quality;
+	//FIXME add support for 422,444
 	krad_theora->info.pixel_fmt = TH_PF_420;
-	
 	krad_theora->keyframe_shift = krad_theora->info.keyframe_granule_shift;
 	
 	printk ("Loading Theora encoder version %s\n", th_version_string());
-	
-	printk ("Theora keyframe shift %d\n", krad_theora->keyframe_shift);	
-	
-	//FIXME hardcoded
-	krad_theora->info.fps_numerator = 30000;
-	krad_theora->info.fps_denominator = 1000;
+	printk ("Theora keyframe shift %d\n", krad_theora->keyframe_shift);
+
+	krad_theora->info.fps_numerator = fps_numerator;
+	krad_theora->info.fps_denominator = fps_denominator;
 	//krad_theora->keyframe_distance = 30;
 
 	krad_theora->encoder = th_encode_alloc (&krad_theora->info);
-
 
 	//th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE, &krad_theora->keyframe_distance, sizeof(int));
 	//printk ("Theora keyframe max distance %u\n", krad_theora->keyframe_distance);
@@ -64,33 +62,29 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height, int qu
 		krad_theora->header_len[krad_theora->header_count] = krad_theora->packet.bytes;
 		krad_theora->header_count++;
 		
-		
-		printf("krad_theora_encoder_create th_encode_flushheader got header packet %"PRIi64" which is %ld bytes\n", 
-				krad_theora->packet.packetno, krad_theora->packet.bytes);
+		//printk ("krad_theora_encoder_create th_encode_flushheader got header packet %"PRIi64" which is %ld bytes\n", 
+		//		krad_theora->packet.packetno, krad_theora->packet.bytes);
 	}
 	
-	printf("krad_theora_encoder_create Got %d header packets\n", krad_theora->header_count);
-
+	//printk ("krad_theora_encoder_create Got %d header packets\n", krad_theora->header_count);
 
 	krad_theora->header_combined = calloc (1, krad_theora->header_combined_size + 10);
 
 	krad_theora->header_combined[0] = 0x02;
 	krad_theora->header_combined_pos++;
 
-	//printf("main is %ld\n", vorbis->header_main.bytes);
+	//printk ("main is %ld\n", vorbis->header_main.bytes);
 	if (krad_theora->header_len[0] > 255) {
-		printf("theora mainheader to long for code\n");
-		exit(1);
+		failfast ("theora mainheader to long for code\n");
 	}
 	
 	krad_theora->demented = krad_theora->header_len[0];
 	krad_theora->header_combined[1] = (char)krad_theora->demented;
 	krad_theora->header_combined_pos++;
 	
-	//printf("comments is %ld\n", vorbis->header_comments.bytes);
+	//printk ("comments is %ld\n", vorbis->header_comments.bytes);
 	if (krad_theora->header_len[1] > 255) {
-		printf("theora comments header to long for code\n");
-		exit(1);
+		failfast ("theora comments header to long for code\n");
 	}
 	
 	krad_theora->demented = krad_theora->header_len[1];
@@ -171,16 +165,14 @@ int krad_theora_encoder_write (krad_theora_encoder_t *krad_theora, unsigned char
 	
 	ret = th_encode_ycbcr_in (krad_theora->encoder, krad_theora->ycbcr);
 	if (ret != 0) {
-		printf("krad_theora_encoder_write th_encode_ycbcr_in failed! %d\n", ret);
-		exit(1);
+		failfast ("krad_theora_encoder_write th_encode_ycbcr_in failed! %d\n", ret);
 	}
 	
 	// Note: Currently the encoder operates in a one-frame-in, one-packet-out manner. However, this may be changed in the future.
 	
 	ret = th_encode_packetout (krad_theora->encoder, krad_theora->finish, &krad_theora->packet);
 	if (ret < 1) {
-		printf("krad_theora_encoder_write th_encode_packetout failed! %d\n", ret);
-		exit(1);
+		failfast ("krad_theora_encoder_write th_encode_packetout failed! %d\n", ret);
 	}
 	
 	*packet = krad_theora->packet.packet;
@@ -188,8 +180,7 @@ int krad_theora_encoder_write (krad_theora_encoder_t *krad_theora, unsigned char
 	key = th_packet_iskeyframe (&krad_theora->packet);
 	*keyframe = key;
 	if (*keyframe == -1) {
-		printf("krad_theora_encoder_write th_packet_iskeyframe failed! %d\n", *keyframe);
-		exit(1);
+		failfast ("krad_theora_encoder_write th_packet_iskeyframe failed! %d\n", *keyframe);
 	}
 	
 	if (key) {
@@ -281,7 +272,7 @@ krad_theora_decoder_t *krad_theora_decoder_create(unsigned char *header1, int he
 	krad_theora->packet.packetno = 3;
 	th_decode_headerin(&krad_theora->info, &krad_theora->comment, &krad_theora->setup_info, &krad_theora->packet);
 
-	printf("Theora %dx%d %.02f fps video\n Encoded frame content is %dx%d with %dx%d offset\n",
+	printk ("Theora %dx%d %.02f fps video\n Encoded frame content is %dx%d with %dx%d offset\n",
 		   krad_theora->info.frame_width, krad_theora->info.frame_height, 
 		   (double)krad_theora->info.fps_numerator/krad_theora->info.fps_denominator,
 		   krad_theora->info.pic_width, krad_theora->info.pic_height, krad_theora->info.pic_x, krad_theora->info.pic_y);
