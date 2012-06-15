@@ -6,8 +6,8 @@ static void krad_radio_ncurses (krad_ipc_client_t *client);
 
 static void krad_radio_ncurses (krad_ipc_client_t *client) {
 
-	int row;
-	int col;
+	//int row;
+	//int col;
 	char header[256];
 
 	initscr ();
@@ -21,7 +21,7 @@ static void krad_radio_ncurses (krad_ipc_client_t *client) {
 	sprintf (header, "Krad Radio %s", client->sysname);
 	
 	attron (A_BOLD);
-	getmaxyx (stdscr, row, col);
+	//getmaxyx (stdscr, row, col);
 	attron (COLOR_PAIR(1));
 	mvprintw (2, 4, "%s", header);
 	refresh ();
@@ -61,8 +61,6 @@ int main (int argc, char *argv[]) {
 			krad_radio_ncurses (client);
 		
 			krad_ipc_disconnect (client);
-			
-			printf ("bye bye!\n");
 		
 		}
 		
