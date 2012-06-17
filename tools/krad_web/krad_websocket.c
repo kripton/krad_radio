@@ -111,6 +111,21 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 
 /* callbacks from ipc handler to add JSON to websocket message */
 
+void krad_websocket_set_tag (krad_ipc_session_data_t *krad_ipc_session_data, char *tag_item, char *tag_name, char *tag_value) {
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradradio");
+	cJSON_AddStringToObject (msg, "info", "tag");
+	cJSON_AddStringToObject (msg, "tag_item", tag_item);
+	cJSON_AddStringToObject (msg, "tag_name", tag_name);
+	cJSON_AddStringToObject (msg, "tag_value", tag_value);
+
+}
+
+
 void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, krad_link_rep_t *krad_link, int link_num) {
 
 	cJSON *msg;
@@ -271,6 +286,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					list_size = ebml_data_size;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( krad_ipc, &tag_item, &tag_name, &tag_value )) <= list_size)) {
 						printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+						krad_websocket_set_tag (krad_ipc_session_data, tag_item, tag_name, tag_value);
 						if (bytes_read == list_size) {
 							break;
 						}
@@ -279,6 +295,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 				case EBML_ID_KRAD_RADIO_TAG:
 					krad_ipc_client_read_tag_inner ( krad_ipc, &tag_item, &tag_name, &tag_value );
 					printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+					krad_websocket_set_tag (krad_ipc_session_data, tag_item, tag_name, tag_value);
 					break;
 
 				case EBML_ID_KRAD_RADIO_UPTIME:

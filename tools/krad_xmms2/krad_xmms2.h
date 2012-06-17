@@ -9,15 +9,30 @@
 #include <sys/mman.h>
 #include <signal.h>
 
-typedef struct krad_xmms2_St krad_xmms2_t;
+#include <xmmsclient/xmmsclient.h>
 
-struct krad_xmms2_St {
+#include "krad_system.h"
 
+typedef struct krad_xmms_St krad_xmms_t;
+
+struct krad_xmms_St {
+
+	char sysname[256];
+	char ipc_path[256];
+	xmmsc_connection_t *connection;
+	int fd;
+	int connected;
+	
+	
 
 };
 
+void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms);
+void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms);
 
+void krad_xmms_connect (krad_xmms_t *krad_xmms);
+void krad_xmms_disconnect (krad_xmms_t *krad_xmms);
 
-void krad_xmms2_destroy (krad_xmms2_t *krad_xmms2);
-krad_xmms2_t *krad_xmms2_create ();
+void krad_xmms_destroy (krad_xmms_t *krad_xmms);
+krad_xmms_t *krad_xmms_create (char *name, char *ipc_path);
 

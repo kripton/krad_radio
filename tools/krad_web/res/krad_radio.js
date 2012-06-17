@@ -96,6 +96,7 @@ function Kradradio () {
 	//this.ignoreupdate = false;
 	//this.update_rate = 50;
 	//this.timer;
+	this.tags = new Array();
 	
 }
 
@@ -116,7 +117,14 @@ Kradradio.prototype.got_sysname = function (sysname) {
 
 	this.sysname = sysname;
 
-	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'><div class='kradradio'><h2>" + this.sysname + "</h2></div><div class='kradmixer'></div><br clear='both'><div class='kradlink'></div><br clear='both'><div class='kradcompositor'></div></div>");
+	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'><div class='kradradio'><h2>" + this.sysname + "</h2><div class='tags'></div></div><div class='kradmixer'></div><br clear='both'><div class='kradlink'></div><br clear='both'><div class='kradcompositor'></div></div>");
+}
+
+Kradradio.prototype.got_tag = function (tag_item, tag_name, tag_value) {
+
+	this.tags += [tag_item, tag_name, tag_value];
+
+	$('#' + this.sysname + ' .kradradio .tags').append("<span class='tag'>" + tag_item + ": " + tag_name + " - " + tag_value + "</span>");
 }
 
 Kradradio.prototype.got_messages = function (msgs) {
@@ -139,6 +147,10 @@ Kradradio.prototype.got_messages = function (msgs) {
 			if (msg_arr[m].info == "sysname") {
 				kradradio.got_sysname (msg_arr[m].infoval);
 			}
+			if (msg_arr[m].info == "tag") {
+				kradradio.got_tag (msg_arr[m].tag_item, msg_arr[m].tag_name, msg_arr[m].tag_value);
+			}			
+			
 		}
 		if (msg_arr[m].com == "kradlink") {
 			if (msg_arr[m].cmd == "add_link") {
