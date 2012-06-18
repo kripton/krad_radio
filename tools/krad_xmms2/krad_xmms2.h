@@ -29,9 +29,15 @@ struct krad_xmms_St {
 	
 	
 	int playback_status;
+	int playtime;
+	int playing_id;
 
 };
 
+int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata);
+int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata);
+int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata);
+void krad_xmms_disconnect_callback (void *userdata);
 
 void *krad_xmms_handler_thread (void *arg);
 void krad_xmms_start_handler (krad_xmms_t *krad_xmms);

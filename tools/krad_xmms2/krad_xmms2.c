@@ -1,5 +1,53 @@
 #include "krad_xmms2.h"
 
+void krad_xmms_disconnect_callback (void *userdata) {
+
+	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+
+	krad_xmms_disconnect (krad_xmms);
+	
+}
+
+int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
+
+	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+
+	int id;
+
+	id = 0;
+
+	if (!xmmsv_get_int (value, &id)) {
+		failfast ("Value didn't contain the expected type!");
+	}
+	
+	krad_xmms->playing_id = id;
+
+	printk ("Got playback id: %d", krad_xmms->playing_id);
+	
+	return 1;
+	
+}
+
+int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
+
+	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+
+	int time;
+	
+	time = 0;
+
+	if (!xmmsv_get_int (value, &time)) {
+		failfast ("Value didn't contain the expected type!");
+	}
+
+	krad_xmms->playtime = time / 1000;
+
+	printk ("Got playtime: %d", krad_xmms->playtime);
+
+	return 1;
+
+}
+
 int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
@@ -36,6 +84,21 @@ void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms) {
 	xmmsc_result_t *result;
 	
 	result = NULL;
+	
+	result = xmmsc_broadcast_playback_status (krad_xmms->connection);
+	xmmsc_result_disconnect (result);
+	xmmsc_result_unref (result);
+	xmmsc_unref (krad_xmms->connection);
+	
+	result = xmmsc_broadcast_playback_current_id (krad_xmms->connection);
+	xmmsc_result_disconnect (result);
+	xmmsc_result_unref (result);
+	xmmsc_unref (krad_xmms->connection);
+	
+	result = xmmsc_signal_playback_playtime (krad_xmms->connection);
+	xmmsc_result_disconnect (result);
+	xmmsc_result_unref (result);
+	xmmsc_unref (krad_xmms->connection);	
 
 }
 
@@ -49,10 +112,21 @@ void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms) {
 	xmmsc_result_notifier_set (result, krad_xmms_playback_status_callback, krad_xmms);
 	xmmsc_result_unref (result);
 
+	result = xmmsc_playback_current_id (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
+	xmmsc_result_unref (result);
+
 	result = xmmsc_broadcast_playback_status (krad_xmms->connection);
 	xmmsc_result_notifier_set (result, krad_xmms_playback_status_callback, krad_xmms);
 	xmmsc_result_unref (result);
 
+	result = xmmsc_signal_playback_playtime (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playtime_callback, krad_xmms);
+	xmmsc_result_unref (result);
+	
+	result = xmmsc_broadcast_playback_current_id (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
+	xmmsc_result_unref (result);	
 
 	krad_xmms_handle (krad_xmms);
 
@@ -82,6 +156,8 @@ void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 	krad_xmms->fd = xmmsc_io_fd_get (krad_xmms->connection);
 
 	krad_xmms->connected = 1;	
+	
+	xmmsc_disconnect_callback_set (krad_xmms->connection, krad_xmms_disconnect_callback, krad_xmms);
 	
 	krad_xmms_register_for_broadcasts (krad_xmms);
 	
