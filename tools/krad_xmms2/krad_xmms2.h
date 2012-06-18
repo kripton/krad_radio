@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <signal.h>
+#include <poll.h>
 
 #include <xmmsclient/xmmsclient.h>
 
@@ -22,10 +23,21 @@ struct krad_xmms_St {
 	xmmsc_connection_t *connection;
 	int fd;
 	int connected;
+
+	pthread_t handler_thread;
+	int handler_running;
 	
 	
+	int playback_status;
 
 };
+
+
+void *krad_xmms_handler_thread (void *arg);
+void krad_xmms_start_handler (krad_xmms_t *krad_xmms);
+void krad_xmms_stop_handler (krad_xmms_t *krad_xmms);
+
+void krad_xmms_handle (krad_xmms_t *krad_xmms);
 
 void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms);
 void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms);

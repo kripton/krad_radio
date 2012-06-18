@@ -10,6 +10,8 @@ void krad_xmms2_test (char *sysname, char *ipc_path) {
 
 	usleep (1000 * 1000);
 
+	usleep (1000 * 1000);
+
 	krad_xmms_destroy (krad_xmms);
 
 }
