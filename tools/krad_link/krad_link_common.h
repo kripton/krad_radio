@@ -51,6 +51,7 @@ typedef enum {
 
 typedef enum {
 	TEST = 500,
+	INFO,
 	V4L2,
 	DECKLINK,
 	X11,

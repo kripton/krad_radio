@@ -264,6 +264,8 @@ void kradgui_render_recording(kradgui_t *kradgui);
 void kradgui_render_rotator(kradgui_t *kradgui);
 void kradgui_test_text(kradgui_t *kradgui);
 
+void kradgui_render_text (kradgui_t *kradgui, int x, int y, int size, char *string);
+
 void kradgui_start_recording(kradgui_t *kradgui);
 void kradgui_stop_recording(kradgui_t *kradgui);
 

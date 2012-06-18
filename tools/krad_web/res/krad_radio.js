@@ -404,6 +404,9 @@ Kradradio.prototype.got_add_link = function (link) {
 
 
 	if (link.operation_mode == "transmit") {
+	
+		$('#link_' + link.link_num).append("<audio controls preload='none' src='http://" + link.host + ":" + link.port + link.mount + "'>Audio tag should be here.</audio>");
+	
 		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
 
 

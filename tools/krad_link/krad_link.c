@@ -152,6 +152,172 @@ void *video_capture_thread (void *arg) {
 	
 }
 
+void *info_screen_generator_thread (void *arg) {
+
+	prctl (PR_SET_NAME, (unsigned long) "kradlink_nfogen", 0, 0, 0);
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+	
+	printk ("info screen generator thread begins");
+	
+	krad_frame_t *krad_frame;
+	krad_frame_t *krad_frame2;
+	krad_ticker_t *krad_ticker;
+	kradgui_t *kradgui;
+	
+	int width;
+	int height;
+	
+	width = 480;
+	height = 270;
+	
+	width = 1280;
+	height = 720;	
+	
+	//kradgui = kradgui_create_with_external_surface (1280, 720, NULL);
+
+	kradgui = kradgui_create_with_internal_surface (width, height);
+	
+	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);
+
+	
+	
+	if ((width != krad_link->composite_width) || (height != krad_link->composite_height)) {
+	
+	
+	
+		krad_link->captured_frame_converter = sws_getContext ( width, height,
+														   PIX_FMT_RGB32,
+														   krad_link->composite_width,
+														   krad_link->composite_height,
+														   PIX_FMT_RGB32, 
+														   SWS_BICUBIC, NULL, NULL, NULL);	
+	
+	
+	}
+	
+	
+	
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
+																   "NFOIn",
+																   INPUT);
+
+	krad_ticker_start (krad_ticker);
+
+	while (krad_link->capturing == 1) {
+	
+		
+		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+		//kradgui->data = (unsigned char *)krad_frame->pixels;
+		kradgui_render (kradgui);
+		
+		kradgui_render_text (kradgui, 400, 200, 80, "KRAD RADIO");
+		
+		kradgui_render_text (kradgui, 400, 300, 40, krad_link->krad_radio->sysname);		
+		
+		kradgui_render_hex (kradgui, width - 48, 40, 18);
+		
+		
+		
+		int p;
+		char *artist;
+		char *title;
+		char *playtime;
+		krad_mixer_portgroup_t *portgroup;
+
+		for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+			portgroup = krad_link->krad_radio->krad_mixer->portgroup[p];
+			if ((portgroup != NULL) && (portgroup->active)) {
+				artist = krad_tags_get_tag (portgroup->krad_tags, "artist");
+				if ((artist != NULL) && strlen (artist)) {
+					kradgui_render_text (kradgui, 120, 500, 22, artist);
+					//printk ("now playing %s", now_playing);
+					break;
+				}
+			}
+		}
+	
+		for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+			portgroup = krad_link->krad_radio->krad_mixer->portgroup[p];
+			if ((portgroup != NULL) && (portgroup->active)) {
+				title = krad_tags_get_tag (portgroup->krad_tags, "title");
+				if ((title != NULL) && strlen (title)) {
+					kradgui_render_text (kradgui, 120, 550, 22, title);
+					//printk ("now playing %s", now_playing);
+					break;
+				}
+			}
+		}
+		
+	
+		for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+			portgroup = krad_link->krad_radio->krad_mixer->portgroup[p];
+			if ((portgroup != NULL) && (portgroup->active)) {
+				playtime = krad_tags_get_tag (portgroup->krad_tags, "playtime");
+				if ((playtime != NULL) && strlen (playtime)) {
+					kradgui_render_text (kradgui, 120, 420, 32, playtime);
+					//printk ("now playing %s", now_playing);
+					break;
+				}
+			}
+		}
+		
+		
+		memcpy (krad_frame->pixels, kradgui->data, kradgui->bytes);
+		
+		
+		if ((width != krad_link->composite_width) || (height != krad_link->composite_height)) {
+		
+			krad_frame2 = krad_framepool_getframe (krad_link->krad_framepool);
+		
+			int rgb_stride_arr[3] = {4*krad_link->composite_width, 0, 0};
+
+			const uint8_t *yuv_arr[4];
+			int yuv_stride_arr[4];
+		
+			yuv_arr[0] = (unsigned char *)krad_frame->pixels;
+
+			yuv_stride_arr[0] = width * 4;
+			yuv_stride_arr[1] = 0;
+			yuv_stride_arr[2] = 0;
+			yuv_stride_arr[3] = 0;
+
+			unsigned char *dst[4];
+
+			dst[0] = (unsigned char *)krad_frame2->pixels;
+
+			sws_scale(krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, 
+					  height, dst, rgb_stride_arr);		
+		
+		
+			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame2);
+			krad_framepool_unref_frame (krad_frame2);
+		
+		} else {
+			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		}
+
+		krad_framepool_unref_frame (krad_frame);
+
+		krad_compositor_process (krad_link->krad_radio->krad_compositor);
+
+		krad_ticker_wait (krad_ticker);
+
+	}
+
+	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
+
+	krad_ticker_destroy (krad_ticker);
+
+	kradgui_destroy (kradgui);
+
+	printk ("info_screen_generator thread exited");
+	
+	return NULL;
+	
+}
+
+
 void *test_screen_generator_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_tstgen", 0, 0, 0);
@@ -217,7 +383,7 @@ void *test_screen_generator_thread (void *arg) {
 		
 			yuv_arr[0] = (unsigned char *)krad_frame->pixels;
 
-			yuv_stride_arr[0] = krad_link->krad_x11->screen_width * 4;
+			yuv_stride_arr[0] = 1280 * 4;
 			yuv_stride_arr[1] = 0;
 			yuv_stride_arr[2] = 0;
 			yuv_stride_arr[3] = 0;
@@ -227,7 +393,7 @@ void *test_screen_generator_thread (void *arg) {
 			dst[0] = (unsigned char *)krad_frame2->pixels;
 
 			sws_scale(krad_link->captured_frame_converter, yuv_arr, yuv_stride_arr, 0, 
-					  krad_link->krad_x11->screen_height, dst, rgb_stride_arr);		
+					  720, dst, rgb_stride_arr);		
 		
 		
 			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame2);
@@ -2375,7 +2541,13 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 			krad_link->capturing = 1;
 			pthread_create(&krad_link->video_capture_thread, NULL, test_screen_generator_thread, (void *)krad_link);
-		}		
+		}
+		
+		if (krad_link->video_source == INFO) {
+
+			krad_link->capturing = 1;
+			pthread_create(&krad_link->video_capture_thread, NULL, info_screen_generator_thread, (void *)krad_link);
+		}			
 
 	}
 	
@@ -2558,7 +2730,8 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_link->av_mode = AUDIO_AND_VIDEO;
 		}
 		
-		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11) || (krad_link->video_source == TEST)) {
+		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11) || 
+			(krad_link->video_source == TEST) || (krad_link->video_source == INFO)) {
 			krad_link->av_mode = VIDEO_ONLY;
 		}
 	

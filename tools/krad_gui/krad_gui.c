@@ -720,7 +720,7 @@ void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
 	//cairo_stroke_preserve (cr);
 
 
-	hexrot += 0.4;
+	hexrot += 1.5;
 	cairo_fill (cr);
 	
 	cairo_restore(cr);
@@ -739,7 +739,7 @@ void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
 	cairo_rotate (cr, hexrot * (M_PI/180.0));
 	cairo_translate (cr, -((w * scale)/2), -r1 * scale);
 	cairo_scale(cr, scale, scale);
-	hexrot += 0.11;
+	//hexrot += 0.11;
 
 	cairo_move_to (cr, 0, 0);
 	cairo_rel_line_to (cr, w, 0);
@@ -1503,6 +1503,18 @@ void kradgui_test_screen (kradgui_t *kradgui, char *info) {
 	kradgui->render_rotator = 1;
 
 }
+
+
+void kradgui_render_text (kradgui_t *kradgui, int x, int y, int size, char *string) {
+
+	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (kradgui->cr, size);
+	cairo_set_source_rgb (kradgui->cr, 0.9, 0.9, 0.9);
+	cairo_move_to (kradgui->cr, x, y);
+	cairo_show_text (kradgui->cr, string);
+	
+}	
+
 
 void kradgui_render_test_text(kradgui_t *kradgui) {
 
