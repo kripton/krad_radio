@@ -5,6 +5,44 @@ function create_handler (inst, func) {
 	});
 }
 
+function Tag (tag_item, tag_name, tag_value) {
+
+	this.tag_item = tag_item;
+	this.tag_name = tag_name;
+	this.tag_value = tag_value;
+
+	this.tag_num = Math.floor(Math.random()*122231);
+
+	this.show();
+
+}
+
+Tag.prototype.show = function() {
+
+	if ((this.tag_name != "artist") && (this.tag_name != "title")) {
+
+		if (this.tag_name == "now_playing") {
+			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'><span class='tag_value'>" + this.tag_value + "</span></div>");
+			return;
+		}
+		if (this.tag_name == "playtime") {
+			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'><span class='tag_value'>" + this.tag_value + "</span></div>");
+			return;
+		}
+	
+		$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'>" + this.tag_item + ": " + this.tag_name + " - <span class='tag_value'>" + this.tag_value + "</span></div>");					
+	}
+}
+
+Tag.prototype.update_value = function(tag_value) {
+
+	this.tag_value = tag_value;
+	if ((this.tag_name != "artist") && (this.tag_name != "title")) {
+		$('#ktag_' + this.tag_num + ' .tag_value').html(this.tag_value);
+	}
+}
+
+
 function Kradwebsocket (port) {
 
 	this.port = port;
@@ -122,9 +160,17 @@ Kradradio.prototype.got_sysname = function (sysname) {
 
 Kradradio.prototype.got_tag = function (tag_item, tag_name, tag_value) {
 
-	this.tags += [tag_item, tag_name, tag_value];
-
-	$('#' + this.sysname + ' .kradradio .tags').append("<span class='tag'>" + tag_item + ": " + tag_name + " - " + tag_value + "</span>");
+	for (t in this.tags) {
+		if ((this.tags[t].tag_item == tag_item) && (this.tags[t].tag_name == tag_name)) {
+			this.tags[t].update_value (tag_value);
+			return;
+		}
+	}
+	
+	tag = new Tag (tag_item, tag_name, tag_value);
+	
+	this.tags.push (tag);
+	
 }
 
 Kradradio.prototype.got_messages = function (msgs) {
@@ -206,7 +252,7 @@ Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_nam
 
 Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossfade_name, crossfade) {
 
-	$('.kradmixer').append("<div class='kradmixer_control volume_control'> <div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2></div>");
+	$('.kradmixer').append("<div class='kradmixer_control volume_control'> <div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2><div id='ktags_" + portgroup_name + "'></div></div>");
 
 	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume });
 
@@ -350,6 +396,7 @@ Kradradio.prototype.got_add_link = function (link) {
 
 	$('#link_' + link.link_num).append("<h4>" + link.av_mode + "</h4>");
 
+	$('#link_' + link.link_num).append("<div id='ktags_link" + link.link_num + "'></div>");
 
 	if (link.operation_mode == "capture") {
 		$('#link_' + link.link_num).append("<h5>" + link.video_source + "</h5>");

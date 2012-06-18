@@ -192,7 +192,7 @@ void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_da
 	cJSON_AddStringToObject (msg, "crossfade_name", crossfade_name);
 	cJSON_AddNumberToObject (msg, "crossfade", crossfade_val);
 	
-	
+	krad_ipc_get_tags (krad_ipc_session_data->krad_ipc_client, portname);
 
 }
 
@@ -566,7 +566,8 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->hello_sent = 0;			
 			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
-			krad_ipc_list_links (pss->krad_ipc_client);			
+			krad_ipc_list_links (pss->krad_ipc_client);
+			krad_ipc_get_tags (pss->krad_ipc_client, NULL);		
 			add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
 
 			break;
