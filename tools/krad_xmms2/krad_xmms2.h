@@ -14,6 +14,15 @@
 
 #include "krad_system.h"
 
+typedef enum {
+	PREV,
+	PLAY,
+	PAUSE,
+	STOP,
+	NEXT
+} krad_xmms_playback_cmd_t;
+
+
 typedef struct krad_xmms_St krad_xmms_t;
 
 struct krad_xmms_St {
@@ -31,6 +40,12 @@ struct krad_xmms_St {
 	int playback_status;
 	int playtime;
 	int playing_id;
+	char playtime_string[128];	
+	char now_playing[1024];
+	char title[512];
+	char artist[512];		
+
+
 
 };
 
@@ -38,6 +53,8 @@ int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata);
 int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata);
 int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata);
 void krad_xmms_disconnect_callback (void *userdata);
+
+void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd);
 
 void *krad_xmms_handler_thread (void *arg);
 void krad_xmms_start_handler (krad_xmms_t *krad_xmms);

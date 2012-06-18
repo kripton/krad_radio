@@ -1,5 +1,29 @@
 #include "krad_xmms2.h"
 
+void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd) {
+
+	switch (cmd) {
+		case PREV:
+			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, 1) );
+			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
+			break;
+		case NEXT:
+			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, -1) );
+			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
+			break;
+		case PAUSE:
+			xmmsc_result_unref ( xmmsc_playback_pause (krad_xmms->connection) );
+			break;
+		case PLAY:
+			xmmsc_result_unref ( xmmsc_playback_start (krad_xmms->connection) );
+			break;
+		case STOP:
+			xmmsc_result_unref ( xmmsc_playback_stop (krad_xmms->connection) );		
+			break;
+	}
+
+}
+
 void krad_xmms_disconnect_callback (void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
@@ -8,12 +32,63 @@ void krad_xmms_disconnect_callback (void *userdata) {
 	
 }
 
+int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
+
+	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+
+	xmmsv_t *dict_entry;
+	xmmsv_t *info;
+	const char *val;
+
+	info = xmmsv_propdict_to_dict (value, NULL);
+
+	if (!xmmsv_dict_get (info, "artist", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
+		val = "No artist";
+	}
+
+	sprintf (krad_xmms->artist, "%s", val);
+
+	if (!xmmsv_dict_get (info, "title", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
+		val = "No Title";
+	}
+
+	sprintf (krad_xmms->title, "%s", val);
+	sprintf (krad_xmms->now_playing, "%s - %s", krad_xmms->artist, krad_xmms->title);	
+
+	/*
+	if (!xmmsv_dict_get (infos, "picture_front", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
+		if (!xmmsv_dict_get (infos, "kcoverhash", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
+			// Neither image source
+			strcpy(xmms->current_image, "");
+			strcpy(xmms->current_image_url, "");				
+		} else {
+			//found kcover
+			xmms->url_start = "http://kradradio.com/covers";
+			sprintf (xmms->current_image, "%s", val);
+			sprintf(xmms->current_image_url, "%s/%s", xmms->url_start, xmms->current_image);
+		}
+	} else {
+		// found embedded art
+		xmms->url_start = "http://kradradio.com/bindata";
+		sprintf (xmms->current_image, "%s", val);
+		sprintf(xmms->current_image_url, "%s/%s/%s", xmms->url_start, xmms->kradstation->station_shortname, xmms->current_image);
+	}
+	*/
+	xmmsv_unref (info);
+	
+	printk ("Got now playing: %s", krad_xmms->now_playing);	
+		
+	return 1;
+}
+
 int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
+	xmmsc_result_t *result;	
 	int id;
-
+	
+	result = NULL;
 	id = 0;
 
 	if (!xmmsv_get_int (value, &id)) {
@@ -24,6 +99,10 @@ int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
 
 	printk ("Got playback id: %d", krad_xmms->playing_id);
 	
+	result = xmmsc_medialib_get_info (krad_xmms->connection, krad_xmms->playing_id);
+	xmmsc_result_notifier_set (result, krad_xmms_media_info_callback, krad_xmms);
+	xmmsc_result_unref (result);
+	
 	return 1;
 	
 }
@@ -32,17 +111,19 @@ int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
-	int time;
+	int playtime;
 	
-	time = 0;
+	playtime = 0;
 
-	if (!xmmsv_get_int (value, &time)) {
+	if (!xmmsv_get_int (value, &playtime)) {
 		failfast ("Value didn't contain the expected type!");
 	}
 
-	krad_xmms->playtime = time / 1000;
-
-	printk ("Got playtime: %d", krad_xmms->playtime);
+	if (krad_xmms->playtime != (playtime / 1000)) {
+		krad_xmms->playtime = (playtime / 1000);
+		sprintf (krad_xmms->playtime_string, "%d:%02d", krad_xmms->playtime / 60, krad_xmms->playtime % 60);
+		printk ("Got playtime: %s", krad_xmms->playtime_string);
+	}
 
 	return 1;
 

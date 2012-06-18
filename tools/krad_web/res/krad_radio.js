@@ -282,10 +282,6 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 			kradradio.push_dtmf ("*");
 		});
 		
-		$( '#' + portgroup_name + '_dtmf_d').bind( "click", function(event, ui) {
-			kradradio.push_dtmf ("D");
-		});	
-		
 		$( '#' + portgroup_name + '_dtmf_hash').bind( "click", function(event, ui) {
 			kradradio.push_dtmf ("#");
 		});
@@ -305,11 +301,6 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 		$( '#' + portgroup_name + '_dtmf_d').bind( "click", function(event, ui) {
 			kradradio.push_dtmf ("D");
 		});
-		
-		$( '#' + portgroup_name + '_dtmf_d').bind( "click", function(event, ui) {
-			kradradio.push_dtmf ("D");
-		});
-		
 		
 	}
 	
