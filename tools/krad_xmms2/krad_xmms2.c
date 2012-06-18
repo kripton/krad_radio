@@ -76,6 +76,12 @@ int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 	*/
 	xmmsv_unref (info);
 	
+	if (krad_xmms->krad_tags != NULL) {
+		krad_tags_set_tag (krad_xmms->krad_tags, "artist", krad_xmms->artist);
+		krad_tags_set_tag (krad_xmms->krad_tags, "title", krad_xmms->title);
+		krad_tags_set_tag (krad_xmms->krad_tags, "now_playing", krad_xmms->now_playing);
+	}
+	
 	printk ("Got now playing: %s", krad_xmms->now_playing);	
 		
 	return 1;
@@ -123,6 +129,9 @@ int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
 		krad_xmms->playtime = (playtime / 1000);
 		sprintf (krad_xmms->playtime_string, "%d:%02d", krad_xmms->playtime / 60, krad_xmms->playtime % 60);
 		printk ("Got playtime: %s", krad_xmms->playtime_string);
+		if (krad_xmms->krad_tags != NULL) {
+			krad_tags_set_tag (krad_xmms->krad_tags, "playtime", krad_xmms->playtime_string);
+		}			
 	}
 
 	return 1;
@@ -347,7 +356,7 @@ void krad_xmms_destroy (krad_xmms_t *krad_xmms) {
 
 }
 
-krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path) {
+krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path, krad_tags_t *krad_tags) {
 
 	krad_xmms_t *krad_xmms = calloc (1, sizeof(krad_xmms_t));
 
@@ -360,6 +369,8 @@ krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path) {
 		krad_xmms_destroy (krad_xmms);
 		return NULL;
 	}
+	
+	krad_xmms->krad_tags = krad_tags;
 	
 	return krad_xmms;
 

@@ -23,6 +23,10 @@ struct krad_radio_gtk_portgroup_St {
 	
 	GtkWidget *volume_scale;
 	GtkWidget *label;
+	
+	GtkWidget *label_now_playing;
+	GtkWidget *label_playtime;
+	
 	GtkWidget *vbox;
 	krad_radio_gtk_t *krad_radio_gtk;
 };
@@ -172,11 +176,15 @@ static void add_portgroup (krad_radio_gtk_t *krad_radio_gtk, char *name, float v
 
 	portgroup->vbox = gtk_box_new ( GTK_ORIENTATION_VERTICAL, 5 );
 	portgroup->label = gtk_label_new (portgroup->name);
+	portgroup->label_now_playing = gtk_label_new ("");
+	portgroup->label_playtime = gtk_label_new ("");
 	portgroup->volume_scale = gtk_scale_new_with_range (GTK_ORIENTATION_VERTICAL, 0.0, 100.0, 1.0);
 	gtk_scale_set_value_pos ( GTK_SCALE (portgroup->volume_scale), GTK_POS_BOTTOM );
 	gtk_range_set_inverted (GTK_RANGE (portgroup->volume_scale), TRUE);
 	g_signal_connect (portgroup->volume_scale, "value-changed", G_CALLBACK (set_volume_value), portgroup);
 	gtk_box_pack_start (GTK_BOX(portgroup->vbox), portgroup->label, FALSE, FALSE, 5);
+	gtk_box_pack_start (GTK_BOX(portgroup->vbox), portgroup->label_now_playing, FALSE, FALSE, 5);
+	gtk_box_pack_start (GTK_BOX(portgroup->vbox), portgroup->label_playtime, FALSE, FALSE, 5);
 	gtk_box_pack_end (GTK_BOX(portgroup->vbox), portgroup->volume_scale, TRUE, TRUE, 5);
 	gtk_box_pack_start (GTK_BOX(portgroup->krad_radio_gtk->hbox_volumes), portgroup->vbox, TRUE, TRUE, 15);
 	gtk_range_set_value (GTK_RANGE(portgroup->volume_scale), portgroup->volume);
@@ -184,7 +192,7 @@ static void add_portgroup (krad_radio_gtk_t *krad_radio_gtk, char *name, float v
 	
 	add_portgroup_crossfade (krad_radio_gtk, name, volume, crossfade_name, crossfade);
 	
-	
+	krad_ipc_get_tags (krad_radio_gtk->client, portgroup->name);
 	gtk_widget_show_all (portgroup->vbox);
 }
 
@@ -237,6 +245,29 @@ void krad_radio_gtk_set_control ( krad_radio_gtk_t *krad_radio_gtk, char *portna
 				if (strcmp(controlname, "volume") == 0) {
 					portgroup->volume = floatval;
 					gtk_range_set_value (GTK_RANGE(portgroup->volume_scale), floatval);
+				}
+			}
+		}
+	}
+}
+
+// IPC message updating GTK widget
+void krad_radio_gtk_set_tag ( krad_radio_gtk_t *krad_radio_gtk, char *portname, char *tag_name, char *tag_value) {
+
+	//printd ("yay I set control to %s portname %s controlname %f floatval\n", portname, controlname, floatval);
+
+	int p;
+	krad_radio_gtk_portgroup_t *portgroup;
+	
+	for (p = 0; p < PORTGROUPS_MAX; p++) {
+		portgroup = &krad_radio_gtk->portgroups[p];
+		if ((portgroup != NULL) && (portgroup->active == 1)) {
+			if (strcmp(portname, portgroup->name) == 0) {
+				if (strcmp(tag_name, "now_playing") == 0) {
+					gtk_label_set_text (GTK_LABEL(portgroup->label_now_playing), tag_value);
+				}
+				if (strcmp(tag_name, "playtime") == 0) {
+					gtk_label_set_text (GTK_LABEL(portgroup->label_playtime), tag_value);
 				}
 			}
 		}
@@ -330,6 +361,7 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					list_size = ebml_data_size;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( krad_ipc, &tag_item, &tag_name, &tag_value )) <= list_size)) {
 						printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+						krad_radio_gtk_set_tag (krad_radio_gtk, tag_item, tag_name, tag_value);
 						if (bytes_read == list_size) {
 							break;
 						}
@@ -337,6 +369,7 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					break;
 				case EBML_ID_KRAD_RADIO_TAG:
 					krad_ipc_client_read_tag_inner ( krad_ipc, &tag_item, &tag_name, &tag_value );
+					krad_radio_gtk_set_tag (krad_radio_gtk, tag_item, tag_name, tag_value);					
 					printk ("%s: %s - %s", tag_item, tag_name, tag_value);
 					break;
 

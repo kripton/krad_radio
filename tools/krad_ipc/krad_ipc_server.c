@@ -211,6 +211,7 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 */
 		client->active = 1;
 		client->krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_READONLY);
+		pthread_mutex_init (&client->client_lock, NULL);
 		krad_ipc_server_update_pollfds (client->krad_ipc_server);
 		printf("Krad IPC Server: Client accepted!\n");	
 		return client;
@@ -221,6 +222,7 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 
 void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 
+	pthread_mutex_lock (&client->client_lock);
 	close (client->sd);
 	
 	if (client->krad_ebml != NULL) {
@@ -238,6 +240,8 @@ void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 	memset (client->input_buffer, 0, sizeof(client->input_buffer));
 	memset (client->output_buffer, 0, sizeof(client->output_buffer));
 	client->active = 0;
+	pthread_mutex_unlock (&client->client_lock);
+	pthread_mutex_destroy (&client->client_lock);
 	krad_ipc_server_update_pollfds (client->krad_ipc_server);
 	printf("Krad IPC Server: Client Disconnected\n\n");
 
@@ -587,7 +591,9 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		//if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if (krad_ipc_server->clients[c].confirmed == 1) {		
+			pthread_mutex_lock (&krad_ipc_server->clients[c].client_lock);
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_MSG, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG, &subelement);	
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG_ITEM, item);
@@ -597,6 +603,7 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
 			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
 			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+			pthread_mutex_unlock (&krad_ipc_server->clients[c].client_lock);
 		}
 	}
 }
@@ -698,9 +705,11 @@ void *krad_ipc_server_run_thread (void *arg) {
 						
 							while (krad_ebml_io_buffer_read_space (&client->krad_ebml->io_adapter)) {
 								client->krad_ipc_server->current_client = client; /* single thread has a few perks */
+								pthread_mutex_lock (&client->client_lock);
 								resp = client->krad_ipc_server->handler (client->output_buffer, &client->command_response_len, client->krad_ipc_server->pointer);
 								printf("Krad IPC Server: CMD Response %d %d bytes\n", resp, client->command_response_len);
 								krad_ebml_write_sync (krad_ipc_server->current_client->krad_ebml2);
+								pthread_mutex_unlock (&client->client_lock);
 							}
 						
 						}

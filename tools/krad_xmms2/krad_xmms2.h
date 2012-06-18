@@ -13,6 +13,7 @@
 #include <xmmsclient/xmmsclient.h>
 
 #include "krad_system.h"
+#include "krad_tags.h"
 
 typedef enum {
 	PREV,
@@ -44,6 +45,8 @@ struct krad_xmms_St {
 	char title[512];
 	char artist[512];
 
+	krad_tags_t *krad_tags;
+
 };
 
 int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata);
@@ -66,5 +69,5 @@ void krad_xmms_connect (krad_xmms_t *krad_xmms);
 void krad_xmms_disconnect (krad_xmms_t *krad_xmms);
 
 void krad_xmms_destroy (krad_xmms_t *krad_xmms);
-krad_xmms_t *krad_xmms_create (char *name, char *ipc_path);
+krad_xmms_t *krad_xmms_create (char *name, char *ipc_path, krad_tags_t *krad_tags);
 

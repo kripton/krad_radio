@@ -55,7 +55,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 	}
 	krad_radio->sysname = strdup (sysname);
 	
-	krad_radio->krad_tags = krad_tags_create ();
+	krad_radio->krad_tags = krad_tags_create ("station");
 	
 	if (krad_radio->krad_tags == NULL) {
 		krad_radio_destroy (krad_radio);
@@ -96,6 +96,10 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
 	}
+	
+	krad_mixer_set_ipc (krad_radio->krad_mixer, krad_radio->krad_ipc);
+	krad_tags_set_set_tag_callback (krad_radio->krad_tags, krad_radio->krad_ipc, 
+									(void (*)(void *, char *, char *, char *))krad_ipc_server_broadcast_tag);
 		
 	return krad_radio;
 
@@ -268,7 +272,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				}
 			}
 			
-			krad_ipc_server_broadcast_tag ( krad_radio_station->krad_ipc, tag_item, tag_name, tag_value);
+			//krad_ipc_server_broadcast_tag ( krad_radio_station->krad_ipc, tag_item, tag_name, tag_value);
 
 			return 2;
 

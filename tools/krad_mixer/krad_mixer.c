@@ -478,7 +478,11 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 	}
 	
 	if (portgroup->io_type != KRAD_LINK) {
-		portgroup->krad_tags = krad_tags_create ();
+		portgroup->krad_tags = krad_tags_create (portgroup->sysname);
+		if ((portgroup->krad_tags != NULL) && (krad_mixer->krad_ipc != NULL)) {
+			krad_tags_set_set_tag_callback (portgroup->krad_tags, krad_mixer->krad_ipc, 
+											(void (*)(void *, char *, char *, char *))krad_ipc_server_broadcast_tag);
+		}
 	} else {
 		portgroup->krad_tags = krad_link_get_tags (portgroup->io_ptr);
 	}
@@ -544,7 +548,7 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 	}
 	
 	if (portgroup->krad_xmms != NULL) {
-		krad_xmms_destroy (portgroup->krad_xmms);	
+		krad_xmms_destroy (portgroup->krad_xmms);
 		portgroup->krad_xmms = NULL;
 	}
 	
@@ -679,7 +683,7 @@ void krad_mixer_bind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupn
 		portgroup->krad_xmms = NULL;
 	}
 
-	portgroup->krad_xmms = krad_xmms_create (krad_mixer->name, ipc_path);
+	portgroup->krad_xmms = krad_xmms_create (krad_mixer->name, ipc_path, portgroup->krad_tags);
 
 }
 
@@ -848,6 +852,12 @@ krad_mixer_t *krad_mixer_create (char *name) {
 
 	return krad_mixer;
 	
+}
+
+void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc) {
+
+	krad_mixer->krad_ipc = krad_ipc;
+
 }
 
 

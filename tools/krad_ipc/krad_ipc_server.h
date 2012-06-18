@@ -102,6 +102,8 @@ struct krad_ipc_server_client_St {
 
 	int active;
 
+	pthread_mutex_t client_lock;
+
 };
 
 

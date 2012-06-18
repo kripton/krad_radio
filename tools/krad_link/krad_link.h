@@ -259,6 +259,6 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 void krad_link_shutdown();
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
 void krad_link_destroy (krad_link_t *krad_link);
-krad_link_t *krad_link_create();
+krad_link_t *krad_link_create (int linknum);
 void krad_link_run (krad_link_t *krad_link);
 #endif

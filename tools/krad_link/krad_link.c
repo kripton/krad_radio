@@ -2247,7 +2247,7 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	free (krad_link);
 }
 
-krad_link_t *krad_link_create() {
+krad_link_t *krad_link_create (int linknum) {
 
 	krad_link_t *krad_link;
 	
@@ -2284,7 +2284,8 @@ krad_link_t *krad_link_create() {
 	krad_link->video_source = NOVIDEO;
 	krad_link->transport_mode = TCP;
 
-	krad_link->krad_tags = krad_tags_create ();
+	sprintf (krad_link->sysname, "link%d", linknum);
+	krad_link->krad_tags = krad_tags_create (krad_link->sysname);
 
 	return krad_link;
 }
@@ -2908,12 +2909,10 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 				if (krad_linker->krad_link[k] == NULL) {
 
-					krad_linker->krad_link[k] = krad_link_create ();
+					krad_linker->krad_link[k] = krad_link_create (k);
 					krad_link = krad_linker->krad_link[k];
 					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->krad_linker = krad_linker;
-					
-					sprintf (krad_link->sysname, "link%d", k);
 
 					krad_linker_ebml_to_link ( krad_ipc, krad_link );
 					
@@ -3100,10 +3099,14 @@ void krad_linker_listen_promote_client (krad_linker_listen_client_t *client) {
 	for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
 		if (krad_linker->krad_link[k] == NULL) {
 
-			krad_linker->krad_link[k] = krad_link_create ();
+			krad_linker->krad_link[k] = krad_link_create (k);
 			krad_link = krad_linker->krad_link[k];
 			krad_link->krad_radio = krad_linker->krad_radio;
 			krad_link->krad_linker = krad_linker;
+			
+			krad_tags_set_set_tag_callback (krad_link->krad_tags, krad_linker->krad_radio->krad_ipc, 
+											(void (*)(void *, char *, char *, char *))krad_ipc_server_broadcast_tag);
+	
 			
 			sprintf (krad_link->sysname, "link%d", k);
 

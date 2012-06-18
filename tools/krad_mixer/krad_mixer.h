@@ -99,6 +99,8 @@ struct krad_mixer_St {
 	krad_mixer_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];
 	krad_mixer_crossfade_group_t *crossfade_group;
 
+	krad_ipc_server_t *krad_ipc;
+
 };
 
 
@@ -121,6 +123,7 @@ void krad_mixer_set_sample_rate ();
 int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer);
 krad_mixer_t *krad_mixer_create (char *name);
 void krad_mixer_destroy (krad_mixer_t *krad_mixer);
+void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc);
 
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );
 
