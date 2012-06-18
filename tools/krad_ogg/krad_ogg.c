@@ -707,13 +707,41 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 							  krad_ogg->tracks[track].keyframe_shift) + krad_ogg->tracks[track].frames_since_keyframe;
 	}
 	
+	if (keyframe == 1) {
+		
+		// flush the stream before we put in the packet w/ keyframe
+	
+		while (ogg_stream_flush (&krad_ogg->tracks[track].stream_state, &page) != 0) {
+	
+			if (krad_ogg->krad_io) {
+
+				krad_io_write (krad_ogg->krad_io, page.header, page.header_len);
+				krad_io_write (krad_ogg->krad_io, page.body, page.body_len);
+				krad_io_write_sync (krad_ogg->krad_io);
+			}
+		
+			if (krad_ogg->krad_transmission) {	
+		
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
+		
+			}
+	
+			//printk ("created page sized %lu\n", page.header_len + page.body_len);
+
+			krad_ogg->tracks[track].packets_on_current_page = 0;
+	
+		}
+	}	
+	
 	packet.packetno = krad_ogg->tracks[track].packet_num;
 	ogg_stream_packetin (&krad_ogg->tracks[track].stream_state, &packet);
 
 	krad_ogg->tracks[track].packet_num++;	
 	krad_ogg->tracks[track].packets_on_current_page++;
 	
-	if (krad_ogg->tracks[track].packets_on_current_page < krad_ogg->tracks[track].max_packets_per_page) {
+	if ((krad_ogg->tracks[track].packets_on_current_page < krad_ogg->tracks[track].max_packets_per_page) && 
+		(keyframe != 1)) {
 	
 		while (ogg_stream_pageout (&krad_ogg->tracks[track].stream_state, &page) != 0) {
 		
@@ -726,9 +754,9 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 			
 			if (krad_ogg->krad_transmission) {
 			
-				if (keyframe == 1) {
-					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
-				}			
+				//if (keyframe == 1) {
+				//	krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
+				//}			
 			
 				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
 				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
@@ -763,8 +791,6 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 			}
 		
 			//printk ("created page sized %lu\n", page.header_len + page.body_len);
-		
-			krad_io_write_sync (krad_ogg->krad_io);
 
 			krad_ogg->tracks[track].packets_on_current_page = 0;
 		
