@@ -543,6 +543,11 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 			break;
 	}
 	
+	if (portgroup->krad_xmms != NULL) {
+		krad_xmms_destroy (portgroup->krad_xmms);	
+		portgroup->krad_xmms = NULL;
+	}
+	
 	if (portgroup->io_type != KRAD_LINK) {
 		krad_tags_destroy (portgroup->krad_tags);	
 	}	
@@ -661,6 +666,36 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
 	}
 		
 	return 0;
+}
+
+void krad_mixer_bind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname, char *ipc_path) {
+
+	krad_mixer_portgroup_t *portgroup;
+
+	portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
+
+	if (portgroup->krad_xmms != NULL) {
+		krad_xmms_destroy (portgroup->krad_xmms);	
+		portgroup->krad_xmms = NULL;
+	}
+
+	portgroup->krad_xmms = krad_xmms_create (krad_mixer->name, ipc_path);
+
+}
+
+void krad_mixer_unbind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname) {
+
+	krad_mixer_portgroup_t *portgroup;
+
+	portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
+
+	if (portgroup->krad_xmms != NULL) {
+	
+		krad_xmms_destroy (portgroup->krad_xmms);
+	
+		portgroup->krad_xmms = NULL;
+	}
+
 }
 
 
@@ -945,6 +980,50 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 				krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 			}
 			break;
+			
+		case EBML_ID_KRAD_MIXER_CMD_BIND_PORTGROUP_XMMS2:
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
+				printke ("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);		
+		
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_XMMS2_IPC_PATH) {
+				printke ("hrm wtf2\n");
+			} else {
+				//printf("tag name size %zu\n", ebml_data_size);
+			}
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+
+			krad_mixer_bind_portgroup_xmms2 (krad_mixer, portgroupname, string);
+
+			break;
+
+		case EBML_ID_KRAD_MIXER_CMD_UNBIND_PORTGROUP_XMMS2:
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
+				printke ("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);		
+		
+			krad_mixer_unbind_portgroup_xmms2 (krad_mixer, portgroupname);
+		
+			break;
+						
+			
 		case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
 
 			//printk ("List Portgroups\n");

@@ -165,6 +165,18 @@ int main (int argc, char *argv[]) {
 				}
 			}			
 		
+			if (strncmp(argv[2], "xmms2", 5) == 0) {
+				if (argc == 5) {
+					krad_ipc_mixer_bind_portgroup_xmms2 (client, argv[3], argv[4]);
+				}
+			}	
+		
+			if (strncmp(argv[2], "noxmms2", 7) == 0) {
+				if (argc == 4) {
+					krad_ipc_mixer_unbind_portgroup_xmms2 (client, argv[3]);
+				}
+			}
+		
 			if (strncmp(argv[2], "set", 3) == 0) {
 				if (argc == 6) {
 					krad_ipc_set_control (client, argv[3], argv[4], atof(argv[5]));

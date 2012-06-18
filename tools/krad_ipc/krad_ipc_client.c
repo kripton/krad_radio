@@ -384,6 +384,43 @@ void krad_ipc_disable_linker_listen (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_mixer_bind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname, char *ipc_path) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t bind;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_BIND_PORTGROUP_XMMS2, &bind);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_XMMS2_IPC_PATH, ipc_path);
+	krad_ebml_finish_element (client->krad_ebml, bind);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_mixer_unbind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t unbind;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_UNBIND_PORTGROUP_XMMS2, &unbind);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+	krad_ebml_finish_element (client->krad_ebml, unbind);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_set_mixer_sample_rate (krad_ipc_client_t *client, int sample_rate) {
 
 	//uint64_t ipc_command;

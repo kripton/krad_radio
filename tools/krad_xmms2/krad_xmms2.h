@@ -35,17 +35,14 @@ struct krad_xmms_St {
 
 	pthread_t handler_thread;
 	int handler_running;
-	
-	
+
 	int playback_status;
 	int playtime;
 	int playing_id;
-	char playtime_string[128];	
+	char playtime_string[128];
 	char now_playing[1024];
 	char title[512];
-	char artist[512];		
-
-
+	char artist[512];
 
 };
 

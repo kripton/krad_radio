@@ -356,6 +356,11 @@ krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path) {
 
 	krad_xmms_connect (krad_xmms);
 	
+	if (krad_xmms->connected == 0) {
+		krad_xmms_destroy (krad_xmms);
+		return NULL;
+	}
+	
 	return krad_xmms;
 
 }

@@ -21,6 +21,7 @@ depsources = """
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_system/krad_system.c
 ../tools/krad_ticker/krad_ticker.c
+../tools/krad_xmms2/krad_xmms2.c
 ../tools/krad_ebml/krad_ebml.c
 ../tools/krad_compositor/krad_compositor.c
 ../tools/krad_framepool/krad_framepool.c
@@ -85,6 +86,7 @@ depsources2 = """
 includedirs = """
 ../tools/krad_compositor/
 ../tools/krad_ticker/
+../tools/krad_xmms2/
 ../tools/krad_framepool/
 ../tools/krad_web/
 ../tools/krad_web/ext/
@@ -130,7 +132,7 @@ includedirs = """
 
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", 
-		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses"]
+		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses", "xmms2-client"]
 
 # FIXME option builds
 # libs = libs + ["wayland-client", "codec2"] 

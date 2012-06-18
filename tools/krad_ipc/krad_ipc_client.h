@@ -85,6 +85,9 @@ void krad_ipc_compositor_vu (krad_ipc_client_t *client, int on_off);
 
 void krad_ipc_mixer_push_tone (krad_ipc_client_t *client, char *tone);
 
+void krad_ipc_mixer_bind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname, char *ipc_path);
+void krad_ipc_mixer_unbind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname);
+
 // FIXME creation is functionally incomplete
 void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction);
 void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *portgroupname);

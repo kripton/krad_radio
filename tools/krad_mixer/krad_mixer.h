@@ -72,6 +72,8 @@ struct krad_mixer_portgroup_St {
 	krad_mixer_t *krad_mixer;
 	krad_tags_t *krad_tags;
 
+	krad_xmms_t *krad_xmms;
+
 };
 
 
@@ -99,10 +101,14 @@ struct krad_mixer_St {
 
 };
 
+
+void krad_mixer_bind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname, char *ipc_path);
+void krad_mixer_unbind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname);
+		
+
 void *krad_mixer_ticker_thread (void *arg);
 void krad_mixer_start_ticker (krad_mixer_t *krad_mixer);
 void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer);
-
 
 krad_audio_api_t krad_mixer_get_pusher (krad_mixer_t *krad_mixer);
 int krad_mixer_has_pusher (krad_mixer_t *krad_mixer);
