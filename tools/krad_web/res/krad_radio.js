@@ -392,9 +392,7 @@ Kradradio.prototype.got_add_link = function (link) {
 
 	$('.kradlink').append("<div class='kradlink_link'> <div id='link_" + link.link_num + "'></div></div>");
 
-	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + "</h3>");
-
-	$('#link_' + link.link_num).append("<h4>" + link.av_mode + "</h4>");
+	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + " " + link.av_mode + "</h3>");
 
 	$('#link_' + link.link_num).append("<div id='ktags_link" + link.link_num + "'></div>");
 
@@ -404,18 +402,23 @@ Kradradio.prototype.got_add_link = function (link) {
 
 
 	if (link.operation_mode == "transmit") {
-	
-		$('#link_' + link.link_num).append("<audio controls preload='none' src='http://" + link.host + ":" + link.port + link.mount + "'>Audio tag should be here.</audio>");
-	
-		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
-
 
 		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
-			$('#link_' + link.link_num).append("<h5>" + link.video_codec + "</h5>");
+			$('#link_' + link.link_num).append("<h5>Video Codec: " + link.video_codec + "</h5>");
 		}
 		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
-			$('#link_' + link.link_num).append("<h5>" + link.audio_codec + "</h5>");
+			$('#link_' + link.link_num).append("<h5>Audio Codec: " + link.audio_codec + "</h5>");
 		}
+		
+		if (link.av_mode == "audio only") {
+			$('#link_' + link.link_num).append("<audio controls preload='none' src='http://" + link.host + ":" + link.port + link.mount + "'>Audio tag should be here.</audio>");		
+		}
+
+		if (link.av_mode == "video only") {
+			$('#link_' + link.link_num).append("<video controls preload='none' width='480' height='270' src='http://" + link.host + ":" + link.port + link.mount + "'>Video tag should be here.</video>");		
+		}
+
+		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
 		
 		
 		if ((link.audio_codec == "Opus") && ((link.av_mode == "audio only") || (link.av_mode == "audio and video"))) {

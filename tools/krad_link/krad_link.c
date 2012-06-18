@@ -262,6 +262,20 @@ void *info_screen_generator_thread (void *arg) {
 			}
 		}
 		
+		float peakval[2];
+	
+		if (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "MasterBUS") != NULL) {
+	
+			peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname 
+																(krad_link->krad_radio->krad_mixer, "MasterBUS"), 0);
+			peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname 
+																(krad_link->krad_radio->krad_mixer, "MasterBUS"), 1);
+			krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
+			krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
+		}
+		
+		krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
+		
 		
 		memcpy (krad_frame->pixels, kradgui->data, kradgui->bytes);
 		

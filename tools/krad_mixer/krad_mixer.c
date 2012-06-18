@@ -363,6 +363,8 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 		}
 	}
 	
+	krad_mixer_portgroup_compute_peaks (krad_mixer->master_mix, nframes);
+	
 	// deactivate ports that need to be deactivated
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
@@ -843,7 +845,7 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	
 	krad_mixer->krad_audio = krad_audio_create (krad_mixer);
 	
-	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "Master", MIX, 2, NULL, MIXBUS, NULL, 0);
+	krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterBUS", MIX, 2, NULL, MIXBUS, NULL, 0);
 	
 	krad_mixer->tone_port = krad_mixer_portgroup_create (krad_mixer, "DTMF", INPUT, 2,
 										 				 krad_mixer->master_mix, KRAD_TONE, NULL, 0);
