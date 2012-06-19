@@ -8,9 +8,6 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #ifndef KRAD_LINK_H
 #define KRAD_LINK_H
 
-#include <sys/prctl.h>
-#include <libswscale/swscale.h>
-
 #define DEFAULT_VPX_BITRATE 180 * 8
 #define DEFAULT_DIRAC_BITRATE 15000000
 #define DEFAULT_THEORA_QUALITY 42

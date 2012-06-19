@@ -6,6 +6,8 @@
 #include <math.h>
 #include <inttypes.h>
 
+#include <libswscale/swscale.h>
+
 #include "krad_radio.h"
 
 #ifndef KRAD_COMPOSITOR_H
