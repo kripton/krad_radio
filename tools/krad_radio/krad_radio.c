@@ -69,7 +69,10 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
-	krad_radio->krad_compositor = krad_compositor_create (DEFAULT_COMPOSITOR_WIDTH, DEFAULT_COMPOSITOR_HEIGHT);
+	krad_radio->krad_compositor = krad_compositor_create (DEFAULT_COMPOSITOR_WIDTH,
+														  DEFAULT_COMPOSITOR_HEIGHT,
+														  DEFAULT_COMPOSITOR_FPS_NUMERATOR,
+														  DEFAULT_COMPOSITOR_FPS_DENOMINATOR);
 	
 	if (krad_radio->krad_compositor == NULL) {
 		krad_radio_destroy (krad_radio);

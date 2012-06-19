@@ -51,3 +51,4 @@ tests/krad_wayland_wcap_player
 tests/krad_transmitter_test
 tests/krad_ticker_test
 tests/krad_xmms2_test
+tests/krad_fps_test

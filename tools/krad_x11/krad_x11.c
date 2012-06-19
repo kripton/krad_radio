@@ -101,7 +101,7 @@ void krad_x11_glx_render (krad_x11_t *krad_x11) {
 	}
 	*/
 
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode (GL_MODELVIEW); 	
 	glLoadIdentity ();
@@ -195,8 +195,13 @@ void krad_x11_glx_render (krad_x11_t *krad_x11) {
 	
 	glDisable (GL_TEXTURE_2D);
 
-	glXSwapBuffers (krad_x11->display, krad_x11->drawable);
+	krad_x11_glx_sync (krad_x11);
+	
 	krad_x11_glx_check_for_input (krad_x11);
+}
+
+void krad_x11_glx_sync (krad_x11_t *krad_x11) {
+	glXSwapBuffers (krad_x11->display, krad_x11->drawable);
 }
 
 

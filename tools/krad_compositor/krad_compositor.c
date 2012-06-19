@@ -33,9 +33,11 @@ static void *krad_compositor_display_thread (void *arg) {
 		if (krad_frame != NULL) {
 			memcpy (krad_x11->pixels, krad_frame->pixels, w * h * 4);
 			krad_framepool_unref_frame (krad_frame);
+			krad_x11_glx_render (krad_x11);
+		} else {
+			krad_x11_glx_sync (krad_x11);
+			krad_x11_glx_check_for_input (krad_x11);
 		}
-		
-		krad_x11_glx_render (krad_x11);
 	}
 	
 	krad_compositor_port_destroy (krad_compositor, krad_compositor_port);
@@ -73,13 +75,37 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
 }
 
+uint64_t re_fps (uint64_t frame_num, int input_numerator, int input_denominator, int output_numerator, int output_denominator) {
+
+	uint64_t b;
+	uint64_t c;	
+
+
+	b = output_numerator * (uint64_t)input_denominator;
+	c = input_numerator * (uint64_t)output_denominator;
+
+	return ((frame_num * b) / c);
+
+
+}
+
 void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 	int p;
 	
+	static krad_frame_t *krad_frame_holder;
+	static uint64_t last_converted_frame_num;
+	uint64_t converted_frame_num;
+	
 	krad_frame_t *krad_frame;
 	
 	krad_frame = NULL;
+	
+	if (krad_compositor->active == 0) {
+		return;
+	}
+	
+	krad_compositor->frame_num++;
 	
 	if (krad_compositor->bug_filename != NULL) {
 	
@@ -100,11 +126,32 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
-			krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);
+			
+			
+			converted_frame_num = re_fps (krad_compositor->frame_num,
+										  krad_compositor->frame_rate_numerator,
+										  krad_compositor->frame_rate_denominator,
+										  25000,
+										  1000);
+			
+			//printk ("frame num %llu input frame num %llu", krad_compositor->frame_num, converted_frame_num);
+			
+			if (converted_frame_num != last_converted_frame_num) {
+				if (krad_frame_holder != NULL) {
+					krad_framepool_unref_frame (krad_frame_holder);
+					krad_frame_holder = NULL;
+				}
+				krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);		
+				krad_frame_holder = krad_frame;
+			} else {
+				krad_frame = krad_frame_holder;
+			}
+			
+			last_converted_frame_num = converted_frame_num;			
 			
 			if (krad_frame != NULL) {
 				memcpy ( krad_compositor->krad_gui->data, krad_frame->pixels, krad_compositor->frame_byte_size );
-				krad_framepool_unref_frame (krad_frame);
+				//krad_framepool_unref_frame (krad_frame);
 			}
 			break;
 		}
@@ -243,6 +290,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 		krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
 
 	}
+	krad_compositor->active = 1;
 	// end FIXME
 	
 	krad_compositor_port->krad_compositor = krad_compositor;
@@ -315,8 +363,19 @@ void krad_compositor_get_info (krad_compositor_t *krad_compositor, int *width, i
 
 }
 
+void krad_compositor_get_info_NEW (krad_compositor_t *krad_compositor, int *width, int *height,
+							   int *frame_rate_numerator, int *frame_rate_denominator) {
 
-krad_compositor_t *krad_compositor_create (int width, int height) {
+	*width = krad_compositor->width;
+	*height = krad_compositor->height;
+	*frame_rate_numerator = krad_compositor->frame_rate_numerator;
+	*frame_rate_denominator = krad_compositor->frame_rate_denominator;
+
+}
+
+
+krad_compositor_t *krad_compositor_create (int width, int height,
+										   int frame_rate_numerator, int frame_rate_denominator) {
 
 	krad_compositor_t *krad_compositor = calloc(1, sizeof(krad_compositor_t));
 
@@ -326,6 +385,8 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	krad_compositor->frame_byte_size = krad_compositor->width * krad_compositor->height * 4;
 
 	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
+	
+	krad_compositor_set_frame_rate (krad_compositor, frame_rate_numerator, frame_rate_denominator);
 	
 	//krad_compositor->krad_framepool = 
 	//	krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
@@ -340,8 +401,102 @@ krad_compositor_t *krad_compositor_create (int width, int height) {
 	
 	krad_compositor->render_vu_meters = 0;
 	
+	krad_compositor_start_ticker (krad_compositor);
+	
 	return krad_compositor;
 
+}
+
+
+void *krad_compositor_ticker_thread (void *arg) {
+
+	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
+
+	krad_compositor->krad_ticker = krad_ticker_create (krad_compositor->frame_rate_numerator,
+													   krad_compositor->frame_rate_denominator);
+													   
+	krad_ticker_start (krad_compositor->krad_ticker);
+
+	while (krad_compositor->ticker_running == 1) {
+	
+		krad_compositor_process (krad_compositor);
+	
+		krad_ticker_wait (krad_compositor->krad_ticker);
+
+	}
+
+	krad_ticker_destroy (krad_compositor->krad_ticker);
+
+
+	return NULL;
+
+}
+
+
+void krad_compositor_start_ticker (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->ticker_running == 1) {
+		krad_compositor_stop_ticker (krad_compositor);
+	}
+
+	krad_compositor->ticker_running = 1;
+	pthread_create (&krad_compositor->ticker_thread, NULL, krad_compositor_ticker_thread, (void *)krad_compositor);
+
+}
+
+
+void krad_compositor_stop_ticker (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->ticker_running == 1) {
+		krad_compositor->ticker_running = 2;
+		pthread_join (krad_compositor->ticker_thread, NULL);
+		krad_compositor->ticker_running = 0;
+	}
+
+}
+
+void krad_compositor_unset_pusher (krad_compositor_t *krad_compositor) {
+	if (krad_compositor->ticker_running == 1) {
+		krad_compositor_stop_ticker (krad_compositor);
+	}
+	krad_compositor_start_ticker (krad_compositor);
+	krad_compositor->pusher = 0;
+}
+
+void krad_compositor_set_pusher (krad_compositor_t *krad_compositor, krad_display_api_t pusher) {
+	if (pusher == 0) {
+		krad_compositor_unset_pusher (krad_compositor);
+	} else {
+		if (krad_compositor->ticker_running == 1) {
+			krad_compositor_stop_ticker (krad_compositor);
+		}	
+		krad_compositor->pusher = pusher;
+	}
+}
+
+int krad_compositor_has_pusher (krad_compositor_t *krad_compositor) {
+	if (krad_compositor->pusher == 0) {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+}
+
+krad_display_api_t krad_compositor_get_pusher (krad_compositor_t *krad_compositor) {
+	return krad_compositor->pusher;
+}
+
+void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
+									 int frame_rate_numerator, int frame_rate_denominator) {
+
+	krad_compositor->frame_rate_numerator = frame_rate_numerator;
+	krad_compositor->frame_rate_denominator = frame_rate_denominator;	
+	
+	if (krad_compositor->ticker_running == 1) {
+		krad_compositor_stop_ticker (krad_compositor);
+		krad_compositor_start_ticker (krad_compositor);
+	}
+	
 }
 
 

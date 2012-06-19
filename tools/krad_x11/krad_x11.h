@@ -106,4 +106,5 @@ void krad_x11_glx_check_for_input (krad_x11_t *krad_x11);
 void krad_x11_glx_wait (krad_x11_t *krad_x11);
 void krad_x11_glx_wait_or_poll (krad_x11_t *krad_x11, int wait);
 
+void krad_x11_glx_sync (krad_x11_t *krad_x11);
 void krad_x11_glx_render (krad_x11_t *krad_x11);

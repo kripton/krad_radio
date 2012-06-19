@@ -27,6 +27,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_transmitter.h"
 #include "krad_osc.h"
 #include "krad_ring.h"
+#include "krad_resample_ring.h"
 #include "krad_tone.h"
 #include "krad_audio.h"
 #include "krad_jack.h"

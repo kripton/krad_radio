@@ -51,6 +51,7 @@ depsources = """
 ../tools/krad_pulse/krad_pulse.c
 ../tools/krad_alsa/krad_alsa.c
 ../tools/krad_alsa/krad_alsa_seq.c
+../tools/krad_ring/krad_resample_ring.c
 ../tools/krad_vpx/krad_vpx.c
 ../tools/krad_dirac/krad_dirac.c
 ../tools/krad_theora/krad_theora.c

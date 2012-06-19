@@ -14,6 +14,12 @@
 #define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
 #define KRAD_COMPOSITOR_MAX_PORTS 30
 
+typedef enum {
+	SYNTHETIC = 13999,	
+	X11GLX,
+	WAYLAND,
+} krad_display_api_t;
+
 typedef struct krad_compositor_St krad_compositor_t;
 typedef struct krad_compositor_port_St krad_compositor_port_t;
 
@@ -62,9 +68,34 @@ struct krad_compositor_St {
 	int display_width;
 	int display_height;
 	int display_open;
-	pthread_t display_thread;	
+	pthread_t display_thread;
+
+	int active;
+
+	krad_display_api_t pusher;
+	krad_ticker_t *krad_ticker;
+	int ticker_running;
+	int ticker_period;
+	pthread_t ticker_thread;
+
+	uint64_t frame_num;
 
 };
+
+
+void *krad_compositor_ticker_thread (void *arg);
+void krad_compositor_start_ticker (krad_compositor_t *krad_compositor);
+void krad_compositor_stop_ticker (krad_compositor_t *krad_compositor);
+
+krad_display_api_t krad_compositor_get_pusher (krad_compositor_t *krad_compositor);
+int krad_compositor_has_pusher (krad_compositor_t *krad_compositor);
+void krad_compositor_set_pusher (krad_compositor_t *krad_compositor, krad_display_api_t pusher);
+void krad_compositor_unset_pusher (krad_compositor_t *krad_compositor);
+
+
+void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
+									 int frame_rate_numerator, int frame_rate_denominator);
+
 
 void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value);
 
@@ -83,7 +114,8 @@ void krad_compositor_get_info (krad_compositor_t *compositor, int *width, int *h
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor);
 void krad_compositor_process (krad_compositor_t *compositor);
 void krad_compositor_destroy (krad_compositor_t *compositor);
-krad_compositor_t *krad_compositor_create (int width, int height);
+krad_compositor_t *krad_compositor_create (int width, int height,
+										   int frame_rate_numerator, int frame_rate_denominator);
 
 
 #endif

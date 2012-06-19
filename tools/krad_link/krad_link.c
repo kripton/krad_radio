@@ -130,7 +130,7 @@ void *video_capture_thread (void *arg) {
 		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
 			krad_compositor_mjpeg_process (krad_link->krad_radio->krad_compositor);
 		} else {
-			krad_compositor_process (krad_link->krad_radio->krad_compositor);
+			//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 		}
 	
 	}
@@ -313,7 +313,7 @@ void *info_screen_generator_thread (void *arg) {
 
 		krad_framepool_unref_frame (krad_frame);
 
-		krad_compositor_process (krad_link->krad_radio->krad_compositor);
+		//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 		krad_ticker_wait (krad_ticker);
 
@@ -419,7 +419,7 @@ void *test_screen_generator_thread (void *arg) {
 
 		krad_framepool_unref_frame (krad_frame);
 
-		krad_compositor_process (krad_link->krad_radio->krad_compositor);
+		//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 		krad_ticker_wait (krad_ticker);
 
@@ -515,7 +515,7 @@ void *x11_capture_thread (void *arg) {
 
 		krad_framepool_unref_frame (krad_frame);
 
-		krad_compositor_process (krad_link->krad_radio->krad_compositor);
+		//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 		krad_ticker_wait (krad_ticker);
 
@@ -1427,9 +1427,9 @@ void *stream_input_thread(void *arg) {
 		header_size = 0;
 
 		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
-		printk ("packet track %d timecode: %zu size %d", current_track, packet_timecode, packet_size);
+		//printk ("packet track %d timecode: %zu size %d", current_track, packet_timecode, packet_size);
 		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 20))  {
-			printk ("stream input thread packet size was: %d", packet_size);
+			//printk ("stream input thread packet size was: %d", packet_size);
 			break;
 		}
 		
@@ -1818,7 +1818,7 @@ void *video_decoding_thread(void *arg) {
 
 			krad_framepool_unref_frame (krad_frame);
 
-			krad_compositor_process (krad_link->krad_radio->krad_compositor);
+			//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 		}
 			
@@ -1850,7 +1850,7 @@ void *video_decoding_thread(void *arg) {
 
 				krad_framepool_unref_frame (krad_frame);
 
-				krad_compositor_process (krad_link->krad_radio->krad_compositor);
+				//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 			}
 		}
@@ -1885,7 +1885,7 @@ void *video_decoding_thread(void *arg) {
 
 				krad_framepool_unref_frame (krad_frame);
 
-				krad_compositor_process (krad_link->krad_radio->krad_compositor);
+				//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 			}
 		}
@@ -1924,6 +1924,10 @@ void *audio_decoding_thread(void *arg) {
 	
 	krad_mixer_portgroup_t *mixer_portgroup;	
 	
+	krad_resample_ring_t *krad_resample_ring[KRAD_MIXER_MAX_CHANNELS];
+	
+	/* SET UP */
+	
 	krad_link->audio_channels = 2;
 
 	for (h = 0; h < 3; h++) {
@@ -1932,7 +1936,11 @@ void *audio_decoding_thread(void *arg) {
 	}
 
 	for (c = 0; c < krad_link->audio_channels; c++) {
-		krad_link->audio_output_ringbuffer[c] = krad_ringbuffer_create (4000000);	
+		krad_resample_ring[c] = krad_resample_ring_create (4000000, 44100,
+														   krad_link->krad_linker->krad_radio->krad_mixer->sample_rate);
+
+		krad_link->audio_output_ringbuffer[c] = krad_resample_ring[c]->krad_ringbuffer;
+		//krad_link->audio_output_ringbuffer[c] = krad_ringbuffer_create (4000000);
 		samples[c] = malloc(4 * 8192);
 		krad_link->samples[c] = malloc(4 * 8192);
 	}
@@ -1949,6 +1957,8 @@ void *audio_decoding_thread(void *arg) {
 	
 	while (!krad_link->destroy) {
 
+
+		/* THE FOLLOWING IS WHERE WE ENSURE WE ARE ON THE RIGHT CODEC AND READ HEADERS IF NEED BE */
 
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < 4) && (!krad_link->destroy)) {
 			usleep(5000);
@@ -1994,6 +2004,9 @@ void *audio_decoding_thread(void *arg) {
 					krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)header[h], header_len[h]);
 				}
 				krad_flac_decode (krad_link->krad_flac, header[0], header_len[0], NULL);
+				for (c = 0; c < krad_link->audio_channels; c++) {
+					krad_resample_ring_set_input_sample_rate (krad_resample_ring[c], krad_link->krad_flac->sample_rate);
+				}
 			}
 	
 			if (krad_link->audio_codec == VORBIS) {
@@ -2016,6 +2029,11 @@ void *audio_decoding_thread(void *arg) {
 				printk ("Vorbis Header byte sizes: %d %d %d", header_len[0], header_len[1], header_len[2]);
 
 				krad_link->krad_vorbis = krad_vorbis_decoder_create (header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
+
+				for (c = 0; c < krad_link->audio_channels; c++) {
+					krad_resample_ring_set_input_sample_rate (krad_resample_ring[c], krad_link->krad_vorbis->sample_rate);
+				}
+
 			}
 	
 			if (krad_link->audio_codec == OPUS) {
@@ -2037,6 +2055,11 @@ void *audio_decoding_thread(void *arg) {
 			
 				printk ("Opus Header size: %d", header_len[0]);
 				krad_link->krad_opus = kradopus_decoder_create (header[0], header_len[0], krad_link->krad_radio->krad_mixer->sample_rate);
+
+				for (c = 0; c < krad_link->audio_channels; c++) {
+					krad_resample_ring_set_input_sample_rate (krad_resample_ring[c], krad_link->krad_radio->krad_mixer->sample_rate);
+				}
+
 			}
 		}
 
@@ -2046,16 +2069,18 @@ void *audio_decoding_thread(void *arg) {
 			usleep(4000);
 		}
 	
-		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
+		krad_ringbuffer_read (krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
 		
 		while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < bytes) && (!krad_link->destroy)) {
 			usleep(1000);
 		}
 		
-		krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, bytes);
+		krad_ringbuffer_read (krad_link->encoded_audio_ringbuffer, (char *)buffer, bytes);
+		
+		/* DECODING HAPPENS HERE */
 		
 		if (krad_link->audio_codec == VORBIS) {
-			krad_vorbis_decoder_decode(krad_link->krad_vorbis, buffer, bytes);
+			krad_vorbis_decoder_decode (krad_link->krad_vorbis, buffer, bytes);
 			
 			len = 1;
 			
@@ -2065,24 +2090,26 @@ void *audio_decoding_thread(void *arg) {
 
 				if (len) {
 				
-					while ((krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[0]) < len) && (!krad_link->destroy)) {
+					while ((krad_resample_ring_write_space (krad_resample_ring[0]) < len) && (!krad_link->destroy)) {
 						//printk ("wait!");
 						usleep(25000);
 					}
 				
-					krad_ringbuffer_write (krad_link->audio_output_ringbuffer[0], (char *)samples[0], len);
+					//krad_ringbuffer_write (krad_link->audio_output_ringbuffer[0], (char *)samples[0], len);
+					krad_resample_ring_write (krad_resample_ring[0], (unsigned char *)samples[0], len);										
 				}
 
-				len = krad_vorbis_decoder_read_audio(krad_link->krad_vorbis, 1, (char *)samples[1], 512);
+				len = krad_vorbis_decoder_read_audio (krad_link->krad_vorbis, 1, (char *)samples[1], 512);
 
 				if (len) {
 
-					while ((krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[1]) < len) && (!krad_link->destroy)) {
+					while ((krad_resample_ring_write_space (krad_resample_ring[1]) < len) && (!krad_link->destroy)) {
 						//printk ("wait!");
 						usleep(25000);
 					}
 
-					krad_ringbuffer_write (krad_link->audio_output_ringbuffer[1], (char *)samples[1], len);
+					//krad_ringbuffer_write (krad_link->audio_output_ringbuffer[1], (char *)samples[1], len);
+					krad_resample_ring_write (krad_resample_ring[1], (unsigned char *)samples[1], len);					
 				}
 			
 			}
@@ -2090,10 +2117,11 @@ void *audio_decoding_thread(void *arg) {
 			
 		if (krad_link->audio_codec == FLAC) {
 
-			audio_frames = krad_flac_decode(krad_link->krad_flac, buffer, bytes, samples);
+			audio_frames = krad_flac_decode (krad_link->krad_flac, buffer, bytes, samples);
 			
 			for (c = 0; c < krad_link->audio_channels; c++) {
-				krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)samples[c], audio_frames * 4);
+				//krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)samples[c], audio_frames * 4);
+				krad_resample_ring_write (krad_resample_ring[c], (unsigned char *)samples[c], audio_frames * 4);
 			}
 		}
 			
@@ -2111,18 +2139,21 @@ void *audio_decoding_thread(void *arg) {
 							failfast ("uh oh crazyto");
 						}
 
-						while ((krad_ringbuffer_write_space(krad_link->audio_output_ringbuffer[c]) < bytes) &&
+						while ((krad_resample_ring_write_space (krad_resample_ring[c]) < bytes) &&
 							   (!krad_link->destroy)) {
 								usleep(20000);
 						}
 
-						krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)audio, bytes);
+						//krad_ringbuffer_write (krad_link->audio_output_ringbuffer[c], (char *)audio, bytes);
+						krad_resample_ring_write (krad_resample_ring[c], (unsigned char *)audio, bytes);						
 
 					}
 				}
 			}
 		}
 	}
+	
+	/* ITS ALL OVER */
 	
 	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, mixer_portgroup);
 
@@ -2147,7 +2178,8 @@ void *audio_decoding_thread(void *arg) {
 	for (c = 0; c < krad_link->audio_channels; c++) {
 		free(krad_link->samples[c]);
 		free(samples[c]);
-		krad_ringbuffer_free ( krad_link->audio_output_ringbuffer[c] );		
+		//krad_ringbuffer_free ( krad_link->audio_output_ringbuffer[c] );		
+		krad_resample_ring_destroy ( krad_resample_ring[c] );		
 	}	
 
 	for (h = 0; h < 3; h++) {
@@ -2197,7 +2229,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 		krad_framepool_unref_frame (krad_frame);
 
-		krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
+		//krad_compositor_process (krad_link->krad_linker->krad_radio->krad_compositor);
 
 	} else {
 	
