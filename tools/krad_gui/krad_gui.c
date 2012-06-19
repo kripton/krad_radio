@@ -38,13 +38,13 @@ kradgui_t *kradgui_create_with_internal_surface(int width, int height) {
 
 }
 
-kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *data) {
+kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *pixels) {
 
 	kradgui_t *kradgui;
 
 	kradgui = kradgui_create(width, height);
 		
-	kradgui->data = data;
+	kradgui->pixels = pixels;
 	kradgui_create_external_surface(kradgui);
 	
 	//incase calloc takes time
@@ -59,8 +59,9 @@ void kradgui_create_external_surface(kradgui_t *kradgui) {
 
 	kradgui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, kradgui->width);
 	kradgui->bytes = kradgui->stride * kradgui->height;
-	kradgui->cst = cairo_image_surface_create_for_data (kradgui->data, CAIRO_FORMAT_ARGB32, kradgui->width, kradgui->height, kradgui->stride);
-	kradgui->cr = cairo_create(kradgui->cst);
+	kradgui->cst = cairo_image_surface_create_for_data (kradgui->pixels, CAIRO_FORMAT_ARGB32,
+														kradgui->width, kradgui->height, kradgui->stride);
+	kradgui->cr = cairo_create (kradgui->cst);
 	kradgui->external_surface = 1;
 	
 }
@@ -73,7 +74,7 @@ void kradgui_destroy_external_surface(kradgui_t *kradgui) {
 		}
 		cairo_surface_destroy (kradgui->cst);
 		kradgui->cst = NULL;
-		kradgui->data = NULL;
+		kradgui->pixels = NULL;
 		kradgui->stride = 0;
 		kradgui->bytes = 0;
 		kradgui->external_surface = 0;
@@ -85,8 +86,9 @@ void kradgui_create_internal_surface(kradgui_t *kradgui) {
 
 	kradgui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, kradgui->width);
 	kradgui->bytes = kradgui->stride * kradgui->height;
-	kradgui->data = calloc (1, kradgui->bytes);
-	kradgui->cst = cairo_image_surface_create_for_data (kradgui->data, CAIRO_FORMAT_ARGB32, kradgui->width, kradgui->height, kradgui->stride);
+	kradgui->pixels = calloc (1, kradgui->bytes);
+	kradgui->cst = cairo_image_surface_create_for_data (kradgui->pixels, CAIRO_FORMAT_ARGB32,
+														kradgui->width, kradgui->height, kradgui->stride);
 	kradgui->cr = cairo_create(kradgui->cst);
 	kradgui->internal_surface = 1;
 	
@@ -99,9 +101,9 @@ void kradgui_destroy_internal_surface(kradgui_t *kradgui) {
 			cairo_destroy (kradgui->cr);
 		}
 		cairo_surface_destroy (kradgui->cst);
-		free(kradgui->data);
+		free(kradgui->pixels);
 		kradgui->cst = NULL;
-		kradgui->data = NULL;
+		kradgui->pixels = NULL;
 		kradgui->stride = 0;
 		kradgui->bytes = 0;
 		kradgui->internal_surface = 0;
@@ -334,15 +336,20 @@ void kradgui_update_reel_to_reel_information(kradgui_reel_to_reel_t *kradgui_ree
 	// time ms * 0.381 = distance
 	// distance / 0.74083333 = rotation
 	
-	kradgui_reel_to_reel->distance = kradgui_reel_to_reel->kradgui->current_track_time_ms * (kradgui_reel_to_reel->reel_speed / 1000);
-	kradgui_reel_to_reel->total_distance = kradgui_reel_to_reel->kradgui->total_track_time_ms * (kradgui_reel_to_reel->reel_speed / 1000);
+	kradgui_reel_to_reel->distance = 
+		kradgui_reel_to_reel->kradgui->current_track_time_ms * (kradgui_reel_to_reel->reel_speed / 1000);
+	kradgui_reel_to_reel->total_distance = 
+		kradgui_reel_to_reel->kradgui->total_track_time_ms * (kradgui_reel_to_reel->reel_speed / 1000);
 	if (kradgui_reel_to_reel->distance >= kradgui_reel_to_reel->total_distance) {
 		kradgui_reel_to_reel->distance = kradgui_reel_to_reel->total_distance;
 	}
 	
-	kradgui_reel_to_reel->angle = (unsigned int)(kradgui_reel_to_reel->distance / (kradgui_reel_to_reel->reel_size / 360)) % 360;
+	kradgui_reel_to_reel->angle = 
+		(unsigned int)(kradgui_reel_to_reel->distance / (kradgui_reel_to_reel->reel_size / 360)) % 360;
 	
-	//printf("MS: %zu Reel Size: %fcm Reel Speed: %fcm/s Distance: %fcm Rotation: %fdegrees\n", kradgui_reel_to_reel->kradgui->current_track_time_ms, kradgui_reel_to_reel->reel_size, kradgui_reel_to_reel->reel_speed, kradgui_reel_to_reel->distance, kradgui_reel_to_reel->angle);
+	//printf("MS: %zu Reel Size: %fcm Reel Speed: %fcm/s Distance: %fcm Rotation: %fdegrees\n", 
+	//kradgui_reel_to_reel->kradgui->current_track_time_ms, kradgui_reel_to_reel->reel_size, 
+	//kradgui_reel_to_reel->reel_speed, kradgui_reel_to_reel->distance, kradgui_reel_to_reel->angle);
 	
 }
 
@@ -1448,9 +1455,11 @@ void kradgui_render_tearbar(kradgui_t *kradgui) {
 		kradgui->movement_range = kradgui->width - kradgui->tearbar_width;
 	}
 
-	kradgui->tearbar_position = 0 + (kradgui->movement_range / 2) + round(kradgui->movement_range * sin(kradgui->tearbar_positioner) / 2);
+	kradgui->tearbar_position =
+		0 + (kradgui->movement_range / 2) + round(kradgui->movement_range * sin(kradgui->tearbar_positioner) / 2);
 
-	//printf("speed is %f adj is %f position is: %d positioner is %f\n", kradgui->tearbar_speed, kradgui->tearbar_speed_adj, kradgui->tearbar_position, kradgui->tearbar_positioner);
+	//printf("speed is %f adj is %f position is: %d positioner is %f\n", kradgui->tearbar_speed, 
+	//kradgui->tearbar_speed_adj, kradgui->tearbar_position, kradgui->tearbar_positioner);
 
 	kradgui->tearbar_positioner += kradgui->tearbar_speed;
 
@@ -1604,21 +1613,29 @@ void kradgui_render_recording(kradgui_t *kradgui) {
 void kradgui_render_live(kradgui_t *kradgui) {
 
 	kradgui->live_elapsed_time = timespec_diff(kradgui->live_start_time, kradgui->current_time);
-	sprintf(kradgui->live_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->live_elapsed_time.tv_sec / 86400 % 365, kradgui->live_elapsed_time.tv_sec / 3600 % 24, kradgui->live_elapsed_time.tv_sec / 60 % 60, kradgui->live_elapsed_time.tv_sec % 60, kradgui->live_elapsed_time.tv_nsec / 1000000);
+	sprintf(kradgui->live_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+		kradgui->live_elapsed_time.tv_sec / 86400 % 365, kradgui->live_elapsed_time.tv_sec / 3600 % 24,
+		kradgui->live_elapsed_time.tv_sec / 60 % 60, kradgui->live_elapsed_time.tv_sec % 60,
+		kradgui->live_elapsed_time.tv_nsec / 1000000);
 
 	cairo_set_source_rgba (kradgui->cr, 0.0, 0.5, 0.0, 0.1);
-	cairo_rectangle (kradgui->cr, kradgui->width - (kradgui->live_box_margin + kradgui->live_box_width), kradgui->live_box_margin, kradgui->live_box_width, kradgui->live_box_height);
+	cairo_rectangle (kradgui->cr, kradgui->width - (kradgui->live_box_margin + kradgui->live_box_width),
+					 kradgui->live_box_margin, kradgui->live_box_width, kradgui->live_box_height);
 	cairo_fill (kradgui->cr);
 
 	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size);
 	cairo_set_source_rgb (kradgui->cr, GREEN);
 
-	cairo_move_to (kradgui->cr, kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_padding,  kradgui->live_box_margin + (kradgui->live_box_height - kradgui->live_box_padding));
+	cairo_move_to (kradgui->cr,
+		kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_padding,
+		kradgui->live_box_margin + (kradgui->live_box_height - kradgui->live_box_padding));
 	cairo_show_text (kradgui->cr, "LIVE");
 
 	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size / 4);
-	cairo_move_to (kradgui->cr, (kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin)) + kradgui->live_box_padding,  kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
+	cairo_move_to (kradgui->cr,
+				(kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin)) + kradgui->live_box_padding,
+				kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
 	cairo_show_text (kradgui->cr, kradgui->live_time_timecode_string);
 
 }
@@ -1686,13 +1703,15 @@ void kradgui_update_current_track_progress(kradgui_t *kradgui) {
 
 void kradgui_update_current_track_time_ms(kradgui_t *kradgui) {
 	
-	kradgui->current_track_time_ms = ((kradgui->current_track_time.tv_sec * 1000) + (kradgui->current_track_time.tv_nsec / 1000000));
+	kradgui->current_track_time_ms = 
+		((kradgui->current_track_time.tv_sec * 1000) + (kradgui->current_track_time.tv_nsec / 1000000));
 
 }
 
 void kradgui_update_total_track_time_ms(kradgui_t *kradgui) {
 	
-	kradgui->total_track_time_ms = ((kradgui->total_track_time.tv_sec * 1000) + (kradgui->total_track_time.tv_nsec / 1000000));
+	kradgui->total_track_time_ms = 
+		((kradgui->total_track_time.tv_sec * 1000) + (kradgui->total_track_time.tv_nsec / 1000000));
 
 }
 
@@ -1705,13 +1724,19 @@ void kradgui_update_elapsed_time_ms(kradgui_t *kradgui) {
 
 void kradgui_update_current_track_time_timecode_string(kradgui_t *kradgui) {
 
-	sprintf(kradgui->current_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->current_track_time.tv_sec / 86400 % 365, kradgui->current_track_time.tv_sec / 3600 % 24, kradgui->current_track_time.tv_sec / 60 % 60, kradgui->current_track_time.tv_sec % 60, kradgui->current_track_time.tv_nsec / 1000000);
+	sprintf(kradgui->current_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	kradgui->current_track_time.tv_sec / 86400 % 365, kradgui->current_track_time.tv_sec / 3600 % 24,
+	kradgui->current_track_time.tv_sec / 60 % 60, kradgui->current_track_time.tv_sec % 60,
+	kradgui->current_track_time.tv_nsec / 1000000);
 
 }
 
 void kradgui_update_total_track_time_timecode_string(kradgui_t *kradgui) {
 
-	sprintf(kradgui->total_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->total_track_time.tv_sec / 86400 % 365, kradgui->total_track_time.tv_sec / 3600 % 24, kradgui->total_track_time.tv_sec / 60 % 60, kradgui->total_track_time.tv_sec % 60, kradgui->total_track_time.tv_nsec / 1000000);
+	sprintf(kradgui->total_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	kradgui->total_track_time.tv_sec / 86400 % 365, kradgui->total_track_time.tv_sec / 3600 % 24,
+	kradgui->total_track_time.tv_sec / 60 % 60, kradgui->total_track_time.tv_sec % 60,
+	kradgui->total_track_time.tv_nsec / 1000000);
 
 }
 
@@ -1735,7 +1760,10 @@ void kradgui_update_playback_state_status_string(kradgui_t *kradgui) {
 
 void kradgui_update_elapsed_time_timecode_string(kradgui_t *kradgui) {
 
-	sprintf(kradgui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->elapsed_time.tv_sec / 86400 % 365, kradgui->elapsed_time.tv_sec / 3600 % 24, kradgui->elapsed_time.tv_sec / 60 % 60, kradgui->elapsed_time.tv_sec % 60, kradgui->elapsed_time.tv_nsec / 1000000);
+	sprintf(kradgui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	kradgui->elapsed_time.tv_sec / 86400 % 365, kradgui->elapsed_time.tv_sec / 3600 % 24,
+	kradgui->elapsed_time.tv_sec / 60 % 60, kradgui->elapsed_time.tv_sec % 60,
+	kradgui->elapsed_time.tv_nsec / 1000000);
 
 }
 
@@ -1743,7 +1771,9 @@ void kradgui_update_elapsed_time_timecode_string(kradgui_t *kradgui) {
 void kradgui_start_draw_time(kradgui_t *kradgui) {
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &kradgui->start_draw_time);
-	sprintf(kradgui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->elapsed_time.tv_sec / 86400 % 365, kradgui->elapsed_time.tv_sec / 3600 % 24, kradgui->elapsed_time.tv_sec / 60 % 60, kradgui->elapsed_time.tv_sec % 60, kradgui->elapsed_time.tv_nsec / 1000000);
+	sprintf(kradgui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	kradgui->elapsed_time.tv_sec / 86400 % 365, kradgui->elapsed_time.tv_sec / 3600 % 24,
+	kradgui->elapsed_time.tv_sec / 60 % 60, kradgui->elapsed_time.tv_sec % 60, kradgui->elapsed_time.tv_nsec / 1000000);
 
 }
 
@@ -1751,7 +1781,8 @@ void kradgui_end_draw_time(kradgui_t *kradgui) {
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &kradgui->end_draw_time);
 	kradgui->draw_time = timespec_diff(kradgui->start_draw_time, kradgui->end_draw_time);
-	sprintf(kradgui->draw_time_string, "%02ld:%03ld", kradgui->draw_time.tv_sec % 60, kradgui->draw_time.tv_nsec / 1000000);
+	sprintf(kradgui->draw_time_string, "%02ld:%03ld", kradgui->draw_time.tv_sec % 60,
+			kradgui->draw_time.tv_nsec / 1000000);
 
 }
 
@@ -1806,7 +1837,8 @@ void kradgui_add_current_track_time_ms(kradgui_t *kradgui, unsigned int addition
 
 	unsigned int current_track_time_ms;
 	
-	current_track_time_ms = ((kradgui->current_track_time.tv_sec * 1000) + (kradgui->current_track_time.tv_nsec / 1000000));
+	current_track_time_ms = 
+	((kradgui->current_track_time.tv_sec * 1000) + (kradgui->current_track_time.tv_nsec / 1000000));
 
 	current_track_time_ms += additional_ms;
 
@@ -1830,8 +1862,20 @@ void kradgui_set_total_track_time_ms(kradgui_t *kradgui, unsigned int total_trac
 
 }
 
+void krad_gui_overlay_clear (kradgui_t *kradgui) {
+	cairo_save (kradgui->cr);
+	cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
+	cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
+	cairo_paint (kradgui->cr);
+	cairo_restore (kradgui->cr);
+}
 
-void kradgui_render(kradgui_t *kradgui) {
+void krad_gui_clear (kradgui_t *kradgui) {
+	cairo_set_source_rgb (kradgui->cr, BGCOLOR);
+	cairo_paint (kradgui->cr);
+}
+
+void kradgui_render (kradgui_t *kradgui) {
 
 	if (kradgui->update_drawtime) {
 		kradgui_start_draw_time(kradgui);
@@ -1839,14 +1883,9 @@ void kradgui_render(kradgui_t *kradgui) {
 
 	if (kradgui->clear == 1) {
 		if (kradgui->overlay) {
-			cairo_save (kradgui->cr);
-			cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
-			cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
-			cairo_paint (kradgui->cr);
-			cairo_restore (kradgui->cr);
+			krad_gui_overlay_clear (kradgui);
 		} else {
-			cairo_set_source_rgb (kradgui->cr, BGCOLOR);
-			cairo_paint (kradgui->cr);
+			krad_gui_clear (kradgui);
 		}
 	}
 

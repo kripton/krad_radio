@@ -437,7 +437,7 @@ krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int w
 	glMatrixMode ( GL_PROJECTION );
 	glLoadIdentity ();
 	
-	krad_x11_enable_capture(krad_x11, krad_x11->screen_width, krad_x11->screen_height);
+	//krad_x11_enable_capture (krad_x11, krad_x11->screen_width, krad_x11->screen_height);
 	
 	return krad_x11;
 	
@@ -460,7 +460,7 @@ void krad_x11_destroy (krad_x11_t *krad_x11) {
 	free (krad_x11);
 }
 
-krad_x11_t *krad_x11_create() {
+krad_x11_t *krad_x11_create () {
 
 	krad_x11_t *krad_x11;
 	int s;

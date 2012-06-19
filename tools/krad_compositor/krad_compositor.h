@@ -36,6 +36,24 @@ struct krad_compositor_port_St {
 	krad_ringbuffer_t *frame_ring;
 	
 	int mjpeg;
+
+	int frame_rate_numerator;
+	int frame_rate_denominator;
+
+	int source_width;
+	int source_height;
+	
+	int crop_width;
+	int crop_height;	
+	
+	int crop_x;
+	int crop_y;
+	
+	int width;
+	int height;
+	
+	int x;
+	int y;
 	
 };
 
@@ -65,12 +83,14 @@ struct krad_compositor_St {
 
 	krad_compositor_port_t *port;
 	
+	pthread_mutex_t settings_lock;
+	
 	int display_width;
 	int display_height;
 	int display_open;
 	pthread_t display_thread;
 
-	int active;
+	int active_ports;
 
 	krad_display_api_t pusher;
 	krad_ticker_t *krad_ticker;
@@ -82,6 +102,7 @@ struct krad_compositor_St {
 
 };
 
+void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor);
 
 void *krad_compositor_ticker_thread (void *arg);
 void krad_compositor_start_ticker (krad_compositor_t *krad_compositor);

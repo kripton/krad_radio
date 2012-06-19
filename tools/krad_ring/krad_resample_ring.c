@@ -31,7 +31,7 @@ uint32_t krad_resample_ring_write (krad_resample_ring_t *krad_resample_ring, uns
 	krad_resample_ring->src_error = src_process (krad_resample_ring->src_resampler, &krad_resample_ring->src_data);
 
 	if (krad_resample_ring->src_error != 0) {
-		failfast ("kradopus_read_opus src resampler error: %s\n", src_strerror (krad_resample_ring->src_error));
+		failfast ("kradopus_read_opus src resampler error: %s", src_strerror (krad_resample_ring->src_error));
 	}
 
 	if (krad_resample_ring->inbuffer_pos) {
@@ -74,7 +74,7 @@ void krad_resample_ring_set_input_sample_rate (krad_resample_ring_t *krad_resamp
 	krad_resample_ring->src_data.src_ratio = 
 		(float)krad_resample_ring->output_sample_rate / (float)krad_resample_ring->input_sample_rate;
 	
-	printf("krad_resample_ring src resampler ratio is: %f\n", krad_resample_ring->src_data.src_ratio);	
+	printk ("krad_resample_ring src resampler ratio is: %f", krad_resample_ring->src_data.src_ratio);	
 	
 
 }
@@ -94,7 +94,7 @@ krad_resample_ring_t *krad_resample_ring_create (uint32_t size, int input_sample
 	
 	krad_resample_ring->src_resampler = src_new (KRAD_RESAMPLE_RING_SRC_QUALITY, 1, &krad_resample_ring->src_error);
 	if (krad_resample_ring->src_resampler == NULL) {
-		failfast ("krad_resample_ring src resampler error: %s\n", src_strerror (krad_resample_ring->src_error));
+		failfast ("krad_resample_ring src resampler error: %s", src_strerror (krad_resample_ring->src_error));
 	}
 	
 	krad_resample_ring_set_input_sample_rate (krad_resample_ring, input_sample_rate);

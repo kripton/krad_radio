@@ -63,7 +63,7 @@ struct kradgui_St {
 
 	int stride;
 	int bytes;
-	unsigned char *data;
+	unsigned char *pixels;
 	cairo_surface_t *cst;
 	int external_surface;
 	int internal_surface;
@@ -240,11 +240,14 @@ void kradgui_set_callback_pointer(kradgui_t *kradgui, void *callback_pointer);
 
 void kradgui_render_vtest (kradgui_t *kradgui);
 
-kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *data);
+kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *pixels);
 
 void kradgui_create_external_surface(kradgui_t *kradgui);
 void kradgui_destroy_external_surface(kradgui_t *kradgui);
 
+
+void krad_gui_clear (kradgui_t *kradgui);
+void krad_gui_overlay_clear (kradgui_t *kradgui);
 
 void kradgui_create_internal_surface(kradgui_t *kradgui);
 void kradgui_destroy_internal_surface(kradgui_t *kradgui);

@@ -277,7 +277,7 @@ void *info_screen_generator_thread (void *arg) {
 		krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
 		
 		
-		memcpy (krad_frame->pixels, kradgui->data, kradgui->bytes);
+		memcpy (krad_frame->pixels, kradgui->pixels, kradgui->bytes);
 		
 		
 		if ((width != krad_link->composite_width) || (height != krad_link->composite_height)) {
@@ -384,7 +384,7 @@ void *test_screen_generator_thread (void *arg) {
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 		//kradgui->data = (unsigned char *)krad_frame->pixels;
 		kradgui_render (kradgui);
-		memcpy (krad_frame->pixels, kradgui->data, kradgui->bytes);
+		memcpy (krad_frame->pixels, kradgui->pixels, kradgui->bytes);
 		
 		if ((1280 != krad_link->composite_width) || (720 != krad_link->composite_height)) {
 		

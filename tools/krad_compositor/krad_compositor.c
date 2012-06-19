@@ -101,7 +101,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	krad_frame = NULL;
 	
-	if (krad_compositor->active == 0) {
+	if (krad_compositor->active_ports < 1) {
 		return;
 	}
 	
@@ -122,7 +122,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		krad_compositor->bug_filename = NULL;
 	}
 	
-	krad_compositor->krad_gui->clear = 0;
+	krad_gui_clear (krad_compositor->krad_gui);
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
@@ -150,15 +150,12 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 			last_converted_frame_num = converted_frame_num;			
 			
 			if (krad_frame != NULL) {
-				memcpy ( krad_compositor->krad_gui->data, krad_frame->pixels, krad_compositor->frame_byte_size );
+				memcpy ( krad_compositor->krad_gui->pixels, krad_frame->pixels, krad_compositor->frame_byte_size );
 				//krad_framepool_unref_frame (krad_frame);
 			}
 			break;
 		}
 	}
-	
-	
-	kradgui_render ( krad_compositor->krad_gui );
 	
 	if (krad_compositor->hex_size > 0) {
 		kradgui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
@@ -172,6 +169,10 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		                      krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
 	}
 	
+	
+	kradgui_render (krad_compositor->krad_gui);	
+	
+	
 	krad_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
 	//FIXME TEMP KLUDGE
 	while (krad_frame == NULL) {
@@ -180,7 +181,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}	
 	
 	if (krad_frame != NULL) {
-		memcpy ( krad_frame->pixels, krad_compositor->krad_gui->data, krad_compositor->frame_byte_size );	
+		memcpy ( krad_frame->pixels, krad_compositor->krad_gui->pixels, krad_compositor->frame_byte_size );	
 	
 		for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 			if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT)) {
@@ -263,11 +264,27 @@ int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_p
 	return frames;
 }
 
+void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->krad_framepool == NULL) {
+		krad_compositor->krad_framepool = 
+			krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
+	}
+	
+	if (krad_compositor->krad_gui == NULL) {
+		krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
+		krad_compositor->krad_gui->clear = 0;
+	}
+		
+}
+
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction) {
 
 	krad_compositor_port_t *krad_compositor_port;
 
 	int p;
+
+	pthread_mutex_lock (&krad_compositor->settings_lock);
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if (krad_compositor->port[p].active == 0) {
@@ -281,17 +298,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 		return NULL;
 	}
 	
-	//FIXME this is a memory saving kludge to not create this until the first port is created
-	if (krad_compositor->krad_framepool == NULL) {
-		krad_compositor->krad_framepool = 
-			krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
-	}
-	if (krad_compositor->krad_gui == NULL) {
-		krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
-
-	}
-	krad_compositor->active = 1;
-	// end FIXME
+	krad_compositor_alloc_resources (krad_compositor);
 	
 	krad_compositor_port->krad_compositor = krad_compositor;
 	
@@ -303,6 +310,9 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * sizeof(krad_frame_t *) );
 	
 	krad_compositor_port->active = 1;
+	
+	krad_compositor->active_ports++;
+	pthread_mutex_unlock (&krad_compositor->settings_lock);		
 	
 	return krad_compositor_port;
 
@@ -324,11 +334,15 @@ krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *kr
 
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port) {
 
+	pthread_mutex_lock (&krad_compositor->settings_lock);	
 	krad_compositor_port->active = 3;
 
 	krad_ringbuffer_free ( krad_compositor_port->frame_ring );
 
 	krad_compositor_port->active = 0;
+
+	krad_compositor->active_ports--;
+	pthread_mutex_unlock (&krad_compositor->settings_lock);	
 
 }
 
@@ -349,6 +363,8 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 	if (krad_compositor->krad_gui != NULL) {
 		kradgui_destroy (krad_compositor->krad_gui);
 	}
+	
+	pthread_mutex_destroy (&krad_compositor->settings_lock);	
 
 	free (krad_compositor->port);
 
@@ -358,18 +374,25 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 void krad_compositor_get_info (krad_compositor_t *krad_compositor, int *width, int *height) {
 
+	pthread_mutex_lock (&krad_compositor->settings_lock);
+
 	*width = krad_compositor->width;
 	*height = krad_compositor->height;
 
+	pthread_mutex_unlock (&krad_compositor->settings_lock);
 }
 
 void krad_compositor_get_info_NEW (krad_compositor_t *krad_compositor, int *width, int *height,
 							   int *frame_rate_numerator, int *frame_rate_denominator) {
 
+	pthread_mutex_lock (&krad_compositor->settings_lock);
+
 	*width = krad_compositor->width;
 	*height = krad_compositor->height;
 	*frame_rate_numerator = krad_compositor->frame_rate_numerator;
 	*frame_rate_denominator = krad_compositor->frame_rate_denominator;
+
+	pthread_mutex_unlock (&krad_compositor->settings_lock);
 
 }
 
@@ -385,6 +408,8 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	krad_compositor->frame_byte_size = krad_compositor->width * krad_compositor->height * 4;
 
 	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
+	
+	pthread_mutex_init (&krad_compositor->settings_lock, NULL);
 	
 	krad_compositor_set_frame_rate (krad_compositor, frame_rate_numerator, frame_rate_denominator);
 	
