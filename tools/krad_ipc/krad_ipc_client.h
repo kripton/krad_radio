@@ -120,6 +120,12 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
 
+void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
+										uint32_t width, uint32_t height, float rotation);
+
+void krad_ipc_compositor_list_ports (krad_ipc_client_t *client);
+void krad_ipc_compositor_info (krad_ipc_client_t *client);
+
 void krad_ipc_get_portgroups (krad_ipc_client_t *client);
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value);
 void krad_ipc_print_response (krad_ipc_client_t *client);

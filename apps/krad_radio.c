@@ -26,6 +26,22 @@ int main (int argc, char *argv[]) {
 	
 			/* Krad Radio Commands */
 			
+
+			if ((strncmp(argv[2], "ls", 2) == 0) && (strlen(argv[2]) == 2)) {
+				if (argc == 3) {
+					krad_ipc_list_links (client);
+					krad_ipc_print_response (client);
+
+					krad_ipc_compositor_list_ports (client);
+					krad_ipc_print_response (client);
+					
+					krad_ipc_get_portgroups (client);
+					krad_ipc_print_response (client);					
+
+				}
+			}			
+			
+			
 			if (strncmp(argv[2], "uptime", 6) == 0) {
 				krad_ipc_radio_uptime (client);
 				krad_ipc_print_response (client);
@@ -111,7 +127,7 @@ int main (int argc, char *argv[]) {
 			
 			/* Krad Mixer Commands */
 			
-			if (strncmp(argv[2], "mix", 3) == 0) {
+			if (strncmp(argv[2], "lm", 2) == 0) {
 				if (argc == 3) {
 					krad_ipc_get_portgroups (client);
 					krad_ipc_print_response (client);
@@ -185,7 +201,7 @@ int main (int argc, char *argv[]) {
 			
 			/* Krad Link Commands */			
 
-			if (strncmp(argv[2], "ls", 2) == 0) {
+			if ((strncmp(argv[2], "ll", 2) == 0) && (strlen(argv[2]) == 2)) {
 				if (argc == 3) {
 					krad_ipc_list_links (client);
 					krad_ipc_print_response (client);
@@ -313,7 +329,36 @@ int main (int argc, char *argv[]) {
 				}				
 			}
 			
-			/* Krad Compositor Commands */			
+			/* Krad Compositor Commands */
+			
+			if ((strncmp(argv[2], "lc", 2) == 0) && (strlen(argv[2]) == 2)) {
+				if (argc == 3) {
+					krad_ipc_compositor_list_ports (client);
+					krad_ipc_print_response (client);
+				}
+			}
+			
+			if (strncmp(argv[2], "setport", 7) == 0) {
+				if (argc == 9) {
+					krad_ipc_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
+													   atoi(argv[6]), atoi(argv[7]), atof(argv[8]));
+					krad_ipc_print_response (client);
+				}
+			}			
+			
+			if (strncmp(argv[2], "comp", 4) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_info (client);
+					krad_ipc_print_response (client);
+				}
+			}
+		
+			if (strncmp(argv[2], "setcomp", 7) == 0) {
+				if (argc == 7) {
+					//krad_ipc_compositor_set_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
+					krad_ipc_print_response (client);
+				}
+			}				
 
 			if (strncmp(argv[2], "hex", 3) == 0) {
 				if (argc == 6) {
