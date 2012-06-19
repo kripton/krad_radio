@@ -137,6 +137,9 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port);
 
+krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_compositor_port,
+												   uint8_t *yuv_pixels[4], int yuv_strides[4]);
+
 int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_port);
 
 krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
