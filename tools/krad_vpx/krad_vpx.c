@@ -146,7 +146,7 @@ void krad_vpx_decoder_decode (krad_vpx_decoder_t *kradvpx, void *buffer, int len
 		//exit(1);
 	}
 
-	vpx_codec_get_stream_info(&kradvpx->decoder, &kradvpx->stream_info);
+	vpx_codec_get_stream_info (&kradvpx->decoder, &kradvpx->stream_info);
 	//printf("VPX Stream Info: W:%d H:%d KF:%d\n", kradvpx->stream_info.w, kradvpx->stream_info.h, 
 	//		  kradvpx->stream_info.is_kf);
 

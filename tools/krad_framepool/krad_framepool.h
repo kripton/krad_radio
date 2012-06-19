@@ -20,6 +20,12 @@ struct krad_frame_St {
 	int refs;
 	int mjpeg_size;	
 	pthread_mutex_t ref_lock;
+	
+	int format;
+	
+	uint8_t *yuv_pixels[4];
+	int yuv_strides[4];
+	
 };
 
 struct krad_framepool_St {

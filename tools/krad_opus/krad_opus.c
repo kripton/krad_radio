@@ -51,7 +51,9 @@ krad_opus_t *kradopus_decoder_create(unsigned char *header_data, int header_leng
 
 	opus->opus_header = calloc(1, sizeof(OpusHeader));
 	
-	opus_header_parse(header_data, header_length, opus->opus_header);
+	if (opus_header_parse (header_data, header_length, opus->opus_header) != 1) {
+		printk ("kradopus_decoder_create problem reading opus header");	
+	}
 
 	opus->input_sample_rate = opus->opus_header->input_sample_rate;
 

@@ -31,7 +31,7 @@ uint32_t krad_resample_ring_write (krad_resample_ring_t *krad_resample_ring, uns
 	krad_resample_ring->src_error = src_process (krad_resample_ring->src_resampler, &krad_resample_ring->src_data);
 
 	if (krad_resample_ring->src_error != 0) {
-		failfast ("kradopus_read_opus src resampler error: %s", src_strerror (krad_resample_ring->src_error));
+		failfast ("krad_resample_ring src resampler error: %s", src_strerror (krad_resample_ring->src_error));
 	}
 
 	if (krad_resample_ring->inbuffer_pos) {

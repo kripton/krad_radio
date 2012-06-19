@@ -55,6 +55,11 @@ struct krad_compositor_port_St {
 	int x;
 	int y;
 	
+	struct SwsContext *sws_converter;	
+	
+	int io_params_updated;
+	int comp_params_updated;
+	
 };
 
 struct krad_compositor_St {
@@ -120,13 +125,24 @@ void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
 
 void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value);
 
+void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor_port,
+										   int frame_rate_numerator, int frame_rate_denominator,
+										   int width, int height);
+
+void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_compositor_port,
+										   int crop_width, int crop_height, int crop_x,
+										   int crop_y, int width, int height);
+
+void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port);
 
 int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_port);
 
 krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
-krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
+krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
+													 int frame_rate_numerator, int frame_rate_denominator,
+													 int width, int height);
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
 
 int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc );

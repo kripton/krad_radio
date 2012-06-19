@@ -42,7 +42,7 @@ kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned
 
 	kradgui_t *kradgui;
 
-	kradgui = kradgui_create(width, height);
+	kradgui = kradgui_create (width, height);
 		
 	kradgui->pixels = pixels;
 	kradgui_create_external_surface(kradgui);
