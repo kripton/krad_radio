@@ -9,6 +9,8 @@
 
 #include <pthread.h>
 
+#include <cairo/cairo.h>
+
 #include "krad_system.h"
 
 typedef struct krad_framepool_St krad_framepool_t;
@@ -25,6 +27,9 @@ struct krad_frame_St {
 	
 	uint8_t *yuv_pixels[4];
 	int yuv_strides[4];
+	
+	cairo_surface_t *cst;
+	cairo_t *cr;	
 	
 };
 
