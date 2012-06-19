@@ -146,8 +146,6 @@ struct krad_link_St {
 	int composite_width;
 	int composite_height;
 	int composite_fps;
-	int display_width;
-	int display_height;
 	int encoding_width;
 	int encoding_height;
 
@@ -163,7 +161,6 @@ struct krad_link_St {
 	int capture_buffer_frames;
 	int decoding_buffer_frames;
 	
-	unsigned char *current_encoding_frame;
 	unsigned char *current_frame;
 	
 	unsigned int captured_frames;
