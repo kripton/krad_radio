@@ -80,7 +80,6 @@ struct krad_linker_listen_client_St {
 
 struct krad_link_St {
 
-
 	krad_radio_t *krad_radio;
 
 	krad_linker_t *krad_linker;
@@ -108,7 +107,7 @@ struct krad_link_St {
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
-	krad_ogg_t *krad_ogg;
+//	krad_ogg_t *krad_ogg;
 	krad_ebml_t *krad_ebml;
 	krad_container_t *krad_container;
 	krad_v4l2_t *krad_v4l2;
@@ -155,15 +154,10 @@ struct krad_link_St {
 
 
 	int mjpeg_mode;
-	
 	int mjpeg_passthru;	
 
 	int capture_buffer_frames;
 	int decoding_buffer_frames;
-	
-	unsigned char *current_frame;
-	
-	unsigned int captured_frames;
 	
 	int encoding;
 	int capturing;
@@ -177,67 +171,34 @@ struct krad_link_St {
 	int audio_encoder_ready;
 	int audio_frames_captured;
 	int audio_frames_encoded;
-		
-	int video_frames_encoded;	
+
 	int composited_frame_byte_size;
 
 	krad_ringbuffer_t *decoded_audio_ringbuffer;
 	krad_ringbuffer_t *encoded_audio_ringbuffer;
 	krad_ringbuffer_t *encoded_video_ringbuffer;
 	
-	struct SwsContext *decoded_frame_converter;
 	struct SwsContext *captured_frame_converter;
 	struct SwsContext *encoder_frame_converter;
-	struct SwsContext *display_frame_converter;
 	
 	int video_track;
 	int audio_track;
 
-	pthread_t main_thread;
+	int audio_channels;
 
+	pthread_t main_thread;
 	pthread_t video_capture_thread;
 	pthread_t video_encoding_thread;
 	pthread_t audio_encoding_thread;
-
 	pthread_t video_decoding_thread;
 	pthread_t audio_decoding_thread;
-
 	pthread_t stream_output_thread;
 	pthread_t stream_input_thread;
-
 	pthread_t udp_output_thread;
 	pthread_t udp_input_thread;
 
-	pthread_t signal_thread;
-	sigset_t set;
 	int destroy;
-
-	int audio_channels;
-
-	int render_meters;
-
-	int new_capture_frame;
-	int link_started;
-
-	float temp_peak;
-	float kick;
-
-	// for playback
-	uint64_t current_frame_timecode;
-
-	// for internal signal generation
-	struct timespec next_frame_time;
-	struct timespec sleep_time;
-	uint64_t next_frame_time_ms;
-
-	int input_ready;
 	int verbose;
-
-	char bug[512];
-	int bug_x;
-	int bug_y;
-
-	struct stat file_stat;
 	
 	krad_rebuilder_t *krad_rebuilder;
 	krad_slicer_t *krad_slicer;
@@ -261,4 +222,5 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create (int linknum);
 void krad_link_run (krad_link_t *krad_link);
+
 #endif

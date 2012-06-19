@@ -684,8 +684,6 @@ void *video_encoding_thread(void *arg) {
 				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
 				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
 				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
-				
-				krad_link->video_frames_encoded++;
 
 			}
 	
