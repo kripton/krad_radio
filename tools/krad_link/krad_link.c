@@ -1801,6 +1801,10 @@ void *video_decoding_thread(void *arg) {
 				usleep(10000);
 				krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
 			}
+			
+			if (krad_link->destroy) {
+				break;
+			}			
 
 			krad_link_yuv_to_rgb(krad_link, (unsigned char *)krad_frame->pixels, krad_link->krad_theora_decoder->ycbcr[0].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[0].stride), 
 								 krad_link->krad_theora_decoder->ycbcr[0].stride, krad_link->krad_theora_decoder->ycbcr[1].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[1].stride), 
@@ -1839,7 +1843,11 @@ void *video_decoding_thread(void *arg) {
 				while ((krad_frame == NULL) && (!krad_link->destroy)) {
 					usleep(10000);
 					krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
-				}				
+				}
+				
+				if (krad_link->destroy) {
+					break;
+				}
 
 				krad_link_yuv_to_rgb(krad_link, (unsigned char *)krad_frame->pixels, krad_link->krad_vpx_decoder->img->planes[0], 
 									 krad_link->krad_vpx_decoder->img->stride[0], krad_link->krad_vpx_decoder->img->planes[1], 
@@ -1874,7 +1882,11 @@ void *video_decoding_thread(void *arg) {
 				while ((krad_frame == NULL) && (!krad_link->destroy)) {
 					usleep(10000);
 					krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
-				}				
+				}
+
+				if (krad_link->destroy) {
+					break;
+				}						
 
 				krad_link_yuv_to_rgb(krad_link, (unsigned char *)krad_frame->pixels, krad_link->krad_dirac->frame->components[0].data, 
 									 krad_link->krad_dirac->frame->components[0].stride, krad_link->krad_dirac->frame->components[1].data, 
