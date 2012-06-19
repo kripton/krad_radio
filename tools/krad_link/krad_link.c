@@ -1347,38 +1347,6 @@ void *udp_output_thread(void *arg) {
 
 }
 
-/*
-void krad_link_display (krad_link_t *krad_link) {
-
-	if ((krad_link->composite_width == krad_link->display_width) && (krad_link->composite_height == krad_link->display_height)) {
-		memcpy ( krad_link->krad_x11->pixels, krad_link->krad_gui->data, krad_link->krad_gui->bytes );
-	} else {
-
-		int rgb_stride_arr[3] = {4*krad_link->display_width, 0, 0};
-
-		const uint8_t *rgb_arr[4];
-		int rgb1_stride_arr[4];
-
-		rgb_arr[0] = krad_link->krad_gui->data;
-
-		rgb1_stride_arr[0] = krad_link->composite_width * 4;
-		rgb1_stride_arr[1] = 0;
-		rgb1_stride_arr[2] = 0;
-		rgb1_stride_arr[3] = 0;
-
-		unsigned char *dst[4];
-
-		dst[0] = krad_link->krad_x11->pixels;
-		
-		sws_scale(krad_link->display_frame_converter, rgb_arr, rgb1_stride_arr, 0, krad_link->display_height, dst, rgb_stride_arr);
-
-	}
-
-	krad_x11_glx_render (krad_link->krad_x11);
-
-}
-*/
-
 void *krad_link_run_thread (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
@@ -1399,7 +1367,7 @@ void krad_link_run (krad_link_t *krad_link) {
 	pthread_detach (krad_link->main_thread);
 }
 
-void *stream_input_thread(void *arg) {
+void *stream_input_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_stmin", 0, 0, 0);
 
@@ -1663,29 +1631,6 @@ void *udp_input_thread(void *arg) {
 
 }
 
-void krad_link_yuv_to_rgb(krad_link_t *krad_link, unsigned char *output, unsigned char *y, int ys, unsigned char *u, int us, unsigned char *v, int vs, int height) {
-
-	int rgb_stride_arr[3] = {4*krad_link->display_width, 0, 0};
-
-	const uint8_t *yv12_arr[4];
-	
-	yv12_arr[0] = y;
-	yv12_arr[1] = u;
-	yv12_arr[2] = v;
-	
-	int yv12_str_arr[4];
-	
-	yv12_str_arr[0] = ys;
-	yv12_str_arr[1] = us;
-	yv12_str_arr[2] = vs;
-
-	unsigned char *dst[4];
-	dst[0] = output;
-
-	sws_scale(krad_link->decoded_frame_converter, yv12_arr, yv12_str_arr, 0, height, dst, rgb_stride_arr);
-
-}
-
 void *video_decoding_thread(void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_viddec", 0, 0, 0);
@@ -1752,11 +1697,6 @@ void *video_decoding_thread(void *arg) {
 					krad_dirac_decoder_destroy(krad_link->krad_dirac);
 					krad_link->krad_dirac = NULL;
 				}
-				
-				//if (krad_link->decoded_frame_converter != NULL) {
-				//	sws_freeContext ( krad_link->decoded_frame_converter );
-				//}
-				
 			}
 	
 			if (krad_link->video_codec == NOCODEC) {
@@ -1825,13 +1765,6 @@ void *video_decoding_thread(void *arg) {
 		
 			krad_theora_decoder_decode (krad_link->krad_theora_decoder, buffer, bytes);
 
-			//if (krad_link->decoded_frame_converter == NULL) {
-			//	krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_theora_decoder->width, krad_link->krad_theora_decoder->height, PIX_FMT_YUV420P,
-			//												  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-			//												  SWS_BICUBIC, NULL, NULL, NULL);
-			//
-			//}
-
 			krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 			while ((krad_frame == NULL) && (!krad_link->destroy)) {
 				usleep(10000);
@@ -1841,11 +1774,6 @@ void *video_decoding_thread(void *arg) {
 			if (krad_link->destroy) {
 				break;
 			}			
-
-			//krad_link_yuv_to_rgb(krad_link, (unsigned char *)krad_frame->pixels, krad_link->krad_theora_decoder->ycbcr[0].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[0].stride), 
-			//					 krad_link->krad_theora_decoder->ycbcr[0].stride, krad_link->krad_theora_decoder->ycbcr[1].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[1].stride), 
-			//					 krad_link->krad_theora_decoder->ycbcr[1].stride, krad_link->krad_theora_decoder->ycbcr[2].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[2].stride), 
-			//					 krad_link->krad_theora_decoder->ycbcr[2].stride, krad_link->krad_theora_decoder->height);
 
 			krad_frame->format = PIX_FMT_YUV420P;
 
@@ -1864,12 +1792,8 @@ void *video_decoding_thread(void *arg) {
 			timecode = timecode2;
 			
 			krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-			
-			//krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
 			krad_framepool_unref_frame (krad_frame);
-
-			//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 		}
 			
@@ -1877,14 +1801,6 @@ void *video_decoding_thread(void *arg) {
 			krad_vpx_decoder_decode(krad_link->krad_vpx_decoder, buffer, bytes);
 				
 			if (krad_link->krad_vpx_decoder->img != NULL) {
-
-				//if (krad_link->decoded_frame_converter == NULL) {
-				//
-				//	krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_vpx_decoder->width, krad_link->krad_vpx_decoder->height, PIX_FMT_YUV420P,
-				//												  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-				//												  SWS_BICUBIC, NULL, NULL, NULL);
-				//
-				//}
 				
 				if (port_updated == 0) {
 					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
@@ -1907,7 +1823,6 @@ void *video_decoding_thread(void *arg) {
 					break;
 				}
 
-
 				krad_frame->format = PIX_FMT_YUV420P;
 
 				krad_frame->yuv_pixels[0] = krad_link->krad_vpx_decoder->img->planes[0];
@@ -1918,17 +1833,9 @@ void *video_decoding_thread(void *arg) {
 				krad_frame->yuv_strides[1] = krad_link->krad_vpx_decoder->img->stride[1];
 				krad_frame->yuv_strides[2] = krad_link->krad_vpx_decoder->img->stride[2];
 
-				//krad_link_yuv_to_rgb(krad_link, (unsigned char *)krad_frame->pixels, krad_link->krad_vpx_decoder->img->planes[0], 
-				//					 krad_link->krad_vpx_decoder->img->stride[0], krad_link->krad_vpx_decoder->img->planes[1], 
-				//					 krad_link->krad_vpx_decoder->img->stride[1], krad_link->krad_vpx_decoder->img->planes[2], 
-				//					 krad_link->krad_vpx_decoder->img->stride[2], krad_link->krad_vpx_decoder->height);
-
 				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-				//krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
 				krad_framepool_unref_frame (krad_frame);
-
-				//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 			}
 		}
@@ -1939,14 +1846,6 @@ void *video_decoding_thread(void *arg) {
 			krad_dirac_decode (krad_link->krad_dirac, buffer, bytes);
 
 			if (krad_link->krad_dirac->frame != NULL) {
-			
-				//if (krad_link->decoded_frame_converter == NULL) {
-				//
-				//	krad_link->decoded_frame_converter = sws_getContext ( krad_link->krad_dirac->frame->width, krad_link->krad_dirac->frame->height, PIX_FMT_YUV420P,
-				//												  krad_link->display_width, krad_link->display_height, PIX_FMT_RGB32, 
-				//												  SWS_BICUBIC, NULL, NULL, NULL);
-				//
-				//}
 				
 				if (port_updated == 0) {
 					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
@@ -1987,19 +1886,9 @@ void *video_decoding_thread(void *arg) {
 				krad_frame->yuv_strides[1] = krad_link->krad_dirac->frame->components[1].stride;
 				krad_frame->yuv_strides[2] = krad_link->krad_dirac->frame->components[2].stride;					
 
-				//krad_link_yuv_to_rgb(krad_link, (unsigned char *)krad_frame->pixels, krad_link->krad_dirac->frame->components[0].data, 
-				//					 krad_link->krad_dirac->frame->components[0].stride, krad_link->krad_dirac->frame->components[1].data, 
-				//					 krad_link->krad_dirac->frame->components[1].stride, krad_link->krad_dirac->frame->components[2].data,
-				//					 krad_link->krad_dirac->frame->components[2].stride, krad_link->krad_dirac->frame->height);
-
-
 				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
-				//krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
-
 				krad_framepool_unref_frame (krad_frame);
-
-				//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 
 			}
 		}
