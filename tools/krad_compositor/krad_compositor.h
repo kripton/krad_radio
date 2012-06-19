@@ -57,6 +57,8 @@ struct krad_compositor_port_St {
 	int x;
 	int y;
 	
+	float rotation;
+	
 	struct SwsContext *sws_converter;	
 	
 	int io_params_updated;
@@ -133,7 +135,7 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 
 void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_compositor_port,
 										   int crop_width, int crop_height, int crop_x,
-										   int crop_y, int width, int height);
+										   int crop_y, int width, int height, float rotation);
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
