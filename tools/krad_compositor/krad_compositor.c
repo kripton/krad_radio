@@ -96,7 +96,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	int p;
 	
 	krad_frame_t *composite_frame;
-	int *pixels;
+	//int *pixels;
 	krad_frame_t *frame[KRAD_COMPOSITOR_MAX_PORTS];	
 	
 	composite_frame = NULL;
@@ -127,7 +127,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	/* Clear it off */
 	krad_gui_clear (krad_compositor->krad_gui);
 
-	pixels = (int *)krad_compositor->krad_gui->pixels;
+	//pixels = (int *)krad_compositor->krad_gui->pixels;
 
 	/* Composite Input Ports */
 
@@ -137,43 +137,33 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 			frame[p] = krad_compositor_port_pull_frame (&krad_compositor->port[p]);		
 
 			if (frame[p] != NULL) {
-				if ((krad_compositor->port->x == 0) && (krad_compositor->port->y == 0) &&
-					(krad_compositor->port->width == krad_compositor->port->crop_width) &&
-					(krad_compositor->port->height == krad_compositor->port->crop_height) &&
-					(krad_compositor->port->crop_x == krad_compositor->port->x) &&
-					(krad_compositor->port->crop_y == krad_compositor->port->y) &&
-					(krad_compositor->port->rotation == 0))
-				
-				{
-					memcpy ( pixels, frame[p]->pixels, krad_compositor->frame_byte_size );
-				} else {
-					cairo_save (krad_compositor->krad_gui->cr);
-					if (krad_compositor->port->rotation != 0) {
-						cairo_translate (krad_compositor->krad_gui->cr,
-										 krad_compositor->port->crop_width / 2,
-										 krad_compositor->port->crop_height / 2);
-										 
-						cairo_rotate (krad_compositor->krad_gui->cr,
-									  krad_compositor->port->rotation * (M_PI/180.0));
-
-						cairo_translate (krad_compositor->krad_gui->cr,
-										 krad_compositor->port->crop_width / -2,
-										 krad_compositor->port->crop_height / -2);
-					}
-					cairo_set_source_surface (krad_compositor->krad_gui->cr,
-											  frame[p]->cst,
-											  krad_compositor->port->x - krad_compositor->port->crop_x,
-											  krad_compositor->port->y - krad_compositor->port->crop_y);
-				
-					cairo_rectangle (krad_compositor->krad_gui->cr,
-									 krad_compositor->port->x,
-									 krad_compositor->port->y,
-									 krad_compositor->port->crop_width,
-									 krad_compositor->port->crop_height);
+			
+				cairo_save (krad_compositor->krad_gui->cr);
+				if (krad_compositor->port[p].rotation != 0) {
+					cairo_translate (krad_compositor->krad_gui->cr,
+									 krad_compositor->port[p].crop_width / 2,
+									 krad_compositor->port[p].crop_height / 2);
 									 
-					cairo_fill (krad_compositor->krad_gui->cr);
-					cairo_restore (krad_compositor->krad_gui->cr);
+					cairo_rotate (krad_compositor->krad_gui->cr,
+								  krad_compositor->port[p].rotation * (M_PI/180.0));
+
+					cairo_translate (krad_compositor->krad_gui->cr,
+									 krad_compositor->port[p].crop_width / -2,
+									 krad_compositor->port[p].crop_height / -2);
 				}
+				cairo_set_source_surface (krad_compositor->krad_gui->cr,
+										  frame[p]->cst,
+										  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
+										  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
+			
+				cairo_rectangle (krad_compositor->krad_gui->cr,
+								 krad_compositor->port[p].x,
+								 krad_compositor->port[p].y,
+								 krad_compositor->port[p].crop_width,
+								 krad_compositor->port[p].crop_height);
+								 
+				cairo_fill (krad_compositor->krad_gui->cr);
+				cairo_restore (krad_compositor->krad_gui->cr);
 				krad_framepool_unref_frame (frame[p]);
 			}
 		}
@@ -292,10 +282,10 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
-	int rgb_stride_arr[3] = {4*krad_compositor_port->width, 0, 0};
+	int rgb_stride_arr[3] = {4*krad_compositor_port->krad_compositor->width, 0, 0};
 	unsigned char *dst[4];
 	
-	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)){
+	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
 		if (krad_compositor_port->sws_converter != NULL) {
 			sws_freeContext ( krad_compositor_port->sws_converter );
 			krad_compositor_port->sws_converter = NULL;
@@ -315,6 +305,13 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 							 PIX_FMT_RGB32, 
 							 SWS_BICUBIC,
 							 NULL, NULL, NULL);
+							 
+		printk ("set scaling to w %d h %d sw %d sh %d",
+				krad_compositor_port->width,
+				krad_compositor_port->height,
+				krad_compositor_port->source_width,
+				krad_compositor_port->source_height);							 
+							 
 
 	}									 
 
@@ -817,8 +814,8 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 			krad_compositor_port_set_comp_params (&krad_compositor->port[numbers[0]],
 										   		  numbers[3], numbers[4], numbers[1], numbers[2], 
-												  krad_compositor->port[numbers[0]].crop_width,
-												  krad_compositor->port[numbers[0]].crop_height,
+												  numbers[3],
+												  numbers[4],
 												  krad_compositor->port[numbers[0]].crop_x,
 												  krad_compositor->port[numbers[0]].crop_y,
 												  floats[0]);
