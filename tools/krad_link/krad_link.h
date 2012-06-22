@@ -156,15 +156,18 @@ struct krad_link_St {
 	int capture_buffer_frames;
 	int decoding_buffer_frames;
 	
+	int playing;
+	
 	int encoding;
 	int capturing;
+	int capture_audio;	
 	
 	float vorbis_quality;
-	int capture_audio;
 	krad_ringbuffer_t *audio_capture_ringbuffer[KRAD_MIXER_MAX_CHANNELS];	
 	krad_ringbuffer_t *audio_input_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	krad_ringbuffer_t *audio_output_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	float *samples[KRAD_MIXER_MAX_CHANNELS];
+
 	int audio_encoder_ready;
 	int audio_frames_captured;
 	int audio_frames_encoded;

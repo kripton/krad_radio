@@ -463,7 +463,7 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	krad_ebml->total_video_frames++;
 		
 	if (keyframe) {
-		krad_ebml_cluster(krad_ebml, timecode);
+		krad_ebml_cluster (krad_ebml, timecode);
 	}
 	
 	/* Must be after clustering esp. in case of keyframe */ 
@@ -471,13 +471,13 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 
     krad_ebml_write_element (krad_ebml, EBML_ID_SIMPLEBLOCK);
     
-	krad_ebml_write_reversed(krad_ebml, &block_length, 4);
+	krad_ebml_write_reversed (krad_ebml, &block_length, 4);
 
-	krad_ebml_write(krad_ebml, &track_number, 1);
-	krad_ebml_write_reversed(krad_ebml, &block_timecode, 2);
+	krad_ebml_write (krad_ebml, &track_number, 1);
+	krad_ebml_write_reversed (krad_ebml, &block_timecode, 2);
 	
-	krad_ebml_write(krad_ebml, &flags, 1);
-	krad_ebml_write(krad_ebml, buffer, buffer_len);
+	krad_ebml_write (krad_ebml, &flags, 1);
+	krad_ebml_write (krad_ebml, buffer, buffer_len);
 	
 	//krad_ebml_write_sync (krad_ebml);	
 	

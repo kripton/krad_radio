@@ -31,7 +31,6 @@ void *video_capture_thread (void *arg) {
 	} else {
 		krad_link->krad_compositor_port = 
 		krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "V4L2In", INPUT,
-									 DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
 									 krad_link->capture_width, krad_link->capture_height);
 	}
 
@@ -143,7 +142,6 @@ void *info_screen_generator_thread (void *arg) {
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "NFOIn",
 																   INPUT,
-																   DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
 																   width, height);
 
 	krad_ticker_start (krad_ticker);
@@ -263,7 +261,6 @@ void *test_screen_generator_thread (void *arg) {
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "TSTIn",
 																   INPUT,
-																   DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
 																   width, height);
 
 	krad_ticker_start (krad_ticker);
@@ -311,7 +308,6 @@ void *x11_capture_thread (void *arg) {
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "X11In",
 																   INPUT,
-																   DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR,
 																   krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 
 	krad_ticker_start (krad_ticker);
@@ -368,7 +364,7 @@ void *video_encoding_thread(void *arg) {
 		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width,
 															   krad_link->encoding_height,
 															   krad_link->encoding_fps_numerator,
-															   krad_link->encoding_fps_denominator,
+															   krad_link->encoding_fps_denominator,															   
 															   krad_link->vp8_bitrate);
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
@@ -400,8 +396,6 @@ void *video_encoding_thread(void *arg) {
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "VIDEnc",
 																   OUTPUT,
-																   krad_link->encoding_fps_numerator,
-														   		   krad_link->encoding_fps_denominator,
 																   krad_link->encoding_width, 
 																   krad_link->encoding_height);
 	
@@ -543,7 +537,8 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
-		if ((krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
+		if ((krad_link->playing == 1) && 
+			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
 			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[1]) >= frames * 4)) {
 			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
 			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[1], (char *)samples[1], frames * 4);
@@ -1439,8 +1434,6 @@ void *video_decoding_thread(void *arg) {
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "VidDecIn",
 																   INPUT,
-																   DEFAULT_COMPOSITOR_FPS_NUMERATOR,
-																   DEFAULT_COMPOSITOR_FPS_DENOMINATOR,
 																   krad_link->composite_width,
 																   krad_link->composite_height);
 	
@@ -1501,8 +1494,6 @@ void *video_decoding_thread(void *arg) {
 				krad_link->krad_theora_decoder = krad_theora_decoder_create(header[0], header_len[0], header[1], header_len[1], header[2], header_len[2]);
 
 				krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
-													krad_link->krad_theora_decoder->info.fps_numerator,
-													krad_link->krad_theora_decoder->info.fps_denominator,
 													krad_link->krad_theora_decoder->width,
 													krad_link->krad_theora_decoder->height);
 				port_updated = 1;													
@@ -1540,11 +1531,15 @@ void *video_decoding_thread(void *arg) {
 			break;
 		}		
 		
+		if ((krad_link->playing == 0) && (krad_link->krad_compositor_port->start_timecode != 1)) {
+			krad_link->playing = 1;
+		}
+		
 		if (krad_link->video_codec == THEORA) {
 		
 			krad_theora_decoder_decode (krad_link->krad_theora_decoder, buffer, bytes);		
 			krad_theora_decoder_timecode (krad_link->krad_theora_decoder, &timecode2);			
-			///printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
+			printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
 			timecode = timecode2;
 
 			krad_frame->format = PIX_FMT_YUV420P;
@@ -1557,6 +1552,8 @@ void *video_decoding_thread(void *arg) {
 			krad_frame->yuv_strides[1] = krad_link->krad_theora_decoder->ycbcr[1].stride;
 			krad_frame->yuv_strides[2] = krad_link->krad_theora_decoder->ycbcr[2].stride;
 
+			krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
+
 		}
 			
 		if (krad_link->video_codec == VP8) {
@@ -1567,8 +1564,6 @@ void *video_decoding_thread(void *arg) {
 				
 				if (port_updated == 0) {
 					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
-														25000,
-														1000,
 														krad_link->krad_vpx_decoder->width,
 														krad_link->krad_vpx_decoder->height);
 																	
@@ -1584,6 +1579,8 @@ void *video_decoding_thread(void *arg) {
 				krad_frame->yuv_strides[0] = krad_link->krad_vpx_decoder->img->stride[0];
 				krad_frame->yuv_strides[1] = krad_link->krad_vpx_decoder->img->stride[1];
 				krad_frame->yuv_strides[2] = krad_link->krad_vpx_decoder->img->stride[2];
+				
+				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
 			}
 		}
@@ -1597,8 +1594,6 @@ void *video_decoding_thread(void *arg) {
 				
 				if (port_updated == 0) {
 					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
-														30000,
-														1000,
 														krad_link->krad_dirac->frame->width,
 														krad_link->krad_dirac->frame->height);
 																	
@@ -1622,13 +1617,14 @@ void *video_decoding_thread(void *arg) {
 				krad_frame->yuv_strides[0] = krad_link->krad_dirac->frame->components[0].stride;
 				krad_frame->yuv_strides[1] = krad_link->krad_dirac->frame->components[1].stride;
 				krad_frame->yuv_strides[2] = krad_link->krad_dirac->frame->components[2].stride;
+				
+				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
+				
 			}
 		}
 		
 		krad_frame->timecode = timecode;
-		printk ("frame timecode: %zu", krad_frame->timecode);		
-		
-		krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
+		//printk ("frame timecode: %zu", krad_frame->timecode);
 
 		krad_framepool_unref_frame (krad_frame);		
 		
@@ -2029,7 +2025,6 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "DecklinkIn", INPUT,
-																	DEFAULT_COMPOSITOR_FPS_NUMERATOR, DEFAULT_COMPOSITOR_FPS_DENOMINATOR,
 																	DEFAULT_COMPOSITOR_WIDTH, DEFAULT_COMPOSITOR_HEIGHT);	
 	
 	

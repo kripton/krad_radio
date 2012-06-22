@@ -21,7 +21,6 @@ static void *krad_compositor_display_thread (void *arg) {
 							  &h);
 	
 	krad_compositor_port = krad_compositor_port_create (krad_compositor, "X11Out", OUTPUT,
-														30000, 1000, 
 														w, h);
 	
 	krad_x11 = krad_x11_create ();
@@ -77,19 +76,6 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
 }
 
-uint64_t re_fps (uint64_t frame_num, int input_numerator, int input_denominator, int output_numerator, int output_denominator) {
-
-	uint64_t b;
-	uint64_t c;	
-
-
-	b = output_numerator * (uint64_t)input_denominator;
-	c = input_numerator * (uint64_t)output_denominator;
-
-	return ((frame_num * b) / c);
-
-
-}
 
 void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
@@ -102,22 +88,25 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	composite_frame = NULL;
 	
 	memset (frame, 0, sizeof (frame));
+
+	krad_compositor->timecode = round (1000000000 * krad_compositor->frame_num / krad_compositor->frame_rate_numerator * krad_compositor->frame_rate_denominator / 1000000);
+	krad_compositor->frame_num++;
 	
 	if (krad_compositor->active_ports < 1) {
 		return;
 	}
-	
-	krad_compositor->frame_num++;
+
+	//printk ("timecode is %llu", krad_compositor->timecode);
 	
 	if (krad_compositor->bug_filename != NULL) {
 	
 		if (strlen(krad_compositor->bug_filename)) {
-			printk ("setting bug to %s %d %d\n", krad_compositor->bug_filename, 
+			printk ("setting bug to %s %d %d", krad_compositor->bug_filename, 
 			        krad_compositor->bug_x, krad_compositor->bug_y);
 			kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, 
 							 krad_compositor->bug_x, krad_compositor->bug_y);
 		} else {
-			printk ("removing bug\n");
+			printk ("removing bug");
 			kradgui_remove_bug (krad_compositor->krad_gui);
 		}
 		free (krad_compositor->bug_filename);
@@ -215,6 +204,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}
 	
 	krad_framepool_unref_frame (composite_frame);
+	
 }
 
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
@@ -275,11 +265,8 @@ void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_composit
 }
 
 void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor_port,
-										 int frame_rate_numerator, int frame_rate_denominator,
 										 int width, int height) {
-										   
-	krad_compositor_port->frame_rate_numerator = frame_rate_numerator;
-	krad_compositor_port->frame_rate_denominator = frame_rate_denominator;
+										 
 	krad_compositor_port->source_width = width;
 	krad_compositor_port->source_height = height;
 
@@ -334,15 +321,7 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_compositor_port,
 												   uint8_t *yuv_pixels[4], int yuv_strides[4]) {
 
-	krad_frame_t *krad_frame;
-	
-			
-	//		converted_frame_num = re_fps (krad_compositor->frame_num,
-	//									  krad_compositor->frame_rate_numerator,
-	//									  krad_compositor->frame_rate_denominator,
-	//									  25000,
-	//										  1000);	
-	
+	krad_frame_t *krad_frame;	
 	
 	if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
 		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
@@ -399,46 +378,49 @@ void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_po
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port) {
 
 	krad_frame_t *krad_frame;
-	
-	uint64_t converted_frame_num;
 
 	if (krad_compositor_port->direction == INPUT) {
 
-		converted_frame_num = re_fps (krad_compositor_port->krad_compositor->frame_num,
-									  krad_compositor_port->krad_compositor->frame_rate_numerator,
-									  krad_compositor_port->krad_compositor->frame_rate_denominator,
-									  krad_compositor_port->frame_rate_numerator,
-									  krad_compositor_port->frame_rate_denominator);	
-		//printk ("INPUT port frame num %llu converted is %llu   - ", krad_compositor_port->krad_compositor->frame_num,
-		//														 converted_frame_num);
+
+		if (krad_compositor_port->last_frame != NULL) {
+
+			//printk ("%llu -- %llu", krad_compositor_port->start_timecode + krad_compositor_port->last_frame->timecode,
+			//krad_compositor_port->krad_compositor->timecode);
+
+			if ((krad_compositor_port->start_timecode + krad_compositor_port->last_frame->timecode) < 
+				krad_compositor_port->krad_compositor->timecode) {
+
+				if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
+					krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
+
+					krad_framepool_unref_frame (krad_compositor_port->last_frame);	
+					krad_framepool_ref_frame (krad_frame);
+					krad_compositor_port->last_frame = krad_frame;
 		
-		
-		if (converted_frame_num != krad_compositor_port->last_frame_num) {
-	
-			krad_compositor_port->last_frame_num = converted_frame_num;	
-	
-			if (krad_compositor_port->last_frame != NULL) {
-				krad_framepool_unref_frame (krad_compositor_port->last_frame);
-				krad_compositor_port->last_frame = NULL;	
-			}
-	
-			if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
-				krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
-			
-				krad_framepool_ref_frame (krad_frame);
-				krad_compositor_port->last_frame = krad_frame;
-			
-				return krad_frame;
-			}
-	
-		} else {
-		
-			krad_compositor_port->last_frame_num = converted_frame_num;
-		
-			if (krad_compositor_port->last_frame != NULL) {
+					return krad_frame;
+				} else {
+					krad_framepool_ref_frame (krad_compositor_port->last_frame);
+					return krad_compositor_port->last_frame;
+				}
+
+			} else {
 				krad_framepool_ref_frame (krad_compositor_port->last_frame);
 				return krad_compositor_port->last_frame;
 			}
+		} else {
+		
+			if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
+				krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
+	
+				krad_compositor_port->start_timecode = krad_compositor_port->krad_compositor->timecode;
+	
+				krad_framepool_ref_frame (krad_frame);
+				krad_compositor_port->last_frame = krad_frame;
+	
+				return krad_frame;
+			}
+		
+		
 		}
 		
 	} else {
@@ -482,7 +464,6 @@ void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
 }
 
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
-													 int frame_rate_numerator, int frame_rate_denominator,
 													 int width, int height) {
 
 	krad_compositor_port_t *krad_compositor_port;
@@ -502,9 +483,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	if (krad_compositor_port == NULL) {
 		return NULL;
 	}
-	
-	krad_compositor_port->frame_rate_numerator = frame_rate_numerator;
-	krad_compositor_port->frame_rate_denominator = frame_rate_denominator;
+
 	krad_compositor_port->source_width = width;
 	krad_compositor_port->source_height = height;
 	krad_compositor_port->width = krad_compositor->width;
@@ -524,6 +503,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	strcpy (krad_compositor_port->sysname, sysname);	
 	
 	krad_compositor_port->direction = direction;
+	krad_compositor_port->start_timecode = 1;
 	
 	krad_compositor_port->frame_ring = 
 		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * sizeof(krad_frame_t *) );
@@ -531,6 +511,13 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	krad_compositor_port->active = 1;
 	
 	krad_compositor->active_ports++;
+	
+	if (krad_compositor_port->direction == INPUT) {
+		krad_compositor->active_input_ports++;
+	}
+	if (krad_compositor_port->direction == OUTPUT) {
+		krad_compositor->active_output_ports++;
+	}
 	pthread_mutex_unlock (&krad_compositor->settings_lock);		
 	
 	return krad_compositor_port;
@@ -543,7 +530,7 @@ krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *kr
 	krad_compositor_port_t *krad_compositor_port;
 	
 	krad_compositor_port = krad_compositor_port_create (krad_compositor, sysname, direction,
-														1,1,1,1);
+														1,1);
 
 	krad_compositor_port->mjpeg = 1;		
 
@@ -557,13 +544,25 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 	pthread_mutex_lock (&krad_compositor->settings_lock);	
 	krad_compositor_port->active = 3;
 
-	krad_ringbuffer_free ( krad_compositor_port->frame_ring );
+	if (krad_compositor_port->direction == INPUT) {
+		krad_compositor->active_input_ports--;
+	}
+	if (krad_compositor_port->direction == OUTPUT) {
+		krad_compositor->active_output_ports--;
+	}
 
+	krad_ringbuffer_free ( krad_compositor_port->frame_ring );
+	krad_compositor_port->start_timecode = 0;
 	krad_compositor_port->active = 0;
 
 	if (krad_compositor_port->sws_converter != NULL) {
 		sws_freeContext ( krad_compositor_port->sws_converter );
 		krad_compositor_port->sws_converter = NULL;
+	}
+
+	if (krad_compositor_port->last_frame != NULL) {
+		krad_framepool_unref_frame (krad_compositor_port->last_frame);
+		krad_compositor_port->last_frame = NULL;
 	}
 
 	krad_compositor->active_ports--;
@@ -648,7 +647,7 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
 	krad_compositor_alloc_resources (krad_compositor);
 	
-	krad_compositor_start_ticker (krad_compositor);
+	//krad_compositor_start_ticker (krad_compositor);
 	
 	return krad_compositor;
 
@@ -738,10 +737,13 @@ void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
 
 	krad_compositor->frame_rate_numerator = frame_rate_numerator;
 	krad_compositor->frame_rate_denominator = frame_rate_denominator;	
-	
+		
 	if (krad_compositor->ticker_running == 1) {
 		krad_compositor_stop_ticker (krad_compositor);
+		krad_compositor->frame_num = 0;
 		krad_compositor_start_ticker (krad_compositor);
+	} else {
+		krad_compositor->frame_num = 0;	
 	}
 	
 }

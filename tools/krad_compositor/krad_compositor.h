@@ -41,12 +41,6 @@ struct krad_compositor_port_St {
 	
 	int mjpeg;
 
-
-	uint64_t last_frame_num;
-
-	int frame_rate_numerator;
-	int frame_rate_denominator;
-
 	int source_width;
 	int source_height;
 	
@@ -68,6 +62,8 @@ struct krad_compositor_port_St {
 	
 	int io_params_updated;
 	int comp_params_updated;
+	
+	uint64_t start_timecode;
 	
 };
 
@@ -105,6 +101,8 @@ struct krad_compositor_St {
 	pthread_t display_thread;
 
 	int active_ports;
+	int active_output_ports;
+	int active_input_ports;		
 
 	krad_display_api_t pusher;
 	krad_ticker_t *krad_ticker;
@@ -113,6 +111,7 @@ struct krad_compositor_St {
 	pthread_t ticker_thread;
 
 	uint64_t frame_num;
+	uint64_t timecode;
 
 };
 
@@ -135,7 +134,6 @@ void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
 void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value);
 
 void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor_port,
-										   int frame_rate_numerator, int frame_rate_denominator,
 										   int width, int height);
 
 void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_compositor_port,
@@ -154,7 +152,6 @@ int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_p
 
 krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
-													 int frame_rate_numerator, int frame_rate_denominator,
 													 int width, int height);
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
 

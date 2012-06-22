@@ -850,7 +850,7 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	krad_mixer->tone_port = krad_mixer_portgroup_create (krad_mixer, "DTMF", INPUT, 2,
 										 				 krad_mixer->master_mix, KRAD_TONE, NULL, 0);
 	
-	krad_mixer_start_ticker (krad_mixer);
+	//krad_mixer_start_ticker (krad_mixer);
 
 	return krad_mixer;
 	

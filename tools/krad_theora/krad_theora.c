@@ -204,16 +204,39 @@ int krad_theora_encoder_write (krad_theora_encoder_t *krad_theora, unsigned char
 
 void krad_theora_decoder_decode(krad_theora_decoder_t *krad_theora, void *buffer, int len) {
 
-
+	int ret;
+	
 	//printf("theora decode with %d\n", len);
 	
 	krad_theora->packet.packet = buffer;
 	krad_theora->packet.bytes = len;
 	krad_theora->packet.packetno++;
 	
-	th_decode_packetin(krad_theora->decoder, &krad_theora->packet, &krad_theora->granulepos);
+	ret = th_decode_packetin (krad_theora->decoder, &krad_theora->packet, &krad_theora->granulepos);
 	
-	th_decode_ycbcr_out(krad_theora->decoder, krad_theora->ycbcr);
+	if (ret == 0) {
+		th_decode_ycbcr_out (krad_theora->decoder, krad_theora->ycbcr);
+	} else {
+	
+		printke ("theora decoder err! %d", ret);
+	
+		if (ret == TH_DUPFRAME) {
+			printke ("theora decoder DUPFRAME!");
+		}
+
+		if (ret == TH_EFAULT) {
+			printke ("theora decoder EFAULT!");
+		}
+		
+		if (ret == TH_EBADPACKET) {
+			printke ("theora decoder EBADPACKET!");
+		}
+		
+		if (ret == TH_EIMPL) {
+			printke ("theora decoder EIMPL!");
+		}
+	
+	}
 
 }
 

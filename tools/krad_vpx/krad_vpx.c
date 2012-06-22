@@ -149,8 +149,12 @@ void krad_vpx_decoder_decode (krad_vpx_decoder_t *kradvpx, void *buffer, int len
 	vpx_codec_get_stream_info (&kradvpx->decoder, &kradvpx->stream_info);
 	//printf("VPX Stream Info: W:%d H:%d KF:%d\n", kradvpx->stream_info.w, kradvpx->stream_info.h, 
 	//		  kradvpx->stream_info.is_kf);
-
-
+	
+	if (kradvpx->width == 0) {
+		kradvpx->width = kradvpx->stream_info.w;
+		kradvpx->height = kradvpx->stream_info.h;
+	}
+	/*
 	if (kradvpx->img == NULL) {
 	
 		kradvpx->width = kradvpx->stream_info.w;
@@ -162,9 +166,9 @@ void krad_vpx_decoder_decode (krad_vpx_decoder_t *kradvpx, void *buffer, int len
 		}
 	
 	}
-
+	*/
 	kradvpx->iter = NULL;
-	kradvpx->img = vpx_codec_get_frame(&kradvpx->decoder, &kradvpx->iter);
+	kradvpx->img = vpx_codec_get_frame (&kradvpx->decoder, &kradvpx->iter);
 
 }
 
