@@ -21,7 +21,7 @@ static void *krad_compositor_display_thread (void *arg) {
 							  &h);
 	
 	krad_compositor_port = krad_compositor_port_create (krad_compositor, "X11Out", OUTPUT,
-														60000, 1000, 
+														30000, 1000, 
 														w, h);
 	
 	krad_x11 = krad_x11_create ();
@@ -174,6 +174,13 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	if (krad_compositor->hex_size > 0) {
 		kradgui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
 		                    krad_compositor->hex_size);	
+	} else {
+	//	kradgui_render_selector (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
+	//	                    64);
+	
+	//	kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width / 2,
+	//	                      krad_compositor->krad_gui->height/3, 264, krad_system_get_cpu_usage ());
+	//
 	}
 	
 	if (krad_compositor->render_vu_meters > 0) {
@@ -393,17 +400,53 @@ krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_comp
 
 	krad_frame_t *krad_frame;
 	
+	uint64_t converted_frame_num;
+
+	if (krad_compositor_port->direction == INPUT) {
+
+		converted_frame_num = re_fps (krad_compositor_port->krad_compositor->frame_num,
+									  krad_compositor_port->krad_compositor->frame_rate_numerator,
+									  krad_compositor_port->krad_compositor->frame_rate_denominator,
+									  krad_compositor_port->frame_rate_numerator,
+									  krad_compositor_port->frame_rate_denominator);	
+		//printk ("INPUT port frame num %llu converted is %llu   - ", krad_compositor_port->krad_compositor->frame_num,
+		//														 converted_frame_num);
+		
+		
+		if (converted_frame_num != krad_compositor_port->last_frame_num) {
+	
+			krad_compositor_port->last_frame_num = converted_frame_num;	
+	
+			if (krad_compositor_port->last_frame != NULL) {
+				krad_framepool_unref_frame (krad_compositor_port->last_frame);
+				krad_compositor_port->last_frame = NULL;	
+			}
+	
+			if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
+				krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
 			
-	//		converted_frame_num = re_fps (krad_compositor->frame_num,
-	//									  krad_compositor->frame_rate_numerator,
-	//									  krad_compositor->frame_rate_denominator,
-	//									  25000,
-	//										  1000);	
+				krad_framepool_ref_frame (krad_frame);
+				krad_compositor_port->last_frame = krad_frame;
+			
+				return krad_frame;
+			}
 	
-	
-	if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
-		krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
-		return krad_frame;
+		} else {
+		
+			krad_compositor_port->last_frame_num = converted_frame_num;
+		
+			if (krad_compositor_port->last_frame != NULL) {
+				krad_framepool_ref_frame (krad_compositor_port->last_frame);
+				return krad_compositor_port->last_frame;
+			}
+		}
+		
+	} else {
+		
+		if (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= sizeof(krad_frame_t *)) {
+			krad_ringbuffer_read (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));			
+			return krad_frame;
+		}
 	}
 
 	return NULL;

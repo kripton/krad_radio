@@ -31,6 +31,8 @@ struct krad_frame_St {
 	cairo_surface_t *cst;
 	cairo_t *cr;	
 	
+	uint64_t timecode;	
+	
 };
 
 struct krad_framepool_St {

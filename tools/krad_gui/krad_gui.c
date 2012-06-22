@@ -681,6 +681,40 @@ void kradgui_render_viper (kradgui_t *kradgui, int x, int y, int size, int direc
 
 }
 
+void kradgui_render_selector (kradgui_t *kradgui, int x, int y, int w) {
+
+	cairo_t *cr;
+	
+	cr = kradgui->cr;	
+	
+	cairo_save (cr);
+		
+	cairo_set_line_width (cr, 1.5);
+	cairo_set_source_rgb (cr, BLUE);
+
+	cairo_translate (cr, x, y);
+
+	cairo_move_to (cr, 0, 0);
+	cairo_rel_line_to (cr, w, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+	cairo_rel_line_to (cr, w/4, 0);
+	cairo_rotate (cr, -60 * (M_PI/180.0));	
+	cairo_rel_line_to (cr, 0, w/1.5);
+	cairo_rotate (cr, 120 * (M_PI/180.0));
+	cairo_rel_line_to (cr, w/4, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));	
+	cairo_rel_line_to (cr, w, 0);
+	cairo_close_path (cr);
+	cairo_stroke_preserve (cr);
+	
+	cairo_set_source_rgba (cr, BLUE_TRANS);	
+	
+	cairo_fill (cr);	
+
+	cairo_restore (cr);
+
+}
+
 void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
 
 

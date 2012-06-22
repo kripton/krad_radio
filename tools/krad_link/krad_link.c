@@ -1520,9 +1520,7 @@ void *video_decoding_thread(void *arg) {
 			usleep(10000);
 		}
 	
-		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&timecode, 8);
-	
-		//printk ("frame timecode: %zu", timecode);
+		krad_ringbuffer_read (krad_link->encoded_video_ringbuffer, (char *)&timecode, 8);
 	
 		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)&bytes, 4);
 		
@@ -1530,21 +1528,24 @@ void *video_decoding_thread(void *arg) {
 			usleep(10000);
 		}
 		
-		krad_ringbuffer_read(krad_link->encoded_video_ringbuffer, (char *)buffer, bytes);
+		krad_ringbuffer_read (krad_link->encoded_video_ringbuffer, (char *)buffer, bytes);
+		
+		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+		while ((krad_frame == NULL) && (!krad_link->destroy)) {
+			usleep(10000);
+			krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
+		}
+
+		if (krad_link->destroy) {
+			break;
+		}		
 		
 		if (krad_link->video_codec == THEORA) {
 		
-			krad_theora_decoder_decode (krad_link->krad_theora_decoder, buffer, bytes);
-
-			krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-			while ((krad_frame == NULL) && (!krad_link->destroy)) {
-				usleep(10000);
-				krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
-			}
-			
-			if (krad_link->destroy) {
-				break;
-			}			
+			krad_theora_decoder_decode (krad_link->krad_theora_decoder, buffer, bytes);		
+			krad_theora_decoder_timecode (krad_link->krad_theora_decoder, &timecode2);			
+			///printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
+			timecode = timecode2;
 
 			krad_frame->format = PIX_FMT_YUV420P;
 
@@ -1555,43 +1556,23 @@ void *video_decoding_thread(void *arg) {
 			krad_frame->yuv_strides[0] = krad_link->krad_theora_decoder->ycbcr[0].stride;
 			krad_frame->yuv_strides[1] = krad_link->krad_theora_decoder->ycbcr[1].stride;
 			krad_frame->yuv_strides[2] = krad_link->krad_theora_decoder->ycbcr[2].stride;
-			
-			krad_theora_decoder_timecode(krad_link->krad_theora_decoder, &timecode2);
-			
-			///printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
-			
-			timecode = timecode2;
-			
-			krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-
-			krad_framepool_unref_frame (krad_frame);
 
 		}
 			
 		if (krad_link->video_codec == VP8) {
-			krad_vpx_decoder_decode(krad_link->krad_vpx_decoder, buffer, bytes);
+
+			krad_vpx_decoder_decode (krad_link->krad_vpx_decoder, buffer, bytes);
 				
 			if (krad_link->krad_vpx_decoder->img != NULL) {
 				
 				if (port_updated == 0) {
 					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
-														30000,
+														25000,
 														1000,
 														krad_link->krad_vpx_decoder->width,
 														krad_link->krad_vpx_decoder->height);
 																	
 					port_updated = 1;
-				}
-				
-				
-				krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-				while ((krad_frame == NULL) && (!krad_link->destroy)) {
-					usleep(10000);
-					krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
-				}
-				
-				if (krad_link->destroy) {
-					break;
 				}
 
 				krad_frame->format = PIX_FMT_YUV420P;
@@ -1603,10 +1584,6 @@ void *video_decoding_thread(void *arg) {
 				krad_frame->yuv_strides[0] = krad_link->krad_vpx_decoder->img->stride[0];
 				krad_frame->yuv_strides[1] = krad_link->krad_vpx_decoder->img->stride[1];
 				krad_frame->yuv_strides[2] = krad_link->krad_vpx_decoder->img->stride[2];
-
-				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-
-				krad_framepool_unref_frame (krad_frame);
 
 			}
 		}
@@ -1626,17 +1603,6 @@ void *video_decoding_thread(void *arg) {
 														krad_link->krad_dirac->frame->height);
 																	
 					port_updated = 1;
-				}				
-				
-				
-				krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-				while ((krad_frame == NULL) && (!krad_link->destroy)) {
-					usleep(10000);
-					krad_frame = krad_framepool_getframe (krad_link->krad_framepool);				
-				}
-
-				if (krad_link->destroy) {
-					break;
 				}
 				
 				if (krad_link->krad_dirac->frame->format == SCHRO_FRAME_FORMAT_U8_444) {
@@ -1655,14 +1621,17 @@ void *video_decoding_thread(void *arg) {
 	
 				krad_frame->yuv_strides[0] = krad_link->krad_dirac->frame->components[0].stride;
 				krad_frame->yuv_strides[1] = krad_link->krad_dirac->frame->components[1].stride;
-				krad_frame->yuv_strides[2] = krad_link->krad_dirac->frame->components[2].stride;					
-
-				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-
-				krad_framepool_unref_frame (krad_frame);
-
+				krad_frame->yuv_strides[2] = krad_link->krad_dirac->frame->components[2].stride;
 			}
 		}
+		
+		krad_frame->timecode = timecode;
+		printk ("frame timecode: %zu", krad_frame->timecode);		
+		
+		krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
+
+		krad_framepool_unref_frame (krad_frame);		
+		
 	}
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);

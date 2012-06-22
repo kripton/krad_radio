@@ -126,7 +126,7 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 				kradvpx->frames_since_keyframe++;
 			} else {
 				kradvpx->frames_since_keyframe = 0;
-				printkd ("keyframe is %d pts is -%ld-\n", *keyframe, kradvpx->pkt->data.frame.pts);
+				//printkd ("keyframe is %d pts is -%ld-\n", *keyframe, kradvpx->pkt->data.frame.pts);
 			}
 			return kradvpx->pkt->data.frame.sz;
 		}

@@ -35,9 +35,14 @@ struct krad_compositor_port_St {
 	
 	krad_frame_t *krad_frame;	
 	
+	krad_frame_t *last_frame;		
+	
 	krad_ringbuffer_t *frame_ring;
 	
 	int mjpeg;
+
+
+	uint64_t last_frame_num;
 
 	int frame_rate_numerator;
 	int frame_rate_denominator;

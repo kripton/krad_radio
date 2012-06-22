@@ -21,6 +21,7 @@
 
 // device colors
 #define BLUE 0.0, 0.152 / 0.255 * 1.0, 0.212 / 0.255 * 1.0
+#define BLUE_TRANS 0.0, 0.152 / 0.255 * 1.0, 0.212 / 0.255 * 1.0, 0.255
 #define GREEN  0.001 / 0.255 * 1.0, 0.187 / 0.255 * 1.0, 0.0
 #define LGREEN  0.001 / 0.255 * 1.0, 0.187 / 0.255 * 1.0, 0.0, 0.044 / 0.255 * 1.0
 #define WHITE 0.222 / 0.255 * 1.0, 0.232 / 0.255 * 1.0, 0.233 / 0.255 * 1.0
@@ -221,6 +222,8 @@ struct kradgui_playback_state_status_St {
 	kradgui_t *kradgui;
 
 };
+
+void kradgui_render_selector (kradgui_t *kradgui, int x, int y, int w);
 
 void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w);
 void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y);
