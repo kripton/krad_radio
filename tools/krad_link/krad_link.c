@@ -537,7 +537,7 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 	krad_link_t *krad_link = (krad_link_t *)userdata;
 	
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
-		if ((krad_link->playing == 1) && 
+		if ((krad_link->playing > 0) && 
 			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
 			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[1]) >= frames * 4)) {
 			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
@@ -545,6 +545,10 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 		} else {
 			memset(samples[0], '0', frames * 4);
 			memset(samples[1], '0', frames * 4);
+			
+			if (krad_link->playing == 3) {
+				krad_link->destroy = 1;
+			}
 		}
 	}
 
@@ -1265,6 +1269,10 @@ void *stream_input_thread (void *arg) {
 			
 		}
 	}
+	
+	
+	krad_link->playing = 3;
+	
 	
 	printk ("");
 	printk ("Input/Demuxing thread exiting");
