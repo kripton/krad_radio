@@ -1539,7 +1539,7 @@ void *video_decoding_thread(void *arg) {
 		
 			krad_theora_decoder_decode (krad_link->krad_theora_decoder, buffer, bytes);		
 			krad_theora_decoder_timecode (krad_link->krad_theora_decoder, &timecode2);			
-			printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
+			//printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
 			timecode = timecode2;
 
 			krad_frame->format = PIX_FMT_YUV420P;
