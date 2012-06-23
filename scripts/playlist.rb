@@ -31,5 +31,6 @@ def play_dir (playlist_dir)
 			puts ""
 			sleep duration
 		end
+		`krad_radio radio1 rm 3`
 	end
 end
