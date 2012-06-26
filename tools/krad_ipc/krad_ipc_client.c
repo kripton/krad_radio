@@ -534,7 +534,7 @@ void krad_ipc_disable_osc (krad_ipc_client_t *client) {
 
 }
 
-void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction) {
+void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction, int channels) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -546,7 +546,7 @@ void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, cha
 
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION, direction);
-	
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS, channels);
 	krad_ebml_finish_element (client->krad_ebml, create);
 	krad_ebml_finish_element (client->krad_ebml, command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
@@ -610,6 +610,35 @@ void krad_ipc_mixer_update_portgroup_map_channel (krad_ipc_client_t *client, cha
 
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_MAP_CHANNEL, &map);
+	krad_ebml_finish_element (client->krad_ebml, map);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CHANNEL, in_channel);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CHANNEL, out_channel);
+	
+	
+	
+	krad_ebml_finish_element (client->krad_ebml, update);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_mixer_update_portgroup_mixmap_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t update;
+	uint64_t map;
+
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_UPDATE_PORTGROUP, &update);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_MIXMAP_CHANNEL, &map);
 	krad_ebml_finish_element (client->krad_ebml, map);
 
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CHANNEL, in_channel);

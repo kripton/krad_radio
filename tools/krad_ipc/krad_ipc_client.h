@@ -79,6 +79,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text);
 
 void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string);
 void krad_ipc_mixer_update_portgroup_map_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel);
+void krad_ipc_mixer_update_portgroup_mixmap_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel);
 
 void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *filename);
 void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size);
@@ -92,7 +93,7 @@ void krad_ipc_mixer_bind_portgroup_xmms2 (krad_ipc_client_t *client, char *portg
 void krad_ipc_mixer_unbind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname);
 
 // FIXME creation is functionally incomplete
-void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction);
+void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction, int channels);
 void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *portgroupname);
 
 void krad_ipc_disable_remote (krad_ipc_client_t *client);

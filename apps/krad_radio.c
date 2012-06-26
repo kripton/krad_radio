@@ -162,14 +162,20 @@ int main (int argc, char *argv[]) {
 			
 			if (strncmp(argv[2], "input", 5) == 0) {
 				if (argc == 4) {
-					krad_ipc_mixer_create_portgroup (client, argv[3], "input");
+					krad_ipc_mixer_create_portgroup (client, argv[3], "input", 2);
 				}
+				if (argc == 5) {
+					krad_ipc_mixer_create_portgroup (client, argv[3], "input", atoi (argv[4]));
+				}				
 			}			
 
 			if (strncmp(argv[2], "output", 6) == 0) {
 				if (argc == 4) {
-					krad_ipc_mixer_create_portgroup (client, argv[3], "output");
+					krad_ipc_mixer_create_portgroup (client, argv[3], "output", 2);
 				}
+				if (argc == 5) {
+					krad_ipc_mixer_create_portgroup (client, argv[3], "output", atoi (argv[4]));
+				}				
 			}
 
 			if (strncmp(argv[2], "unplug", 6) == 0) {
@@ -183,6 +189,12 @@ int main (int argc, char *argv[]) {
 					krad_ipc_mixer_update_portgroup_map_channel (client, argv[3], atoi(argv[4]), atoi(argv[5]));
 				}
 			}
+			
+			if (strncmp(argv[2], "mixmap", 3) == 0) {
+				if (argc == 6) {
+					krad_ipc_mixer_update_portgroup_mixmap_channel (client, argv[3], atoi(argv[4]), atoi(argv[5]));
+				}
+			}			
 			
 			if (strncmp(argv[2], "xfade", 5) == 0) {
 				if (argc == 4) {

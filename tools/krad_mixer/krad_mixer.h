@@ -59,7 +59,8 @@ struct krad_mixer_portgroup_St {
 	krad_mixer_mixbus_t *mixbus;
 	krad_mixer_crossfade_group_t *crossfade_group;
 	
-	int map[KRAD_MIXER_MAX_CHANNELS];	
+	int map[KRAD_MIXER_MAX_CHANNELS];
+	int mixmap[KRAD_MIXER_MAX_CHANNELS];	
 	
 	float volume[KRAD_MIXER_MAX_CHANNELS];
 	float volume_actual[KRAD_MIXER_MAX_CHANNELS];

@@ -181,7 +181,7 @@ struct krad_link_St {
 	int video_track;
 	int audio_track;
 
-	int audio_channels;
+	int channels;
 
 	pthread_t main_thread;
 	pthread_t video_capture_thread;
