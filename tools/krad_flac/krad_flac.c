@@ -1,5 +1,7 @@
 #include "krad_flac.h"
 
+/* Encoding */
+
 int krad_flac_encoder_finish (krad_flac_t *flac, unsigned char *encode_buffer) {
 
 	flac->bytes = 0;
@@ -33,68 +35,61 @@ void krad_flac_encoder_destroy (krad_flac_t *flac) {
 	free(flac);
 }
 
-krad_flac_t *krad_flac_encoder_create(int channels, int sample_rate, int bit_depth) {
 
-	krad_flac_t *flac = calloc(1, sizeof(krad_flac_t));
+krad_flac_t *krad_flac_encoder_create (int channels, int sample_rate, int bit_depth) {
+
+	krad_flac_t *flac = calloc (1, sizeof(krad_flac_t));
 	
 	flac->channels = channels;
 	flac->sample_rate = sample_rate;
 	flac->bit_depth = bit_depth;
 	
-	flac->encoder = FLAC__stream_encoder_new();
+	flac->encoder = FLAC__stream_encoder_new ();
 
 	FLAC__stream_encoder_set_channels (flac->encoder, flac->channels);
 	FLAC__stream_encoder_set_bits_per_sample (flac->encoder, flac->bit_depth);
 	FLAC__stream_encoder_set_sample_rate (flac->encoder, flac->sample_rate);
 	FLAC__stream_encoder_set_compression_level	(flac->encoder, 7);
 
-	if (0) {
-		FLAC__stream_encoder_init_file (flac->encoder, "/home/oneman/kode/testfile6.flac", NULL, NULL);
-	} else {
+	FLAC__StreamEncoderInitStatus ret = 
+	FLAC__stream_encoder_init_stream (flac->encoder, 
+									  (FLAC__StreamEncoderWriteCallback) krad_flac_encoder_write_callback,
+									  (FLAC__StreamEncoderSeekCallback) krad_flac_encoder_seek_callback,
+									  (FLAC__StreamEncoderTellCallback) krad_flac_encoder_tell_callback,
+									  NULL, flac);
 
-		FLAC__StreamEncoderInitStatus ret = 
-		FLAC__stream_encoder_init_stream (flac->encoder, 
-										  (FLAC__StreamEncoderWriteCallback) krad_flac_encoder_write_callback,
-										  (FLAC__StreamEncoderSeekCallback) krad_flac_encoder_seek_callback,
-										  (FLAC__StreamEncoderTellCallback) krad_flac_encoder_tell_callback,
-										  NULL, flac);
-
-		if (ret != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-			failfast ("Flac encoder init fail\n");
-		}
+	if (ret != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
+		failfast ("Flac encoder init fail\n");
 	}
 
 	return flac;
 	
 }
 
-FLAC__StreamEncoderSeekStatus krad_flac_encoder_seek_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data) {
+
+FLAC__StreamEncoderSeekStatus krad_flac_encoder_seek_callback (const FLAC__StreamEncoder *encoder,
+															   FLAC__uint64 absolute_byte_offset, void *client_data) {
 
 	krad_flac_t *flac = (krad_flac_t *)client_data;
 	
-	//printfkd("got seek callback %lu\n", absolute_byte_offset);
-	
+	//printfkd("got seek callback %lu\n", absolute_byte_offset);	
 	if (absolute_byte_offset < 666 + 23) {
-	
 		flac->streaminfo_rewrite = absolute_byte_offset - 666;
 		return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
-		
 	} else {
-	
 	     return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
 	}
-
 }
+
  
-FLAC__StreamEncoderTellStatus krad_flac_encoder_tell_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data) {
+FLAC__StreamEncoderTellStatus krad_flac_encoder_tell_callback (const FLAC__StreamEncoder *encoder,
+															   FLAC__uint64 *absolute_byte_offset, void *client_data) {
 
 	*absolute_byte_offset = 666;
-
 	//printf("got tell callback\n");
-
 	return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
-
 }
+
 
 FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback ( 
 	const FLAC__StreamEncoder *encoder, const FLAC__byte fbuffer[], 
@@ -112,28 +107,28 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 	}
 	
 	// Initial streaminfo block
-	if ((samples == 0) && (flac->have_min_header == 0) && (bytes == FLAC_STREAMINFO_BLOCK_SIZE)) {
+	if ((samples == 0) && (flac->have_min_header == 0) && (bytes == KRAD_FLAC_STREAMINFO_BLOCK_SIZE)) {
 		// flac METADATA_BLOCK_STREAMINFO
-		memcpy(flac->streaminfo_block, fbuffer, FLAC_STREAMINFO_BLOCK_SIZE);
-		memcpy(flac->header, FLAC_MARKER, 4);
-		memcpy(flac->header + 4, flac->streaminfo_block, FLAC_STREAMINFO_BLOCK_SIZE);
+		memcpy(flac->streaminfo_block, fbuffer, KRAD_FLAC_STREAMINFO_BLOCK_SIZE);
+		memcpy(flac->header, KRAD_FLAC_MARKER, 4);
+		memcpy(flac->header + 4, flac->streaminfo_block, KRAD_FLAC_STREAMINFO_BLOCK_SIZE);
 
-		memcpy(flac->min_header, flac->header, FLAC_MINIMAL_HEADER_SIZE);
+		memcpy(flac->min_header, flac->header, KRAD_FLAC_MINIMAL_HEADER_SIZE);
 
 		// the following marks the streaminfo block as the final metadata block
 		// for the minimal header only!
 		flac->min_header[4] = '\x80';
 
-		flac->header_size = FLAC_MINIMAL_HEADER_SIZE;
+		flac->header_size = KRAD_FLAC_MINIMAL_HEADER_SIZE;
 		flac->have_min_header = 1;
 		
 		// combined header just has fLaC + streaminfo and is marked as final metadata
 		flac->krad_codec_header.header_combined = flac->min_header;
-		flac->krad_codec_header.header_combined_size = FLAC_MINIMAL_HEADER_SIZE;		
+		flac->krad_codec_header.header_combined_size = KRAD_FLAC_MINIMAL_HEADER_SIZE;		
 		
 		//split headers are 1 = fLaC + streaminfo not marked as final and 2 = a vorbis comment
 		flac->krad_codec_header.header[0] = flac->header;
-		flac->krad_codec_header.header_size[0] = FLAC_MINIMAL_HEADER_SIZE;
+		flac->krad_codec_header.header_size[0] = KRAD_FLAC_MINIMAL_HEADER_SIZE;
 		
 		//flac->krad_codec_header.header[1] = "\x84\x00\x00\x11\x09\x00\x00\x00KradRadio\x00\x00\x00\x00";
 		//flac->krad_codec_header.header_size[1] = 4 + 4 + 9 + 4;
@@ -197,10 +192,10 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		}
 
 		memcpy(flac->streaminfo_block + flac->streaminfo_rewrite, fbuffer, bytes);
-		memcpy(flac->min_header + 4, flac->streaminfo_block, FLAC_STREAMINFO_BLOCK_SIZE);
+		memcpy(flac->min_header + 4, flac->streaminfo_block, KRAD_FLAC_STREAMINFO_BLOCK_SIZE);
 		// the following marks the streaminfo block as the final metadata block
 		flac->min_header[4] = '\x80';
-		memcpy(flac->header + 4, flac->streaminfo_block, FLAC_STREAMINFO_BLOCK_SIZE);
+		memcpy(flac->header + 4, flac->streaminfo_block, KRAD_FLAC_STREAMINFO_BLOCK_SIZE);
 		*/
 		flac->streaminfo_rewrite = 0;
 	}
@@ -213,11 +208,13 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 	
 }
 
+
 int krad_flac_encoder_frames_remaining(krad_flac_t *flac) {
 
 	return flac->total_frames_input - flac->total_frames;
 
 }
+
 
 void krad_flac_encode_info (krad_flac_t *flac) {
 
@@ -229,28 +226,15 @@ void krad_flac_encode_info (krad_flac_t *flac) {
 	printk ("\n");
 }
 
-void krad_flac_encode_test (krad_flac_t *flac) {
-
-	int test_frame_count;
-	char *samples;
-	
-	test_frame_count = 4096;
-	
-	samples = calloc(1, flac->channels * test_frame_count * 4);
-
-	FLAC__stream_encoder_process_interleaved(flac->encoder, (const FLAC__int32 *)samples, test_frame_count);
-
-	free(samples);
-
-}
 
 int krad_flac_encoder_read_min_header(krad_flac_t *flac, unsigned char *buffer) {
 
-	memcpy(buffer, flac->min_header, FLAC_MINIMAL_HEADER_SIZE);
+	memcpy(buffer, flac->min_header, KRAD_FLAC_MINIMAL_HEADER_SIZE);
 
-	return FLAC_MINIMAL_HEADER_SIZE;
+	return KRAD_FLAC_MINIMAL_HEADER_SIZE;
 
 }
+
 
 int krad_flac_encoder_read_header(krad_flac_t *flac, unsigned char *buffer) {
 
@@ -297,9 +281,7 @@ int krad_flac_encode(krad_flac_t *flac, float *audio, int frames, unsigned char 
 }
 
 
-
-
-/********* decoder ***/
+/* Decoding */
 
 
 void krad_flac_decoder_int24_to_float_array (const int *in, float *out, int len) {
@@ -463,7 +445,7 @@ void krad_flac_decoder_destroy(krad_flac_t *flac) {
 	FLAC__stream_decoder_finish ( flac->decoder );
 	FLAC__stream_decoder_delete ( flac->decoder );
 
-	free(flac);
+	free (flac);
 
 }
 

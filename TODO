@@ -1,5 +1,4 @@
 # Prerelease
-	ticker compositor driver
 	set resolution+fps for capture/compositor/encoder
 	Wayland support optional
 	Help in command line
@@ -25,16 +24,10 @@ Fixes:
 	
 # Audio I/O
 	ALSA/Pulseaudio support need update
-	Resample to mixer sampler rate when decoding - resampler ring
 
 # Krad EBML
 	Logging/Debug callback, nestegg compatible
 	fail cleanly without exit()
-	
-# Compositor
-	frame PTS
-	port scale/crop/position
-	multiport
 	
 # Transmitter
 	Proper ringloopin
@@ -46,5 +39,4 @@ Fixes:
 	EQ
 	Sidechain for mics
 	Limiter
-	Any channel count
 	

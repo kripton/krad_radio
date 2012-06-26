@@ -12,14 +12,10 @@
 #include "krad_system.h"
 #include "krad_codec_header.h"
 
-#define MAX_CHANNELS 8
-#ifndef RINGBUFFER_SIZE
-#define RINGBUFFER_SIZE 2000000
-#endif
-#define FLAC_MINIMAL_HEADER_SIZE 42
-#define FLAC_STREAMINFO_BLOCK_SIZE 38
-#define FLAC_MARKER "fLaC"
-#define DEFAULT_FLAC_FRAME_SIZE 4096
+#define KRAD_FLAC_MINIMAL_HEADER_SIZE 42
+#define KRAD_FLAC_STREAMINFO_BLOCK_SIZE 38
+#define KRAD_FLAC_MARKER "fLaC"
+#define KRAD_DEFAULT_FLAC_FRAME_SIZE 4096
 
 typedef struct krad_flac_St krad_flac_t;
 
@@ -65,6 +61,8 @@ struct krad_flac_St {
 	float **output_buffer;
 };
 
+/* Encoding */
+
 FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback ( 
 	const FLAC__StreamEncoder *encoder, const FLAC__byte fbuffer[], 
 	unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -74,29 +72,17 @@ FLAC__StreamEncoderSeekStatus krad_flac_encoder_seek_callback (const FLAC__Strea
 FLAC__StreamEncoderTellStatus krad_flac_encoder_tell_callback (const FLAC__StreamEncoder *encoder, 
 															   FLAC__uint64 *absolute_byte_offset, void *client_data);
 
-int krad_flac_encode(krad_flac_t *flac, float *audio, int frames, unsigned char *encode_buffer);
-void krad_flac_encode_test(krad_flac_t *flac);
-int krad_flac_encoder_frames_remaining(krad_flac_t *flac);
-void krad_flac_encode_info(krad_flac_t *flac);
-int krad_flac_encoder_read_header(krad_flac_t *flac, unsigned char *buffer);
-int krad_flac_encoder_read_min_header(krad_flac_t *flac, unsigned char *buffer);
-int krad_flac_encoder_finish(krad_flac_t *flac, unsigned char *encode_buffer);
-void krad_flac_encoder_destroy(krad_flac_t *flac);
-krad_flac_t *krad_flac_encoder_create(int channels, int sample_rate, int bit_depth);
+int krad_flac_encode (krad_flac_t *flac, float *audio, int frames, unsigned char *encode_buffer);
+int krad_flac_encoder_frames_remaining (krad_flac_t *flac);
+void krad_flac_encode_info (krad_flac_t *flac);
+int krad_flac_encoder_read_header (krad_flac_t *flac, unsigned char *buffer);
+int krad_flac_encoder_read_min_header (krad_flac_t *flac, unsigned char *buffer);
+int krad_flac_encoder_finish (krad_flac_t *flac, unsigned char *encode_buffer);
+void krad_flac_encoder_destroy (krad_flac_t *flac);
+krad_flac_t *krad_flac_encoder_create (int channels, int sample_rate, int bit_depth);
 
 
-
-
-
-krad_flac_t *krad_flac_decoder_create();
-void krad_flac_decoder_destroy(krad_flac_t *flac);
-
-int krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float **audio);
-
-void krad_flac_decoder_int24_to_float_array (const int *in, float *out, int len);
-void krad_flac_decoder_int16_to_float_array (const int *in, float *out, int len);
-
-void krad_flac_decoder_info(krad_flac_t *flac);
+/* Decoding */
 
 void krad_flac_decoder_callback_error (const FLAC__StreamDecoder *flacdecoder, 
 									   FLAC__StreamDecoderErrorStatus status, void *client_data);
@@ -108,4 +94,11 @@ FLAC__StreamDecoderWriteStatus krad_flac_decoder_callback_write (const FLAC__Str
 
 FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__StreamDecoder *flacdecoder,
 															   FLAC__byte fbuffer[], size_t *bytes, void *client_data);
+
+int krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float **audio);
+void krad_flac_decoder_int24_to_float_array (const int *in, float *out, int len);
+void krad_flac_decoder_int16_to_float_array (const int *in, float *out, int len);
+void krad_flac_decoder_info(krad_flac_t *flac);
+krad_flac_t *krad_flac_decoder_create ();
+void krad_flac_decoder_destroy (krad_flac_t *flac);
 																				   

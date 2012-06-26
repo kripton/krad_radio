@@ -594,7 +594,7 @@ void *audio_encoding_thread (void *arg) {
 
 	printk ("Audio encoding thread starting");
 	
-	krad_link->channels = 2;	
+	krad_link->channels = 2;
 	
 	//if (krad_link->audio_codec == FLAC) {
 	//	krad_link->channels = 4;
@@ -626,7 +626,7 @@ void *audio_encoding_thread (void *arg) {
 			krad_link->krad_flac = krad_flac_encoder_create (krad_link->channels,
 															 krad_link->krad_radio->krad_mixer->sample_rate,
 															 24);
-			framecnt = DEFAULT_FLAC_FRAME_SIZE;
+			framecnt = KRAD_DEFAULT_FLAC_FRAME_SIZE;
 			break;
 		case OPUS:
 			krad_link->krad_opus = kradopus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate,
