@@ -622,10 +622,10 @@ void *audio_encoding_thread (void *arg) {
 			framecnt = KRAD_DEFAULT_FLAC_FRAME_SIZE;
 			break;
 		case OPUS:
-			krad_link->krad_opus = krad_opus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate,
-															krad_link->channels,
-															KRAD_DEFAULT_OPUS_BITRATE,
-															OPUS_APPLICATION_AUDIO);
+			krad_link->krad_opus = krad_opus_encoder_create (krad_link->channels,
+															 krad_link->krad_radio->krad_mixer->sample_rate,
+															 KRAD_DEFAULT_OPUS_BITRATE,
+															 OPUS_APPLICATION_AUDIO);
 			framecnt = KRAD_MIN_OPUS_FRAME_SIZE;
 			break;
 		default:

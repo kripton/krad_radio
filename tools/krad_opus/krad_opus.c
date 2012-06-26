@@ -23,7 +23,7 @@ void krad_opus_encoder_destroy (krad_opus_t *krad_opus) {
 
 }
 
-krad_opus_t *krad_opus_encoder_create (float input_sample_rate, int channels, int bitrate, int application) {
+krad_opus_t *krad_opus_encoder_create (int channels, int input_sample_rate, int bitrate, int application) {
 
 	krad_opus_t *opus = calloc(1, sizeof(krad_opus_t));
 
