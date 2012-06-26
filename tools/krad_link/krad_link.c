@@ -642,10 +642,10 @@ void *audio_encoding_thread (void *arg) {
 
 				for (c = 0; c < krad_link->channels; c++) {
 					krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)samples[c], (framecnt * 4) );
-					krad_opus_write_audio (krad_link->krad_opus, c + 1, (char *)samples[c], framecnt * 4);
+					krad_opus_encoder_write (krad_link->krad_opus, c + 1, (char *)samples[c], framecnt * 4);
 				}
 
-				bytes = krad_opus_read_opus (krad_link->krad_opus, buffer, &framecnt);
+				bytes = krad_opus_encoder_read (krad_link->krad_opus, buffer, &framecnt);
 			}
 			
 			if (krad_link->audio_codec == FLAC) {
@@ -674,7 +674,7 @@ void *audio_encoding_thread (void *arg) {
 					bytes = 0;
 					
 					if (krad_link->audio_codec == OPUS) {
-						bytes = krad_opus_read_opus (krad_link->krad_opus, buffer, &framecnt);
+						bytes = krad_opus_encoder_read (krad_link->krad_opus, buffer, &framecnt);
 					}
 				}
 			}
@@ -1875,13 +1875,13 @@ void *audio_decoding_thread(void *arg) {
 			
 		if (krad_link->audio_codec == OPUS) {
 
-			krad_opus_write_opus (krad_link->krad_opus, buffer, bytes);
+			krad_opus_decoder_write (krad_link->krad_opus, buffer, bytes);
 			
 			bytes = -1;
 
 			while (bytes != 0) {
 				for (c = 0; c < 2; c++) {
-					bytes = krad_opus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 120 * 4);
+					bytes = krad_opus_decoder_read (krad_link->krad_opus, c + 1, (char *)audio, 120 * 4);
 					if (bytes) {
 						if ((bytes / 4) != 120) {
 							failfast ("uh oh crazyto");

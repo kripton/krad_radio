@@ -95,6 +95,9 @@ struct krad_opus_St {
 	
 };
 
+
+/* Encoding */
+
 int krad_opus_get_bitrate (krad_opus_t *krad_opus);
 int krad_opus_get_complexity (krad_opus_t *krad_opus);
 int krad_opus_get_frame_size (krad_opus_t *krad_opus);
@@ -107,12 +110,15 @@ void krad_opus_set_bitrate (krad_opus_t *krad_opus, int bitrate);
 void krad_opus_set_signal (krad_opus_t *krad_opus, int signal);
 void krad_opus_set_bandwidth (krad_opus_t *krad_opus, int bandwidth);
 
-krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
-void krad_opus_decoder_destroy (krad_opus_t *krad_opus);
-int krad_opus_read_audio (krad_opus_t *krad_opus, int channel, char *buffer, int buffer_length);
-int krad_opus_write_opus (krad_opus_t *krad_opus, unsigned char *buffer, int length);
-
-int krad_opus_read_opus (krad_opus_t *krad_opus, unsigned char *buffer, int *nframes);
-int krad_opus_write_audio (krad_opus_t *krad_opus, int channel, char *buffer, int buffer_length);
+int krad_opus_encoder_read (krad_opus_t *krad_opus, unsigned char *buffer, int *nframes);
+int krad_opus_encoder_write (krad_opus_t *krad_opus, int channel, char *buffer, int buffer_length);
 void krad_opus_encoder_destroy (krad_opus_t *krad_opus);
 krad_opus_t *krad_opus_encoder_create (float input_sample_rate, int channels, int bitrate, int application);
+
+
+/* Decoding */
+
+krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
+void krad_opus_decoder_destroy (krad_opus_t *krad_opus);
+int krad_opus_decoder_read (krad_opus_t *krad_opus, int channel, char *buffer, int buffer_length);
+int krad_opus_decoder_write (krad_opus_t *krad_opus, unsigned char *buffer, int length);
