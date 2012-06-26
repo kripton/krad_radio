@@ -64,6 +64,7 @@ extern krad_system_t krad_system;
 struct krad_radio_St {
 
 	char *sysname;
+	char *dir;
 	
 	krad_ipc_server_t *krad_ipc;
 	krad_osc_t *krad_osc;	

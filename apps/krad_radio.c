@@ -123,7 +123,13 @@ int main (int argc, char *argv[]) {
 				if (argc == 3) {
 					krad_ipc_disable_osc (client);
 				}
-			}					
+			}
+			
+			if (strncmp(argv[2], "setdir", 6) == 0) {
+				if (argc == 4) {
+					krad_ipc_radio_set_dir (client, argv[3]);
+				}
+			}		
 			
 			/* Krad Mixer Commands */
 			
@@ -344,7 +350,13 @@ int main (int argc, char *argv[]) {
 													   atoi(argv[6]), atoi(argv[7]), atof(argv[8]));
 					krad_ipc_print_response (client);
 				}
-			}			
+			}
+			
+			if (strncmp(argv[2], "snap", 4) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_snapshot (client);
+				}
+			}					
 			
 			if (strncmp(argv[2], "comp", 4) == 0) {
 				if (argc == 3) {

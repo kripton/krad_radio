@@ -1,6 +1,7 @@
 #include "krad_radio.h"
 
 static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item );
+static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir );
 static void krad_radio_destroy (krad_radio_t *krad_radio);
 static krad_radio_t *krad_radio_create (char *sysname);
 static void krad_radio_run (krad_radio_t *krad_radio);
@@ -164,6 +165,20 @@ static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_sta
 	}
 
 	return NULL;
+
+}
+
+static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir ) {
+
+	if (krad_radio_station->dir != NULL) {
+		free (krad_radio_station->dir);
+	}
+	
+	krad_radio_station->dir = strdup (dir);
+
+	if (krad_radio_station->krad_compositor != NULL) {
+		krad_compositor_set_dir (krad_radio_station->krad_compositor, krad_radio_station->dir);
+	}
 
 }
 
@@ -398,6 +413,22 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_INFO, krad_system_daemon_info());
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			return 1;
+			
+		case EBML_ID_KRAD_RADIO_CMD_SET_DIR:
+			
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_DIR) {
+				printke ("hrm wtf6");
+			}
+			
+			krad_ebml_read_string (krad_radio_station->krad_ipc->current_client->krad_ebml, tag_value_actual, ebml_data_size);
+			
+			if (strlen(tag_value_actual)) {
+				krad_radio_set_dir ( krad_radio_station, tag_value_actual );
+			}
+			
+			return 0;			
 			
 		default:
 			printke ("Krad Radio Command Unknown! %u", command);

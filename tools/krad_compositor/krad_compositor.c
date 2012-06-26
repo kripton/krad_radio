@@ -203,9 +203,61 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		}
 	}
 	
+	if (krad_compositor->snapshot > 0) {
+		krad_compositor_take_snapshot (krad_compositor, composite_frame);
+	}
+	
 	krad_framepool_unref_frame (composite_frame);
 	
 }
+
+void *krad_compositor_snapshot_thread (void *arg) {
+
+	krad_compositor_snapshot_t *krad_compositor_snapshot = (krad_compositor_snapshot_t *)arg;
+	
+	printk ("SNAPPY! %s", krad_compositor_snapshot->filename);
+	
+	cairo_surface_write_to_png (krad_compositor_snapshot->krad_frame->cst, krad_compositor_snapshot->filename);
+	
+	krad_framepool_unref_frame (krad_compositor_snapshot->krad_frame);
+	free (krad_compositor_snapshot);
+
+	return NULL;
+
+}
+
+void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame) {
+		
+	krad_compositor_snapshot_t *krad_compositor_snapshot;
+
+	krad_compositor->snapshot--;
+
+	if (krad_compositor->dir == NULL) {	
+		return;
+	}
+
+	krad_framepool_ref_frame (krad_frame);
+
+		
+	krad_compositor_snapshot = calloc (1, sizeof (krad_compositor_snapshot_t));
+	
+	krad_compositor_snapshot->krad_frame = krad_frame;
+	
+	sprintf (krad_compositor_snapshot->filename,
+			 "%s/snapshot_%zu_%"PRIu64".png",
+			 krad_compositor->dir,
+			 time (NULL),
+			 krad_compositor->frame_num);
+	
+	pthread_create (&krad_compositor->snapshot_thread,
+					NULL,
+					krad_compositor_snapshot_thread,
+				    (void *)krad_compositor_snapshot);
+
+	pthread_detach (krad_compositor->snapshot_thread);
+
+}
+
 
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 
@@ -748,6 +800,15 @@ void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
 	
 }
 
+void krad_compositor_set_dir (krad_compositor_t *krad_compositor, char *dir) {
+
+	if (krad_compositor->dir != NULL) {
+		free (krad_compositor->dir);
+	}
+
+	krad_compositor->dir = strdup (dir);
+
+}
 
 void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value) {
 	
@@ -858,7 +919,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 			
 			krad_compositor_port_set_comp_params (&krad_compositor->port[numbers[0]],
-										   		  numbers[3], numbers[4], numbers[1], numbers[2], 
+										   		  numbers[3], numbers[4], numbers[1], numbers[2],
 												  numbers[3],
 												  numbers[4],
 												  krad_compositor->port[numbers[0]].crop_x,
@@ -876,6 +937,10 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_INFO, string);
 			krad_ipc_server_response_finish ( krad_ipc, response);
 		
+			break;
+
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT:
+			krad_compositor->snapshot++;
 			break;
 			
 		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_MODE:

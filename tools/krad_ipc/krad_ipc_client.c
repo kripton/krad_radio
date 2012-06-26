@@ -576,6 +576,25 @@ void krad_ipc_mixer_push_tone (krad_ipc_client_t *client, char *tone) {
 
 }
 
+void krad_ipc_radio_set_dir (krad_ipc_client_t *client, char *dir) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t setdir;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_SET_DIR, &setdir);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_DIR, dir);
+	
+	krad_ebml_finish_element (client->krad_ebml, setdir);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
 
 
 void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string) {
@@ -803,6 +822,26 @@ void krad_ipc_radio_info (krad_ipc_client_t *client) {
 
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_INFO, &info_command);
 	krad_ebml_finish_element (client->krad_ebml, info_command);
+
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);	
+	
+}
+
+void krad_ipc_compositor_snapshot (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t snap_command;
+	command = 0;
+	snap_command = 0;
+	
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT, &snap_command);
+	krad_ebml_finish_element (client->krad_ebml, snap_command);
 
 	krad_ebml_finish_element (client->krad_ebml, command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);

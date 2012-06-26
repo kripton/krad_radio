@@ -24,6 +24,14 @@ typedef enum {
 
 typedef struct krad_compositor_St krad_compositor_t;
 typedef struct krad_compositor_port_St krad_compositor_port_t;
+typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
+
+struct krad_compositor_snapshot_St {
+
+	krad_frame_t *krad_frame;
+	char filename[512];
+
+};
 
 struct krad_compositor_port_St {
 
@@ -78,6 +86,11 @@ struct krad_compositor_St {
 
 	int frame_rate_numerator;
 	int frame_rate_denominator;
+
+	char *dir;
+	
+	int snapshot;
+	pthread_t snapshot_thread;	
 
 	int hex_x;
 	int hex_y;
@@ -164,5 +177,11 @@ void krad_compositor_destroy (krad_compositor_t *compositor);
 krad_compositor_t *krad_compositor_create (int width, int height,
 										   int frame_rate_numerator, int frame_rate_denominator);
 
+
+void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame);
+void *krad_compositor_snapshot_thread (void *arg);
+
+
+void krad_compositor_set_dir (krad_compositor_t *krad_compositor, char *dir);
 
 #endif
