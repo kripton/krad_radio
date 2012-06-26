@@ -59,6 +59,8 @@ struct krad_mixer_portgroup_St {
 	krad_mixer_mixbus_t *mixbus;
 	krad_mixer_crossfade_group_t *crossfade_group;
 	
+	int map[KRAD_MIXER_MAX_CHANNELS];	
+	
 	float volume[KRAD_MIXER_MAX_CHANNELS];
 	float volume_actual[KRAD_MIXER_MAX_CHANNELS];
 	float new_volume_actual[KRAD_MIXER_MAX_CHANNELS];
@@ -66,6 +68,8 @@ struct krad_mixer_portgroup_St {
 
 	float peak[KRAD_MIXER_MAX_CHANNELS];
 	float *samples[KRAD_MIXER_MAX_CHANNELS];
+
+	float **mapped_samples[KRAD_MIXER_MAX_CHANNELS];
 
 	int active;
 	
@@ -130,6 +134,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, 
 													 krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup);
+void krad_mixer_portgroup_map_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel);
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname);
 
 void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup1, krad_mixer_portgroup_t *portgroup2);
