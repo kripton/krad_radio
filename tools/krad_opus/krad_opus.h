@@ -7,7 +7,6 @@
 #include <time.h>
 
 #include <samplerate.h>
-//#include <speex/speex_resampler.h>
 #include <opus.h>
 #include <opus_multistream.h>
 #include <ogg/ogg.h>
@@ -21,9 +20,9 @@
 // where did this come from?
 #define OPUS_MAX_FRAME_BYTES 61295
 #define DEFAULT_OPUS_COMPLEXITY 10
-#define DEFAULT_OPUS_BITRATE 128000
+#define KRAD_DEFAULT_OPUS_BITRATE 128000
 #define DEFAULT_OPUS_FRAME_SIZE 960
-#define MIN_OPUS_FRAME_SIZE 120
+#define KRAD_MIN_OPUS_FRAME_SIZE 120
 #define MAX_OPUS_FRAME_SIZE 2880
 #ifndef RINGBUFFER_SIZE
 #define RINGBUFFER_SIZE 2000000
@@ -35,9 +34,9 @@
 #define KRAD_OPUS_SRC_QUALITY SRC_SINC_MEDIUM_QUALITY
 
 
-typedef struct kradopus_St krad_opus_t;
+typedef struct krad_opus_St krad_opus_t;
 
-struct kradopus_St {
+struct krad_opus_St {
 
 	int opus_decoder_error;
 	OpusMSDecoder *decoder;
@@ -96,24 +95,24 @@ struct kradopus_St {
 	
 };
 
-int kradopus_get_bitrate (krad_opus_t *kradopus);
-int kradopus_get_complexity (krad_opus_t *kradopus);
-int kradopus_get_frame_size (krad_opus_t *kradopus);
-int kradopus_get_signal (krad_opus_t *kradopus);
-int kradopus_get_bandwidth (krad_opus_t *kradopus);
+int krad_opus_get_bitrate (krad_opus_t *krad_opus);
+int krad_opus_get_complexity (krad_opus_t *krad_opus);
+int krad_opus_get_frame_size (krad_opus_t *krad_opus);
+int krad_opus_get_signal (krad_opus_t *krad_opus);
+int krad_opus_get_bandwidth (krad_opus_t *krad_opus);
 
-void kradopus_set_complexity (krad_opus_t *kradopus, int complexity);
-void kradopus_set_frame_size (krad_opus_t *kradopus, int frame_size);
-void kradopus_set_bitrate (krad_opus_t *kradopus, int bitrate);
-void kradopus_set_signal (krad_opus_t *kradopus, int signal);
-void kradopus_set_bandwidth (krad_opus_t *kradopus, int bandwidth);
+void krad_opus_set_complexity (krad_opus_t *krad_opus, int complexity);
+void krad_opus_set_frame_size (krad_opus_t *krad_opus, int frame_size);
+void krad_opus_set_bitrate (krad_opus_t *krad_opus, int bitrate);
+void krad_opus_set_signal (krad_opus_t *krad_opus, int signal);
+void krad_opus_set_bandwidth (krad_opus_t *krad_opus, int bandwidth);
 
-krad_opus_t *kradopus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
-void kradopus_decoder_destroy (krad_opus_t *kradopus);
-int kradopus_read_audio (krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
-int kradopus_write_opus (krad_opus_t *kradopus, unsigned char *buffer, int length);
+krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_length, float output_sample_rate);
+void krad_opus_decoder_destroy (krad_opus_t *krad_opus);
+int krad_opus_read_audio (krad_opus_t *krad_opus, int channel, char *buffer, int buffer_length);
+int krad_opus_write_opus (krad_opus_t *krad_opus, unsigned char *buffer, int length);
 
-int kradopus_read_opus (krad_opus_t *kradopus, unsigned char *buffer, int *nframes);
-int kradopus_write_audio (krad_opus_t *kradopus, int channel, char *buffer, int buffer_length);
-void kradopus_encoder_destroy (krad_opus_t *kradopus);
-krad_opus_t *kradopus_encoder_create (float input_sample_rate, int channels, int bitrate, int application);
+int krad_opus_read_opus (krad_opus_t *krad_opus, unsigned char *buffer, int *nframes);
+int krad_opus_write_audio (krad_opus_t *krad_opus, int channel, char *buffer, int buffer_length);
+void krad_opus_encoder_destroy (krad_opus_t *krad_opus);
+krad_opus_t *krad_opus_encoder_create (float input_sample_rate, int channels, int bitrate, int application);

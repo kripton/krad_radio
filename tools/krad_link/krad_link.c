@@ -622,11 +622,11 @@ void *audio_encoding_thread (void *arg) {
 			framecnt = KRAD_DEFAULT_FLAC_FRAME_SIZE;
 			break;
 		case OPUS:
-			krad_link->krad_opus = kradopus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate,
+			krad_link->krad_opus = krad_opus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate,
 															krad_link->channels,
-															DEFAULT_OPUS_BITRATE,
+															KRAD_DEFAULT_OPUS_BITRATE,
 															OPUS_APPLICATION_AUDIO);
-			framecnt = MIN_OPUS_FRAME_SIZE;
+			framecnt = KRAD_MIN_OPUS_FRAME_SIZE;
 			break;
 		default:
 			failfast ("Krad Link Audio Encoder: Unknown Audio Codec");
@@ -642,10 +642,10 @@ void *audio_encoding_thread (void *arg) {
 
 				for (c = 0; c < krad_link->channels; c++) {
 					krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)samples[c], (framecnt * 4) );
-					kradopus_write_audio (krad_link->krad_opus, c + 1, (char *)samples[c], framecnt * 4);
+					krad_opus_write_audio (krad_link->krad_opus, c + 1, (char *)samples[c], framecnt * 4);
 				}
 
-				bytes = kradopus_read_opus (krad_link->krad_opus, buffer, &framecnt);
+				bytes = krad_opus_read_opus (krad_link->krad_opus, buffer, &framecnt);
 			}
 			
 			if (krad_link->audio_codec == FLAC) {
@@ -674,7 +674,7 @@ void *audio_encoding_thread (void *arg) {
 					bytes = 0;
 					
 					if (krad_link->audio_codec == OPUS) {
-						bytes = kradopus_read_opus (krad_link->krad_opus, buffer, &framecnt);
+						bytes = krad_opus_read_opus (krad_link->krad_opus, buffer, &framecnt);
 					}
 				}
 			}
@@ -734,7 +734,7 @@ void *audio_encoding_thread (void *arg) {
 	}
 
 	if (krad_link->krad_opus != NULL) {
-		kradopus_encoder_destroy (krad_link->krad_opus);
+		krad_opus_encoder_destroy (krad_link->krad_opus);
 		krad_link->krad_opus = NULL;
 	}
 	
@@ -1330,12 +1330,12 @@ void *udp_input_thread(void *arg) {
 	unsigned char opus_header[256];
 	int opus_header_size;
 	
-	opus_temp = kradopus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate, 2, 110000, 
+	opus_temp = krad_opus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate, 2, 110000, 
 										 OPUS_APPLICATION_AUDIO);
 										 
 	opus_header_size = opus_temp->header_data_size;
 	memcpy (opus_header, opus_temp->header_data, opus_header_size);
-	kradopus_encoder_destroy(opus_temp);
+	krad_opus_encoder_destroy(opus_temp);
 	
 	printk ("placing opus header size is %d", opus_header_size);
 	
@@ -1725,7 +1725,7 @@ void *audio_decoding_thread(void *arg) {
 					krad_link->krad_vorbis = NULL;
 				}			
 				if (krad_link->last_audio_codec == OPUS) {
-					kradopus_decoder_destroy (krad_link->krad_opus);
+					krad_opus_decoder_destroy (krad_link->krad_opus);
 					krad_link->krad_opus = NULL;
 				}
 			}
@@ -1802,7 +1802,7 @@ void *audio_decoding_thread(void *arg) {
 				}
 			
 				printk ("Opus Header size: %d", header_len[0]);
-				krad_link->krad_opus = kradopus_decoder_create (header[0], header_len[0], krad_link->krad_radio->krad_mixer->sample_rate);
+				krad_link->krad_opus = krad_opus_decoder_create (header[0], header_len[0], krad_link->krad_radio->krad_mixer->sample_rate);
 
 				for (c = 0; c < krad_link->channels; c++) {
 					krad_resample_ring_set_input_sample_rate (krad_resample_ring[c], krad_link->krad_radio->krad_mixer->sample_rate);
@@ -1875,13 +1875,13 @@ void *audio_decoding_thread(void *arg) {
 			
 		if (krad_link->audio_codec == OPUS) {
 
-			kradopus_write_opus (krad_link->krad_opus, buffer, bytes);
+			krad_opus_write_opus (krad_link->krad_opus, buffer, bytes);
 			
 			bytes = -1;
 
 			while (bytes != 0) {
 				for (c = 0; c < 2; c++) {
-					bytes = kradopus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 120 * 4);
+					bytes = krad_opus_read_audio (krad_link->krad_opus, c + 1, (char *)audio, 120 * 4);
 					if (bytes) {
 						if ((bytes / 4) != 120) {
 							failfast ("uh oh crazyto");
@@ -1916,7 +1916,7 @@ void *audio_decoding_thread(void *arg) {
 	}
 
 	if (krad_link->krad_opus != NULL) {
-		kradopus_decoder_destroy(krad_link->krad_opus);
+		krad_opus_decoder_destroy(krad_link->krad_opus);
 		krad_link->krad_opus = NULL;
 	}
 
@@ -2753,12 +2753,12 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
 
 			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, 
-									krad_opus_signal_to_string (kradopus_get_signal (krad_link->krad_opus)));
+									krad_opus_signal_to_string (krad_opus_get_signal (krad_link->krad_opus)));
 			krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, 
-									krad_opus_bandwidth_to_string (kradopus_get_bandwidth (krad_link->krad_opus)));
-			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, kradopus_get_bitrate (krad_link->krad_opus));
-			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, kradopus_get_complexity (krad_link->krad_opus));
-			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, kradopus_get_frame_size (krad_link->krad_opus));
+									krad_opus_bandwidth_to_string (krad_opus_get_bandwidth (krad_link->krad_opus)));
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, krad_opus_get_bitrate (krad_link->krad_opus));
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, krad_opus_get_complexity (krad_link->krad_opus));
+			krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, krad_opus_get_frame_size (krad_link->krad_opus));
 
 			//EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));		
 
@@ -2867,20 +2867,20 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_APPLICATION) {
 							krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 							if (strncmp(string, "OPUS_APPLICATION_VOIP", 21) == 0) {
-								kradopus_set_application (krad_linker->krad_link[k]->krad_opus, OPUS_APPLICATION_VOIP);
+								krad_opus_set_application (krad_linker->krad_link[k]->krad_opus, OPUS_APPLICATION_VOIP);
 							}
 							if (strncmp(string, "OPUS_APPLICATION_AUDIO", 22) == 0) {
-								kradopus_set_application (krad_linker->krad_link[k]->krad_opus, OPUS_APPLICATION_AUDIO);
+								krad_opus_set_application (krad_linker->krad_link[k]->krad_opus, OPUS_APPLICATION_AUDIO);
 							}
 							if (strncmp(string, "OPUS_APPLICATION_RESTRICTED_LOWDELAY", 36) == 0) {
-								kradopus_set_application (krad_linker->krad_link[k]->krad_opus, OPUS_APPLICATION_RESTRICTED_LOWDELAY);
+								krad_opus_set_application (krad_linker->krad_link[k]->krad_opus, OPUS_APPLICATION_RESTRICTED_LOWDELAY);
 							}
 						}
 						*/
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL) {
 							krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 
-							kradopus_set_signal (krad_linker->krad_link[k]->krad_opus, 
+							krad_opus_set_signal (krad_linker->krad_link[k]->krad_opus, 
 													krad_opus_string_to_signal(string));
 						}
 						
@@ -2888,7 +2888,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							
 							krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 							
-							kradopus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, 
+							krad_opus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, 
 													krad_opus_string_to_bandwidth(string));
 						}						
 
@@ -2896,7 +2896,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
 					
 							if ((bigint >= 500) && (bigint <= 512000)) {
-								kradopus_set_bitrate (krad_linker->krad_link[k]->krad_opus, bigint);
+								krad_opus_set_bitrate (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
 						}
 						
@@ -2904,14 +2904,14 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
 					
 							if ((bigint >= 0) && (bigint <= 10)) {
-								kradopus_set_complexity (krad_linker->krad_link[k]->krad_opus, bigint);
+								krad_opus_set_complexity (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
 						}						
 				
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE) {
 							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
 							if ((bigint == 120) || (bigint == 240) || (bigint == 480) || (bigint == 960) || (bigint == 1920) || (bigint == 2880)) {
-								kradopus_set_frame_size (krad_linker->krad_link[k]->krad_opus, bigint);
+								krad_opus_set_frame_size (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
 						}
 						
