@@ -587,27 +587,21 @@ void *audio_encoding_thread (void *arg) {
 	float *samples[KRAD_MIXER_MAX_CHANNELS];
 	float *interleaved_samples;
 	unsigned char *buffer;
-	ogg_packet *op;
 	int framecnt;
-
 	krad_mixer_portgroup_t *mixer_portgroup;
 
 	printk ("Audio encoding thread starting");
 	
 	krad_link->channels = 2;
 	
-	//if (krad_link->audio_codec == FLAC) {
-	//	krad_link->channels = 4;
-	//}
+	interleaved_samples = malloc (8192 * 4 * KRAD_MIXER_MAX_CHANNELS);
+	buffer = malloc (300000);
 	
 	for (c = 0; c < krad_link->channels; c++) {
-		krad_link->audio_input_ringbuffer[c] = krad_ringbuffer_create (2000000);
-		samples[c] = malloc(4 * 8192);
-		krad_link->samples[c] = malloc(4 * 8192);
+		samples[c] = malloc (8192 * 4);
+		krad_link->samples[c] = malloc (8192 * 4);
+		krad_link->audio_input_ringbuffer[c] = krad_ringbuffer_create (2000000);		
 	}
-
-	interleaved_samples = calloc(1, 1000000);
-	buffer = calloc(1, 500000);
 	
 	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, 
 												   OUTPUT, krad_link->channels,
@@ -616,7 +610,6 @@ void *audio_encoding_thread (void *arg) {
 		
 	switch (krad_link->audio_codec) {
 		case VORBIS:
-			printk ("Vorbis quality is %f", krad_link->vorbis_quality);
 			krad_link->krad_vorbis = krad_vorbis_encoder_create (krad_link->channels,
 																 krad_link->krad_radio->krad_mixer->sample_rate,
 																 krad_link->vorbis_quality);
@@ -636,18 +629,14 @@ void *audio_encoding_thread (void *arg) {
 			framecnt = MIN_OPUS_FRAME_SIZE;
 			break;
 		default:
-			failfast ("unknown audio codec");
+			failfast ("Krad Link Audio Encoder: Unknown Audio Codec");
 	}
 	
 	krad_link->audio_encoder_ready = 1;
 	
-	if ((krad_link->audio_codec == FLAC) || (krad_link->audio_codec == OPUS)) {
-		op = NULL;
-	}
-	
 	while (krad_link->encoding) {
 
-		while ((krad_ringbuffer_read_space(krad_link->audio_input_ringbuffer[1]) >= framecnt * 4) || (op != NULL)) {
+		while (krad_ringbuffer_read_space(krad_link->audio_input_ringbuffer[krad_link->channels - 1]) >= framecnt * 4) {
 
 			if (krad_link->audio_codec == OPUS) {
 
@@ -682,7 +671,6 @@ void *audio_encoding_thread (void *arg) {
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&framecnt, 4);
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, bytes);
 					
-					krad_link->audio_frames_encoded += framecnt;
 					bytes = 0;
 					
 					if (krad_link->audio_codec == OPUS) {
@@ -693,31 +681,33 @@ void *audio_encoding_thread (void *arg) {
 			
 			if (krad_link->audio_codec == VORBIS) {
 			
-				op = krad_vorbis_encode (krad_link->krad_vorbis,
-										 framecnt,
-										 krad_link->audio_input_ringbuffer[0],
-										 krad_link->audio_input_ringbuffer[1]);
+				unsigned char *vorbis_buffer;
+				float **float_buffer;
 
-				if (op != NULL) {
+				krad_vorbis_encoder_prepare (krad_link->krad_vorbis, framecnt, &float_buffer);
+							
+				for (c = 0; c < krad_link->channels; c++) {
+					krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)float_buffer[c], framecnt * 4);
+				}			
 			
-					frames = op->granulepos - krad_link->audio_frames_encoded;
-				
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&op->bytes, 4);
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)op->packet, op->bytes);
+				krad_vorbis_encoder_wrote (krad_link->krad_vorbis, framecnt);
 
-					krad_link->audio_frames_encoded = op->granulepos;
+				bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
+
+				while (bytes > 0) {
+				
+					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
+					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
+					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)vorbis_buffer, bytes);
 					
-					if (frames < framecnt / 2) {
-						op = NULL;
-					}
+					bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
 				}
 			}
-
-			//printk ("audio_encoding_thread %zu !", krad_link->audio_frames_encoded);
 		}
-	
-		while (krad_ringbuffer_read_space (krad_link->audio_input_ringbuffer[1]) < framecnt * 4) {
+
+		/* Wait for available audio to encode */
+
+		while (krad_ringbuffer_read_space (krad_link->audio_input_ringbuffer[krad_link->channels - 1]) < framecnt * 4) {
 			usleep (5000);
 			if (krad_link->encoding == 3) {
 				break;
@@ -725,7 +715,7 @@ void *audio_encoding_thread (void *arg) {
 		}
 		
 		if ((krad_link->encoding == 3) && 
-			(krad_ringbuffer_read_space (krad_link->audio_input_ringbuffer[1]) < framecnt * 4)) {
+			(krad_ringbuffer_read_space (krad_link->audio_input_ringbuffer[krad_link->channels - 1]) < framecnt * 4)) {
 				break;
 		}
 	}
@@ -735,26 +725,29 @@ void *audio_encoding_thread (void *arg) {
 	
 	if (krad_link->krad_vorbis != NULL) {
 		krad_vorbis_encoder_destroy (krad_link->krad_vorbis);
+		krad_link->krad_vorbis = NULL;
 	}
 	
 	if (krad_link->krad_flac != NULL) {
 		krad_flac_encoder_destroy (krad_link->krad_flac);
+		krad_link->krad_flac = NULL;
 	}
 
 	if (krad_link->krad_opus != NULL) {
 		kradopus_encoder_destroy (krad_link->krad_opus);
+		krad_link->krad_opus = NULL;
 	}
 	
 	krad_link->encoding = 4;
 	
 	while (krad_link->capture_audio != 3) {
-		usleep(5000);
+		usleep (5000);
 	}
 	
 	for (c = 0; c < krad_link->channels; c++) {
 		free (krad_link->samples[c]);
-		krad_ringbuffer_free ( krad_link->audio_input_ringbuffer[c] );
-		free (samples[c]);	
+		free (samples[c]);
+		krad_ringbuffer_free (krad_link->audio_input_ringbuffer[c]);		
 	}	
 	
 	free (interleaved_samples);

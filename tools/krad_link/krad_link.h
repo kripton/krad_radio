@@ -170,7 +170,6 @@ struct krad_link_St {
 
 	int audio_encoder_ready;
 	int audio_frames_captured;
-	int audio_frames_encoded;
 
 	int composited_frame_byte_size;
 

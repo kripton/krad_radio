@@ -268,7 +268,7 @@ int krad_flac_encode (krad_flac_t *flac, float *audio, int frames, unsigned char
 	
 	flac->total_frames_input += frames;
 	
-	FLAC__stream_encoder_process_interleaved(flac->encoder, (const FLAC__int32 *)flac->int32_samples, frames);
+	FLAC__stream_encoder_process_interleaved (flac->encoder, (const FLAC__int32 *)flac->int32_samples, frames);
 	
 	ret = flac->bytes;
 	flac->bytes = 0;
