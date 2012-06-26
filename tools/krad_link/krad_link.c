@@ -613,7 +613,7 @@ void *audio_encoding_thread (void *arg) {
 			krad_link->krad_vorbis = krad_vorbis_encoder_create (krad_link->channels,
 																 krad_link->krad_radio->krad_mixer->sample_rate,
 																 krad_link->vorbis_quality);
-			framecnt = 1024;
+			framecnt = KRAD_DEFAULT_VORBIS_FRAME_SIZE;
 			break;
 		case FLAC:
 			krad_link->krad_flac = krad_flac_encoder_create (krad_link->channels,

@@ -13,6 +13,8 @@
 #include "krad_ring.h"
 #include "krad_codec_header.h"
 
+#define KRAD_DEFAULT_VORBIS_FRAME_SIZE 1024
+
 #define MAX_CHANNELS 8
 #ifndef RINGBUFFER_SIZE
 #define RINGBUFFER_SIZE 2000000
