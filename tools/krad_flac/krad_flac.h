@@ -95,7 +95,7 @@ FLAC__StreamDecoderWriteStatus krad_flac_decoder_callback_write (const FLAC__Str
 FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__StreamDecoder *flacdecoder,
 															   FLAC__byte fbuffer[], size_t *bytes, void *client_data);
 
-int krad_flac_decode(krad_flac_t *flac, unsigned char *encoded_buffer, int len, float **audio);
+int krad_flac_decode (krad_flac_t *flac, unsigned char *encoded_buffer, int len, float **audio);
 void krad_flac_decoder_int24_to_float_array (const int *in, float *out, int len);
 void krad_flac_decoder_int16_to_float_array (const int *in, float *out, int len);
 void krad_flac_decoder_info(krad_flac_t *flac);

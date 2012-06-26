@@ -16,10 +16,8 @@ int krad_flac_encoder_finish (krad_flac_t *flac, unsigned char *encode_buffer) {
 		FLAC__stream_encoder_finish (flac->encoder);
 		flac->finished = 1;
 	}
-
 	
 	return flac->bytes;
-
 }
 
 
@@ -59,7 +57,7 @@ krad_flac_t *krad_flac_encoder_create (int channels, int sample_rate, int bit_de
 									  NULL, flac);
 
 	if (ret != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-		failfast ("Flac encoder init fail\n");
+		failfast ("Krad FLAC Encoder failure on create");
 	}
 
 	return flac;
@@ -209,7 +207,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 }
 
 
-int krad_flac_encoder_frames_remaining(krad_flac_t *flac) {
+int krad_flac_encoder_frames_remaining (krad_flac_t *flac) {
 
 	return flac->total_frames_input - flac->total_frames;
 
@@ -217,13 +215,12 @@ int krad_flac_encoder_frames_remaining(krad_flac_t *flac) {
 
 
 void krad_flac_encode_info (krad_flac_t *flac) {
-
-	printk ("Encoded Frames: %llu\n", flac->total_frames);
-	printk ("Encoded Bytes: %llu\n", flac->total_bytes);
-	printk ("Sample Rate: %d\n", flac->sample_rate);
-	printk ("Bit Depth: %d\n", flac->bit_depth);
-	printk ("Channels: %d\n", flac->channels);
-	printk ("\n");
+	printk ("Krad FLAC Encoder info:");
+	printk ("Encoded Frames: %llu", flac->total_frames);
+	printk ("Encoded Bytes: %llu", flac->total_bytes);
+	printk ("Sample Rate: %d", flac->sample_rate);
+	printk ("Bit Depth: %d", flac->bit_depth);
+	printk ("Channels: %d", flac->channels);
 }
 
 
@@ -236,7 +233,7 @@ int krad_flac_encoder_read_min_header(krad_flac_t *flac, unsigned char *buffer) 
 }
 
 
-int krad_flac_encoder_read_header(krad_flac_t *flac, unsigned char *buffer) {
+int krad_flac_encoder_read_header (krad_flac_t *flac, unsigned char *buffer) {
 
 	memcpy(buffer, flac->header, flac->header_size);
 
@@ -245,7 +242,7 @@ int krad_flac_encoder_read_header(krad_flac_t *flac, unsigned char *buffer) {
 }
 
 
-int krad_flac_encode(krad_flac_t *flac, float *audio, int frames, unsigned char *encode_buffer) {
+int krad_flac_encode (krad_flac_t *flac, float *audio, int frames, unsigned char *encode_buffer) {
 
 	int ret;
 	int num_samples;
@@ -303,12 +300,12 @@ void krad_flac_decoder_int16_to_float_array (const int *in, float *out, int len)
 }
 
 void krad_flac_decoder_info (krad_flac_t *flac) {
-	printk ("frames decoded: %llu\n", flac->total_frames_input);
-	printk ("total frames: %llu\n", flac->total_frames);
-	printk ("Sample Rate: %d\n", flac->sample_rate);
-	printk ("Bit Depth: %d\n", flac->bit_depth);
-	printk ("Channels: %d\n", flac->channels);
-	printk ("\n");
+	printk ("Krad FLAC Decoder info:");
+	printk ("Frames decoded: %llu", flac->total_frames_input);
+	printk ("Total frames: %llu", flac->total_frames);
+	printk ("Sample Rate: %d", flac->sample_rate);
+	printk ("Bit Depth: %d", flac->bit_depth);
+	printk ("Channels: %d", flac->channels);
 }
 
 void krad_flac_decoder_callback_error (const FLAC__StreamDecoder *flacdecoder, FLAC__StreamDecoderErrorStatus status, 
@@ -316,7 +313,7 @@ void krad_flac_decoder_callback_error (const FLAC__StreamDecoder *flacdecoder, F
 
 	//krad_flac_t *flac = (krad_flac_t *)client_data;
 	
-	failfast ("Flac decoder fail: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
+	failfast ("Krad FLAC Decoder failure: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
 
 }
 
@@ -331,7 +328,7 @@ void krad_flac_decoder_metadata_callback (const FLAC__StreamDecoder *decoder, co
 	
 	if (metadata->data.stream_info.total_samples != 0) {
 		flac->total_frames = metadata->data.stream_info.total_samples;
-		printk ("has total frames of %llu\n", flac->total_frames);
+		//printk ("has total frames of %llu\n", flac->total_frames);
 	}
 
 	krad_flac_decoder_info(flac);
@@ -401,11 +398,11 @@ int krad_flac_decode (krad_flac_t *flac, unsigned char *encoded_buffer, int len,
 	FLAC__bool ret = FLAC__stream_decoder_process_single ( flac->decoder );
 
 	if (ret == false) {
-		failfast ("flac decoder fail\n");
+		failfast ("Krad FLAC Decoder failure on decode");
 	}
 
 	if (flac->decode_buffer_len != flac->decode_buffer_pos) {
-		failfast ("flac decoder fail ...\n");
+		failfast ("Krad FLAC Decoder failure on decode");
 //		memove(flac->decode_buffer, flac->decode_buffer + flac->decode_buffer_pos, 
 //		flac->decode_buffer_len - flac->decode_buffer_pos);
 	} else {
@@ -432,7 +429,7 @@ krad_flac_t *krad_flac_decoder_create () {
 									  flac );
 
 	if (ret != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-		failfast ("Flac decoder fail\n");
+		failfast ("Krad FLAC Decoder failure on create");
 	}
 
 	return flac;
