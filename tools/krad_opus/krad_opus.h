@@ -38,13 +38,12 @@ typedef struct krad_opus_St krad_opus_t;
 
 struct krad_opus_St {
 
-	int opus_decoder_error;
 	OpusMSDecoder *decoder;
-
-	OpusMSEncoder *st;
+	OpusMSEncoder *encoder;
 	OpusHeader *opus_header;
 	krad_codec_header_t krad_codec_header;
 	unsigned char *opustags_header;
+	int opus_decoder_error;
 		
 	float *resampled_samples[MAX_CHANNELS];
 	float *samples[MAX_CHANNELS];
@@ -57,13 +56,16 @@ struct krad_opus_St {
 	int ret;
 	int channels;
 	
+	int streams;
+	int coupled_streams;
+	
 	int err;
 	int extra_samples;
 
 	unsigned char mapping[256];
 	opus_int32 lookahead;
 
-	char *st_string;
+
 	float input_sample_rate;
 	float output_sample_rate;
 
@@ -80,19 +82,12 @@ struct krad_opus_St {
 	int new_bitrate;
 	int new_signal;
 	int new_bandwidth;
-
-	int id;
-	int num_bytes;
-	
-	unsigned char bits[OPUS_MAX_FRAME_BYTES];	
 	
 	unsigned char header_data[100];
 	int header_data_size;
-	
 	SRC_STATE *src_resampler[MAX_CHANNELS];
 	SRC_DATA src_data[MAX_CHANNELS];
-	int src_error[MAX_CHANNELS];	
-	
+	int src_error[MAX_CHANNELS];
 };
 
 
