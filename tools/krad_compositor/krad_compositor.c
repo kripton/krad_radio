@@ -100,11 +100,11 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		if (strlen(krad_compositor->bug_filename)) {
 			printk ("setting bug to %s %d %d", krad_compositor->bug_filename, 
 			        krad_compositor->bug_x, krad_compositor->bug_y);
-			kradgui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, 
+			krad_gui_set_bug (krad_compositor->krad_gui, krad_compositor->bug_filename, 
 							 krad_compositor->bug_x, krad_compositor->bug_y);
 		} else {
 			printk ("removing bug");
-			kradgui_remove_bug (krad_compositor->krad_gui);
+			krad_gui_remove_bug (krad_compositor->krad_gui);
 		}
 		free (krad_compositor->bug_filename);
 		krad_compositor->bug_filename = NULL;
@@ -120,7 +120,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		}
 	} while (composite_frame == NULL);	
 	
-	kradgui_set_surface (krad_compositor->krad_gui, composite_frame->cst);
+	krad_gui_set_surface (krad_compositor->krad_gui, composite_frame->cst);
 	
 	/* Clear it off */
 	krad_gui_clear (krad_compositor->krad_gui);
@@ -168,25 +168,25 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	/* Render Overlayed Items */
 	
 	if (krad_compositor->hex_size > 0) {
-		kradgui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
+		krad_gui_render_hex (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
 		                    krad_compositor->hex_size);	
 	} else {
-	//	kradgui_render_selector (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
+	//	krad_gui_render_selector (krad_compositor->krad_gui, krad_compositor->hex_x, krad_compositor->hex_y, 
 	//	                    64);
 	
-	//	kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width / 2,
+	//	krad_gui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width / 2,
 	//	                      krad_compositor->krad_gui->height/3, 264, krad_system_get_cpu_usage ());
 	//
 	}
 	
 	if (krad_compositor->render_vu_meters > 0) {
-		kradgui_render_meter (krad_compositor->krad_gui, 110, krad_compositor->krad_gui->height - 30, 64,
+		krad_gui_render_meter (krad_compositor->krad_gui, 110, krad_compositor->krad_gui->height - 30, 64,
 		                      krad_compositor->krad_gui->output_current[0]);
-		kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110,
+		krad_gui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110,
 		                      krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
 	}
 
-	kradgui_render (krad_compositor->krad_gui);
+	krad_gui_render (krad_compositor->krad_gui);
 
 	/* Push out the composited frame */
 	
@@ -504,7 +504,7 @@ void krad_compositor_free_resources (krad_compositor_t *krad_compositor) {
 	}
 
 	if (krad_compositor->krad_gui != NULL) {
-		kradgui_destroy (krad_compositor->krad_gui);
+		krad_gui_destroy (krad_compositor->krad_gui);
 		krad_compositor->krad_gui = NULL;
 	}
 }
@@ -518,9 +518,9 @@ void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
 	}
 	
 	if (krad_compositor->krad_gui == NULL) {
-		krad_compositor->krad_gui = kradgui_create (krad_compositor->width, krad_compositor->height);
-		//krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
-		//krad_compositor->krad_gui = kradgui_create_with_external_surface (krad_compositor->width,
+		krad_compositor->krad_gui = krad_gui_create (krad_compositor->width, krad_compositor->height);
+		//krad_compositor->krad_gui = krad_gui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
+		//krad_compositor->krad_gui = krad_gui_create_with_external_surface (krad_compositor->width,
 		//																  krad_compositor->height,
 		//																  NULL);
 		krad_compositor->krad_gui->clear = 0;

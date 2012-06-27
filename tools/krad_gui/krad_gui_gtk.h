@@ -14,11 +14,11 @@
 
 #include "krad_gui.h"
 
-typedef struct kradgui_gtk_St kradgui_gtk_t;
+typedef struct krad_gui_gtk_St krad_gui_gtk_t;
 
-struct kradgui_gtk_St {
+struct krad_gui_gtk_St {
 
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 	
 	GtkWidget *window;
 	GtkWidget *frame;
@@ -36,7 +36,7 @@ struct kradgui_gtk_St {
 
 
 
-void kradgui_gtk_start (kradgui_t *kradgui);
-void kradgui_gtk_end (kradgui_t *kradgui);
+void krad_gui_gtk_start (krad_gui_t *krad_gui);
+void krad_gui_gtk_end (krad_gui_t *krad_gui);
 
 

@@ -77,7 +77,7 @@ struct krad_compositor_port_St {
 
 struct krad_compositor_St {
 
-	kradgui_t *krad_gui;
+	krad_gui_t *krad_gui;
 
 	int width;
 	int height;

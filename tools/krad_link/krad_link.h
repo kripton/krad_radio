@@ -93,7 +93,6 @@ struct krad_link_St {
 
 	krad_decklink_t *krad_decklink;
 	krad_x11_t *krad_x11;
-	kradgui_t *krad_gui;
 	krad_vpx_encoder_t *krad_vpx_encoder;
 	krad_vpx_decoder_t *krad_vpx_decoder;
 	krad_theora_encoder_t *krad_theora_encoder;

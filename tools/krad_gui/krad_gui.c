@@ -1,136 +1,136 @@
 #include "krad_gui.h"
 
-kradgui_t *kradgui_create (int width, int height) {
+krad_gui_t *krad_gui_create (int width, int height) {
 
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 
-	if ((kradgui = calloc (1, sizeof (kradgui_t))) == NULL) {
+	if ((krad_gui = calloc (1, sizeof (krad_gui_t))) == NULL) {
 		failfast ("Krad GUI mem alloc fail");
 	}
 	
-	kradgui->clear = 1;
-	kradgui->width = width;
-	kradgui->height = height;
-	kradgui_set_playback_state (kradgui, KRADGUI_PLAYING);
-	kradgui_reset_elapsed_time (kradgui);
-	kradgui_set_total_track_time_ms (kradgui, 45 * 60 * 1000);
+	krad_gui->clear = 1;
+	krad_gui->width = width;
+	krad_gui->height = height;
+	krad_gui_set_playback_state (krad_gui, krad_gui_PLAYING);
+	krad_gui_reset_elapsed_time (krad_gui);
+	krad_gui_set_total_track_time_ms (krad_gui, 45 * 60 * 1000);
 	
-	clock_gettime (CLOCK_MONOTONIC, &kradgui->start_time);
+	clock_gettime (CLOCK_MONOTONIC, &krad_gui->start_time);
 	
-	return kradgui;
+	return krad_gui;
 
 }
 
-void kradgui_set_surface (kradgui_t *kradgui, cairo_surface_t *cst) {
+void krad_gui_set_surface (krad_gui_t *krad_gui, cairo_surface_t *cst) {
 
-	if (kradgui->cr != NULL) {
-		cairo_destroy (kradgui->cr);
-		kradgui->cr = NULL;
+	if (krad_gui->cr != NULL) {
+		cairo_destroy (krad_gui->cr);
+		krad_gui->cr = NULL;
 	}
 		
-	kradgui->cst = cst;
-	kradgui->cr = cairo_create (kradgui->cst);
+	krad_gui->cst = cst;
+	krad_gui->cr = cairo_create (krad_gui->cst);
 }
 
-kradgui_t *kradgui_create_with_internal_surface(int width, int height) {
+krad_gui_t *krad_gui_create_with_internal_surface(int width, int height) {
 
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 
-	kradgui = kradgui_create(width, height);
+	krad_gui = krad_gui_create(width, height);
 		
-	kradgui_create_internal_surface(kradgui);
+	krad_gui_create_internal_surface(krad_gui);
 	
 	//incase calloc takes time
-	kradgui_reset_elapsed_time(kradgui);
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->start_time);
+	krad_gui_reset_elapsed_time(krad_gui);
+	clock_gettime(CLOCK_MONOTONIC, &krad_gui->start_time);
 
-	return kradgui;
+	return krad_gui;
 
 }
 
-kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *pixels) {
+krad_gui_t *krad_gui_create_with_external_surface (int width, int height, unsigned char *pixels) {
 
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 
-	kradgui = kradgui_create (width, height);
+	krad_gui = krad_gui_create (width, height);
 		
-	kradgui->pixels = pixels;
-	kradgui_create_external_surface(kradgui);
+	krad_gui->pixels = pixels;
+	krad_gui_create_external_surface(krad_gui);
 	
 	//incase calloc takes time
-	kradgui_reset_elapsed_time(kradgui);
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->start_time);
+	krad_gui_reset_elapsed_time(krad_gui);
+	clock_gettime(CLOCK_MONOTONIC, &krad_gui->start_time);
 
-	return kradgui;
+	return krad_gui;
 
 }
 
-void kradgui_create_external_surface(kradgui_t *kradgui) {
+void krad_gui_create_external_surface(krad_gui_t *krad_gui) {
 
-	kradgui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, kradgui->width);
-	kradgui->bytes = kradgui->stride * kradgui->height;
-	kradgui->cst = cairo_image_surface_create_for_data (kradgui->pixels, CAIRO_FORMAT_ARGB32,
-														kradgui->width, kradgui->height, kradgui->stride);
-	kradgui->cr = cairo_create (kradgui->cst);
-	kradgui->external_surface = 1;
+	krad_gui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, krad_gui->width);
+	krad_gui->bytes = krad_gui->stride * krad_gui->height;
+	krad_gui->cst = cairo_image_surface_create_for_data (krad_gui->pixels, CAIRO_FORMAT_ARGB32,
+														krad_gui->width, krad_gui->height, krad_gui->stride);
+	krad_gui->cr = cairo_create (krad_gui->cst);
+	krad_gui->external_surface = 1;
 	
 }
 
-void kradgui_destroy_external_surface (kradgui_t *kradgui) {
+void krad_gui_destroy_external_surface (krad_gui_t *krad_gui) {
 
-	if (kradgui->external_surface == 1) {
-		if (kradgui->cr != NULL) {
-			cairo_destroy (kradgui->cr);
-			kradgui->cr = NULL;
+	if (krad_gui->external_surface == 1) {
+		if (krad_gui->cr != NULL) {
+			cairo_destroy (krad_gui->cr);
+			krad_gui->cr = NULL;
 		}
-		cairo_surface_destroy (kradgui->cst);
-		kradgui->cst = NULL;
-		kradgui->pixels = NULL;
-		kradgui->stride = 0;
-		kradgui->bytes = 0;
-		kradgui->external_surface = 0;
+		cairo_surface_destroy (krad_gui->cst);
+		krad_gui->cst = NULL;
+		krad_gui->pixels = NULL;
+		krad_gui->stride = 0;
+		krad_gui->bytes = 0;
+		krad_gui->external_surface = 0;
 	}
 }
 
 
-void kradgui_create_internal_surface(kradgui_t *kradgui) {
+void krad_gui_create_internal_surface(krad_gui_t *krad_gui) {
 
-	kradgui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, kradgui->width);
-	kradgui->bytes = kradgui->stride * kradgui->height;
-	kradgui->pixels = calloc (1, kradgui->bytes);
-	kradgui->cst = cairo_image_surface_create_for_data (kradgui->pixels, CAIRO_FORMAT_ARGB32,
-														kradgui->width, kradgui->height, kradgui->stride);
-	kradgui->cr = cairo_create(kradgui->cst);
-	kradgui->internal_surface = 1;
+	krad_gui->stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, krad_gui->width);
+	krad_gui->bytes = krad_gui->stride * krad_gui->height;
+	krad_gui->pixels = calloc (1, krad_gui->bytes);
+	krad_gui->cst = cairo_image_surface_create_for_data (krad_gui->pixels, CAIRO_FORMAT_ARGB32,
+														krad_gui->width, krad_gui->height, krad_gui->stride);
+	krad_gui->cr = cairo_create(krad_gui->cst);
+	krad_gui->internal_surface = 1;
 	
 }
 
-void kradgui_destroy_internal_surface(kradgui_t *kradgui) {
+void krad_gui_destroy_internal_surface(krad_gui_t *krad_gui) {
 
-	if (kradgui->internal_surface == 1) {
-		if (kradgui->cr != NULL) {
-			cairo_destroy (kradgui->cr);
-			kradgui->cr = NULL;			
+	if (krad_gui->internal_surface == 1) {
+		if (krad_gui->cr != NULL) {
+			cairo_destroy (krad_gui->cr);
+			krad_gui->cr = NULL;			
 		}
-		cairo_surface_destroy (kradgui->cst);
-		free(kradgui->pixels);
-		kradgui->cst = NULL;
-		kradgui->pixels = NULL;
-		kradgui->stride = 0;
-		kradgui->bytes = 0;
-		kradgui->internal_surface = 0;
+		cairo_surface_destroy (krad_gui->cst);
+		free(krad_gui->pixels);
+		krad_gui->cst = NULL;
+		krad_gui->pixels = NULL;
+		krad_gui->stride = 0;
+		krad_gui->bytes = 0;
+		krad_gui->internal_surface = 0;
 	}
 }
 
-void kradgui_set_size(kradgui_t *kradgui, int width, int height) {
+void krad_gui_set_size(krad_gui_t *krad_gui, int width, int height) {
 
-	kradgui->width = width;
-	kradgui->height = height;
+	krad_gui->width = width;
+	krad_gui->height = height;
 
 }
 
 
-void kradgui_set_background_color(kradgui_t *kradgui, float r, float g, float b, float a) {
+void krad_gui_set_background_color(krad_gui_t *krad_gui, float r, float g, float b, float a) {
 
 
 	//BGCOLOR_TRANS
@@ -138,206 +138,206 @@ void kradgui_set_background_color(kradgui_t *kradgui, float r, float g, float b,
 
 }
 
-void kradgui_destroy(kradgui_t *kradgui) {
+void krad_gui_destroy(krad_gui_t *krad_gui) {
 
-	if (kradgui->reel_to_reel != NULL) {
-		kradgui_reel_to_reel_destroy(kradgui->reel_to_reel);
+	if (krad_gui->reel_to_reel != NULL) {
+		krad_gui_reel_to_reel_destroy(krad_gui->reel_to_reel);
 	}
 	
-	if (kradgui->playback_state_status != NULL) {
-		kradgui_playback_state_status_destroy(kradgui->playback_state_status);
+	if (krad_gui->playback_state_status != NULL) {
+		krad_gui_playback_state_status_destroy(krad_gui->playback_state_status);
 	}
 	
-	if (kradgui->bug != NULL) {
-		cairo_surface_destroy ( kradgui->bug );
+	if (krad_gui->bug != NULL) {
+		cairo_surface_destroy ( krad_gui->bug );
 	}
 	
-	if (kradgui->internal_surface == 1) {
-		kradgui_destroy_internal_surface(kradgui);
+	if (krad_gui->internal_surface == 1) {
+		krad_gui_destroy_internal_surface(krad_gui);
 	}
 	
-	if (kradgui->external_surface == 1) {
-		kradgui_destroy_external_surface(kradgui);
+	if (krad_gui->external_surface == 1) {
+		krad_gui_destroy_external_surface(krad_gui);
 	}	
 
-	free(kradgui);
+	free(krad_gui);
 
 }
 
-void kradgui_add_item(kradgui_t *kradgui, kradgui_item_t item) {
+void krad_gui_add_item(krad_gui_t *krad_gui, krad_gui_item_t item) {
 
 	switch (item) {
 	
 	case REEL_TO_REEL:
-		kradgui->reel_to_reel = kradgui_reel_to_reel_create(kradgui);
+		krad_gui->reel_to_reel = krad_gui_reel_to_reel_create(krad_gui);
 		break;
 
 	case PLAYBACK_STATE_STATUS:
-		kradgui->playback_state_status = kradgui_playback_state_status_create(kradgui);
+		krad_gui->playback_state_status = krad_gui_playback_state_status_create(krad_gui);
 		break;
 	}
 
 }
 
-void kradgui_remove_item(kradgui_t *kradgui, kradgui_item_t item) {
+void krad_gui_remove_item(krad_gui_t *krad_gui, krad_gui_item_t item) {
 
 	switch (item) {
 	
 	case REEL_TO_REEL:
-		kradgui_reel_to_reel_destroy(kradgui->reel_to_reel);
-		kradgui->reel_to_reel = NULL;
+		krad_gui_reel_to_reel_destroy(krad_gui->reel_to_reel);
+		krad_gui->reel_to_reel = NULL;
 		break;
 	
 	case PLAYBACK_STATE_STATUS:
-		kradgui_playback_state_status_destroy(kradgui->playback_state_status);
-		kradgui->playback_state_status = NULL;
+		krad_gui_playback_state_status_destroy(krad_gui->playback_state_status);
+		krad_gui->playback_state_status = NULL;
 		break;
 	}
 
 }
 
 
-kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui) {
+krad_gui_reel_to_reel_t *krad_gui_reel_to_reel_create(krad_gui_t *krad_gui) {
 
-	kradgui_reel_to_reel_t *kradgui_reel_to_reel;
+	krad_gui_reel_to_reel_t *krad_gui_reel_to_reel;
 
-	if ((kradgui_reel_to_reel = calloc (1, sizeof (kradgui_reel_to_reel_t))) == NULL) {
+	if ((krad_gui_reel_to_reel = calloc (1, sizeof (krad_gui_reel_to_reel_t))) == NULL) {
 		failfast ("Krad GUI reel to reel mem alloc fail");
 	}
 	
-	kradgui_reel_to_reel->kradgui = kradgui;
+	krad_gui_reel_to_reel->krad_gui = krad_gui;
 	
-	kradgui_reel_to_reel->reel_size = NORMAL_REEL_SIZE;
-	kradgui_reel_to_reel->reel_speed = SLOW_NORMAL_REEL_SPEED;
-	//kradgui->reel_size = PRO_REEL_SIZE;
-	//kradgui->reel_speed = PRO_REEL_SPEED;
+	krad_gui_reel_to_reel->reel_size = NORMAL_REEL_SIZE;
+	krad_gui_reel_to_reel->reel_speed = SLOW_NORMAL_REEL_SPEED;
+	//krad_gui->reel_size = PRO_REEL_SIZE;
+	//krad_gui->reel_speed = PRO_REEL_SPEED;
 	
-	kradgui_update_reel_to_reel_information(kradgui_reel_to_reel);
+	krad_gui_update_reel_to_reel_information(krad_gui_reel_to_reel);
 	
-	return kradgui_reel_to_reel;
+	return krad_gui_reel_to_reel;
 
 }
 
 
-void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel) {
+void krad_gui_reel_to_reel_destroy(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel) {
 
-	free(kradgui_reel_to_reel);
+	free(krad_gui_reel_to_reel);
 
 }
 
-kradgui_playback_state_status_t *kradgui_playback_state_status_create (kradgui_t *kradgui) {
+krad_gui_playback_state_status_t *krad_gui_playback_state_status_create (krad_gui_t *krad_gui) {
 
-	kradgui_playback_state_status_t *kradgui_playback_state_status;
+	krad_gui_playback_state_status_t *krad_gui_playback_state_status;
 
-	if ((kradgui_playback_state_status = calloc (1, sizeof (kradgui_playback_state_status_t))) == NULL) {
+	if ((krad_gui_playback_state_status = calloc (1, sizeof (krad_gui_playback_state_status_t))) == NULL) {
 		failfast ("Krad GUI mem alloc fail");
 	}
 	
-	kradgui_playback_state_status->kradgui = kradgui;
+	krad_gui_playback_state_status->krad_gui = krad_gui;
 
-	return kradgui_playback_state_status;
-
-}
-
-void kradgui_playback_state_status_destroy(kradgui_playback_state_status_t *kradgui_playback_state_status) {
-
-	free(kradgui_playback_state_status);	
+	return krad_gui_playback_state_status;
 
 }
 
+void krad_gui_playback_state_status_destroy(krad_gui_playback_state_status_t *krad_gui_playback_state_status) {
 
-void kradgui_render_playback_state_status(kradgui_playback_state_status_t *kradgui_playback_state_status) {
+	free(krad_gui_playback_state_status);	
+
+}
+
+
+void krad_gui_render_playback_state_status(krad_gui_playback_state_status_t *krad_gui_playback_state_status) {
 
 	cairo_t *cr;
-	cr = kradgui_playback_state_status->kradgui->cr;
+	cr = krad_gui_playback_state_status->krad_gui->cr;
 	
 	cairo_select_font_face (cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size (cr, 20.0);
 	
-	switch (kradgui_playback_state_status->kradgui->playback_state) {
-		case KRADGUI_PLAYING:
+	switch (krad_gui_playback_state_status->krad_gui->playback_state) {
+		case krad_gui_PLAYING:
 			cairo_set_source_rgb (cr, GREEN);
 			break;
 			
-		case KRADGUI_PAUSED:
+		case krad_gui_PAUSED:
 			cairo_set_source_rgb (cr, BLUE);
 			break;
 			
-		case KRADGUI_STOPPED:
+		case krad_gui_STOPPED:
 			cairo_set_source_rgb (cr, GREY);
 			break;
 	}
 	
-	cairo_move_to (cr, kradgui_playback_state_status->kradgui->width/8.0 * 6, kradgui_playback_state_status->kradgui->height - 232.0);
+	cairo_move_to (cr, krad_gui_playback_state_status->krad_gui->width/8.0 * 6, krad_gui_playback_state_status->krad_gui->height - 232.0);
 	
-	cairo_show_text (cr, kradgui_playback_state_status->kradgui->playback_state_status_string);
+	cairo_show_text (cr, krad_gui_playback_state_status->krad_gui->playback_state_status_string);
 
 }
 
-void kradgui_set_playback_state(kradgui_t *kradgui, kradgui_playback_state_t playback_state) {
+void krad_gui_set_playback_state(krad_gui_t *krad_gui, krad_gui_playback_state_t playback_state) {
 
-	kradgui->playback_state = playback_state;
-	kradgui_update_playback_state_status_string(kradgui);
+	krad_gui->playback_state = playback_state;
+	krad_gui_update_playback_state_status_string(krad_gui);
 
 }
 
 
-void kradgui_control_speed_up(kradgui_t *kradgui) {
+void krad_gui_control_speed_up(krad_gui_t *krad_gui) {
 
-	if (kradgui->control_speed_up_callback != NULL) {
-		kradgui->control_speed_up_callback(kradgui->callback_pointer);
+	if (krad_gui->control_speed_up_callback != NULL) {
+		krad_gui->control_speed_up_callback(krad_gui->callback_pointer);
 	}
 
 
 }
 
-void kradgui_control_speed_down(kradgui_t *kradgui) {
+void krad_gui_control_speed_down(krad_gui_t *krad_gui) {
 
-	if (kradgui->control_speed_down_callback != NULL) {
-		kradgui->control_speed_down_callback(kradgui->callback_pointer);
+	if (krad_gui->control_speed_down_callback != NULL) {
+		krad_gui->control_speed_down_callback(krad_gui->callback_pointer);
 	}
 
 }
 
-void kradgui_control_speed(kradgui_t *kradgui, float value) {
+void krad_gui_control_speed(krad_gui_t *krad_gui, float value) {
 
-	if (kradgui->control_speed_callback != NULL) {
-		kradgui->control_speed_callback(kradgui->callback_pointer, value);
+	if (krad_gui->control_speed_callback != NULL) {
+		krad_gui->control_speed_callback(krad_gui->callback_pointer, value);
 	}
 
 }
 
 
-void kradgui_set_control_speed_callback(kradgui_t *kradgui, void control_speed_callback(void *, float)) {
+void krad_gui_set_control_speed_callback(krad_gui_t *krad_gui, void control_speed_callback(void *, float)) {
 
-	kradgui->control_speed_callback = control_speed_callback;
-
-
-}
-
-void kradgui_set_control_speed_down_callback(kradgui_t *kradgui, void control_speed_down_callback(void *)) {
-
-	kradgui->control_speed_down_callback = control_speed_down_callback;
+	krad_gui->control_speed_callback = control_speed_callback;
 
 
 }
 
-void kradgui_set_control_speed_up_callback(kradgui_t *kradgui, void control_speed_up_callback(void *)) {
+void krad_gui_set_control_speed_down_callback(krad_gui_t *krad_gui, void control_speed_down_callback(void *)) {
 
-	kradgui->control_speed_up_callback = control_speed_up_callback;
-
-
-}
-
-void kradgui_set_callback_pointer(kradgui_t *kradgui, void *callback_pointer) {
-
-	kradgui->callback_pointer = callback_pointer;
+	krad_gui->control_speed_down_callback = control_speed_down_callback;
 
 
 }
 
+void krad_gui_set_control_speed_up_callback(krad_gui_t *krad_gui, void control_speed_up_callback(void *)) {
 
-void kradgui_update_reel_to_reel_information(kradgui_reel_to_reel_t *kradgui_reel_to_reel) {
+	krad_gui->control_speed_up_callback = control_speed_up_callback;
+
+
+}
+
+void krad_gui_set_callback_pointer(krad_gui_t *krad_gui, void *callback_pointer) {
+
+	krad_gui->callback_pointer = callback_pointer;
+
+
+}
+
+
+void krad_gui_update_reel_to_reel_information(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel) {
 
 	// calc rotation example
 	// determine rotation in degrees per millisecond
@@ -346,28 +346,28 @@ void kradgui_update_reel_to_reel_information(kradgui_reel_to_reel_t *kradgui_ree
 	// time ms * 0.381 = distance
 	// distance / 0.74083333 = rotation
 	
-	kradgui_reel_to_reel->distance = 
-		kradgui_reel_to_reel->kradgui->current_track_time_ms * (kradgui_reel_to_reel->reel_speed / 1000);
-	kradgui_reel_to_reel->total_distance = 
-		kradgui_reel_to_reel->kradgui->total_track_time_ms * (kradgui_reel_to_reel->reel_speed / 1000);
-	if (kradgui_reel_to_reel->distance >= kradgui_reel_to_reel->total_distance) {
-		kradgui_reel_to_reel->distance = kradgui_reel_to_reel->total_distance;
+	krad_gui_reel_to_reel->distance = 
+		krad_gui_reel_to_reel->krad_gui->current_track_time_ms * (krad_gui_reel_to_reel->reel_speed / 1000);
+	krad_gui_reel_to_reel->total_distance = 
+		krad_gui_reel_to_reel->krad_gui->total_track_time_ms * (krad_gui_reel_to_reel->reel_speed / 1000);
+	if (krad_gui_reel_to_reel->distance >= krad_gui_reel_to_reel->total_distance) {
+		krad_gui_reel_to_reel->distance = krad_gui_reel_to_reel->total_distance;
 	}
 	
-	kradgui_reel_to_reel->angle = 
-		(unsigned int)(kradgui_reel_to_reel->distance / (kradgui_reel_to_reel->reel_size / 360)) % 360;
+	krad_gui_reel_to_reel->angle = 
+		(unsigned int)(krad_gui_reel_to_reel->distance / (krad_gui_reel_to_reel->reel_size / 360)) % 360;
 	
 	//printk ("MS: %zu Reel Size: %fcm Reel Speed: %fcm/s Distance: %fcm Rotation: %fdegrees\n", 
-	//kradgui_reel_to_reel->kradgui->current_track_time_ms, kradgui_reel_to_reel->reel_size, 
-	//kradgui_reel_to_reel->reel_speed, kradgui_reel_to_reel->distance, kradgui_reel_to_reel->angle);
+	//krad_gui_reel_to_reel->krad_gui->current_track_time_ms, krad_gui_reel_to_reel->reel_size, 
+	//krad_gui_reel_to_reel->reel_speed, krad_gui_reel_to_reel->distance, krad_gui_reel_to_reel->angle);
 	
 }
 
-void kradgui_render_circles (kradgui_t *kradgui, int w, int h) {
+void krad_gui_render_circles (krad_gui_t *krad_gui, int w, int h) {
 
 	cairo_t *cr;
 	
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 
 
 	cairo_set_source_rgb(cr, GREEN);
@@ -381,117 +381,117 @@ void kradgui_render_circles (kradgui_t *kradgui, int w, int h) {
 	
 }
 
-void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y) {
+void krad_gui_set_bug (krad_gui_t *krad_gui, char *filename, int x, int y) {
 
 
 	if ( filename != NULL ) {
 	
-		kradgui->bug_x = x;
-		kradgui->bug_y = y;
-		//kradgui_load_bug ( kradgui, filename );
-		kradgui->render_bug = 1;
-		kradgui->next_bug = strdup ( filename );
+		krad_gui->bug_x = x;
+		krad_gui->bug_y = y;
+		//krad_gui_load_bug ( krad_gui, filename );
+		krad_gui->render_bug = 1;
+		krad_gui->next_bug = strdup ( filename );
 	}
 
 }
 
-void kradgui_remove_bug (kradgui_t *kradgui) {
+void krad_gui_remove_bug (krad_gui_t *krad_gui) {
 
-	//kradgui_load_bug ( kradgui, NULL );
-	kradgui->next_bug = strdup ("none");
+	//krad_gui_load_bug ( krad_gui, NULL );
+	krad_gui->next_bug = strdup ("none");
 }
 
-void kradgui_load_bug (kradgui_t *kradgui, char *filename) {
+void krad_gui_load_bug (krad_gui_t *krad_gui, char *filename) {
 
-	if (kradgui->bug_alpha == 0.0f) {
-		kradgui->bug_alpha = 1.0f;
+	if (krad_gui->bug_alpha == 0.0f) {
+		krad_gui->bug_alpha = 1.0f;
 	}
 
 	
-	if (kradgui->bug != NULL) {
-		cairo_surface_destroy ( kradgui->bug );
-		kradgui->bug = NULL;
+	if (krad_gui->bug != NULL) {
+		cairo_surface_destroy ( krad_gui->bug );
+		krad_gui->bug = NULL;
 	}
 	
 	if ( filename != NULL ) {
-		kradgui->bug = cairo_image_surface_create_from_png ( filename );
-		kradgui->bug_width = cairo_image_surface_get_width ( kradgui->bug );
-		kradgui->bug_height = cairo_image_surface_get_height ( kradgui->bug );
-		//kradgui->start_frame = kradgui->frame;
-		kradgui->bug_fade = 0;
-		kradgui->bug_fade_speed = 0.04;
-		kradgui->bug_fader = -1.3f;
-		kradgui->render_bug = 1;
+		krad_gui->bug = cairo_image_surface_create_from_png ( filename );
+		krad_gui->bug_width = cairo_image_surface_get_width ( krad_gui->bug );
+		krad_gui->bug_height = cairo_image_surface_get_height ( krad_gui->bug );
+		//krad_gui->start_frame = krad_gui->frame;
+		krad_gui->bug_fade = 0;
+		krad_gui->bug_fade_speed = 0.04;
+		krad_gui->bug_fader = -1.3f;
+		krad_gui->render_bug = 1;
 	} else {
-		kradgui->render_bug = 0;
-		kradgui->bug_x = 0;
-		kradgui->bug_y = 0;
-		kradgui->bug_width = 0;
-		kradgui->bug_height = 0;
-		kradgui->bug_fade = 0;
-		kradgui->bug = NULL;
+		krad_gui->render_bug = 0;
+		krad_gui->bug_x = 0;
+		krad_gui->bug_y = 0;
+		krad_gui->bug_width = 0;
+		krad_gui->bug_height = 0;
+		krad_gui->bug_fade = 0;
+		krad_gui->bug = NULL;
 	}
 
 }
 
 
-void kradgui_render_bug (kradgui_t *kradgui) {
+void krad_gui_render_bug (krad_gui_t *krad_gui) {
 
-	if (kradgui->next_bug != NULL) {
+	if (krad_gui->next_bug != NULL) {
 		
-		if (kradgui->bug_fade <= 0.0f) {
-			//printk ("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
-			kradgui->bug_fade = 0.0f;
-			if (strncmp(kradgui->next_bug, "none", 4) == 0) {
-				kradgui_load_bug (kradgui, NULL);
+		if (krad_gui->bug_fade <= 0.0f) {
+			//printk ("%f %f\n", krad_gui->bug_fade, krad_gui->bug_fader);
+			krad_gui->bug_fade = 0.0f;
+			if (strncmp(krad_gui->next_bug, "none", 4) == 0) {
+				krad_gui_load_bug (krad_gui, NULL);
 			} else {
-				kradgui_load_bug (kradgui, kradgui->next_bug);
+				krad_gui_load_bug (krad_gui, krad_gui->next_bug);
 			}
-			free (kradgui->next_bug);			
-			kradgui->next_bug = NULL;
+			free (krad_gui->next_bug);			
+			krad_gui->next_bug = NULL;
 		} else {
 		
-			//kradgui->bug_fade -= 0.01f;
+			//krad_gui->bug_fade -= 0.01f;
 	
-			kradgui->bug_fade = (0.5f) + 1.0f * sin(kradgui->bug_fader / 2);
-			kradgui->bug_fader -= kradgui->bug_fade_speed;
+			krad_gui->bug_fade = (0.5f) + 1.0f * sin(krad_gui->bug_fader / 2);
+			krad_gui->bug_fader -= krad_gui->bug_fade_speed;
 		
 		}
 	} else {
 	
-		if (kradgui->bug_fade < kradgui->bug_alpha) {
-			//kradgui->bug_fade += 0.01f;
-			kradgui->bug_fade = (0.5f) + 1.0f * sin(kradgui->bug_fader / 2);
-			kradgui->bug_fader += kradgui->bug_fade_speed;
+		if (krad_gui->bug_fade < krad_gui->bug_alpha) {
+			//krad_gui->bug_fade += 0.01f;
+			krad_gui->bug_fade = (0.5f) + 1.0f * sin(krad_gui->bug_fader / 2);
+			krad_gui->bug_fader += krad_gui->bug_fade_speed;
 		} else {
-			if (kradgui->bug_fade > kradgui->bug_alpha + 0.1f) {
-				//kradgui->bug_fade += 0.01f;
-				kradgui->bug_fade = (0.5f) + 1.0f * sin(kradgui->bug_fader / 2);
-				kradgui->bug_fader -= kradgui->bug_fade_speed;
+			if (krad_gui->bug_fade > krad_gui->bug_alpha + 0.1f) {
+				//krad_gui->bug_fade += 0.01f;
+				krad_gui->bug_fade = (0.5f) + 1.0f * sin(krad_gui->bug_fader / 2);
+				krad_gui->bug_fader -= krad_gui->bug_fade_speed;
 			} 
 		}
 	
 	}
 	
-	//printk ("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
+	//printk ("%f %f\n", krad_gui->bug_fade, krad_gui->bug_fader);
 	
-	if (kradgui->bug_fader >= 2 * M_PI) {
-		kradgui->bug_fader -= 2 * M_PI;
+	if (krad_gui->bug_fader >= 2 * M_PI) {
+		krad_gui->bug_fader -= 2 * M_PI;
 	}
 
-	if (kradgui->render_bug == 1) {
-		cairo_set_source_surface ( kradgui->cr, kradgui->bug, kradgui->bug_x, kradgui->bug_y );
-		cairo_paint_with_alpha ( kradgui->cr , kradgui->bug_fade);
+	if (krad_gui->render_bug == 1) {
+		cairo_set_source_surface ( krad_gui->cr, krad_gui->bug, krad_gui->bug_x, krad_gui->bug_y );
+		cairo_paint_with_alpha ( krad_gui->cr , krad_gui->bug_fade);
 	}
 }
 
 
 
-void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos) {
+void krad_gui_render_meter (krad_gui_t *krad_gui, int x, int y, int size, float pos) {
 
 	cairo_t *cr;
 	
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 
 
 	pos = pos * 1.8f - 90.0f;
@@ -543,11 +543,11 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos
 	
 }
 
-void kradgui_render_curve (kradgui_t *kradgui, int w, int h) {
+void krad_gui_render_curve (krad_gui_t *krad_gui, int w, int h) {
 
 	cairo_t *cr;
 
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 
 	cairo_set_line_width(cr, 3.5);
 	cairo_set_source_rgb(cr, BLUE);
@@ -590,11 +590,11 @@ void kradgui_render_curve (kradgui_t *kradgui, int w, int h) {
 	
 }
 
-void kradgui_render_grid (kradgui_t *kradgui, int x, int y, int w, int h, int lines) {
+void krad_gui_render_grid (krad_gui_t *krad_gui, int x, int y, int w, int h, int lines) {
 
 
 	cairo_t *cr;
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 	int count;
 
 	//srand(time(NULL));
@@ -633,11 +633,11 @@ void kradgui_render_grid (kradgui_t *kradgui, int x, int y, int w, int h, int li
 	cairo_restore(cr);
 }
 
-void kradgui_render_viper (kradgui_t *kradgui, int x, int y, int size, int direction) {
+void krad_gui_render_viper (krad_gui_t *krad_gui, int x, int y, int size, int direction) {
 
 	cairo_t *cr;
 
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 
 	cairo_save(cr);
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
@@ -691,11 +691,11 @@ void kradgui_render_viper (kradgui_t *kradgui, int x, int y, int size, int direc
 
 }
 
-void kradgui_render_selector (kradgui_t *kradgui, int x, int y, int w) {
+void krad_gui_render_selector (krad_gui_t *krad_gui, int x, int y, int w) {
 
 	cairo_t *cr;
 	
-	cr = kradgui->cr;	
+	cr = krad_gui->cr;	
 	
 	cairo_save (cr);
 		
@@ -725,7 +725,7 @@ void kradgui_render_selector (kradgui_t *kradgui, int x, int y, int w) {
 
 }
 
-void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
+void krad_gui_render_hex (krad_gui_t *krad_gui, int x, int y, int w) {
 
 
 	cairo_t *cr;
@@ -733,7 +733,7 @@ void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
 	
 	static float hexrot = 0;
 	
-	cr = kradgui->cr;	
+	cr = krad_gui->cr;	
 	
 	cairo_save(cr);
 		
@@ -833,7 +833,7 @@ void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w) {
 }
 
 
-void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
+void krad_gui_render_cube (krad_gui_t *krad_gui, int x, int y, int w, int h) {
 
 	cairo_t *cr;
 	
@@ -841,7 +841,7 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	static float scale = 0.86062;
 	static float rot = 30.0f;
 	
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 	
 	int lines;
 	
@@ -919,7 +919,7 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	cairo_transform(cr, &matrix_scal_sher_rot_trans2);
 	//cairo_transform(cr, &matrix_scal4);
 	cairo_set_source_rgba(cr, LGREEN);
-	//kradgui_render_grid (kradgui, w, h, w, h, lines);
+	//krad_gui_render_grid (krad_gui, w, h, w, h, lines);
 	cairo_stroke (cr);
 	
 	cairo_set_source_rgb(cr, GREEN);
@@ -941,7 +941,7 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	cairo_stroke (cr);
 	
 	cairo_set_source_rgb(cr, GREEN);
-	kradgui_render_grid (kradgui, 0, 0, w, h, lines);
+	krad_gui_render_grid (krad_gui, 0, 0, w, h, lines);
 
 	cairo_rectangle (cr, 0, 0, w, h);
 	//cairo_fill (cr);
@@ -962,7 +962,7 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 	
 	
 	cairo_set_source_rgb(cr, GREEN);
-	//kradgui_render_grid (kradgui, 0, 0, w, h, lines);
+	//krad_gui_render_grid (krad_gui, 0, 0, w, h, lines);
 	cairo_rectangle (cr, 0, 0, w, h);
 	//cairo_fill (cr);	
 	cairo_stroke (cr);
@@ -1032,7 +1032,7 @@ void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h) {
 
 }
 
-void kradgui_render_vtest (kradgui_t *kradgui) {
+void krad_gui_render_vtest (krad_gui_t *krad_gui) {
 
 	
 	//#ifdef SDLGUI
@@ -1042,13 +1042,13 @@ void kradgui_render_vtest (kradgui_t *kradgui) {
 	//printk ("x %d y %d\n", mx, my);
 
 /*
-	kradgui_render_cube (kradgui, 590, 230, 100, 100);
-	kradgui_render_cube (kradgui, 375, 260, 100, 100);
-	kradgui_render_cube (kradgui,  550,  430, 20, 20);
+	krad_gui_render_cube (krad_gui, 590, 230, 100, 100);
+	krad_gui_render_cube (krad_gui, 375, 260, 100, 100);
+	krad_gui_render_cube (krad_gui,  550,  430, 20, 20);
 	
-	kradgui_render_curve(kradgui, mx, my);
+	krad_gui_render_curve(krad_gui, mx, my);
 	
-	kradgui_render_circles (kradgui, mx,  my);
+	krad_gui_render_circles (krad_gui, mx,  my);
 */
 static int g = 0;
 
@@ -1063,27 +1063,27 @@ if (g < 0) {
 	g = 0;
 }
 
-g = (kradgui->cursor_x * 100) / kradgui->width;
+g = (krad_gui->cursor_x * 100) / krad_gui->width;
 
 
-	kradgui_render_hex (kradgui, kradgui->cursor_x, kradgui->cursor_y, 14);
+	krad_gui_render_hex (krad_gui, krad_gui->cursor_x, krad_gui->cursor_y, 14);
 
 
 static int vposx = 0;
 static int vposy = 0;
 static int vdir = 0;
-if (kradgui->cursor_x > vposx) {
+if (krad_gui->cursor_x > vposx) {
 vposx++;
 } else {
 vposx--;
 }
 
-if (kradgui->cursor_y > vposy) {
+if (krad_gui->cursor_y > vposy) {
 vposy++;
 } else {
 vposy--;
 }
-vdir = atan2 (kradgui->cursor_y - vposy, kradgui->cursor_x - vposx) * 180 / M_PI;
+vdir = atan2 (krad_gui->cursor_y - vposy, krad_gui->cursor_x - vposx) * 180 / M_PI;
 
 static float vposx2 = 666;
 static float vposy2 = 666;
@@ -1103,21 +1103,21 @@ vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 
 
 	//printk ("\nvdr is --%d--\n", vdir);
-	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);	
-	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
+	krad_gui_render_viper (krad_gui, vposx, vposy, 32, vdir);	
+	krad_gui_render_viper (krad_gui, vposx2, vposy2, 32, vdir2);
 
 	
 }
 
-void kradgui_render_ftest (kradgui_t *kradgui) {
+void krad_gui_render_ftest (krad_gui_t *krad_gui) {
 
 	//int w, h;
 	cairo_t *cr;
 	
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 
-	//w = kradgui->width;
-	//h = kradgui->height;
+	//w = krad_gui->width;
+	//h = krad_gui->height;
 
 	cairo_set_line_width(cr, 22);
 	cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
@@ -1126,16 +1126,16 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	//SDL_ShowCursor(0);
 
 	//#endif
-	//printk ("m x %d y %d\n", kradgui->cursor_x, kradgui->cursor_y);
+	//printk ("m x %d y %d\n", krad_gui->cursor_x, krad_gui->cursor_y);
 
 /*
-	kradgui_render_cube (kradgui, 590, 230, 100, 100);
-	kradgui_render_cube (kradgui, 375, 260, 100, 100);
-	kradgui_render_cube (kradgui,  550,  430, 20, 20);
+	krad_gui_render_cube (krad_gui, 590, 230, 100, 100);
+	krad_gui_render_cube (krad_gui, 375, 260, 100, 100);
+	krad_gui_render_cube (krad_gui,  550,  430, 20, 20);
 	
-	kradgui_render_curve(kradgui, mx, my);
+	krad_gui_render_curve(krad_gui, mx, my);
 	
-	kradgui_render_circles (kradgui, mx,  my);
+	krad_gui_render_circles (krad_gui, mx,  my);
 */
 static int g = 0;
 
@@ -1150,27 +1150,27 @@ if (g < 0) {
 	g = 0;
 }
 
-g = (kradgui->cursor_x * 100) / kradgui->width;
+g = (krad_gui->cursor_x * 100) / krad_gui->width;
 
 
-	kradgui_render_hex (kradgui, kradgui->cursor_x, kradgui->cursor_y, 33);
+	krad_gui_render_hex (krad_gui, krad_gui->cursor_x, krad_gui->cursor_y, 33);
 
 
 static int vposx = 0;
 static int vposy = 0;
 static int vdir = 0;
-if (kradgui->cursor_x > vposx) {
+if (krad_gui->cursor_x > vposx) {
 vposx++;
 } else {
 vposx--;
 }
 
-if (kradgui->cursor_y > vposy) {
+if (krad_gui->cursor_y > vposy) {
 vposy++;
 } else {
 vposy--;
 }
-vdir = atan2 (kradgui->cursor_y - vposy, kradgui->cursor_x - vposx) * 180 / M_PI;
+vdir = atan2 (krad_gui->cursor_y - vposy, krad_gui->cursor_x - vposx) * 180 / M_PI;
 
 static float vposx2 = 666;
 static float vposy2 = 666;
@@ -1190,33 +1190,33 @@ vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 
 
 	//printk ("\nvdr is --%d--\n", vdir);
-	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);
+	krad_gui_render_viper (krad_gui, vposx, vposy, 32, vdir);
 	
-	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
-//	kradgui_render_viper (kradgui, 474, 333, 13, 99);
+	krad_gui_render_viper (krad_gui, vposx2, vposy2, 32, vdir2);
+//	krad_gui_render_viper (krad_gui, 474, 333, 13, 99);
 
-//	kradgui_render_viper (kradgui, 544, 555, 53, 222);
+//	krad_gui_render_viper (krad_gui, 544, 555, 53, 222);
 	
 /*
-	kradgui_render_hex (kradgui, 444, 222, 33);
-	kradgui_render_hex (kradgui, 474, 333, 13);
-	kradgui_render_hex (kradgui, mx, my, 44);
-	kradgui_render_hex (kradgui, 544, 555, 53);
-	kradgui_render_hex (kradgui, 644, 290, 63);
-	kradgui_render_hex (kradgui, 744, 410, 23);
+	krad_gui_render_hex (krad_gui, 444, 222, 33);
+	krad_gui_render_hex (krad_gui, 474, 333, 13);
+	krad_gui_render_hex (krad_gui, mx, my, 44);
+	krad_gui_render_hex (krad_gui, 544, 555, 53);
+	krad_gui_render_hex (krad_gui, 644, 290, 63);
+	krad_gui_render_hex (krad_gui, 744, 410, 23);
 */	
-//	kradgui_render_meter (kradgui, 63, 33, 33, g);
+//	krad_gui_render_meter (krad_gui, 63, 33, 33, g);
 
-	//kradgui_render_meter (kradgui, 233, 233, 44, g);
+	//krad_gui_render_meter (krad_gui, 233, 233, 44, g);
 	
-	//kradgui_render_meter (kradgui, 233, 533, 88, g);
+	//krad_gui_render_meter (krad_gui, 233, 533, 88, g);
 	
-//	kradgui_render_meter (kradgui, 633, 533, 188, g);
+//	krad_gui_render_meter (krad_gui, 633, 533, 188, g);
 
 
 }
 
-void kradgui_render_wheel (kradgui_t *kradgui) {
+void krad_gui_render_wheel (krad_gui_t *krad_gui) {
 
 	int diameter;
 	int inner_diameter;
@@ -1229,18 +1229,18 @@ void kradgui_render_wheel (kradgui_t *kradgui) {
 	spoke_distance = 360 / num_spokes;
 	
 
-	diameter = (kradgui->height/4 * 3.5) / 2;
+	diameter = (krad_gui->height/4 * 3.5) / 2;
 	inner_diameter = diameter/8;
 
 	cairo_t *cr;
-	cr = kradgui->cr;
+	cr = krad_gui->cr;
 
 	cairo_save(cr);
 	cairo_new_path (cr);
 	// wheel
 	cairo_set_line_width(cr, 5);
 	cairo_set_source_rgb(cr, WHITE);
-	cairo_translate (cr, kradgui->width/3, kradgui->height/2);
+	cairo_translate (cr, krad_gui->width/3, krad_gui->height/2);
 	cairo_arc (cr, 0.0, 0.0, inner_diameter, 0, 2*M_PI);
 	cairo_stroke(cr);
 	cairo_arc(cr, 0.0, 0.0, diameter, 0, 2 * M_PI);
@@ -1250,7 +1250,7 @@ void kradgui_render_wheel (kradgui_t *kradgui) {
 	cairo_set_source_rgb(cr, WHITE);
 	cairo_set_line_width(cr, 35);
 	
-	cairo_rotate (cr, (kradgui->wheel_angle % 360) * (M_PI/180.0));
+	cairo_rotate (cr, (krad_gui->wheel_angle % 360) * (M_PI/180.0));
 	
 	for (s = 0; s < num_spokes; s++) {
 		cairo_rotate (cr, spoke_distance * (M_PI/180.0));
@@ -1260,14 +1260,14 @@ void kradgui_render_wheel (kradgui_t *kradgui) {
 		cairo_stroke(cr);
 	}
 
-	kradgui->wheel_angle += 1;
+	krad_gui->wheel_angle += 1;
 
 	cairo_restore(cr);
 
 }
 
 
-void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, int y) {
+void krad_gui_render_reel(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel, int x, int y) {
 
 
 	cairo_t *cr;
@@ -1283,7 +1283,7 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 	float tape_exit_point;
 	float tape_entrance_point;
 	
-	cr = kradgui_reel_to_reel->kradgui->cr;
+	cr = krad_gui_reel_to_reel->krad_gui->cr;
 	
 	reel_inner_diameter = 13;
 	reel_diameter = 45;
@@ -1291,8 +1291,8 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 	max_tape_on_reel = reel_diameter - 5 - (reel_inner_diameter + 2);
 	//min_tape_on_reel = 2 + reel_inner_diameter;
 	
-	tape_on_dest_reel = (kradgui_reel_to_reel->kradgui->current_track_progress * 0.01) * max_tape_on_reel;
-	tape_on_source_reel = ((100.0 - kradgui_reel_to_reel->kradgui->current_track_progress) * 0.01) * max_tape_on_reel;
+	tape_on_dest_reel = (krad_gui_reel_to_reel->krad_gui->current_track_progress * 0.01) * max_tape_on_reel;
+	tape_on_source_reel = ((100.0 - krad_gui_reel_to_reel->krad_gui->current_track_progress) * 0.01) * max_tape_on_reel;
 	middle_of_tape_on_source_reel = reel_inner_diameter + (tape_on_source_reel / 2) + 2;
 	middle_of_tape_on_dest_reel = reel_inner_diameter + (tape_on_dest_reel / 2) + 2;
 	tape_exit_point = reel_inner_diameter + tape_on_source_reel;
@@ -1341,7 +1341,7 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 //	cairo_set_source_rgba(cr, WHITE_TRANS);
 	cairo_set_source_rgb(cr, WHITE);
 	cairo_set_line_width(cr, 2);
-	cairo_rotate (cr, (kradgui_reel_to_reel->angle + rotation_offset % 360) * (M_PI/180.0));
+	cairo_rotate (cr, (krad_gui_reel_to_reel->angle + rotation_offset % 360) * (M_PI/180.0));
 	cairo_rotate (cr, 120 * (M_PI/180.0));
 	cairo_move_to(cr, 19.0,  0.0);
 	cairo_line_to (cr, 37.0, 0.0);
@@ -1362,7 +1362,7 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 	
 	// tape transfer from reel to reel
 	cairo_restore(cr);
-	if ((x > 200) && (kradgui_reel_to_reel->kradgui->current_track_progress < 100.0)) {
+	if ((x > 200) && (krad_gui_reel_to_reel->krad_gui->current_track_progress < 100.0)) {
 		cairo_set_source_rgb(cr, GREY3);
 		cairo_move_to (cr, tape_exit_point, 7);
 		cairo_line_to (cr, 4, 63);
@@ -1395,18 +1395,18 @@ void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, in
 	
 }
 
-void kradgui_render_reel_to_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel) {
+void krad_gui_render_reel_to_reel(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel) {
 
 	cairo_t *cr;
 	
-	cr = kradgui_reel_to_reel->kradgui->cr;
+	cr = krad_gui_reel_to_reel->krad_gui->cr;
 
 	cairo_save(cr);
 	cairo_scale(cr, 3.0, 3.0);
 
 	// reels
-	kradgui_render_reel(kradgui_reel_to_reel, 82, 57);
-	kradgui_render_reel(kradgui_reel_to_reel, 235, 57);
+	krad_gui_render_reel(krad_gui_reel_to_reel, 82, 57);
+	krad_gui_render_reel(krad_gui_reel_to_reel, 235, 57);
 
 	// roller wheels
 	cairo_set_source_rgb (cr, WHITE);
@@ -1433,569 +1433,569 @@ void kradgui_render_reel_to_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel) {
 	
 }
 
-void kradgui_render_elapsed_timecode(kradgui_t *kradgui) {
+void krad_gui_render_elapsed_timecode(krad_gui_t *krad_gui) {
 
-	kradgui_update_elapsed_time(kradgui);
+	krad_gui_update_elapsed_time(krad_gui);
 
-	cairo_select_font_face (kradgui->cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size (kradgui->cr, 22.0);
-	cairo_set_source_rgb (kradgui->cr, ORANGE);
+	cairo_select_font_face (krad_gui->cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (krad_gui->cr, 22.0);
+	cairo_set_source_rgb (krad_gui->cr, ORANGE);
 	
-	cairo_move_to (kradgui->cr, kradgui->width/4.0, kradgui->height - 174.0);	
-	cairo_show_text (kradgui->cr, "Elapsed Time");
+	cairo_move_to (krad_gui->cr, krad_gui->width/4.0, krad_gui->height - 174.0);	
+	cairo_show_text (krad_gui->cr, "Elapsed Time");
 	
-	cairo_move_to (kradgui->cr, kradgui->width/4.0, kradgui->height - 131.0);
-	cairo_show_text (kradgui->cr, kradgui->elapsed_time_timecode_string);
+	cairo_move_to (krad_gui->cr, krad_gui->width/4.0, krad_gui->height - 131.0);
+	cairo_show_text (krad_gui->cr, krad_gui->elapsed_time_timecode_string);
 	
-	cairo_stroke (kradgui->cr);
+	cairo_stroke (krad_gui->cr);
 	
 }
 
-void kradgui_render_timecode(kradgui_t *kradgui) {
+void krad_gui_render_timecode(krad_gui_t *krad_gui) {
 
-	cairo_select_font_face (kradgui->cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size (kradgui->cr, 22.0);
-	cairo_set_source_rgb (kradgui->cr, ORANGE);
+	cairo_select_font_face (krad_gui->cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (krad_gui->cr, 22.0);
+	cairo_set_source_rgb (krad_gui->cr, ORANGE);
 
-	cairo_move_to (kradgui->cr, kradgui->width/4.0, 90.0);
-	cairo_show_text (kradgui->cr, "Track Time");
+	cairo_move_to (krad_gui->cr, krad_gui->width/4.0, 90.0);
+	cairo_show_text (krad_gui->cr, "Track Time");
 
 	
-	cairo_move_to (kradgui->cr, kradgui->width/4.0, 144.0);
-	cairo_show_text (kradgui->cr, kradgui->current_track_time_timecode_string);
+	cairo_move_to (krad_gui->cr, krad_gui->width/4.0, 144.0);
+	cairo_show_text (krad_gui->cr, krad_gui->current_track_time_timecode_string);
 }
 
-void kradgui_render_rgb(kradgui_t *kradgui) {
+void krad_gui_render_rgb(krad_gui_t *krad_gui) {
 
 	int size;
 	int xoffset;
 	int yoffset;
 	
-	size = kradgui->width / 7;
+	size = krad_gui->width / 7;
 	xoffset = size;
-	yoffset = kradgui->height / 7;
+	yoffset = krad_gui->height / 7;
 	
-	cairo_set_source_rgb (kradgui->cr, 1.0, 0.0, 0.0);
-	cairo_rectangle (kradgui->cr, xoffset, yoffset, size, size);
-	cairo_fill (kradgui->cr);
+	cairo_set_source_rgb (krad_gui->cr, 1.0, 0.0, 0.0);
+	cairo_rectangle (krad_gui->cr, xoffset, yoffset, size, size);
+	cairo_fill (krad_gui->cr);
 	
-	cairo_set_source_rgb (kradgui->cr, 0.0, 1.0, 0.0);
-	cairo_rectangle (kradgui->cr, xoffset + size, yoffset, size, size);
-	cairo_fill (kradgui->cr);
+	cairo_set_source_rgb (krad_gui->cr, 0.0, 1.0, 0.0);
+	cairo_rectangle (krad_gui->cr, xoffset + size, yoffset, size, size);
+	cairo_fill (krad_gui->cr);
 	
-	cairo_set_source_rgb (kradgui->cr, 0.0, 0.0, 1.0);
-	cairo_rectangle (kradgui->cr, xoffset + (size * 2), yoffset, size, size);
-	cairo_fill (kradgui->cr);
+	cairo_set_source_rgb (krad_gui->cr, 0.0, 0.0, 1.0);
+	cairo_rectangle (krad_gui->cr, xoffset + (size * 2), yoffset, size, size);
+	cairo_fill (krad_gui->cr);
 		
 }
 
 
-void kradgui_render_tearbar(kradgui_t *kradgui) {
+void krad_gui_render_tearbar(krad_gui_t *krad_gui) {
 
-	if (kradgui->tearbar_speed == 0.0) {		
-		kradgui->tearbar_speed = 0.1;
-		kradgui->tearbar_speed_adj = 0.01;
-		kradgui->tearbar_width = kradgui->width / 15;
-		kradgui->movement_range = kradgui->width - kradgui->tearbar_width;
+	if (krad_gui->tearbar_speed == 0.0) {		
+		krad_gui->tearbar_speed = 0.1;
+		krad_gui->tearbar_speed_adj = 0.01;
+		krad_gui->tearbar_width = krad_gui->width / 15;
+		krad_gui->movement_range = krad_gui->width - krad_gui->tearbar_width;
 	}
 
-	kradgui->tearbar_position =
-		0 + (kradgui->movement_range / 2) + round(kradgui->movement_range * sin(kradgui->tearbar_positioner) / 2);
+	krad_gui->tearbar_position =
+		0 + (krad_gui->movement_range / 2) + round(krad_gui->movement_range * sin(krad_gui->tearbar_positioner) / 2);
 
-	//printk ("speed is %f adj is %f position is: %d positioner is %f\n", kradgui->tearbar_speed, 
-	//kradgui->tearbar_speed_adj, kradgui->tearbar_position, kradgui->tearbar_positioner);
+	//printk ("speed is %f adj is %f position is: %d positioner is %f\n", krad_gui->tearbar_speed, 
+	//krad_gui->tearbar_speed_adj, krad_gui->tearbar_position, krad_gui->tearbar_positioner);
 
-	kradgui->tearbar_positioner += kradgui->tearbar_speed;
+	krad_gui->tearbar_positioner += krad_gui->tearbar_speed;
 
-	if (kradgui->tearbar_positioner >= 2 * M_PI) {
-		kradgui->tearbar_positioner -= 2 * M_PI;
-		kradgui->new_speed = 1;
+	if (krad_gui->tearbar_positioner >= 2 * M_PI) {
+		krad_gui->tearbar_positioner -= 2 * M_PI;
+		krad_gui->new_speed = 1;
 	}
 	
-	if ((kradgui->new_speed) && (kradgui->tearbar_position < kradgui->last_tearbar_position)) {
+	if ((krad_gui->new_speed) && (krad_gui->tearbar_position < krad_gui->last_tearbar_position)) {
 
-		if (kradgui->tearbar_speed > 0.17) {
-			kradgui->tearbar_speed_adj = -0.01;
+		if (krad_gui->tearbar_speed > 0.17) {
+			krad_gui->tearbar_speed_adj = -0.01;
 		}
 	
-		if (kradgui->tearbar_speed <= 0.02) {
-			kradgui->tearbar_speed_adj = 0.01;
+		if (krad_gui->tearbar_speed <= 0.02) {
+			krad_gui->tearbar_speed_adj = 0.01;
 		}
 		
-		kradgui->tearbar_speed += kradgui->tearbar_speed_adj;
-		kradgui->new_speed = 0;
+		krad_gui->tearbar_speed += krad_gui->tearbar_speed_adj;
+		krad_gui->new_speed = 0;
 	}
 	
-	kradgui->last_tearbar_position = kradgui->tearbar_position;
+	krad_gui->last_tearbar_position = krad_gui->tearbar_position;
 	
-	cairo_set_source_rgb (kradgui->cr, 1.0, 1.0, 1.0);
-	cairo_rectangle (kradgui->cr, kradgui->tearbar_position, 0, kradgui->tearbar_width, kradgui->height);
-	cairo_fill (kradgui->cr);
+	cairo_set_source_rgb (krad_gui->cr, 1.0, 1.0, 1.0);
+	cairo_rectangle (krad_gui->cr, krad_gui->tearbar_position, 0, krad_gui->tearbar_width, krad_gui->height);
+	cairo_fill (krad_gui->cr);
 
 }
 
 
-void kradgui_test_screen (kradgui_t *kradgui, char *info) {
+void krad_gui_test_screen (krad_gui_t *krad_gui, char *info) {
 
 	time_t t;
 
 	t = time(0);
-	sprintf(kradgui->test_start_time, "Test Started: %s", ctime(&t));
-	kradgui->test_start_time[strlen(kradgui->test_start_time) - 1] = '\0';
+	sprintf(krad_gui->test_start_time, "Test Started: %s", ctime(&t));
+	krad_gui->test_start_time[strlen(krad_gui->test_start_time) - 1] = '\0';
 
 	if (info != NULL) {
-		strncpy(kradgui->test_info_text, info, 510);
+		strncpy(krad_gui->test_info_text, info, 510);
 	} else {
-		strcpy(kradgui->test_info_text, "No Test Information");
+		strcpy(krad_gui->test_info_text, "No Test Information");
 	}
 	
 	
-	kradgui_go_live (kradgui);
-	kradgui->render_rgb = 1;
-	kradgui->render_test_text = 1;
-	kradgui->render_rotator = 1;
+	krad_gui_go_live (krad_gui);
+	krad_gui->render_rgb = 1;
+	krad_gui->render_test_text = 1;
+	krad_gui->render_rotator = 1;
 
 }
 
 
-void kradgui_render_text (kradgui_t *kradgui, int x, int y, int size, char *string) {
+void krad_gui_render_text (krad_gui_t *krad_gui, int x, int y, int size, char *string) {
 
-	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size (kradgui->cr, size);
-	cairo_set_source_rgb (kradgui->cr, 0.9, 0.9, 0.9);
-	cairo_move_to (kradgui->cr, x, y);
-	cairo_show_text (kradgui->cr, string);
+	cairo_select_font_face (krad_gui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (krad_gui->cr, size);
+	cairo_set_source_rgb (krad_gui->cr, 0.9, 0.9, 0.9);
+	cairo_move_to (krad_gui->cr, x, y);
+	cairo_show_text (krad_gui->cr, string);
 	
 }	
 
 
-void kradgui_render_test_text(kradgui_t *kradgui) {
+void krad_gui_render_test_text(krad_gui_t *krad_gui) {
 
 	time_t t;
 
-	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size (kradgui->cr, 62.0);
-	cairo_set_source_rgb (kradgui->cr, 1.0, 0.1, 0.1);
-	cairo_move_to (kradgui->cr, kradgui->width/10, kradgui->height - 360);
-	cairo_show_text (kradgui->cr, "KRAD TEST SIGNAL");
+	cairo_select_font_face (krad_gui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (krad_gui->cr, 62.0);
+	cairo_set_source_rgb (krad_gui->cr, 1.0, 0.1, 0.1);
+	cairo_move_to (krad_gui->cr, krad_gui->width/10, krad_gui->height - 360);
+	cairo_show_text (krad_gui->cr, "KRAD TEST SIGNAL");
 
-	cairo_set_font_size (kradgui->cr, 20.0);
-	cairo_set_source_rgb (kradgui->cr, 0.9, 0.9, 0.9);
-	cairo_move_to (kradgui->cr, 50, kradgui->height - 280);
-	cairo_show_text (kradgui->cr, kradgui->test_info_text);
+	cairo_set_font_size (krad_gui->cr, 20.0);
+	cairo_set_source_rgb (krad_gui->cr, 0.9, 0.9, 0.9);
+	cairo_move_to (krad_gui->cr, 50, krad_gui->height - 280);
+	cairo_show_text (krad_gui->cr, krad_gui->test_info_text);
 
 
-	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_source_rgb (kradgui->cr, 0.8, 0.8, 0.8);
-	cairo_set_font_size (kradgui->cr, 32.0);
+	cairo_select_font_face (krad_gui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_source_rgb (krad_gui->cr, 0.8, 0.8, 0.8);
+	cairo_set_font_size (krad_gui->cr, 32.0);
 
 	t = time(0);
-	sprintf(kradgui->test_text_time, "%s", ctime(&t));
-	kradgui->test_text_time[strlen(kradgui->test_text_time) - 1] = '\0';
-	cairo_move_to (kradgui->cr, kradgui->width/10.0, kradgui->height - 84.0);
-	cairo_show_text (kradgui->cr, kradgui->test_text_time);
+	sprintf(krad_gui->test_text_time, "%s", ctime(&t));
+	krad_gui->test_text_time[strlen(krad_gui->test_text_time) - 1] = '\0';
+	cairo_move_to (krad_gui->cr, krad_gui->width/10.0, krad_gui->height - 84.0);
+	cairo_show_text (krad_gui->cr, krad_gui->test_text_time);
 
-	cairo_set_source_rgb (kradgui->cr, 0.4, 0.4, 0.4);
-	cairo_set_font_size (kradgui->cr, 26.0);
-	cairo_move_to (kradgui->cr, 44, 50);
-	cairo_show_text (kradgui->cr, kradgui->test_start_time);
+	cairo_set_source_rgb (krad_gui->cr, 0.4, 0.4, 0.4);
+	cairo_set_font_size (krad_gui->cr, 26.0);
+	cairo_move_to (krad_gui->cr, 44, 50);
+	cairo_show_text (krad_gui->cr, krad_gui->test_start_time);
 
-	cairo_set_source_rgb (kradgui->cr, 0.8, 0.8, 0.8);
-	cairo_set_font_size (kradgui->cr, 32.0);
-	sprintf(kradgui->test_text, "W: %d H: %d F: %llu", kradgui->width, kradgui->height, kradgui->frame);
-	cairo_move_to (kradgui->cr, kradgui->width/2, kradgui->height - 84.0);
-	cairo_show_text (kradgui->cr, kradgui->test_text);
+	cairo_set_source_rgb (krad_gui->cr, 0.8, 0.8, 0.8);
+	cairo_set_font_size (krad_gui->cr, 32.0);
+	sprintf(krad_gui->test_text, "W: %d H: %d F: %llu", krad_gui->width, krad_gui->height, krad_gui->frame);
+	cairo_move_to (krad_gui->cr, krad_gui->width/2, krad_gui->height - 84.0);
+	cairo_show_text (krad_gui->cr, krad_gui->test_text);
 
 }
 
-void kradgui_render_rotator(kradgui_t *kradgui) {
+void krad_gui_render_rotator(krad_gui_t *krad_gui) {
 
 	int width;
 	
 	
 	width = 16;
-	kradgui->rotator_speed = 2;
+	krad_gui->rotator_speed = 2;
 	
 	
-	cairo_set_source_rgb (kradgui->cr, 0.5, 0.5, 0.5);
+	cairo_set_source_rgb (krad_gui->cr, 0.5, 0.5, 0.5);
 	
-	cairo_save (kradgui->cr);
+	cairo_save (krad_gui->cr);
 
-	cairo_translate (kradgui->cr, kradgui->width/4 * 3, kradgui->height/5 * 3);
-	cairo_rotate (kradgui->cr, (kradgui->rotator_angle % 360) * (M_PI/180.0));
-	cairo_translate (kradgui->cr, width/2 * -1, (width * 16)/2 * -1);
-	cairo_rectangle (kradgui->cr, 0, 0, width, width * 16);
-	cairo_fill (kradgui->cr);
-	cairo_restore (kradgui->cr);
+	cairo_translate (krad_gui->cr, krad_gui->width/4 * 3, krad_gui->height/5 * 3);
+	cairo_rotate (krad_gui->cr, (krad_gui->rotator_angle % 360) * (M_PI/180.0));
+	cairo_translate (krad_gui->cr, width/2 * -1, (width * 16)/2 * -1);
+	cairo_rectangle (krad_gui->cr, 0, 0, width, width * 16);
+	cairo_fill (krad_gui->cr);
+	cairo_restore (krad_gui->cr);
 
-	kradgui->rotator_angle += kradgui->rotator_speed;
+	krad_gui->rotator_angle += krad_gui->rotator_speed;
 
 }
 
-void kradgui_render_recording(kradgui_t *kradgui) {
+void krad_gui_render_recording(krad_gui_t *krad_gui) {
 
-	kradgui->recording_elapsed_time = timespec_diff(kradgui->recording_start_time, kradgui->current_time);
-	sprintf(kradgui->recording_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", kradgui->recording_elapsed_time.tv_sec / 86400 % 365, kradgui->recording_elapsed_time.tv_sec / 3600 % 24, kradgui->recording_elapsed_time.tv_sec / 60 % 60, kradgui->recording_elapsed_time.tv_sec % 60, kradgui->recording_elapsed_time.tv_nsec / 1000000);
+	krad_gui->recording_elapsed_time = timespec_diff(krad_gui->recording_start_time, krad_gui->current_time);
+	sprintf(krad_gui->recording_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld", krad_gui->recording_elapsed_time.tv_sec / 86400 % 365, krad_gui->recording_elapsed_time.tv_sec / 3600 % 24, krad_gui->recording_elapsed_time.tv_sec / 60 % 60, krad_gui->recording_elapsed_time.tv_sec % 60, krad_gui->recording_elapsed_time.tv_nsec / 1000000);
 
-	cairo_set_source_rgba (kradgui->cr, 0.7, 0.0, 0.0, 0.3);
-	cairo_rectangle (kradgui->cr, kradgui->recording_box_margin, kradgui->recording_box_margin, kradgui->recording_box_width, kradgui->recording_box_height);
-	cairo_fill (kradgui->cr);
+	cairo_set_source_rgba (krad_gui->cr, 0.7, 0.0, 0.0, 0.3);
+	cairo_rectangle (krad_gui->cr, krad_gui->recording_box_margin, krad_gui->recording_box_margin, krad_gui->recording_box_width, krad_gui->recording_box_height);
+	cairo_fill (krad_gui->cr);
 
-	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size (kradgui->cr, kradgui->recording_box_font_size);
-	cairo_set_source_rgb (kradgui->cr, 1.0, 0.0, 0.0);
+	cairo_select_font_face (krad_gui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (krad_gui->cr, krad_gui->recording_box_font_size);
+	cairo_set_source_rgb (krad_gui->cr, 1.0, 0.0, 0.0);
 
-	cairo_move_to (kradgui->cr, kradgui->recording_box_margin + kradgui->recording_box_padding,  kradgui->recording_box_margin + (kradgui->recording_box_height - kradgui->recording_box_padding));
-	cairo_show_text (kradgui->cr, "RECORDING");
+	cairo_move_to (krad_gui->cr, krad_gui->recording_box_margin + krad_gui->recording_box_padding,  krad_gui->recording_box_margin + (krad_gui->recording_box_height - krad_gui->recording_box_padding));
+	cairo_show_text (krad_gui->cr, "RECORDING");
 
 
-//	cairo_move_to (kradgui->cr, 50, 22);
-//	cairo_show_text (kradgui->cr, kradgui->recording_time_timecode_string);
-
-}
-
-void kradgui_render_live(kradgui_t *kradgui) {
-
-	kradgui->live_elapsed_time = timespec_diff(kradgui->live_start_time, kradgui->current_time);
-	sprintf(kradgui->live_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
-		kradgui->live_elapsed_time.tv_sec / 86400 % 365, kradgui->live_elapsed_time.tv_sec / 3600 % 24,
-		kradgui->live_elapsed_time.tv_sec / 60 % 60, kradgui->live_elapsed_time.tv_sec % 60,
-		kradgui->live_elapsed_time.tv_nsec / 1000000);
-
-	cairo_set_source_rgba (kradgui->cr, 0.0, 0.5, 0.0, 0.1);
-	cairo_rectangle (kradgui->cr, kradgui->width - (kradgui->live_box_margin + kradgui->live_box_width),
-					 kradgui->live_box_margin, kradgui->live_box_width, kradgui->live_box_height);
-	cairo_fill (kradgui->cr);
-
-	cairo_select_font_face (kradgui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size);
-	cairo_set_source_rgb (kradgui->cr, GREEN);
-
-	cairo_move_to (kradgui->cr,
-		kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin) + kradgui->live_box_padding,
-		kradgui->live_box_margin + (kradgui->live_box_height - kradgui->live_box_padding));
-	cairo_show_text (kradgui->cr, "LIVE");
-
-	cairo_set_font_size (kradgui->cr, kradgui->live_box_font_size / 4);
-	cairo_move_to (kradgui->cr,
-				(kradgui->width - (kradgui->live_box_width + kradgui->live_box_margin)) + kradgui->live_box_padding,
-				kradgui->live_box_height + (kradgui->live_box_padding + kradgui->live_box_margin * 2));
-	cairo_show_text (kradgui->cr, kradgui->live_time_timecode_string);
+//	cairo_move_to (krad_gui->cr, 50, 22);
+//	cairo_show_text (krad_gui->cr, krad_gui->recording_time_timecode_string);
 
 }
 
-void kradgui_go_live(kradgui_t *kradgui) {
+void krad_gui_render_live(krad_gui_t *krad_gui) {
 
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->live_start_time);
-	
-	kradgui->live_box_width = 270;
-	kradgui->live_box_height = 114;
-	kradgui->live_box_margin = 44;
-	kradgui->live_box_padding = (kradgui->live_box_height / 5);
-	kradgui->live_box_font_size = (kradgui->live_box_height / 8) * 6.5;
-	kradgui->live = 1;
+	krad_gui->live_elapsed_time = timespec_diff(krad_gui->live_start_time, krad_gui->current_time);
+	sprintf(krad_gui->live_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+		krad_gui->live_elapsed_time.tv_sec / 86400 % 365, krad_gui->live_elapsed_time.tv_sec / 3600 % 24,
+		krad_gui->live_elapsed_time.tv_sec / 60 % 60, krad_gui->live_elapsed_time.tv_sec % 60,
+		krad_gui->live_elapsed_time.tv_nsec / 1000000);
 
-}
+	cairo_set_source_rgba (krad_gui->cr, 0.0, 0.5, 0.0, 0.1);
+	cairo_rectangle (krad_gui->cr, krad_gui->width - (krad_gui->live_box_margin + krad_gui->live_box_width),
+					 krad_gui->live_box_margin, krad_gui->live_box_width, krad_gui->live_box_height);
+	cairo_fill (krad_gui->cr);
 
-void kradgui_go_off(kradgui_t *kradgui) {
+	cairo_select_font_face (krad_gui->cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (krad_gui->cr, krad_gui->live_box_font_size);
+	cairo_set_source_rgb (krad_gui->cr, GREEN);
 
-	kradgui->live = 0;
+	cairo_move_to (krad_gui->cr,
+		krad_gui->width - (krad_gui->live_box_width + krad_gui->live_box_margin) + krad_gui->live_box_padding,
+		krad_gui->live_box_margin + (krad_gui->live_box_height - krad_gui->live_box_padding));
+	cairo_show_text (krad_gui->cr, "LIVE");
 
-}
-
-void kradgui_start_recording(kradgui_t *kradgui) {
-
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->recording_start_time);
-	
-	kradgui->recording_box_width = 654;
-	kradgui->recording_box_height = 114;
-	kradgui->recording_box_margin = 44;
-	kradgui->recording_box_padding = (kradgui->recording_box_height / 5);
-	kradgui->recording_box_font_size = (kradgui->recording_box_height / 8) * 6.5;
-	
-	
-	kradgui->recording = 1;
+	cairo_set_font_size (krad_gui->cr, krad_gui->live_box_font_size / 4);
+	cairo_move_to (krad_gui->cr,
+				(krad_gui->width - (krad_gui->live_box_width + krad_gui->live_box_margin)) + krad_gui->live_box_padding,
+				krad_gui->live_box_height + (krad_gui->live_box_padding + krad_gui->live_box_margin * 2));
+	cairo_show_text (krad_gui->cr, krad_gui->live_time_timecode_string);
 
 }
 
-void kradgui_stop_recording(kradgui_t *kradgui) {
+void krad_gui_go_live(krad_gui_t *krad_gui) {
 
-	kradgui->recording = 0;
+	clock_gettime(CLOCK_MONOTONIC, &krad_gui->live_start_time);
+	
+	krad_gui->live_box_width = 270;
+	krad_gui->live_box_height = 114;
+	krad_gui->live_box_margin = 44;
+	krad_gui->live_box_padding = (krad_gui->live_box_height / 5);
+	krad_gui->live_box_font_size = (krad_gui->live_box_height / 8) * 6.5;
+	krad_gui->live = 1;
+
+}
+
+void krad_gui_go_off(krad_gui_t *krad_gui) {
+
+	krad_gui->live = 0;
+
+}
+
+void krad_gui_start_recording(krad_gui_t *krad_gui) {
+
+	clock_gettime(CLOCK_MONOTONIC, &krad_gui->recording_start_time);
+	
+	krad_gui->recording_box_width = 654;
+	krad_gui->recording_box_height = 114;
+	krad_gui->recording_box_margin = 44;
+	krad_gui->recording_box_padding = (krad_gui->recording_box_height / 5);
+	krad_gui->recording_box_font_size = (krad_gui->recording_box_height / 8) * 6.5;
+	
+	
+	krad_gui->recording = 1;
+
+}
+
+void krad_gui_stop_recording(krad_gui_t *krad_gui) {
+
+	krad_gui->recording = 0;
 	
 }
 
 
 
-void kradgui_update_current_track_progress(kradgui_t *kradgui) {
+void krad_gui_update_current_track_progress(krad_gui_t *krad_gui) {
 	
-	if ((kradgui->total_track_time_ms != 0) && (kradgui->current_track_time_ms != 0)) {
-		kradgui->current_track_progress = (kradgui->current_track_time_ms * 1000 / kradgui->total_track_time_ms) / 10.0;
+	if ((krad_gui->total_track_time_ms != 0) && (krad_gui->current_track_time_ms != 0)) {
+		krad_gui->current_track_progress = (krad_gui->current_track_time_ms * 1000 / krad_gui->total_track_time_ms) / 10.0;
 	} else {
-		kradgui->current_track_progress = 0;
+		krad_gui->current_track_progress = 0;
 	}
 	
-	if (kradgui->current_track_progress > 100.0) {
-		kradgui->current_track_progress = 100.0;
+	if (krad_gui->current_track_progress > 100.0) {
+		krad_gui->current_track_progress = 100.0;
 	}
 	
-	if (kradgui->current_track_progress < 0.0) {
-		kradgui->current_track_progress = 0.0;
+	if (krad_gui->current_track_progress < 0.0) {
+		krad_gui->current_track_progress = 0.0;
 	}
 	
-	//printk ("Progress is: %f%%\n", kradgui->current_track_progress);
+	//printk ("Progress is: %f%%\n", krad_gui->current_track_progress);
 }
 
-void kradgui_update_current_track_time_ms(kradgui_t *kradgui) {
+void krad_gui_update_current_track_time_ms(krad_gui_t *krad_gui) {
 	
-	kradgui->current_track_time_ms = 
-		((kradgui->current_track_time.tv_sec * 1000) + (kradgui->current_track_time.tv_nsec / 1000000));
+	krad_gui->current_track_time_ms = 
+		((krad_gui->current_track_time.tv_sec * 1000) + (krad_gui->current_track_time.tv_nsec / 1000000));
 
 }
 
-void kradgui_update_total_track_time_ms(kradgui_t *kradgui) {
+void krad_gui_update_total_track_time_ms(krad_gui_t *krad_gui) {
 	
-	kradgui->total_track_time_ms = 
-		((kradgui->total_track_time.tv_sec * 1000) + (kradgui->total_track_time.tv_nsec / 1000000));
+	krad_gui->total_track_time_ms = 
+		((krad_gui->total_track_time.tv_sec * 1000) + (krad_gui->total_track_time.tv_nsec / 1000000));
 
 }
 
-void kradgui_update_elapsed_time_ms(kradgui_t *kradgui) {
+void krad_gui_update_elapsed_time_ms(krad_gui_t *krad_gui) {
 	
-	kradgui->elapsed_time_ms = ((kradgui->elapsed_time.tv_sec * 1000) + (kradgui->elapsed_time.tv_nsec / 1000000));
+	krad_gui->elapsed_time_ms = ((krad_gui->elapsed_time.tv_sec * 1000) + (krad_gui->elapsed_time.tv_nsec / 1000000));
 
 }
 
 
-void kradgui_update_current_track_time_timecode_string(kradgui_t *kradgui) {
+void krad_gui_update_current_track_time_timecode_string(krad_gui_t *krad_gui) {
 
-	sprintf(kradgui->current_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
-	kradgui->current_track_time.tv_sec / 86400 % 365, kradgui->current_track_time.tv_sec / 3600 % 24,
-	kradgui->current_track_time.tv_sec / 60 % 60, kradgui->current_track_time.tv_sec % 60,
-	kradgui->current_track_time.tv_nsec / 1000000);
-
-}
-
-void kradgui_update_total_track_time_timecode_string(kradgui_t *kradgui) {
-
-	sprintf(kradgui->total_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
-	kradgui->total_track_time.tv_sec / 86400 % 365, kradgui->total_track_time.tv_sec / 3600 % 24,
-	kradgui->total_track_time.tv_sec / 60 % 60, kradgui->total_track_time.tv_sec % 60,
-	kradgui->total_track_time.tv_nsec / 1000000);
+	sprintf(krad_gui->current_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	krad_gui->current_track_time.tv_sec / 86400 % 365, krad_gui->current_track_time.tv_sec / 3600 % 24,
+	krad_gui->current_track_time.tv_sec / 60 % 60, krad_gui->current_track_time.tv_sec % 60,
+	krad_gui->current_track_time.tv_nsec / 1000000);
 
 }
 
-void kradgui_update_playback_state_status_string(kradgui_t *kradgui) {
+void krad_gui_update_total_track_time_timecode_string(krad_gui_t *krad_gui) {
 
-	switch (kradgui->playback_state) {
-		case KRADGUI_PLAYING:
-			strcpy(kradgui->playback_state_status_string, "Playing");
+	sprintf(krad_gui->total_track_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	krad_gui->total_track_time.tv_sec / 86400 % 365, krad_gui->total_track_time.tv_sec / 3600 % 24,
+	krad_gui->total_track_time.tv_sec / 60 % 60, krad_gui->total_track_time.tv_sec % 60,
+	krad_gui->total_track_time.tv_nsec / 1000000);
+
+}
+
+void krad_gui_update_playback_state_status_string(krad_gui_t *krad_gui) {
+
+	switch (krad_gui->playback_state) {
+		case krad_gui_PLAYING:
+			strcpy(krad_gui->playback_state_status_string, "Playing");
 			break;
 			
-		case KRADGUI_PAUSED:
-			strcpy(kradgui->playback_state_status_string, "Paused");
+		case krad_gui_PAUSED:
+			strcpy(krad_gui->playback_state_status_string, "Paused");
 			break;
 			
-		case KRADGUI_STOPPED:
-			strcpy(kradgui->playback_state_status_string, "Stopped");
+		case krad_gui_STOPPED:
+			strcpy(krad_gui->playback_state_status_string, "Stopped");
 			break;
 	}
 
 }
 
-void kradgui_update_elapsed_time_timecode_string(kradgui_t *kradgui) {
+void krad_gui_update_elapsed_time_timecode_string(krad_gui_t *krad_gui) {
 
-	sprintf(kradgui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
-	kradgui->elapsed_time.tv_sec / 86400 % 365, kradgui->elapsed_time.tv_sec / 3600 % 24,
-	kradgui->elapsed_time.tv_sec / 60 % 60, kradgui->elapsed_time.tv_sec % 60,
-	kradgui->elapsed_time.tv_nsec / 1000000);
-
-}
-
-
-void kradgui_start_draw_time(kradgui_t *kradgui) {
-
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &kradgui->start_draw_time);
-	sprintf(kradgui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
-	kradgui->elapsed_time.tv_sec / 86400 % 365, kradgui->elapsed_time.tv_sec / 3600 % 24,
-	kradgui->elapsed_time.tv_sec / 60 % 60, kradgui->elapsed_time.tv_sec % 60, kradgui->elapsed_time.tv_nsec / 1000000);
+	sprintf(krad_gui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	krad_gui->elapsed_time.tv_sec / 86400 % 365, krad_gui->elapsed_time.tv_sec / 3600 % 24,
+	krad_gui->elapsed_time.tv_sec / 60 % 60, krad_gui->elapsed_time.tv_sec % 60,
+	krad_gui->elapsed_time.tv_nsec / 1000000);
 
 }
 
-void kradgui_end_draw_time(kradgui_t *kradgui) {
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &kradgui->end_draw_time);
-	kradgui->draw_time = timespec_diff(kradgui->start_draw_time, kradgui->end_draw_time);
-	sprintf(kradgui->draw_time_string, "%02ld:%03ld", kradgui->draw_time.tv_sec % 60,
-			kradgui->draw_time.tv_nsec / 1000000);
+void krad_gui_start_draw_time(krad_gui_t *krad_gui) {
 
-}
-
-void kradgui_reset_elapsed_time(kradgui_t *kradgui) {
-
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->start_time);
-	memcpy(&kradgui->current_time, &kradgui->start_time, sizeof(struct timespec));
-	kradgui->elapsed_time = timespec_diff(kradgui->start_time, kradgui->current_time);
-	kradgui_update_elapsed_time_ms(kradgui);
-	kradgui_update_elapsed_time_timecode_string(kradgui);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &krad_gui->start_draw_time);
+	sprintf(krad_gui->elapsed_time_timecode_string, "%03ld:%02ld:%02ld:%02ld:%03ld",
+	krad_gui->elapsed_time.tv_sec / 86400 % 365, krad_gui->elapsed_time.tv_sec / 3600 % 24,
+	krad_gui->elapsed_time.tv_sec / 60 % 60, krad_gui->elapsed_time.tv_sec % 60, krad_gui->elapsed_time.tv_nsec / 1000000);
 
 }
 
-void kradgui_update_elapsed_time(kradgui_t *kradgui) {
+void krad_gui_end_draw_time(krad_gui_t *krad_gui) {
 
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->current_time);
-	kradgui->elapsed_time = timespec_diff(kradgui->start_time, kradgui->current_time);
-	kradgui_update_elapsed_time_ms(kradgui);
-	kradgui_update_elapsed_time_timecode_string(kradgui);
-
-}
-
-void kradgui_set_current_track_time(kradgui_t *kradgui, struct timespec current_track_time) {
-
-	kradgui->current_track_time = current_track_time;
-	kradgui_update_current_track_time_ms(kradgui);
-	kradgui_update_current_track_progress(kradgui);
-	kradgui_update_current_track_time_timecode_string(kradgui);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &krad_gui->end_draw_time);
+	krad_gui->draw_time = timespec_diff(krad_gui->start_draw_time, krad_gui->end_draw_time);
+	sprintf(krad_gui->draw_time_string, "%02ld:%03ld", krad_gui->draw_time.tv_sec % 60,
+			krad_gui->draw_time.tv_nsec / 1000000);
 
 }
 
-void kradgui_set_total_track_time(kradgui_t *kradgui, struct timespec total_track_time) {
+void krad_gui_reset_elapsed_time(krad_gui_t *krad_gui) {
 
-	kradgui->total_track_time = total_track_time;
-	kradgui_update_current_track_progress(kradgui);
-	kradgui_update_total_track_time_timecode_string(kradgui);
+	clock_gettime(CLOCK_MONOTONIC, &krad_gui->start_time);
+	memcpy(&krad_gui->current_time, &krad_gui->start_time, sizeof(struct timespec));
+	krad_gui->elapsed_time = timespec_diff(krad_gui->start_time, krad_gui->current_time);
+	krad_gui_update_elapsed_time_ms(krad_gui);
+	krad_gui_update_elapsed_time_timecode_string(krad_gui);
+
 }
 
-void kradgui_set_current_track_time_ms(kradgui_t *kradgui, unsigned int current_track_time_ms) {
+void krad_gui_update_elapsed_time(krad_gui_t *krad_gui) {
+
+	clock_gettime(CLOCK_MONOTONIC, &krad_gui->current_time);
+	krad_gui->elapsed_time = timespec_diff(krad_gui->start_time, krad_gui->current_time);
+	krad_gui_update_elapsed_time_ms(krad_gui);
+	krad_gui_update_elapsed_time_timecode_string(krad_gui);
+
+}
+
+void krad_gui_set_current_track_time(krad_gui_t *krad_gui, struct timespec current_track_time) {
+
+	krad_gui->current_track_time = current_track_time;
+	krad_gui_update_current_track_time_ms(krad_gui);
+	krad_gui_update_current_track_progress(krad_gui);
+	krad_gui_update_current_track_time_timecode_string(krad_gui);
+
+}
+
+void krad_gui_set_total_track_time(krad_gui_t *krad_gui, struct timespec total_track_time) {
+
+	krad_gui->total_track_time = total_track_time;
+	krad_gui_update_current_track_progress(krad_gui);
+	krad_gui_update_total_track_time_timecode_string(krad_gui);
+}
+
+void krad_gui_set_current_track_time_ms(krad_gui_t *krad_gui, unsigned int current_track_time_ms) {
 
 	//printk ("Set current track time to: %zums\n", current_track_time_ms);
 
-	kradgui->current_track_time.tv_sec = (current_track_time_ms - (current_track_time_ms % 1000)) / 1000;
-	kradgui->current_track_time.tv_nsec = (current_track_time_ms % 1000) * 1000000;
-	kradgui_update_current_track_time_ms(kradgui);
-	kradgui_update_current_track_progress(kradgui);
-	kradgui_update_current_track_time_timecode_string(kradgui);
+	krad_gui->current_track_time.tv_sec = (current_track_time_ms - (current_track_time_ms % 1000)) / 1000;
+	krad_gui->current_track_time.tv_nsec = (current_track_time_ms % 1000) * 1000000;
+	krad_gui_update_current_track_time_ms(krad_gui);
+	krad_gui_update_current_track_progress(krad_gui);
+	krad_gui_update_current_track_time_timecode_string(krad_gui);
 
 }
 
-void kradgui_add_current_track_time_ms(kradgui_t *kradgui, unsigned int additional_ms) {
+void krad_gui_add_current_track_time_ms(krad_gui_t *krad_gui, unsigned int additional_ms) {
 
 	unsigned int current_track_time_ms;
 	
 	current_track_time_ms = 
-	((kradgui->current_track_time.tv_sec * 1000) + (kradgui->current_track_time.tv_nsec / 1000000));
+	((krad_gui->current_track_time.tv_sec * 1000) + (krad_gui->current_track_time.tv_nsec / 1000000));
 
 	current_track_time_ms += additional_ms;
 
 	//printk ("Set current track time to: %zums", current_track_time_ms);
 
-	kradgui->current_track_time.tv_sec = (current_track_time_ms - (current_track_time_ms % 1000)) / 1000;
-	kradgui->current_track_time.tv_nsec = (current_track_time_ms % 1000) * 1000000;
-	kradgui_update_current_track_time_ms(kradgui);
-	kradgui_update_current_track_progress(kradgui);
-	kradgui_update_current_track_time_timecode_string(kradgui);
+	krad_gui->current_track_time.tv_sec = (current_track_time_ms - (current_track_time_ms % 1000)) / 1000;
+	krad_gui->current_track_time.tv_nsec = (current_track_time_ms % 1000) * 1000000;
+	krad_gui_update_current_track_time_ms(krad_gui);
+	krad_gui_update_current_track_progress(krad_gui);
+	krad_gui_update_current_track_time_timecode_string(krad_gui);
 
 }
 
-void kradgui_set_total_track_time_ms(kradgui_t *kradgui, unsigned int total_track_time_ms) {
+void krad_gui_set_total_track_time_ms(krad_gui_t *krad_gui, unsigned int total_track_time_ms) {
 
-	kradgui->total_track_time.tv_sec = (total_track_time_ms - (total_track_time_ms % 1000)) / 1000;
-	kradgui->total_track_time.tv_nsec = (total_track_time_ms % 1000) * 1000000;
-	kradgui_update_total_track_time_ms(kradgui);
-	kradgui_update_current_track_progress(kradgui);
-	kradgui_update_total_track_time_timecode_string(kradgui);
+	krad_gui->total_track_time.tv_sec = (total_track_time_ms - (total_track_time_ms % 1000)) / 1000;
+	krad_gui->total_track_time.tv_nsec = (total_track_time_ms % 1000) * 1000000;
+	krad_gui_update_total_track_time_ms(krad_gui);
+	krad_gui_update_current_track_progress(krad_gui);
+	krad_gui_update_total_track_time_timecode_string(krad_gui);
 
 }
 
-void krad_gui_overlay_clear (kradgui_t *kradgui) {
-	cairo_save (kradgui->cr);
-	cairo_set_source_rgba (kradgui->cr, BGCOLOR_TRANS);
-	cairo_set_operator (kradgui->cr, CAIRO_OPERATOR_SOURCE);
-	cairo_paint (kradgui->cr);
-	cairo_restore (kradgui->cr);
+void krad_gui_overlay_clear (krad_gui_t *krad_gui) {
+	cairo_save (krad_gui->cr);
+	cairo_set_source_rgba (krad_gui->cr, BGCOLOR_TRANS);
+	cairo_set_operator (krad_gui->cr, CAIRO_OPERATOR_SOURCE);
+	cairo_paint (krad_gui->cr);
+	cairo_restore (krad_gui->cr);
 }
 
-void krad_gui_clear (kradgui_t *kradgui) {
-	cairo_set_source_rgb (kradgui->cr, BGCOLOR);
-	cairo_paint (kradgui->cr);
+void krad_gui_clear (krad_gui_t *krad_gui) {
+	cairo_set_source_rgb (krad_gui->cr, BGCOLOR);
+	cairo_paint (krad_gui->cr);
 }
 
-void kradgui_render (kradgui_t *kradgui) {
+void krad_gui_render (krad_gui_t *krad_gui) {
 
-	if (kradgui->update_drawtime) {
-		kradgui_start_draw_time(kradgui);
+	if (krad_gui->update_drawtime) {
+		krad_gui_start_draw_time(krad_gui);
 	}
 
-	if (kradgui->clear == 1) {
-		if (kradgui->overlay) {
-			krad_gui_overlay_clear (kradgui);
+	if (krad_gui->clear == 1) {
+		if (krad_gui->overlay) {
+			krad_gui_overlay_clear (krad_gui);
 		} else {
-			krad_gui_clear (kradgui);
+			krad_gui_clear (krad_gui);
 		}
 	}
 
-	if (kradgui->reel_to_reel != NULL) {
-		kradgui_update_reel_to_reel_information(kradgui->reel_to_reel);
-		kradgui_render_reel_to_reel(kradgui->reel_to_reel);
+	if (krad_gui->reel_to_reel != NULL) {
+		krad_gui_update_reel_to_reel_information(krad_gui->reel_to_reel);
+		krad_gui_render_reel_to_reel(krad_gui->reel_to_reel);
 	}
 	
-	if (kradgui->playback_state_status != NULL) {
-		kradgui_render_playback_state_status(kradgui->playback_state_status);
+	if (krad_gui->playback_state_status != NULL) {
+		krad_gui_render_playback_state_status(krad_gui->playback_state_status);
 	}
 	
-	if (kradgui->render_timecode) {
-		kradgui_render_timecode(kradgui);
-		kradgui_render_elapsed_timecode(kradgui);
+	if (krad_gui->render_timecode) {
+		krad_gui_render_timecode(krad_gui);
+		krad_gui_render_elapsed_timecode(krad_gui);
 	}
 	
-	if ((kradgui->render_test_text) || (kradgui->live)) {
-		kradgui_update_elapsed_time(kradgui);
+	if ((krad_gui->render_test_text) || (krad_gui->live)) {
+		krad_gui_update_elapsed_time(krad_gui);
 	}
 	
-	if (kradgui->live) {
-		kradgui_render_live(kradgui);
+	if (krad_gui->live) {
+		krad_gui_render_live(krad_gui);
 	}
 	
-	if (kradgui->recording) {
-		kradgui_render_recording(kradgui);
+	if (krad_gui->recording) {
+		krad_gui_render_recording(krad_gui);
 	}
 	
-	if (kradgui->render_rgb) {
-		kradgui_render_rgb(kradgui);
+	if (krad_gui->render_rgb) {
+		krad_gui_render_rgb(krad_gui);
 	}
 	
-	if (kradgui->render_rotator) {
-		kradgui_render_rotator(kradgui);
+	if (krad_gui->render_rotator) {
+		krad_gui_render_rotator(krad_gui);
 	}
 	
-	if (kradgui->render_test_text) {
-		kradgui_render_test_text(kradgui);
+	if (krad_gui->render_test_text) {
+		krad_gui_render_test_text(krad_gui);
 	}
 	
-	if (kradgui->render_tearbar) {
-		kradgui_render_tearbar(kradgui);
+	if (krad_gui->render_tearbar) {
+		krad_gui_render_tearbar(krad_gui);
 	}
 	
-	if (kradgui->render_wheel) {
-		kradgui_render_wheel(kradgui);
+	if (krad_gui->render_wheel) {
+		krad_gui_render_wheel(krad_gui);
 	}
 	
-	if (kradgui->render_ftest) {
-		kradgui_render_ftest(kradgui);
+	if (krad_gui->render_ftest) {
+		krad_gui_render_ftest(krad_gui);
 	}
 	
-	if ( kradgui->render_bug ) {
-		kradgui_render_bug ( kradgui );
+	if ( krad_gui->render_bug ) {
+		krad_gui_render_bug ( krad_gui );
 	}
 	
-	if (kradgui->update_drawtime) {
-		kradgui_end_draw_time(kradgui);
+	if (krad_gui->update_drawtime) {
+		krad_gui_end_draw_time(krad_gui);
 	}
 	
-	if (kradgui->print_drawtime) {
-		printk ("Frame: %llu :: %s", kradgui->frame, kradgui->draw_time_string);
+	if (krad_gui->print_drawtime) {
+		printk ("Frame: %llu :: %s", krad_gui->frame, krad_gui->draw_time_string);
 	}
 	
-	kradgui->frame++;
+	krad_gui->frame++;
 
 }
 

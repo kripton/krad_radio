@@ -47,22 +47,22 @@
 typedef enum {
 	REEL_TO_REEL,
 	PLAYBACK_STATE_STATUS,
-} kradgui_item_t;
+} krad_gui_item_t;
 
 typedef enum {
-	KRADGUI_STOPPED,
-	KRADGUI_PAUSED,
-	KRADGUI_PLAYING,
-} kradgui_playback_state_t;
+	krad_gui_STOPPED,
+	krad_gui_PAUSED,
+	krad_gui_PLAYING,
+} krad_gui_playback_state_t;
 
 
-typedef struct kradgui_St kradgui_t;
-typedef struct kradgui_reel_to_reel_St kradgui_reel_to_reel_t;
-typedef struct kradgui_playback_state_status_St kradgui_playback_state_status_t;
+typedef struct krad_gui_St krad_gui_t;
+typedef struct krad_gui_reel_to_reel_St krad_gui_reel_to_reel_t;
+typedef struct krad_gui_playback_state_status_St krad_gui_playback_state_status_t;
 
-//typedef struct kradgui_recording_status_St kradgui_recording_status_t;
+//typedef struct krad_gui_recording_status_St krad_gui_recording_status_t;
 
-struct kradgui_St {
+struct krad_gui_St {
 
 	int stride;
 	int bytes;
@@ -98,10 +98,10 @@ struct kradgui_St {
 	unsigned int total_track_time_ms;
 	unsigned int elapsed_time_ms;
 
-	kradgui_playback_state_t playback_state;
+	krad_gui_playback_state_t playback_state;
 
-	kradgui_reel_to_reel_t *reel_to_reel;
-	kradgui_playback_state_status_t *playback_state_status;
+	krad_gui_reel_to_reel_t *reel_to_reel;
+	krad_gui_playback_state_status_t *playback_state_status;
 	
 	void *gui_ptr;
 	
@@ -114,7 +114,7 @@ struct kradgui_St {
 	
 	int render_timecode;
 	
-	//kradgui_recording_status_t *recording_status;
+	//krad_gui_recording_status_t *recording_status;
 	
 	int render_rgb;
 	
@@ -204,9 +204,9 @@ struct kradgui_St {
 	
 };
 
-struct kradgui_reel_to_reel_St {
+struct krad_gui_reel_to_reel_St {
 
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 	
 	float total_distance;
 	float distance;
@@ -219,104 +219,104 @@ struct kradgui_reel_to_reel_St {
 
 };
 
-struct kradgui_playback_state_status_St {
+struct krad_gui_playback_state_status_St {
 
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 
 };
 
 
-void kradgui_set_surface (kradgui_t *kradgui, cairo_surface_t *cst);
+void krad_gui_set_surface (krad_gui_t *krad_gui, cairo_surface_t *cst);
 
-void kradgui_render_selector (kradgui_t *kradgui, int x, int y, int w);
+void krad_gui_render_selector (krad_gui_t *krad_gui, int x, int y, int w);
 
-void kradgui_render_hex (kradgui_t *kradgui, int x, int y, int w);
-void kradgui_set_bug (kradgui_t *kradgui, char *filename, int x, int y);
-void kradgui_remove_bug (kradgui_t *kradgui);
-void kradgui_load_bug (kradgui_t *kradgui, char *filename);
+void krad_gui_render_hex (krad_gui_t *krad_gui, int x, int y, int w);
+void krad_gui_set_bug (krad_gui_t *krad_gui, char *filename, int x, int y);
+void krad_gui_remove_bug (krad_gui_t *krad_gui);
+void krad_gui_load_bug (krad_gui_t *krad_gui, char *filename);
 
-void kradgui_start_draw_time(kradgui_t *kradgui);
-void kradgui_end_draw_time(kradgui_t *kradgui);
+void krad_gui_start_draw_time(krad_gui_t *krad_gui);
+void krad_gui_end_draw_time(krad_gui_t *krad_gui);
 
-void kradgui_control_speed_up(kradgui_t *kradgui);
-void kradgui_control_speed_down(kradgui_t *kradgui);
-void kradgui_control_speed(kradgui_t *kradgui, float value);
-void kradgui_set_control_speed_callback(kradgui_t *kradgui, void control_speed_callback(void *, float));
-void kradgui_set_control_speed_down_callback(kradgui_t *kradgui, void control_speed_down_callback(void *));
-void kradgui_set_control_speed_up_callback(kradgui_t *kradgui, void control_speed_up_callback(void *));
-void kradgui_set_callback_pointer(kradgui_t *kradgui, void *callback_pointer);
+void krad_gui_control_speed_up(krad_gui_t *krad_gui);
+void krad_gui_control_speed_down(krad_gui_t *krad_gui);
+void krad_gui_control_speed(krad_gui_t *krad_gui, float value);
+void krad_gui_set_control_speed_callback(krad_gui_t *krad_gui, void control_speed_callback(void *, float));
+void krad_gui_set_control_speed_down_callback(krad_gui_t *krad_gui, void control_speed_down_callback(void *));
+void krad_gui_set_control_speed_up_callback(krad_gui_t *krad_gui, void control_speed_up_callback(void *));
+void krad_gui_set_callback_pointer(krad_gui_t *krad_gui, void *callback_pointer);
 
-void kradgui_render_vtest (kradgui_t *kradgui);
+void krad_gui_render_vtest (krad_gui_t *krad_gui);
 
-kradgui_t *kradgui_create_with_external_surface (int width, int height, unsigned char *pixels);
+krad_gui_t *krad_gui_create_with_external_surface (int width, int height, unsigned char *pixels);
 
-void kradgui_create_external_surface(kradgui_t *kradgui);
-void kradgui_destroy_external_surface(kradgui_t *kradgui);
+void krad_gui_create_external_surface(krad_gui_t *krad_gui);
+void krad_gui_destroy_external_surface(krad_gui_t *krad_gui);
 
 
-void krad_gui_clear (kradgui_t *kradgui);
-void krad_gui_overlay_clear (kradgui_t *kradgui);
+void krad_gui_clear (krad_gui_t *krad_gui);
+void krad_gui_overlay_clear (krad_gui_t *krad_gui);
 
-void kradgui_create_internal_surface(kradgui_t *kradgui);
-void kradgui_destroy_internal_surface(kradgui_t *kradgui);
-kradgui_t *kradgui_create_with_internal_surface(int width, int height);
-kradgui_t *kradgui_create(int width, int height);
-void kradgui_destroy(kradgui_t *kradgui);
-void kradgui_render(kradgui_t *kradgui);
-void kradgui_set_size(kradgui_t *kradgui, int width, int height);
-void kradgui_set_background_color(kradgui_t *kradgui, float r, float g, float b, float a);
-void kradgui_add_item(kradgui_t *kradgui, kradgui_item_t item);
-void kradgui_remove_item(kradgui_t *kradgui, kradgui_item_t item);
+void krad_gui_create_internal_surface(krad_gui_t *krad_gui);
+void krad_gui_destroy_internal_surface(krad_gui_t *krad_gui);
+krad_gui_t *krad_gui_create_with_internal_surface(int width, int height);
+krad_gui_t *krad_gui_create(int width, int height);
+void krad_gui_destroy(krad_gui_t *krad_gui);
+void krad_gui_render(krad_gui_t *krad_gui);
+void krad_gui_set_size(krad_gui_t *krad_gui, int width, int height);
+void krad_gui_set_background_color(krad_gui_t *krad_gui, float r, float g, float b, float a);
+void krad_gui_add_item(krad_gui_t *krad_gui, krad_gui_item_t item);
+void krad_gui_remove_item(krad_gui_t *krad_gui, krad_gui_item_t item);
 
-void kradgui_test_screen(kradgui_t *kradgui, char *info);
-void kradgui_render_rgb(kradgui_t *kradgui);
-void kradgui_render_live(kradgui_t *kradgui);
-void kradgui_render_recording(kradgui_t *kradgui);
-void kradgui_render_rotator(kradgui_t *kradgui);
-void kradgui_test_text(kradgui_t *kradgui);
+void krad_gui_test_screen(krad_gui_t *krad_gui, char *info);
+void krad_gui_render_rgb(krad_gui_t *krad_gui);
+void krad_gui_render_live(krad_gui_t *krad_gui);
+void krad_gui_render_recording(krad_gui_t *krad_gui);
+void krad_gui_render_rotator(krad_gui_t *krad_gui);
+void krad_gui_test_text(krad_gui_t *krad_gui);
 
-void kradgui_render_text (kradgui_t *kradgui, int x, int y, int size, char *string);
+void krad_gui_render_text (krad_gui_t *krad_gui, int x, int y, int size, char *string);
 
-void kradgui_start_recording(kradgui_t *kradgui);
-void kradgui_stop_recording(kradgui_t *kradgui);
+void krad_gui_start_recording(krad_gui_t *krad_gui);
+void krad_gui_stop_recording(krad_gui_t *krad_gui);
 
-void kradgui_go_live(kradgui_t *kradgui);
-void kradgui_go_off(kradgui_t *kradgui);
-void kradgui_render_cube (kradgui_t *kradgui, int x, int y, int w, int h);
-void kradgui_render_tearbar(kradgui_t *kradgui);
-void kradgui_render_wheel(kradgui_t *kradgui);
-void kradgui_render_ftest(kradgui_t *kradgui);
+void krad_gui_go_live(krad_gui_t *krad_gui);
+void krad_gui_go_off(krad_gui_t *krad_gui);
+void krad_gui_render_cube (krad_gui_t *krad_gui, int x, int y, int w, int h);
+void krad_gui_render_tearbar(krad_gui_t *krad_gui);
+void krad_gui_render_wheel(krad_gui_t *krad_gui);
+void krad_gui_render_ftest(krad_gui_t *krad_gui);
 
-void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos);
+void krad_gui_render_meter (krad_gui_t *krad_gui, int x, int y, int size, float pos);
 
-kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui);
-void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel);
-void kradgui_render_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel, int x, int y);
-void kradgui_render_reel_to_reel(kradgui_reel_to_reel_t *kradgui_reel_to_reel);
-void kradgui_update_reel_to_reel_information(kradgui_reel_to_reel_t *kradgui_reel_to_reel);
+krad_gui_reel_to_reel_t *krad_gui_reel_to_reel_create(krad_gui_t *krad_gui);
+void krad_gui_reel_to_reel_destroy(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel);
+void krad_gui_render_reel(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel, int x, int y);
+void krad_gui_render_reel_to_reel(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel);
+void krad_gui_update_reel_to_reel_information(krad_gui_reel_to_reel_t *krad_gui_reel_to_reel);
 
-kradgui_playback_state_status_t *kradgui_playback_state_status_create(kradgui_t *kradgui);
-void kradgui_playback_state_status_destroy(kradgui_playback_state_status_t *kradgui_playback_state_status);
-void kradgui_render_playback_state_status(kradgui_playback_state_status_t *kradgui_playback_state_status);
+krad_gui_playback_state_status_t *krad_gui_playback_state_status_create(krad_gui_t *krad_gui);
+void krad_gui_playback_state_status_destroy(krad_gui_playback_state_status_t *krad_gui_playback_state_status);
+void krad_gui_render_playback_state_status(krad_gui_playback_state_status_t *krad_gui_playback_state_status);
 
-void kradgui_set_playback_state(kradgui_t *kradgui, kradgui_playback_state_t playback_state);
-void kradgui_add_current_track_time_ms(kradgui_t *kradgui, unsigned int additional_ms);
-void kradgui_update_current_track_time_timecode_string(kradgui_t *kradgui);
-void kradgui_update_total_track_time_timecode_string(kradgui_t *kradgui);
-void kradgui_update_elapsed_time_timecode_string(kradgui_t *kradgui);
-void kradgui_update_playback_state_status_string(kradgui_t *kradgui);
+void krad_gui_set_playback_state(krad_gui_t *krad_gui, krad_gui_playback_state_t playback_state);
+void krad_gui_add_current_track_time_ms(krad_gui_t *krad_gui, unsigned int additional_ms);
+void krad_gui_update_current_track_time_timecode_string(krad_gui_t *krad_gui);
+void krad_gui_update_total_track_time_timecode_string(krad_gui_t *krad_gui);
+void krad_gui_update_elapsed_time_timecode_string(krad_gui_t *krad_gui);
+void krad_gui_update_playback_state_status_string(krad_gui_t *krad_gui);
 
-void kradgui_update_current_track_time_ms(kradgui_t *kradgui);
-void kradgui_update_total_track_time_ms(kradgui_t *kradgui);
-void kradgui_update_elapsed_time_ms(kradgui_t *kradgui);
+void krad_gui_update_current_track_time_ms(krad_gui_t *krad_gui);
+void krad_gui_update_total_track_time_ms(krad_gui_t *krad_gui);
+void krad_gui_update_elapsed_time_ms(krad_gui_t *krad_gui);
 
-void kradgui_update_current_track_progress(kradgui_t *kradgui);
+void krad_gui_update_current_track_progress(krad_gui_t *krad_gui);
 
-void kradgui_reset_elapsed_time(kradgui_t *kradgui);
-void kradgui_update_elapsed_time(kradgui_t *kradgui);
-void kradgui_set_current_track_time(kradgui_t *kradgui, struct timespec current_track_time);
-void kradgui_set_current_track_time_ms(kradgui_t *kradgui, unsigned int elapsed_time_ms);
-void kradgui_set_total_track_time(kradgui_t *kradgui, struct timespec total_track_time);
-void kradgui_set_total_track_time_ms(kradgui_t *kradgui, unsigned int total_track_time_ms);
+void krad_gui_reset_elapsed_time(krad_gui_t *krad_gui);
+void krad_gui_update_elapsed_time(krad_gui_t *krad_gui);
+void krad_gui_set_current_track_time(krad_gui_t *krad_gui, struct timespec current_track_time);
+void krad_gui_set_current_track_time_ms(krad_gui_t *krad_gui, unsigned int elapsed_time_ms);
+void krad_gui_set_total_track_time(krad_gui_t *krad_gui, struct timespec total_track_time);
+void krad_gui_set_total_track_time_ms(krad_gui_t *krad_gui, unsigned int total_track_time_ms);
 
 struct timespec timespec_diff(struct timespec start, struct timespec end);

@@ -124,7 +124,7 @@ void *info_screen_generator_thread (void *arg) {
 	
 	krad_frame_t *krad_frame;
 	krad_ticker_t *krad_ticker;
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 	
 	int width;
 	int height;
@@ -135,7 +135,7 @@ void *info_screen_generator_thread (void *arg) {
 	width = 1280;
 	height = 720;	
 
-	kradgui = kradgui_create_with_internal_surface (width, height);
+	krad_gui = krad_gui_create_with_internal_surface (width, height);
 	
 	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);
 
@@ -150,14 +150,14 @@ void *info_screen_generator_thread (void *arg) {
 	
 		
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-		//kradgui->data = (unsigned char *)krad_frame->pixels;
-		kradgui_render (kradgui);
+		//krad_gui->data = (unsigned char *)krad_frame->pixels;
+		krad_gui_render (krad_gui);
 		
-		kradgui_render_text (kradgui, 400, 200, 80, "KRAD RADIO");
+		krad_gui_render_text (krad_gui, 400, 200, 80, "KRAD RADIO");
 		
-		kradgui_render_text (kradgui, 400, 300, 40, krad_link->krad_radio->sysname);		
+		krad_gui_render_text (krad_gui, 400, 300, 40, krad_link->krad_radio->sysname);		
 		
-		kradgui_render_hex (kradgui, width - 48, 40, 18);
+		krad_gui_render_hex (krad_gui, width - 48, 40, 18);
 		
 		
 		
@@ -172,7 +172,7 @@ void *info_screen_generator_thread (void *arg) {
 			if ((portgroup != NULL) && (portgroup->active)) {
 				artist = krad_tags_get_tag (portgroup->krad_tags, "artist");
 				if ((artist != NULL) && strlen (artist)) {
-					kradgui_render_text (kradgui, 120, 500, 22, artist);
+					krad_gui_render_text (krad_gui, 120, 500, 22, artist);
 					//printk ("now playing %s", now_playing);
 					break;
 				}
@@ -184,7 +184,7 @@ void *info_screen_generator_thread (void *arg) {
 			if ((portgroup != NULL) && (portgroup->active)) {
 				title = krad_tags_get_tag (portgroup->krad_tags, "title");
 				if ((title != NULL) && strlen (title)) {
-					kradgui_render_text (kradgui, 120, 550, 22, title);
+					krad_gui_render_text (krad_gui, 120, 550, 22, title);
 					//printk ("now playing %s", now_playing);
 					break;
 				}
@@ -197,7 +197,7 @@ void *info_screen_generator_thread (void *arg) {
 			if ((portgroup != NULL) && (portgroup->active)) {
 				playtime = krad_tags_get_tag (portgroup->krad_tags, "playtime");
 				if ((playtime != NULL) && strlen (playtime)) {
-					kradgui_render_text (kradgui, 120, 420, 32, playtime);
+					krad_gui_render_text (krad_gui, 120, 420, 32, playtime);
 					//printk ("now playing %s", now_playing);
 					break;
 				}
@@ -206,7 +206,7 @@ void *info_screen_generator_thread (void *arg) {
 		
 		krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
 		
-		memcpy (krad_frame->pixels, kradgui->pixels, kradgui->bytes);
+		memcpy (krad_frame->pixels, krad_gui->pixels, krad_gui->bytes);
 		
 		krad_frame->format = PIX_FMT_RGB32;
 		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
@@ -221,7 +221,7 @@ void *info_screen_generator_thread (void *arg) {
 
 	krad_ticker_destroy (krad_ticker);
 
-	kradgui_destroy (kradgui);
+	krad_gui_destroy (krad_gui);
 
 	printk ("info_screen_generator thread exited");
 	
@@ -240,7 +240,7 @@ void *test_screen_generator_thread (void *arg) {
 	
 	krad_frame_t *krad_frame;
 	krad_ticker_t *krad_ticker;
-	kradgui_t *kradgui;
+	krad_gui_t *krad_gui;
 	
 	int width;
 	int height;
@@ -252,9 +252,9 @@ void *test_screen_generator_thread (void *arg) {
 	height = 720;
 	
 
-	kradgui = kradgui_create (width, height);
+	krad_gui = krad_gui_create (width, height);
 	
-	kradgui_test_screen (kradgui, krad_link->krad_linker->krad_radio->sysname);
+	krad_gui_test_screen (krad_gui, krad_link->krad_linker->krad_radio->sysname);
 	
 	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);	
 	
@@ -269,8 +269,8 @@ void *test_screen_generator_thread (void *arg) {
 	
 		
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-		kradgui_set_surface (kradgui, krad_frame->cst);
-		kradgui_render (kradgui);
+		krad_gui_set_surface (krad_gui, krad_frame->cst);
+		krad_gui_render (krad_gui);
 		krad_frame->format = PIX_FMT_RGB32;
 		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
@@ -284,7 +284,7 @@ void *test_screen_generator_thread (void *arg) {
 
 	krad_ticker_destroy (krad_ticker);
 
-	kradgui_destroy (kradgui);
+	krad_gui_destroy (krad_gui);
 
 	printk ("test_screen_generator thread exited");
 	
@@ -2153,8 +2153,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	if (krad_link->krad_vpx_decoder) {
 		krad_vpx_decoder_destroy(krad_link->krad_vpx_decoder);
 	}
-
-	kradgui_destroy (krad_link->krad_gui);
 	
 	krad_ringbuffer_free ( krad_link->encoded_audio_ringbuffer );
 	krad_ringbuffer_free ( krad_link->encoded_video_ringbuffer );
@@ -2235,8 +2233,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
 	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (6000000);
 
-	krad_link->krad_gui = kradgui_create_with_internal_surface(krad_link->composite_width, krad_link->composite_height);
-
 	if (krad_link->operation_mode == CAPTURE) {
 
 		if (krad_link->video_source != X11) {
@@ -2248,10 +2244,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 		for (c = 0; c < krad_link->channels; c++) {
 			krad_link->audio_capture_ringbuffer[c] = krad_ringbuffer_create (2000000);		
-		}
-
-		if ((krad_link->video_source == V4L2) || (krad_link->video_source == DECKLINK)) {
-			krad_link->krad_gui->clear = 0;
 		}
 
 		if (krad_link->video_source == X11) {
