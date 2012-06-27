@@ -9,6 +9,8 @@ static void *krad_compositor_display_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
 
+	prctl (PR_SET_NAME, (unsigned long) "krad_display", 0, 0, 0);
+
 	krad_x11_t *krad_x11;
 	krad_frame_t *krad_frame;
 	krad_compositor_port_t *krad_compositor_port;
@@ -151,7 +153,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 										  frame->cst,
 										  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
 										  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
-			
+
 				cairo_rectangle (krad_compositor->krad_gui->cr,
 								 krad_compositor->port[p].x,
 								 krad_compositor->port[p].y,
@@ -811,6 +813,8 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 void *krad_compositor_ticker_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
+
+	prctl (PR_SET_NAME, (unsigned long) "krad_compositor", 0, 0, 0);
 
 	krad_compositor->krad_ticker = krad_ticker_create (krad_compositor->frame_rate_numerator,
 													   krad_compositor->frame_rate_denominator);
