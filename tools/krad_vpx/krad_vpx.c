@@ -206,9 +206,9 @@ void krad_vpx_decoder_decode (krad_vpx_decoder_t *kradvpx, void *buffer, int len
 
 void krad_vpx_decoder_destroy (krad_vpx_decoder_t *kradvpx) {
 
-	vpx_codec_destroy(&kradvpx->decoder);
-	vpx_img_free(kradvpx->img);
-	free(kradvpx);
+	vpx_codec_destroy (&kradvpx->decoder);
+	vpx_img_free (kradvpx->img);
+	free (kradvpx);
 }
 
 krad_vpx_decoder_t *krad_vpx_decoder_create () {
@@ -219,7 +219,7 @@ krad_vpx_decoder_t *krad_vpx_decoder_create () {
 
 	kradvpx->stream_info.sz = sizeof(kradvpx->stream_info);
 	kradvpx->dec_flags = 0;
-	kradvpx->cfg.threads = 4;
+	kradvpx->cfg.threads = 3;
 	
     vpx_codec_dec_init(&kradvpx->decoder, vpx_codec_vp8_dx(), &kradvpx->cfg, kradvpx->dec_flags);
 
@@ -231,7 +231,7 @@ krad_vpx_decoder_t *krad_vpx_decoder_create () {
 	kradvpx->ppcfg.deblocking_level = 5;
 	kradvpx->ppcfg.noise_level = 1;
 
-	vpx_codec_control(&kradvpx->decoder, VP8_SET_POSTPROC, &kradvpx->ppcfg);
+	vpx_codec_control (&kradvpx->decoder, VP8_SET_POSTPROC, &kradvpx->ppcfg);
 
 	kradvpx->img = NULL;
 
