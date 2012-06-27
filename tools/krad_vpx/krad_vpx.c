@@ -35,14 +35,16 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->cfg.g_timebase.num = kradvpx->fps_denominator;
 	kradvpx->cfg.g_timebase.den = kradvpx->fps_numerator;
 	kradvpx->cfg.rc_target_bitrate = bitrate;	
-	kradvpx->cfg.g_threads = 3;
-	kradvpx->cfg.kf_max_dist = 45;
+	kradvpx->cfg.g_threads = 4;
+	kradvpx->cfg.kf_max_dist = 90;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
-	kradvpx->cfg.rc_buf_sz = 1000;
-	kradvpx->cfg.rc_buf_initial_sz = 500;
-	kradvpx->cfg.rc_buf_optimal_sz = 500;
+	//kradvpx->cfg.g_lag_in_frames = 1;
+	
+	//kradvpx->cfg.rc_buf_sz = 8000;
+	//kradvpx->cfg.rc_buf_initial_sz = 4300;
+	//kradvpx->cfg.rc_buf_optimal_sz = 6500;
 	
 	kradvpx->quality = 15 * 1000;
 
@@ -61,20 +63,18 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 
 	printk ("Krad VP8 Encoder config");
-
 	printk ("WxH %dx%d", kradvpx->cfg.g_w, kradvpx->cfg.g_h);
-
 	printk ("Threads: %d", kradvpx->cfg.g_threads);
-	
 	printk ("rc_target_bitrate: %d", kradvpx->cfg.rc_target_bitrate);
-	
 	printk ("kf_max_dist: %d", kradvpx->cfg.kf_max_dist);
-	
+	printk ("kf_min_dist: %d", kradvpx->cfg.kf_min_dist);	
 	printk ("deadline: %d", kradvpx->quality);	
-
 	printk ("rc_buf_sz: %d", kradvpx->cfg.rc_buf_sz);	
 	printk ("rc_buf_initial_sz: %d", kradvpx->cfg.rc_buf_initial_sz);	
-	printk ("rc_buf_optimal_sz: %d", kradvpx->cfg.rc_buf_optimal_sz);		
+	printk ("rc_buf_optimal_sz: %d", kradvpx->cfg.rc_buf_optimal_sz);
+	printk ("rc_dropframe_thresh: %d", kradvpx->cfg.rc_dropframe_thresh);
+	printk ("g_lag_in_frames: %d", kradvpx->cfg.g_lag_in_frames);
+		
 
 }
 
