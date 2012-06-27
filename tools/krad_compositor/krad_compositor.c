@@ -210,7 +210,7 @@ void *krad_compositor_snapshot_thread (void *arg) {
 
 	krad_compositor_snapshot_t *krad_compositor_snapshot = (krad_compositor_snapshot_t *)arg;
 	
-	printk ("SNAPPY! %s", krad_compositor_snapshot->filename);
+	//printk ("SNAPPY! %s", krad_compositor_snapshot->filename);
 	
 	cairo_surface_write_to_png (krad_compositor_snapshot->krad_frame->cst, krad_compositor_snapshot->filename);
 	
@@ -316,6 +316,22 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 										 
 	krad_compositor_port->source_width = width;
 	krad_compositor_port->source_height = height;
+
+
+	krad_compositor_aspect_scale (krad_compositor_port->source_width, krad_compositor_port->source_height,
+								  krad_compositor_port->krad_compositor->width, krad_compositor_port->krad_compositor->height,
+								  &krad_compositor_port->width, &krad_compositor_port->height);
+
+	krad_compositor_port->crop_width = krad_compositor_port->width;
+	krad_compositor_port->crop_height = krad_compositor_port->height;
+
+	if (krad_compositor_port->width < krad_compositor_port->krad_compositor->width) {
+		krad_compositor_port->x = (krad_compositor_port->krad_compositor->width - krad_compositor_port->width) / 2;
+	}
+	
+	if (krad_compositor_port->height < krad_compositor_port->krad_compositor->height) {
+		krad_compositor_port->y = (krad_compositor_port->krad_compositor->height - krad_compositor_port->height) / 2;
+	}	
 
 	krad_compositor_port->io_params_updated = 1;
 										   
@@ -603,6 +619,27 @@ void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
 		
 }
 
+void krad_compositor_aspect_scale (int width, int height,
+								   int avail_width, int avail_height,
+								   int *new_width, int *new_heigth) {
+	
+	double scaleX, scaleY, scale;
+
+	scaleX = (float)avail_width  / width;  
+	scaleY = (float)avail_height / height;  
+	scale = MIN ( scaleX, scaleY );
+	
+	*new_width = width * scale;
+	*new_heigth = height * scale;
+	
+	printk ("Source: %d x %d Max: %d x %d Aspect Constrained: %d x %d",
+			width, height,
+			avail_width, avail_height,
+			*new_width, *new_heigth);
+	
+}
+
+
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
 													 int width, int height) {
 
@@ -629,8 +666,11 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	if (krad_compositor_port->direction == INPUT) {
 		krad_compositor_port->source_width = width;
 		krad_compositor_port->source_height = height;
-		krad_compositor_port->width = krad_compositor->width;
-		krad_compositor_port->height = krad_compositor->height;	
+		
+		krad_compositor_aspect_scale (krad_compositor_port->source_width, krad_compositor_port->source_height,
+									  krad_compositor->width, krad_compositor->height,
+									  &krad_compositor_port->width, &krad_compositor_port->height);
+			
 	} else {
 		krad_compositor_port->source_width = krad_compositor->width;
 		krad_compositor_port->source_height = krad_compositor->height;

@@ -128,6 +128,10 @@ struct krad_compositor_St {
 
 };
 
+void krad_compositor_aspect_scale (int width, int height,
+								   int avail_width, int avail_height,
+								   int *new_width, int *new_heigth);
+
 void krad_compositor_relloc_resources (krad_compositor_t *krad_compositor);
 void krad_compositor_free_resources (krad_compositor_t *krad_compositor);
 void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor);
