@@ -691,7 +691,7 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 	packet.granulepos = 0;
 	
 	if (keyframe == 1) {
-		printk("got a keyframe at %d\n", 	krad_ogg->tracks[track].frames);
+		//printk ("got a keyframe at %d\n", krad_ogg->tracks[track].frames);
 		krad_ogg->tracks[track].frames_since_keyframe = 0;
 	} else {
 		krad_ogg->tracks[track].frames_since_keyframe++;
