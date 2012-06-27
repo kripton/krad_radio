@@ -621,11 +621,20 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	if (krad_compositor_port == NULL) {
 		return NULL;
 	}
+	
+	krad_compositor_port->direction = direction;	
 
-	krad_compositor_port->source_width = width;
-	krad_compositor_port->source_height = height;
-	krad_compositor_port->width = krad_compositor->width;
-	krad_compositor_port->height = krad_compositor->height;	
+	if (krad_compositor_port->direction == INPUT) {
+		krad_compositor_port->source_width = width;
+		krad_compositor_port->source_height = height;
+		krad_compositor_port->width = krad_compositor->width;
+		krad_compositor_port->height = krad_compositor->height;	
+	} else {
+		krad_compositor_port->source_width = krad_compositor->width;
+		krad_compositor_port->source_height = krad_compositor->height;
+		krad_compositor_port->width = width;
+		krad_compositor_port->height = height;	
+	}
 	
 	krad_compositor_port->x = 0;
 	krad_compositor_port->y = 0;	
@@ -640,7 +649,6 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	
 	strcpy (krad_compositor_port->sysname, sysname);	
 	
-	krad_compositor_port->direction = direction;
 	krad_compositor_port->start_timecode = 1;
 	
 	krad_compositor_port->frame_ring = 
