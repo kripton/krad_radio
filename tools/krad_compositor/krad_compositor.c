@@ -82,12 +82,10 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	int p;
 	
 	krad_frame_t *composite_frame;
-	//int *pixels;
-	krad_frame_t *frame[KRAD_COMPOSITOR_MAX_PORTS];	
+	krad_frame_t *frame;	
 	
+	frame = NULL;	
 	composite_frame = NULL;
-	
-	memset (frame, 0, sizeof (frame));
 
 	krad_compositor->timecode = round (1000000000 * krad_compositor->frame_num / krad_compositor->frame_rate_numerator * krad_compositor->frame_rate_denominator / 1000000);
 	krad_compositor->frame_num++;
@@ -99,7 +97,6 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	//printk ("timecode is %llu", krad_compositor->timecode);
 	
 	if (krad_compositor->bug_filename != NULL) {
-	
 		if (strlen(krad_compositor->bug_filename)) {
 			printk ("setting bug to %s %d %d", krad_compositor->bug_filename, 
 			        krad_compositor->bug_x, krad_compositor->bug_y);
@@ -113,19 +110,29 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		krad_compositor->bug_filename = NULL;
 	}
 	
+	/* Get a frame */
+	
+	do {
+		composite_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
+		if (composite_frame == NULL) {
+			printke ("This is very bad! Compositor wanted a frame but could not get one right away!");
+			usleep (5000);
+		}
+	} while (composite_frame == NULL);	
+	
+	kradgui_set_surface (krad_compositor->krad_gui, composite_frame->cst);
+	
 	/* Clear it off */
 	krad_gui_clear (krad_compositor->krad_gui);
-
-	//pixels = (int *)krad_compositor->krad_gui->pixels;
 
 	/* Composite Input Ports */
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
 
-			frame[p] = krad_compositor_port_pull_frame (&krad_compositor->port[p]);		
+			frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);		
 
-			if (frame[p] != NULL) {
+			if (frame != NULL) {
 			
 				cairo_save (krad_compositor->krad_gui->cr);
 				if (krad_compositor->port[p].rotation != 0) {
@@ -141,7 +148,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 									 krad_compositor->port[p].crop_height / -2);
 				}
 				cairo_set_source_surface (krad_compositor->krad_gui->cr,
-										  frame[p]->cst,
+										  frame->cst,
 										  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
 										  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
 			
@@ -153,7 +160,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 								 
 				cairo_fill (krad_compositor->krad_gui->cr);
 				cairo_restore (krad_compositor->krad_gui->cr);
-				krad_framepool_unref_frame (frame[p]);
+				krad_framepool_unref_frame (frame);
 			}
 		}
 	}
@@ -178,22 +185,8 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		kradgui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110,
 		                      krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
 	}
-	
-	
 
 	kradgui_render (krad_compositor->krad_gui);
-	
-	/* Get a frame */
-	
-	do {
-		composite_frame = krad_framepool_getframe (krad_compositor->krad_framepool);
-		if (composite_frame == NULL) {
-			printke ("This is very bad! Compositor wanted a frame but could not get one right away!");
-			usleep (5000);
-		}
-	} while (composite_frame == NULL);	
-	
-	memcpy (composite_frame->pixels, krad_compositor->krad_gui->pixels, krad_compositor->frame_byte_size);
 
 	/* Push out the composited frame */
 	
@@ -525,7 +518,8 @@ void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
 	}
 	
 	if (krad_compositor->krad_gui == NULL) {
-		krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
+		krad_compositor->krad_gui = kradgui_create (krad_compositor->width, krad_compositor->height);
+		//krad_compositor->krad_gui = kradgui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
 		//krad_compositor->krad_gui = kradgui_create_with_external_surface (krad_compositor->width,
 		//																  krad_compositor->height,
 		//																  NULL);
