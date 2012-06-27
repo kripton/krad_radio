@@ -16,10 +16,13 @@ void *video_capture_thread (void *arg) {
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	void *captured_frame = NULL;
-	unsigned char *captured_frame_rgb = malloc(krad_link->composited_frame_byte_size); 
 	krad_frame_t *krad_frame;
 	
 	printk ("Video capture thread started");
+	
+	krad_link->krad_framepool = krad_framepool_create ( krad_link->capture_width,
+														krad_link->capture_height,
+														DEFAULT_CAPTURE_BUFFER_FRAMES);
 	
 	krad_link->krad_v4l2 = kradv4l2_create ();
 
@@ -45,32 +48,27 @@ void *video_capture_thread (void *arg) {
 
 		captured_frame = kradv4l2_read_frame_wait_adv (krad_link->krad_v4l2);
 		
+		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+		
 		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 0)) {
-			kradv4l2_mjpeg_to_rgb (krad_link->krad_v4l2, captured_frame_rgb,
+			kradv4l2_mjpeg_to_rgb (krad_link->krad_v4l2, (unsigned char *)krad_frame->pixels,
 								   captured_frame, krad_link->krad_v4l2->jpeg_size);
 		}
-	
-		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 
 		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
 			memcpy (krad_frame->pixels, captured_frame, krad_link->krad_v4l2->jpeg_size);
 			krad_frame->mjpeg_size = krad_link->krad_v4l2->jpeg_size;			
 			kradv4l2_frame_done (krad_link->krad_v4l2);
-			krad_frame->format = PIX_FMT_RGB32;
 			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);			
 			
 		} else {			
 			if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 0)) {
-			
-				krad_frame->format = PIX_FMT_RGB32;		
-				memcpy (krad_frame->pixels, captured_frame_rgb, krad_link->composited_frame_byte_size);
 				kradv4l2_frame_done (krad_link->krad_v4l2);
-				krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
-						
+				krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 			} else {
 			
 				krad_frame->format = PIX_FMT_YUYV422;
-
+				//FIXME THIS is wrong and will blow up
 				krad_frame->yuv_pixels[0] = captured_frame;
 				krad_frame->yuv_pixels[1] = NULL;
 				krad_frame->yuv_pixels[2] = NULL;
@@ -103,8 +101,6 @@ void *video_capture_thread (void *arg) {
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
-	free(captured_frame_rgb);
-
 	krad_link->capture_audio = 2;
 	krad_link->encoding = 2;
 
@@ -135,7 +131,11 @@ void *info_screen_generator_thread (void *arg) {
 	width = 1280;
 	height = 720;	
 
-	krad_gui = krad_gui_create_with_internal_surface (width, height);
+	krad_link->krad_framepool = krad_framepool_create ( width,
+														height,
+														DEFAULT_CAPTURE_BUFFER_FRAMES);
+
+	krad_gui = krad_gui_create (width, height);
 	
 	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);
 
@@ -150,7 +150,7 @@ void *info_screen_generator_thread (void *arg) {
 	
 		
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-		//krad_gui->data = (unsigned char *)krad_frame->pixels;
+		krad_gui_set_surface (krad_gui, krad_frame->cst);
 		krad_gui_render (krad_gui);
 		
 		krad_gui_render_text (krad_gui, 400, 200, 80, "KRAD RADIO");
@@ -205,11 +205,8 @@ void *info_screen_generator_thread (void *arg) {
 		}
 		
 		krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
-		
-		memcpy (krad_frame->pixels, krad_gui->pixels, krad_gui->bytes);
-		
 		krad_frame->format = PIX_FMT_RGB32;
-		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
 
@@ -251,6 +248,9 @@ void *test_screen_generator_thread (void *arg) {
 	width = 1280;
 	height = 720;
 	
+	krad_link->krad_framepool = krad_framepool_create ( width,
+														height,
+														DEFAULT_CAPTURE_BUFFER_FRAMES);
 
 	krad_gui = krad_gui_create (width, height);
 	
@@ -271,8 +271,7 @@ void *test_screen_generator_thread (void *arg) {
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 		krad_gui_set_surface (krad_gui, krad_frame->cst);
 		krad_gui_render (krad_gui);
-		krad_frame->format = PIX_FMT_RGB32;
-		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
 
@@ -319,7 +318,7 @@ void *x11_capture_thread (void *arg) {
 
 		krad_x11_capture (krad_link->krad_x11, (unsigned char *)krad_frame->pixels);
 		
-		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
 
@@ -338,7 +337,7 @@ void *x11_capture_thread (void *arg) {
 }
 
 
-void *video_encoding_thread(void *arg) {
+void *video_encoding_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_videnc", 0, 0, 0);
 
@@ -1964,8 +1963,6 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 		krad_frame->yuv_strides[3] = 0;
 
 		krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-	
-		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
 
@@ -2172,15 +2169,13 @@ krad_link_t *krad_link_create (int linknum) {
 
 	krad_link_t *krad_link;
 	
-	krad_link = calloc(1, sizeof(krad_link_t));
+	krad_link = calloc (1, sizeof(krad_link_t));
 		
 	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
 	
 	krad_link->capture_width = DEFAULT_CAPTURE_WIDTH;
 	krad_link->capture_height = DEFAULT_CAPTURE_HEIGHT;
 	krad_link->capture_fps = DEFAULT_FPS;
-
-	krad_link->composite_fps = krad_link->capture_fps;
 
 	krad_link->encoding_fps_numerator = -1;
 	krad_link->encoding_fps_denominator = -1;
@@ -2215,9 +2210,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 	krad_compositor_get_resolution (krad_link->krad_radio->krad_compositor,
 							  &krad_link->composite_width,
 							  &krad_link->composite_height);
-	
-	krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
-
 
 	if ((krad_link->encoding_fps_numerator == -1) || (krad_link->encoding_fps_denominator == -1)) {
 		krad_compositor_get_frame_rate (krad_link->krad_radio->krad_compositor,
@@ -2235,11 +2227,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 	if (krad_link->operation_mode == CAPTURE) {
 
-		if (krad_link->video_source != X11) {
-			krad_link->krad_framepool = krad_framepool_create ( krad_link->composite_width,
-																krad_link->composite_height,
-																DEFAULT_CAPTURE_BUFFER_FRAMES);
-		}
 		krad_link->channels = 2;
 
 		for (c = 0; c < krad_link->channels; c++) {

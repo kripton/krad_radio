@@ -5,10 +5,13 @@ krad_frame_t *krad_framepool_getframe (krad_framepool_t *krad_framepool) {
 	int f;
 
 	for (f = 0; f < krad_framepool->count; f++ ) {
+		pthread_mutex_lock (&krad_framepool->frames[f].ref_lock);
 		if (krad_framepool->frames[f].refs == 0) {
-			krad_framepool_ref_frame (&krad_framepool->frames[f]);
+			krad_framepool->frames[f].refs++;
+			pthread_mutex_unlock (&krad_framepool->frames[f].ref_lock);
 			return &krad_framepool->frames[f];
 		}
+		pthread_mutex_unlock (&krad_framepool->frames[f].ref_lock);
 	}
 	
 	return NULL;

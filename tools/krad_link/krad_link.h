@@ -140,7 +140,6 @@ struct krad_link_St {
 	int capture_fps;
 	int composite_width;
 	int composite_height;
-	int composite_fps;
 	int encoding_width;
 	int encoding_height;
 
@@ -167,8 +166,6 @@ struct krad_link_St {
 
 	int audio_encoder_ready;
 	int audio_frames_captured;
-
-	int composited_frame_byte_size;
 
 	krad_ringbuffer_t *decoded_audio_ringbuffer;
 	krad_ringbuffer_t *encoded_audio_ringbuffer;

@@ -321,7 +321,7 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
-	int rgb_stride_arr[3] = {4*krad_compositor_port->krad_compositor->width, 0, 0};
+	int rgb_stride_arr[3] = {4*krad_compositor_port->width, 0, 0};
 	unsigned char *dst[4];
 	
 	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
@@ -408,6 +408,79 @@ krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_
 	}
 
 	return NULL;
+
+}
+
+void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
+
+
+	int output_rgb_stride_arr[4] = {4*krad_compositor_port->width, 0, 0, 0};
+	int input_rgb_stride_arr[4] = {4*krad_compositor_port->source_width, 0, 0, 0};	
+	unsigned char *dst[4];
+	unsigned char *src[4];	
+	krad_frame_t *scaled_frame;	
+	
+	krad_frame->format = PIX_FMT_RGB32;
+	
+	if ((krad_compositor_port->source_width != krad_compositor_port->width) ||
+		(krad_compositor_port->source_height != krad_compositor_port->height)) {
+	
+		if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
+			if (krad_compositor_port->sws_converter != NULL) {
+				sws_freeContext ( krad_compositor_port->sws_converter );
+				krad_compositor_port->sws_converter = NULL;
+			}
+			krad_compositor_port->io_params_updated = 0;
+			krad_compositor_port->comp_params_updated = 0;
+		}
+	
+		if (krad_compositor_port->sws_converter == NULL) {
+
+			krad_compositor_port->sws_converter =
+				sws_getContext ( krad_compositor_port->source_width,
+								 krad_compositor_port->source_height,
+								 krad_frame->format,
+								 krad_compositor_port->width,
+								 krad_compositor_port->height,
+								 PIX_FMT_RGB32, 
+								 SWS_BICUBIC,
+								 NULL, NULL, NULL);
+				
+			if (krad_compositor_port->sws_converter == NULL) {
+				failfast ("Krad Compositor: fraked");
+			}
+								 
+			printk ("set scaling to w %d h %d sw %d sh %d",
+					krad_compositor_port->width,
+					krad_compositor_port->height,
+					krad_compositor_port->source_width,
+					krad_compositor_port->source_height);							 
+								 
+
+		}
+		
+		scaled_frame = krad_framepool_getframe (krad_compositor_port->krad_compositor->krad_framepool);					 
+
+		if (scaled_frame == NULL) {
+			failfast ("Krad Compositor: out of frames");
+		}
+
+		src[0] = (unsigned char *)krad_frame->pixels;
+		dst[0] = (unsigned char *)scaled_frame->pixels;
+
+		sws_scale (krad_compositor_port->sws_converter, (const uint8_t * const*)src,
+				   input_rgb_stride_arr, 0, krad_compositor_port->source_height, dst, output_rgb_stride_arr);
+				   
+
+		krad_compositor_port_push_frame (krad_compositor_port, scaled_frame);
+		
+		krad_framepool_unref_frame (scaled_frame);
+	
+	} else {
+
+		krad_compositor_port_push_frame (krad_compositor_port, krad_frame);
+
+	}
 
 }
 

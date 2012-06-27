@@ -157,6 +157,7 @@ void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_composit
 										   int crop_width, int crop_height,
 										   int crop_x, int crop_y, float rotation);
 
+void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port);
