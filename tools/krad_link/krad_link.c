@@ -570,8 +570,6 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 	if (krad_link->capture_audio == 2) {
 		krad_link->capture_audio = 3;
 	}
-	
-	
 }
 
 void *audio_encoding_thread (void *arg) {

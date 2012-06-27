@@ -323,7 +323,7 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
-	int rgb_stride_arr[3] = {4*krad_compositor_port->width, 0, 0};
+	int rgb_stride_arr[3] = {4*krad_compositor_port->krad_compositor->width, 0, 0};
 	unsigned char *dst[4];
 	
 	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
