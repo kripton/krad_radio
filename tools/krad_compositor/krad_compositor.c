@@ -232,7 +232,6 @@ void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_fra
 	}
 
 	krad_framepool_ref_frame (krad_frame);
-
 		
 	krad_compositor_snapshot = calloc (1, sizeof (krad_compositor_snapshot_t));
 	
@@ -432,7 +431,7 @@ krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_
 void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
 
-	int output_rgb_stride_arr[4] = {4*krad_compositor_port->width, 0, 0, 0};
+	int output_rgb_stride_arr[4] = {4*krad_compositor_port->krad_compositor->width, 0, 0, 0};
 	int input_rgb_stride_arr[4] = {4*krad_compositor_port->source_width, 0, 0, 0};	
 	unsigned char *dst[4];
 	unsigned char *src[4];	
