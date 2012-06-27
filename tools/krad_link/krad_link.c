@@ -68,7 +68,7 @@ void *video_capture_thread (void *arg) {
 			} else {
 			
 				krad_frame->format = PIX_FMT_YUYV422;
-				//FIXME THIS is wrong and will blow up
+
 				krad_frame->yuv_pixels[0] = captured_frame;
 				krad_frame->yuv_pixels[1] = NULL;
 				krad_frame->yuv_pixels[2] = NULL;
@@ -78,9 +78,10 @@ void *video_capture_thread (void *arg) {
 				krad_frame->yuv_strides[2] = 0;
 				krad_frame->yuv_strides[3] = 0;
 
-				kradv4l2_frame_done (krad_link->krad_v4l2);
-
 				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
+				
+				kradv4l2_frame_done (krad_link->krad_v4l2);				
+				
 			}	
 			
 		}
