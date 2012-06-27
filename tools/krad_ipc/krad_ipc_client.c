@@ -1097,7 +1097,9 @@ void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
 
 }
 
-void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *host, int port, char *mount, char *password, char *codecs) {
+void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode,
+									char *host, int port, char *mount, char *password, char *codecs,
+									int video_width, int video_height, int video_bitrate, int audio_bitrate) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1147,11 +1149,29 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	if ((av_mode == VIDEO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC, krad_codec_to_string (video_codec));
 		
-		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 480);
-		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 270);
+		if (video_codec == VP8) {
+			if ((video_width == 0) || (video_height == 0)) {
+				video_width = 960;
+				video_height = 540;
+			}
+		
+			if (video_bitrate == 0) {
+				video_bitrate = 92 * 8;
+			}
+		}
+		
+		if ((video_codec == THEORA) || (video_codec == DIRAC)) {
+			if ((video_width == 0) || (video_height == 0)) {
+				video_width = 1280;
+				video_height = 720;
+			}
+		}		
+		
+		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
+		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
 		
 		if (video_codec == VP8) {
-			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, 42 * 8);	
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
 		}		
 		
 	}
@@ -1181,7 +1201,8 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 
 }
 
-void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs) {
+void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs,
+									int video_width, int video_height, int video_bitrate, int audio_bitrate) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1233,16 +1254,30 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 		
 		if (video_codec == VP8) {
 		
-			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 960);
-			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 540);
+			if ((video_width == 0) || (video_height == 0)) {
+				video_width = 960;
+				video_height = 540;
+			}
+			
+			if (video_bitrate == 0) {
+				video_bitrate = 92 * 8;
+			}			
 		
-			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, 150 * 8);	
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
+		
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
 		}
 		
 		if ((video_codec == THEORA) || (video_codec == DIRAC)) {
 		
-			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 1280);
-			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 720);
+			if ((video_width == 0) || (video_height == 0)) {
+				video_width = 1280;
+				video_height = 720;
+			}		
+		
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
 
 		}
 		
