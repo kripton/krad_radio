@@ -329,9 +329,9 @@ int main (int argc, char *argv[]) {
 
 				if (argc == 6) {
 				
-					//if (strcmp(argv[4], "vp8_bitrate") == 0) {
-					//	krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, atoi(argv[5]));
-					//}				
+					if (strcmp(argv[4], "vp8_bitrate") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, atoi(argv[5]));
+					}				
 					if (strcmp(argv[4], "opus_bitrate") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(argv[5]));
 					}				

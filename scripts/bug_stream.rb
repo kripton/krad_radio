@@ -10,9 +10,9 @@ def bug_stream (station)
 	
 	while true do
 
-		`#{stacmd} bug 470 404 #{logo1}`
+		`#{stacmd} bug 1100 620  #{logo1}`
 		sleep 20
-		`#{stacmd} bug 470 404 ""`
+		`#{stacmd} bug 1100 620 ""`
 		sleep 20
 
 		`#{stacmd} bug 13 320 #{logo2}`	

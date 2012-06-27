@@ -1,4 +1,4 @@
-def play_dir (playlist_dir)
+def play_dir (station_sysname, playlist_dir)
 	
 	while true do
 	
@@ -24,13 +24,13 @@ def play_dir (playlist_dir)
 		playlist.each do |item|
 			info = `mkvinfo "#{playlist_dir}/#{item}" | grep Dura`.chomp
 			duration = info.split(" ")[3].to_i
-			`krad_radio radio1 rm 3`
+			`krad_radio #{station_sysname} rm 2`
 			sleep 0.3
-			`krad_radio radio1 play "#{playlist_dir}/#{item}"`
+			`krad_radio #{station_sysname} play "#{playlist_dir}/#{item}"`
 			puts "PLAYING (duration #{duration}) #{playlist_dir}/#{item}"
 			puts ""
 			sleep duration
 		end
-		`krad_radio radio1 rm 3`
+		`krad_radio #{station_sysname} rm 2`
 	end
 end

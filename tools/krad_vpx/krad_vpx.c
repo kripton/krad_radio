@@ -27,6 +27,8 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 		failfast ("Failed to get config: %s\n", vpx_codec_err_to_string(kradvpx->res));
     }
 
+	krad_vpx_encoder_print_config (kradvpx);
+
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
 	/* Next two lines are really right */
@@ -34,20 +36,47 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->cfg.g_timebase.den = kradvpx->fps_numerator;
 	kradvpx->cfg.rc_target_bitrate = bitrate;	
 	kradvpx->cfg.g_threads = 3;
-	kradvpx->cfg.kf_max_dist = 90;
+	kradvpx->cfg.kf_max_dist = 45;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
-	kradvpx->quality = 10 * 1000;
+	kradvpx->cfg.rc_buf_sz = 1000;
+	kradvpx->cfg.rc_buf_initial_sz = 500;
+	kradvpx->cfg.rc_buf_optimal_sz = 500;
+	
+	kradvpx->quality = 15 * 1000;
+
+	krad_vpx_encoder_print_config (kradvpx);
 
 	if (vpx_codec_enc_init(&kradvpx->encoder, interface, &kradvpx->cfg, 0)) {
 		 krad_vpx_fail (&kradvpx->encoder, "Failed to initialize encoder");
 	}
 
+	krad_vpx_encoder_print_config (kradvpx);
+
 	return kradvpx;
 
 }
 
+void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
+
+	printk ("Krad VP8 Encoder config");
+
+	printk ("WxH %dx%d", kradvpx->cfg.g_w, kradvpx->cfg.g_h);
+
+	printk ("Threads: %d", kradvpx->cfg.g_threads);
+	
+	printk ("rc_target_bitrate: %d", kradvpx->cfg.rc_target_bitrate);
+	
+	printk ("kf_max_dist: %d", kradvpx->cfg.kf_max_dist);
+	
+	printk ("deadline: %d", kradvpx->quality);	
+
+	printk ("rc_buf_sz: %d", kradvpx->cfg.rc_buf_sz);	
+	printk ("rc_buf_initial_sz: %d", kradvpx->cfg.rc_buf_initial_sz);	
+	printk ("rc_buf_optimal_sz: %d", kradvpx->cfg.rc_buf_optimal_sz);		
+
+}
 
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate) {
 	kradvpx->bitrate = bitrate;
@@ -105,7 +134,8 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 	if (kradvpx->update_config == 1) {
 		krad_vpx_encoder_config_set (kradvpx, &kradvpx->cfg);
 		kradvpx->update_config = 0;
-		//printf ("bitrate should now be: %d", kradvpx->cfg.rc_target_bitrate);
+		//printk ("Krad VP8: bitrate should now be: %dk", kradvpx->cfg.rc_target_bitrate);
+		krad_vpx_encoder_print_config (kradvpx);
 	}
 
 	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->quality)) {
