@@ -25,8 +25,8 @@
 
 #include <pthread.h>
 
+#include "krad_system.h"
 #include "krad_ebml.h"
-
 #include "krad_radio_ipc.h"
 
 #ifndef KRAD_IPC_SERVER_H

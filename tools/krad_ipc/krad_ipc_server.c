@@ -28,7 +28,7 @@ krad_ipc_server_t *krad_ipc_server_init (char *sysname) {
 	krad_ipc_server->sd = socket (AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
 
 	if (krad_ipc_server->sd == -1) {
-		printf ("Krad IPC Server: Socket failed.\n");
+		printke ("Krad IPC Server: Socket failed.\n");
 		krad_ipc_server_destroy (krad_ipc_server);
 		return NULL;
 	}
@@ -40,7 +40,7 @@ krad_ipc_server_t *krad_ipc_server_init (char *sysname) {
 		krad_ipc_server->saddr.sun_path[0] = '\0';
 		if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 			/* active socket already exists! */
-			printf("Krad IPC Server: Krad IPC path in use. (linux abstract)\n");
+			printke ("Krad IPC Server: Krad IPC path in use. (linux abstract)\n");
 			krad_ipc_server_destroy (krad_ipc_server);
 			return NULL;
 		}
@@ -49,7 +49,7 @@ krad_ipc_server_t *krad_ipc_server_init (char *sysname) {
 		if (access (krad_ipc_server->saddr.sun_path, F_OK) == 0) {
 			if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 				/* active socket already exists! */
-				printf("Krad IPC Server: Krad IPC path in use.\n");
+				printke ("Krad IPC Server: Krad IPC path in use.\n");
 				krad_ipc_server_destroy (krad_ipc_server);
 				return NULL;
 			}
@@ -59,7 +59,7 @@ krad_ipc_server_t *krad_ipc_server_init (char *sysname) {
 	}
 	
 	if (bind (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) == -1) {
-		printf("Krad IPC Server: Can't bind.\n");
+		printke ("Krad IPC Server: Can't bind.\n");
 		krad_ipc_server_destroy (krad_ipc_server);
 		return NULL;
 	}
@@ -102,7 +102,7 @@ int krad_ipc_server_tcp_socket_create (int port) {
 
 	s = getaddrinfo (NULL, port_string, &hints, &result);
 	if (s != 0) {
-		fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
+		printke ("getaddrinfo: %s\n", gai_strerror (s));
 		return -1;
 	}
 
@@ -125,7 +125,7 @@ int krad_ipc_server_tcp_socket_create (int port) {
 	}
 
 	if (rp == NULL) {
-		fprintf (stderr, "Could not bind %d\n", port);
+		printke ("Could not bind %d\n", port);
 		return -1;
 	}
 
@@ -184,7 +184,7 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 			}
 		}
 		if (client == NULL) {
-			//printf("Krad IPC Server: Overloaded with clients!\n");
+			//printk ("Krad IPC Server: Overloaded with clients!\n");
 			return NULL;
 		}
 	}
@@ -213,7 +213,7 @@ krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad
 		client->krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_READONLY);
 		pthread_mutex_init (&client->client_lock, NULL);
 		krad_ipc_server_update_pollfds (client->krad_ipc_server);
-		printf("Krad IPC Server: Client accepted!\n");	
+		//printk ("Krad IPC Server: Client accepted!");	
 		return client;
 	}
 
@@ -243,7 +243,7 @@ void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 	pthread_mutex_unlock (&client->client_lock);
 	pthread_mutex_destroy (&client->client_lock);
 	krad_ipc_server_update_pollfds (client->krad_ipc_server);
-	printf("Krad IPC Server: Client Disconnected\n\n");
+	//printk ("Krad IPC Server: Client Disconnected");
 
 }
 
@@ -257,7 +257,7 @@ void krad_ipc_server_client_broadcast (krad_ipc_server_t *krad_ipc_server, char 
 void krad_ipc_server_client_broadcast_skip (krad_ipc_server_t *krad_ipc_server, char *data, int size, int broadcast_level, krad_ipc_server_client_t *client) {
 
 	pthread_rwlock_wrlock (&krad_ipc_server->send_lock);								
-	//printf("Krad IPC Server: broadcasting start\n");
+	//printk ("Krad IPC Server: broadcasting start\n");
 
 	for(krad_ipc_server->c = 0; krad_ipc_server->c < KRAD_IPC_SERVER_MAX_CLIENTS; krad_ipc_server->c++) {
 		if ((krad_ipc_server->client[krad_ipc_server->c].active == 1) && (krad_ipc_server->client[krad_ipc_server->c].broadcast_level >= broadcast_level) && (&krad_ipc_server->client[krad_ipc_server->c] != client)) {
@@ -265,10 +265,10 @@ void krad_ipc_server_client_broadcast_skip (krad_ipc_server_t *krad_ipc_server, 
 		}
 	}
 	
-	//printf("Krad IPC Server: broadcasting end\n");
+	//printk ("Krad IPC Server: broadcasting end\n");
 	pthread_rwlock_unlock (&krad_ipc_server->send_lock);
 
-	//printf("Krad IPC Server: broadcasting: %s\n", data);
+	//printk ("Krad IPC Server: broadcasting: %s\n", data);
 
 }
 
@@ -337,7 +337,7 @@ void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) {
 	
 	krad_ipc_server->socket_count = s;
 
-	//printf("Krad IPC Server: sockets rejiggerd!\n");	
+	//printk ("Krad IPC Server: sockets rejiggerd!\n");	
 
 }
 
@@ -360,7 +360,7 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_i
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG) {
-		printf("hrm wtf\n");
+		printke ("hrm wtf\n");
 	} else {
 		//printf("tag size %zu\n", ebml_data_size);
 	}
@@ -368,7 +368,7 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_i
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
-		printf("hrm wtf2\n");
+		printke ("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -378,7 +378,7 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_i
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
-		printf("hrm wtf2\n");
+		printke ("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -388,7 +388,7 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_i
 	krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_VALUE) {
-		printf("hrm wtf3\n");
+		printke ("hrm wtf3\n");
 	} else {
 		//printf("tag value size %zu\n", ebml_data_size);
 	}
@@ -613,7 +613,7 @@ void *krad_ipc_server_run_thread (void *arg) {
 
 	krad_ipc_server_t *krad_ipc_server = (krad_ipc_server_t *)arg;
 	krad_ipc_server_client_t *client;
-	int ret, s, resp;
+	int ret, s;
 	
 	krad_ipc_server->shutdown = KRAD_IPC_RUNNING;
 	
@@ -659,16 +659,16 @@ void *krad_ipc_server_run_thread (void *arg) {
 	
 						client->input_buffer_pos += recv(krad_ipc_server->sockets[s].fd, client->input_buffer + client->input_buffer_pos, (sizeof (client->input_buffer) - client->input_buffer_pos), 0);
 					
-						printf("Krad IPC Server: Got %d bytes\n", client->input_buffer_pos);
+						//printk ("Krad IPC Server: Got %d bytes\n", client->input_buffer_pos);
 					
 						if (client->input_buffer_pos == 0) {
-							printf("Krad IPC Server: Client EOF\n");
+							//printk ("Krad IPC Server: Client EOF\n");
 							krad_ipc_disconnect_client (client);
 							continue;
 						}
 
 						if (client->input_buffer_pos == -1) {
-							printf("Krad IPC Server: Client Socket Error\n");
+							printke ("Krad IPC Server: Client Socket Error");
 							krad_ipc_disconnect_client (client);
 							continue;
 						}
@@ -683,10 +683,10 @@ void *krad_ipc_server_run_thread (void *arg) {
 							//krad_ebml_print_ebml_header (client->krad_ebml->header);
 							
 							if (krad_ebml_check_doctype_header (client->krad_ebml->header, KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION)) {
-								//printf("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+								//printk ("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
 								client->confirmed = 1;
 							} else {
-								printf("Did Not Match %s Version: %d Read Version: %d\n", KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+								printke ("Did Not Match %s Version: %d Read Version: %d\n", KRAD_IPC_CLIENT_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
 								krad_ipc_disconnect_client (client);
 								continue;
 							}
@@ -706,27 +706,28 @@ void *krad_ipc_server_run_thread (void *arg) {
 							while (krad_ebml_io_buffer_read_space (&client->krad_ebml->io_adapter)) {
 								client->krad_ipc_server->current_client = client; /* single thread has a few perks */
 								pthread_mutex_lock (&client->client_lock);
-								resp = client->krad_ipc_server->handler (client->output_buffer, &client->command_response_len, client->krad_ipc_server->pointer);
-								printf("Krad IPC Server: CMD Response %d %d bytes\n", resp, client->command_response_len);
+								//resp = client->krad_ipc_server->handler (client->output_buffer, &client->command_response_len, client->krad_ipc_server->pointer);
+								client->krad_ipc_server->handler (client->output_buffer, &client->command_response_len, client->krad_ipc_server->pointer);
+								//printk ("Krad IPC Server: CMD Response %d %d bytes\n", resp, client->command_response_len);
 								krad_ebml_write_sync (krad_ipc_server->current_client->krad_ebml2);
 								pthread_mutex_unlock (&client->client_lock);
 							}
 						
 						}
-						//printf("Krad IPC Server: got %d bytes\n", client->bytes);
+						//printk ("Krad IPC Server: got %d bytes\n", client->bytes);
 	/*	
 						while (strchr(client->recbuffer, '|') != NULL) {
 						
-							//printf("Krad IPC Server: found delmitmer\n");
+							//printk ("Krad IPC Server: found delmitmer\n");
 						
 							client->msglen = strcspn(client->recbuffer, "|");
 							strncpy(client->buffer, client->recbuffer, client->msglen);
 							if (client->msglen == (client->bytes - 1)) {
-								//printf("Krad IPC Server: one msg buf, nuked\n");
+								//printk ("Krad IPC Server: one msg buf, nuked\n");
 								client->bytes = 0;
 								client->recbuffer[client->bytes] = '\0';
 							} else {
-								//printf("Krad IPC Server: multi .. memmoved\n");
+								//printk ("Krad IPC Server: multi .. memmoved\n");
 								memmove(client->recbuffer, client->recbuffer + client->msglen + 1, client->bytes - (client->msglen + 1));
 								client->bytes = client->bytes - (client->msglen + 1);
 							}
@@ -741,7 +742,7 @@ void *krad_ipc_server_run_thread (void *arg) {
 							// we should be adding 1 to this for the null value
 							// but we add it in in the client libs, so whatever
 							client->rbytes = (strlen(client->buffer));
-							printf("Krad IPC Server: broadcast was %d bytes returned is %d\n", client->broadcast, client->rbytes);
+							printk ("Krad IPC Server: broadcast was %d bytes returned is %d\n", client->broadcast, client->rbytes);
 							// returned bytes
 							if (client->rbytes > 0) {
 
@@ -755,7 +756,7 @@ void *krad_ipc_server_run_thread (void *arg) {
 									}
 									client->broadcast = 0;
 								} else {
-									printf("Krad IPC Server: sending %s\n", client->buffer);
+									printk ("Krad IPC Server: sending %s\n", client->buffer);
 
 									send (client->sd, client->buffer, client->rbytes, 0);
 
@@ -769,23 +770,23 @@ void *krad_ipc_server_run_thread (void *arg) {
 					
 				
 					if (krad_ipc_server->sockets[s].revents & POLLOUT) {
-						//printf("I could write\n");
+						//printk ("I could write\n");
 					}
 
 					if (krad_ipc_server->sockets[s].revents & POLLHUP) {
-						printf("Krad IPC Server: POLLHUP\n");
+						//printk ("Krad IPC Server: POLLHUP\n");
 						krad_ipc_disconnect_client (client);
 						continue;
 					}
 
 					if (krad_ipc_server->sockets[s].revents & POLLERR) {
-						printf("Krad IPC Server: POLLERR\n");
+						printke ("Krad IPC Server: POLLERR\n");
 						krad_ipc_disconnect_client (client);
 						continue;
 					}
 
 					if (krad_ipc_server->sockets[s].revents & POLLNVAL) {
-						printf("Krad IPC Server: POLLNVAL\n");
+						printke ("Krad IPC Server: POLLNVAL\n");
 						krad_ipc_disconnect_client (client);
 						continue;
 					}
