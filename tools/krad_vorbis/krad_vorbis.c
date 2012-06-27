@@ -161,7 +161,9 @@ void krad_vorbis_decoder_destroy (krad_vorbis_t *vorbis) {
 }
 
 
-krad_vorbis_t *krad_vorbis_decoder_create (unsigned char *header1, int header1len, unsigned char *header2, int header2len, unsigned char *header3, int header3len) {
+krad_vorbis_t *krad_vorbis_decoder_create (unsigned char *header1, int header1len,
+										   unsigned char *header2, int header2len,
+										   unsigned char *header3, int header3len) {
 
 	krad_vorbis_t *vorbis = calloc(1, sizeof(krad_vorbis_t));
 
@@ -240,7 +242,7 @@ void krad_vorbis_decoder_decode (krad_vorbis_t *vorbis, unsigned char *buffer, i
 	if (sample_count) {
 		//printf("Vorbis decoded %d samples\n", sample_count);
 		while((krad_ringbuffer_write_space(vorbis->ringbuf[0]) < sample_count * 4) || (krad_ringbuffer_write_space(vorbis->ringbuf[1]) < sample_count * 4)) {
-			usleep(15000);
+			usleep (15000);
 		}
 	
 		krad_ringbuffer_write (vorbis->ringbuf[0], (char *)pcm[0], sample_count * 4 );

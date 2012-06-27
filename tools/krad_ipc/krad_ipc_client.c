@@ -848,6 +848,54 @@ void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size)
 
 }
 
+void krad_ipc_compositor_set_frame_rate (krad_ipc_client_t *client, int numerator, int denominator) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t set_frame_rate;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SET_FRAME_RATE, &set_frame_rate);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_FPS_NUMERATOR, numerator);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR, denominator);
+
+	krad_ebml_finish_element (client->krad_ebml, set_frame_rate);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_compositor_set_resolution (krad_ipc_client_t *client, int width, int height) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t set_resolution;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SET_RESOLUTION, &set_resolution);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_WIDTH, width);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_HEIGHT, height);
+
+	krad_ebml_finish_element (client->krad_ebml, set_resolution);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_radio_uptime (krad_ipc_client_t *client) {
 
 	uint64_t command;
@@ -1099,8 +1147,8 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	if ((av_mode == VIDEO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC, krad_codec_to_string (video_codec));
 		
-		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 640);
-		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 480);
+		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 1280);
+		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 720);
 		
 		if (video_codec == VP8) {
 			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, 100 * 8);	

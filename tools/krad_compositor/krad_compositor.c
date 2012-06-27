@@ -16,7 +16,7 @@ static void *krad_compositor_display_thread (void *arg) {
 	int w;
 	int h;
 	
-	krad_compositor_get_info (krad_compositor,
+	krad_compositor_get_resolution (krad_compositor,
 							  &w,
 							  &h);
 	
@@ -498,6 +498,25 @@ int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_p
 	return frames;
 }
 
+void krad_compositor_relloc_resources (krad_compositor_t *krad_compositor) {
+	krad_compositor_free_resources (krad_compositor);
+	krad_compositor_alloc_resources (krad_compositor);
+}
+
+void krad_compositor_free_resources (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->krad_framepool != NULL) {
+		krad_framepool_destroy ( krad_compositor->krad_framepool );
+		krad_compositor->krad_framepool = NULL;
+	}
+
+	if (krad_compositor->krad_gui != NULL) {
+		kradgui_destroy (krad_compositor->krad_gui);
+		krad_compositor->krad_gui = NULL;
+	}
+}
+
+
 void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
 
 	if (krad_compositor->krad_framepool == NULL) {
@@ -631,14 +650,8 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 			krad_compositor_port_destroy (krad_compositor, &krad_compositor->port[p]);
 		}
 	}
-
-	if (krad_compositor->krad_framepool != NULL) {
-		krad_framepool_destroy ( krad_compositor->krad_framepool );
-	}
-
-	if (krad_compositor->krad_gui != NULL) {
-		kradgui_destroy (krad_compositor->krad_gui);
-	}
+	
+	krad_compositor_free_resources (krad_compositor);
 	
 	pthread_mutex_destroy (&krad_compositor->settings_lock);	
 
@@ -648,7 +661,7 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 }
 
-void krad_compositor_get_info (krad_compositor_t *krad_compositor, int *width, int *height) {
+void krad_compositor_get_resolution (krad_compositor_t *krad_compositor, int *width, int *height) {
 
 	pthread_mutex_lock (&krad_compositor->settings_lock);
 
@@ -658,13 +671,11 @@ void krad_compositor_get_info (krad_compositor_t *krad_compositor, int *width, i
 	pthread_mutex_unlock (&krad_compositor->settings_lock);
 }
 
-void krad_compositor_get_info_NEW (krad_compositor_t *krad_compositor, int *width, int *height,
-							   int *frame_rate_numerator, int *frame_rate_denominator) {
+void krad_compositor_get_frame_rate (krad_compositor_t *krad_compositor,
+									 int *frame_rate_numerator, int *frame_rate_denominator) {
 
 	pthread_mutex_lock (&krad_compositor->settings_lock);
-
-	*width = krad_compositor->width;
-	*height = krad_compositor->height;
+	
 	*frame_rate_numerator = krad_compositor->frame_rate_numerator;
 	*frame_rate_denominator = krad_compositor->frame_rate_denominator;
 
@@ -672,16 +683,32 @@ void krad_compositor_get_info_NEW (krad_compositor_t *krad_compositor, int *widt
 
 }
 
+void krad_compositor_update_resolution (krad_compositor_t *krad_compositor, int width, int height) {
+
+	pthread_mutex_lock (&krad_compositor->settings_lock);
+	if ((krad_compositor->active_input_ports == 0) && (krad_compositor->active_output_ports == 0)) {
+		krad_compositor_set_resolution (krad_compositor, width, height);
+		krad_compositor_relloc_resources (krad_compositor);
+	}
+	pthread_mutex_unlock (&krad_compositor->settings_lock);	
+	
+}
+
+void krad_compositor_set_resolution (krad_compositor_t *krad_compositor, int width, int height) {
+
+	krad_compositor->width = width;
+	krad_compositor->height = height;
+
+	krad_compositor->frame_byte_size = krad_compositor->width * krad_compositor->height * 4;
+
+}
 
 krad_compositor_t *krad_compositor_create (int width, int height,
 										   int frame_rate_numerator, int frame_rate_denominator) {
 
 	krad_compositor_t *krad_compositor = calloc(1, sizeof(krad_compositor_t));
 
-	krad_compositor->width = width;
-	krad_compositor->height = height;
-
-	krad_compositor->frame_byte_size = krad_compositor->width * krad_compositor->height * 4;
+	krad_compositor_set_resolution (krad_compositor, width, height);
 
 	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
 	
@@ -943,9 +970,38 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_compositor->snapshot++;
 			break;
 			
-		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_MODE:
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_FRAME_RATE:
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_FPS_NUMERATOR) {
+				numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR) {
+				numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_compositor_set_frame_rate (krad_compositor, numbers[0], numbers[1]);
 
 			break;
+
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_RESOLUTION:
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_WIDTH) {
+				numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_HEIGHT) {
+				numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_compositor_update_resolution (krad_compositor, numbers[0], numbers[1]);
+
+			break;
+
 	
 		case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_PORTS:
 

@@ -1,25 +1,35 @@
 #include "krad_gui.h"
 
-kradgui_t *kradgui_create(int width, int height) {
+kradgui_t *kradgui_create (int width, int height) {
 
 	kradgui_t *kradgui;
 
 	if ((kradgui = calloc (1, sizeof (kradgui_t))) == NULL) {
-		fprintf(stderr, "kradgui mem alloc fail\n");
-		exit (1);
+		failfast ("Krad GUI mem alloc fail");
 	}
 	
 	kradgui->clear = 1;
 	kradgui->width = width;
 	kradgui->height = height;
-	kradgui_set_playback_state(kradgui, KRADGUI_PLAYING);
-	kradgui_reset_elapsed_time(kradgui);
-	kradgui_set_total_track_time_ms(kradgui, 45 * 60 * 1000);
+	kradgui_set_playback_state (kradgui, KRADGUI_PLAYING);
+	kradgui_reset_elapsed_time (kradgui);
+	kradgui_set_total_track_time_ms (kradgui, 45 * 60 * 1000);
 	
-	clock_gettime(CLOCK_MONOTONIC, &kradgui->start_time);
+	clock_gettime (CLOCK_MONOTONIC, &kradgui->start_time);
 	
 	return kradgui;
 
+}
+
+void kradgui_set_surface (kradgui_t *kradgui, cairo_surface_t *cst) {
+
+	if (kradgui->cr != NULL) {
+		cairo_destroy (kradgui->cr);
+		kradgui->cr = NULL;
+	}
+		
+	kradgui->cst = cst;
+	kradgui->cr = cairo_create (kradgui->cst);
 }
 
 kradgui_t *kradgui_create_with_internal_surface(int width, int height) {
@@ -66,11 +76,12 @@ void kradgui_create_external_surface(kradgui_t *kradgui) {
 	
 }
 
-void kradgui_destroy_external_surface(kradgui_t *kradgui) {
+void kradgui_destroy_external_surface (kradgui_t *kradgui) {
 
 	if (kradgui->external_surface == 1) {
 		if (kradgui->cr != NULL) {
 			cairo_destroy (kradgui->cr);
+			kradgui->cr = NULL;
 		}
 		cairo_surface_destroy (kradgui->cst);
 		kradgui->cst = NULL;
@@ -99,6 +110,7 @@ void kradgui_destroy_internal_surface(kradgui_t *kradgui) {
 	if (kradgui->internal_surface == 1) {
 		if (kradgui->cr != NULL) {
 			cairo_destroy (kradgui->cr);
+			kradgui->cr = NULL;			
 		}
 		cairo_surface_destroy (kradgui->cst);
 		free(kradgui->pixels);
@@ -190,8 +202,7 @@ kradgui_reel_to_reel_t *kradgui_reel_to_reel_create(kradgui_t *kradgui) {
 	kradgui_reel_to_reel_t *kradgui_reel_to_reel;
 
 	if ((kradgui_reel_to_reel = calloc (1, sizeof (kradgui_reel_to_reel_t))) == NULL) {
-		fprintf(stderr, "kradgui kradgui reel to reel mem alloc fail\n");
-		exit (1);
+		failfast ("Krad GUI reel to reel mem alloc fail");
 	}
 	
 	kradgui_reel_to_reel->kradgui = kradgui;
@@ -214,13 +225,12 @@ void kradgui_reel_to_reel_destroy(kradgui_reel_to_reel_t *kradgui_reel_to_reel) 
 
 }
 
-kradgui_playback_state_status_t *kradgui_playback_state_status_create(kradgui_t *kradgui) {
+kradgui_playback_state_status_t *kradgui_playback_state_status_create (kradgui_t *kradgui) {
 
 	kradgui_playback_state_status_t *kradgui_playback_state_status;
 
 	if ((kradgui_playback_state_status = calloc (1, sizeof (kradgui_playback_state_status_t))) == NULL) {
-		fprintf(stderr, "kradgui kradgui reel to reel mem alloc fail\n");
-		exit (1);
+		failfast ("Krad GUI mem alloc fail");
 	}
 	
 	kradgui_playback_state_status->kradgui = kradgui;
@@ -347,7 +357,7 @@ void kradgui_update_reel_to_reel_information(kradgui_reel_to_reel_t *kradgui_ree
 	kradgui_reel_to_reel->angle = 
 		(unsigned int)(kradgui_reel_to_reel->distance / (kradgui_reel_to_reel->reel_size / 360)) % 360;
 	
-	//printf("MS: %zu Reel Size: %fcm Reel Speed: %fcm/s Distance: %fcm Rotation: %fdegrees\n", 
+	//printk ("MS: %zu Reel Size: %fcm Reel Speed: %fcm/s Distance: %fcm Rotation: %fdegrees\n", 
 	//kradgui_reel_to_reel->kradgui->current_track_time_ms, kradgui_reel_to_reel->reel_size, 
 	//kradgui_reel_to_reel->reel_speed, kradgui_reel_to_reel->distance, kradgui_reel_to_reel->angle);
 	
@@ -430,7 +440,7 @@ void kradgui_render_bug (kradgui_t *kradgui) {
 	if (kradgui->next_bug != NULL) {
 		
 		if (kradgui->bug_fade <= 0.0f) {
-			//printf("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
+			//printk ("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
 			kradgui->bug_fade = 0.0f;
 			if (strncmp(kradgui->next_bug, "none", 4) == 0) {
 				kradgui_load_bug (kradgui, NULL);
@@ -463,7 +473,7 @@ void kradgui_render_bug (kradgui_t *kradgui) {
 	
 	}
 	
-	//printf("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
+	//printk ("%f %f\n", kradgui->bug_fade, kradgui->bug_fader);
 	
 	if (kradgui->bug_fader >= 2 * M_PI) {
 		kradgui->bug_fader -= 2 * M_PI;
@@ -485,7 +495,7 @@ void kradgui_render_meter (kradgui_t *kradgui, int x, int y, int size, float pos
 
 
 	pos = pos * 1.8f - 90.0f;
-//	printf("peak %f %f\n", pos);
+//	printk ("peak %f %f\n", pos);
 
 	cairo_save(cr);
 	
@@ -573,7 +583,7 @@ void kradgui_render_curve (kradgui_t *kradgui, int w, int h) {
 	point1_y =  pointy_final * h;
 	point2_y =  pointy_final * h;
 		
-	///printf("f1 %f f2 %f\n", pointy_final, pointy_final_adj);
+	///printk ("f1 %f f2 %f\n", pointy_final, pointy_final_adj);
 	cairo_move_to (cr, 20, 70);
 	cairo_curve_to (cr, point1_x, point1_y, point2_x, point2_y, 0.85 * w, 0.85 * h);
 	cairo_stroke (cr);
@@ -1029,7 +1039,7 @@ void kradgui_render_vtest (kradgui_t *kradgui) {
 	//SDL_ShowCursor(0);
 
 	//#endif
-	//printf("x %d y %d\n", mx, my);
+	//printk ("x %d y %d\n", mx, my);
 
 /*
 	kradgui_render_cube (kradgui, 590, 230, 100, 100);
@@ -1092,7 +1102,7 @@ vposy2 -= 0.7;
 vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 
 
-	//printf("\nvdr is --%d--\n", vdir);
+	//printk ("\nvdr is --%d--\n", vdir);
 	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);	
 	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
 
@@ -1116,7 +1126,7 @@ void kradgui_render_ftest (kradgui_t *kradgui) {
 	//SDL_ShowCursor(0);
 
 	//#endif
-	//printf("m x %d y %d\n", kradgui->cursor_x, kradgui->cursor_y);
+	//printk ("m x %d y %d\n", kradgui->cursor_x, kradgui->cursor_y);
 
 /*
 	kradgui_render_cube (kradgui, 590, 230, 100, 100);
@@ -1179,7 +1189,7 @@ vposy2 -= 0.7;
 vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 
 
-	//printf("\nvdr is --%d--\n", vdir);
+	//printk ("\nvdr is --%d--\n", vdir);
 	kradgui_render_viper (kradgui, vposx, vposy, 32, vdir);
 	
 	kradgui_render_viper (kradgui, vposx2, vposy2, 32, vdir2);
@@ -1492,7 +1502,7 @@ void kradgui_render_tearbar(kradgui_t *kradgui) {
 	kradgui->tearbar_position =
 		0 + (kradgui->movement_range / 2) + round(kradgui->movement_range * sin(kradgui->tearbar_positioner) / 2);
 
-	//printf("speed is %f adj is %f position is: %d positioner is %f\n", kradgui->tearbar_speed, 
+	//printk ("speed is %f adj is %f position is: %d positioner is %f\n", kradgui->tearbar_speed, 
 	//kradgui->tearbar_speed_adj, kradgui->tearbar_position, kradgui->tearbar_positioner);
 
 	kradgui->tearbar_positioner += kradgui->tearbar_speed;
@@ -1732,7 +1742,7 @@ void kradgui_update_current_track_progress(kradgui_t *kradgui) {
 		kradgui->current_track_progress = 0.0;
 	}
 	
-	//printf("Progress is: %f%%\n", kradgui->current_track_progress);
+	//printk ("Progress is: %f%%\n", kradgui->current_track_progress);
 }
 
 void kradgui_update_current_track_time_ms(kradgui_t *kradgui) {
@@ -1857,7 +1867,7 @@ void kradgui_set_total_track_time(kradgui_t *kradgui, struct timespec total_trac
 
 void kradgui_set_current_track_time_ms(kradgui_t *kradgui, unsigned int current_track_time_ms) {
 
-	//printf("Set current track time to: %zums\n", current_track_time_ms);
+	//printk ("Set current track time to: %zums\n", current_track_time_ms);
 
 	kradgui->current_track_time.tv_sec = (current_track_time_ms - (current_track_time_ms % 1000)) / 1000;
 	kradgui->current_track_time.tv_nsec = (current_track_time_ms % 1000) * 1000000;
@@ -1876,7 +1886,7 @@ void kradgui_add_current_track_time_ms(kradgui_t *kradgui, unsigned int addition
 
 	current_track_time_ms += additional_ms;
 
-	//printf("Set current track time to: %zums\n", current_track_time_ms);
+	//printk ("Set current track time to: %zums", current_track_time_ms);
 
 	kradgui->current_track_time.tv_sec = (current_track_time_ms - (current_track_time_ms % 1000)) / 1000;
 	kradgui->current_track_time.tv_nsec = (current_track_time_ms % 1000) * 1000000;
@@ -1982,8 +1992,7 @@ void kradgui_render (kradgui_t *kradgui) {
 	}
 	
 	if (kradgui->print_drawtime) {
-		printf("Frame: %llu :: %s\r", kradgui->frame, kradgui->draw_time_string);
-		fflush(stdout);
+		printk ("Frame: %llu :: %s", kradgui->frame, kradgui->draw_time_string);
 	}
 	
 	kradgui->frame++;

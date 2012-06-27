@@ -252,7 +252,7 @@ void *test_screen_generator_thread (void *arg) {
 	height = 720;
 	
 
-	kradgui = kradgui_create_with_internal_surface (width, height);
+	kradgui = kradgui_create (width, height);
 	
 	kradgui_test_screen (kradgui, krad_link->krad_linker->krad_radio->sysname);
 	
@@ -269,8 +269,8 @@ void *test_screen_generator_thread (void *arg) {
 	
 		
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
+		kradgui_set_surface (kradgui, krad_frame->cst);
 		kradgui_render (kradgui);
-		memcpy (krad_frame->pixels, kradgui->pixels, kradgui->bytes);
 		krad_frame->format = PIX_FMT_RGB32;
 		krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
 
@@ -369,7 +369,7 @@ void *video_encoding_thread(void *arg) {
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
-		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / krad_link->encoding_fps) / 2) * 1000));
+		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / (krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 2) * 1000));
 
 		printk ("Video encoding quality set to %ld", krad_link->krad_vpx_encoder->quality);
 	
@@ -447,7 +447,7 @@ void *video_encoding_thread(void *arg) {
 				if (krad_vpx_encoder_quality_get(krad_link->krad_vpx_encoder) == 1) {
 					if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < 1) {
 						krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
-												  (((1000 / krad_link->encoding_fps) / 2) * 1000));
+												  (((1000 / (krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 2) * 1000));
 						printk ("Alert! Increased VP8 quality");
 					}				
 				}			
@@ -845,8 +845,8 @@ void *stream_output_thread (void *arg) {
 		
 			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container,
 																	 krad_link->video_codec,
-																	 DEFAULT_FPS_NUMERATOR,
-																	 DEFAULT_FPS_DENOMINATOR,
+																	 krad_link->encoding_fps_numerator,
+																	 krad_link->encoding_fps_denominator,
 																	 krad_link->encoding_width,
 																	 krad_link->encoding_height);
 		} else {
@@ -856,8 +856,8 @@ void *stream_output_thread (void *arg) {
 			krad_link->video_track = 
 			krad_container_add_video_track_with_private_data (krad_link->krad_container, 
 														      krad_link->video_codec,
-														   	  DEFAULT_FPS_NUMERATOR,
-															  DEFAULT_FPS_DENOMINATOR,
+														   	  krad_link->encoding_fps_numerator,
+															  krad_link->encoding_fps_denominator,
 															  krad_link->encoding_width,
 															  krad_link->encoding_height,
 															  &krad_link->krad_theora_encoder->krad_codec_header);
@@ -1406,7 +1406,7 @@ void *udp_input_thread(void *arg) {
 
 }
 
-void *video_decoding_thread(void *arg) {
+void *video_decoding_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_viddec", 0, 0, 0);
 
@@ -2183,13 +2183,11 @@ krad_link_t *krad_link_create (int linknum) {
 	krad_link->capture_fps = DEFAULT_FPS;
 
 	krad_link->composite_fps = krad_link->capture_fps;
-	krad_link->encoding_fps = krad_link->capture_fps;
-	//FIXME hardcoded nonsense
-	krad_link->encoding_fps_numerator = DEFAULT_FPS_NUMERATOR;
-	krad_link->encoding_fps_denominator = DEFAULT_FPS_DENOMINATOR;
-	
-	krad_link->encoding_width = DEFAULT_ENCODER_WIDTH;
-	krad_link->encoding_height = DEFAULT_ENCODER_HEIGHT;
+
+	krad_link->encoding_fps_numerator = -1;
+	krad_link->encoding_fps_denominator = -1;
+	krad_link->encoding_width = -1;
+	krad_link->encoding_height = -1;
 	
 	krad_link->vp8_bitrate = DEFAULT_VPX_BITRATE;
 	
@@ -2216,13 +2214,23 @@ void krad_link_activate (krad_link_t *krad_link) {
 	int c;
 
 	
-	krad_compositor_get_info (krad_link->krad_radio->krad_compositor,
+	krad_compositor_get_resolution (krad_link->krad_radio->krad_compositor,
 							  &krad_link->composite_width,
-							  &krad_link->composite_height);	  
-
-	krad_link->encoding_fps = krad_link->capture_fps;
+							  &krad_link->composite_height);
 	
 	krad_link->composited_frame_byte_size = krad_link->composite_width * krad_link->composite_height * 4;
+
+
+	if ((krad_link->encoding_fps_numerator == -1) || (krad_link->encoding_fps_denominator == -1)) {
+		krad_compositor_get_frame_rate (krad_link->krad_radio->krad_compositor,
+										&krad_link->encoding_fps_numerator,
+										&krad_link->encoding_fps_denominator);
+	}
+
+	if ((krad_link->encoding_width == -1) || (krad_link->encoding_height == -1)) {
+		krad_link->encoding_width = krad_link->composite_width;
+		krad_link->encoding_height = krad_link->composite_height;
+	}
 
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
 	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (6000000);
@@ -2232,9 +2240,9 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 		if (krad_link->video_source != X11) {
-			krad_link->krad_framepool = krad_framepool_create ( DEFAULT_CAPTURE_WIDTH,
-															DEFAULT_CAPTURE_HEIGHT,
-															DEFAULT_CAPTURE_BUFFER_FRAMES);
+			krad_link->krad_framepool = krad_framepool_create ( krad_link->composite_width,
+																krad_link->composite_height,
+																DEFAULT_CAPTURE_BUFFER_FRAMES);
 		}
 		krad_link->channels = 2;
 

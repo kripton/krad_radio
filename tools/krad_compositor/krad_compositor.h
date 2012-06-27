@@ -128,6 +128,8 @@ struct krad_compositor_St {
 
 };
 
+void krad_compositor_relloc_resources (krad_compositor_t *krad_compositor);
+void krad_compositor_free_resources (krad_compositor_t *krad_compositor);
 void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor);
 
 void *krad_compositor_ticker_thread (void *arg);
@@ -139,7 +141,8 @@ int krad_compositor_has_pusher (krad_compositor_t *krad_compositor);
 void krad_compositor_set_pusher (krad_compositor_t *krad_compositor, krad_display_api_t pusher);
 void krad_compositor_unset_pusher (krad_compositor_t *krad_compositor);
 
-
+void krad_compositor_update_resolution (krad_compositor_t *krad_compositor, int width, int height);
+void krad_compositor_set_resolution (krad_compositor_t *krad_compositor, int width, int height);
 void krad_compositor_set_frame_rate (krad_compositor_t *krad_compositor,
 									 int frame_rate_numerator, int frame_rate_denominator);
 
@@ -170,7 +173,10 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 
 int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc );
 
-void krad_compositor_get_info (krad_compositor_t *compositor, int *width, int *height);
+void krad_compositor_get_frame_rate (krad_compositor_t *krad_compositor,
+									 int *frame_rate_numerator, int *frame_rate_denominator);
+
+void krad_compositor_get_resolution (krad_compositor_t *compositor, int *width, int *height);
 void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor);
 void krad_compositor_process (krad_compositor_t *compositor);
 void krad_compositor_destroy (krad_compositor_t *compositor);

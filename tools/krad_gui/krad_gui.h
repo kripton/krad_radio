@@ -13,6 +13,8 @@
 #include <cairo/cairo.h>
 #include <gtk/gtk.h>
 
+#include "krad_system.h"
+
 #define PRO_REEL_SIZE 26.67
 #define PRO_REEL_SPEED 38.1
 #define NORMAL_REEL_SIZE 17.78
@@ -222,6 +224,9 @@ struct kradgui_playback_state_status_St {
 	kradgui_t *kradgui;
 
 };
+
+
+void kradgui_set_surface (kradgui_t *kradgui, cairo_surface_t *cst);
 
 void kradgui_render_selector (kradgui_t *kradgui, int x, int y, int w);
 

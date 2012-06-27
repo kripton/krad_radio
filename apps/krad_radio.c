@@ -383,12 +383,20 @@ int main (int argc, char *argv[]) {
 				}
 			}
 		
-			if (strncmp(argv[2], "setcomp", 7) == 0) {
-				if (argc == 7) {
-					//krad_ipc_compositor_set_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
-					krad_ipc_print_response (client);
+			if (strncmp(argv[2], "res", 3) == 0) {
+				if (argc == 5) {
+					krad_ipc_compositor_set_resolution (client, atoi(argv[3]), atoi(argv[4]));
 				}
-			}				
+			}
+			
+			if (strncmp(argv[2], "fps", 3) == 0) {
+				if (argc == 4) {
+					krad_ipc_compositor_set_frame_rate (client, atoi(argv[3]) * 1000, 1000);
+				}			
+				if (argc == 5) {
+					krad_ipc_compositor_set_frame_rate (client, atoi(argv[3]), atoi(argv[4]));
+				}
+			}						
 
 			if (strncmp(argv[2], "hex", 3) == 0) {
 				if (argc == 6) {

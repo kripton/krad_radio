@@ -1,5 +1,4 @@
 # Prerelease
-	set resolution+fps for capture/compositor/encoder
 	Wayland support optional
 	Help in command line
 	Catch Signals

@@ -30,7 +30,7 @@ void krad_flac_encoder_destroy (krad_flac_t *flac) {
 	krad_flac_encoder_finish(flac, NULL);
 	FLAC__stream_encoder_delete(flac->encoder);
 	
-	free(flac);
+	free (flac);
 }
 
 

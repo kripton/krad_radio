@@ -11,13 +11,13 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #define DEFAULT_VPX_BITRATE 100 * 8
 #define DEFAULT_DIRAC_BITRATE 15000000
 #define DEFAULT_THEORA_QUALITY 42
-#define DEFAULT_CAPTURE_BUFFER_FRAMES 120
-#define DEFAULT_DECODING_BUFFER_FRAMES 120
+#define DEFAULT_CAPTURE_BUFFER_FRAMES 75
+#define DEFAULT_DECODING_BUFFER_FRAMES 75
 #define DEFAULT_VORBIS_QUALITY 0.7
+
 #define DEFAULT_CAPTURE_WIDTH 640
 #define DEFAULT_CAPTURE_HEIGHT 480
-#define DEFAULT_ENCODER_WIDTH 640
-#define DEFAULT_ENCODER_HEIGHT 480
+
 #define DEFAULT_COMPOSITOR_WIDTH 640
 #define DEFAULT_COMPOSITOR_HEIGHT 480
 #define DEFAULT_COMPOSITOR_FPS 30
@@ -145,10 +145,8 @@ struct krad_link_St {
 	int encoding_width;
 	int encoding_height;
 
-	int encoding_fps;
 	int encoding_fps_numerator;
 	int encoding_fps_denominator;
-
 
 	int mjpeg_mode;
 	int mjpeg_passthru;	
