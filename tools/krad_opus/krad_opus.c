@@ -364,14 +364,14 @@ void krad_opus_decoder_destroy (krad_opus_t *krad_opus) {
 	for (c = 0; c < krad_opus->channels; c++) {
 		krad_ringbuffer_free ( krad_opus->ringbuf[c] );
 		krad_ringbuffer_free ( krad_opus->resampled_ringbuf[c] );
-		free(krad_opus->resampled_samples[c]);
-		free(krad_opus->samples[c]);
-		free(krad_opus->read_samples[c]);
+		free (krad_opus->resampled_samples[c]);
+		free (krad_opus->samples[c]);
+		free (krad_opus->read_samples[c]);
 		src_delete (krad_opus->src_resampler[c]);
 	}
-	free(krad_opus->interleaved_samples);
+	free (krad_opus->interleaved_samples);
 	free (krad_opus->opus_header);
-	opus_multistream_decoder_destroy(krad_opus->decoder);
+	opus_multistream_decoder_destroy (krad_opus->decoder);
 	free (krad_opus);
 
 }
@@ -380,53 +380,56 @@ krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_le
 
 	int c;
 
-	krad_opus_t *opus = calloc(1, sizeof(krad_opus_t));
+	krad_opus_t *krad_opus = calloc (1, sizeof(krad_opus_t));
 
-	opus->output_sample_rate = output_sample_rate;
+	krad_opus->output_sample_rate = output_sample_rate;
 
-	opus->opus_header = calloc(1, sizeof(OpusHeader));
+	krad_opus->opus_header = calloc (1, sizeof(OpusHeader));
 	
-	if (opus_header_parse (header_data, header_length, opus->opus_header) != 1) {
-		printk ("krad_opus_decoder_create problem reading opus header");	
+	if (opus_header_parse (header_data, header_length, krad_opus->opus_header) != 1) {
+		failfast ("krad_opus_decoder_create problem reading opus header");	
 	}
 
-	opus->input_sample_rate = opus->opus_header->input_sample_rate;
+	krad_opus->input_sample_rate = krad_opus->opus_header->input_sample_rate;
 
-	opus->channels = opus->opus_header->channels;
+	krad_opus->channels = krad_opus->opus_header->channels;
 	
-	opus->interleaved_samples = malloc(16 * 8192);
+	krad_opus->interleaved_samples = malloc(16 * 8192);
 	
-	for (c = 0; c < opus->opus_header->channels; c++) {
-		opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
-		opus->samples[c] = malloc (16 * 8192);
-		opus->read_samples[c] = malloc (16 * 8192);
-		opus->resampled_samples[c] = malloc (16 * 8192);
+	for (c = 0; c < krad_opus->opus_header->channels; c++) {
+		krad_opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		krad_opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
+		krad_opus->samples[c] = malloc (16 * 8192);
+		krad_opus->read_samples[c] = malloc (16 * 8192);
+		krad_opus->resampled_samples[c] = malloc (16 * 8192);
 
-		opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &opus->src_error[c]);
-		if (opus->src_resampler[c] == NULL) {
-			failfast ("krad_opus_decoder_create src resampler error: %s\n", src_strerror(opus->src_error[c]));
+		krad_opus->src_resampler[c] = src_new (KRAD_OPUS_SRC_QUALITY, 1, &krad_opus->src_error[c]);
+		if (krad_opus->src_resampler[c] == NULL) {
+			failfast ("krad_opus_decoder_create src resampler error: %s", src_strerror (krad_opus->src_error[c]));
 		}
 	
-		opus->src_data[c].src_ratio = output_sample_rate / opus->input_sample_rate;
+		krad_opus->src_data[c].src_ratio = output_sample_rate / krad_opus->input_sample_rate;
 	
-		printk ("krad_opus_decoder_create src resampler ratio is: %f\n", opus->src_data[c].src_ratio);	
+		printk ("krad_opus_decoder_create src resampler ratio is: %f", krad_opus->src_data[c].src_ratio);	
 
 	}
 
-	unsigned char mapping[256] = {0,1};
+	krad_opus->streams = krad_opus->opus_header->nb_streams;
+	krad_opus->coupled_streams = krad_opus->opus_header->nb_coupled;
 
-	opus->decoder = opus_multistream_decoder_create (opus->opus_header->input_sample_rate,
-													 opus->opus_header->channels,
-													 1,
-													 opus->opus_header->channels==2 ? 1 : 0,
-													 mapping,
-													 &opus->opus_decoder_error);
-	if (opus->opus_decoder_error != OPUS_OK) {
-		failfast ("Cannot create decoder: %s\n", opus_strerror(opus->opus_decoder_error));
+	memcpy (krad_opus->mapping, krad_opus->opus_header->stream_map, 256);
+
+	krad_opus->decoder = opus_multistream_decoder_create (krad_opus->opus_header->input_sample_rate,
+														  krad_opus->opus_header->channels,
+														  krad_opus->streams,
+														  krad_opus->coupled_streams,
+														  krad_opus->mapping,
+														  &krad_opus->opus_decoder_error);
+	if (krad_opus->opus_decoder_error != OPUS_OK) {
+		failfast ("Cannot create decoder: %s", opus_strerror (krad_opus->opus_decoder_error));
 	}
 
-	return opus;
+	return krad_opus;
 
 }
 
