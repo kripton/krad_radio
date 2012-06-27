@@ -1915,8 +1915,10 @@ void krad_gui_overlay_clear (krad_gui_t *krad_gui) {
 }
 
 void krad_gui_clear (krad_gui_t *krad_gui) {
-	cairo_set_source_rgb (krad_gui->cr, BGCOLOR);
+	cairo_save (krad_gui->cr);
+	cairo_set_source_rgba (krad_gui->cr, BGCOLOR_CLR2);
 	cairo_paint (krad_gui->cr);
+	cairo_restore (krad_gui->cr);
 }
 
 void krad_gui_render (krad_gui_t *krad_gui) {
