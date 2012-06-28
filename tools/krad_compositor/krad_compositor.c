@@ -124,45 +124,65 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	krad_gui_set_surface (krad_compositor->krad_gui, composite_frame->cst);
 	
-	/* Clear it off */
-	krad_gui_clear (krad_compositor->krad_gui);
+	if (krad_compositor->active_input_ports == 0) {
+	
+		/* Clear it off */
+		krad_gui_clear (krad_compositor->krad_gui);	
+		
+		if ((krad_compositor->frame_num % 30) > 15) {
+			cairo_save (krad_compositor->krad_gui->cr);
+			cairo_set_source_rgb (krad_compositor->krad_gui->cr, GREY);
+			cairo_select_font_face (krad_compositor->krad_gui->cr, "monospace",
+									CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+			cairo_set_font_size (krad_compositor->krad_gui->cr, 96.0);
+			cairo_move_to (krad_compositor->krad_gui->cr, krad_compositor->krad_gui->width/3.0,
+						   krad_compositor->krad_gui->height/2);
+			cairo_show_text (krad_compositor->krad_gui->cr, "NO INPUT");
+			cairo_restore (krad_compositor->krad_gui->cr);
+		}
+		
+	} else {
+	
+		/* Clear it off */
+		krad_gui_clear (krad_compositor->krad_gui);
 
-	/* Composite Input Ports */
+		/* Composite Input Ports */
 
-	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
-		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
+		for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
+			if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
 
-			frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);		
+				frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);		
 
-			if (frame != NULL) {
+				if (frame != NULL) {
 			
-				cairo_save (krad_compositor->krad_gui->cr);
-				if (krad_compositor->port[p].rotation != 0) {
-					cairo_translate (krad_compositor->krad_gui->cr,
-									 krad_compositor->port[p].crop_width / 2,
-									 krad_compositor->port[p].crop_height / 2);
+					cairo_save (krad_compositor->krad_gui->cr);
+					if (krad_compositor->port[p].rotation != 0) {
+						cairo_translate (krad_compositor->krad_gui->cr,
+										 krad_compositor->port[p].crop_width / 2,
+										 krad_compositor->port[p].crop_height / 2);
+										 
+						cairo_rotate (krad_compositor->krad_gui->cr,
+									  krad_compositor->port[p].rotation * (M_PI/180.0));
+
+						cairo_translate (krad_compositor->krad_gui->cr,
+										 krad_compositor->port[p].crop_width / -2,
+										 krad_compositor->port[p].crop_height / -2);
+					}
+					cairo_set_source_surface (krad_compositor->krad_gui->cr,
+											  frame->cst,
+											  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
+											  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
+
+					cairo_rectangle (krad_compositor->krad_gui->cr,
+									 krad_compositor->port[p].x,
+									 krad_compositor->port[p].y,
+									 krad_compositor->port[p].crop_width,
+									 krad_compositor->port[p].crop_height);
 									 
-					cairo_rotate (krad_compositor->krad_gui->cr,
-								  krad_compositor->port[p].rotation * (M_PI/180.0));
-
-					cairo_translate (krad_compositor->krad_gui->cr,
-									 krad_compositor->port[p].crop_width / -2,
-									 krad_compositor->port[p].crop_height / -2);
+					cairo_fill (krad_compositor->krad_gui->cr);
+					cairo_restore (krad_compositor->krad_gui->cr);
+					krad_framepool_unref_frame (frame);
 				}
-				cairo_set_source_surface (krad_compositor->krad_gui->cr,
-										  frame->cst,
-										  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
-										  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
-
-				cairo_rectangle (krad_compositor->krad_gui->cr,
-								 krad_compositor->port[p].x,
-								 krad_compositor->port[p].y,
-								 krad_compositor->port[p].crop_width,
-								 krad_compositor->port[p].crop_height);
-								 
-				cairo_fill (krad_compositor->krad_gui->cr);
-				cairo_restore (krad_compositor->krad_gui->cr);
-				krad_framepool_unref_frame (frame);
 			}
 		}
 	}
