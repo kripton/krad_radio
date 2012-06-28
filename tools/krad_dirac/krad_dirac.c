@@ -41,10 +41,10 @@ krad_dirac_t *krad_dirac_encoder_create (int width, int height, int fps_numerato
 	schro_encoder_set_video_format (krad_dirac->encoder, krad_dirac->format);
 	
 	//schro_debug_set_level (SCHRO_LEVEL_DEBUG);
-	
-	schro_encoder_setting_set_double (krad_dirac->encoder, "gop_structure", SCHRO_ENCODER_GOP_INTRA_ONLY);
+
+	schro_encoder_setting_set_double (krad_dirac->encoder, "gop_structure", SCHRO_ENCODER_GOP_BACKREF);
 	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_CONSTANT_BITRATE);
-//	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_LOW_DELAY);
+	schro_encoder_setting_set_double (krad_dirac->encoder, "rate_control", SCHRO_ENCODER_RATE_CONTROL_LOW_DELAY);
 
 	schro_encoder_setting_set_double (krad_dirac->encoder, "bitrate", krad_dirac->bitrate);
 

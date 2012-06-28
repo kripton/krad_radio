@@ -46,6 +46,8 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	//kradvpx->cfg.rc_buf_initial_sz = 4300;
 	//kradvpx->cfg.rc_buf_optimal_sz = 6500;
 	
+	//kradvpx->cfg.rc_max_quantizer = 10;
+	
 	kradvpx->quality = 15 * 1000;
 
 	krad_vpx_encoder_print_config (kradvpx);
@@ -74,7 +76,8 @@ void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 	printk ("rc_buf_optimal_sz: %d", kradvpx->cfg.rc_buf_optimal_sz);
 	printk ("rc_dropframe_thresh: %d", kradvpx->cfg.rc_dropframe_thresh);
 	printk ("g_lag_in_frames: %d", kradvpx->cfg.g_lag_in_frames);
-		
+	printk ("rc_min_quantizer: %d", kradvpx->cfg.rc_min_quantizer);
+	printk ("rc_max_quantizer: %d", kradvpx->cfg.rc_max_quantizer);
 
 }
 

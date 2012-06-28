@@ -1,4 +1,5 @@
 # Prerelease
+	fade down / up / in / out
 	Wayland support optional
 	Help in command line
 	Catch Signals
