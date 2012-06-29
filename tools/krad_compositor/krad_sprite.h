@@ -13,6 +13,7 @@ struct krad_sprite_St {
 
 	int x;
 	int y;
+	int z;	
 	
 	int tickrate;
 	int tick;

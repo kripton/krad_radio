@@ -1,4 +1,6 @@
 # Prerelease
+	crawler
+	general text overlay
 	fade down / up / in / out
 	Wayland support optional
 	Help in command line

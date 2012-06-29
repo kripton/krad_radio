@@ -63,6 +63,7 @@ struct krad_compositor_port_St {
 	
 	int x;
 	int y;
+	int z;	
 	
 	float rotation;
 	float opacity;	
