@@ -282,7 +282,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		krad_compositor->no_input = 0;
 	
 		need_clear_or_background = 1;
-
+		/*
 		for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 			if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
 				if ((krad_compositor->port[p].x == 0) && (krad_compositor->port[p].y == 0) &&
@@ -296,6 +296,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		}
 
 		if (need_clear_or_background == 1) {
+		*/
 			if (krad_compositor->background != NULL) {
 				cairo_save (krad_compositor->krad_gui->cr);
 				krad_compositor_render_background (krad_compositor, composite_frame);
@@ -303,7 +304,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 			} else {		
 				krad_gui_clear (krad_compositor->krad_gui);
 			}
-		}
+		//}
 
 		/* Composite Input Ports */
 
