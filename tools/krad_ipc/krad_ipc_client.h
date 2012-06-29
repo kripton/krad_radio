@@ -134,7 +134,7 @@ int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portg
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
 
 void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
-										uint32_t width, uint32_t height, float rotation);
+										uint32_t width, uint32_t height, float opacity, float rotation);
 
 void krad_ipc_compositor_list_ports (krad_ipc_client_t *client);
 void krad_ipc_compositor_info (krad_ipc_client_t *client);

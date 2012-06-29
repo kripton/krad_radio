@@ -408,9 +408,9 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "setport", 7) == 0) {
-				if (argc == 9) {
+				if (argc == 10) {
 					krad_ipc_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
-													   atoi(argv[6]), atoi(argv[7]), atof(argv[8]));
+													   atoi(argv[6]), atoi(argv[7]), atof(argv[8]), atof(argv[9]));
 					krad_ipc_print_response (client);
 				}
 			}

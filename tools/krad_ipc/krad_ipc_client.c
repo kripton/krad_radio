@@ -1420,7 +1420,7 @@ void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t e
 }
 
 void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
-										uint32_t width, uint32_t height, float rotation) {
+										uint32_t width, uint32_t height, float opacity, float rotation) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -1438,8 +1438,8 @@ void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, u
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_Y, y);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_WIDTH, width);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_HEIGHT, height);
-	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_ROTATION, rotation);	
-	
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_OPACITY, opacity);
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_ROTATION, rotation);
 
 	krad_ebml_finish_element (client->krad_ebml, update_port);
 	krad_ebml_finish_element (client->krad_ebml, compositor_command);

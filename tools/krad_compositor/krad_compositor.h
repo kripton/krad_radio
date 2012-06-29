@@ -65,6 +65,7 @@ struct krad_compositor_port_St {
 	int y;
 	
 	float rotation;
+	float opacity;	
 	
 	struct SwsContext *sws_converter;	
 	
@@ -127,7 +128,12 @@ struct krad_compositor_St {
 	uint64_t frame_num;
 	uint64_t timecode;
 
+
+	int background;
+
 };
+
+void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad_frame_t *frame);
 
 void krad_compositor_aspect_scale (int width, int height,
 								   int avail_width, int avail_height,
@@ -160,7 +166,7 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_compositor_port,
 										   int width, int height, int x, int y, 
 										   int crop_width, int crop_height,
-										   int crop_x, int crop_y, float rotation);
+										   int crop_x, int crop_y, float opacity, float rotation);
 
 void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame);
