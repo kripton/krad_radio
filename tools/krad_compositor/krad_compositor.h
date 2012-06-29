@@ -123,6 +123,7 @@ struct krad_compositor_St {
 	int ticker_period;
 	pthread_t ticker_thread;
 
+	uint64_t no_input;
 	uint64_t frame_num;
 	uint64_t timecode;
 

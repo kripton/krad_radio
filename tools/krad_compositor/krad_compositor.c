@@ -126,10 +126,12 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	if (krad_compositor->active_input_ports == 0) {
 	
+		krad_compositor->no_input++;	
+	
 		/* Clear it off */
 		krad_gui_clear (krad_compositor->krad_gui);	
 		
-		if ((krad_compositor->frame_num % 30) > 15) {
+		if ((krad_compositor->no_input > 140) && ((krad_compositor->frame_num % 30) > 15)) {
 			cairo_save (krad_compositor->krad_gui->cr);
 			cairo_set_source_rgb (krad_compositor->krad_gui->cr, GREY);
 			cairo_select_font_face (krad_compositor->krad_gui->cr, "monospace",
@@ -142,6 +144,8 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		}
 		
 	} else {
+	
+		krad_compositor->no_input = 0;
 	
 		/* Clear it off */
 		krad_gui_clear (krad_compositor->krad_gui);
