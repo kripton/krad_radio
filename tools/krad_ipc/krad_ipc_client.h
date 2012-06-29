@@ -85,6 +85,7 @@ void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroup
 void krad_ipc_mixer_update_portgroup_map_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel);
 void krad_ipc_mixer_update_portgroup_mixmap_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel);
 
+void krad_ipc_compositor_background (krad_ipc_client_t *client, char *filename);
 void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *filename);
 void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size);
 void krad_ipc_compositor_vu (krad_ipc_client_t *client, int on_off);

@@ -129,9 +129,17 @@ struct krad_compositor_St {
 	uint64_t timecode;
 
 
-	int background;
+	cairo_surface_t *background;
+	cairo_pattern_t *background_pattern;
+	int background_width;
+	int background_height;
 
 };
+
+
+void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad_frame_t *frame);
+void krad_compositor_set_background (krad_compositor_t *krad_compositor, char *filename);
+void krad_compositor_unset_background (krad_compositor_t *krad_compositor);
 
 void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad_frame_t *frame);
 

@@ -733,6 +733,29 @@ void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char
 
 }
 
+void krad_ipc_compositor_background (krad_ipc_client_t *client, char *filename) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t background;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SET_BACKGROUND, &background);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_FILENAME, filename);
+
+	krad_ebml_finish_element (client->krad_ebml, background);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+	
+}
+
 void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *filename) {
 
 	//uint64_t ipc_command;

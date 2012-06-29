@@ -78,9 +78,50 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
 }
 
+
+void krad_compositor_unset_background (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->background != NULL) {
+		if (krad_compositor->background_pattern != NULL) {
+			cairo_pattern_destroy (krad_compositor->background_pattern);
+			krad_compositor->background_pattern = NULL;
+		}
+		cairo_surface_destroy ( krad_compositor->background );
+		krad_compositor->background = NULL;
+		krad_compositor->background_width = 0;
+		krad_compositor->background_height = 0;
+	}
+}
+
+
+void krad_compositor_set_background (krad_compositor_t *krad_compositor, char *filename) {
+
+	if (krad_compositor->background != NULL) {
+		krad_compositor_unset_background (krad_compositor);
+	}
+	
+	if ( filename != NULL ) {
+		krad_compositor->background = cairo_image_surface_create_from_png ( filename );
+		krad_compositor->background_width = cairo_image_surface_get_width ( krad_compositor->background );
+		krad_compositor->background_height = cairo_image_surface_get_height ( krad_compositor->background );
+		if ((krad_compositor->background_width != krad_compositor->width) ||
+		    (krad_compositor->background_height != krad_compositor->height)) {
+
+			krad_compositor->background_pattern = cairo_pattern_create_for_surface (krad_compositor->background);
+			cairo_pattern_set_extend (krad_compositor->background_pattern, CAIRO_EXTEND_REPEAT);
+		}
+	}
+}
+
+
 void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad_frame_t *frame) {
 
-	
+	if (krad_compositor->background_pattern != NULL) {
+		cairo_set_source (krad_compositor->krad_gui->cr, krad_compositor->background_pattern);
+	} else {
+		cairo_set_source_surface ( krad_compositor->krad_gui->cr, krad_compositor->background, 0, 0 );
+	}
+	cairo_paint ( krad_compositor->krad_gui->cr );
 
 }
 
@@ -88,7 +129,7 @@ void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad
 void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 	int p;
-	
+	int need_clear_or_background;
 	krad_frame_t *composite_frame;
 	krad_frame_t *frame;	
 	
@@ -132,10 +173,10 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	if (krad_compositor->active_input_ports == 0) {
 	
-		if (krad_compositor->background) {
-	
+		if (krad_compositor->background != NULL) {
+			cairo_save (krad_compositor->krad_gui->cr);
 			krad_compositor_render_background (krad_compositor, composite_frame);
-	
+			cairo_restore (krad_compositor->krad_gui->cr);
 		} else {
 
 			krad_compositor->no_input++;
@@ -160,8 +201,29 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 		krad_compositor->no_input = 0;
 	
-		/* Clear it off */
-		krad_gui_clear (krad_compositor->krad_gui);
+		need_clear_or_background = 1;
+
+		for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
+			if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT)) {
+				if ((krad_compositor->port[p].x == 0) && (krad_compositor->port[p].y == 0) &&
+					(krad_compositor->port[p].crop_width == krad_compositor->width) &&
+					(krad_compositor->port[p].crop_height == krad_compositor->height)) {
+					
+					need_clear_or_background = 0;
+					break;
+				}
+			}
+		}
+
+		if (need_clear_or_background == 1) {
+			if (krad_compositor->background != NULL) {
+				cairo_save (krad_compositor->krad_gui->cr);
+				krad_compositor_render_background (krad_compositor, composite_frame);
+				cairo_restore (krad_compositor->krad_gui->cr);
+			} else {		
+				krad_gui_clear (krad_compositor->krad_gui);
+			}
+		}
 
 		/* Composite Input Ports */
 
@@ -1261,6 +1323,22 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ipc_server_response_finish ( krad_ipc, response );	
 			*/		
 			break;
+			
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_BACKGROUND:
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_FILENAME) {
+				//printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+
+			krad_compositor_set_background (krad_compositor, string);
+		
+			break;			
 	
 		case EBML_ID_KRAD_COMPOSITOR_CMD_CLOSE_DISPLAY:
 		

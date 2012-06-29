@@ -455,6 +455,12 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "background", 10) == 0) {
+				if (argc == 4) {
+					krad_ipc_compositor_background (client, argv[3]);
+				}
+			}			
+			
 			if (strncmp(argv[2], "display", 7) == 0) {
 				if (argc == 3) {
 					krad_ipc_compositor_open_display (client, 0, 0);
