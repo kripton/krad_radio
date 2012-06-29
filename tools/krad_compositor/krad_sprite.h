@@ -11,6 +11,8 @@ typedef struct krad_sprite_St krad_sprite_t;
 
 struct krad_sprite_St {
 
+	int active;
+
 	int x;
 	int y;
 	int z;	

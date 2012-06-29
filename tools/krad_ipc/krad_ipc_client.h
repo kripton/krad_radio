@@ -60,6 +60,17 @@ struct krad_ipc_client_St {
 
 };
 
+
+void krad_ipc_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x, int y, int tickrate, 
+									float scale, float opacity, float rotation);
+
+void krad_ipc_compositor_set_sprite (krad_ipc_client_t *client, int num, int x, int y, int tickrate, 
+									float scale, float opacity, float rotation);
+
+void krad_ipc_compositor_remove_sprite (krad_ipc_client_t *client, int num);
+void krad_ipc_compositor_list_sprites (krad_ipc_client_t *client);
+
+
 void krad_ipc_compositor_set_frame_rate (krad_ipc_client_t *client, int numerator, int denominator);
 void krad_ipc_compositor_set_resolution (krad_ipc_client_t *client, int width, int height);
 

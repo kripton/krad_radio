@@ -14,7 +14,8 @@
 #define KRAD_COMPOSITOR_H
 
 #define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
-#define KRAD_COMPOSITOR_MAX_PORTS 30
+#define KRAD_COMPOSITOR_MAX_PORTS 32
+#define KRAD_COMPOSITOR_MAX_SPRITES 64
 
 typedef enum {
 	SYNTHETIC = 13999,	
@@ -136,9 +137,19 @@ struct krad_compositor_St {
 	int background_height;
 
 	krad_sprite_t *krad_sprite;
+	int active_sprites;
 
 };
 
+
+void krad_compositor_add_sprite (krad_compositor_t *krad_compositor, char *filename, int x, int y, int tickrate, 
+								 float scale, float opacity, float rotation);
+
+void krad_compositor_set_sprite (krad_compositor_t *krad_compositor, int num, int x, int y, int tickrate, 
+								 float scale, float opacity, float rotation);
+
+void krad_compositor_remove_sprite (krad_compositor_t *krad_compositor, int num);
+void krad_compositor_list_sprites (krad_compositor_t *krad_compositor);
 
 void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad_frame_t *frame);
 void krad_compositor_set_background (krad_compositor_t *krad_compositor, char *filename);

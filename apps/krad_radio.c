@@ -455,6 +455,64 @@ int main (int argc, char *argv[]) {
 				}
 			}
 			
+			if (strncmp(argv[2], "addsprite", 9) == 0) {
+				if (argc == 6) {
+					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), 4,
+													1.0f, 1.0f, 0.0f);
+				}
+				if (argc == 7) {
+					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													1.0f, 1.0f, 0.0f);
+				}
+				if (argc == 8) {
+					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), 1.0f, 0.0f);
+				}
+				if (argc == 9) {
+					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), 0.0f);
+				}
+				if (argc == 10) {
+					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]));
+				}
+			}
+			
+			if (strncmp(argv[2], "setsprite", 9) == 0) {
+				if (argc == 6) {
+					krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), 4,
+													1.0f, 1.0f, 0.0f);
+				}
+				if (argc == 7) {
+					krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													1.0f, 1.0f, 0.0f);
+				}
+				if (argc == 8) {
+					krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), 1.0f, 0.0f);
+				}
+				if (argc == 9) {
+					krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), 0.0f);
+				}
+				if (argc == 10) {
+					krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]));
+				}
+			}
+			
+			if (strncmp(argv[2], "rmsprite", 8) == 0) {
+				if (argc == 4) {
+					krad_ipc_compositor_remove_sprite (client, atoi(argv[3]));
+				}
+			}
+			
+			if (strncmp(argv[2], "lssprite", 8) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_list_sprites (client);
+				}
+			}											
+			
 			if (strncmp(argv[2], "background", 10) == 0) {
 				if (argc == 4) {
 					krad_ipc_compositor_background (client, argv[3]);

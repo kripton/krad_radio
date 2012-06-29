@@ -78,6 +78,77 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
 }
 
+void krad_compositor_add_sprite (krad_compositor_t *krad_compositor, char *filename, int x, int y, int tickrate, 
+								 float scale, float opacity, float rotation) {
+
+	int s;
+	krad_sprite_t *krad_sprite;
+	
+	krad_sprite = NULL;
+
+	for (s = 0; s < KRAD_COMPOSITOR_MAX_SPRITES; s++) {
+		if (krad_compositor->krad_sprite[s].active == 0) {
+			krad_sprite = &krad_compositor->krad_sprite[s];
+			krad_sprite->active = 2;
+			break;
+		}
+	}
+
+	//krad_sprite = krad_sprite_create_from_file (filename);
+	
+	krad_sprite_open_file (krad_sprite, filename);
+	
+	krad_sprite_set_xy (krad_sprite, x, y);
+	krad_sprite_set_scale (krad_sprite, scale);
+	krad_sprite_set_opacity (krad_sprite, opacity);
+	krad_sprite_set_rotation (krad_sprite, rotation);
+	krad_sprite_set_tickrate (krad_sprite, tickrate);
+
+	krad_sprite->active = 1;
+	krad_compositor->active_sprites++;
+
+}
+
+void krad_compositor_set_sprite (krad_compositor_t *krad_compositor, int num, int x, int y, int tickrate, 
+								 float scale, float opacity, float rotation) {
+
+	krad_sprite_t *krad_sprite;
+	
+	krad_sprite = NULL;
+
+	krad_sprite = &krad_compositor->krad_sprite[num];
+
+	krad_sprite_set_xy (krad_sprite, x, y);
+	krad_sprite_set_scale (krad_sprite, scale);
+	krad_sprite_set_opacity (krad_sprite, opacity);
+	krad_sprite_set_rotation (krad_sprite, rotation);
+	krad_sprite_set_tickrate (krad_sprite, tickrate);
+
+}
+
+void krad_compositor_remove_sprite (krad_compositor_t *krad_compositor, int num) {
+
+	krad_sprite_t *krad_sprite;
+	
+	krad_sprite = NULL;
+
+	krad_sprite = &krad_compositor->krad_sprite[num];
+
+	krad_sprite->active = 3;
+
+	usleep (100000);
+	krad_sprite_reset (krad_sprite);
+	
+	krad_sprite->active = 0;
+	krad_compositor->active_sprites--;
+
+}
+
+
+void krad_compositor_list_sprites (krad_compositor_t *krad_compositor) {
+
+}
+
 
 void krad_compositor_unset_background (krad_compositor_t *krad_compositor) {
 
@@ -184,22 +255,26 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 			cairo_restore (krad_compositor->krad_gui->cr);
 		} else {
 
-			krad_compositor->no_input++;
-
 			krad_gui_clear (krad_compositor->krad_gui);	
 		
-			if ((krad_compositor->no_input > 140) && ((krad_compositor->frame_num % 30) > 15)) {
-				cairo_save (krad_compositor->krad_gui->cr);
-				cairo_set_source_rgb (krad_compositor->krad_gui->cr, GREY);
-				cairo_select_font_face (krad_compositor->krad_gui->cr, "monospace",
-										CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-				cairo_set_font_size (krad_compositor->krad_gui->cr, 96.0);
-				cairo_move_to (krad_compositor->krad_gui->cr, krad_compositor->krad_gui->width/3.0,
-							   krad_compositor->krad_gui->height/2);
-				cairo_show_text (krad_compositor->krad_gui->cr, "NO INPUT");
-				cairo_restore (krad_compositor->krad_gui->cr);
+			if (krad_compositor->active_sprites == 0) {
+			
+				krad_compositor->no_input++;
+			
+				if ((krad_compositor->no_input > 140) && ((krad_compositor->frame_num % 30) > 15)) {
+					cairo_save (krad_compositor->krad_gui->cr);
+					cairo_set_source_rgb (krad_compositor->krad_gui->cr, GREY);
+					cairo_select_font_face (krad_compositor->krad_gui->cr, "monospace",
+											CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+					cairo_set_font_size (krad_compositor->krad_gui->cr, 96.0);
+					cairo_move_to (krad_compositor->krad_gui->cr, krad_compositor->krad_gui->width/3.0,
+								   krad_compositor->krad_gui->height/2);
+					cairo_show_text (krad_compositor->krad_gui->cr, "NO INPUT");
+					cairo_restore (krad_compositor->krad_gui->cr);
+				}
+			} else {
+				krad_compositor->no_input = 0;
 			}
-		
 		}
 		
 	} else {
@@ -301,10 +376,11 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		                      krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
 	}
 	
-	
-	if (krad_compositor->krad_sprite != NULL) {
-		krad_sprite_render_xy (krad_compositor->krad_sprite, krad_compositor->krad_gui->cr,
-							   22, 22);
+
+	for (p = 0; p < KRAD_COMPOSITOR_MAX_SPRITES; p++) {
+		if (krad_compositor->krad_sprite[p].active == 1) {
+			krad_sprite_render (&krad_compositor->krad_sprite[p], krad_compositor->krad_gui->cr);
+		}
 	}
 
 	krad_gui_render (krad_compositor->krad_gui);
@@ -895,7 +971,7 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 	pthread_mutex_destroy (&krad_compositor->settings_lock);	
 
 	free (krad_compositor->port);
-
+	free (krad_compositor->krad_sprite);
 	free (krad_compositor);
 
 }
@@ -951,6 +1027,8 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 
 	krad_compositor->port = calloc(KRAD_COMPOSITOR_MAX_PORTS, sizeof(krad_compositor_port_t));
 	
+	krad_compositor->krad_sprite = calloc(KRAD_COMPOSITOR_MAX_SPRITES, sizeof(krad_sprite_t));	
+	
 	pthread_mutex_init (&krad_compositor->settings_lock, NULL);
 	
 	krad_compositor_set_frame_rate (krad_compositor, frame_rate_numerator, frame_rate_denominator);
@@ -966,25 +1044,7 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	krad_compositor_alloc_resources (krad_compositor);
 	
 	//krad_compositor_start_ticker (krad_compositor);
-	
-	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/Screenshot.png");
-	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/explosion2_e0_8.png");	
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/explosion2_e0_frames_8.png");
-	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/angif_25_fixed_frames_30.png");
-
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/shuflin_frames_120.png");
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/07_pandaclock2_frames_21.png");
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/41df134a59b6_frames_88.png");
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/236b370c26cc_frames_41.png");
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/08_000fff_frames_21.png");	
-//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/kr3.png");
-	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/awesome human skating_frames_34.png");
-
-	krad_sprite_set_tickrate (krad_compositor->krad_sprite, 3);
-	//krad_sprite_set_yscale (krad_compositor->krad_sprite, 4.5);
-	//krad_sprite_set_xscale (krad_compositor->krad_sprite, 4.5);
-	//krad_sprite_set_opacity (krad_compositor->krad_sprite, 0.67);
-	//krad_sprite_set_rotation (krad_compositor->krad_sprite, 53.2);	
+		
 	return krad_compositor;
 
 }
@@ -1381,7 +1441,112 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 			krad_compositor_open_display (krad_compositor);
 			
+			break;		
+
+		case EBML_ID_KRAD_COMPOSITOR_CMD_ADD_SPRITE:
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_COMPOSITOR_FILENAME) {
+				//printf("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_X) {
+				numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_Y) {
+				numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_TICKRATE) {
+				numbers[2] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE) {
+				floats[0] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_OPACITY) {
+				floats[1] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_ROTATION) {
+				floats[2] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}							
+			
+			krad_compositor_add_sprite (krad_compositor, string, numbers[0], numbers[1], numbers[2], 
+										floats[0], floats[1], floats[2]);
+		
 			break;
+
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_SPRITE:
+	
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_NUMBER) {
+				numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}	
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_X) {
+				numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_Y) {
+				numbers[2] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_TICKRATE) {
+				numbers[3] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE) {
+				floats[0] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_OPACITY) {
+				floats[1] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_ROTATION) {
+				floats[2] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}							
+			
+			krad_compositor_set_sprite (krad_compositor, numbers[0], numbers[1], numbers[2], numbers[3],
+										floats[0], floats[1], floats[2]);		
+		
+			break;
+			
+		case EBML_ID_KRAD_COMPOSITOR_CMD_REMOVE_SPRITE:
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_NUMBER) {
+				numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+		
+			krad_compositor_remove_sprite (krad_compositor, numbers[0]);
+		
+			break;
+			
+		case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_SPRITES:
+		
+		
+			break;						
 
 		case EBML_ID_KRAD_COMPOSITOR_CMD_HEX_DEMO:
 

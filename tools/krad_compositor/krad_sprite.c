@@ -144,7 +144,7 @@ void krad_sprite_tick (krad_sprite_t *krad_sprite) {
 
 	krad_sprite->tick++;
 
-	if (krad_sprite->tick == krad_sprite->tickrate) {
+	if (krad_sprite->tick >= krad_sprite->tickrate) {
 		krad_sprite->tick = 0;
 		krad_sprite->frame++;
 		if (krad_sprite->frame == krad_sprite->frames) {
