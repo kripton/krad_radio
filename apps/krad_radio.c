@@ -358,7 +358,7 @@ int main (int argc, char *argv[]) {
 			}	
 
 			
-			if (strncmp(argv[2], "rm", 2) == 0) {
+			if ((strncmp(argv[2], "rm", 2) == 0) && (strlen(argv[2]) == 2)) {
 				if (argc == 4) {
 					krad_ipc_destroy_link (client, atoi(argv[3]));
 				}
