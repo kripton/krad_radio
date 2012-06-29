@@ -300,6 +300,12 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		krad_gui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110,
 		                      krad_compositor->krad_gui->height - 30, 64, krad_compositor->krad_gui->output_current[1]);
 	}
+	
+	
+	if (krad_compositor->krad_sprite != NULL) {
+		krad_sprite_render_xy (krad_compositor->krad_sprite, krad_compositor->krad_gui->cr,
+							   22, 22);
+	}
 
 	krad_gui_render (krad_compositor->krad_gui);
 
@@ -961,6 +967,24 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
 	//krad_compositor_start_ticker (krad_compositor);
 	
+	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/Screenshot.png");
+	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/explosion2_e0_8.png");	
+	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/explosion2_e0_frames_8.png");
+	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/anim0316-1_e0_frames_6.png");
+
+//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/shuflin_frames_120.png");
+	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/07_pandaclock2_frames_21.png");
+//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/41df134a59b6_frames_88.png");
+//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/236b370c26cc_frames_41.png");
+//	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/08_000fff_frames_21.png");	
+	krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/kr3.png");
+	//krad_compositor->krad_sprite = krad_sprite_create_from_file ("/home/oneman/Pictures/animated/awesome human skating_frames_34.png");
+
+	krad_sprite_set_tickrate (krad_compositor->krad_sprite, 3);
+	krad_sprite_set_yscale (krad_compositor->krad_sprite, 1.5);
+	krad_sprite_set_xscale (krad_compositor->krad_sprite, 1.5);
+	krad_sprite_set_opacity (krad_compositor->krad_sprite, 0.77);
+	krad_sprite_set_rotation (krad_compositor->krad_sprite, 33.2);	
 	return krad_compositor;
 
 }

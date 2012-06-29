@@ -25,6 +25,10 @@ Fixes:
 # Audio I/O
 	ALSA/Pulseaudio support need update
 
+# Krad Container
+	mark segment size on ebml and eos on ogg when finishing
+	a file
+
 # Krad EBML
 	Logging/Debug callback, nestegg compatible
 	fail cleanly without exit()

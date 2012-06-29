@@ -23,6 +23,7 @@ depsources = """
 ../tools/krad_ticker/krad_ticker.c
 ../tools/krad_xmms2/krad_xmms2.c
 ../tools/krad_ebml/krad_ebml.c
+../tools/krad_compositor/krad_sprite.c
 ../tools/krad_compositor/krad_compositor.c
 ../tools/krad_framepool/krad_framepool.c
 ../tools/krad_osc/krad_osc.c

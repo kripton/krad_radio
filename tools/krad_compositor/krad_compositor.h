@@ -134,6 +134,8 @@ struct krad_compositor_St {
 	int background_width;
 	int background_height;
 
+	krad_sprite_t *krad_sprite;
+
 };
 
 
