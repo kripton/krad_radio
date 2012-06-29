@@ -102,6 +102,11 @@ void krad_compositor_set_background (krad_compositor_t *krad_compositor, char *f
 	
 	if ( filename != NULL ) {
 		krad_compositor->background = cairo_image_surface_create_from_png ( filename );
+		
+		if (cairo_surface_status (krad_compositor->background) != CAIRO_STATUS_SUCCESS) {
+			krad_compositor->background = NULL;
+			return;
+		}
 		krad_compositor->background_width = cairo_image_surface_get_width ( krad_compositor->background );
 		krad_compositor->background_height = cairo_image_surface_get_height ( krad_compositor->background );
 		if ((krad_compositor->background_width != krad_compositor->width) ||
