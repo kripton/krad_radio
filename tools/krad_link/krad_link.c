@@ -367,6 +367,10 @@ void *video_encoding_thread (void *arg) {
 															   krad_link->encoding_fps_denominator,															   
 															   krad_link->vp8_bitrate);
 
+		if (krad_link->operation_mode == TRANSMIT) {
+			krad_link->krad_vpx_encoder->cfg.kf_max_dist = 90;
+		}
+
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
 		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / ((krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 2) * 1000));

@@ -18,7 +18,7 @@ puts station.uptime
 
 station.set_resolution(width, height)
 
-station.cmd("bug 470 404 ~/Pictures/kr3.png")
+station.sprite("~/Pictures/kr3.png", 470, 404)
 sleep 0.2
 station.cmd("transmit audiovideo #{server1} /ktv.webm secretkode null #{width} #{height} #{bitrate}")
 sleep 0.2

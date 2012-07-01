@@ -36,7 +36,6 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->cfg.g_timebase.den = kradvpx->fps_numerator;
 	kradvpx->cfg.rc_target_bitrate = bitrate;	
 	kradvpx->cfg.g_threads = 3;
-	kradvpx->cfg.kf_max_dist = 90;
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	

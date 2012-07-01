@@ -1,7 +1,6 @@
 # Prerelease
 	crawler
 	general text overlay
-	remove keyframe settings when doing a record vp8
 	fade down / up / in / out
 	Wayland support optional
 	Help in command line
