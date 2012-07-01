@@ -172,7 +172,7 @@ void krad_compositor_add_sprite (krad_compositor_t *krad_compositor, char *filen
 	
 	krad_sprite_set_xy (krad_sprite, x, y);
 	krad_sprite_set_scale (krad_sprite, scale);
-	krad_sprite_set_opacity (krad_sprite, opacity);
+	krad_sprite_set_new_opacity (krad_sprite, opacity);
 	krad_sprite_set_rotation (krad_sprite, rotation);
 	krad_sprite_set_tickrate (krad_sprite, tickrate);
 
@@ -1119,6 +1119,10 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 
 	krad_compositor->krad_text = calloc(KRAD_COMPOSITOR_MAX_TEXTS, sizeof(krad_text_t));
 	
+	
+	for (i = 0; i < KRAD_COMPOSITOR_MAX_SPRITES; i++) {
+		krad_sprite_reset (&krad_compositor->krad_sprite[i]);
+	}
 	
 	for (i = 0; i < KRAD_COMPOSITOR_MAX_TEXTS; i++) {
 		krad_text_reset (&krad_compositor->krad_text[i]);

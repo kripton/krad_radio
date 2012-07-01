@@ -65,6 +65,9 @@ void krad_sprite_open_file (krad_sprite_t *krad_sprite, char *filename) {
 				filename, krad_sprite->sheet_width, krad_sprite->frames,
 				krad_sprite->width, krad_sprite->height);
 		
+		krad_sprite->opacity = 0.0f;
+		krad_sprite->new_opacity = 1.0f;	
+
 	}
 }
 
