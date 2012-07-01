@@ -516,47 +516,76 @@ int main (int argc, char *argv[]) {
 			if (strncmp(argv[2], "addtext", 7) == 0) {
 				if (argc == 6) {
 					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), 4,
-													20.0f, 1.0f, 0.0f);
+													20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
 				}
 				if (argc == 7) {
 					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													20.0f, 1.0f, 0.0f);
+													20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
 				}
 				if (argc == 8) {
 					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													atof(argv[7]), 1.0f, 0.0f);
+													atof(argv[7]), 1.0f, 0.0f, 244, 16, 16, "sans");
 				}
 				if (argc == 9) {
 					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													atof(argv[7]), atof(argv[8]), 0.0f);
+													atof(argv[7]), atof(argv[8]), 0.0f, 244, 16, 16, "sans");
 				}
 				if (argc == 10) {
 					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													atof(argv[7]), atof(argv[8]), atof(argv[9]));
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), 244, 16, 16, "sans");
+				}
+				if (argc == 11) {
+					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), 16, 16, "sans");
+				}
+				if (argc == 12) {
+					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), atoi(argv[11]), 16, "sans");
+				}
+				if (argc == 13) {
+					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]), "sans");
+				}
+				if (argc == 14) {
+					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]), argv[13]);
 				}
 			}
 			
 			if (strncmp(argv[2], "settext", 7) == 0) {
 				if (argc == 6) {
 					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), 4,
-													20.0f, 1.0f, 0.0f);
+													20.0f, 1.0f, 0.0f, 244, 16, 16);
 				}
 				if (argc == 7) {
 					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													20.0f, 1.0f, 0.0f);
+													20.0f, 1.0f, 0.0f, 244, 16, 16);
 				}
 				if (argc == 8) {
 					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													atof(argv[7]), 1.0f, 0.0f);
+													atof(argv[7]), 1.0f, 0.0f, 244, 16, 16);
 				}
 				if (argc == 9) {
 					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													atof(argv[7]), atof(argv[8]), 0.0f);
+													atof(argv[7]), atof(argv[8]), 0.0f, 244, 16, 16);
 				}
 				if (argc == 10) {
 					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
-													atof(argv[7]), atof(argv[8]), atof(argv[9]));
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), 244, 16, 16);
 				}
+				if (argc == 11) {
+					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), 16, 16);
+				}
+				if (argc == 12) {
+					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), atoi(argv[11]), 16);
+				}
+				if (argc == 13) {
+					krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
+													atof(argv[7]), atof(argv[8]), atof(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]));
+				}												
+				
 			}
 			
 			if (strncmp(argv[2], "rmtext", 6) == 0) {

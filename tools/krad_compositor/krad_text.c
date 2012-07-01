@@ -102,7 +102,6 @@ void krad_text_set_new_xy (krad_text_t *krad_text, int x, int y) {
 
 void krad_text_set_new_rgb (krad_text_t *krad_text, int red, int green, int blue) {
 
-
 	krad_text->new_red = red * 0.001f;
 	krad_text->new_green = green * 0.001f;
 	krad_text->new_blue = blue * 0.001f;
@@ -226,7 +225,6 @@ void krad_text_tick (krad_text_t *krad_text) {
 
 	if (krad_text->tick >= krad_text->tickrate) {
 		krad_text->tick = 0;
-
 	}
 	
 	if (krad_text->new_red != krad_text->red) {

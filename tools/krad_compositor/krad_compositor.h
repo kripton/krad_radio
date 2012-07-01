@@ -146,10 +146,10 @@ struct krad_compositor_St {
 };
 
 void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, int x, int y, int tickrate, 
-								 float scale, float opacity, float rotation);
+								 float scale, float opacity, float rotation, int red, int green, int blue, char *font);
 
 void krad_compositor_set_text (krad_compositor_t *krad_compositor, int num, int x, int y, int tickrate, 
-								 float scale, float opacity, float rotation);
+								 float scale, float opacity, float rotation, int red, int green, int blue);
 
 void krad_compositor_remove_text (krad_compositor_t *krad_compositor, int num);
 void krad_compositor_list_texts (krad_compositor_t *krad_compositor);

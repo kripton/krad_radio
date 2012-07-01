@@ -783,7 +783,7 @@ void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *fil
 
 
 void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int tickrate, 
-									float scale, float opacity, float rotation) {
+									float scale, float opacity, float rotation, int red, int green, int blue, char *font) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -805,6 +805,11 @@ void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x,
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_OPACITY, opacity);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_ROTATION, rotation);
 
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_RED, red);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_GREEN, green);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_BLUE, blue);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_FONT, font);	
+
 	krad_ebml_finish_element (client->krad_ebml, textcmd);
 	krad_ebml_finish_element (client->krad_ebml, compositor_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
@@ -814,7 +819,7 @@ void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x,
 }
 
 void krad_ipc_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, int tickrate, 
-									float scale, float opacity, float rotation) {
+									float scale, float opacity, float rotation, int red, int green, int blue) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -835,6 +840,10 @@ void krad_ipc_compositor_set_text (krad_ipc_client_t *client, int num, int x, in
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_SCALE, scale);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_OPACITY, opacity);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_ROTATION, rotation);
+	
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_RED, red);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_GREEN, green);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_BLUE, blue);
 	
 	krad_ebml_finish_element (client->krad_ebml, text);
 	krad_ebml_finish_element (client->krad_ebml, compositor_command);
