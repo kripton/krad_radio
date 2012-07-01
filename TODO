@@ -1,11 +1,11 @@
-# Prerelease
-	crawler
-	general text overlay
-	fade down / up / in / out
-	Wayland support optional
-	Help in command line
+# Release 0.9
+	Inline Help in command line
 	Catch Signals
-	Switchout printf's and enable daemon
+	Fix logging and enable daemonization
+
+# Release 1.0
+	Auto fade In/Out on all audio/video sources on create/destroy of ports
+	Wayland, ETC waf optional building w/modules
 
 # General
 
