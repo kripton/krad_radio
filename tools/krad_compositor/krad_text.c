@@ -71,6 +71,13 @@ void krad_text_set_text (krad_text_t *krad_text, char *text) {
 
 	strcpy (krad_text->text_actual, text);
 
+	krad_text->new_opacity = krad_text->opacity;
+	krad_text->opacity = 0.0f;
+
+}
+
+void krad_text_set_font (krad_text_t *krad_text, char *font) {
+	strcpy (krad_text->font, font);
 }
 
 void krad_text_set_xy (krad_text_t *krad_text, int x, int y) {
@@ -96,21 +103,21 @@ void krad_text_set_new_xy (krad_text_t *krad_text, int x, int y) {
 void krad_text_set_new_rgb (krad_text_t *krad_text, int red, int green, int blue) {
 
 
-	krad_text->new_red = krad_text->red;
-	krad_text->new_green = krad_text->green;
-	krad_text->new_blue = krad_text->blue;
+	krad_text->new_red = red * 0.001f;
+	krad_text->new_green = green * 0.001f;
+	krad_text->new_blue = blue * 0.001f;
 
 }
 
 void krad_text_set_rgb (krad_text_t *krad_text, int red, int green, int blue) {
 
-	krad_text->red = red;
+	krad_text->red = red * 0.001f;
 	krad_text->new_red = krad_text->red;
 	
-	krad_text->green = green;
+	krad_text->green = green * 0.001f;
 	krad_text->new_green = krad_text->green;
 	
-	krad_text->blue = blue;
+	krad_text->blue = blue * 0.001f;
 	krad_text->new_blue = krad_text->blue;
 }
 
@@ -273,16 +280,16 @@ void krad_text_tick (krad_text_t *krad_text) {
 	
 	if (krad_text->new_rotation != krad_text->rotation) {
 		if (krad_text->new_rotation > krad_text->rotation) {
-			if (krad_text->rotation + 0.7f >= krad_text->new_rotation) {
+			if (krad_text->rotation + 1.8f >= krad_text->new_rotation) {
 				krad_text->rotation = krad_text->new_rotation;
 			} else {
-				krad_text->rotation = krad_text->rotation + 0.7f;
+				krad_text->rotation = krad_text->rotation + 1.8f;
 			}
 		} else {
-			if (krad_text->rotation - 0.7f <= krad_text->new_rotation) {
+			if (krad_text->rotation - 1.8f <= krad_text->new_rotation) {
 				krad_text->rotation = krad_text->new_rotation;
 			} else {
-				krad_text->rotation = krad_text->rotation - 0.7f;
+				krad_text->rotation = krad_text->rotation - 1.8f;
 			}
 		}
 	}

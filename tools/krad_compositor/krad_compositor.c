@@ -94,12 +94,16 @@ void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, i
 		}
 	}
 	
-	krad_text_set_text (krad_text, text);
 	krad_text_set_xy (krad_text, x, y);
 	krad_text_set_scale (krad_text, scale);
 	krad_text_set_opacity (krad_text, opacity);
+	krad_text_set_text (krad_text, text);	
 	krad_text_set_rotation (krad_text, rotation);
 	krad_text_set_tickrate (krad_text, tickrate);
+	
+	//krad_text_set_font (krad_text, "DroidSans");	
+
+	krad_text_set_rgb (krad_text, 16, 244, 44);
 
 	krad_text->active = 1;
 	krad_compositor->active_texts++;
