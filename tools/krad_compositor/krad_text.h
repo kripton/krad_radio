@@ -6,6 +6,7 @@
 #define KRAD_TEXT_H
 
 #define KRAD_TEXT_DEFAULT_TICKRATE 4
+#define KRAD_TEXT_DEFAULT_FONT "sans"
 
 typedef struct krad_text_St krad_text_t;
 

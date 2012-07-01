@@ -33,7 +33,7 @@ void krad_text_reset (krad_text_t *krad_text) {
 		krad_text->text = NULL;
 	}
 	
-	strcpy (krad_text->font, "DroidSans");
+	strcpy (krad_text->font, KRAD_TEXT_DEFAULT_FONT);
 	
 	krad_text->width = 0;
 	krad_text->height = 0;
