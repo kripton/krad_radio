@@ -11,11 +11,7 @@ krad_sprite_t *krad_sprite_create () {
 		failfast ("Krad Sprite mem alloc fail");
 	}
 	
-	krad_sprite->opacity = 1.0f;
-	krad_sprite->xscale = 1.0f;
-	krad_sprite->yscale = 1.0f;	
-	krad_sprite->tickrate = KRAD_SPRITE_DEFAULT_TICKRATE;	
-	krad_sprite->frames = 1;
+	krad_sprite_reset (krad_sprite);
 	
 	return krad_sprite;
 
@@ -86,7 +82,7 @@ void krad_sprite_reset (krad_sprite_t *krad_sprite) {
 	krad_sprite->height = 0;
 	krad_sprite->x = 0;
 	krad_sprite->y = 0;
-	krad_sprite->tickrate = 5;
+	krad_sprite->tickrate = KRAD_SPRITE_DEFAULT_TICKRATE;
 	krad_sprite->tick = 0;
 	krad_sprite->frame = 0;
 	krad_sprite->frames = 1;
@@ -94,6 +90,16 @@ void krad_sprite_reset (krad_sprite_t *krad_sprite) {
 	krad_sprite->yscale = 1.0f;
 	krad_sprite->opacity = 1.0f;
 	krad_sprite->rotation = 0.0f;
+	
+	
+	krad_sprite->new_x = krad_sprite->x;
+	krad_sprite->new_y = krad_sprite->y;
+	
+	krad_sprite->new_xscale = krad_sprite->xscale;
+	krad_sprite->new_yscale = krad_sprite->yscale;
+	krad_sprite->new_opacity = krad_sprite->opacity;
+	krad_sprite->new_rotation = krad_sprite->rotation;
+	
 }
 
 void krad_sprite_destroy (krad_sprite_t *krad_sprite) {
@@ -107,28 +113,64 @@ void krad_sprite_set_xy (krad_sprite_t *krad_sprite, int x, int y) {
 
 	krad_sprite->x = x;
 	krad_sprite->y = y;
+	
+	krad_sprite->new_x = krad_sprite->x;
+	krad_sprite->new_y = krad_sprite->y;
+	
 }
 
+void krad_sprite_set_new_xy (krad_sprite_t *krad_sprite, int x, int y) {
+
+	krad_sprite->new_x = x;
+	krad_sprite->new_y = y;
+}
 
 void krad_sprite_set_scale (krad_sprite_t *krad_sprite, float scale) {
 	krad_sprite->xscale = scale;
-	krad_sprite->yscale = scale;	
+	krad_sprite->yscale = scale;
+	krad_sprite->new_xscale = krad_sprite->xscale;
+	krad_sprite->new_yscale = krad_sprite->yscale;
 }
 
 void krad_sprite_set_xscale (krad_sprite_t *krad_sprite, float scale) {
 	krad_sprite->xscale = scale;
+	krad_sprite->new_xscale = krad_sprite->xscale;
 }
 
 void krad_sprite_set_yscale (krad_sprite_t *krad_sprite, float scale) {
-	krad_sprite->yscale = scale;	
+	krad_sprite->yscale = scale;
+	krad_sprite->new_yscale = krad_sprite->yscale;
 }
 
 void krad_sprite_set_opacity (krad_sprite_t *krad_sprite, float opacity) {
 	krad_sprite->opacity = opacity;
+	krad_sprite->new_opacity = krad_sprite->opacity;
 }
 
 void krad_sprite_set_rotation (krad_sprite_t *krad_sprite, float rotation) {
 	krad_sprite->rotation = rotation;
+	krad_sprite->new_rotation = krad_sprite->rotation;
+}
+
+void krad_sprite_set_new_scale (krad_sprite_t *krad_sprite, float scale) {
+	krad_sprite->new_xscale = scale;
+	krad_sprite->new_yscale = scale;	
+}
+
+void krad_sprite_set_new_xscale (krad_sprite_t *krad_sprite, float scale) {
+	krad_sprite->new_xscale = scale;
+}
+
+void krad_sprite_set_new_yscale (krad_sprite_t *krad_sprite, float scale) {
+	krad_sprite->new_yscale = scale;	
+}
+
+void krad_sprite_set_new_opacity (krad_sprite_t *krad_sprite, float opacity) {
+	krad_sprite->new_opacity = opacity;
+}
+
+void krad_sprite_set_new_rotation (krad_sprite_t *krad_sprite, float rotation) {
+	krad_sprite->new_rotation = rotation;
 }
 
 void krad_sprite_set_tickrate (krad_sprite_t *krad_sprite, int tickrate) {
@@ -139,6 +181,111 @@ void krad_sprite_render_xy (krad_sprite_t *krad_sprite, cairo_t *cr, int x, int 
 
 	krad_sprite_set_xy (krad_sprite, x, y);
 	krad_sprite_render (krad_sprite, cr);
+}
+
+
+void krad_sprite_update (krad_sprite_t *krad_sprite) {
+
+	int amount;
+	
+	amount = krad_sprite->tickrate;
+
+	if (krad_sprite->new_x != krad_sprite->x) {
+		if (krad_sprite->new_x > krad_sprite->x) {
+			if (krad_sprite->x + amount >= krad_sprite->new_x) {
+				krad_sprite->x = krad_sprite->new_x;
+			} else {
+				krad_sprite->x = krad_sprite->x + amount;
+			}
+		} else {
+			if (krad_sprite->x - amount <= krad_sprite->new_x) {
+				krad_sprite->x = krad_sprite->new_x;
+			} else {
+				krad_sprite->x = krad_sprite->x - amount;
+			}
+		}
+	}
+	
+	if (krad_sprite->new_y != krad_sprite->y) {
+		if (krad_sprite->new_y > krad_sprite->y) {
+			if (krad_sprite->y + amount >= krad_sprite->new_y) {
+				krad_sprite->y = krad_sprite->new_y;
+			} else {
+				krad_sprite->y = krad_sprite->y + amount;
+			}
+		} else {
+			if (krad_sprite->y - amount <= krad_sprite->new_y) {
+				krad_sprite->y = krad_sprite->new_y;
+			} else {
+				krad_sprite->y = krad_sprite->y - amount;
+			}
+		}
+	}
+
+	if (krad_sprite->new_rotation != krad_sprite->rotation) {
+		if (krad_sprite->new_rotation > krad_sprite->rotation) {
+			if (krad_sprite->rotation + 0.7f >= krad_sprite->new_rotation) {
+				krad_sprite->rotation = krad_sprite->new_rotation;
+			} else {
+				krad_sprite->rotation = krad_sprite->rotation + 0.7f;
+			}
+		} else {
+			if (krad_sprite->rotation - 0.7f <= krad_sprite->new_rotation) {
+				krad_sprite->rotation = krad_sprite->new_rotation;
+			} else {
+				krad_sprite->rotation = krad_sprite->rotation - 0.7f;
+			}
+		}
+	}
+	
+	if (krad_sprite->new_opacity != krad_sprite->opacity) {
+		if (krad_sprite->new_opacity > krad_sprite->opacity) {
+			if (krad_sprite->opacity + 0.02f >= krad_sprite->new_opacity) {
+				krad_sprite->opacity = krad_sprite->new_opacity;
+			} else {
+				krad_sprite->opacity = krad_sprite->opacity + 0.02f;
+			}
+		} else {
+			if (krad_sprite->opacity - 0.02f <= krad_sprite->new_opacity) {
+				krad_sprite->opacity = krad_sprite->new_opacity;
+			} else {
+				krad_sprite->opacity = krad_sprite->opacity - 0.02f;
+			}
+		}
+	}
+	
+	if (krad_sprite->new_xscale != krad_sprite->xscale) {
+		if (krad_sprite->new_xscale > krad_sprite->xscale) {
+			if (krad_sprite->xscale + 0.2f >= krad_sprite->new_xscale) {
+				krad_sprite->xscale = krad_sprite->new_xscale;
+			} else {
+				krad_sprite->xscale = krad_sprite->xscale + 0.2f;
+			}
+		} else {
+			if (krad_sprite->xscale - 0.2f <= krad_sprite->new_xscale) {
+				krad_sprite->xscale = krad_sprite->new_xscale;
+			} else {
+				krad_sprite->xscale = krad_sprite->xscale - 0.2f;
+			}
+		}
+	}
+	
+	if (krad_sprite->new_yscale != krad_sprite->yscale) {
+		if (krad_sprite->new_yscale > krad_sprite->yscale) {
+			if (krad_sprite->yscale + 0.2f >= krad_sprite->new_yscale) {
+				krad_sprite->yscale = krad_sprite->new_yscale;
+			} else {
+				krad_sprite->yscale = krad_sprite->yscale + 0.2f;
+			}
+		} else {
+			if (krad_sprite->yscale - 0.2f <= krad_sprite->new_yscale) {
+				krad_sprite->yscale = krad_sprite->new_yscale;
+			} else {
+				krad_sprite->yscale = krad_sprite->yscale - 0.2f;
+			}
+		}
+	}
+	
 }
 
 void krad_sprite_tick (krad_sprite_t *krad_sprite) {
@@ -152,6 +299,8 @@ void krad_sprite_tick (krad_sprite_t *krad_sprite) {
 			krad_sprite->frame = 0;
 		}
 	}
+	
+	krad_sprite_update (krad_sprite);	
 }
 
 void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr) {

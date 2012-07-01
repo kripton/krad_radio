@@ -190,10 +190,10 @@ void krad_compositor_set_sprite (krad_compositor_t *krad_compositor, int num, in
 
 	krad_sprite = &krad_compositor->krad_sprite[num];
 
-	krad_sprite_set_xy (krad_sprite, x, y);
-	krad_sprite_set_scale (krad_sprite, scale);
-	krad_sprite_set_opacity (krad_sprite, opacity);
-	krad_sprite_set_rotation (krad_sprite, rotation);
+	krad_sprite_set_new_xy (krad_sprite, x, y);
+	krad_sprite_set_new_scale (krad_sprite, scale);
+	krad_sprite_set_new_opacity (krad_sprite, opacity);
+	krad_sprite_set_new_rotation (krad_sprite, rotation);
 	krad_sprite_set_tickrate (krad_sprite, tickrate);
 
 }

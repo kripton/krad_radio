@@ -226,21 +226,21 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		
 		/* Handoffs */
 		case EBML_ID_KRAD_MIXER_CMD:
-			printk ("Krad Mixer Command");
+			//printk ("Krad Mixer Command");
 			return krad_mixer_handler ( krad_radio_station->krad_mixer, krad_radio_station->krad_ipc );
 		case EBML_ID_KRAD_COMPOSITOR_CMD:
-			printk ("Krad Compositor Command");
+			//printk ("Krad Compositor Command");
 			return krad_compositor_handler ( krad_radio_station->krad_compositor, krad_radio_station->krad_ipc );			
 		case EBML_ID_KRAD_LINK_CMD:
-			printk ("Krad Link Command");
+			//printk ("Krad Link Command");
 			return krad_linker_handler ( krad_radio_station->krad_linker, krad_radio_station->krad_ipc );
 
 		/* Krad Radio Commands */
 		case EBML_ID_KRAD_RADIO_CMD:
-			printk ("Krad Radio Command");
+			//printk ("Krad Radio Command");
 			return krad_radio_handler ( output, output_len, ptr );
 		case EBML_ID_KRAD_RADIO_CMD_LIST_TAGS:
-			printk ("LIST_TAGS");
+			//printk ("LIST_TAGS");
 			
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
