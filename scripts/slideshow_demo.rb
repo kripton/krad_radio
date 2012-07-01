@@ -18,14 +18,14 @@ puts station.uptime
 station.set_resolution(width, height)
 
 #station.cmd("transmit video #{server1} /slideshow.webm secretkode null #{width} #{height} #{bitrate}")
-station.cmd("record video \"#{File.expand_path('~')}/Videos/slideshow.webm\" null #{width} #{height} #{bitrate}")
+station.cmd("record video \"#{File.expand_path('~')}/Videos/slideshow2.webm\" null #{width} #{height} #{bitrate}")
 
-station.text("KRAD RADIO", -635, 315, 5, 114)
+station.text("KRAD RADIO", 1635, 315, 5, 114)
 station.set_text(0, 25, 455, 15, 174, 1, 0)
 sleep 0.2
 station.set_text(0, 25, 455, 15, 174, 1, 0, 255, 11, 2)
 sleep 1.5
-station.text("Slide Show", 35, 655, 5, 94, 1, 0, 255, 255, 2, "LiberationSansNarrow")
+station.text("Slide Show w/ Labels", 35, 655, 5, 94, 1, 0, 255, 255, 2, "LiberationSansNarrow")
 sleep 3
 station.set_text(0, 255, 455, 5, 4, 0, 0)
 station.set_text(1, 1135, 655, 15, 94, 0, 0)
@@ -33,7 +33,7 @@ sleep 3
 station.rm_text(0)
 station.rm_text(1)
 
-station.slideshow("#{File.expand_path('~')}/Pictures/slideshow", 2)
+station.slideshow("#{File.expand_path('~')}/Pictures/slideshow", 3, true)
 
 station.text("Thanks for watching", 135, 655, 5, 64, 1, 0, 125, 155, 155, "DroidSans")
 sleep 1

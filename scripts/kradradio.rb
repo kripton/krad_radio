@@ -127,7 +127,7 @@ class KradStation
 		self.cmd("play \"#{filename}\"")
 	end
 	
-	def slideshow(pictures_dir, timeper=3)
+	def slideshow(pictures_dir, timeper=3, label=true)
 	
 			playlist = []
 			count = 0
@@ -161,8 +161,17 @@ class KradStation
 				end
 				if (count == 2)
 					self.throw_sprite(1)
-				end				
-				sleep timeper
+				end
+				if (label == true)
+					self.text(item, 35, 155, 5, 44, 1, 0, 255, 255, 55, "DroidSans")
+					sleep 1.5
+					self.set_text(0, 35, 155, 5, 44, 0, 0, 255, 255, 2)
+					sleep 1.5
+					self.rm_text(0)
+					sleep timeper - 1
+				else
+					sleep timeper
+				end
 				if (count == 1)
 					self.rm_sprite(0)
 				end
