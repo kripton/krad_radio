@@ -27,6 +27,7 @@ struct krad_text_St {
 	int tickrate;
 	int tick;
 
+	char font[128];
 	char text_actual[1024];
 
 	cairo_surface_t *text;
@@ -44,6 +45,14 @@ struct krad_text_St {
 	float new_opacity;
 	float new_xscale;
 	float new_yscale;
+		
+	float red;
+	float blue;
+	float green;
+		
+	float new_red;
+	float new_blue;
+	float new_green;	
 		
 };
 
@@ -64,6 +73,8 @@ void krad_text_set_rotation (krad_text_t *krad_text, float rotation);
 void krad_text_set_new_scale (krad_text_t *krad_text, float scale);
 void krad_text_set_new_opacity (krad_text_t *krad_text, float opacity);
 void krad_text_set_new_rotation (krad_text_t *krad_text, float rotation);
+void krad_text_set_rgb (krad_text_t *krad_text, int red, int green, int blue);
+void krad_text_set_new_rgb (krad_text_t *krad_text, int red, int green, int blue);
 
 void krad_text_set_tickrate (krad_text_t *krad_text, int tickrate);
 void krad_text_render (krad_text_t *krad_text, cairo_t *cr);

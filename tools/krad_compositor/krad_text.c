@@ -9,16 +9,7 @@ krad_text_t *krad_text_create () {
 		failfast ("Krad Sprite mem alloc fail");
 	}
 	
-	krad_text->opacity = 1.0f;
-	krad_text->xscale = 20.0f;
-	krad_text->yscale = 20.0f;
-	krad_text->rotation = 0.0f;	
-	krad_text->tickrate = KRAD_TEXT_DEFAULT_TICKRATE;
-	
-	krad_text->new_xscale = krad_text->xscale;
-	krad_text->new_yscale = krad_text->yscale;
-	krad_text->new_opacity = krad_text->opacity;
-	krad_text->new_rotation = krad_text->rotation;	
+	krad_text_reset (krad_text);
 	
 	return krad_text;
 
@@ -41,11 +32,14 @@ void krad_text_reset (krad_text_t *krad_text) {
 		cairo_surface_destroy ( krad_text->text );
 		krad_text->text = NULL;
 	}
+	
+	strcpy (krad_text->font, "DroidSans");
+	
 	krad_text->width = 0;
 	krad_text->height = 0;
 	krad_text->x = 0;
 	krad_text->y = 0;
-	krad_text->tickrate = 5;
+	krad_text->tickrate = KRAD_TEXT_DEFAULT_TICKRATE;
 	krad_text->tick = 0;
 	krad_text->xscale = 20.0f;
 	krad_text->yscale = 20.0f;
@@ -54,7 +48,14 @@ void krad_text_reset (krad_text_t *krad_text) {
 	
 	krad_text->xscale = 20.0f;
 	krad_text->yscale = 20.0f;
-	krad_text->opacity = 1.0f;
+	
+	krad_text->red = 0.255f;
+	krad_text->green = 0.032;
+	krad_text->blue = 0.032f;
+	
+	krad_text->new_red = krad_text->red;
+	krad_text->new_green = krad_text->green;
+	krad_text->new_blue = krad_text->blue;
 	
 	krad_text->new_x = krad_text->x;
 	krad_text->new_y = krad_text->y;
@@ -90,6 +91,27 @@ void krad_text_set_new_xy (krad_text_t *krad_text, int x, int y) {
 	krad_text->last_y = krad_text->y;
 	krad_text->new_x = x;
 	krad_text->new_y = y;
+}
+
+void krad_text_set_new_rgb (krad_text_t *krad_text, int red, int green, int blue) {
+
+
+	krad_text->new_red = krad_text->red;
+	krad_text->new_green = krad_text->green;
+	krad_text->new_blue = krad_text->blue;
+
+}
+
+void krad_text_set_rgb (krad_text_t *krad_text, int red, int green, int blue) {
+
+	krad_text->red = red;
+	krad_text->new_red = krad_text->red;
+	
+	krad_text->green = green;
+	krad_text->new_green = krad_text->green;
+	
+	krad_text->blue = blue;
+	krad_text->new_blue = krad_text->blue;
 }
 
 
@@ -200,35 +222,83 @@ void krad_text_tick (krad_text_t *krad_text) {
 
 	}
 	
+	if (krad_text->new_red != krad_text->red) {
+		if (krad_text->new_red > krad_text->red) {
+			if (krad_text->red + 0.003f >= krad_text->new_red) {
+				krad_text->red = krad_text->new_red;
+			} else {
+				krad_text->red = krad_text->red + 0.003f;
+			}
+		} else {
+			if (krad_text->red - 0.003f <= krad_text->new_red) {
+				krad_text->red = krad_text->new_red;
+			} else {
+				krad_text->red = krad_text->red - 0.003f;
+			}
+		}
+	}
+	
+	if (krad_text->new_green != krad_text->green) {
+		if (krad_text->new_green > krad_text->green) {
+			if (krad_text->green + 0.003f >= krad_text->new_green) {
+				krad_text->green = krad_text->new_green;
+			} else {
+				krad_text->green = krad_text->green + 0.003f;
+			}
+		} else {
+			if (krad_text->green - 0.003f <= krad_text->new_green) {
+				krad_text->green = krad_text->new_green;
+			} else {
+				krad_text->green = krad_text->green - 0.003f;
+			}
+		}
+	}
+	
+	if (krad_text->new_blue != krad_text->blue) {
+		if (krad_text->new_blue > krad_text->blue) {
+			if (krad_text->blue + 0.003f >= krad_text->new_blue) {
+				krad_text->blue = krad_text->new_blue;
+			} else {
+				krad_text->blue = krad_text->blue + 0.003f;
+			}
+		} else {
+			if (krad_text->blue - 0.003f <= krad_text->new_blue) {
+				krad_text->blue = krad_text->new_blue;
+			} else {
+				krad_text->blue = krad_text->blue - 0.003f;
+			}
+		}
+	}
+
 	
 	if (krad_text->new_rotation != krad_text->rotation) {
 		if (krad_text->new_rotation > krad_text->rotation) {
-			if (krad_text->rotation + 1.0f >= krad_text->new_rotation) {
+			if (krad_text->rotation + 0.7f >= krad_text->new_rotation) {
 				krad_text->rotation = krad_text->new_rotation;
 			} else {
-				krad_text->rotation = krad_text->rotation + 1.0f;
+				krad_text->rotation = krad_text->rotation + 0.7f;
 			}
 		} else {
-			if (krad_text->rotation - 1.0f <= krad_text->new_rotation) {
+			if (krad_text->rotation - 0.7f <= krad_text->new_rotation) {
 				krad_text->rotation = krad_text->new_rotation;
 			} else {
-				krad_text->rotation = krad_text->rotation - 1.0f;
+				krad_text->rotation = krad_text->rotation - 0.7f;
 			}
 		}
 	}
 	
 	if (krad_text->new_opacity != krad_text->opacity) {
 		if (krad_text->new_opacity > krad_text->opacity) {
-			if (krad_text->opacity + 2.0f >= krad_text->new_opacity) {
+			if (krad_text->opacity + 0.02f >= krad_text->new_opacity) {
 				krad_text->opacity = krad_text->new_opacity;
 			} else {
-				krad_text->opacity = krad_text->opacity + 2.0f;
+				krad_text->opacity = krad_text->opacity + 0.02f;
 			}
 		} else {
-			if (krad_text->opacity - 2.0f <= krad_text->new_opacity) {
+			if (krad_text->opacity - 0.02f <= krad_text->new_opacity) {
 				krad_text->opacity = krad_text->new_opacity;
 			} else {
-				krad_text->opacity = krad_text->opacity - 2.0f;
+				krad_text->opacity = krad_text->opacity - 0.02f;
 			}
 		}
 	}
@@ -267,40 +337,8 @@ void krad_text_tick (krad_text_t *krad_text) {
 	
 }
 
-void krad_text_render (krad_text_t *krad_text, cairo_t *cr) {
-	
-	cairo_save (cr);
+void krad_text_prepare (krad_text_t *krad_text, cairo_t *cr) {
 
-	/*
-	if ((krad_text->xscale != 1.0f) || (krad_text->yscale != 1.0f)) {
-		cairo_translate (cr, krad_text->x, krad_text->y);
-		cairo_translate (cr, ((krad_text->width / 2) * krad_text->xscale),
-						((krad_text->height / 2) * krad_text->yscale));
-		cairo_scale (cr, krad_text->xscale, krad_text->yscale);
-		cairo_translate (cr, krad_text->width / -2, krad_text->height / -2);		
-		cairo_translate (cr, krad_text->x * -1, krad_text->y * -1);		
-	}
-
-	cairo_set_source_surface (cr,
-							  krad_text->text,
-							  krad_text->x - krad_text->width,
-							  krad_text->y - krad_text->height);
-
-	cairo_rectangle (cr,
-					 krad_text->x,
-					 krad_text->y,
-					 krad_text->width,
-					 krad_text->height);
-
-	cairo_clip (cr);
-
-	if (krad_text->opacity == 1.0f) {
-		cairo_paint ( cr );
-	} else {
-		cairo_paint_with_alpha ( cr, krad_text->opacity );
-	}
-	*/
-	
 	if (krad_text->rotation != 0.0f) {
 		cairo_translate (cr, krad_text->x, krad_text->y);	
 		cairo_translate (cr, krad_text->width / 2, krad_text->height / 2);
@@ -309,21 +347,29 @@ void krad_text_render (krad_text_t *krad_text, cairo_t *cr) {
 		cairo_translate (cr, krad_text->x * -1, krad_text->y * -1);
 	}	
 	
-	cairo_select_font_face (cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_select_font_face (cr, krad_text->font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_font_size (cr, krad_text->xscale);
-	cairo_set_source_rgb (cr, ORANGE);
+	cairo_set_source_rgba (cr,
+						   krad_text->red / 0.255 * 1.0,
+						   krad_text->green / 0.255 * 1.0,
+						   krad_text->blue / 0.255 * 1.0,
+						   krad_text->opacity);
 	
 	cairo_move_to (cr, krad_text->x, krad_text->y);
 	cairo_show_text (cr, krad_text->text_actual);
+
+}
+
+void krad_text_render (krad_text_t *krad_text, cairo_t *cr) {
+	
+	cairo_save (cr);
+	
+	krad_text_prepare (krad_text, cr);
 	
 	cairo_stroke (cr);
 	
 	cairo_restore (cr);
 	
-	krad_text_tick (krad_text);
-	
-	//printk ("Tick: %d Frame: %d",
-	//		krad_text->tick, krad_text->frame);
-			
-	
+	krad_text_tick (krad_text);			
+
 }
