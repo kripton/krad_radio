@@ -93,6 +93,7 @@ void krad_sprite_reset (krad_sprite_t *krad_sprite) {
 	krad_sprite->xscale = 1.0f;
 	krad_sprite->yscale = 1.0f;
 	krad_sprite->opacity = 1.0f;
+	krad_sprite->rotation = 0.0f;
 }
 
 void krad_sprite_destroy (krad_sprite_t *krad_sprite) {

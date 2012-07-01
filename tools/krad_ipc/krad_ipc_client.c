@@ -781,6 +781,116 @@ void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *fil
 
 }
 
+
+void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int tickrate, 
+									float scale, float opacity, float rotation) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t textcmd;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_ADD_TEXT, &textcmd);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT, text);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_X, x);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_Y, y);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_TICKRATE, tickrate);
+	
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_SCALE, scale);
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_OPACITY, opacity);
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_ROTATION, rotation);
+
+	krad_ebml_finish_element (client->krad_ebml, textcmd);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, int tickrate, 
+									float scale, float opacity, float rotation) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t text;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SET_TEXT, &text);
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_NUMBER, num);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_X, x);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_Y, y);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_TICKRATE, tickrate);
+	
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_SCALE, scale);
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_OPACITY, opacity);
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_ROTATION, rotation);
+	
+	krad_ebml_finish_element (client->krad_ebml, text);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_compositor_remove_text (krad_ipc_client_t *client, int num) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t text;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_REMOVE_TEXT, &text);
+
+
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_NUMBER, num);
+
+	krad_ebml_finish_element (client->krad_ebml, text);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_compositor_list_texts (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t text;
+	
+	compositor_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_LIST_TEXTS, &text);
+
+
+
+	krad_ebml_finish_element (client->krad_ebml, text);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x, int y, int tickrate, 
 									float scale, float opacity, float rotation) {
 

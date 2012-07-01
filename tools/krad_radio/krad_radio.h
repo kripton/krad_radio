@@ -54,6 +54,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_framepool.h"
 #include "krad_decklink.h"
 #include "krad_sprite.h"
+#include "krad_text.h"
 #include "krad_compositor.h"
 #include "krad_link_common.h"
 #include "krad_link.h"
