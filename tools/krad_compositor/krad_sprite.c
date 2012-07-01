@@ -41,8 +41,67 @@ void krad_sprite_open_file (krad_sprite_t *krad_sprite, char *filename) {
 			krad_sprite->frames = atoi (strstr (filename, "_frames_") + 8);
 		}
 	
-		krad_sprite->sprite = cairo_image_surface_create_from_png ( filename );
-		
+		if ((strstr (filename, ".png") != NULL) || (strstr (filename, ".PNG") != NULL)) {
+			krad_sprite->sprite = cairo_image_surface_create_from_png ( filename );
+		} else {
+			if ((strstr (filename, ".jpg") != NULL) || (strstr (filename, ".JPG") != NULL)) {
+			
+				tjhandle jpeg_dec;
+				int jpegsubsamp;
+				int jpeg_size;
+				unsigned char *argb_buffer;
+				unsigned char *jpeg_buffer;
+				int jpeg_fd;
+				int stride;
+				
+				
+				jpeg_buffer = malloc (10000000);
+				if (jpeg_buffer == NULL) {
+					return;
+				}
+				
+				jpeg_fd = open (filename, O_RDONLY);
+				
+				if (jpeg_fd < 1) {
+					free (jpeg_buffer);
+					return;
+				}
+				
+				jpeg_size = read (jpeg_fd, jpeg_buffer, 10000000);				
+				
+				if (jpeg_size == 10000000) {
+					free (jpeg_buffer);
+					close (jpeg_fd);
+					return;
+				}
+				
+				jpeg_dec = tjInitDecompress ();
+				
+				if (tjDecompressHeader2 (jpeg_dec, jpeg_buffer, jpeg_size, &krad_sprite->sheet_width, &krad_sprite->sheet_height, &jpegsubsamp)) {
+					printke ("JPEG header decoding error: %s", tjGetErrorStr());
+				} else {
+					krad_sprite->sprite = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, krad_sprite->sheet_width, krad_sprite->sheet_height);
+					stride = cairo_image_surface_get_stride (krad_sprite->sprite);
+					argb_buffer = cairo_image_surface_get_data (krad_sprite->sprite);
+					cairo_surface_flush (krad_sprite->sprite);
+					if (tjDecompress2 ( jpeg_dec, jpeg_buffer, jpeg_size,
+										argb_buffer, krad_sprite->sheet_width, stride, krad_sprite->sheet_height, TJPF_BGRA, 0 )) {
+						printke ("JPEG decoding error: %s", tjGetErrorStr());
+						cairo_surface_destroy ( krad_sprite->sprite );
+						krad_sprite->sprite = NULL;
+					} else {
+						tjDestroy ( jpeg_dec );
+						cairo_surface_mark_dirty (krad_sprite->sprite);
+					}
+				}
+				
+				free (jpeg_buffer);
+				close (jpeg_fd);
+			} else {
+				krad_sprite->sprite = NULL;
+				return;
+			}
+		}
 		if (cairo_surface_status (krad_sprite->sprite) != CAIRO_STATUS_SUCCESS) {
 			krad_sprite->sprite = NULL;
 			return;
@@ -50,7 +109,6 @@ void krad_sprite_open_file (krad_sprite_t *krad_sprite, char *filename) {
 		
 		krad_sprite->sheet_width = cairo_image_surface_get_width ( krad_sprite->sprite );
 		krad_sprite->sheet_height = cairo_image_surface_get_height ( krad_sprite->sprite );
-		//krad_sprite->width = krad_sprite->sheet_width / MIN(krad_sprite->frames, 10);
 		if (krad_sprite->frames > 1) {
 			krad_sprite->width = krad_sprite->sheet_width / 10;
 			krad_sprite->height = krad_sprite->sheet_height / ((krad_sprite->frames / 10) + MIN (1, (krad_sprite->frames % 10)));
