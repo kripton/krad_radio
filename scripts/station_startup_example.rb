@@ -1,28 +1,29 @@
 #!/usr/bin/env ruby
 
-station = "radio_test"
+require_relative "kradradio.rb"
 
-stacmd = "krad_radio #{station}"
+station_name = "radio_test"
+station = KradStation.new (station_name)
 
-`#{stacmd} input Music1`
-`#{stacmd} input Music2`
-`#{stacmd} output Main`
-`#{stacmd} xfade Music1 Music2`
+puts station.info
 
+station.cmd("input Music1")
+station.cmd("input Music2")
+station.cmd("output Main")
+station.cmd("xfade Music1 Music2")
 
-`jack_connect XMMS2:out_1 #{station}:Music1_Left`
-`jack_connect XMMS2:out_2 #{station}:Music1_Right`
+`jack_connect XMMS2:out_1 #{station_name}:Music1_Left`
+`jack_connect XMMS2:out_2 #{station_name}:Music1_Right`
 
-`jack_connect XMMS2-01:out_1 #{station}:Music2_Left`
-`jack_connect XMMS2-01:out_2 #{station}:Music2_Right`
+`jack_connect XMMS2-01:out_1 #{station_name}:Music2_Left`
+`jack_connect XMMS2-01:out_2 #{station_name}:Music2_Right`
 
+sleep 1
+
+#station.cmd("capture v4l2")
+station.cmd("transmitav phobos.kradradio.com 8080 /#{station_name}.webm secretkode")
+#station.cmd("vuon")
 sleep 2
-`#{stacmd} capture v4l2`
-sleep 2
-`#{stacmd} transmitav phobos.kradradio.com 8080 /#{station}.webm secretkode`
-sleep 2
-`#{stacmd} vuon`
-sleep 2
-`#{stacmd} webon 13000 13001`
-sleep 2
-`#{stacmd} transmit audio phobos.kradradio.com 8080 /#{station}.opus secretkode opus`
+station.cmd("webon 13000 13001")
+station.cmd("transmit audio phobos.kradradio.com 8080 /#{station}.opus secretkode opus")
+

@@ -456,6 +456,14 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "addsprite", 9) == 0) {
+				if (argc == 4) {
+					krad_ipc_compositor_add_sprite (client, argv[3], 0, 0, 4,
+													1.0f, 1.0f, 0.0f);
+				}
+				if (argc == 5) {
+					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), 0, 4,
+													1.0f, 1.0f, 0.0f);
+				}				
 				if (argc == 6) {
 					krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), 4,
 													1.0f, 1.0f, 0.0f);
@@ -514,6 +522,14 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "addtext", 7) == 0) {
+				if (argc == 4) {
+					krad_ipc_compositor_add_text (client, argv[3], 32, 32, 4,
+													20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
+				}
+				if (argc == 5) {
+					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), 32, 4,
+													20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
+				}				
 				if (argc == 6) {
 					krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), 4,
 													20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");

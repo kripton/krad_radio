@@ -1,26 +1,27 @@
 #!/usr/bin/env ruby
 
-rootdir = "~/kode/krad_radio"
+require_relative "kradradio.rb"
 
-require "#{rootdir}/scripts/playlist.rb"
-require "#{rootdir}/scripts/bug_stream.rb"
-
-station = "ktv1"
-stacmd = "krad_radio #{station}"
+station_name = "ktv1"
 playlist_dir = "/data2/youtube"
-
 server1 = "phobos.kradradio.com 8088"
 server2 = "phobos.kradradio.com 8080"
 
-`#{stacmd} bug 470 404 ~/Pictures/kr3.png`
+width = 640
+height = 480
+bitrate = 800
+
+station = KradStation.new(station_name)
+
+puts station.info
+puts station.uptime
+
+station.set_resolution(width, height)
+
+station.cmd("bug 470 404 ~/Pictures/kr3.png")
 sleep 0.2
-`#{stacmd} transmit audiovideo #{server1} /ktv.webm secretkode`
+station.cmd("transmit audiovideo #{server1} /ktv.webm secretkode null #{width} #{height} #{bitrate}")
 sleep 0.2
-
+station.cmd("transmit audio #{server2} /ktv.opus secretkode opus")
 sleep 0.2
-`#{stacmd} transmit audio #{server2} /ktv.opus secretkode opus`
-
-
-t1 = Thread.new { bug_stream (station) }
-
-#play_dir (playlist_dir)
+station.play_dir(playlist_dir)
