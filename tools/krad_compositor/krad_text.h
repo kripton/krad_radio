@@ -71,6 +71,9 @@ void krad_text_set_yscale (krad_text_t *krad_text, float scale);
 void krad_text_set_opacity (krad_text_t *krad_text, float opacity);
 void krad_text_set_rotation (krad_text_t *krad_text, float rotation);
 
+
+void krad_text_expand (krad_text_t *krad_text, cairo_t *cr, int width);
+
 void krad_text_set_font (krad_text_t *krad_text, char *font);
 
 void krad_text_set_new_scale (krad_text_t *krad_text, float scale);

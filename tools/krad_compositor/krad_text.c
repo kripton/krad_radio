@@ -120,6 +120,35 @@ void krad_text_set_rgb (krad_text_t *krad_text, int red, int green, int blue) {
 	krad_text->new_blue = krad_text->blue;
 }
 
+void krad_text_expand (krad_text_t *krad_text, cairo_t *cr, int width) {
+
+	float scale;
+	cairo_text_extents_t extents;
+
+	cairo_select_font_face (cr, krad_text->font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size (cr, krad_text->xscale);
+	cairo_set_source_rgba (cr,
+						   krad_text->red / 0.255 * 1.0,
+						   krad_text->green / 0.255 * 1.0,
+						   krad_text->blue / 0.255 * 1.0,
+						   krad_text->opacity);	
+
+	cairo_text_extents (cr, krad_text->text_actual, &extents);
+
+	scale = krad_text->xscale;
+	
+	while (extents.width < width) {
+		scale += 1.0;
+		cairo_set_font_size (cr, scale);
+		cairo_text_extents (cr, krad_text->text_actual, &extents);
+	}
+
+
+	krad_text->xscale = scale;
+	krad_text->yscale = scale;
+	krad_text->new_xscale = scale;
+	krad_text->new_yscale = scale;	
+}
 
 void krad_text_set_scale (krad_text_t *krad_text, float scale) {
 	krad_text->xscale = scale;
