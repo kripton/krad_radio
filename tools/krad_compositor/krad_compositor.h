@@ -81,6 +81,9 @@ struct krad_compositor_port_St {
 
 struct krad_compositor_St {
 
+	cairo_surface_t *mask_cst;
+	cairo_t *mask_cr;
+
 	krad_gui_t *krad_gui;
 
 	int width;

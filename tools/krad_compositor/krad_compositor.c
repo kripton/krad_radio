@@ -426,11 +426,18 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 									 krad_compositor->port[p].y,
 									 krad_compositor->port[p].crop_width,
 									 krad_compositor->port[p].crop_height);
-					cairo_clip (krad_compositor->krad_gui->cr);				 
-					if (krad_compositor->port[p].opacity == 1.0f) {
-						cairo_paint (krad_compositor->krad_gui->cr);
-					} else {
-						cairo_paint_with_alpha (krad_compositor->krad_gui->cr, krad_compositor->port[p].opacity);
+					cairo_clip (krad_compositor->krad_gui->cr);
+					
+					if (krad_compositor->krad_text[1].active == 1) {
+					
+						cairo_mask_surface (krad_compositor->krad_gui->cr, krad_compositor->mask_cst, 0, 0);
+					
+					} else {		 
+						if (krad_compositor->port[p].opacity == 1.0f) {
+							cairo_paint (krad_compositor->krad_gui->cr);
+						} else {
+							cairo_paint_with_alpha (krad_compositor->krad_gui->cr, krad_compositor->port[p].opacity);
+						}
 					}
 					cairo_restore (krad_compositor->krad_gui->cr);
 					krad_framepool_unref_frame (frame);
@@ -469,12 +476,16 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_TEXTS; p++) {
 		if (krad_compositor->krad_text[p].active == 1) {
-		
-			//if (p == 1) {
-			//	krad_text_expand (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr, krad_compositor->width);
-			//}
-		
-			krad_text_render (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr);
+			if (p == 1) {
+				cairo_save (krad_compositor->mask_cr);
+				cairo_set_operator (krad_compositor->mask_cr, CAIRO_OPERATOR_CLEAR);	
+				cairo_paint (krad_compositor->mask_cr);
+				cairo_restore (krad_compositor->mask_cr);
+				krad_text_expand (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr, krad_compositor->width);
+				krad_text_render (&krad_compositor->krad_text[p], krad_compositor->mask_cr);
+			} else {
+				krad_text_render (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr);
+			}
 		}
 	}	
 
@@ -879,6 +890,15 @@ void krad_compositor_relloc_resources (krad_compositor_t *krad_compositor) {
 
 void krad_compositor_free_resources (krad_compositor_t *krad_compositor) {
 
+	if (krad_compositor->mask_cst != NULL) {
+		cairo_surface_destroy (krad_compositor->mask_cst);
+		krad_compositor->mask_cst = NULL;
+		if (krad_compositor->mask_cr != NULL) {
+			cairo_destroy (krad_compositor->mask_cr);
+			krad_compositor->mask_cr = NULL;
+		}
+	}
+
 	if (krad_compositor->krad_framepool != NULL) {
 		krad_framepool_destroy ( krad_compositor->krad_framepool );
 		krad_compositor->krad_framepool = NULL;
@@ -892,6 +912,13 @@ void krad_compositor_free_resources (krad_compositor_t *krad_compositor) {
 
 
 void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
+
+	if (krad_compositor->mask_cst == NULL) {
+		krad_compositor->mask_cst = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+																krad_compositor->width,
+																krad_compositor->height);
+		krad_compositor->mask_cr = cairo_create (krad_compositor->mask_cst);															
+	}
 
 	if (krad_compositor->krad_framepool == NULL) {
 		krad_compositor->krad_framepool = 
