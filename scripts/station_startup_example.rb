@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative "kradradio.rb"
+require_relative "kradradio_client.rb"
 
 station_name = "radio_test"
 station = KradStation.new (station_name)

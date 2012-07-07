@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative "kradradio.rb"
+require_relative "kradradio_client.rb"
 
 width = 1280
 height = 720

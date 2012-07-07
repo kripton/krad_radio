@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative "kradradio.rb"
+require_relative "kradradio_client.rb"
 
 station_name = "ktv1"
 playlist_dir = "/data2/youtube/amp"

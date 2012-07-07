@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative "kradradio.rb"
+require_relative "kradradio_client.rb"
 
 server1 = "phobos.kradradio.com 8088"
 
