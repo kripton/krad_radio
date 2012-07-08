@@ -476,16 +476,16 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_TEXTS; p++) {
 		if (krad_compositor->krad_text[p].active == 1) {
-			if (p == 1) {
-				cairo_save (krad_compositor->mask_cr);
-				cairo_set_operator (krad_compositor->mask_cr, CAIRO_OPERATOR_CLEAR);	
-				cairo_paint (krad_compositor->mask_cr);
-				cairo_restore (krad_compositor->mask_cr);
-				krad_text_expand (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr, krad_compositor->width);
-				krad_text_render (&krad_compositor->krad_text[p], krad_compositor->mask_cr);
-			} else {
+			//if (p == 1) {
+			//	cairo_save (krad_compositor->mask_cr);
+			//	cairo_set_operator (krad_compositor->mask_cr, CAIRO_OPERATOR_CLEAR);	
+			//	cairo_paint (krad_compositor->mask_cr);
+			//	cairo_restore (krad_compositor->mask_cr);
+			//	krad_text_expand (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr, krad_compositor->width);
+			//	krad_text_render (&krad_compositor->krad_text[p], krad_compositor->mask_cr);
+			//} else {
 				krad_text_render (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr);
-			}
+			//}
 		}
 	}	
 

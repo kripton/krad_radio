@@ -101,7 +101,90 @@ class KradStation
 	
 	def rm_text(num=0)
 		self.cmd("rmtext #{num}")
-	end	
+	end
+
+	def record(filename, options={})
+
+		width = ""
+		height = ""
+		bitrate = ""
+		codec = ""
+		audiobitrate = ""
+
+		if options.has_key?(:codec)
+			codec = options[:codec]
+		else
+			codec = "default"
+		end
+
+		if options.has_key?(:width)
+			width = options[:width]
+		end
+
+		if options.has_key?(:height)
+			height = options[:height]
+		end
+
+		if options.has_key?(:bitrate)
+			bitrate = options[:bitrate]
+		end
+
+		if options.has_key?(:audiobitrate)
+			audiobitrate = options[:audiobitrate]
+		end
+
+		self.cmd("record audiovideo #{filename} #{codec} #{width} #{height} #{bitrate} #{audiobitrate}")
+	end
+
+	def record_audio(filename, options={})
+
+		codec = ""
+		audiobitrate = ""
+
+		if options.has_key?(:codec)
+			codec = options[:codec]
+		else
+			codec = "default"
+		end
+
+		if options.has_key?(:bitrate)
+			audiobitrate = options[:bitrate]
+		end
+
+		if options.has_key?(:audiobitrate)
+			audiobitrate = options[:audiobitrate]
+		end
+
+		self.cmd("record audio #{filename} #{codec} #{audiobitrate}")
+	end
+
+	def record_video(filename, options={})
+
+		width = ""
+		height = ""
+		bitrate = ""
+		codec = ""
+
+		if options.has_key?(:codec)
+			codec = options[:codec]
+		else
+			codec = "default"
+		end
+
+		if options.has_key?(:width)
+			width = options[:width]
+		end
+
+		if options.has_key?(:height)
+			height = options[:height]
+		end
+
+		if options.has_key?(:bitrate)
+			bitrate = options[:bitrate]
+		end
+
+		self.cmd("record video #{filename} #{codec} #{width} #{height} #{bitrate}")
+	end
 
 	def cmd(action)
 		thecmd = "krad_radio #{@name} #{action}"
