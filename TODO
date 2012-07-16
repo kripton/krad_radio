@@ -1,11 +1,20 @@
 # Release 0.9
+	Mark segment size in recording EBML / EOS in ogg end*******
 	Inline Help in command line
+	Fix logging and enable daemonization*****
 	Catch Signals
-	Fix logging and enable daemonization
+
+# Demos
+	"Simple" Compositing Demo video script?
+	XMMS2 play/pause/next/prev ?
+	fix f'ugly
 
 # Release 1.0
 	Auto fade In/Out on all audio/video sources on create/destroy of ports
 	Wayland, ETC waf optional building w/modules
+
+# Thinking
+	Distrobuted control/ IPC Proxy
 
 # General
 
@@ -18,7 +27,7 @@ Fixes:
 	Port Add/Remove
 
 # IPC
-	Require Request for broadcasts
+	->Require Request for broadcasts<- segfault happeing rarely due to this?
 	Levels Via IPC
 
 # Style
@@ -45,4 +54,7 @@ Fixes:
 	EQ
 	Sidechain for mics
 	Limiter
+	
+# Compositor
+	Perspective correction
 	

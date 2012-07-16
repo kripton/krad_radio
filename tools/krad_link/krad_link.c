@@ -1842,6 +1842,10 @@ void *audio_decoding_thread(void *arg) {
 				
 					while ((krad_resample_ring_write_space (krad_resample_ring[0]) < len) && (!krad_link->destroy)) {
 						//printk ("wait!");
+						//FIXME
+						if (krad_link->playing == 0) {
+							krad_link->playing = 1;
+						}
 						usleep(25000);
 					}
 				

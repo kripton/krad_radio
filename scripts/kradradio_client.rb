@@ -44,7 +44,8 @@ class KradStation
 	def initialize(name_or_url)
 		@name = name_or_url
 		@comp_width = 0
-		@comp_height = 0	
+		@comp_height = 0
+		Kernel.srand
 	end
 
 	def sprite(filename, x=0, y=0, rate=5, scale=1, opacity=1.0, rotation=0.0)
@@ -92,7 +93,7 @@ class KradStation
 	end
 
 	def text(thetext, x=0, y=0, rate=5, scale=32, opacity=1.0, rotation=0.0, red=0, green=0, blue=0, font="sans")
-		self.cmd("addtext \"#{thetext}\" #{x} #{y} #{rate} #{scale} #{opacity} #{rotation} #{red} #{green} #{blue} #{font}")
+		self.cmd("addtext '#{thetext.gsub(/[^0-9a-z :@]/i, '')}' #{x} #{y} #{rate} #{scale} #{opacity} #{rotation} #{red} #{green} #{blue} #{font}")
 	end
 	
 	def set_text(num=0, x=0, y=0, rate=5, scale=32, opacity=1.0, rotation=0.0, red=0, green=0, blue=0)
@@ -168,7 +169,7 @@ class KradStation
 		if options.has_key?(:codec)
 			codec = options[:codec]
 		else
-			codec = "default"
+			codec = "vp8vorbis"
 		end
 
 		if options.has_key?(:width)
@@ -190,6 +191,7 @@ class KradStation
 		thecmd = "krad_radio #{@name} #{action}"
 		puts "command: #{thecmd}"
 		`#{thecmd}`
+		sleep 0.1
 	end
 
 	def info()
@@ -212,6 +214,8 @@ class KradStation
 	
 	def slideshow(pictures_dir, timeper=3, label=true)
 	
+		Kernel.srand
+
 			playlist = []
 			count = 0
 			Dir.foreach(pictures_dir) do |item|
@@ -276,7 +280,9 @@ class KradStation
 	def play_dir(playlist_dir)
 	
 		while true do
-	
+
+			Kernel.srand	
+
 			playlist = []
 			total_duration = 0
 			total_duration_minutes = 0
@@ -308,6 +314,44 @@ class KradStation
 			end
 			self.cmd (" rm 2")
 		end
+	end
+
+	def play_dir_single(playlist_dir)
+
+		Kernel.srand	
+
+		playlist = []
+		total_duration = 0
+		total_duration_minutes = 0
+
+		Dir.foreach(playlist_dir) do |item|
+			next if item == '.' or item == '..'	
+				if item.include? ".webm"
+					playlist.push item
+					info = `mkvinfo "#{playlist_dir}/#{item}" | grep Dura`.chomp
+					total_duration += info.split(" ")[3].to_i					
+				end
+		end
+	
+		total_duration_minutes = total_duration / 60
+	
+		playlist.shuffle!
+	
+		puts "Playlist of #{playlist.length} items, duration of #{total_duration_minutes} minutes"
+
+		playlist.each do |item|
+			info = `mkvinfo "#{playlist_dir}/#{item}" | grep Dura`.chomp
+			duration = info.split(" ")[3].to_i
+			self.cmd (" rm 1")
+			sleep 0.3
+			self.play (playlist_dir + "/" + item)
+			puts "PLAYING (duration #{duration}) #{playlist_dir}/#{item}"
+			puts ""
+			sleep duration
+			break
+		end
+		self.cmd (" rm 1")
+
 	end
   
 end
