@@ -525,7 +525,7 @@ void *video_encoding_thread (void *arg) {
 	
 	// FIXME make shutdown sequence more pretty
 	krad_link->encoding = 3;
-	if (krad_link->audio_codec == NOCODEC) {
+	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->audio_codec == NOCODEC)) {
 		krad_link->encoding = 4;
 	}
 	
@@ -900,6 +900,10 @@ void *stream_output_thread (void *arg) {
 	printk ("Output/Muxing thread waiting..");
 		
 	while ( krad_link->encoding ) {
+
+		if (krad_link->encoding == 4) {
+			break;
+		}
 
 		if ((krad_link->av_mode != AUDIO_ONLY) && (krad_link->mjpeg_passthru == 0)) {
 			if ((krad_ringbuffer_read_space (krad_link->encoded_video_ringbuffer) >= 4) && (krad_link->encoding < 3)) {

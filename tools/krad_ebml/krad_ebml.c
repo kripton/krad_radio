@@ -284,9 +284,30 @@ void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion) 
 
 }
 
-void kradebml_end_segment(krad_ebml_t *krad_ebml) {
+void krad_ebml_finish_file_segment (krad_ebml_t *krad_ebml) {
 
-	krad_ebml_finish_element (krad_ebml, krad_ebml->segment);
+	if (krad_ebml->segment != 0) {
+		krad_ebml_write_sync (krad_ebml);
+		krad_ebml_fileio_seek (&krad_ebml->io_adapter, krad_ebml->segment, SEEK_SET);
+		//printk ("data size is %zu pos is %zu", krad_ebml->segment_size, krad_ebml->segment);
+		//krad_ebml_write_data_size (krad_ebml, krad_ebml->segment_size);
+		krad_ebml_write_data_size_update (krad_ebml, krad_ebml->segment_size);
+		//krad_ebml_write_data_size_update (krad_ebml, EBML_DATA_SIZE_UNKNOWN);
+		krad_ebml_write_sync (krad_ebml);
+		krad_ebml->segment_size = 0;
+		krad_ebml->segment = 0;
+	}
+
+}
+
+void krad_ebml_start_file_segment (krad_ebml_t *krad_ebml) {
+
+	krad_ebml_write_element (krad_ebml, EBML_ID_SEGMENT);
+	krad_ebml_write_sync (krad_ebml);
+	krad_ebml->segment = krad_ebml_fileio_tell (&krad_ebml->io_adapter);
+	krad_ebml_write_data_size (krad_ebml, EBML_DATA_SIZE_UNKNOWN);
+	krad_ebml->segment_size = 0;
+
 
 }
 
@@ -297,9 +318,13 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 
 	strcpy(version_string, "Krad EBML ");
 	strcat(version_string, KRADEBML_VERSION);
-
-	krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT, &krad_ebml->segment);
-
+ 
+	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+		(krad_ebml->io_adapter.write == krad_ebml_fileio_write)) {
+		krad_ebml_start_file_segment (krad_ebml);
+	} else {
+		krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT, &krad_ebml->segment);
+	}
 	krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT_INFO, &segment_info);
 	krad_ebml_write_string (krad_ebml, EBML_ID_SEGMENT_TITLE, "A Krad Production");
 	krad_ebml_write_int32 (krad_ebml, EBML_ID_TIMECODESCALE, 1000000);
@@ -1799,7 +1824,7 @@ int krad_ebml_write_sync(krad_ebml_t *krad_ebml) {
 	
 	length = krad_ebml->io_adapter.write_buffer_pos;
 	krad_ebml->io_adapter.write_buffer_pos = 0;
-
+	krad_ebml->segment_size += length;
 	return krad_ebml->io_adapter.write(&krad_ebml->io_adapter, krad_ebml->io_adapter.write_buffer, length);
 }
 
@@ -1894,7 +1919,7 @@ int krad_ebml_fileio_open(krad_ebml_io_t *krad_ebml_io)
 	if (krad_ebml_io->mode == KRAD_EBML_IO_WRITEONLY) {
 		fd = open ( krad_ebml_io->uri, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH );
 	}
-	
+
 	krad_ebml_io->ptr = fd;
 
 	return fd;
@@ -2125,6 +2150,12 @@ void krad_ebml_destroy(krad_ebml_t *krad_ebml) {
 		if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) {
 			krad_ebml_write_sync (krad_ebml);
 		}
+	}
+
+	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+		(krad_ebml->io_adapter.write == krad_ebml_fileio_write) &&
+		(krad_ebml->segment != 0)) {
+		krad_ebml_finish_file_segment (krad_ebml);
 	}
 
 	if (krad_ebml->io_adapter.mode != -1) {

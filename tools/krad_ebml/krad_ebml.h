@@ -26,6 +26,8 @@
 #include <stdarg.h>
 #include <limits.h>
 
+#include "krad_system.h"
+
 #ifndef KRADEBML_VERSION
 #define KRADEBML_VERSION "2.1"
 #endif
@@ -283,6 +285,7 @@ struct krad_ebml_St {
 	
 	//writing
 	uint64_t segment;
+	uint64_t segment_size;
 	uint64_t tracks_info;
 	uint64_t cluster;	
 	int fps_numerator;
@@ -325,6 +328,8 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode);
 
 void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion);
+void krad_ebml_start_file_segment(krad_ebml_t *krad_ebml);
+void krad_ebml_finish_file_segment(krad_ebml_t *krad_ebml);
 void krad_ebml_write_element (krad_ebml_t *krad_ebml, uint32_t element);
 void krad_ebml_write_int8 (krad_ebml_t *krad_ebml, uint64_t element, int8_t number);
 void krad_ebml_write_int32 (krad_ebml_t *krad_ebml, uint64_t element, int32_t number);
@@ -390,4 +395,8 @@ int64_t krad_ebml_tell(krad_ebml_t *krad_ebml);
 int krad_ebml_write(krad_ebml_t *krad_ebml, void *buffer, size_t length);
 int krad_ebml_read(krad_ebml_t *krad_ebml, void *buffer, size_t length);
 int krad_ebml_seek(krad_ebml_t *krad_ebml, int64_t offset, int whence);
+
+int krad_ebml_fileio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
+int64_t krad_ebml_fileio_seek(krad_ebml_io_t *krad_ebml_io, int64_t offset, int whence);
+int64_t krad_ebml_fileio_tell(krad_ebml_io_t *krad_ebml_io);
 #endif
