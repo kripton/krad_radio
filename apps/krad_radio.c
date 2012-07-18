@@ -2,11 +2,11 @@
 
 void krad_radio_command_help () {
 
-	printf ("krad_radio STATION_SYSNAME OPTIONS...");
+	printf ("krad_radio STATION_SYSNAME COMMAND OPTIONS...");
 	printf ("\n\n");
 	printf ("Commands:\n");
 	
-	printf ("ls uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate rate fps mix");
+	printf ("launch ls uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate rate fps mix");
 	printf ("\n");
 	printf ("setdir lm ll lc tone input output unplug map mixmap xmms2 noxmms2 listen_on listen_off link");
 	printf ("\n");

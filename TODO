@@ -1,19 +1,16 @@
-# Demos
-	"Simple" Compositing Demo video script?
-	XMMS2 play/pause/next/prev ?
-	fix f'ugly
-
-# Release 1.0
-	Auto fade In/Out on all audio/video sources on create/destroy of ports
-	Wayland, ETC waf optional building w/modules
-
 # Thinking
-	Distrobuted control/ IPC Proxy
+	Distributed Network Control / IPC Proxy / Krad Network / Krad Enterprise Edition
+	Server side playlist, unavoidble to clone xmms2's groundbreaking work here?
+		-Per portgroup playlists?
 
-# General
+# Global Fixes:
+	IPv6 compatibility
 
-Fixes:
-	Ensure everything is IPv6 Compat
+# Link
+	Auto fade In/Out on all audio/video sources on create/destroy of ports
+
+# Console Client
+	Inline per command help
 
 # GTK Client
 	Remove/Display differently output mixer portgroups?
@@ -24,29 +21,36 @@ Fixes:
 	->Require Request for broadcasts<- segfault happeing rarely due to this?
 	Levels Via IPC
 
-# Style
-	Replace sleep/check loops with locked signal conds
-	
+# Code Style / Build sys / Version Control / Release
+	Replace sleep/check antipattern with pthread conds
+	Krad Link shutdown sequence legibility -enum
+	Waf Optional buildings: Codec2/Wayland/X11/XMMS2
+		Server side dlopen
+
 # Audio I/O
-	ALSA/Pulseaudio support need update
+	ALSA - Fix
+	Pulseaudio - Fix
 
-# Krad Ogg
-	-Mark EOS correctly on recordings
+# Ogg
+	Mark EOS correctly on recordings
 
-# Krad EBML
+# Opus
+	Handle preskip correctly
+
+# EBML
 	fail cleanly on streaming erros without exit()
 	Logging/Debug callback, nestegg compatible
 	write cues when recording to a file	
 
 # Transmitter
-	Proper ringloopin
+	Fix ringbuffer usage
 	
-# OSC / ALSA SEQ (MIDI)
+# OSC / ALSA SEQ
 	Control binding
 	
 # Mixer
 	EQ
-	Sidechain for mics
+	Sidechain Comp
 	Limiter
 	
 # Compositor
