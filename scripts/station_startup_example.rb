@@ -2,8 +2,8 @@
 
 require_relative "kradradio_client.rb"
 
-station_name = "radio_test"
-station = KradStation.new (station_name)
+station_name = "radiotest"
+station = KradStation.new(station_name)
 
 puts station.info
 
