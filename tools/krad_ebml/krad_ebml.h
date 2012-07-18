@@ -44,6 +44,8 @@
 #define EBML_DATA_SIZE_UNKNOWN 0x01FFFFFFFFFFFFFFLLU
 #define EBML_DATA_SIZE_UNKNOWN_LENGTH 8
 
+#define EBML_ID_VOID			   0xEC
+
 #define EBML_ID_EBMLVERSION        0x4286
 #define EBML_ID_EBMLREADVERSION    0x42F7
 #define EBML_ID_EBMLMAXIDLENGTH    0x42F2
@@ -87,6 +89,7 @@
 #define EBML_ID_3D						0x53B8
 
 #define EBML_ID_TIMECODESCALE			0x2AD7B1
+#define EBML_ID_DURATION				0x4489
 #define EBML_ID_DEFAULTDURATION			0x23E383
 
 #define EBML_ID_TAGS					0x1254C367
@@ -286,6 +289,8 @@ struct krad_ebml_St {
 	//writing
 	uint64_t segment;
 	uint64_t segment_size;
+	float segment_duration;
+	uint64_t segment_timecode;
 	uint64_t tracks_info;
 	uint64_t cluster;	
 	int fps_numerator;

@@ -294,6 +294,13 @@ void krad_ebml_finish_file_segment (krad_ebml_t *krad_ebml) {
 		krad_ebml_write_data_size_update (krad_ebml, krad_ebml->segment_size);
 		//krad_ebml_write_data_size_update (krad_ebml, EBML_DATA_SIZE_UNKNOWN);
 		krad_ebml_write_sync (krad_ebml);
+
+		if (1) {
+			krad_ebml_fileio_seek (&krad_ebml->io_adapter, krad_ebml->segment + 20, SEEK_SET);
+			krad_ebml_write_float (krad_ebml, EBML_ID_DURATION, krad_ebml->segment_duration);
+			krad_ebml_write_sync (krad_ebml);
+		}
+
 		krad_ebml->segment_size = 0;
 		krad_ebml->segment = 0;
 	}
@@ -326,6 +333,10 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 		krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT, &krad_ebml->segment);
 	}
 	krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT_INFO, &segment_info);
+	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+		(krad_ebml->io_adapter.write == krad_ebml_fileio_write)) {
+		krad_ebml_write_data (krad_ebml, EBML_ID_VOID, "000000000", 5);
+	}
 	krad_ebml_write_string (krad_ebml, EBML_ID_SEGMENT_TITLE, "A Krad Production");
 	krad_ebml_write_int32 (krad_ebml, EBML_ID_TIMECODESCALE, 1000000);
 	krad_ebml_write_string (krad_ebml, EBML_ID_MUXINGAPP, version_string);
@@ -494,6 +505,11 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	/* Must be after clustering esp. in case of keyframe */ 
 	block_timecode = timecode - krad_ebml->cluster_timecode;	
 
+	if (timecode > krad_ebml->segment_timecode) {
+		krad_ebml->segment_timecode = timecode;
+		krad_ebml->segment_duration = krad_ebml->segment_timecode;
+	}
+
     krad_ebml_write_element (krad_ebml, EBML_ID_SIMPLEBLOCK);
     
 	krad_ebml_write_reversed (krad_ebml, &block_length, 4);
@@ -541,6 +557,11 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	}
 
 	block_timecode = timecode - krad_ebml->cluster_timecode;
+
+	if (timecode > krad_ebml->segment_timecode) {
+		krad_ebml->segment_timecode = timecode;
+		krad_ebml->segment_duration = krad_ebml->segment_timecode;
+	}
 
     krad_ebml_write_element (krad_ebml, EBML_ID_SIMPLEBLOCK);
 
