@@ -1,15 +1,27 @@
 #include "krad_ipc_client.h"
 
+void krad_radio_command_help () {
+
+	printf ("krad_radio STATION_SYSNAME OPTIONS...");
+	printf ("\n\n");
+	printf ("Commands:\n");
+	
+	printf ("ls uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate rate fps mix");
+	printf ("\n");
+	printf ("setdir lm ll lc tone input output unplug map mixmap xmms2 noxmms2 listen_on listen_off link");
+	printf ("\n");
+	printf ("transmitter_on transmitter_off closedisplay display lstext rmtext addtest lssprites addsprite rmsprite");
+	printf ("\n");
+	printf ("setsprite comp res snap setport update play recieve record capture");
+	printf ("\n");
+}
+
 int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
 	
-	if (argc == 1) {
-		printf("Specify a station..\n");
-	}
-	
-	if (argc == 2) {
-		printf("Specify a command..\n");
+	if ((argc == 1) || (argc == 2)) {
+		krad_radio_command_help ();
 	}	
 	
 	if (argc > 2) {
@@ -23,8 +35,8 @@ int main (int argc, char *argv[]) {
 		if ((strncmp(argv[2], "launch", 6) == 0) || (strncmp(argv[2], "load", 4) == 0)) {
 			krad_radio_launch_daemon (argv[1]);
 			return 0;
-		}
-	
+		}	
+
 		client = krad_ipc_connect (argv[1]);
 	
 		if (client != NULL) {
