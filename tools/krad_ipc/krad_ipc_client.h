@@ -60,6 +60,7 @@ struct krad_ipc_client_St {
 
 };
 
+void krad_radio_launch_daemon (char *sysname);
 
 void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int tickrate, 
 									float scale, float opacity, float rotation, int red, int green, int blue, char *font);

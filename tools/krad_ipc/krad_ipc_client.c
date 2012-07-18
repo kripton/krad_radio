@@ -152,6 +152,24 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	return client->sd;
 }
 
+void krad_radio_launch_daemon (char *sysname) {
+
+	pid_t pid;
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		return;
+	}
+
+	execlp ("krad_radio_daemon", "krad_radio_daemon", sysname, (char *)NULL);
+
+}
+
 void krad_ipc_get_portgroups (krad_ipc_client_t *client) {
 
 	//uint64_t ipc_command;

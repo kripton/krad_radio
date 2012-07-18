@@ -19,13 +19,17 @@ int main (int argc, char *argv[]) {
 				failfast ("");
 			}
 		}
+
+		if ((strncmp(argv[2], "launch", 6) == 0) || (strncmp(argv[2], "load", 4) == 0)) {
+			krad_radio_launch_daemon (argv[1]);
+			return 0;
+		}
 	
 		client = krad_ipc_connect (argv[1]);
 	
 		if (client != NULL) {
 	
 			/* Krad Radio Commands */
-			
 
 			if ((strncmp(argv[2], "ls", 2) == 0) && (strlen(argv[2]) == 2)) {
 				if (argc == 3) {
