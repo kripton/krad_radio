@@ -1,0 +1,6 @@
+Please be advised that enabling remote IPC or web based control via
+the remoteon and webon commands results in a security risk of an
+unknown severity. Do not enable these on any critical infrastructure.
+
+It is advisable to use external security measures such as firewalls and
+ssh tunnels to manage remote access at this time.
