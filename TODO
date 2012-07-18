@@ -1,5 +1,4 @@
 # Release 0.9
-	Mark segment size in recording EBML / EOS in ogg end*******
 	Inline Help in command line
 	Fix logging and enable daemonization*****
 	Catch Signals
@@ -36,14 +35,14 @@ Fixes:
 # Audio I/O
 	ALSA/Pulseaudio support need update
 
-# Krad Container
-	mark segment size on ebml and eos on ogg when finishing
-	a file
+# Krad Ogg
+	-Mark EOS correctly on recordings
 
 # Krad EBML
+	fail cleanly on streaming erros without exit()
 	Logging/Debug callback, nestegg compatible
-	fail cleanly without exit()
-	
+	write cues when recording to a file	
+
 # Transmitter
 	Proper ringloopin
 	
