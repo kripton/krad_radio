@@ -257,7 +257,8 @@ void *test_screen_generator_thread (void *arg) {
 	
 	krad_gui_test_screen (krad_gui, krad_link->krad_linker->krad_radio->sysname);
 	
-	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);	
+	krad_ticker = krad_ticker_create (krad_link->krad_radio->krad_compositor->frame_rate_numerator,
+									  krad_link->krad_radio->krad_compositor->frame_rate_denominator);	
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "TSTIn",

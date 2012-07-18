@@ -8,6 +8,7 @@
 
 #include <libswscale/swscale.h>
 
+#include "pixman.h"
 #include "krad_radio.h"
 
 #ifndef KRAD_COMPOSITOR_H
@@ -155,11 +156,11 @@ struct krad_compositor_St {
 
 	int enable_keystone;
 	krad_point_t quad[4];
-	cairo_matrix_t keystone;
+	pixman_transform_t keystone;
 
 };
 
-void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, cairo_matrix_t *matrix);
+void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform);
 
 void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, int x, int y, int tickrate, 
 								 float scale, float opacity, float rotation, int red, int green, int blue, char *font);

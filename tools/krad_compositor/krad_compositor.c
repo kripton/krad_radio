@@ -282,7 +282,7 @@ void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad
 
 }
 
-void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, cairo_matrix_t *matrix) {
+void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform) {
 
     double q0x = q[0].x, q0y = q[0].y;
     double q1x = q[1].x, q1y = q[1].y;
@@ -291,6 +291,8 @@ void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double
     double m00, m01, m02;
     double m10, m11, m12;
     double m20, m21, m22;
+
+	pixman_transform_t temp_transform;
 
     m02 = q0x;
     m12 = q0y;
@@ -316,15 +318,31 @@ void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double
 	printk ("%f %f %f\n", m10, m11, m12);
 	printk ("%f %f %f\n", m20, m21, m22);
 
-	matrix->xx = m00;
-	matrix->yx = m01;
-	matrix->xy = m02;
-	matrix->yy = m10;
-	matrix->x0 = m11;
-	matrix->y0 = m12;
+	temp_transform.matrix[0][0] = pixman_double_to_fixed(m00);
+	temp_transform.matrix[0][1] = pixman_double_to_fixed(m01);
+	temp_transform.matrix[0][2] = pixman_double_to_fixed(m02);
+	temp_transform.matrix[1][0] = pixman_double_to_fixed(m10);
+	temp_transform.matrix[1][1] = pixman_double_to_fixed(m11);
+	temp_transform.matrix[1][2] = pixman_double_to_fixed(m12);
+	temp_transform.matrix[2][0] = pixman_double_to_fixed(m20);
+	temp_transform.matrix[2][1] = pixman_double_to_fixed(m21);
+	temp_transform.matrix[2][2] = pixman_double_to_fixed(m22);
 
-	cairo_matrix_invert (matrix);
+	pixman_transform_invert (transform, &temp_transform);
+/*
+	transform->matrix[0][0] = pixman_int_to_fixed(1);
+	transform->matrix[0][1] = pixman_int_to_fixed(0);
+	transform->matrix[0][2] = pixman_int_to_fixed(0);
+	transform->matrix[1][0] = pixman_int_to_fixed(0);
+	transform->matrix[1][1] = pixman_int_to_fixed(1);
+	transform->matrix[1][2] = pixman_int_to_fixed(0);
+	transform->matrix[2][0] = pixman_int_to_fixed(0);
+	transform->matrix[2][1] = pixman_int_to_fixed(0);
+	transform->matrix[2][2] = pixman_int_to_fixed(1);
 
+
+	pixman_transform_init_translate (transform, pixman_int_to_fixed(200), pixman_int_to_fixed(200));
+*/
 }
 
 
@@ -463,30 +481,54 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 					}
 	
 					if (krad_compositor->enable_keystone) {
-						cairo_scale (krad_compositor->krad_gui->cr, 1.0, 1.0);
-						cairo_transform (krad_compositor->krad_gui->cr, &krad_compositor->keystone);
-					}
-					cairo_set_source_surface (krad_compositor->krad_gui->cr,
-											  frame->cst,
-											  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
-											  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
+						
+						pixman_image_t *src_img;
+						pixman_image_t *dest_img;
 
-					cairo_rectangle (krad_compositor->krad_gui->cr,
-									 krad_compositor->port[p].x,
-									 krad_compositor->port[p].y,
-									 krad_compositor->port[p].crop_width,
-									 krad_compositor->port[p].crop_height);
-					cairo_clip (krad_compositor->krad_gui->cr);
+						src_img = pixman_image_create_bits (PIXMAN_a8r8g8b8,
+										 krad_compositor->port[p].crop_width, krad_compositor->port[p].crop_height, 
+										 (uint32_t *)frame->pixels,
+										 krad_compositor->port[p].crop_width * 4);
+
+
+						dest_img = pixman_image_create_bits (PIXMAN_a8r8g8b8,
+										 krad_compositor->width, krad_compositor->height, 
+										 (uint32_t *)composite_frame->pixels,
+										 krad_compositor->width * 4);
+
+
+						pixman_image_set_transform (src_img, &krad_compositor->keystone);
+
+						pixman_image_composite (PIXMAN_OP_OVER, src_img, NULL, dest_img,
+									0, 0, 0, 0, 0, 0, krad_compositor->width, krad_compositor->height);						
+
+
+						pixman_image_unref (src_img);
+						pixman_image_unref (dest_img);
+
+					} else {
+						cairo_set_source_surface (krad_compositor->krad_gui->cr,
+												  frame->cst,
+												  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
+												  krad_compositor->port[p].y - krad_compositor->port[p].crop_y);
+
+						cairo_rectangle (krad_compositor->krad_gui->cr,
+										 krad_compositor->port[p].x,
+										 krad_compositor->port[p].y,
+										 krad_compositor->port[p].crop_width,
+										 krad_compositor->port[p].crop_height);
+						cairo_clip (krad_compositor->krad_gui->cr);
 					
-					if (krad_compositor->krad_text[1].active == 1) {
+						if (krad_compositor->krad_text[1].active == 1) {
 					
-						cairo_mask_surface (krad_compositor->krad_gui->cr, krad_compositor->mask_cst, 0, 0);
+							cairo_mask_surface (krad_compositor->krad_gui->cr, krad_compositor->mask_cst, 0, 0);
 					
-					} else {		 
-						if (krad_compositor->port[p].opacity == 1.0f) {
-							cairo_paint (krad_compositor->krad_gui->cr);
-						} else {
-							cairo_paint_with_alpha (krad_compositor->krad_gui->cr, krad_compositor->port[p].opacity);
+						} else {		 
+							if (krad_compositor->port[p].opacity == 1.0f) {
+								cairo_paint (krad_compositor->krad_gui->cr);
+							} else {
+								cairo_paint_with_alpha (krad_compositor->krad_gui->cr, krad_compositor->port[p].opacity);
+							}
 						}
 					}
 					cairo_restore (krad_compositor->krad_gui->cr);
@@ -1193,14 +1235,14 @@ void krad_compositor_set_resolution (krad_compositor_t *krad_compositor, int wid
 
 void krad_compositor_keystone_test (krad_compositor_t *krad_compositor) {
 
-	krad_compositor->quad[0].x = 12;
-	krad_compositor->quad[0].y = 26;
-	krad_compositor->quad[1].x = krad_compositor->width - 8;
-	krad_compositor->quad[1].y = 10;
-	krad_compositor->quad[2].x = krad_compositor->width - 19;
-	krad_compositor->quad[2].y = krad_compositor->height - 33;
-	krad_compositor->quad[3].x = 11;
-	krad_compositor->quad[3].y = krad_compositor->height - 5;
+	krad_compositor->quad[0].x = 222;
+	krad_compositor->quad[0].y = 222;
+	krad_compositor->quad[1].x = krad_compositor->width;
+	krad_compositor->quad[1].y = 0;
+	krad_compositor->quad[2].x = krad_compositor->width - 100;
+	krad_compositor->quad[2].y = krad_compositor->height - 100;
+	krad_compositor->quad[3].x = 100;
+	krad_compositor->quad[3].y = krad_compositor->height - 100;
 
 	krad_compositor_create_keystone_matrix (krad_compositor->quad,
 											krad_compositor->width,
@@ -1250,7 +1292,7 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
 	//krad_compositor_start_ticker (krad_compositor);
 	
-	krad_compositor->enable_keystone = 0;
+	krad_compositor->enable_keystone = 1;
 
 	if (krad_compositor->enable_keystone) {
 		krad_compositor_keystone_test (krad_compositor);
