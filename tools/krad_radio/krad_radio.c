@@ -112,10 +112,9 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 
 void krad_radio_daemon (char *sysname) {
 
-//	pid_t pid;
+	pid_t pid;
 	krad_radio_t *krad_radio_station;
 
-/*
 	pid = fork();
 
 	if (pid < 0) {
@@ -125,7 +124,7 @@ void krad_radio_daemon (char *sysname) {
 	if (pid > 0) {
 		return;
 	}
-*/
+
 	krad_system_init ();
 
 	krad_radio_station = krad_radio_create (sysname);
@@ -139,7 +138,7 @@ void krad_radio_daemon (char *sysname) {
 
 static void krad_radio_run (krad_radio_t *krad_radio_station) {
 
-	//krad_system_daemonize ();
+	krad_system_daemonize ();
   	krad_system_monitor_cpu_on ();
 
 	krad_compositor_start_ticker (krad_radio_station->krad_compositor);

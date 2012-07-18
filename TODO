@@ -1,6 +1,5 @@
 # Release 0.9
 	Inline Help in command line
-	Fix logging and enable daemonization*****
 	Catch Signals
 
 # Demos

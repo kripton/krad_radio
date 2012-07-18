@@ -139,12 +139,14 @@ void printke (char* format, ...) {
 
 	va_list args;
 
-	printf ("***ERROR!\n");
+	if (verbose) {
+		printf ("***ERROR!\n");
 
-	va_start(args, format);
-	vfprintf(stdout, format, args);
-	va_end(args);
-	printf ("\n");	
+		va_start(args, format);
+		vfprintf(stdout, format, args);
+		va_end(args);
+		printf ("\n");
+	}
 }
 
 void printkd (char* format, ...) {
@@ -178,7 +180,7 @@ void krad_system_init () {
 		krad_system_initialized = 31337;
 		krad_system.kcm.interval = KRAD_CPU_MONITOR_INTERVAL;
 		do_shutdown = 0;
-		verbose = 1;
+		verbose = 0;
 		krad_system_info_collect ();
 	  	srand (time(NULL));
 	}

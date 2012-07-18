@@ -2622,7 +2622,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						break;
 					case EBML_ID_KRAD_RADIO_INFO:
 						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-						printk ("%s", tag_name);
+						printf ("%s", tag_name);
 						break;
 				}
 		
