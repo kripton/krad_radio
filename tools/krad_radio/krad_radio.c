@@ -138,16 +138,41 @@ void krad_radio_daemon (char *sysname) {
 
 static void krad_radio_run (krad_radio_t *krad_radio_station) {
 
-	krad_system_daemonize ();
-  	krad_system_monitor_cpu_on ();
+	int signal_caught;
+	sigset_t signal_mask;
 
+	krad_system_daemonize ();
+
+    sigemptyset (&signal_mask);
+    sigaddset (&signal_mask, SIGINT);
+    sigaddset (&signal_mask, SIGTERM);
+    sigaddset (&signal_mask, SIGHUP);
+    if (pthread_sigmask (SIG_BLOCK, &signal_mask, NULL) != 0) {
+		failfast ("Could not set signal mask!");
+    }
+
+  	krad_system_monitor_cpu_on ();
 	krad_compositor_start_ticker (krad_radio_station->krad_compositor);
 	krad_mixer_start_ticker (krad_radio_station->krad_mixer);  	
 
 	krad_ipc_server_run (krad_radio_station->krad_ipc);
 	
 	while (1) {
-		sleep (5);
+
+		if (sigwait (&signal_mask, &signal_caught) != 0) {
+			failfast ("error on sigwait!");
+		}
+		switch (signal_caught) {
+			case SIGHUP:
+				printkd ("Got HANGUP Signal!");
+				break;
+			case SIGINT:
+				return;
+			case SIGTERM:
+				return;
+			default:
+				break;
+		}
 	}
 }
 
