@@ -46,6 +46,11 @@ class KradStation
 		@comp_width = 0
 		@comp_height = 0
 		Kernel.srand
+		self.launch_daemon
+	end
+
+	def launch_daemon
+		self.cmd("launch")
 	end
 
 	def sprite(filename, x=0, y=0, rate=5, scale=1, opacity=1.0, rotation=0.0)
