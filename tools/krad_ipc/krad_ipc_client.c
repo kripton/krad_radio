@@ -5,12 +5,12 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 	krad_ipc_client_t *client = calloc (1, sizeof (krad_ipc_client_t));
 	
 	if (client == NULL) {
-		fprintf(stderr, "Krad IPC Client mem alloc fail\n");
+		failfast ("Krad IPC Client mem alloc fail");
 		return NULL;
 	}
 	
 	if ((client->buffer = calloc (1, KRAD_IPC_BUFFER_SIZE)) == NULL) {
-		fprintf(stderr, "Krad IPC Client buffer alloc fail\n");
+		failfast ("Krad IPC Client buffer alloc fail");
 		return NULL;
 	}
 	
@@ -36,7 +36,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 		if (!client->on_linux) {
 			if(stat(client->ipc_path, &client->info) != 0) {
 				krad_ipc_disconnect(client);
-				printf ("Krad IPC Client: IPC PATH Failure\n");
+				failfast ("Krad IPC Client: IPC PATH Failure\n");
 				return NULL;
 			}
 		}
@@ -44,7 +44,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 	}
 	
 	if (krad_ipc_client_init (client) == 0) {
-		printf ("Krad IPC Client: Failed to init!\n");
+		failfast ("Krad IPC Client: Failed to init!\n");
 		krad_ipc_disconnect (client);
 		return NULL;
 	}
@@ -62,11 +62,10 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 
 	if (client->tcp_port != 0) {
 
-		printk("Krad IPC Client: Connecting to remote %s:%d\n", client->host, client->tcp_port);
+		printkd ("Krad IPC Client: Connecting to remote %s:%d", client->host, client->tcp_port);
 
 		if ((client->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-			printke ("Krad IPC Client: Socket Error\n");
-			exit(1);
+			failfast ("Krad IPC Client: Socket Error");
 		}
 
 		memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
@@ -77,24 +76,22 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 			// get host address 
 			hostp = gethostbyname(client->host);
 			if (hostp == (struct hostent *)NULL) {
-				printke ("Krad IPC Client: Remote Host Error\n");
+				printke ("Krad IPC Client: Remote Host Error");
 				close (client->sd);
-				exit (1);
 			}
 			memcpy (&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
 		}
 
 		// connect() to server. 
 		if ((sent = connect(client->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
-			printke ("Krad IPC Client: Remote Connect Error\n");
-			exit(1);
+			printke ("Krad IPC Client: Remote Connect Error");
 		}
 
 	} else {
 
 		client->sd = socket (AF_UNIX, SOCK_STREAM, 0);
 		if (client->sd == -1) {
-			printf ("Krad IPC Client: socket fail\n");
+			failfast ("Krad IPC Client: socket fail");
 			return 0;
 		}
 
@@ -109,7 +106,7 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 		if (connect (client->sd, (struct sockaddr *) &client->saddr, sizeof (client->saddr)) == -1) {
 			close (client->sd);
 			client->sd = 0;
-			printf ("Krad IPC Client: Can't connect to socket %s\n", client->ipc_path);
+			printke ("Krad IPC Client: Can't connect to socket %s", client->ipc_path);
 			return 0;
 		}
 
@@ -118,7 +115,7 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 		if (client->flags == -1) {
 			close (client->sd);
 			client->sd = 0;
-			printf ("Krad IPC Client: socket get flag fail\n");
+			printke ("Krad IPC Client: socket get flag fail");
 			return 0;
 		}
 	
@@ -132,7 +129,7 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	if (client->flags == -1) {
 		close (client->sd);
 		client->sd = 0;
-		printf ("Krad IPC Client: socket set flag fail\n");
+		printke ("Krad IPC Client: socket set flag fail\n");
 		return 0;
 	}
 */
@@ -149,7 +146,7 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	if (krad_ebml_check_doctype_header (client->krad_ebml->header, KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION)) {
 		//printf("Matched %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
 	} else {
-		printf("Did Not Match %s Version: %d Read Version: %d\n", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
+		printke ("Did Not Match %s Version: %d Read Version: %d", KRAD_IPC_SERVER_DOCTYPE, KRAD_IPC_DOCTYPE_VERSION, KRAD_IPC_DOCTYPE_READ_VERSION);
 	}	
 	
 	return client->sd;
@@ -1835,17 +1832,17 @@ int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portg
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
-		printf("hrm wtf1\n");
+		//printf("hrm wtf1\n");
 	}
 	krad_ebml_read_string (client->krad_ebml, *portgroup_name, ebml_data_size);
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 	if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_NAME) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	}
 	krad_ebml_read_string (client->krad_ebml, *control_name, ebml_data_size);
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 	if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
-		printf("hrm wtf3\n");
+		//printf("hrm wtf3\n");
 	}
 	
 	*value = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
@@ -1869,7 +1866,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_item, char 
 	bytes_read += ebml_data_size + 9;
 	
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG) {
-		printf("hrm wtf\n");
+		//printf("hrm wtf\n");
 	} else {
 		//printf("tag size %zu\n", ebml_data_size);
 	}
@@ -1877,7 +1874,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_item, char 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -1887,7 +1884,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_item, char 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -1898,7 +1895,7 @@ int krad_ipc_client_read_tag ( krad_ipc_client_t *client, char **tag_item, char 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_VALUE) {
-		printf("hrm wtf3\n");
+		//printf("hrm wtf3\n");
 	} else {
 		//printf("tag value size %zu\n", ebml_data_size);
 	}
@@ -2019,7 +2016,7 @@ int krad_ipc_client_read_port ( krad_ipc_client_t *client, char *text) {
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_PORT) {
-		printk ("hrm wtf1\n");
+		//printk ("hrm wtf1\n");
 	} else {
 		bytes_read += ebml_data_size + 11;
 	}
@@ -2028,7 +2025,7 @@ int krad_ipc_client_read_port ( krad_ipc_client_t *client, char *text) {
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_PORT_SOURCE_WIDTH) {
-		printk ("hrm wtf2\n");
+		//printk ("hrm wtf2\n");
 	} else {
 		//printk ("tag name size %zu\n", ebml_data_size);
 	}
@@ -2061,7 +2058,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK) {
-		printk ("hrm wtf1\n");
+		//printk ("hrm wtf1\n");
 	} else {
 		bytes_read += ebml_data_size + 9;
 	}
@@ -2070,7 +2067,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_AV_MODE) {
-		printk ("hrm wtf2\n");
+		//printk ("hrm wtf2\n");
 	} else {
 		//printk ("tag name size %zu\n", ebml_data_size);
 	}
@@ -2092,7 +2089,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_LINK_LINK_OPERATION_MODE) {
-		printk ("hrm wtf3\n");
+		//printk ("hrm wtf3\n");
 	} else {
 		//printk ("tag name size %zu\n", ebml_data_size);
 	}
@@ -2106,7 +2103,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-			printk ("hrm wtf4\n");
+			//printk ("hrm wtf4\n");
 		} else {
 			//printk ("tag name size %zu\n", ebml_data_size);
 		}
@@ -2120,7 +2117,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-				printk ("hrm wtf5\n");
+				//printk ("hrm wtf5\n");
 			} else {
 				//printk ("tag value size %zu\n", ebml_data_size);
 			}
@@ -2135,7 +2132,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-			printk ("hrm wtf4\n");
+			//printk ("hrm wtf4\n");
 		} else {
 			//printk ("tag name size %zu\n", ebml_data_size);
 		}
@@ -2149,7 +2146,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
-				printk ("hrm wtf5\n");
+				//printk ("hrm wtf5\n");
 			} else {
 				//printk ("tag value size %zu\n", ebml_data_size);
 			}
@@ -2162,7 +2159,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-				printk ("hrm wtf4\n");
+				//printk ("hrm wtf4\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2172,7 +2169,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-				printk ("hrm wtf5\n");
+				//printk ("hrm wtf5\n");
 			} else {
 				//printk ("tag value size %zu\n", ebml_data_size);
 			}
@@ -2182,7 +2179,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-				printk ("hrm wtf6\n");
+				//printk ("hrm wtf6\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2199,7 +2196,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE) {
-				printk ("hrm wtf2v\n");
+				//printk ("hrm wtf2v\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2218,7 +2215,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC) {
-				printk ("hrm wtf2v\n");
+				//printk ("hrm wtf2v\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2234,7 +2231,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC) {
-				printk ("hrm wtf2a\n");
+				//printk ("hrm wtf2a\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2249,7 +2246,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-				printk ("hrm wtf4\n");
+				//printk ("hrm wtf4\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2261,7 +2258,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-				printk ("hrm wtf4\n");
+				//printk ("hrm wtf4\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2271,7 +2268,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-				printk ("hrm wtf5\n");
+				//printk ("hrm wtf5\n");
 			} else {
 				//printk ("tag value size %zu\n", ebml_data_size);
 			}
@@ -2281,7 +2278,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-				printk ("hrm wtf6\n");
+				//printk ("hrm wtf6\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2294,7 +2291,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
-				printk ("hrm wtf4\n");
+				//printk ("hrm wtf4\n");
 			} else {
 				//printk ("tag name size %zu\n", ebml_data_size);
 			}
@@ -2370,7 +2367,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	bytes_read += ebml_data_size + 9;
 	
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP) {
-		printf("hrm wtf\n");
+		//printf("hrm wtf\n");
 	} else {
 		//printf("tag size %zu\n", ebml_data_size);
 	}
@@ -2378,44 +2375,43 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
 
 	krad_ebml_read_string (client->krad_ebml, portname, ebml_data_size);
 	
-	printf("\nInput name: %s\n", portname);
+	//printf("\nInput name: %s\n", portname);
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS) {
-		printf("hrm wtf3\n");
+		//printf("hrm wtf3\n");
 	} else {
 		//printf("tag value size %zu\n", ebml_data_size);
 	}
 
 	channels = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 	
-	printf("Channels: %d\n", channels);
+	printkd ("Channels: %d", channels);
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_TYPE) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
 
 	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
 	
-	
-	printf("Type: %s\n", string);	
+	//printf("Type: %s\n", string);	
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME) {
-		printf("hrm wtf3\n");
+		//printf("hrm wtf3\n");
 	} else {
 		//printf("VOLUME value size %zu\n", ebml_data_size);
 	}
@@ -2424,25 +2420,24 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	
 	*volume = floaty;
 	
-	printf("Volume: %f\n", floaty);
+	//printf("Volume: %f\n", floaty);
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
 
 	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);	
 	
-		printf("Bus: %s\n", string);	
-	
+	//printf("Bus: %s\n", string);
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -2451,13 +2446,13 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	
 	
 	if (strlen(crossfade_name)) {
-		printf("Crossfade With: %s\n", crossfade_name);	
+		//printf("Crossfade With: %s\n", crossfade_name);	
 	}
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE) {
-		printf("hrm wtf3\n");
+		//printf("hrm wtf3\n");
 	} else {
 		//printf("VOLUME value size %zu\n", ebml_data_size);
 	}
@@ -2466,7 +2461,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 	
 	if (strlen(crossfade_name)) {
 		*crossfade = floaty;
-		printf("Crossfade: %f\n", floaty);
+		//printf("Crossfade: %f\n", floaty);
 	} else {
 		*crossfade = 0.0f;
 	}
@@ -2498,7 +2493,7 @@ void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_item
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_ITEM) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -2508,7 +2503,7 @@ void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_item
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_NAME) {
-		printf("hrm wtf2\n");
+		//printf("hrm wtf2\n");
 	} else {
 		//printf("tag name size %zu\n", ebml_data_size);
 	}
@@ -2518,7 +2513,7 @@ void krad_ipc_client_read_tag_inner ( krad_ipc_client_t *client, char **tag_item
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 	if (ebml_id != EBML_ID_KRAD_RADIO_TAG_VALUE) {
-		printf("hrm wtf3\n");
+		//printf("hrm wtf3\n");
 	} else {
 		//printf("tag value size %zu\n", ebml_data_size);
 	}

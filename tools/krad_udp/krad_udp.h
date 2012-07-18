@@ -21,6 +21,7 @@
 #include <netdb.h>
 #include <poll.h>
 
+#include "krad_system.h"
 
 typedef struct krad_slice_St krad_slice_t;
 typedef struct krad_slicer_St krad_slicer_t;

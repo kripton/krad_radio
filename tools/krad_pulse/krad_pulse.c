@@ -133,7 +133,7 @@ static void krad_pulse_stream_underflow_cb(pa_stream *s, void *userdata) {
 
 	// We increase the latency by 50% if we get 6 underflows and latency is under 2s
 	// This is very useful for over the network playback that can't handle low latencies
-	printf("underflow\n");
+	//printf("underflow\n");
 	krad_pulse->underflows++;
 	if (krad_pulse->underflows >= 6 && krad_pulse->latency < 2000000) {
 		krad_pulse->latency = (krad_pulse->latency*3)/2;
@@ -141,7 +141,7 @@ static void krad_pulse_stream_underflow_cb(pa_stream *s, void *userdata) {
 		krad_pulse->bufattr.tlength = pa_usec_to_bytes(krad_pulse->latency, &krad_pulse->ss);  
 		pa_stream_set_buffer_attr(s, &krad_pulse->bufattr, NULL, NULL);
 		krad_pulse->underflows = 0;
-		printf("latency increased to %d\n", krad_pulse->latency);
+		//printf("latency increased to %d\n", krad_pulse->latency);
 	}
 }
 
@@ -207,8 +207,7 @@ krad_pulse_t *krad_pulse_create (krad_audio_t *krad_audio) {
 	krad_pulse_t *krad_pulse;
 	
 	if ((krad_pulse = calloc (1, sizeof (krad_pulse_t))) == NULL) {
-		fprintf(stderr, "mem alloc fail\n");
-		exit (1);
+		failfast ("mem alloc fail");
 	}
 	
 	krad_pulse->krad_audio = krad_audio;
@@ -249,8 +248,7 @@ krad_pulse_t *krad_pulse_create (krad_audio_t *krad_audio) {
 
 	if (krad_pulse->pa_ready == 2) {
 		krad_pulse->retval = -1;
-		printf("pulseaudio fail\n");
-		exit(1);
+		failfast ("pulseaudio fail");
 	}
 
 	krad_pulse->ss.rate = 44100;

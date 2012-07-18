@@ -92,7 +92,7 @@ float krad_ogg_vorbis_sample_rate(ogg_packet *packet) {
 	vorbis_synthesis_headerin(&v_info, &v_comment, packet);
 
 	sample_rate = v_info.rate;
-	printf("the sample rate is %f\n", sample_rate);
+	printkd ("the sample rate is %f", sample_rate);
 
 	vorbis_info_clear(&v_info);
 	vorbis_comment_clear(&v_comment);
@@ -114,7 +114,7 @@ int krad_ogg_theora_frame_rate (ogg_packet *packet) {
 	theora_decode_header (&t_info, &t_comment, packet);
 
 	frame_rate = t_info.fps_numerator / t_info.fps_denominator;
-	printf("the frame rate is %d\n", frame_rate);
+	printkd ("the frame rate is %d", frame_rate);
 
 	theora_info_clear (&t_info);
 	theora_comment_clear (&t_comment);
@@ -136,7 +136,7 @@ int krad_ogg_theora_keyframe_shift (ogg_packet *packet) {
 	//theora_decode_header (&t_info, &t_comment, packet);
 
 	keyframe_shift = t_info.keyframe_granule_shift;
-	printf("the keyframe shift is %d\n", keyframe_shift);
+	printkd ("the keyframe shift is %d", keyframe_shift);
 
 	th_info_clear (&t_info);
 	theora_comment_clear (&t_comment);
@@ -154,22 +154,22 @@ krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
 	codec = NOCODEC;
 
 	if (memcmp(packet->packet, "fishead\0", 8) == 0) {
-        printf("found skeleton\n");
+        printkd ("found skeleton");
 		return SKELETON;
 	}
    
 	if (memcmp (packet->packet + 1, "FLAC", 4) == 0) {
-        printf("found flac\n");
+        printkd ("found flac");
 		return FLAC;
 	}
 	
 	if (memcmp (packet->packet, "Opus", 4) == 0) {
-        printf("found opus\n");
+        printkd ("found opus");
 		return OPUS;
 	}
 
     if (vorbis_synthesis_idheader (packet) == 1) {
-        printf("found vorbis\n");
+        printkd ("found vorbis");
         codec = VORBIS;
     }
     
@@ -181,7 +181,7 @@ krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
 	theora_comment_init (&t_comment);
 
     if (theora_decode_header (&t_info, &t_comment, packet) == 0) {
-        printf("found theora\n");
+        printkd ("found theora");
         codec = THEORA;
     }
     
@@ -192,7 +192,7 @@ krad_codec_t krad_ogg_get_codec (ogg_packet *packet) {
     	return codec;
     }
  
- 	printf("sucky\n");
+ 	printke ("sucky");
  
 	return NOCODEC;  
 }
@@ -259,7 +259,7 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, uint64_t *timecode, 
 										 krad_ogg->tracks[t].header_len[0] - 9);
 								krad_ogg->tracks[t].header_len[0] -= 9;
 								if (krad_ogg->tracks[t].header_len[0] != 42) {
-									printf("ruh oh! our oggflac expectations where not met, problem likely!\n");
+									printkd ("ruh oh! our oggflac expectations where not met, problem likely!");
 								}
 							}
 							
@@ -379,7 +379,7 @@ int krad_ogg_write (krad_ogg_t *krad_ogg, unsigned char *buffer, int length) {
     ret = ogg_sync_wrote (&krad_ogg->sync_state, length);
 
 	if (ret != 0) {
-		printf("uh oh! ogg_sync_wrote problem\n");
+		printke ("uh oh! ogg_sync_wrote problem\n");
 		return -1;
 	}
 
@@ -494,7 +494,7 @@ int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg) {
 		if (krad_ogg->tracks[t].header_count > 1) {
 			for (h = 1; h < krad_ogg->tracks[t].header_count; h++) {
 			
-				printk ("Krad Ogg Track %d header packet %d sized %d\n", t, h, krad_ogg->tracks[t].header_len[h]);
+				printkd ("Krad Ogg Track %d header packet %d sized %d\n", t, h, krad_ogg->tracks[t].header_len[h]);
 			
 				packet.packet = krad_ogg->tracks[t].header[h];
 				packet.bytes = krad_ogg->tracks[t].header_len[h];
@@ -523,9 +523,9 @@ int krad_ogg_output_aux_headers (krad_ogg_t *krad_ogg) {
 				
 				}
 				
-				printk ("Krad Ogg Track %d created aux page %d sized %lu\n", 
-						t, h,
-						page.header_len + page.body_len);
+				printkd ("Krad Ogg Track %d created aux page %d sized %lu\n", 
+						 t, h,
+						 page.header_len + page.body_len);
 			}			
 		}
 	}
@@ -625,7 +625,7 @@ int krad_ogg_add_track (krad_ogg_t *krad_ogg, krad_codec_t codec,
 			packet.packet = temp_header;
 			packet.bytes = 9 + 42;	
 		} else {
-			printk ("ogg header packet %d sized %d\n", 0, header_size[0]);		
+			printkd ("ogg header packet %d sized %d", 0, header_size[0]);		
 			packet.packet = header[0];
 			packet.bytes = header_size[0];
 		}	
@@ -655,7 +655,7 @@ int krad_ogg_add_track (krad_ogg_t *krad_ogg, krad_codec_t codec,
 			
 			}			
 
-			printk ("created page sized %lu\n", page.header_len + page.body_len);			
+			printkd ("created page sized %lu", page.header_len + page.body_len);			
 			
 		}
 	}

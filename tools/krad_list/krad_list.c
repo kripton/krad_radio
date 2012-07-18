@@ -13,7 +13,7 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 	
 		if (kradlist->parse_state == TITLE) {
 			if (kradlist->char_pos > sizeof(kradlist->title)) {
-				printf("too long title!!\n");
+				printke ("too long title!!\n");
 				return;
 			}
 		
@@ -23,14 +23,14 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		
 			if (kradlist->char_pos >= sizeof(kradlist->title)) {
 				kradlist->title[sizeof(kradlist->title) - 1] = '\0';
-				printf("oh no too long title!!\n");
+				printke ("oh no too long title!!\n");
 				return;
 			}
 		}
 		
 		if (kradlist->parse_state == IMAGETITLE) {
 			if (kradlist->char_pos > sizeof(kradlist->imagetitle)) {
-				printf("too long imagetitle!!\n");
+				printke ("too long imagetitle!!\n");
 				return;
 			}
 		
@@ -40,14 +40,14 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		
 			if (kradlist->char_pos >= sizeof(kradlist->imagetitle)) {
 				kradlist->imagetitle[sizeof(kradlist->imagetitle) - 1] = '\0';
-				printf("oh no too long imagetitle!!\n");
+				printke ("oh no too long imagetitle!!\n");
 				return;
 			}
 		}
 		
 		if (kradlist->parse_state == IMAGEURL) {
 			if (kradlist->char_pos > sizeof(kradlist->imageurl)) {
-				printf("too long imageurl!!\n");
+				printke ("too long imageurl!!\n");
 				return;
 			}
 		
@@ -57,14 +57,14 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		
 			if (kradlist->char_pos >= sizeof(kradlist->imageurl)) {
 				kradlist->imageurl[sizeof(kradlist->imageurl) - 1] = '\0';
-				printf("oh no too long imageurl!!\n");
+				printke ("oh no too long imageurl!!\n");
 				return;
 			}
 		}
 		
 		if (kradlist->parse_state == DESCRIPTION) {
 			if (kradlist->char_pos > sizeof(kradlist->description)) {
-				printf("too long description!!\n");
+				printke ("too long description!!\n");
 				return;
 			}
 		
@@ -74,7 +74,7 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		
 			if (kradlist->char_pos >= sizeof(kradlist->description)) {
 				kradlist->description[sizeof(kradlist->description) - 1] = '\0';
-				printf("oh no too long description!!\n");
+				printke ("oh no too long description!!\n");
 				return;
 			}
 		}
@@ -82,7 +82,7 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		if (kradlist->parse_state == IMAGE) {
 		
 			if (kradlist->char_pos > sizeof(kradlist->image)) {
-				printf("too long image!!\n");
+				printke ("too long image!!\n");
 				return;
 			}
 		
@@ -92,7 +92,7 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		
 			if (kradlist->char_pos >= sizeof(kradlist->image)) {
 				kradlist->image[sizeof(kradlist->image) - 1] = '\0';
-				printf("oh no too long image!!\n");
+				printke ("oh no too long image!!\n");
 				return;
 			}
 		
@@ -104,7 +104,7 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		if (kradlist->parse_state == LOCATION) {
 		
 			if (kradlist->char_pos > sizeof(kradlist->url)) {
-				printf("too long url!!\n");
+				printke ("too long url!!\n");
 				return;
 			}
 		
@@ -114,7 +114,7 @@ void krad_list_parse_characters(krad_list_t *kradlist, const xmlChar *ch, int le
 		
 			if (kradlist->char_pos >= sizeof(kradlist->url)) {
 				kradlist->url[sizeof(kradlist->url) - 1] = '\0';
-				printf("oh no too long url!!\n");
+				printke ("oh no too long url!!\n");
 				return;
 			}
 	
@@ -135,9 +135,9 @@ static void krad_list_parse_end_element (krad_list_t *kradlist, const xmlChar *n
 		if (kradlist->parsing_in_list == 1) {
 			if (xmlStrEqual (name, BAD_CAST "location")) {
 				kradlist->url[kradlist->char_pos] = '\0';
-				printf("Got Location: %s\n", kradlist->url);
+				printkd ("Got Location: %s\n", kradlist->url);
 		
-				printf("Parse state now none\n");
+				printkd ("Parse state now none\n");
 				kradlist->parse_state = NONE;
 				return;
 			}
@@ -146,18 +146,18 @@ static void krad_list_parse_end_element (krad_list_t *kradlist, const xmlChar *n
 
 				if (kradlist->parse_state == IMAGETITLE) {
 					kradlist->imagetitle[kradlist->char_pos] = '\0';
-					printf("Got imagetitle: %s\n", kradlist->imagetitle);
+					printkd ("Got imagetitle: %s\n", kradlist->imagetitle);
 		
-					printf("Parse state now image\n");
+					printkd ("Parse state now image\n");
 					kradlist->char_pos = 0;
 					kradlist->parse_state = IMAGE;
 					return;
 				} else {
 
 					kradlist->title[kradlist->char_pos] = '\0';
-					printf("Got title: %s\n", kradlist->title);
+					printkd ("Got title: %s\n", kradlist->title);
 		
-					printf("Parse state now none\n");
+					printkd ("Parse state now none\n");
 					kradlist->parse_state = NONE;
 					return;
 				}
@@ -165,9 +165,9 @@ static void krad_list_parse_end_element (krad_list_t *kradlist, const xmlChar *n
 
 			if ((xmlStrEqual (name, BAD_CAST "description")) || (xmlStrEqual (name, BAD_CAST "annotation"))) {
 				kradlist->description[kradlist->char_pos] = '\0';
-				printf("Got description: %s\n", kradlist->description);
+				printkd ("Got description: %s\n", kradlist->description);
 		
-				printf("Parse state now none\n");
+				printkd ("Parse state now none\n");
 				kradlist->parse_state = NONE;
 				return;
 			}
@@ -180,10 +180,10 @@ static void krad_list_parse_end_element (krad_list_t *kradlist, const xmlChar *n
 				}
 				
 				if (kradlist->char_pos > 0) {
-					printf("char pos: %d\n", kradlist->char_pos);
-					printf("Got image: %s\n", kradlist->image);
+					printkd ("char pos: %d\n", kradlist->char_pos);
+					printkd ("Got image: %s\n", kradlist->image);
 				}
-				printf("Parse state now none\n");
+				printkd ("Parse state now none\n");
 				kradlist->parse_state = NONE;
 				return;
 			}
@@ -191,9 +191,9 @@ static void krad_list_parse_end_element (krad_list_t *kradlist, const xmlChar *n
 			if (xmlStrEqual (name, BAD_CAST "url")) {
 				if (kradlist->parse_state == IMAGEURL) {
 					kradlist->imageurl[kradlist->char_pos] = '\0';
-					printf("Got imageurl: %s\n", kradlist->imageurl);
+					printkd ("Got imageurl: %s\n", kradlist->imageurl);
 					kradlist->char_pos = 0;
-					printf("Parse state now image\n");
+					printkd ("Parse state now image\n");
 					kradlist->parse_state = IMAGE;
 					return;
 				}
@@ -201,7 +201,7 @@ static void krad_list_parse_end_element (krad_list_t *kradlist, const xmlChar *n
 			
 			if (kradlist->parse_state == IGNOREIMAGEEXTRATAGS) {
 				kradlist->parse_state = IMAGE;
-				printf("Parse state now IMAGE\n");
+				printkd ("Parse state now IMAGE\n");
 				return;
 			}
 			
@@ -216,19 +216,19 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 
 	int i;
 	
-	//printf ("format %d\n", kradlist->format);
-	//printf ("start elem %s\n", name);
+	//printk ("format %d\n", kradlist->format);
+	//printk ("start elem %s\n", name);
 
 	if (kradlist->format == UNKNOWN) {
 		
 		if (xmlStrEqual (name, BAD_CAST "rss")) {
 			kradlist->format = PODCAST;
-			printf("Got PODCAST!\n");
+			printkd ("Got PODCAST!\n");
 		}
 		
 		if (xmlStrEqual (name, BAD_CAST "playlist")) {
 			kradlist->format = XSPF;
-			printf("Got XSPF Playlist!\n");
+			printkd ("Got XSPF Playlist!\n");
 		}
 
 	}
@@ -244,28 +244,28 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 			if (xmlStrEqual (name, BAD_CAST "title")) {
 				kradlist->char_pos = 0;
 				kradlist->parse_state = TITLE;
-				printf("Parse state now title\n");
+				printkd ("Parse state now title\n");
 		
 			}
 			
 			if (xmlStrEqual (name, BAD_CAST "image")) {
 				kradlist->char_pos = 0;
 				kradlist->parse_state = IMAGE;
-				printf("Parse state now image\n");
+				printkd ("Parse state now image\n");
 		
 			}
 
 			if (xmlStrEqual (name, BAD_CAST "annotation")) {
 				kradlist->char_pos = 0;
 				kradlist->parse_state = DESCRIPTION;
-				printf("Parse state now DESCRIPTION/annotation\n");
+				printkd ("Parse state now DESCRIPTION/annotation\n");
 		
 			}
 		
 			if (xmlStrEqual (name, BAD_CAST "trackList")) {
 		
 				kradlist->parsing_in_list = 1;
-				printf("Now parsing in list\n");
+				printkd ("Now parsing in list\n");
 		
 			}
 		
@@ -276,7 +276,7 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 		
 				kradlist->parse_state = LOCATION;
 				kradlist->char_pos = 0;
-				printf("Parse state now LOCATION\n");
+				printkd ("Parse state now LOCATION\n");
 		
 			}
 		}
@@ -291,11 +291,11 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 				if (kradlist->parse_state == IMAGE) {
 					kradlist->char_pos = 0;
 					kradlist->parse_state = IMAGETITLE;
-					printf("Parse state now IMAGETITLE\n");
+					printkd ("Parse state now IMAGETITLE\n");
 				} else {
 					kradlist->char_pos = 0;
 					kradlist->parse_state = TITLE;
-					printf("Parse state now title\n");
+					printkd ("Parse state now title\n");
 				}
 				return;
 		
@@ -305,7 +305,7 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 				
 				kradlist->char_pos = 0;
 				kradlist->parse_state = IMAGE;
-				printf("Parse state now image\n");
+				printkd ("Parse state now image\n");
 				return;
 			}
 			
@@ -314,10 +314,10 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 				if (kradlist->parse_state == IMAGE) {
 					kradlist->char_pos = 0;
 					kradlist->parse_state = IMAGEURL;
-					printf("Parse state now IMAGEURL\n");
+					printkd ("Parse state now IMAGEURL\n");
 					kradlist->ignore_image = 1;
 				} else {
-					printf("unexpected url tag\n");
+					printkd ("unexpected url tag\n");
 				}
 				return;
 			}
@@ -325,13 +325,13 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 			if (xmlStrEqual (name, BAD_CAST "description")) {
 				kradlist->char_pos = 0;
 				kradlist->parse_state = DESCRIPTION;
-				printf("Parse state now DESCRIPTION\n");
+				printkd ("Parse state now DESCRIPTION\n");
 				return;
 			}
 			
 			if (kradlist->parse_state == IMAGE) {
 				kradlist->parse_state = IGNOREIMAGEEXTRATAGS;
-				printf("Parse state now IGNOREIMAGEEXTRATAGS\n");
+				printkd ("Parse state now IGNOREIMAGEEXTRATAGS\n");
 				return;
 			}
 			
@@ -339,7 +339,7 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 			if (xmlStrEqual (name, BAD_CAST "item")) {
 		
 				kradlist->parsing_in_list = 1;
-				printf("Now parsing in list\n");
+				printkd ("Now parsing in list\n");
 		
 			}
 			
@@ -359,7 +359,7 @@ static void krad_list_parse_start_element (krad_list_t *kradlist, const xmlChar 
 
 				attr = (char *) attrs[i + 1];
 
-				printf("Found %s\n", attr);
+				printkd ("Found %s\n", attr);
 
 				break;
 			}
@@ -377,7 +377,7 @@ static void krad_list_parse_error (krad_list_t *kradlist, const char *msg, ...)
 	vsnprintf (kradlist->error_message, sizeof (kradlist->error_message), msg, kradlist->ap);
 	va_end (kradlist->ap);
 	
-	printf("FAIL!! %s\n", kradlist->error_message);
+	printke ("FAIL!! %s\n", kradlist->error_message);
 }
 
 krad_list_t *krad_list_open_file(char *filename) {
@@ -392,15 +392,15 @@ krad_list_t *krad_list_open_file(char *filename) {
 
 	if (filename[0] == '-') {
 		if ((kradlist->fd = fileno(stdin)) == -1) {
-			printf("failed to open stdin");
+			printke ("failed to open stdin");
 		}
 	} else {
 		if ((kradlist->fd = open(filename, O_RDONLY)) == -1) {
-			printf("failed to open file");
+			printke ("failed to open file");
 		}
 	}
 
-	printf("fd is %d\n", kradlist->fd);
+	printke ("fd is %d\n", kradlist->fd);
 
     if (kradlist->fd > -1) {
         
@@ -408,7 +408,7 @@ krad_list_t *krad_list_open_file(char *filename) {
 		kradlist->ctxt = xmlCreatePushParserCtxt(&kradlist->handler, kradlist, kradlist->buffer, 0, NULL);
 
 		if (!kradlist->ctxt) {
-			printf("Failed to create Context\n");
+			printke ("Failed to create Context\n");
 		} else {
 		
 	        while ((kradlist->ret = read(kradlist->fd, kradlist->buffer, sizeof(kradlist->buffer))) > 0) {
@@ -522,7 +522,7 @@ krad_list_t *krad_list_create(krad_list_format_t format, char *title, char *desc
 void krad_list_add_item(krad_list_t *kradlist, char *title, char *link, char *description, char *date, char *image_url, char *size, char *type, char *duration) {
 
 	if ((kradlist->format == PODCAST) && (link == NULL)) {
-		printf("** UH OH, can't have podcast item with out a link!!\n");
+		printke ("** UH OH, can't have podcast item with out a link!!\n");
 		return;
 	}
 

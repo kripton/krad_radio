@@ -958,7 +958,7 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 	krad_transmitter->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
 	
 	if ((krad_transmitter->incoming_connections_sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-		printf("Krad Transmitter: system call socket error\n");
+		printke ("Krad Transmitter: system call socket error\n");
 		krad_transmitter->listening = 0;
 		krad_transmitter->port = 0;		
 		return 1;

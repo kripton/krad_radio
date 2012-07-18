@@ -223,7 +223,7 @@ void krad_x11_glx_wait_or_poll (krad_x11_t *krad_x11, int wait) {
 	}
 	
 	if ((wait) && (!krad_x11->event)) {
-		fprintf(stderr, "\n\ni/o error in xcb_wait_for_event\n\n");
+		printke ("\n\ni/o error in xcb_wait_for_event");
 		krad_x11->close_window = 1;
 	}
 	
@@ -335,8 +335,7 @@ krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int w
 	fb_configs = glXGetFBConfigs(krad_x11->display, krad_x11->screen_number, &num_fb_configs);
 	
 	if (!fb_configs || num_fb_configs == 0) {
-		fprintf(stderr, "glXGetFBConfigs failed\n");
-		exit(1);
+		failfast ("glXGetFBConfigs failed");
 	}
 
 	fb_config = fb_configs[0];
@@ -344,8 +343,7 @@ krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int w
 	krad_x11->context = glXCreateNewContext(krad_x11->display, fb_config, GLX_RGBA_TYPE, 0, True);
 	
 	if (!krad_x11->context) {
-		fprintf(stderr, "glXCreateNewContext failed\n");
-		exit(1);
+		failfast ("glXCreateNewContext failed");
 	}
 
 	krad_x11->colormap = xcb_generate_id (krad_x11->connection);
@@ -406,8 +404,7 @@ krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int w
 	if (!krad_x11->window) {
 		xcb_destroy_window (krad_x11->connection, krad_x11->window);
 		glXDestroyContext (krad_x11->display, krad_x11->context);
-		fprintf(stderr, "glXDestroyContext failed\n");
-		exit(1);
+		failfast ("glXDestroyContext failed");
 	}
 
 	krad_x11->drawable = krad_x11->glx_window;
@@ -416,8 +413,7 @@ krad_x11_t *krad_x11_create_glx_window (krad_x11_t *krad_x11, char *title, int w
 	if (!glXMakeContextCurrent(krad_x11->display, krad_x11->drawable, krad_x11->drawable, krad_x11->context)) {
 		xcb_destroy_window(krad_x11->connection, krad_x11->window);
 		glXDestroyContext(krad_x11->display, krad_x11->context);
-		fprintf(stderr, "glXMakeContextCurrent failed\n");
-		exit(1);
+		failfast ("glXMakeContextCurrent failed");
 	}
 	
 	krad_x11->pixels_size = krad_x11->height * krad_x11->width * 4;
@@ -466,8 +462,7 @@ krad_x11_t *krad_x11_create () {
 	int s;
 	
 	if ((krad_x11 = calloc (1, sizeof (krad_x11_t))) == NULL) {
-		fprintf(stderr, "krad_x11 mem alloc fail\n");
-		exit (1);
+		failfast ("krad_x11 mem alloc fail");
 	}
 
 
@@ -478,16 +473,14 @@ krad_x11_t *krad_x11_create () {
 		krad_x11->display = XOpenDisplay (0);
 	
 		if (!krad_x11->display) {
-			fprintf(stderr, "Can't open display\n");
-			exit(1);
+			failfast ("Can't open display");
 		}
 
 		krad_x11->connection = XGetXCBConnection (krad_x11->display);
 
 		if (!krad_x11->connection) {
 			XCloseDisplay (krad_x11->display);
-			fprintf(stderr, "Can't get xcb connection from display\n");
-			exit(1);
+			failfast ("Can't get xcb connection from display\n");
 		}
 
 		XSetEventQueueOwner (krad_x11->display, XCBOwnsEventQueue);
@@ -527,8 +520,7 @@ void krad_x11_enable_capture(krad_x11_t *krad_x11, int width, int height) {
 
 	if (krad_x11->shminfo.shmid == (uint32_t)-1) {
 		xcb_image_destroy(krad_x11->img);
-		printke ("shminfo fail\n");         
-		exit(1);
+		failfast ("shminfo fail");
 	}
 
 	krad_x11->shminfo.shmaddr = shmat(krad_x11->shminfo.shmid, 0, 0);
@@ -536,8 +528,7 @@ void krad_x11_enable_capture(krad_x11_t *krad_x11, int width, int height) {
 
 	if (krad_x11->img->data == (uint8_t *)-1) {
 		xcb_image_destroy(krad_x11->img);
-		printke ("xcb image fail\n");         
-		exit(1);
+		failfast ("xcb image fail");
 	}
 
 	krad_x11->shminfo.shmseg = xcb_generate_id(krad_x11->connection);
@@ -609,8 +600,7 @@ void krad_x11_test_capture(krad_x11_t *krad_x11) {
 
 	if (shminfo.shmid == (uint32_t)-1) {
 		xcb_image_destroy(img);
-		printke ("shminfo fail\n");         
-		exit(1);
+		failfast ("shminfo fail");
 	}
 
 	shminfo.shmaddr = shmat(shminfo.shmid, 0, 0);
@@ -618,8 +608,7 @@ void krad_x11_test_capture(krad_x11_t *krad_x11) {
 
 	if (img->data == (uint8_t *)-1) {
 		xcb_image_destroy(img);
-		printke ("xcb image fail\n");         
-		exit(1);
+		failfast ("xcb image fail");
 	}
 
 	shminfo.shmseg = xcb_generate_id(krad_x11->connection);

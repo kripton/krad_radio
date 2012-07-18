@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
+
 #include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_ring.h"

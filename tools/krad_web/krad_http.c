@@ -13,7 +13,7 @@ krad_http_client_t *krad_http_create_client(krad_http_t *krad_http) {
 
 }
 
-void krad_http_destroy_client(krad_http_t *krad_http, krad_http_client_t *client) {
+void krad_http_destroy_client (krad_http_t *krad_http, krad_http_client_t *client) {
 
 	//printf("Destroy client!!\n");
 	
@@ -207,12 +207,12 @@ void *krad_http_client_thread (void *arg) {
 	client->ret = read (client->sd, client->in_buffer + client->in_buffer_pos, BUFSIZE);		
 	
 	if (client->ret == 0 || client->ret == -1) {
-		printk("failed to read browser request\n");
+		printke ("failed to read browser request");
 		krad_http_destroy_client(client->krad_http, client);
 	}
 
 	
-	printf("Krad HTTP Request: %s\n", client->in_buffer);
+	printkd ("Krad HTTP Request: %s", client->in_buffer);
 	
 	while (client->in_buffer_pos <= 256) {
 	
@@ -273,7 +273,7 @@ void *krad_http_client_thread (void *arg) {
 		
 	}
 
-	printk ("Krad HTTP client fail\n");
+	printke ("Krad HTTP client fail");
 
 	krad_http_destroy_client (client->krad_http, client);
 	
@@ -284,7 +284,7 @@ void *krad_http_client_thread (void *arg) {
 
 void krad_http_server_destroy (krad_http_t *krad_http) {
 
-	printk ("krad_http Shutting Down\n");
+	printkd ("krad_http Shutting Down");
 
 	if (krad_http != NULL) {
 	
@@ -356,7 +356,7 @@ krad_http_t *krad_http_server_create (int port, int websocket_port) {
 		failfast ("krad_http port number error\n");
 	}
 	
-	printk ("Krad Web Starting Up on port %d\n", krad_http->port);
+	printk ("Krad Web Starting Up on port %d", krad_http->port);
 
 	krad_http->homedir = getenv ("HOME");
  	

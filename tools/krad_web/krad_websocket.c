@@ -28,7 +28,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
 	
-	printf ("Krad Websocket: %d bytes from browser: %s\n", len, value);
+	printkd ("Krad Websocket: %d bytes from browser: %s", len, value);
 
 	cJSON *cmd;
 	cJSON *part;
@@ -98,7 +98,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 		}		
 		
 		cJSON_Delete (cmd);
-		printk ("%s\n", out);
+		printkd ("%s", out);
 		free (out);
 	}
 
@@ -177,7 +177,7 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 
 void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
 
-	printf("add a portgroup called %s withe a volume of %f\n", portname, floatval);
+	printkd ("add a portgroup called %s withe a volume of %f", portname, floatval);
 
 	cJSON *msg;
 	
@@ -198,7 +198,7 @@ void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_da
 
 void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, char *controlname, float floatval) {
 
-	printf("set portgroup called %s control %s with a value %f\n", portname, controlname, floatval);
+	printkd ("set portgroup called %s control %s with a value %f", portname, controlname, floatval);
 	
 	cJSON *msg;
 	
@@ -300,11 +300,11 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 				case EBML_ID_KRAD_RADIO_UPTIME:
 					number = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
-					printk ("Uptime: %"PRIu64"", number);
+					printkd ("Uptime: %"PRIu64"", number);
 					break;
 				case EBML_ID_KRAD_RADIO_INFO:
 					krad_ebml_read_string (krad_ipc->krad_ebml, string, ebml_data_size);
-					printk ("%s", string);
+					printkd ("%s", string);
 					break;
 
 			}
@@ -322,7 +322,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					list_size = ebml_data_size;
 					i = 0;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep)) <= list_size)) {
-						printf("%d: %s\n", i, string);						
+						printkd ("%d: %s\n", i, string);						
 						krad_websocket_add_link (krad_ipc_session_data, krad_link_rep, i);
 						i++;
 						free (krad_link_rep);
@@ -334,24 +334,24 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					break;
 
 				default:
-					printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+					printkd ("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
 					break;
 			}
 
 			break;
 
 		case EBML_ID_KRAD_COMPOSITOR_MSG:
-			printf("krad_radio_gtk_ipc_handler got message from krad COMPOSITOR\n");
+			printkd ("krad_radio_gtk_ipc_handler got message from krad COMPOSITOR\n");
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
-			printf("krad_radio_gtk_ipc_handler got message from krad mixer\n");
+			printkd ("krad_radio_gtk_ipc_handler got message from krad mixer\n");
 //			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			
 			switch ( ebml_id ) {
 				case EBML_ID_KRAD_MIXER_CONTROL:
-					printf("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
+					printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
 					
@@ -362,7 +362,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					
 					break;	
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
-					printf("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
+					printkd ("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade )) <= list_size)) {
 						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade);
@@ -374,7 +374,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					break;
 				case EBML_ID_KRAD_MIXER_PORTGROUP:
 					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-					printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
+					printkd ("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
 					break;
 			}
 		
@@ -401,7 +401,7 @@ int ebml_frag_to_js (char *js_data, unsigned char *ebml_frag) {
 
 	a_number = krad_ebml_read_number_from_frag (&ebml_frag[ebml_frag_pos], ebml_data_size);
 
-	printf( "frag got %u %"PRIu64" - %"PRIu64"\n", ebml_id, ebml_data_size, a_number);
+	printkd ( "frag got %u %"PRIu64" - %"PRIu64"\n", ebml_id, ebml_data_size, a_number);
 	
 	
 	
@@ -432,7 +432,7 @@ void add_poll_fd (int fd, short events, int fd_is, krad_ipc_session_data_t *pss,
 	krad_websocket->pollfds[krad_websocket->count_pollfds].events = events;
 	krad_websocket->pollfds[krad_websocket->count_pollfds++].revents = 0;
 
-	printf("New %s FD %d, Total: %d\n", fd_text, fd, krad_websocket->count_pollfds);
+	printkd ("New %s FD %d, Total: %d", fd_text, fd, krad_websocket->count_pollfds);
 
 }
 
@@ -444,7 +444,7 @@ void set_poll_mode_fd (int fd, short events) {
 	for (n = 0; n < krad_websocket->count_pollfds; n++) {
 		if (krad_websocket->pollfds[n].fd == fd) {
 			krad_websocket->pollfds[n].events = events;
-			printf("poll fd was found!\n");
+			printkd ("poll fd was found!");
 		}
 	}
 
@@ -473,7 +473,7 @@ void del_poll_fd(user) {
 		}
 	}
 	
-	fprintf(stderr, "Removed FD %d, Total: %d\n", (int)(long)user, krad_websocket->count_pollfds);		
+	printkd ("Removed FD %d, Total: %d", (int)(long)user, krad_websocket->count_pollfds);		
 
 }
 
@@ -494,12 +494,12 @@ int callback_http (struct libwebsocket_context *this, struct libwebsocket *wsi,
 	switch (reason) {
 		/*
 		case LWS_CALLBACK_HTTP:
-			fprintf(stderr, "serving HTTP URI %s\n", (char *)in);
+			printke ("serving HTTP URI %s\n", (char *)in);
 
 			if (in && strncmp(in, "/favicon.ico", 12) == 0) {
 				if (libwebsockets_serve_http_file(wsi,
 					 "/favicon.ico", "image/x-icon"))
-					fprintf(stderr, "Failed to send favicon\n");
+					printke ("Failed to send favicon\n");
 				break;
 			}
 
@@ -507,7 +507,7 @@ int callback_http (struct libwebsocket_context *this, struct libwebsocket *wsi,
 
 			if (libwebsockets_serve_http_file(wsi,
 					  "/test.html", "text/html"))
-				fprintf(stderr, "Failed to send HTTP file\n");
+				printke (Failed to send HTTP file\n");
 			break;
 		*/
 		case LWS_CALLBACK_ADD_POLL_FD:
@@ -586,7 +586,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 			memcpy (p, in, len);
 		
-			printf("bcast happens\n");
+			printkd ("bcast happens\n");
 		
 			libwebsocket_write(wsi, p, len, LWS_WRITE_TEXT);
 			break;
@@ -601,7 +601,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 				memcpy (p, pss->msgstext, pss->msgstextlen + 1);
 				ret = libwebsocket_write(wsi, p, pss->msgstextlen, LWS_WRITE_TEXT);
 				if (ret < 0) {
-					fprintf(stderr, "krad_ipc ERROR writing to socket");
+					printke ("krad_ipc ERROR writing to socket");
 					return 1;
 				}
 				pss->krad_ipc_info = 0;
@@ -643,7 +643,7 @@ krad_websocket_t *krad_websocket_server_create (char *sysname, int port) {
 										   				   libwebsocket_internal_extensions, 
 										   				   NULL, NULL, -1, -1, 0);
 	if (krad_websocket->context == NULL) {
-		fprintf(stderr, "libwebsocket init failed\n");
+		printke ("libwebsocket init failed");
 		krad_websocket_server_destroy (krad_websocket);
 		return NULL;
 	}

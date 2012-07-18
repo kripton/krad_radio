@@ -44,8 +44,7 @@ void krad_slicer_sendto (krad_slicer_t *krad_slicer, unsigned char *data, int si
 	remote_client.sin_family = AF_INET;
 	
 	if (inet_pton(remote_client.sin_family, ip, &(remote_client.sin_addr)) != 1) {
-		fprintf(stderr, "inet_pton() failed\n");
-		exit(1);
+		failfast ("inet_pton() failed");
 	}
 
 	while (remaining) {
@@ -69,15 +68,14 @@ void krad_slicer_sendto (krad_slicer_t *krad_slicer, unsigned char *data, int si
 
 		memcpy (krad_slicer->data + 19, data + sent, payload_size);
 
-		//printf("track: %d slice: %d size: %d packet: %d range: %d - %d packet size: %d payload size: %d\n", 
+		//printk("track: %d slice: %d size: %d packet: %d range: %d - %d packet size: %d payload size: %d\n", 
 		//		track, krad_slicer->track_seq[track], size, packet, sent, sent + payload_size - 1, packet_size, payload_size);
 		
 		ret = sendto(krad_slicer->sd, krad_slicer->data, packet_size, 0, 
 					 (struct sockaddr *) &remote_client, sizeof(remote_client));
 		
 		if (ret != packet_size) {
-			printf("udp sending error\n");
-			exit(1);
+			failfast ("udp sending error");
 		}
 		
 		sent += payload_size;
@@ -134,8 +132,7 @@ void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data
 	int payload_start;
 	
 	if (memcmp(data, "KQN", 3) != 0) {
-		printf("krad packet error!\n");
-		exit(1);
+		failfast ("krad packet error!");
 	}
 	
 	// header|track number|sequence number|start_byte|total_bytes
@@ -149,7 +146,7 @@ void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data
 	//printf("packet size: %d track %d slice num %d slice size %d %s\n", length, track, slice_num, slice_size, data);
 
 	if (slice_num < krad_rebuilder->slice_position - 7) {
-		printf("krad packet too damn old\n");
+		printk ("krad packet too damn old\n");
 		return;
 	}
 	
@@ -173,8 +170,7 @@ void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data
 	}
 	
 	if (slice_size != krad_rebuilder->slices[s].size) {
-		printf("krad packet error2! %d\n", s);
-		exit(1);
+		failfast("krad packet error2! %d", s);
 	}
 	
 	memcpy (krad_rebuilder->slices[s].data + payload_start, data + KRAD_UDP_HEADER_SIZE, payload_size);
@@ -182,7 +178,7 @@ void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data
 
 	/*
 	if (krad_rebuilder->slices[s].fill == krad_rebuilder->slices[s].size) {
-		printf("slice %d recieved %d bytes\n", krad_rebuilder->slices[s].seq, krad_rebuilder->slices[s].size);
+		printkd("slice %d recieved %d bytes\n", krad_rebuilder->slices[s].seq, krad_rebuilder->slices[s].size);
 	}
 	*/
 
@@ -197,9 +193,9 @@ int krad_rebuilder_read_packet (krad_rebuilder_t *krad_rebuilder, unsigned char 
 	int s;
 	
 	if (krad_rebuilder->slice_read_position < (krad_rebuilder->slice_position - 5)) {
-		printf("fell behind and readjusted %d ", krad_rebuilder->slice_read_position);
+		printkd("fell behind and readjusted %d ", krad_rebuilder->slice_read_position);
 		krad_rebuilder->slice_read_position = krad_rebuilder->slice_position - 5;
-		printf("%d\n", krad_rebuilder->slice_read_position);
+		printkd("%d\n", krad_rebuilder->slice_read_position);
 	}
 
 	for (s = 0; s < krad_rebuilder->slice_count; s++) {

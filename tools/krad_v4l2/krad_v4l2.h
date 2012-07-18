@@ -20,6 +20,8 @@
 
 #include <turbojpeg.h>
 
+#include "krad_system.h"
+
 #define DEFAULT_V4L2_DEVICE "/dev/video0"
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))

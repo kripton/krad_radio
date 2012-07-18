@@ -323,7 +323,7 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland) {
 		//printf ("iterate happened %d\n", count);
 	}
 
-	printf ("Krad Wayland: window closing..\n");
+	printkd ("Krad Wayland: window closing..");
 	krad_wayland_destroy_window (krad_wayland);
 	krad_wayland_destroy_display (krad_wayland);
 

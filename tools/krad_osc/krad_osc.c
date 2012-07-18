@@ -101,7 +101,7 @@ int krad_osc_listen (krad_osc_t *krad_osc, int port) {
 	krad_osc->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
 	
 	if ((krad_osc->sd = socket (AF_INET, SOCK_DGRAM, 0)) < 0) {
-		printf("Krad OSC system call socket error\n");
+		printke ("Krad OSC system call socket error\n");
 		krad_osc->listening = 0;
 		krad_osc->port = 0;		
 		return 1;

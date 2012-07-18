@@ -160,8 +160,7 @@ int krad_io_stream_write(krad_io_t *krad_io, void *buffer, size_t length) {
 		bytes += send (krad_io->sd, buffer + bytes, length - bytes, 0);
 
 		if (bytes <= 0) {
-			fprintf(stderr, "Krad io Source: send Got Disconnected from server\n");
-			exit(1);
+			failfast ("Krad io Source: send Got Disconnected from server");
 		}
 	}
 	
@@ -183,12 +182,12 @@ int krad_io_stream_read(krad_io_t *krad_io, void *buffer, size_t length) {
 
 		if (bytes <= 0) {
 			if (bytes == 0) {
-				printf("Krad IO Stream Recv: Got EOF\n");
+				printkd ("Krad IO Stream Recv: Got EOF\n");
 				usleep (100000);
 				return total_bytes;
 			}
 			if (bytes < 0) {
-				printf("Krad IO Stream Recv: Got Disconnected\n");
+				printkd ("Krad IO Stream Recv: Got Disconnected\n");
 				return total_bytes;
 			}
 		}
@@ -215,12 +214,11 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 
 	http_string_pos = 0;
 
-	printf("Krad io: Connecting to %s:%d\n", krad_io->host, krad_io->port);
+	printkd ("Krad io: Connecting to %s:%d", krad_io->host, krad_io->port);
 
 	if ((krad_io->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		printf("Krad io Source: Socket Error\n");
-		exit(1);
+		printkd ("Krad io Source: Socket Error");
 	}
 
 	memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
@@ -233,9 +231,9 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 		hostp = gethostbyname(krad_io->host);
 		if(hostp == (struct hostent *)NULL)
 		{
-			printf("Krad io: Mount problem\n");
-			close(krad_io->sd);
-			exit(1);
+			printkd ("Krad io: Mount problem\n");
+			close (krad_io->sd);
+			exit (1);
 		}
 		memcpy(&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
 	}
@@ -243,16 +241,15 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 	// connect() to server. 
 	if((sent = connect(krad_io->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0)
 	{
-		printf("Krad io Source: Connect Error\n");
-		exit(1);
+		printkd ("Krad io Source: Connect Error");
 	} else {
 
 
 		if (krad_io->mode == KRAD_IO_READONLY) {
 	
-			sprintf(http_string, "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n", krad_io->mount, krad_io->host);
+			sprintf (http_string, "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n", krad_io->mount, krad_io->host);
 	
-			printf("%s\n", http_string);
+			printkd ("%s\n", http_string);
 	
 			krad_io_stream_write(krad_io, http_string, strlen(http_string));
 	
@@ -262,7 +259,7 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 	
 				krad_io_stream_read(krad_io, buf, 1);
 	
-				printf("%c", buf[0]);
+				printkd ("%c", buf[0]);
 	
 				if ((buf[0] == '\n') || (buf[0] == '\r')) {
 					end_http_headers++;
@@ -293,7 +290,7 @@ int krad_io_stream_open(krad_io_t *krad_io) {
 				strcpy(content_type, "video/webm");
 			}
 
-			sprintf(auth, "source:%s", krad_io->password );
+			sprintf (auth, "source:%s", krad_io->password );
 			krad_io_base64_encode( auth_base64, auth );
 			http_string_pos = sprintf( http_string, "SOURCE %s ICE/1.0\r\n", krad_io->mount);
 			http_string_pos += sprintf( http_string + http_string_pos, "content-type: %s\r\n", content_type);

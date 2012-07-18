@@ -12,6 +12,8 @@
 #include <wayland-client.h>
 #include <wayland-egl.h>
 
+#include "krad_wayland.h"
+
 #define KRAD_WAYLAND_BUFFER_COUNT 2
 
 typedef struct krad_wayland_St krad_wayland_t;

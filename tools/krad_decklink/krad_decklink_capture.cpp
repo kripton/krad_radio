@@ -127,7 +127,7 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 
 HRESULT DeckLinkCaptureDelegate::VideoInputFormatChanged(BMDVideoInputFormatChangedEvents events, IDeckLinkDisplayMode *mode, BMDDetectedVideoInputFormatFlags) {
 
-	printf("ruh oh! video format changed?!?\n");
+	//printf("ruh oh! video format changed?!?\n");
 
     return S_OK;
 }
@@ -152,14 +152,14 @@ krad_decklink_capture_t *krad_decklink_capture_create() {
 	krad_decklink_capture->deckLinkIterator = CreateDeckLinkIteratorInstance();
 	
 	if (!krad_decklink_capture->deckLinkIterator) {
-		printf("Krad Decklink: This application requires the DeckLink drivers installed.\n");
+		//printf("Krad Decklink: This application requires the DeckLink drivers installed.\n");
 		return 0;
 	}
 	
 	/* Connect to the first DeckLink instance */
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkIterator->Next(&krad_decklink_capture->deckLink);
 	if (krad_decklink_capture->result != S_OK) {
-		printf("Krad Decklink: No DeckLink PCI cards found.\n");
+		//printf("Krad Decklink: No DeckLink PCI cards found.\n");
 	}
 
 	return krad_decklink_capture;
@@ -186,7 +186,7 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
     
 	krad_decklink_capture->result = krad_decklink_capture->deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&krad_decklink_capture->deckLinkInput);
 	if (krad_decklink_capture->result != S_OK) {
-		printf("Krad Decklink: Fail QueryInterface\n");
+		//printf("Krad Decklink: Fail QueryInterface\n");
 	}
 
 	krad_decklink_capture->delegate = new DeckLinkCaptureDelegate();
@@ -195,20 +195,20 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
 
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->EnableVideoInput(krad_decklink_capture->display_mode, krad_decklink_capture->pixel_format, krad_decklink_capture->inputFlags);
 	if (krad_decklink_capture->result != S_OK) {
-		printf("Krad Decklink: Fail EnableVideoInput\n");
+		//printf("Krad Decklink: Fail EnableVideoInput\n");
 	}
 
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->EnableAudioInput(krad_decklink_capture->audio_sample_rate, krad_decklink_capture->audio_bit_depth, krad_decklink_capture->audio_channels);
 	if (krad_decklink_capture->result != S_OK) {
-		printf("Krad Decklink: Fail EnableAudioInput\n");
+		//printf("Krad Decklink: Fail EnableAudioInput\n");
 	}
 
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->StartStreams();
 	if (krad_decklink_capture->result != S_OK) {
-		printf("Krad Decklink: Fail StartStreams\n");
+		//printf("Krad Decklink: Fail StartStreams\n");
 	}
 	
-	printf("\n");
+	//printf("\n");
 
 }
 
@@ -218,19 +218,19 @@ void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture) 
     
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->StopStreams ();
 		if (krad_decklink_capture->result != S_OK) {
-			printf("Krad Decklink: Fail StopStreams\n");
+			//printf("Krad Decklink: Fail StopStreams\n");
 		}		
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->DisableVideoInput ();
 		if (krad_decklink_capture->result != S_OK) {
-			printf("Krad Decklink: Fail DisableVideoInput\n");
+			//printf("Krad Decklink: Fail DisableVideoInput\n");
 		}
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->DisableAudioInput ();
 		if (krad_decklink_capture->result != S_OK) {
-			printf("Krad Decklink: Fail DisableAudioInput\n");
+			//printf("Krad Decklink: Fail DisableAudioInput\n");
 		}
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->Release();
 		if (krad_decklink_capture->result != S_OK) {
-			printf("Krad Decklink: Fail Release\n");
+			//printf("Krad Decklink: Fail Release\n");
 		}
         krad_decklink_capture->deckLinkInput = NULL;
     }
@@ -244,7 +244,7 @@ void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture) 
 		krad_decklink_capture->deckLinkIterator->Release();
 	}
 	
-	printf("\n");
+	//printf("\n");
 
 	free(krad_decklink_capture);
 
@@ -268,23 +268,23 @@ void krad_decklink_capture_info () {
 	deckLinkIterator = CreateDeckLinkIteratorInstance();
 	
 	if (!deckLinkIterator) {
-		printf("Krad Decklink: This application requires the DeckLink drivers installed.\n");
+		//printf("Krad Decklink: This application requires the DeckLink drivers installed.\n");
 	}
 	
 	/* Connect to the first DeckLink instance */
 	result = deckLinkIterator->Next(&deckLink);
 	if (result != S_OK) {
-		printf("Krad Decklink: No DeckLink PCI cards found.\n");
+		//printf("Krad Decklink: No DeckLink PCI cards found.\n");
 	}
     
 	result = deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
 	if (result != S_OK) {
-		printf("Krad Decklink: Fail QueryInterface\n");
+		//printf("Krad Decklink: Fail QueryInterface\n");
 	}
 	
 	result = deckLinkInput->GetDisplayModeIterator(&displayModeIterator);
 	if (result != S_OK) {
-		printf("Krad Decklink: Could not obtain the video output display mode iterator - result = %08x\n", result);
+		//printf("Krad Decklink: Could not obtain the video output display mode iterator - result = %08x\n", result);
 	}
 
 
@@ -297,9 +297,9 @@ void krad_decklink_capture_info () {
 			BMDTimeValue frameRateDuration, frameRateScale;
 			displayMode->GetFrameRate(&frameRateDuration, &frameRateScale);
 
-			printf("%2d:  %-20s \t %li x %li \t %g FPS\n", 
-				displayModeCount, displayModeString, displayMode->GetWidth(), displayMode->GetHeight(), 
-				(double)frameRateScale / (double)frameRateDuration);
+			//printf("%2d:  %-20s \t %li x %li \t %g FPS\n", 
+			//	displayModeCount, displayModeString, displayMode->GetWidth(), displayMode->GetHeight(), 
+			//	(double)frameRateScale / (double)frameRateDuration);
 			
             free (displayModeString);
 			displayModeCount++;

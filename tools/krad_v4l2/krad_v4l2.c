@@ -186,8 +186,7 @@ void kradv4l2_read_frames (krad_v4l2_t *kradv4l2) {
 			}
 
 		    if (0 == r) {
-				fprintf (stderr, "select timeout\n");
-				exit (EXIT_FAILURE);
+				failfast ("select timeout");
 		    }
 
 			if (kradv4l2_read_frame (kradv4l2)) {
@@ -223,8 +222,7 @@ char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2) {
 	}
 
     if (0 == r) {
-		fprintf (stderr, "select timeout\n");
-		exit (EXIT_FAILURE);
+		failfast ("select timeout");
     }
 
 	return kradv4l2_read_frame_adv (kradv4l2);
@@ -256,8 +254,7 @@ char *kradv4l2_read_frame_wait (krad_v4l2_t *kradv4l2) {
 	}
 
     if (0 == r) {
-		fprintf (stderr, "select timeout\n");
-		exit (EXIT_FAILURE);
+		failfast ("select timeout\n");
     }
 
 	return kradv4l2_read_frame (kradv4l2);
@@ -380,7 +377,7 @@ void kradv4l2_init_read (krad_v4l2_t *kradv4l2, unsigned int buffer_size) {
     kradv4l2->buffers = calloc (1, sizeof (*kradv4l2->buffers));
 
     if (!kradv4l2->buffers) {
-		fprintf (stderr, "Out of memory\n");
+		failfast ("Out of memory");
 		exit (EXIT_FAILURE);
     }
 
@@ -388,8 +385,7 @@ void kradv4l2_init_read (krad_v4l2_t *kradv4l2, unsigned int buffer_size) {
 	kradv4l2->buffers[0].start = malloc (buffer_size);
 
 	if (!kradv4l2->buffers[0].start) {
-		fprintf (stderr, "Out of memory\n");
-		exit (EXIT_FAILURE);
+		failfast ("Out of memory");
 	}
 }
 
@@ -405,25 +401,22 @@ void kradv4l2_init_mmap (krad_v4l2_t *kradv4l2) {
 
 	if (-1 == xioctl (kradv4l2->fd, VIDIOC_REQBUFS, &req)) {
 		if (EINVAL == errno) {
-		    fprintf (stderr, "%s does not support memory mapping\n", kradv4l2->device);
-		    exit (EXIT_FAILURE);
+		    failfast ("%s does not support memory mapping", kradv4l2->device);
 		} else {
 		        errno_exit ("VIDIOC_REQBUFS");
 		}
 	}
 
 	if (req.count < 2) {
-		fprintf (stderr, "Insufficient buffer memory on %s\n", kradv4l2->device);
-		exit (EXIT_FAILURE);
+		failfast ("Insufficient buffer memory on %s\n", kradv4l2->device);
 	}
 
-	printf("v4l2 says %d buffers\n", req.count);
+	failfast ("v4l2 says %d buffers", req.count);
 
 	kradv4l2->buffers = calloc (req.count, sizeof (*kradv4l2->buffers));
 
 	if (!kradv4l2->buffers) {
-		fprintf (stderr, "Out of memory\n");
-		exit (EXIT_FAILURE);
+		failfast ("Out of memory");
 	}
 
 	for (kradv4l2->n_buffers = 0; kradv4l2->n_buffers < req.count; ++kradv4l2->n_buffers) {
@@ -465,8 +458,7 @@ void kradv4l2_init_userp (krad_v4l2_t *kradv4l2, unsigned int buffer_size) {
 
     if (-1 == xioctl (kradv4l2->fd, VIDIOC_REQBUFS, &req)) {
 		if (EINVAL == errno) {
-			fprintf (stderr, "%s does not support user pointer i/o\n", kradv4l2->device);
-			exit (EXIT_FAILURE);
+			failfast ("%s does not support user pointer i/o", kradv4l2->device);
 		} else {
 			errno_exit ("VIDIOC_REQBUFS");
 		}
@@ -475,8 +467,7 @@ void kradv4l2_init_userp (krad_v4l2_t *kradv4l2, unsigned int buffer_size) {
     kradv4l2->buffers = calloc (4, sizeof (*kradv4l2->buffers));
 
     if (!kradv4l2->buffers) {
-		fprintf (stderr, "Out of memory\n");
-		exit (EXIT_FAILURE);
+		failfast ("Out of memory");
     }
 
     for (kradv4l2->n_buffers = 0; kradv4l2->n_buffers < 4; ++kradv4l2->n_buffers) {
@@ -485,8 +476,7 @@ void kradv4l2_init_userp (krad_v4l2_t *kradv4l2, unsigned int buffer_size) {
 		kradv4l2->buffers[kradv4l2->n_buffers].start = memalign (page_size, buffer_size);
 
 		if (!kradv4l2->buffers[kradv4l2->n_buffers].start) {
-			fprintf (stderr, "Out of memory\n");
-			exit (EXIT_FAILURE);
+			failfast ("Out of memory");
 		}
 	}
 }
@@ -505,23 +495,20 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 
 	if (-1 == xioctl (kradv4l2->fd, VIDIOC_QUERYCAP, &cap)) {
 		if (EINVAL == errno) {
-			fprintf (stderr, "%s is no V4L2 device\n", kradv4l2->device);
-			exit (EXIT_FAILURE);
+			failfast ("%s is no V4L2 device", kradv4l2->device);
 		} else {
 			errno_exit ("VIDIOC_QUERYCAP");
 		}
 	}
 
 	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-		    fprintf (stderr, "%s is no video capture device\n", kradv4l2->device);
-		    exit (EXIT_FAILURE);
+		    failfast ("%s is no video capture device", kradv4l2->device);
 	}
 
 	switch (kradv4l2->io) {
 		case IO_METHOD_READ:
 			if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
-				fprintf (stderr, "%s does not support read i/o\n", kradv4l2->device);
-				exit (EXIT_FAILURE);
+				failfast ("%s does not support read i/o", kradv4l2->device);
 			}
 
 		break;
@@ -529,8 +516,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 		case IO_METHOD_MMAP:
 		case IO_METHOD_USERPTR:
 			if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-				fprintf (stderr, "%s does not support streaming i/o\n", kradv4l2->device);
-				exit (EXIT_FAILURE);
+				failfast ("%s does not support streaming i/o", kradv4l2->device);
 			}
 
 			break;
@@ -584,7 +570,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 	fourcc[4] = '\0';
 	memcpy(&fourcc, (char *)&fmt.fmt.pix.pixelformat, 4);
 
-	printf("V4L2: %ux%u FMT %s Stride: %u Size: %u\n", fmt.fmt.pix.width, fmt.fmt.pix.height, fourcc, 
+	printkd ("V4L2: %ux%u FMT %s Stride: %u Size: %u", fmt.fmt.pix.width, fmt.fmt.pix.height, fourcc, 
 														fmt.fmt.pix.bytesperline, fmt.fmt.pix.sizeimage);
 
 	struct v4l2_streamparm stream_parameters;
@@ -596,7 +582,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 		errno_exit ("VIDIOC_G_PARM");
 	}
 
-	printf("V4L2: G Frameinterval %u/%u\n", stream_parameters.parm.capture.timeperframe.numerator, 
+	printkd ("V4L2: G Frameinterval %u/%u", stream_parameters.parm.capture.timeperframe.numerator, 
 										  stream_parameters.parm.capture.timeperframe.denominator);
 	
 	stream_parameters.parm.capture.timeperframe.numerator = 1;
@@ -607,11 +593,11 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 		errno_exit ("VIDIOC_S_PARM");
 	}
 
-	printf("V4L2: S Frameinterval %u/%u\n", stream_parameters.parm.capture.timeperframe.numerator, 
+	printkd ("V4L2: S Frameinterval %u/%u", stream_parameters.parm.capture.timeperframe.numerator, 
 										  stream_parameters.parm.capture.timeperframe.denominator);
 										  
 	if (stream_parameters.parm.capture.timeperframe.denominator != kradv4l2->fps) {
-		printf("failed to get proper capture fps!\n");
+		printkd ("failed to get proper capture fps!");
 	}					
 	
 	
@@ -651,8 +637,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 
 void errno_exit (const char *s) {
 
-	fprintf (stderr, "%s error %d, %s\n", s, errno, strerror (errno));
-	exit (EXIT_FAILURE);
+	failfast ("%s error %d, %s", s, errno, strerror (errno));
 
 }
 
@@ -674,8 +659,7 @@ void kradv4l2_close (krad_v4l2_t *kradv4l2) {
 	close (kradv4l2->fd);
 
 	if (kradv4l2->fd == -1) {
-		fprintf (stderr, "error closing device");
-		exit (EXIT_FAILURE);
+		failfast ("error closing device");
 	}
 
 }
@@ -691,20 +675,17 @@ void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height, 
 	kradv4l2->fps = fps;
 	
 	if (-1 == stat (kradv4l2->device, &st)) {
-		fprintf (stderr, "Cannot identify '%s': %d, %s\n", kradv4l2->device, errno, strerror (errno));
-		exit (EXIT_FAILURE);
+		failfast ("Cannot identify '%s': %d, %s", kradv4l2->device, errno, strerror (errno));
 	}
 
 	if (!S_ISCHR (st.st_mode)) {
-		fprintf (stderr, "%s is no device\n", kradv4l2->device);
-		exit (EXIT_FAILURE);
+		failfast ("%s is no device", kradv4l2->device);
 	}
 
 	kradv4l2->fd = open (kradv4l2->device, O_RDWR | O_NONBLOCK, 0);
 
 	if (-1 == kradv4l2->fd) {
-		fprintf (stderr, "Cannot open '%s': %d, %s\n", kradv4l2->device, errno, strerror (errno));
-	    exit (EXIT_FAILURE);
+		failfast ("Cannot open '%s': %d, %s", kradv4l2->device, errno, strerror (errno));
 	}
 	
 	kradv4l2_init_device (kradv4l2);
@@ -816,7 +797,7 @@ void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, u
 						  stride, kradv4l2->height, TJPF_BGRA, 0 );
 
 	if (ret != 0) {
-		printf("JPEG decoding error: %s\n", tjGetErrorStr());
+		printke ("JPEG decoding error: %s\n", tjGetErrorStr());
 	}
 	/*
 	int fd;

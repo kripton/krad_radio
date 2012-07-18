@@ -833,8 +833,7 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 					if (frame_size_len > 1) {
 						ret = krad_ebml_read ( krad_ebml, &temp, frame_size_len - 1 );
 						if (ret != frame_size_len - 1) {
-							printf ("Krad EBML failure reading %d\n", ret);
-							exit (1);
+							failfast ("Krad EBML failure reading %d", ret);
 						}
 						block_bytes_read += ret;
 						
@@ -1020,8 +1019,7 @@ int krad_ebml_read_element_from_frag (unsigned char *ebml_frag, uint32_t *ebml_i
 	ebml_id_length = ebml_length ( byte );
 
 	if (ebml_id_length > 4) {
-		printf ("Krad EBML failure: EBML ID length > 4!\n");
-		exit (1);
+		failfast ("Krad EBML failure: EBML ID length > 4!");
 	}
 
 	//printf("id length is %u\n", ebml_id_length);
@@ -1107,7 +1105,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 
 	
 	if (!(ret = krad_ebml_read ( krad_ebml, &byte, 1 )) > 0) {
-		printf ("Krad EBML read failure %d\n", ret);
+		printke ("Krad EBML read failure %d", ret);
 		return 0;
 	}
 	
@@ -1122,7 +1120,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 	ebml_id_length = ebml_length ( byte );
 
 	if (ebml_id_length > 4) {
-		printf ("Krad EBML failure: EBML ID > 4!\n");
+		failfast ("Krad EBML failure: EBML ID > 4!");
 		exit (1);
 	}
 
@@ -1141,8 +1139,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 	// data size length
 	ret = krad_ebml_read ( krad_ebml, &byte, 1 );
 	if (ret != 1) {
-		printf ("Krad EBML failure reading data size length %d\n", ret);
-		exit (1);
+		failfast ("Krad EBML failure reading data size length %d", ret);
 	}
 	if (krad_ebml->tracks_size > 0) {
 		krad_ebml->tracks_pos += ret;
@@ -1154,8 +1151,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 	if (ebml_data_size_length > 1) {
 		ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size_length - 1 );
 		if (ret != ebml_data_size_length - 1) {
-			printf ("Krad EBML failure reading data %d\n", ret);
-			exit (1);
+			failfast ("Krad EBML failure reading data %d", ret);
 		}
 		if (krad_ebml->tracks_size > 0) {
 			krad_ebml->tracks_pos += ret;
@@ -1242,8 +1238,7 @@ uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size)
 
 	ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 	if (ret != ebml_data_size) {
-		printf ("Krad EBML failure reading a number %d %"PRIu64"\n", ret, ebml_data_size);
-		exit (1);
+		failfast ("Krad EBML failure reading a number %d %"PRIu64"", ret, ebml_data_size);
 	}
 
 	rmemcpy ( &number, &temp, ebml_data_size);
@@ -1263,8 +1258,7 @@ float krad_ebml_read_float (krad_ebml_t *krad_ebml, uint64_t ebml_data_size) {
 
 	ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 	if (ret != ebml_data_size) {
-		printf ("Krad EBML failure reading a float %d %"PRIu64"\n", ret, ebml_data_size);
-		exit (1);
+		failfast ("Krad EBML failure reading a float %d %"PRIu64"\n", ret, ebml_data_size);
 	}
 
 	rmemcpy ( &number, &temp, ebml_data_size);
@@ -1278,8 +1272,7 @@ uint64_t krad_ebml_read_string (krad_ebml_t *krad_ebml, char *string, uint64_t e
 
 	ret = krad_ebml_read ( krad_ebml, string, ebml_data_size );
 	if (ret != ebml_data_size) {
-		printf ("Krad EBML failure reading a string %d %"PRIu64"\n", ret, ebml_data_size);
-		exit (1);
+		failfast ("Krad EBML failure reading a string %d %"PRIu64"\n", ret, ebml_data_size);
 	}
 	string[ebml_data_size] = '\0';
 	return ebml_data_size + 1;
@@ -1400,8 +1393,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			if (ebml_data_size < sizeof(krad_ebml->tags)) {
 				ret = krad_ebml_read ( krad_ebml, krad_ebml->tags, ebml_data_size );
 				if (ret != ebml_data_size) {
-					printf("Krad EBML failure reading a tag name %d\n", ret);
-					exit (1);
+					failfast ("Krad EBML failure reading a tag name %d", ret);
 				}
 				krad_ebml->tags[ret] = '\0';
 				strcat(krad_ebml->tags, ": ");
@@ -1415,8 +1407,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			if (ebml_data_size < sizeof(krad_ebml->tags) + krad_ebml->tags_position) {
 				ret = krad_ebml_read ( krad_ebml, krad_ebml->tags + krad_ebml->tags_position, ebml_data_size );
 				if (ret != ebml_data_size) {
-					printf ("Krad EBML failure reading a tag string %d\n", ret);
-					exit (1);
+					failfast ("Krad EBML failure reading a tag string %d", ret);
 				}
 				krad_ebml->tags[ret + krad_ebml->tags_position] = '\0';
 				//printf("Got Tag! %s\n", krad_ebml->tags);
@@ -1451,8 +1442,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			&& (ebml_data_size < sizeof(string))) {
 			ret = krad_ebml_read ( krad_ebml, &string, ebml_data_size );
 			if (ret != ebml_data_size) {
-				printf("Krad EBML failure reading ... %d\n", ret);
-				exit(1);
+				failfast ("Krad EBML failure reading ... %d", ret);
 			}
 			if (krad_ebml->tracks_size > 0) {
 				krad_ebml->tracks_pos += ret;
@@ -1512,8 +1502,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			
 			ret = krad_ebml_read ( krad_ebml, krad_ebml->tracks[krad_ebml->current_track].codec_data, ebml_data_size );
 			if (ret != ebml_data_size) {
-				printf ("Krad EBML failure reading codec data %d\n", ret);
-				exit (1);
+				failfast ("Krad EBML failure reading codec data %d", ret);
 			} else {
 				//printf("read %d\n", ret);
 			}
@@ -1575,8 +1564,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			(ebml_id == EBML_ID_AUDIOBITDEPTH) || (ebml_id == EBML_ID_3D) || (ebml_id == EBML_ID_CLUSTER_TIMECODE)) {
 			ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 			if (ret != ebml_data_size) {
-				printf ("Krad EBML failure reading trackinfo item %d\n", ret);
-				exit (1);
+				failfast ("Krad EBML failure reading trackinfo item %d", ret);
 			}
 			if (krad_ebml->tracks_size > 0) {
 				krad_ebml->tracks_pos += ret;
@@ -1627,8 +1615,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			
 			ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
 			if (ret != ebml_data_size) {
-				printf ("Krad EBML failure reading Sample Rate %d\n", ret);
-				exit (1);
+				failfast ("Krad EBML failure reading Sample Rate %d", ret);
 			}
 			if (krad_ebml->tracks_size > 0) {
 				krad_ebml->tracks_pos += ret;
@@ -1689,15 +1676,15 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 void krad_ebml_print_ebml_header (struct ebml_header *ebml_head) {
 
-	printf ("EBML Header:\n");
-	printf ("EBML Version: %"PRIu64"\n", ebml_head->ebml_version.v.u);
-	printf ("EBML Read Version: %"PRIu64"\n", ebml_head->ebml_read_version.v.u);
-	printf ("EBML Max ID Length: %"PRIu64"\n", ebml_head->ebml_max_id_length.v.u);
-	printf ("EBML Max Size Length: %"PRIu64"\n", ebml_head->ebml_max_size_length.v.u);
-	printf ("EBML Doctype: %s\n", ebml_head->doctype.v.s);				
-	printf ("EBML Doctype Version: %"PRIu64"\n", ebml_head->doctype_version.v.u);
-	printf ("EBML Doctype Read Version: %"PRIu64"\n", ebml_head->doctype_read_version.v.u);
-	printf ("\n");
+	printk ("EBML Header:\n");
+	printk ("EBML Version: %"PRIu64"\n", ebml_head->ebml_version.v.u);
+	printk ("EBML Read Version: %"PRIu64"\n", ebml_head->ebml_read_version.v.u);
+	printk ("EBML Max ID Length: %"PRIu64"\n", ebml_head->ebml_max_id_length.v.u);
+	printk ("EBML Max Size Length: %"PRIu64"\n", ebml_head->ebml_max_size_length.v.u);
+	printk ("EBML Doctype: %s\n", ebml_head->doctype.v.s);				
+	printk ("EBML Doctype Version: %"PRIu64"\n", ebml_head->doctype_version.v.u);
+	printk ("EBML Doctype Read Version: %"PRIu64"\n", ebml_head->doctype_read_version.v.u);
+	printk ("\n");
 }
 
 int krad_ebml_check_ebml_header (struct ebml_header *ebml_head) {
@@ -1710,7 +1697,7 @@ int krad_ebml_check_ebml_header (struct ebml_header *ebml_head) {
 		return 1;
 	}
 	
-	printf ("Krad EBML can't read this EBML!\n");
+	printk ("Krad EBML can't read this EBML!");
 	krad_ebml_print_ebml_header (ebml_head);
 	
 	return 0;
@@ -2038,8 +2025,7 @@ int krad_ebml_streamio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t 
 		bytes += send (krad_ebml_io->sd, buffer + bytes, length - bytes, 0);
 
 		if (bytes <= 0) {
-			fprintf(stderr, "Krad EBML stream io write: Got Disconnected from server. bytes ret %d len %zu\n", bytes, length);
-			exit(1);
+			failfast ("Krad EBML stream io write: Got Disconnected from server. bytes ret %d len %zu", bytes, length);
 		}
 	}
 	
@@ -2058,8 +2044,7 @@ int krad_ebml_streamio_read(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t l
 		bytes += recv (krad_ebml_io->sd, buffer + bytes, length - bytes, 0);
 
 		if (bytes <= 0) {
-			fprintf(stderr, "Krad EBML Source: recv Got Disconnected from server\n");
-			exit(1);
+			failfast ("Krad EBML Source: recv Got Disconnected from server");
 		}
 	}
 	
@@ -2085,8 +2070,7 @@ int krad_ebml_streamio_open(krad_ebml_io_t *krad_ebml_io) {
 
 	if ((krad_ebml_io->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		printf ("Krad EBML Source: Socket Error\n");
-		exit (1);
+		failfast ("Krad EBML Source: Socket Error");
 	}
 
 	memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
@@ -2099,9 +2083,8 @@ int krad_ebml_streamio_open(krad_ebml_io_t *krad_ebml_io) {
 		hostp = gethostbyname(krad_ebml_io->host);
 		if(hostp == (struct hostent *)NULL)
 		{
-			printf ("Krad EBML: Mount problem\n");
 			close (krad_ebml_io->sd);
-			exit (1);
+			failfast ("Krad EBML: Mount problem");
 		}
 		memcpy(&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
 	}
@@ -2109,8 +2092,7 @@ int krad_ebml_streamio_open(krad_ebml_io_t *krad_ebml_io) {
 	// connect() to server. 
 	if((sent = connect(krad_ebml_io->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0)
 	{
-		printf ("Krad EBML Source: Connect Error\n");
-		exit (1);
+		failfast ("Krad EBML Source: Connect Error");
 	} else {
 
 

@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <limits.h>
 
+#include "krad_system.h"
 
 #ifndef KRAD_IO_H
 #define KRAD_IO_H

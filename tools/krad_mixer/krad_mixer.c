@@ -16,8 +16,7 @@ void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, krad_mixer_por
 		  ((portgroup1->direction == INPUT) || (portgroup2->direction == MIX)) &&
 		  (((portgroup1->io_type == MIXBUS) && (portgroup2->io_type == MIXBUS)) ||
 		   ((portgroup1->io_type != MIXBUS) && (portgroup2->io_type != MIXBUS))))) {
-		printf ("Invalid crossfade group!\n");
-		exit (1);
+		failfast ("Invalid crossfade group!");
 	}
 		
 	if (portgroup1->crossfade_group != NULL) {
@@ -83,8 +82,9 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
 		return get_fade_in (portgroup->crossfade_group->fade);
 	}
 	
-	printf ("failed to get portgroup for crossfade!\n");
-	exit (1);
+	failfast ("failed to get portgroup for crossfade!");
+
+	return 0;
 	
 }
 
@@ -263,8 +263,6 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 				portgroup->samples[c] = samples[portgroup->map[c]];
 			
 			}
-			
-			
 			break;
 		case KRAD_LINK:
 			if (portgroup->direction == INPUT) {
@@ -570,7 +568,7 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 		usleep(15000);
 	}
 
-	printf("Krad Mixer: Removing %d channel Portgroup %s\n", portgroup->channels, portgroup->sysname);
+	printkd("Krad Mixer: Removing %d channel Portgroup %s", portgroup->channels, portgroup->sysname);
 
 	for (c = 0; c < KRAD_MIXER_MAX_CHANNELS; c++) {
 		switch ( portgroup->io_type ) {
@@ -881,8 +879,7 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	krad_mixer_t *krad_mixer;
 
 	if ((krad_mixer = calloc (1, sizeof (krad_mixer_t))) == NULL) {
-		fprintf (stderr, "Krad Mixer memory alloc failure\n");
-		exit (1);
+		failfast ("Krad Mixer memory alloc failure");
 	}
 	
 	krad_mixer->name = strdup (name);
