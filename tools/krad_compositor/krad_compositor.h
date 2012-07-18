@@ -28,6 +28,13 @@ typedef struct krad_compositor_St krad_compositor_t;
 typedef struct krad_compositor_port_St krad_compositor_port_t;
 typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
 
+typedef struct krad_point_St krad_point_t;
+
+struct krad_point_St {
+	int x;
+	int y;
+};
+
 struct krad_compositor_snapshot_St {
 
 	krad_frame_t *krad_frame;
@@ -146,7 +153,13 @@ struct krad_compositor_St {
 	krad_text_t *krad_text;
 	int active_texts;
 
+	int enable_keystone;
+	krad_point_t quad[4];
+	cairo_matrix_t keystone;
+
 };
+
+void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, cairo_matrix_t *matrix);
 
 void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, int x, int y, int tickrate, 
 								 float scale, float opacity, float rotation, int red, int green, int blue, char *font);
