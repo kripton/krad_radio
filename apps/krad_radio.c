@@ -222,6 +222,13 @@ int main (int argc, char *argv[]) {
 			}			
 		
 			if (strncmp(argv[2], "xmms2", 5) == 0) {
+				if ((strncmp(argv[4], "play", 4) == 0) || (strncmp(argv[4], "pause", 5) == 0) ||
+					(strncmp(argv[4], "stop", 4) == 0) || (strncmp(argv[4], "next", 4) == 0) ||
+					(strncmp(argv[4], "prev", 4) == 0)) {
+					krad_ipc_mixer_portgroup_xmms2_cmd (client, argv[3], argv[4]);
+					return 0;
+				}
+
 				if (argc == 5) {
 					krad_ipc_mixer_bind_portgroup_xmms2 (client, argv[3], argv[4]);
 				}

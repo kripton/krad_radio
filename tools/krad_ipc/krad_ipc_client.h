@@ -60,6 +60,8 @@ struct krad_ipc_client_St {
 
 };
 
+void krad_ipc_mixer_portgroup_xmms2_cmd (krad_ipc_client_t *client, char *portgroupname, char *xmms2_cmd);
+
 void krad_radio_launch_daemon (char *sysname);
 
 void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int tickrate, 

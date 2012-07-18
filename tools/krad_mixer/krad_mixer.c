@@ -724,6 +724,36 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
 	return 0;
 }
 
+void krad_mixer_portgroup_xmms2_cmd (krad_mixer_t *krad_mixer, char *portgroupname, char *xmms2_cmd) {
+
+	krad_mixer_portgroup_t *portgroup;
+
+	portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
+
+	if (portgroup->krad_xmms != NULL) {
+		if (strncmp(xmms2_cmd, "play", 4) == 0) {
+			krad_xmms_playback_cmd (portgroup->krad_xmms, PLAY);
+			return;
+		}
+		if (strncmp(xmms2_cmd, "pause", 5) == 0) {
+			krad_xmms_playback_cmd (portgroup->krad_xmms, PAUSE);
+			return;
+		}
+		if (strncmp(xmms2_cmd, "stop", 4) == 0) {
+			krad_xmms_playback_cmd (portgroup->krad_xmms, STOP);
+			return;
+		}
+		if (strncmp(xmms2_cmd, "next", 4) == 0) {
+			krad_xmms_playback_cmd (portgroup->krad_xmms, NEXT);
+			return;
+		}
+		if (strncmp(xmms2_cmd, "prev", 4) == 0) {
+			krad_xmms_playback_cmd (portgroup->krad_xmms, PREV);
+			return;
+		}
+	}
+}
+
 void krad_mixer_bind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname, char *ipc_path) {
 
 	krad_mixer_portgroup_t *portgroup;
@@ -1041,6 +1071,33 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			} else {
 				krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 			}
+			break;
+
+		case EBML_ID_KRAD_MIXER_CMD_PORTGROUP_XMMS2_CMD:
+
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
+				printke ("hrm wtf3\n");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);		
+		
+		
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_XMMS2_CMD) {
+				printke ("hrm wtf2\n");
+			} else {
+				//printf("tag name size %zu\n", ebml_data_size);
+			}
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+
+			krad_mixer_portgroup_xmms2_cmd (krad_mixer, portgroupname, string);
+
 			break;
 			
 		case EBML_ID_KRAD_MIXER_CMD_BIND_PORTGROUP_XMMS2:

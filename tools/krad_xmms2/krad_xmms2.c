@@ -4,11 +4,11 @@ void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cm
 
 	switch (cmd) {
 		case PREV:
-			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, 1) );
+			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, -1) );
 			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
 			break;
 		case NEXT:
-			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, -1) );
+			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, 1) );
 			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
 			break;
 		case PAUSE:

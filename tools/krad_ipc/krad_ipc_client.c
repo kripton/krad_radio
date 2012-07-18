@@ -399,6 +399,25 @@ void krad_ipc_disable_linker_listen (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_mixer_portgroup_xmms2_cmd (krad_ipc_client_t *client, char *portgroupname, char *xmms2_cmd) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t bind;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_PORTGROUP_XMMS2_CMD, &bind);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_XMMS2_CMD, xmms2_cmd);
+	krad_ebml_finish_element (client->krad_ebml, bind);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_mixer_bind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname, char *ipc_path) {
 
 	//uint64_t ipc_command;
