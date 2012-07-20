@@ -1235,14 +1235,14 @@ void krad_compositor_set_resolution (krad_compositor_t *krad_compositor, int wid
 
 void krad_compositor_keystone_test (krad_compositor_t *krad_compositor) {
 
-	krad_compositor->quad[0].x = 222;
-	krad_compositor->quad[0].y = 222;
+	krad_compositor->quad[0].x = 250;
+	krad_compositor->quad[0].y = 50;
 	krad_compositor->quad[1].x = krad_compositor->width;
-	krad_compositor->quad[1].y = 0;
-	krad_compositor->quad[2].x = krad_compositor->width - 100;
+	krad_compositor->quad[1].y = 200;
+	krad_compositor->quad[2].x = krad_compositor->width;
 	krad_compositor->quad[2].y = krad_compositor->height - 100;
-	krad_compositor->quad[3].x = 100;
-	krad_compositor->quad[3].y = krad_compositor->height - 100;
+	krad_compositor->quad[3].x = 120;
+	krad_compositor->quad[3].y = krad_compositor->height - 90;
 
 	krad_compositor_create_keystone_matrix (krad_compositor->quad,
 											krad_compositor->width,

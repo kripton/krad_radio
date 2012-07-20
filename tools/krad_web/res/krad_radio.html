@@ -8,13 +8,25 @@
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="/krad_radio.js"></script>
 	<style>
-		body { font-family: Helvetica,sans-serif; }
+		body {
+			font-family: Helvetica,sans-serif; 
+			user-select: none; 
+			-moz-user-select: none;
+			color: #eee;
+			background-color: #505050;
+			margin: 35px;
+		}
 		a { text-decoration: none; }
+
+		button::-moz-focus-outer, ::-moz-focus-inner {
+			border: 1px solid transparent !important;
+		}
+
 		.kradmixer_control { height: 220px; float: left; margin: 20px; }
 		.volume_control { width: 220px; }
 		.crossfade_control { width: 300px; }
 		.kradlink_link { width: 80%; margin: 20px; padding: 10px; border: 1px solid black; }
-		.dtmf_pad { width: 114px; height: 114px; padding: 2px; }
+		.dtmf_pad { width: 254px; height: 230px; padding: 2px; }
 		.dtmf_button { user-select: none; -moz-user-select: none; -webkit-user-select: none; color: #FFFFFF; 
 					   background-color: #0000FF; text-align: center; width: 22px; height: 22px; margin: 2px;
 					   border: 1px solid grey; cursor: pointer; float: left; }
@@ -23,8 +35,125 @@
 						   background-color: #FF0000;  text-align: center; width: 22px; height: 22px; margin: 2px;
 						   border: 1px solid grey; cursor: pointer; float: left; }
 	</style>
+	
+	<style>
 
+		.krad_button {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(254,182,69,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(241,231,103,1) 0%,rgba(254,182,69,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(254,182,69,1);
+			border-left: 0px solid rgba(254,182,69,1);
+			border-right: 0.13em solid rgba(254,182,69,0.1);
+			border-bottom: 0.13em solid rgba(254,182,69,0.1);
 
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(254,182,69,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #111117;
+			background: radial-gradient(ellipse at center, rgba(241,231,103,1) 12%,rgba(254,182,69,1) 100%);
+			border-top: 0em solid rgba(254,182,69,1);
+			border-left: 0px solid rgba(254,182,69,1);
+			border-right: 0.13em solid rgba(254,182,69,1);
+			border-bottom: 0.13em solid rgba(254,182,69,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(254,182,69,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+
+		.krad_button2 {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(5,171,224,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 0%,rgba(5,171,224,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(5,171,224,1);
+			border-left: 0px solid rgba(5,171,224,1);
+			border-right: 0.13em solid rgba(5,171,224,0.1);
+			border-bottom: 0.13em solid rgba(5,171,224,0.1);
+
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(5,171,224,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button2:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 12%,rgba(5,171,224,1) 100%);
+			border-top: 0em solid rgba(5,171,224,1);
+			border-left: 0px solid rgba(5,171,224,1);
+			border-right: 0.13em solid rgba(5,171,224,1);
+			border-bottom: 0.13em solid rgba(5,171,224,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(5,171,224,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+
+		.button_wrap {
+			height: 50px;
+			float: left;
+		}
+
+	</style>
 	<style>
 /*
  * jQuery UI CSS Framework 1.8.18
@@ -481,8 +610,8 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
  *
  * http://docs.jquery.com/UI/Slider#theming
  */
-.ui-slider { position: relative; text-align: left; }
-.ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 3em; height: 1em; cursor: default; }
+.ui-slider {  box-shadow: rgba(4,2,19,0.4) 0px 1px 5px, inset rgba(54,52,19,1) 0px -33px 19px; background-color: #434343; border: 0px; position: relative; text-align: left; border-radius: 2px; }
+.ui-slider .ui-slider-handle { box-shadow: rgba(24,32,29,1) 0px 1px 5px; background-color: orange; border: 0px; border-radius: 2px; position: absolute; z-index: 2; width: 3em; height: 1em; cursor: default; }
 .ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; background-position: 0 0; }
 
 .ui-slider-horizontal { height: .8em; }
