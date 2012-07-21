@@ -261,10 +261,6 @@ void krad_radio_watchdog_launch (char *config_file) {
 
 }
 
-void krad_radio_watchdog_read_config (char *config_file) {
-	usleep (1000000);
-}
-
 void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 	
 	krad_ipc_client_t *client;
@@ -290,6 +286,38 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 		exit (EXIT_SUCCESS);
 	}
 	wait (NULL);
+
+	usleep (4000000);
+
+}
+
+void krad_radio_watchdog_read_config (krad_radio_watchdog_t *krad_radio_watchdog, char *config_file) {
+
+	int ret;
+	char station[80];
+	char script[768];
+	FILE *config;
+
+	config = NULL;
+
+	config = fopen (config_file, "r");
+
+	if (config != NULL) {
+
+		while (1) {
+			ret = fscanf (config, "%s %s", station, script);
+			if (ret < 1) {
+				break;
+			}
+			krad_radio_watchdog->stations[krad_radio_watchdog->count] = strdup (station);
+			if (ret == 2) {
+				krad_radio_watchdog->launch_scripts[krad_radio_watchdog->count] = strdup (script);
+			}
+
+			krad_radio_watchdog->count++;
+		}
+		fclose (config);
+	}
 }
 
 void krad_radio_watchdog (char *config_file) {
@@ -297,20 +325,24 @@ void krad_radio_watchdog (char *config_file) {
 	/* Emma the Dog */
 
 	int d;
-	int count;
 
-	count = 1;
+	krad_radio_watchdog_t *krad_radio_watchdog;
 
-	krad_radio_watchdog_read_config (config_file);
+	krad_radio_watchdog = calloc (1, sizeof(krad_radio_watchdog_t));
 
-	char *temp_sysname = "radiotest";
+	krad_radio_watchdog_read_config (krad_radio_watchdog, config_file);
 
 	while (1) {
-		for (d = 0; d < count; d++) {
-			krad_radio_watchdog_check_daemon (temp_sysname, "/home/oneman/kode/test_station.rb");
+		for (d = 0; d < krad_radio_watchdog->count; d++) {
+			krad_radio_watchdog_check_daemon (krad_radio_watchdog->stations[d],
+											  krad_radio_watchdog->launch_scripts[d]);
+			usleep (200000);
 		}
-		usleep (1000000);
+		usleep (2000000);
 	}
+
+	free (krad_radio_watchdog);
+
 }
 
 void krad_ipc_get_portgroups (krad_ipc_client_t *client) {

@@ -37,6 +37,14 @@
 #define KRAD_IPC_DOCTYPE_READ_VERSION 6
 #define EBML_ID_KRAD_IPC_CMD 0x4444
 
+typedef struct krad_radio_watchdog_St krad_radio_watchdog_t;
+
+struct krad_radio_watchdog_St {
+	int count;
+	char *stations[1024];
+	char *launch_scripts[1024];
+};
+
 typedef struct krad_ipc_client_St krad_ipc_client_t;
 
 struct krad_ipc_client_St {
