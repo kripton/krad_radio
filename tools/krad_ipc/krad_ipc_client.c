@@ -44,7 +44,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 	}
 	
 	if (krad_ipc_client_init (client) == 0) {
-		failfast ("Krad IPC Client: Failed to init!\n");
+		printke ("Krad IPC Client: Failed to init!");
 		krad_ipc_disconnect (client);
 		return NULL;
 	}
@@ -163,11 +163,154 @@ void krad_radio_launch_daemon (char *sysname) {
 	}
 
 	if (pid > 0) {
+		if (waitpid(pid, NULL, 0) != pid) {
+			failfast ("waitpid error launching daemon!");
+		}
 		return;
+	}
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		exit (0);
 	}
 
 	execlp ("krad_radio_daemon", "krad_radio_daemon", sysname, (char *)NULL);
 
+}
+
+void krad_radio_watchdog_run_script (char *filename) {
+
+	pid_t pid;
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		if (waitpid(pid, NULL, 0) != pid) {
+			failfast ("waitpid error launching daemon!");
+		}
+		return;
+	}
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		exit (0);
+	}
+
+	execl (filename, filename, (char *)NULL);
+
+}
+
+void krad_radio_watchdog_launch (char *config_file) {
+
+	pid_t sid, pid;
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		if (waitpid(pid, NULL, 0) != pid) {
+			failfast ("waitpid error launching daemon!");
+		}
+		return;
+	}
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		exit (0);
+	}
+
+	//close (STDIN_FILENO);
+	//close (STDOUT_FILENO);
+	//close (STDERR_FILENO);
+
+	umask(0);
+ 
+	sid = setsid();
+	
+	if (sid < 0) {
+		exit(EXIT_FAILURE);
+	}
+
+	if ((chdir("/")) < 0) {
+		exit(EXIT_FAILURE);
+	}
+
+	krad_radio_watchdog (config_file);
+
+}
+
+void krad_radio_watchdog_read_config (char *config_file) {
+	usleep (1000000);
+}
+
+void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
+	
+	krad_ipc_client_t *client;
+	client = NULL;
+
+	if (fork() == 0) {
+		if (fork() == 0) {
+			client = NULL;
+			client = krad_ipc_connect (sysname);
+	
+			if (client != NULL) {
+				krad_ipc_disconnect (client);
+				client = NULL;
+			} else {
+				if (launch_script != NULL) {
+					krad_radio_watchdog_run_script (launch_script);
+				} else {
+					krad_radio_launch_daemon (sysname);
+				}
+			}
+			exit (EXIT_SUCCESS);
+		}
+		exit (EXIT_SUCCESS);
+	}
+	wait (NULL);
+}
+
+void krad_radio_watchdog (char *config_file) {
+
+	/* Emma the Dog */
+
+	int d;
+	int count;
+
+	count = 1;
+
+	krad_radio_watchdog_read_config (config_file);
+
+	char *temp_sysname = "radiotest";
+
+	while (1) {
+		for (d = 0; d < count; d++) {
+			krad_radio_watchdog_check_daemon (temp_sysname, "/home/oneman/kode/test_station.rb");
+		}
+		usleep (1000000);
+	}
 }
 
 void krad_ipc_get_portgroups (krad_ipc_client_t *client) {

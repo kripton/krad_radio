@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
+#include <sys/wait.h>
 
 #include <pthread.h>
 
@@ -59,6 +60,9 @@ struct krad_ipc_client_St {
 	int nowait;
 
 };
+
+void krad_radio_watchdog (char *config_file);
+void krad_radio_watchdog_launch (char *config_file);
 
 void krad_ipc_mixer_portgroup_xmms2_cmd (krad_ipc_client_t *client, char *portgroupname, char *xmms2_cmd);
 

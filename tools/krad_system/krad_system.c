@@ -124,15 +124,15 @@ uint64_t krad_system_daemon_uptime () {
 void failfast (char* format, ...) {
 
 	va_list args;
-
-	printf ("***ERROR! FAILURE!\n");
-	va_start(args, format);
-	vfprintf(stdout, format, args);
-	va_end(args);
-	printf ("\n");
-	fflush (stdout);
-	exit (1);
-	
+	if (verbose) {
+		printf ("***ERROR! FAILURE!\n");
+		va_start(args, format);
+		vfprintf(stdout, format, args);
+		va_end(args);
+		printf ("\n");
+		fflush (stdout);
+		exit (1);
+	}
 }
 
 void printke (char* format, ...) {

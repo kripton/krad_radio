@@ -1292,7 +1292,7 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
 	//krad_compositor_start_ticker (krad_compositor);
 	
-	krad_compositor->enable_keystone = 1;
+	krad_compositor->enable_keystone = 0;
 
 	if (krad_compositor->enable_keystone) {
 		krad_compositor_keystone_test (krad_compositor);

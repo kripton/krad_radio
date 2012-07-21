@@ -26,6 +26,11 @@ int main (int argc, char *argv[]) {
 	
 	if (argc > 2) {
 
+		if ((strncmp(argv[1], "watchdog", 8) == 0) || (strncmp(argv[1], "dog", 3) == 0)) {
+			krad_radio_watchdog_launch (argv[2]);
+			return 0;
+		}
+
 		if (!krad_valid_host_and_port (argv[1])) {
 			if (!krad_valid_sysname(argv[1])) {
 				failfast ("");
