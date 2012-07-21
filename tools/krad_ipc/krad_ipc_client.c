@@ -241,6 +241,9 @@ void krad_radio_watchdog_launch (char *config_file) {
 		exit (0);
 	}
 
+	freopen("/dev/null", "r", stdin);
+	freopen("/dev/null", "w", stdout);
+	freopen("/dev/null", "w", stderr);
 	//close (STDIN_FILENO);
 	//close (STDOUT_FILENO);
 	//close (STDERR_FILENO);
