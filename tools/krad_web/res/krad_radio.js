@@ -117,7 +117,7 @@ Kradwebsocket.prototype.on_error = function(evt) {
 }
 
 Kradwebsocket.prototype.debug = function(message) {
-	console.log (message);
+	//console.log (message);
 }
 
 Kradwebsocket.prototype.on_message = function(evt) {
@@ -218,9 +218,9 @@ Kradradio.prototype.update_portgroup = function (portgroup_name, control_name, v
 	
 	var JSONcmd = JSON.stringify(cmd); 
 
-	kradwebsocket.send (JSONcmd);
+	kradwebsocket.send(JSONcmd);
 
-	console.log (JSONcmd);
+	kradwebsocket.debug(JSONcmd);
 }
 
 Kradradio.prototype.push_dtmf = function (value) {
@@ -232,14 +232,14 @@ Kradradio.prototype.push_dtmf = function (value) {
 	
 	var JSONcmd = JSON.stringify(cmd); 
 
-	kradwebsocket.send (JSONcmd);
+	kradwebsocket.send(JSONcmd);
 
-	console.log (JSONcmd);
+	kradwebsocket.debug(JSONcmd);
 }
 
 Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
 
-	console.log ("update portgroup " + portgroup_name + " " + value);
+	kradwebsocket.debug("update portgroup " + portgroup_name + " " + value);
 
 	if ($('#' + portgroup_name)) {
 		if (control_name == "volume") {
@@ -384,7 +384,7 @@ Kradradio.prototype.update_link = function (link_num, control_name, value) {
 
 	kradwebsocket.send (JSONcmd);
 
-	console.log (JSONcmd);
+	kradwebsocket.debug(JSONcmd);
 }
 	
 
