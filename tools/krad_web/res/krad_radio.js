@@ -427,7 +427,7 @@ Kradradio.prototype.got_add_link = function (link) {
 			
 			
 			
-			frame_size_controls = '<div id="radio">\
+			frame_size_controls = '<div id="link_' + link.link_num + '_opus_frame_size_setting">\
 				<input type="radio" id="radio1" name="link_' + link.link_num + '_opus_frame_size" value="120"/><label for="radio1">120</label>\
 				<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" value="240"/><label for="radio2">240</label>\
 				<input type="radio" id="radio3" name="link_' + link.link_num + '_opus_frame_size" value="480"/><label for="radio3">480</label>\
@@ -439,13 +439,15 @@ Kradradio.prototype.got_add_link = function (link) {
 			$('#link_' + link.link_num).append(frame_size_controls);
 
 			$("input[name=link_" + link.link_num + "_opus_frame_size][value=" + link.opus_frame_size + "]").attr('checked', 'checked');
-			
+
+			$('#link_' + link.link_num + '_opus_frame_size_setting').buttonset();			
+
 			$( "input[name=link_" + link.link_num + "_opus_frame_size]" ).bind( "change", function(event, ui) {
 				var valu = $('input[name=link_' + link.link_num + '_opus_frame_size]:checked').val();
 				kradradio.update_link (link.link_num, "opus_frame_size", parseInt (valu));
 			});
 
-			signal_controls = '<h5>Opus Signal Type: </h5><div id="radios">\
+			signal_controls = '<h5>Opus Signal Type: </h5><div id="link_' + link.link_num + '_opus_signal_setting">\
 				<input type="radio" id="radio7" name="link_' + link.link_num + '_opus_signal" value="OPUS_AUTO"/><label for="radio7">Auto</label>\
 				<input type="radio" id="radio8" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_VOICE"/><label for="radio8">Voice</label>\
 				<input type="radio" id="radio9" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_MUSIC"/><label for="radio9">Music</label>\
@@ -455,13 +457,15 @@ Kradradio.prototype.got_add_link = function (link) {
 
 			$("input[name=link_" + link.link_num + "_opus_signal][value=" + link.opus_signal + "]").attr('checked', 'checked');
 			
+			$('#link_' + link.link_num + '_opus_signal_setting').buttonset();
+
 			$( "input[name=link_" + link.link_num + "_opus_signal]" ).bind( "change", function(event, ui) {
 				var valus = $('input[name=link_' + link.link_num + '_opus_signal]:checked').val();
 				kradradio.update_link (link.link_num, "opus_signal", valus);
 			});	
 			
 			
-			bandwidth_controls = '<h5>Opus Audio Bandwidth: </h5><div id="radiob">\
+			bandwidth_controls = '<h5>Opus Audio Bandwidth: </h5><div id="link_' + link.link_num + '_opus_bandwidth_setting">\
 				<input type="radio" id="radio10" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_AUTO"/><label for="radio10">Auto</label>\
 				<input type="radio" id="radio11" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_NARROWBAND"/><label for="radio11">Narrowband</label>\
 				<input type="radio" id="radio12" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_MEDIUMBAND"/><label for="radio12">Mediumband</label>\
@@ -474,6 +478,8 @@ Kradradio.prototype.got_add_link = function (link) {
 
 			$("input[name=link_" + link.link_num + "_opus_bandwidth][value=" + link.opus_bandwidth + "]").attr('checked', 'checked');
 			
+			$('#link_' + link.link_num + '_opus_bandwidth_setting').buttonset();
+
 			$( "input[name=link_" + link.link_num + "_opus_bandwidth]" ).bind( "change", function(event, ui) {
 				var valub = $('input[name=link_' + link.link_num + '_opus_bandwidth]:checked').val();
 				kradradio.update_link (link.link_num, "opus_bandwidth", valub);
