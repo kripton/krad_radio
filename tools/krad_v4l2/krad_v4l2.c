@@ -411,7 +411,7 @@ void kradv4l2_init_mmap (krad_v4l2_t *kradv4l2) {
 		failfast ("Insufficient buffer memory on %s\n", kradv4l2->device);
 	}
 
-	failfast ("v4l2 says %d buffers", req.count);
+	printke ("v4l2 says %d buffers", req.count);
 
 	kradv4l2->buffers = calloc (req.count, sizeof (*kradv4l2->buffers));
 
@@ -590,7 +590,8 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 
 
 	if (-1 == xioctl (kradv4l2->fd, VIDIOC_S_PARM, &stream_parameters)) {
-		errno_exit ("VIDIOC_S_PARM");
+		printke ("unable to set stream parameters as speced");
+		printke ("error %d, %s", errno, strerror (errno));
 	}
 
 	printkd ("V4L2: S Frameinterval %u/%u", stream_parameters.parm.capture.timeperframe.numerator, 

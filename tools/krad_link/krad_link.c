@@ -789,9 +789,9 @@ void *stream_output_thread (void *arg) {
 	if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 
 		if (krad_link->audio_codec == OPUS) {
-			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / krad_link->capture_fps;
+			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / DEFAULT_FPS;
 		} else {
-			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / krad_link->capture_fps;
+			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / DEFAULT_FPS;
 			//audio_frames_per_video_frame = 1602;
 		}
 	}
@@ -2182,7 +2182,7 @@ krad_link_t *krad_link_create (int linknum) {
 	krad_link_t *krad_link;
 	
 	krad_link = calloc (1, sizeof(krad_link_t));
-		
+
 	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
 
 	krad_link->encoding_fps_numerator = -1;
