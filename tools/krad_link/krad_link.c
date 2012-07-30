@@ -2184,10 +2184,6 @@ krad_link_t *krad_link_create (int linknum) {
 	krad_link = calloc (1, sizeof(krad_link_t));
 		
 	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
-	
-	krad_link->capture_width = DEFAULT_CAPTURE_WIDTH;
-	krad_link->capture_height = DEFAULT_CAPTURE_HEIGHT;
-	krad_link->capture_fps = DEFAULT_FPS;
 
 	krad_link->encoding_fps_numerator = -1;
 	krad_link->encoding_fps_denominator = -1;
@@ -2240,6 +2236,10 @@ void krad_link_activate (krad_link_t *krad_link) {
 	if (krad_link->operation_mode == CAPTURE) {
 
 		krad_link->channels = 2;
+
+		krad_link->capture_width = krad_link->composite_width;
+		krad_link->capture_height = krad_link->composite_height;
+		krad_link->capture_fps = DEFAULT_FPS;
 
 		for (c = 0; c < krad_link->channels; c++) {
 			krad_link->audio_capture_ringbuffer[c] = krad_ringbuffer_create (2000000);		

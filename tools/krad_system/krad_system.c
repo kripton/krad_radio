@@ -30,6 +30,33 @@ void krad_system_monitor_cpu_off () {
 	}
 }
 
+void krad_system_log_on (char *filename) {
+
+	if (krad_system.log_fd > 0) {
+		krad_system_log_off ();
+	}
+
+	pthread_mutex_lock (&krad_system.log_lock);
+	krad_system.log_fd = open (filename, O_WRONLY | O_CREAT | O_EXCL);
+	if (krad_system.log_fd > 0) {
+		dprintf (krad_system.log_fd, "Logging started\n");
+	} else {
+		failfast ("frak");
+	}
+	pthread_mutex_unlock (&krad_system.log_lock);
+}
+
+void krad_system_log_off () {
+
+	pthread_mutex_lock (&krad_system.log_lock);
+	if (krad_system.log_fd > 0) {
+		close (krad_system.log_fd);
+		krad_system.log_fd = 0;
+	}
+	pthread_mutex_unlock (&krad_system.log_lock);
+
+}
+
 void *krad_system_monitor_cpu_thread (void *arg) {
 
 	krad_system_cpu_monitor_t *kcm;
@@ -124,28 +151,31 @@ uint64_t krad_system_daemon_uptime () {
 void failfast (char* format, ...) {
 
 	va_list args;
-	if (verbose) {
-		printf ("***ERROR! FAILURE!\n");
+	if ((verbose) && (krad_system.log_fd > 0)) {
+		pthread_mutex_lock (&krad_system.log_lock);
+		dprintf (krad_system.log_fd, "\n***ERROR! FAILURE!\n");
 		va_start(args, format);
-		vfprintf(stdout, format, args);
+		vdprintf(krad_system.log_fd, format, args);
 		va_end(args);
-		printf ("\n");
-		fflush (stdout);
-		exit (1);
+		dprintf (krad_system.log_fd, "\n");
+		pthread_mutex_unlock (&krad_system.log_lock);
+		krad_system_log_off ();
 	}
+	exit (1);
 }
 
 void printke (char* format, ...) {
 
 	va_list args;
 
-	if (verbose) {
-		printf ("***ERROR!\n");
-
+	if ((verbose) && (krad_system.log_fd > 0)) {
+		pthread_mutex_lock (&krad_system.log_lock);		
+		dprintf (krad_system.log_fd, "***ERROR!: ");
 		va_start(args, format);
-		vfprintf(stdout, format, args);
+		vdprintf(krad_system.log_fd, format, args);
 		va_end(args);
-		printf ("\n");
+		dprintf (krad_system.log_fd, "\n");
+		pthread_mutex_unlock (&krad_system.log_lock);
 	}
 }
 
@@ -153,11 +183,13 @@ void printkd (char* format, ...) {
 
 	va_list args;
 
-	if (verbose) {
+	if ((verbose) && (krad_system.log_fd > 0)) {
+		pthread_mutex_lock (&krad_system.log_lock);
 		va_start(args, format);
-		vfprintf(stdout, format, args);
+		vdprintf(krad_system.log_fd, format, args);
 		va_end(args);
-		printf ("\n");		
+		dprintf (krad_system.log_fd, "\n");
+		pthread_mutex_unlock (&krad_system.log_lock);
 	}
 }
 
@@ -165,11 +197,13 @@ void printk (char* format, ...) {
 
 	va_list args;
 
-	if (verbose) {
+	if ((verbose) && (krad_system.log_fd > 0)) {
+		pthread_mutex_lock (&krad_system.log_lock);
 		va_start(args, format);
-		vfprintf(stdout, format, args);
+		vdprintf(krad_system.log_fd, format, args);
 		va_end(args);
-		printf ("\n");
+		dprintf (krad_system.log_fd, "\n");
+		pthread_mutex_unlock (&krad_system.log_lock);
 	}
 }
 
@@ -181,6 +215,7 @@ void krad_system_init () {
 		krad_system.kcm.interval = KRAD_CPU_MONITOR_INTERVAL;
 		do_shutdown = 0;
 		verbose = 0;
+		pthread_mutex_init (&krad_system.log_lock, NULL);
 		krad_system_info_collect ();
 	  	srand (time(NULL));
 	}

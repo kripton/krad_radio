@@ -60,7 +60,7 @@ struct krad_system_cpu_monitor_St {
 	int on;	
 	
 	pthread_t monitor_thread;
-	
+
 };
 
 struct krad_system_St {
@@ -73,8 +73,15 @@ struct krad_system_St {
 	krad_system_cpu_monitor_t kcm;
 	struct utsname unix_info;
 	time_t krad_start_time;
-	uint64_t uptime;	
+	uint64_t uptime;
+
+	int log_fd;
+	pthread_mutex_t log_lock;
+
 };
+
+void krad_system_log_on (char *filename);
+void krad_system_log_off ();
 
 void krad_system_set_monitor_cpu_interval (int ms);
 void *krad_system_monitor_cpu_thread (void *arg);

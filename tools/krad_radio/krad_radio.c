@@ -204,6 +204,12 @@ static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir ) {
 		krad_compositor_set_dir (krad_radio_station->krad_compositor, krad_radio_station->dir);
 	}
 
+	//TEMP
+	char logfilename[1024];
+	sprintf (logfilename, "%s/%s_%zu.log", dir, krad_radio_station->sysname, time (NULL));
+	verbose = 1;
+	krad_system_log_on (logfilename);
+
 }
 
 
@@ -439,7 +445,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return 1;
 			
 		case EBML_ID_KRAD_RADIO_CMD_SET_DIR:
-			
+
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_RADIO_DIR) {
