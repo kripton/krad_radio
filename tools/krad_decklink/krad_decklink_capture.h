@@ -4,6 +4,12 @@
 typedef struct krad_decklink_capture_St krad_decklink_capture_t;
 
 #ifdef __cplusplus
+extern "C" {
+#include "krad_system.h"
+}
+#endif
+
+#ifdef __cplusplus
 
 #include "DeckLinkAPI.h"
 #define __STDC_FORMAT_MACROS

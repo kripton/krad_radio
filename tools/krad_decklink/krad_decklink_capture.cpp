@@ -64,28 +64,28 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 		audio_frame->GetBytes(&audio_data);
 		audio_frames = audio_frame->GetSampleFrameCount();
 		if (krad_decklink_capture->verbose) {
-		//	printf("Audio Frame received %d frames\r", audio_frames);
+			//printkd ("Audio Frame received %d frames\r", audio_frames);
 		}
 		if (krad_decklink_capture->audio_frames_callback != NULL) {
 			krad_decklink_capture->audio_frames_callback (krad_decklink_capture->callback_pointer, audio_data, audio_frames);
-		}		
+		}
 		krad_decklink_capture->audio_frames += audio_frames;
-	}	
+	}
 	
 	
 	if (krad_decklink_capture->skip_frame == 1) {
 		krad_decklink_capture->skip_frame = 0;
 	    return S_OK;
 	}
-	
+
 	if (krad_decklink_capture->skip_frame == 0) {
 		krad_decklink_capture->skip_frame = 1;
-	}	
-	
+	}
+
 	if (video_frame) {
 
 		if (video_frame->GetFlags() & bmdFrameHasNoInputSource) {
-		//	printf("Frame received (#%"PRIu64") - No input signal detected\n", krad_decklink_capture->video_frames);
+			printke ("Frame received %lu - No input signal detected\n", krad_decklink_capture->video_frames);
 		} else {
 
 			if (timecodeFormat != 0) {
@@ -93,41 +93,38 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 					timecode->GetString(&timecodeString);
 				}
 			}
-			
+
 			frame_data_size = video_frame->GetRowBytes() * video_frame->GetHeight();
 
-			//if (krad_decklink_capture->verbose) {
-			//	printf("Frame received (#%"PRIu64") [%s] - Size: %li bytes ", 
-			//			krad_decklink_capture->video_frames, 
-			//			timecodeString != NULL ? timecodeString : "No timecode",
-			//			frame_data_size);
-			//}
-			
+			if (krad_decklink_capture->verbose) {
+				//printkd ("Frame received %lu [%s] - Size: %li bytes ", 
+				//		krad_decklink_capture->video_frames, 
+				//		timecodeString != NULL ? timecodeString : "No timecode",
+				//		frame_data_size);
+			}
+
 			if (timecodeString) {
 				free ((void*)timecodeString);
 			}
-			
+
 			video_frame->GetBytes(&frame_data);
 
 			if (krad_decklink_capture->video_frame_callback != NULL) {
 				krad_decklink_capture->video_frame_callback (krad_decklink_capture->callback_pointer, frame_data, frame_data_size);
 			}
-			
+
 		}
-		
+
 		krad_decklink_capture->video_frames++;
-		
+
 	}
-	
-	if (krad_decklink_capture->verbose) {
-		fflush(stdout);
-	}
+
     return S_OK;
 }
 
 HRESULT DeckLinkCaptureDelegate::VideoInputFormatChanged(BMDVideoInputFormatChangedEvents events, IDeckLinkDisplayMode *mode, BMDDetectedVideoInputFormatFlags) {
 
-	//printf("ruh oh! video format changed?!?\n");
+	printke ("ruh oh! video format changed?!?\n");
 
     return S_OK;
 }
@@ -141,7 +138,7 @@ krad_decklink_capture_t *krad_decklink_capture_create() {
 	
 	krad_decklink_capture->pixel_format = bmdFormat8BitYUV;
 	//krad_decklink_capture->pixel_format = bmdFormat8BitARGB;
-	krad_decklink_capture->display_mode = bmdModeHD720p5994;
+	//krad_decklink_capture->display_mode = bmdModeHD720p5994;
 	krad_decklink_capture->display_mode = bmdModeHD720p60;
 	krad_decklink_capture->inputFlags = 0;
 	
@@ -159,7 +156,7 @@ krad_decklink_capture_t *krad_decklink_capture_create() {
 	/* Connect to the first DeckLink instance */
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkIterator->Next(&krad_decklink_capture->deckLink);
 	if (krad_decklink_capture->result != S_OK) {
-		//printf("Krad Decklink: No DeckLink PCI cards found.\n");
+		printke ("Krad Decklink: No DeckLink PCI cards found.\n");
 	}
 
 	return krad_decklink_capture;
@@ -186,7 +183,7 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
     
 	krad_decklink_capture->result = krad_decklink_capture->deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&krad_decklink_capture->deckLinkInput);
 	if (krad_decklink_capture->result != S_OK) {
-		//printf("Krad Decklink: Fail QueryInterface\n");
+		printke ("Krad Decklink: Fail QueryInterface\n");
 	}
 
 	krad_decklink_capture->delegate = new DeckLinkCaptureDelegate();
@@ -195,21 +192,19 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
 
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->EnableVideoInput(krad_decklink_capture->display_mode, krad_decklink_capture->pixel_format, krad_decklink_capture->inputFlags);
 	if (krad_decklink_capture->result != S_OK) {
-		//printf("Krad Decklink: Fail EnableVideoInput\n");
+		printke ("Krad Decklink: Fail EnableVideoInput\n");
 	}
 
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->EnableAudioInput(krad_decklink_capture->audio_sample_rate, krad_decklink_capture->audio_bit_depth, krad_decklink_capture->audio_channels);
 	if (krad_decklink_capture->result != S_OK) {
-		//printf("Krad Decklink: Fail EnableAudioInput\n");
+		printke ("Krad Decklink: Fail EnableAudioInput\n");
 	}
 
 	krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->StartStreams();
 	if (krad_decklink_capture->result != S_OK) {
-		//printf("Krad Decklink: Fail StartStreams\n");
+		printke ("Krad Decklink: Fail StartStreams\n");
 	}
 	
-	//printf("\n");
-
 }
 
 void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture) {
@@ -218,19 +213,19 @@ void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture) 
     
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->StopStreams ();
 		if (krad_decklink_capture->result != S_OK) {
-			//printf("Krad Decklink: Fail StopStreams\n");
+			printke ("Krad Decklink: Fail StopStreams\n");
 		}		
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->DisableVideoInput ();
 		if (krad_decklink_capture->result != S_OK) {
-			//printf("Krad Decklink: Fail DisableVideoInput\n");
+			printke ("Krad Decklink: Fail DisableVideoInput\n");
 		}
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->DisableAudioInput ();
 		if (krad_decklink_capture->result != S_OK) {
-			//printf("Krad Decklink: Fail DisableAudioInput\n");
+			printke ("Krad Decklink: Fail DisableAudioInput\n");
 		}
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->Release();
 		if (krad_decklink_capture->result != S_OK) {
-			//printf("Krad Decklink: Fail Release\n");
+			printke ("Krad Decklink: Fail Release\n");
 		}
         krad_decklink_capture->deckLinkInput = NULL;
     }
@@ -268,23 +263,23 @@ void krad_decklink_capture_info () {
 	deckLinkIterator = CreateDeckLinkIteratorInstance();
 	
 	if (!deckLinkIterator) {
-		//printf("Krad Decklink: This application requires the DeckLink drivers installed.\n");
+		printke ("Krad Decklink: This application requires the DeckLink drivers installed.\n");
 	}
 	
 	/* Connect to the first DeckLink instance */
 	result = deckLinkIterator->Next(&deckLink);
 	if (result != S_OK) {
-		//printf("Krad Decklink: No DeckLink PCI cards found.\n");
+		printke ("Krad Decklink: No DeckLink PCI cards found.\n");
 	}
     
 	result = deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
 	if (result != S_OK) {
-		//printf("Krad Decklink: Fail QueryInterface\n");
+		printke ("Krad Decklink: Fail QueryInterface\n");
 	}
 	
 	result = deckLinkInput->GetDisplayModeIterator(&displayModeIterator);
 	if (result != S_OK) {
-		//printf("Krad Decklink: Could not obtain the video output display mode iterator - result = %08x\n", result);
+		printke ("Krad Decklink: Could not obtain the video output display mode iterator - result = %08x\n", result);
 	}
 
 
@@ -297,9 +292,9 @@ void krad_decklink_capture_info () {
 			BMDTimeValue frameRateDuration, frameRateScale;
 			displayMode->GetFrameRate(&frameRateDuration, &frameRateScale);
 
-			//printf("%2d:  %-20s \t %li x %li \t %g FPS\n", 
-			//	displayModeCount, displayModeString, displayMode->GetWidth(), displayMode->GetHeight(), 
-			//	(double)frameRateScale / (double)frameRateDuration);
+			printkd ("%2d:  %-20s \t %li x %li \t %g FPS\n", 
+				displayModeCount, displayModeString, displayMode->GetWidth(), displayMode->GetHeight(), 
+				(double)frameRateScale / (double)frameRateDuration);
 			
             free (displayModeString);
 			displayModeCount++;

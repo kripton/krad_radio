@@ -1955,7 +1955,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	//printk ("krad link decklink frame received %d bytes", length);
+	printk ("krad link decklink frame received %d bytes", length);
 
 	krad_frame_t *krad_frame;
 
@@ -1963,7 +1963,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	if (krad_frame != NULL) {
 
-		krad_frame->format = PIX_FMT_YUYV422;
+		krad_frame->format = PIX_FMT_UYVY422;
 
 		krad_frame->yuv_pixels[0] = buffer;
 		krad_frame->yuv_pixels[1] = NULL;
@@ -1982,7 +1982,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	} else {
 	
-		failfast ("Krad Decklink underflow");
+		//failfast ("Krad Decklink underflow");
 	
 	}
 
@@ -2037,7 +2037,7 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 
 	krad_link->krad_decklink = krad_decklink_create ();
-	//krad_decklink_info ( krad_link->krad_decklink );
+	krad_decklink_info ( krad_link->krad_decklink );
 	
 	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "DecklinkIn", INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
@@ -2053,7 +2053,7 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
 	
 	if (krad_mixer_has_pusher(krad_link->krad_radio->krad_mixer) == 0) {
-		krad_mixer_set_pusher (krad_link->krad_radio->krad_mixer, DECKLINKAUDIO);
+	//	krad_mixer_set_pusher (krad_link->krad_radio->krad_mixer, DECKLINKAUDIO);
 	}
 	
 	krad_decklink_start (krad_link->krad_decklink);
@@ -2268,6 +2268,12 @@ void krad_link_activate (krad_link_t *krad_link) {
 		}
 		
 		if (krad_link->video_source == DECKLINK) {
+
+                                krad_link->krad_framepool = krad_framepool_create ( krad_link->composite_width,
+                                                                                                                                        krad_link->composite_height,
+                                                                                                                                        DEFAULT_CAPTURE_BUFFER_FRAMES);
+
+
 			krad_link->capturing = 1;
 			// delay slightly so audio encoder ringbuffer ready?
 			usleep (150000);
