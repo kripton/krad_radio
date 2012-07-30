@@ -678,6 +678,9 @@ int main (int argc, char *argv[]) {
 
 			
 			krad_ipc_disconnect (client);
+		} else {
+			fprintf (stderr, "Could not connect to %s krad radio daemon\n", argv[1]);
+			return 1;
 		}
 	
 	}
