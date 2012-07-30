@@ -305,7 +305,9 @@ void krad_radio_watchdog_read_config (krad_radio_watchdog_t *krad_radio_watchdog
 
 	config = fopen (config_file, "r");
 
-	if (config != NULL) {
+	if (config == NULL) {
+		exit (1);
+	} else {
 
 		while (1) {
 			ret = fscanf (config, "%s %s", station, script);
