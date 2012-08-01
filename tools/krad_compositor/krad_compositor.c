@@ -684,6 +684,7 @@ void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_composit
 										   int crop_width, int crop_height,
 										   int crop_x, int crop_y, float opacity, float rotation) {
 										   
+	printkd ("comp compy params func called");
 
 	krad_compositor_port->width = width;
 	krad_compositor_port->height = height;
@@ -706,10 +707,11 @@ void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_composit
 
 void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor_port,
 										 int width, int height) {
+
+	printkd ("comp io params func called");
 										 
 	krad_compositor_port->source_width = width;
 	krad_compositor_port->source_height = height;
-
 
 	krad_compositor_aspect_scale (krad_compositor_port->source_width, krad_compositor_port->source_height,
 								  krad_compositor_port->krad_compositor->width, krad_compositor_port->krad_compositor->height,
@@ -724,15 +726,15 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 	
 	if (krad_compositor_port->height < krad_compositor_port->krad_compositor->height) {
 		krad_compositor_port->y = (krad_compositor_port->krad_compositor->height - krad_compositor_port->height) / 2;
-	}	
+	}
 
 	krad_compositor_port->io_params_updated = 1;
-										   
+					   
 }										   
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
-	int rgb_stride_arr[3] = {4*krad_compositor_port->krad_compositor->width, 0, 0};
+	int rgb_stride_arr[3] = {4*krad_compositor_port->source_width, 0, 0};
 	unsigned char *dst[4];
 	
 	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
@@ -742,6 +744,7 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 		}
 		krad_compositor_port->io_params_updated = 0;
 		krad_compositor_port->comp_params_updated = 0;
+		printkd ("I knew about the update");
 	}
 	
 	if (krad_compositor_port->sws_converter == NULL) {
@@ -756,11 +759,11 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 							 SWS_BICUBIC,
 							 NULL, NULL, NULL);
 							 
-		printk ("set scaling to w %d h %d sw %d sh %d",
-				krad_compositor_port->width,
-				krad_compositor_port->height,
+		printk ("compositor port scaling now: %dx%d -> %dx%d",
 				krad_compositor_port->source_width,
-				krad_compositor_port->source_height);							 
+				krad_compositor_port->source_height,
+				krad_compositor_port->width,
+				krad_compositor_port->height);				 
 							 
 
 	}									 
@@ -843,6 +846,7 @@ void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_composit
 			}
 			krad_compositor_port->io_params_updated = 0;
 			krad_compositor_port->comp_params_updated = 0;
+			printkd ("I knew about the rgb update");
 		}
 	
 		if (krad_compositor_port->sws_converter == NULL) {
@@ -1523,6 +1527,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 				floats[1] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
 			}			
 			
+			printkd ("comp params ipc cmd");
 			
 			krad_compositor_port_set_comp_params (&krad_compositor->port[numbers[0]],
 										   		  numbers[3], numbers[4], numbers[1], numbers[2],

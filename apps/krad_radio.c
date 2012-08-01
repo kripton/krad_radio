@@ -326,7 +326,13 @@ int main (int argc, char *argv[]) {
 
 			if (strncmp(argv[2], "capture", 7) == 0) {
 				if (argc == 4) {
-					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]));
+					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), "", 0, 0);
+				}
+				if (argc == 5) {
+					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4], 0, 0);
+				}
+				if (argc == 7) {
+					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4], atoi(argv[5]), atoi(argv[6]));
 				}
 			}
 			

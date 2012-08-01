@@ -573,6 +573,9 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 	printkd ("V4L2: %ux%u FMT %s Stride: %u Size: %u", fmt.fmt.pix.width, fmt.fmt.pix.height, fourcc, 
 														fmt.fmt.pix.bytesperline, fmt.fmt.pix.sizeimage);
 
+	kradv4l2->width = fmt.fmt.pix.width; 
+	kradv4l2->height = fmt.fmt.pix.height;
+
 	struct v4l2_streamparm stream_parameters;
 
 	CLEAR (stream_parameters);

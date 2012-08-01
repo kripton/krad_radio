@@ -1441,7 +1441,8 @@ void krad_ipc_compositor_info (krad_ipc_client_t *client) {
 	
 }
 
-void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source) {
+void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
+								   int width, int height) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1458,8 +1459,11 @@ void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_so
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (CAPTURE));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE, krad_link_video_source_to_string (video_source));
-	
-	
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_CAPTURE_DEVICE, device);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, width);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, height);
+
 	krad_ebml_finish_element (client->krad_ebml, link);
 
 	krad_ebml_finish_element (client->krad_ebml, create_link);

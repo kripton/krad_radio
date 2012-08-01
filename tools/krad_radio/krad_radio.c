@@ -45,6 +45,10 @@ static void krad_radio_destroy (krad_radio_t *krad_radio) {
 	
 	free (krad_radio->sysname);
 	free (krad_radio);
+
+	printk ("Krad Radio Daemon exited cleanly");
+	krad_system_log_off ();
+
 }
 
 static krad_radio_t *krad_radio_create (char *sysname) {

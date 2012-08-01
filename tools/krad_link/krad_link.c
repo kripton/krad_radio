@@ -20,13 +20,33 @@ void *video_capture_thread (void *arg) {
 	
 	printk ("Video capture thread started");
 	
-	krad_link->krad_framepool = krad_framepool_create ( krad_link->capture_width,
-														krad_link->capture_height,
-														DEFAULT_CAPTURE_BUFFER_FRAMES);
-	
 	krad_link->krad_v4l2 = kradv4l2_create ();
 
 	krad_link->krad_v4l2->mjpeg_mode = krad_link->mjpeg_mode;
+
+	kradv4l2_open (krad_link->krad_v4l2, krad_link->device, krad_link->capture_width, 
+				   krad_link->capture_height, krad_link->capture_fps);
+
+	if ((krad_link->capture_width != krad_link->krad_v4l2->width) ||
+		(krad_link->capture_height != krad_link->krad_v4l2->height)) {
+
+		printke ("Got a different resolution from V4L2 than requested.");
+		printk ("Wanted: %dx%d Got: %dx%d",
+				krad_link->capture_width, krad_link->capture_height,
+				krad_link->krad_v4l2->width, krad_link->krad_v4l2->height
+				);
+				 
+
+
+		krad_link->capture_width = krad_link->krad_v4l2->width;
+		krad_link->capture_height = krad_link->krad_v4l2->height;
+	}
+
+	krad_link->krad_framepool = krad_framepool_create_for_upscale ( krad_link->capture_width,
+														krad_link->capture_height,
+														DEFAULT_CAPTURE_BUFFER_FRAMES,
+														krad_link->composite_width, krad_link->composite_height);
+
 
 	if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
 		krad_link->krad_compositor_port = 
@@ -36,9 +56,6 @@ void *video_capture_thread (void *arg) {
 		krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "V4L2In", INPUT,
 									 krad_link->capture_width, krad_link->capture_height);
 	}
-
-	kradv4l2_open (krad_link->krad_v4l2, krad_link->device, krad_link->capture_width, 
-				   krad_link->capture_height, krad_link->capture_fps);
 	
 	kradv4l2_start_capturing (krad_link->krad_v4l2);
 
@@ -2189,6 +2206,8 @@ krad_link_t *krad_link_create (int linknum) {
 	krad_link->encoding_fps_denominator = -1;
 	krad_link->encoding_width = -1;
 	krad_link->encoding_height = -1;
+	krad_link->capture_width = -1;
+	krad_link->capture_height = -1;
 	
 	krad_link->vp8_bitrate = DEFAULT_VPX_BITRATE;
 	
@@ -2237,8 +2256,11 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 		krad_link->channels = 2;
 
-		krad_link->capture_width = krad_link->composite_width;
-		krad_link->capture_height = krad_link->composite_height;
+		if ((krad_link->capture_width == 0) || (krad_link->capture_height == 0)) {
+			krad_link->capture_width = krad_link->composite_width;
+			krad_link->capture_height = krad_link->composite_height;
+		}
+
 		krad_link->capture_fps = DEFAULT_FPS;
 
 		for (c = 0; c < krad_link->channels; c++) {
@@ -2477,6 +2499,37 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			(krad_link->video_source == TEST) || (krad_link->video_source == INFO)) {
 			krad_link->av_mode = VIDEO_ONLY;
 		}
+
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_CAPTURE_DEVICE) {
+			printk ("hrm wtf");
+		} else {
+			//printk ("tag size %zu", ebml_data_size);
+		}
+	
+		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->device, ebml_data_size);
+	
+		if (strlen(krad_link->device) == 0) {
+			strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
+		}
+
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH) {
+			printk ("hrm wtf2v");
+		} else {
+			krad_link->capture_width = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+		}
+		
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT) {
+			printk ("hrm wtf2v");
+		} else {
+			krad_link->capture_height = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+		}
+
 	
 	}
 	

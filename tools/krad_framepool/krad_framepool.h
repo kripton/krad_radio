@@ -37,6 +37,9 @@ struct krad_frame_St {
 
 struct krad_framepool_St {
 
+	int upscale_width;
+	int upscale_height;
+	int stride;
 	int width;
 	int height;
 	int frame_byte_size;
@@ -53,3 +56,4 @@ void krad_framepool_unref_frame (krad_frame_t *frame);
 
 void krad_framepool_destroy (krad_framepool_t *krad_framepool);
 krad_framepool_t *krad_framepool_create (int width, int height, int count);
+krad_framepool_t *krad_framepool_create_for_upscale (int width, int height, int count, int upscale_width, int upscale_height);
