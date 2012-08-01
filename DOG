@@ -1,0 +1,36 @@
+A watchdog daemon is built into the Krad Radio clientlib.
+
+The point of it is to ensure specified Krad Radio station daemons are running.
+At this time Krad Radio is not 100% stable, it could crash and quit or get 
+into an unresponsive state.
+
+Using the dog is completely optional, and what it does could also be done by 
+cron and some scripts or the perhaps some other program, but the dog should
+suit many peoples needs, without the ducktape of cron and the dependency of
+another program. 
+
+The dog works on a few simple priniples, the user wants to have X number of 
+Krad Radio stations running, and if they have crash or become unresponsive,
+the dog should fix this problem right away.
+
+The dog attempts to connect to all the stations specified, if the connection
+is successful, the dog assumes everything is ok. If not, the dog will check for
+and kill any stalled daemon, and launch a new instance.
+
+Note: It is the responsibility of the daemon to ensure any specific operation
+such as a stream connection to another server is up and running, the dog simply
+tries to connect as a Krad Radio client to a Krad Radio daemon.
+
+To launch the dog daemon do this:
+
+krad_radio dog ~/my_dog_config.conf
+
+The config file is very simple, it is simply a list of station sysnames,
+optionally, but most likely, followed by a station startup script.
+
+
+Example:
+
+station1 ~/launch_station1.rb
+station2
+station3 ~/station3/run_station3.py

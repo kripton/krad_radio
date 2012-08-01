@@ -11,9 +11,7 @@ Replace "quicktest" with the sysname* of your station.
 [Important Notice]
 This document is incomplete.
 
-[Temporary Measure]
-In a screen session or seperate terminal run: krad_radio_daemon quicktest
-[End Temporary Measure]
+krad_radio launch quicktest
 
 Now that your krad radio station daemon is running, you can control it with
 krad radio clients.
