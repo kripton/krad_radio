@@ -393,10 +393,10 @@ krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_le
 	krad_opus->input_sample_rate = krad_opus->opus_header->input_sample_rate;
 
 	krad_opus->channels = krad_opus->opus_header->channels;
-	
+
 	krad_opus->interleaved_samples = malloc(16 * 8192);
 	
-	for (c = 0; c < krad_opus->opus_header->channels; c++) {
+	for (c = 0; c < krad_opus->channels; c++) {
 		krad_opus->ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 		krad_opus->resampled_ringbuf[c] = krad_ringbuffer_create (RINGBUFFER_SIZE);
 		krad_opus->samples[c] = malloc (16 * 8192);
@@ -419,7 +419,13 @@ krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_le
 
 	memcpy (krad_opus->mapping, krad_opus->opus_header->stream_map, 256);
 
-	krad_opus->decoder = opus_multistream_decoder_create (krad_opus->opus_header->input_sample_rate,
+	printk ("krad_opus_decoder_create channels %d streams %d coupled %d",
+			krad_opus->channels,
+			krad_opus->streams,
+			krad_opus->coupled_streams
+			);	
+
+	krad_opus->decoder = opus_multistream_decoder_create (48000,
 														  krad_opus->opus_header->channels,
 														  krad_opus->streams,
 														  krad_opus->coupled_streams,

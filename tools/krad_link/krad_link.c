@@ -561,11 +561,11 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 	int c;
 	
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
-		if ((krad_link->playing > 0) && 
-			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
-			(krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[1]) >= frames * 4)) {
-			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
-			krad_ringbuffer_read (krad_link->audio_output_ringbuffer[1], (char *)samples[1], frames * 4);
+		if (((krad_link->playing > 0) || (krad_link->av_mode == AUDIO_ONLY) || (1)) && 
+			 (krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[0]) >= frames * 4) && 
+			 (krad_ringbuffer_read_space (krad_link->audio_output_ringbuffer[1]) >= frames * 4)) {
+			 	krad_ringbuffer_read (krad_link->audio_output_ringbuffer[0], (char *)samples[0], frames * 4);
+				krad_ringbuffer_read (krad_link->audio_output_ringbuffer[1], (char *)samples[1], frames * 4);
 		} else {
 			memset(samples[0], '0', frames * 4);
 			memset(samples[1], '0', frames * 4);
@@ -1090,9 +1090,9 @@ void *udp_output_thread(void *arg) {
 	int count;
 	int packet_size;
 	int frames;
-	uint64_t frames_big;
+	//uint64_t frames_big;
 	
-	frames_big = 0;
+	//frames_big = 0;
 	count = 0;
 	
 	buffer = malloc(250000);
@@ -1116,11 +1116,11 @@ void *udp_output_thread(void *arg) {
 				}
 			
 				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
-				frames_big = frames;
-				memcpy (buffer, &frames_big, 8);
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer + 8, packet_size);
+				//frames_big = frames;
+				//memcpy (buffer, &frames_big, 8);
+				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
 
-				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size + 8, 1, krad_link->host, krad_link->port);
+				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, krad_link->host, krad_link->port);
 				count++;
 				
 			} else {
@@ -1354,7 +1354,7 @@ void *udp_input_thread(void *arg) {
 	unsigned char opus_header[256];
 	int opus_header_size;
 	
-	opus_temp = krad_opus_encoder_create (krad_link->krad_radio->krad_mixer->sample_rate, 2, 110000, 
+	opus_temp = krad_opus_encoder_create (2, krad_link->krad_radio->krad_mixer->sample_rate, 110000, 
 										 OPUS_APPLICATION_AUDIO);
 										 
 	opus_header_size = opus_temp->header_data_size;
@@ -1414,6 +1414,7 @@ void *udp_input_thread(void *arg) {
 					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&ret, 4);
 					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)packet_buffer, ret);
 					packets++;
+
 				}
 
 			}
@@ -1708,7 +1709,7 @@ void *audio_decoding_thread(void *arg) {
 	}
 
 	for (c = 0; c < krad_link->channels; c++) {
-		krad_resample_ring[c] = krad_resample_ring_create (4000000, 44100,
+		krad_resample_ring[c] = krad_resample_ring_create (4000000, 48000,
 														   krad_link->krad_linker->krad_radio->krad_mixer->sample_rate);
 
 		krad_link->audio_output_ringbuffer[c] = krad_resample_ring[c]->krad_ringbuffer;
@@ -1863,11 +1864,6 @@ void *audio_decoding_thread(void *arg) {
 				if (len) {
 				
 					while ((krad_resample_ring_write_space (krad_resample_ring[0]) < len) && (!krad_link->destroy)) {
-						//printk ("wait!");
-						//FIXME
-						if (krad_link->playing == 0) {
-							krad_link->playing = 1;
-						}
 						usleep(25000);
 					}
 				
@@ -2413,6 +2409,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 
 		krad_link->port = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 	
+		//TEMP KLUDGE
+		krad_link->av_mode = AUDIO_ONLY;
+
 	}
 	
 	if (krad_link->operation_mode == PLAYBACK) {
