@@ -126,6 +126,12 @@ void krad_jack_destroy (krad_jack_t *krad_jack) {
 
 krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 
+	return krad_jack_create_for_jack_server_name (krad_audio, NULL);
+
+}
+
+krad_jack_t *krad_jack_create_for_jack_server_name (krad_audio_t *krad_audio, char *server_name) {
+
 	krad_jack_t *krad_jack;
 
 	if ((krad_jack = calloc (1, sizeof (krad_jack_t))) == NULL) {
@@ -140,8 +146,13 @@ krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 	}
 
 	krad_jack->name = krad_jack->krad_audio->krad_mixer->name;
-
-	krad_jack->server_name = NULL;
+	
+	if (server_name != NULL) {
+		krad_jack->server_name[sizeof(krad_jack->server_name) - 1] = '\0';
+		snprintf(krad_jack->server_name, sizeof(krad_jack->server_name) - 2, "%s", server_name);
+	} else {
+		krad_jack->server_name[0] = '\0';
+	}
 	krad_jack->options = JackNoStartServer;
 
 	// Connect up to the JACK server 

@@ -28,7 +28,7 @@ struct krad_jack_St {
 	int active;
 
 	int xruns;
-	const char *server_name;
+	char server_name[256];
 	const char *name;
 	jack_options_t options;
 	jack_status_t status;
@@ -53,6 +53,7 @@ krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char 
 
 void krad_jack_destroy (krad_jack_t *jack);
 krad_jack_t *krad_jack_create (krad_audio_t *krad_audio);
+krad_jack_t *krad_jack_create_for_jack_server_name (krad_audio_t *krad_audio, char *server_name);
 
 int krad_jack_process (jack_nframes_t nframes, void *arg);
 void krad_jack_shutdown (void *arg);

@@ -12,7 +12,7 @@ void krad_radio_command_help () {
 	printf ("\n");
 	printf ("transmitter_on transmitter_off closedisplay display lstext rmtext addtest lssprites addsprite rmsprite");
 	printf ("\n");
-	printf ("setsprite comp res snap setport update play recieve record capture");
+	printf ("setsprite comp res snap setport update play receive record capture");
 	printf ("\n");
 }
 
@@ -442,9 +442,10 @@ int main (int argc, char *argv[]) {
 			}
 			
 			if (strncmp(argv[2], "setport", 7) == 0) {
-				if (argc == 10) {
+				if (argc == 14) {
 					krad_ipc_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
-													   atoi(argv[6]), atoi(argv[7]), atof(argv[8]), atof(argv[9]));
+													   atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]),
+													   atoi(argv[10]), atoi(argv[11]), atof(argv[12]), atof(argv[13]));
 					krad_ipc_print_response (client);
 				}
 			}

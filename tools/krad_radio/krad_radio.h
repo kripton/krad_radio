@@ -42,7 +42,6 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_ebml.h"
 #include "krad_ogg.h"
 #include "krad_io.h"
-#include "krad_dirac.h"
 #include "krad_theora.h"
 #include "krad_vpx.h"
 #include "krad_v4l2.h"

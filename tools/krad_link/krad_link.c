@@ -9,6 +9,61 @@ static void krad_linker_listen_create_client (krad_linker_t *krad_linker, int sd
 static void *krad_linker_listen_client_thread (void *arg);
 
 
+
+static inline int blend_pixel ( int pixela, int pixelb ) {
+
+    int result;
+    
+    result = 0;
+    
+    result += pixela;
+    result += pixelb;
+    result /= 2;
+
+    if( result > 255 )
+    {
+        result = 255;
+    }
+    if( result < 0 )
+    {
+        result = 0;
+    }
+
+    return result;
+}
+
+static void deinterlace_blend_line ( uint8_t *dst, uint8_t *src, int stride) {
+    
+    int p;
+
+    for( p = 0; p < stride; p++)
+    {
+        int current_pixel;
+        int pixel_above_current_pixel;
+
+        pixel_above_current_pixel = src[-stride];
+        current_pixel = src[0];
+
+        dst[0] = blend_pixel ( current_pixel, pixel_above_current_pixel );
+
+        dst++;
+        src++;
+    }
+}
+
+void deinterlace_blend (uint8_t *pixels, int height, int stride) {
+
+
+	int line;
+	
+    for ( line = 1; line < (height - 1); line++) {
+
+		deinterlace_blend_line ( &pixels[stride * line], &pixels[stride * line], stride);
+
+	}
+
+}
+
 void *video_capture_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_vidcap", 0, 0, 0);
@@ -389,6 +444,10 @@ void *video_encoding_thread (void *arg) {
 			krad_link->krad_vpx_encoder->cfg.kf_max_dist = 90;
 		}
 
+		if (krad_link->operation_mode == RECORD) {
+			krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 28;
+		}
+
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
 		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / ((krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 2) * 1000));
@@ -404,14 +463,6 @@ void *video_encoding_thread (void *arg) {
 																	 krad_link->encoding_fps_denominator,
 																	 DEFAULT_THEORA_QUALITY);
 	}
-	
-	if (krad_link->video_codec == DIRAC) {
-		krad_link->krad_dirac = krad_dirac_encoder_create (krad_link->encoding_width, 
-														   krad_link->encoding_height,
-														   krad_link->encoding_fps_numerator,
-														   krad_link->encoding_fps_denominator,
-														   DEFAULT_DIRAC_BITRATE);
-	}	
 	
 	/* COMPOSITOR CONNECTION */
 	
@@ -441,15 +492,6 @@ void *video_encoding_thread (void *arg) {
 			strides[0] = krad_link->krad_theora_encoder->ycbcr[0].stride;
 			strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
 			strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;	
-		}
-		
-		if (krad_link->video_codec == DIRAC) {
-			planes[0] = krad_link->krad_dirac->frame->components[0].data;
-			planes[1] = krad_link->krad_dirac->frame->components[1].data;
-			planes[2] = krad_link->krad_dirac->frame->components[2].data;
-			strides[0] = krad_link->krad_dirac->frame->components[0].stride;
-			strides[1] = krad_link->krad_dirac->frame->components[1].stride;
-			strides[2] = krad_link->krad_dirac->frame->components[2].stride;
 		}
 				
 		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides);
@@ -482,13 +524,6 @@ void *video_encoding_thread (void *arg) {
 				packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder,
 									   (unsigned char **)&video_packet,
 									   					 &keyframe);
-			}
-		
-			if (krad_link->video_codec == DIRAC) {
-				packet_size = krad_dirac_encoder_write (krad_link->krad_dirac,
-									   (unsigned char **)&video_packet);
-									   
-				keyframe = 1;
 			}			
 		
 			if ((packet_size) || (krad_link->video_codec == THEORA)) {
@@ -535,10 +570,6 @@ void *video_encoding_thread (void *arg) {
 	
 	if (krad_link->video_codec == THEORA) {
 		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
-	}
-	
-	if (krad_link->video_codec == DIRAC) {
-		krad_dirac_encoder_destroy (krad_link->krad_dirac);	
 	}	
 	
 	// FIXME make shutdown sequence more pretty
@@ -1236,7 +1267,7 @@ void *stream_input_thread (void *arg) {
 			
 		}
 		
-		if ((track_codecs[current_track] == VP8) || (track_codecs[current_track] == THEORA) || (track_codecs[current_track] == DIRAC)) {
+		if ((track_codecs[current_track] == VP8) || (track_codecs[current_track] == THEORA)) {
 
 			video_packets++;
 
@@ -1490,10 +1521,6 @@ void *video_decoding_thread (void *arg) {
 				if (krad_link->last_video_codec == THEORA) {
 					krad_theora_decoder_destroy (krad_link->krad_theora_decoder);
 					krad_link->krad_theora_decoder = NULL;
-				}			
-				if (krad_link->last_video_codec == DIRAC) {
-					krad_dirac_decoder_destroy(krad_link->krad_dirac);
-					krad_link->krad_dirac = NULL;
 				}
 			}
 	
@@ -1531,11 +1558,6 @@ void *video_decoding_thread (void *arg) {
 													krad_link->krad_theora_decoder->width,
 													krad_link->krad_theora_decoder->height);
 				port_updated = 1;													
-			}
-	
-			if (krad_link->video_codec == DIRAC) {
-				krad_link->krad_dirac = krad_dirac_decoder_create();
-				port_updated = 0;				
 			}
 		}
 
@@ -1616,44 +1638,6 @@ void *video_decoding_thread (void *arg) {
 				
 				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
-			}
-		}
-			
-
-		if (krad_link->video_codec == DIRAC) {
-
-			krad_dirac_decode (krad_link->krad_dirac, buffer, bytes);
-
-			if (krad_link->krad_dirac->frame != NULL) {
-				
-				if (port_updated == 0) {
-					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
-														krad_link->krad_dirac->frame->width,
-														krad_link->krad_dirac->frame->height);
-																	
-					port_updated = 1;
-				}
-				
-				if (krad_link->krad_dirac->frame->format == SCHRO_FRAME_FORMAT_U8_444) {
-					krad_frame->format = PIX_FMT_YUV444P;
-				}
-				if (krad_link->krad_dirac->frame->format == SCHRO_FRAME_FORMAT_U8_422) {
-					krad_frame->format = PIX_FMT_YUV422P;
-				}
-				if (krad_link->krad_dirac->frame->format == SCHRO_FRAME_FORMAT_U8_420) {
-					krad_frame->format = PIX_FMT_YUV420P;
-				}			
-
-				krad_frame->yuv_pixels[0] = krad_link->krad_dirac->frame->components[0].data;
-				krad_frame->yuv_pixels[1] = krad_link->krad_dirac->frame->components[1].data;
-				krad_frame->yuv_pixels[2] = krad_link->krad_dirac->frame->components[2].data;
-	
-				krad_frame->yuv_strides[0] = krad_link->krad_dirac->frame->components[0].stride;
-				krad_frame->yuv_strides[1] = krad_link->krad_dirac->frame->components[1].stride;
-				krad_frame->yuv_strides[2] = krad_link->krad_dirac->frame->components[2].stride;
-				
-				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-				
 			}
 		}
 		
@@ -1968,7 +1952,11 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	printk ("krad link decklink frame received %d bytes", length);
+	int stride;
+
+	stride = krad_link->capture_width + (krad_link->capture_width/2) * 2;
+
+	//printk ("krad link decklink frame received %d bytes", length);
 
 	krad_frame_t *krad_frame;
 
@@ -1982,11 +1970,17 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 		krad_frame->yuv_pixels[1] = NULL;
 		krad_frame->yuv_pixels[2] = NULL;
 
-		krad_frame->yuv_strides[0] = krad_link->capture_width + (krad_link->capture_width/2) * 2;
+		krad_frame->yuv_strides[0] = stride;
 		krad_frame->yuv_strides[1] = 0;
 		krad_frame->yuv_strides[2] = 0;
 		krad_frame->yuv_strides[3] = 0;
 
+		//if (1) {
+		//	// try 134 !! do it 134 * 2 = 268 + 812 = 10
+		//	krad_frame->yuv_pixels[0] = buffer + (stride * 134) + (240 * 2);
+		//	deinterlace_blend (krad_frame->yuv_pixels[0], krad_link->capture_height, stride);
+		//}
+		
 		krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
@@ -2056,7 +2050,7 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "DecklinkIn", INPUT,
-																	DEFAULT_COMPOSITOR_WIDTH, DEFAULT_COMPOSITOR_HEIGHT);	
+																	krad_link->capture_width, krad_link->capture_height);	
 	
 	
 	krad_link->krad_decklink->callback_pointer = krad_link;
@@ -2287,9 +2281,9 @@ void krad_link_activate (krad_link_t *krad_link) {
 		
 		if (krad_link->video_source == DECKLINK) {
 
-                                krad_link->krad_framepool = krad_framepool_create ( krad_link->composite_width,
-                                                                                                                                        krad_link->composite_height,
-                                                                                                                                        DEFAULT_CAPTURE_BUFFER_FRAMES);
+                                krad_link->krad_framepool = krad_framepool_create ( krad_link->capture_width,
+                                													krad_link->capture_height,
+                                													DEFAULT_CAPTURE_BUFFER_FRAMES);
 
 
 			krad_link->capturing = 1;

@@ -19,8 +19,6 @@ char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec) {
 			return "V_VP8";
 		case THEORA:
 			return "V_THEORA";
-		case DIRAC:
-			return "V_DIRAC";
 		case MJPEG:
 			return "V_MJPEG";
 		default:
@@ -1475,10 +1473,6 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 				krad_ebml->tracks[krad_ebml->current_track].codec = THEORA;
 			}
 			
-			if (strncmp(string, "V_DIRAC", 8) == 0) {
-				krad_ebml->tracks[krad_ebml->current_track].codec = DIRAC;
-			}
-			
 			if (strncmp(string, "V_VP8", 8) == 0) {
 				krad_ebml->tracks[krad_ebml->current_track].codec = VP8;
 			}
@@ -1550,7 +1544,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 				
 			}
 	
-			if ((krad_ebml->tracks[krad_ebml->current_track].codec == VP8) || (krad_ebml->tracks[krad_ebml->current_track].codec == DIRAC)) {
+			if (krad_ebml->tracks[krad_ebml->current_track].codec == VP8) {
 				// Really nothing..
 				krad_ebml->tracks[krad_ebml->current_track].headers = 0;
 				krad_ebml->tracks[krad_ebml->current_track].header_len[0] = 0;

@@ -507,6 +507,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 						pixman_image_unref (dest_img);
 
 					} else {
+						/*
 						cairo_set_source_surface (krad_compositor->krad_gui->cr,
 												  frame->cst,
 												  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
@@ -517,6 +518,17 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 										 krad_compositor->port[p].y,
 										 krad_compositor->port[p].crop_width,
 										 krad_compositor->port[p].crop_height);
+						*/
+						cairo_set_source_surface (krad_compositor->krad_gui->cr,
+												  frame->cst,
+												  0,
+												  0);
+
+						cairo_rectangle (krad_compositor->krad_gui->cr,
+										 0,
+										 0,
+										 krad_compositor->port[p].width,
+										 krad_compositor->port[p].height);						
 						cairo_clip (krad_compositor->krad_gui->cr);
 					
 						if (krad_compositor->krad_text[1].active == 1) {
@@ -680,23 +692,23 @@ void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 }
 
 void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_compositor_port,
-										   int width, int height, int x, int y, 
-										   int crop_width, int crop_height,
-										   int crop_x, int crop_y, float opacity, float rotation) {
+										   int x, int y, int width, int height, 
+										   int crop_x, int crop_y,
+										   int crop_width, int crop_height, float opacity, float rotation) {
 										   
 	printkd ("comp compy params func called");
 
+	krad_compositor_port->x = x;
+	krad_compositor_port->y = y;
+
 	krad_compositor_port->width = width;
 	krad_compositor_port->height = height;
+	
+	krad_compositor_port->crop_x = crop_x;
+	krad_compositor_port->crop_y = crop_y;
 
 	krad_compositor_port->crop_width = crop_width;
 	krad_compositor_port->crop_height = crop_height;
-	
-	krad_compositor_port->crop_x = crop_x;
-	krad_compositor_port->crop_y = crop_y;	
-
-	krad_compositor_port->x = x;
-	krad_compositor_port->y = y;
 
 	krad_compositor_port->opacity = opacity;
 	krad_compositor_port->rotation = rotation;
@@ -750,8 +762,18 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 	if (krad_compositor_port->sws_converter == NULL) {
 
 		krad_compositor_port->sws_converter =
-			sws_getContext ( krad_compositor_port->source_width,
-							 krad_compositor_port->source_height,
+			//sws_getContext ( krad_compositor_port->source_width,
+			//				 krad_compositor_port->source_height,
+			//				 krad_frame->format,
+			//				 krad_compositor_port->width,
+			//				 krad_compositor_port->height,
+			//				 PIX_FMT_RGB32, 
+			//				 SWS_BICUBIC,
+			//				 NULL, NULL, NULL);
+
+
+			sws_getContext ( krad_compositor_port->crop_width,
+							 krad_compositor_port->crop_height,
 							 krad_frame->format,
 							 krad_compositor_port->width,
 							 krad_compositor_port->height,
@@ -759,9 +781,20 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 							 SWS_BICUBIC,
 							 NULL, NULL, NULL);
 							 
-		printk ("compositor port scaling now: %dx%d -> %dx%d",
+			//krad_compositor_port->crop_start_pixel = (krad_frame->yuv_strides[0] * 134) + (240 * 2);
+
+			//krad_compositor_port->crop_start_pixel = (krad_frame->yuv_strides[0] * krad_compositor_port->crop_y) + (240 * 2); 
+			if (krad_compositor_port->crop_y > 0) {
+				krad_compositor_port->crop_start_pixel[0] = (krad_frame->yuv_strides[0] * krad_compositor_port->crop_y) + (krad_compositor_port->crop_x * 2); 
+			} else {
+				krad_compositor_port->crop_start_pixel[0] = 0;
+			}
+			
+		printk ("compositor port scaling now: %dx%d [%dx%d]-> %dx%d",
 				krad_compositor_port->source_width,
 				krad_compositor_port->source_height,
+				krad_compositor_port->crop_width,
+				krad_compositor_port->crop_height,				
 				krad_compositor_port->width,
 				krad_compositor_port->height);				 
 							 
@@ -770,8 +803,13 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 
 	dst[0] = (unsigned char *)krad_frame->pixels;
 
-	sws_scale (krad_compositor_port->sws_converter, (const uint8_t * const*)krad_frame->yuv_pixels,
-			   krad_frame->yuv_strides, 0, krad_compositor_port->source_height, dst, rgb_stride_arr);
+	krad_frame->yuv_pixels[0] = krad_frame->yuv_pixels[0] + krad_compositor_port->crop_start_pixel[0];
+	krad_frame->yuv_pixels[1] = krad_frame->yuv_pixels[1] + krad_compositor_port->crop_start_pixel[1];
+	krad_frame->yuv_pixels[2] = krad_frame->yuv_pixels[2] + krad_compositor_port->crop_start_pixel[2];
+	
+	sws_scale (krad_compositor_port->sws_converter,
+			  (const uint8_t * const*)krad_frame->yuv_pixels,
+			   krad_frame->yuv_strides, 0, krad_compositor_port->crop_height, dst, rgb_stride_arr);
 
 	krad_compositor_port_push_frame (krad_compositor_port, krad_frame);
 
@@ -1079,7 +1117,8 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	if (krad_compositor_port->direction == INPUT) {
 		krad_compositor_port->source_width = width;
 		krad_compositor_port->source_height = height;
-		
+		krad_compositor_port->crop_width = krad_compositor_port->source_width;
+		krad_compositor_port->crop_height = krad_compositor_port->source_height;		
 		krad_compositor_aspect_scale (krad_compositor_port->source_width, krad_compositor_port->source_height,
 									  krad_compositor->width, krad_compositor->height,
 									  &krad_compositor_port->width, &krad_compositor_port->height);
@@ -1088,15 +1127,15 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 		krad_compositor_port->source_width = krad_compositor->width;
 		krad_compositor_port->source_height = krad_compositor->height;
 		krad_compositor_port->width = width;
-		krad_compositor_port->height = height;	
+		krad_compositor_port->height = height;
+		krad_compositor_port->crop_width = krad_compositor->width;
+		krad_compositor_port->crop_height = krad_compositor->height;		
 	}
 	
 	krad_compositor_port->x = 0;
 	krad_compositor_port->y = 0;	
 	krad_compositor_port->crop_x = 0;
 	krad_compositor_port->crop_y = 0;
-	krad_compositor_port->crop_width = krad_compositor->width;
-	krad_compositor_port->crop_height = krad_compositor->height;
 	
 	krad_compositor_port->opacity = 1.0f;
 	krad_compositor_port->rotation = 0.0f;
@@ -1518,6 +1557,26 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			}
 			
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_X) {
+				numbers[5] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_Y) {
+				numbers[6] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_WIDTH) {
+				numbers[7] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_HEIGHT) {
+				numbers[8] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+			}			
+			
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 			if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_OPACITY) {
 				floats[0] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
 			}
@@ -1530,13 +1589,9 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			printkd ("comp params ipc cmd");
 			
 			krad_compositor_port_set_comp_params (&krad_compositor->port[numbers[0]],
-										   		  numbers[3], numbers[4], numbers[1], numbers[2],
-												  numbers[3],
-												  numbers[4],
-												  krad_compositor->port[numbers[0]].crop_x,
-												  krad_compositor->port[numbers[0]].crop_y,
-												  floats[0],
-												  floats[1]);
+										   		  numbers[1], numbers[2], numbers[3], numbers[4],
+												  numbers[5], numbers[6], numbers[7], numbers[8],
+												  floats[0], floats[1]);
 
 			break;		
 	

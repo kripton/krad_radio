@@ -22,7 +22,7 @@ git pull && ./waf distclean && ./waf configure && ./waf && sudo ./waf install
 If on ubuntu do this (if not, you can probably figure it out):
 
 sudo apt-get install libasound2-dev libpulse-dev libvorbis-dev freeglut3-dev build-essential autoconf git-core \
-libgtk-3-dev libswscale-dev libflac-dev libschroedinger-dev libncurses5-dev libavutil-dev libjack-jackd2-dev git \
+libgtk-3-dev libswscale-dev libflac-dev libncurses5-dev libavutil-dev libjack-jackd2-dev git \
 libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 \
 subversion yasm build-essential libxmmsclient-dev libtool libxml2-dev libxcb-image0-dev libtheora-dev
 

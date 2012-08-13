@@ -31,17 +31,7 @@ depsources = """
 ../tools/krad_web/ext/cJSON.c
 ../tools/krad_web/krad_http.c
 ../tools/krad_web/krad_websocket.c
-../tools/krad_effects/digilogue.c
-../tools/krad_effects/fastlimiter.c
-../tools/krad_effects/util/blo.c
-../tools/krad_effects/util/db.c
-../tools/krad_effects/util/buffer.c
-../tools/krad_effects/util/iir.c
-../tools/krad_effects/util/rms.c
-../tools/krad_effects/pass.c
-../tools/krad_effects/djeq.c
-../tools/krad_effects/hardlimiter.c
-../tools/krad_effects/sidechain_comp.c
+../tools/krad_sfx/hardlimiter.c
 ../tools/krad_ipc/krad_ipc_client.c
 ../tools/krad_ipc/krad_ipc_server.c
 ../tools/krad_tags/krad_tags.c
@@ -55,7 +45,6 @@ depsources = """
 ../tools/krad_alsa/krad_alsa_seq.c
 ../tools/krad_ring/krad_resample_ring.c
 ../tools/krad_vpx/krad_vpx.c
-../tools/krad_dirac/krad_dirac.c
 ../tools/krad_theora/krad_theora.c
 ../tools/krad_vorbis/krad_vorbis.c
 ../tools/krad_flac/krad_flac.c
@@ -94,13 +83,12 @@ includedirs = """
 ../tools/krad_web/
 ../tools/krad_web/ext/
 ../tools/krad_web/res/
-../tools/krad_effects/
+../tools/krad_sfx/
 ../tools/krad_tone/
 ../tools/krad_ipc/
 ../tools/krad_tags/
 ../tools/krad_audio/
 ../tools/krad_wayland/
-../tools/krad_dirac/
 ../tools/krad_theora/
 ../tools/krad_jack/
 ../tools/krad_pulse/
@@ -134,7 +122,7 @@ includedirs = """
 """.split()
 
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
-		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "orc-0.4", "schroedinger-1.0", "gtk+-3.0", "gl", "glu", 
+		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
 		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses", "xmms2-client"]
 
 # FIXME option builds

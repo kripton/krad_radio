@@ -13,7 +13,6 @@ typedef enum {
 	OPUS,
 	FLAC,
 	VP8,
-	DIRAC,
 	THEORA,
 	MJPEG,
 	PNG,

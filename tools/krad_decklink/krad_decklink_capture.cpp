@@ -79,7 +79,14 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 	}
 
 	if (krad_decklink_capture->skip_frame == 0) {
-		krad_decklink_capture->skip_frame = 1;
+	
+		if ((krad_decklink_capture->display_mode == bmdModeHD720p60) ||
+			(krad_decklink_capture->display_mode == bmdModeHD720p5994) ||
+			(krad_decklink_capture->display_mode == bmdModeHD1080p5994) ||
+			(krad_decklink_capture->display_mode == bmdModeHD1080p6000)) {
+	
+			krad_decklink_capture->skip_frame = 1;
+		}
 	}
 
 	if (video_frame) {
@@ -139,7 +146,11 @@ krad_decklink_capture_t *krad_decklink_capture_create() {
 	krad_decklink_capture->pixel_format = bmdFormat8BitYUV;
 	//krad_decklink_capture->pixel_format = bmdFormat8BitARGB;
 	//krad_decklink_capture->display_mode = bmdModeHD720p5994;
-	krad_decklink_capture->display_mode = bmdModeHD720p60;
+	//krad_decklink_capture->display_mode = bmdModeHD720p60;
+
+	krad_decklink_capture->display_mode = bmdModeHD1080i5994;
+	krad_decklink_capture->display_mode = bmdModeHD1080p5994;
+
 	krad_decklink_capture->inputFlags = 0;
 	
 	krad_decklink_capture->audio_sample_rate = bmdAudioSampleRate48kHz;

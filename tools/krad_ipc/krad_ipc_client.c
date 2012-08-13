@@ -1595,9 +1595,6 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 		if (strstr(codecs, "vp8") != NULL) {
 			video_codec = VP8;
 		}
-		if (strstr(codecs, "dirac") != NULL) {
-			video_codec = DIRAC;
-		}
 		if (strstr(codecs, "theora") != NULL) {
 			video_codec = THEORA;
 		}
@@ -1629,7 +1626,7 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 			}
 		}
 		
-		if ((video_codec == THEORA) || (video_codec == DIRAC)) {
+		if (video_codec == THEORA) {
 			if ((video_width == 0) || (video_height == 0)) {
 				video_width = 1280;
 				video_height = 720;
@@ -1698,9 +1695,6 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 		if (strstr(codecs, "vp8") != NULL) {
 			video_codec = VP8;
 		}
-		if (strstr(codecs, "dirac") != NULL) {
-			video_codec = DIRAC;
-		}
 		if (strstr(codecs, "theora") != NULL) {
 			video_codec = THEORA;
 		}
@@ -1738,7 +1732,7 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
 		}
 		
-		if ((video_codec == THEORA) || (video_codec == DIRAC)) {
+		if (video_codec == THEORA) {
 		
 			if ((video_width == 0) || (video_height == 0)) {
 				video_width = 1280;
@@ -1889,7 +1883,8 @@ void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t e
 }
 
 void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
-										uint32_t width, uint32_t height, float opacity, float rotation) {
+										uint32_t width, uint32_t height, uint32_t crop_x, uint32_t crop_y,
+										uint32_t crop_width, uint32_t crop_height, float opacity, float rotation) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -1907,6 +1902,10 @@ void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, u
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_Y, y);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_WIDTH, width);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_HEIGHT, height);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_CROP_X, crop_x);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_CROP_Y, crop_y);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_CROP_WIDTH, crop_width);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_CROP_HEIGHT, crop_height);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_OPACITY, opacity);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_PORT_ROTATION, rotation);
 

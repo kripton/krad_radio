@@ -87,8 +87,6 @@ char *krad_codec_to_string (krad_codec_t codec) {
 			return "VP8";
 		case THEORA:
 			return "Theora";
-		case DIRAC:
-			return "Dirac";
 		case MJPEG:
 			return "Mjpeg";
 		case PNG:
@@ -126,10 +124,6 @@ krad_codec_t krad_string_to_codec (char *string) {
 	
 	if (strcmp(string, "Theora") == 0) {
 		return THEORA;
-	}
-
-	if (strcmp(string, "Dirac") == 0) {
-		return DIRAC;
 	}
 	
 	if (strcmp(string, "Mjpeg") == 0) {

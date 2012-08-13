@@ -9,7 +9,6 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #define KRAD_LINK_H
 
 #define DEFAULT_VPX_BITRATE 92 * 8
-#define DEFAULT_DIRAC_BITRATE 15000000
 #define DEFAULT_THEORA_QUALITY 42
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 50
 #define DEFAULT_DECODING_BUFFER_FRAMES 50
@@ -94,8 +93,7 @@ struct krad_link_St {
 	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
 //	krad_codec2_t *krad_codec2_decoder;
-//	krad_codec2_t *krad_codec2_encoder;	
-	krad_dirac_t *krad_dirac;	
+//	krad_codec2_t *krad_codec2_encoder;
 	krad_vorbis_t *krad_vorbis;
 	krad_flac_t *krad_flac;
 	krad_opus_t *krad_opus;
