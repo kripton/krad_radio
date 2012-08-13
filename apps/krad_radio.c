@@ -22,7 +22,7 @@ int main (int argc, char *argv[]) {
 	
 	if ((argc == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
 	
-		krad_radio_list_running_daemons ();
+		printf("Running Stations: \n\n%s\n", krad_radio_get_running_daemons_list ());
 	
 		return 0;
 	}

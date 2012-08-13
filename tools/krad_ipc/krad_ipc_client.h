@@ -190,7 +190,7 @@ void krad_ipc_client_handle (krad_ipc_client_t *client);
 int krad_ipc_client_poll (krad_ipc_client_t *client);
 int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 
-void krad_radio_list_running_daemons ();
+char *krad_radio_get_running_daemons_list ();
 
 krad_ipc_client_t *krad_ipc_connect ();
 int krad_ipc_client_init (krad_ipc_client_t *client);
