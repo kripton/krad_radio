@@ -124,6 +124,36 @@ void krad_jack_destroy (krad_jack_t *krad_jack) {
 
 }
 
+int krad_jack_detect () {
+	return krad_jack_detect_for_jack_server_name (NULL);
+}
+
+int krad_jack_detect_for_jack_server_name (char *server_name) {
+
+	jack_client_t *client;
+	jack_options_t options;
+	jack_status_t status;
+	char name[128];
+
+	sprintf(name, "krad_jack_detect_%d", rand()); 
+
+	if (server_name != NULL) {
+		options = JackNoStartServer | JackServerName;
+	} else {
+		options = JackNoStartServer;
+	}
+
+	client = jack_client_open (name, options, &status, server_name);
+
+	if (client == NULL) {
+		return 0;
+	} else {
+		jack_client_close (client);
+		return 1;
+	}
+
+}
+
 krad_jack_t *krad_jack_create (krad_audio_t *krad_audio) {
 
 	return krad_jack_create_for_jack_server_name (krad_audio, NULL);
@@ -148,14 +178,13 @@ krad_jack_t *krad_jack_create_for_jack_server_name (krad_audio_t *krad_audio, ch
 	krad_jack->name = krad_jack->krad_audio->krad_mixer->name;
 	
 	if (server_name != NULL) {
+		krad_jack->options = JackNoStartServer | JackServerName;	
 		krad_jack->server_name[sizeof(krad_jack->server_name) - 1] = '\0';
 		snprintf(krad_jack->server_name, sizeof(krad_jack->server_name) - 2, "%s", server_name);
 	} else {
+		krad_jack->options = JackNoStartServer;	
 		krad_jack->server_name[0] = '\0';
 	}
-	krad_jack->options = JackNoStartServer;
-
-	// Connect up to the JACK server 
 
 	krad_jack->client = jack_client_open (krad_jack->name, krad_jack->options, &krad_jack->status, krad_jack->server_name);
 	if (krad_jack->client == NULL) {

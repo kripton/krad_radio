@@ -46,6 +46,9 @@ struct krad_jack_St {
 //void krad_jack_connect_port(jack_client_t *client, char *port_one, char *port_two);
 
 
+int krad_jack_detect ();
+int krad_jack_detect_for_jack_server_name (char *server_name);
+
 void krad_jack_portgroup_samples_callback (int frames, void *userdata, float **samples);
 
 void krad_jack_portgroup_destroy (krad_jack_portgroup_t *portgroup);
