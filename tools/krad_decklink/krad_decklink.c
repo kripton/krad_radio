@@ -69,6 +69,15 @@ void krad_decklink_stop(krad_decklink_t *krad_decklink) {
 }
 
 
+int krad_decklink_detect_devices () {
 
+	return krad_decklink_cpp_detect_devices();
 
+}
+
+void krad_decklink_get_device_name (int device_num, char *device_name) {
+
+	krad_decklink_cpp_get_device_name (device_num, device_name);
+
+}
 

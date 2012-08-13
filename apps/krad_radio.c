@@ -20,6 +20,13 @@ int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
 	
+	if ((argc == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
+	
+		krad_radio_list_running_daemons ();
+	
+		return 0;
+	}
+	
 	if ((argc == 1) || (argc == 2)) {
 		krad_radio_command_help ();
 	}	

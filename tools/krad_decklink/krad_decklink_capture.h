@@ -81,6 +81,9 @@ void krad_decklink_capture_set_video_callback(krad_decklink_capture_t *krad_deck
 void krad_decklink_capture_set_audio_callback(krad_decklink_capture_t *krad_decklink_capture, int audio_frames_callback(void *, void *, int));
 void krad_decklink_capture_set_callback_pointer(krad_decklink_capture_t *krad_decklink_capture, void *callback_pointer);
 
+int krad_decklink_cpp_detect_devices ();
+void krad_decklink_cpp_get_device_name (int device_num, char *device_name);
+
 #ifdef __cplusplus
 }
 

@@ -152,6 +152,41 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	return client->sd;
 }
 
+void krad_radio_list_running_daemons () {
+
+	char *unix_sockets;
+	int fd;
+	int bytes;
+	//char *found;
+	int pos;
+	
+	fd = open ( "/proc/net/unix", O_RDONLY );
+	
+	if (fd < 1) {
+		printke ("krad_radio_list_running_daemons: Could not open /proc/net/unix");
+		return;
+	}
+	
+	unix_sockets = malloc (512000);
+	
+	bytes = read (fd, unix_sockets, 512000);	
+	
+	if (bytes > 512000) {
+		printke("lots of unix sockets oh my");
+	}
+	
+	for (pos = 0; pos < bytes - 12; pos++) {	
+		if (unix_sockets[pos] == '@') {
+			if (memcmp(unix_sockets + pos, "@krad", 5) == 0) {
+				printf("Found one!");
+			}
+		}
+	}
+	
+	free (unix_sockets);
+	
+}
+
 void krad_radio_launch_daemon (char *sysname) {
 
 	pid_t pid;

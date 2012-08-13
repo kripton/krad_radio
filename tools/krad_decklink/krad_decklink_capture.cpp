@@ -334,6 +334,85 @@ void krad_decklink_capture_info () {
 	}
 }
 
+
+int krad_decklink_cpp_detect_devices () {
+
+	IDeckLinkIterator *deckLinkIterator;
+	IDeckLink *deckLink;
+	int device_count;
+	HRESULT result;
+	
+	device_count = 0;
+	
+	deckLinkIterator = CreateDeckLinkIteratorInstance();
+	
+	if (deckLinkIterator == NULL) {
+		printke ("krad_decklink_detect_devices: The DeckLink drivers may not be installed.");
+		return 0;
+	}
+	
+	while (deckLinkIterator->Next(&deckLink) == S_OK) {
+
+		device_count++;
+		
+		deckLink->Release();
+	}
+	
+	deckLinkIterator->Release();
+	
+	return device_count;
+
+}
+
+
+void krad_decklink_cpp_get_device_name (int device_num, char *device_name) {
+
+	IDeckLinkIterator *deckLinkIterator;
+	IDeckLink *deckLink;
+	int device_count;
+	HRESULT result;
+	char *device_name_temp;
+	
+	device_name_temp = NULL;
+	device_count = 0;
+	
+	deckLinkIterator = CreateDeckLinkIteratorInstance();
+	
+	if (deckLinkIterator == NULL) {
+		printke ("krad_decklink_detect_devices: The DeckLink drivers may not be installed.");
+		return;
+	}
+	
+	while (deckLinkIterator->Next(&deckLink) == S_OK) {
+
+		if (device_count == device_num) {
+			result = deckLink->GetModelName((const char **) &device_name_temp);
+			if (result == S_OK) {
+				strcpy(device_name, device_name_temp);
+				free(device_name_temp);
+			} else {
+				strcpy(device_name, "Unknown Error in GetModelName");
+			}
+			deckLink->Release();
+			deckLinkIterator->Release();
+			return;
+		}
+
+		device_count++;
+		deckLink->Release();
+	}
+	
+	deckLinkIterator->Release();
+	
+	sprintf(device_name, "Could not get a device name for device %d", device_num);
+	
+	return;
+
+}
+
+
+
+
 }
 
 	

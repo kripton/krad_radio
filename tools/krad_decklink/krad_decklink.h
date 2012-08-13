@@ -36,3 +36,6 @@ krad_decklink_t *krad_decklink_create();
 void krad_decklink_info(krad_decklink_t *krad_decklink);
 void krad_decklink_start(krad_decklink_t *krad_decklink);
 void krad_decklink_stop(krad_decklink_t *krad_decklink);
+
+int krad_decklink_detect_devices();
+void krad_decklink_get_device_name (int device_num, char *device_name);
