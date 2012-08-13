@@ -158,7 +158,8 @@ char *krad_radio_get_running_daemons_list () {
 	int fd;
 	int bytes;
 	int pos;
-	
+	int flag_check;
+	int flag_pos;
 	static char list[4096];
 	
 	memset (list, '\0', sizeof(list));
@@ -181,8 +182,21 @@ char *krad_radio_get_running_daemons_list () {
 	for (pos = 0; pos < bytes - 12; pos++) {	
 		if (unix_sockets[pos] == '@') {
 			if (memcmp(unix_sockets + pos, "@krad_radio_", 12) == 0) {
-				strncat(list, unix_sockets + pos + 12, strcspn(unix_sockets + pos + 12, "_"));
-				strcat(list, "\n");
+			
+				/* back up a few spaces and check that its a listening socket */
+				flag_pos = 0;
+				flag_check = 5;
+				while (flag_check != 0) {
+					flag_pos--;
+					if (unix_sockets[pos + flag_pos] == ' ') {
+						flag_check--;
+					}
+				}
+				flag_pos++;
+				if (memcmp(unix_sockets + (pos + flag_pos), "00010000", 8) == 0) {
+					strncat(list, unix_sockets + pos + 12, strcspn(unix_sockets + pos + 12, "_"));
+					strcat(list, "\n");
+				}
 			}
 		}
 	}
