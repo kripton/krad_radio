@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <poll.h>
 #include <sys/wait.h>
-
+#include <dirent.h>
 #include <pthread.h>
 
 #include "krad_radio_ipc.h"
@@ -68,6 +68,9 @@ struct krad_ipc_client_St {
 	int nowait;
 
 };
+
+void krad_radio_destroy_daemon (char *sysname);
+int krad_radio_find_daemon_pid (char *sysname);
 
 void krad_radio_watchdog (char *config_file);
 void krad_radio_watchdog_launch (char *config_file);

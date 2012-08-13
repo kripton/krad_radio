@@ -195,6 +195,78 @@ char *krad_radio_get_running_daemons_list () {
 	
 }
 
+int krad_radio_find_daemon_pid (char *sysname) {
+
+	DIR *dp;
+	struct dirent *ep;
+	char cmdline[512];
+	char search[128];
+	int searchlen;
+	char cmdline_file[128];	
+	int fd;
+	int bytes;
+	int pid;
+	
+	pid = 0;
+	memset(search, '\0', sizeof(search));	
+	strcpy (search, "krad_radio_daemon");
+	strcpy (search + 18, sysname);
+	searchlen = 18 + strlen(sysname);
+	memset(cmdline, '\0', sizeof(cmdline));
+	memset(cmdline_file, '\0', sizeof(cmdline_file));
+	
+	dp = opendir ("/proc");
+	
+	if (dp == NULL) {
+		printke ("Couldn't open the /proc directory");
+		return 0;
+	}
+	
+	while ((ep = readdir(dp))) {
+		if (isdigit(ep->d_name[0])) {
+			sprintf (cmdline_file, "/proc/%s/cmdline", ep->d_name);
+			fd = open ( cmdline_file, O_RDONLY );
+			if (fd > 0) {
+				bytes = read (fd, cmdline, sizeof(cmdline));
+				if (bytes > 0) {
+					if (bytes == searchlen + 1) {
+						if (memcmp(cmdline, search, searchlen) == 0) {
+							pid = strtoul(ep->d_name, NULL, 10);
+						}
+					}
+				}
+				close (fd);
+				if (pid != 0) {
+					return pid;
+				}
+			}
+		}
+	}
+	closedir (dp);
+
+	return 0;
+
+}
+
+void krad_radio_destroy_daemon (char *sysname) {
+
+	int pid;
+	
+	pid = 0;
+	
+	pid = krad_radio_find_daemon_pid (sysname);
+	
+	if (pid != 0) {
+		kill (pid, 15);
+		usleep (500000);
+		pid = krad_radio_find_daemon_pid (sysname);
+		if (pid != 0) {
+			kill (pid, 9);
+		}
+	}
+
+}
+
 void krad_radio_launch_daemon (char *sysname) {
 
 	pid_t pid;
@@ -321,6 +393,7 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 				krad_ipc_disconnect (client);
 				client = NULL;
 			} else {
+				krad_radio_destroy_daemon (sysname);
 				if (launch_script != NULL) {
 					krad_radio_watchdog_run_script (launch_script);
 				} else {

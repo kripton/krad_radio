@@ -21,7 +21,7 @@ int main (int argc, char *argv[]) {
 	krad_ipc_client_t *client;
 	
 	if ((argc == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
-	
+
 		printf("Running Stations: \n\n%s\n", krad_radio_get_running_daemons_list ());
 	
 		return 0;
