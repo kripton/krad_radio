@@ -896,3 +896,25 @@ int kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, u
 	*/
 }
 
+
+void kradv4l2_list_devices () {
+
+	DIR *dp;
+	struct dirent *ep;
+
+	dp = opendir ("/dev");
+	
+	if (dp == NULL) {
+		printke ("Couldn't open the /dev directory");
+		return;
+	}
+	
+	while ((ep = readdir(dp))) {
+		if (memcmp(ep->d_name, "video", 5) == 0) {
+			printk("Found V4L2 Device: /dev/%s", ep->d_name);
+		}
+	}
+	closedir (dp);
+
+}
+

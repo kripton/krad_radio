@@ -16,6 +16,7 @@
 #include <sys/ioctl.h>
 #include <math.h>
 #include <asm/types.h>
+#include <dirent.h>
 #include <linux/videodev2.h>
 
 #include <turbojpeg.h>
@@ -102,6 +103,8 @@ void kradv4l2_read_frames (krad_v4l2_t *kradv4l2);
 char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2);
 char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2);
 void kradv4l2_frame_done (krad_v4l2_t *kradv4l2);
+
+void kradv4l2_list_devices ();
 
 /* private */
 
