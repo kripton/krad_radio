@@ -6,7 +6,7 @@ void krad_radio_command_help () {
 	printf ("\n\n");
 	printf ("Commands:\n");
 	
-	printf ("launch ls uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate rate fps mix");
+	printf ("launch ls destroy uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate rate fps mix");
 	printf ("\n");
 	printf ("setdir lm ll lc tone input output unplug map mixmap xmms2 noxmms2 listen_on listen_off link");
 	printf ("\n");
@@ -47,7 +47,12 @@ int main (int argc, char *argv[]) {
 		if ((strncmp(argv[2], "launch", 6) == 0) || (strncmp(argv[2], "load", 4) == 0)) {
 			krad_radio_launch_daemon (argv[1]);
 			return 0;
-		}	
+		}
+		
+		if ((strncmp(argv[2], "destroy", 7) == 0) || (strncmp(argv[2], "kill", 4) == 0)) {
+			krad_radio_destroy_daemon (argv[1]);
+			return 0;
+		}		
 
 		client = krad_ipc_connect (argv[1]);
 	
