@@ -130,6 +130,7 @@ Kradwebsocket.prototype.on_message = function(evt) {
 function Kradradio () {
 
 	this.sysname = "";
+	this.sample_rate = 0;
 	//this.real_interfaces = new Array();
 	//this.ignoreupdate = false;
 	//this.update_rate = 50;
@@ -148,6 +149,14 @@ Kradradio.prototype.destroy = function () {
 	//for (real_interface in this.real_interfaces) {
 	//	this.real_interfaces[real_interface].destroy();
 	//}
+
+}
+
+Kradradio.prototype.got_sample_rate = function (sample_rate) {
+
+	this.sample_rate = sample_rate;
+
+	$('.kradmixer').append("<div>Sample Rate: " + this.sample_rate + " </div>"); 
 
 }
 
@@ -187,7 +196,10 @@ Kradradio.prototype.got_messages = function (msgs) {
 			}
 			if (msg_arr[m].cmd == "remove_portgroup") {
 				kradradio.got_remove_portgroup (msg_arr[m].portgroup_name);
-			}			
+			}
+			if (msg_arr[m].cmd == "set_sample_rate") {
+				kradradio.got_sample_rate (msg_arr[m].sample_rate);
+			}
 		}
 		if (msg_arr[m].com == "kradradio") {
 			if (msg_arr[m].info == "sysname") {

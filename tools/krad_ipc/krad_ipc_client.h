@@ -151,7 +151,7 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 								  int video_width, int video_height, int video_bitrate, int audio_bitrate);
 
 void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
-								   int width, int height);
+								   int width, int height, int fps_numerator, int fps_denominator);
 
 void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *host, int port,
 									char *mount, char *password, char *codecs,

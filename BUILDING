@@ -58,7 +58,7 @@ cd opus && ./autogen.sh && ./configure && make && sudo make install && sudo ldco
 ******** libvpx ******** 
 
 git clone http://git.chromium.org/webm/libvpx.git
-cd libvpx && ./configure && make && sudo make install && sudo ldconfig
+cd libvpx && ./configure --enable-shared && make && sudo make install && sudo ldconfig
 
 ******** libjpeg-turbo ******** 
 

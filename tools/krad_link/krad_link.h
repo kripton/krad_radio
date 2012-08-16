@@ -140,6 +140,9 @@ struct krad_link_St {
 	int encoding_fps_numerator;
 	int encoding_fps_denominator;
 
+	int fps_numerator;
+	int fps_denominator;
+
 	int mjpeg_mode;
 	int mjpeg_passthru;	
 

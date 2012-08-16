@@ -2043,8 +2043,9 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 
-	krad_link->krad_decklink = krad_decklink_create ();
-	krad_decklink_info ( krad_link->krad_decklink );
+	krad_link->krad_decklink = krad_decklink_create (krad_link->device);
+	krad_decklink_set_video_mode(krad_link->krad_decklink, krad_link->capture_width, krad_link->capture_height,
+								 krad_link->fps_numerator, krad_link->fps_denominator);
 	
 	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "DecklinkIn", INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
@@ -2233,6 +2234,12 @@ void krad_link_activate (krad_link_t *krad_link) {
 										&krad_link->encoding_fps_numerator,
 										&krad_link->encoding_fps_denominator);
 	}
+	
+	if ((krad_link->fps_numerator == -1) || (krad_link->fps_denominator == -1)) {
+		krad_compositor_get_frame_rate (krad_link->krad_radio->krad_compositor,
+										&krad_link->fps_numerator,
+										&krad_link->fps_denominator);
+	}	
 
 	if ((krad_link->encoding_width == -1) || (krad_link->encoding_height == -1)) {
 		krad_link->encoding_width = krad_link->composite_width;
@@ -2503,9 +2510,20 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 	
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->device, ebml_data_size);
 	
-		if (strlen(krad_link->device) == 0) {
-			strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
+		if (krad_link->video_source == V4L2) {
+			if (strlen(krad_link->device) == 0) {
+				strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
+			}
+			
+			krad_link->mjpeg_mode = 1;
+			krad_link->mjpeg_passthru = 1;
+			
 		}
+		if (krad_link->video_source == DECKLINK) {
+			if (strlen(krad_link->device) == 0) {
+				strncpy(krad_link->device, DEFAULT_DECKLINK_DEVICE, sizeof(krad_link->device));
+			}
+		}		
 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -2521,6 +2539,22 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			printk ("hrm wtf2v");
 		} else {
 			krad_link->capture_height = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+		}
+
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_FPS_NUMERATOR) {
+			printk ("hrm wtf2v");
+		} else {
+			krad_link->fps_numerator = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+		}
+		
+		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+		if (ebml_id != EBML_ID_KRAD_LINK_LINK_FPS_DENOMINATOR) {
+			printk ("hrm wtf2v");
+		} else {
+			krad_link->fps_denominator = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 		}
 
 	
@@ -2555,6 +2589,10 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
 			
 			krad_link->video_codec = krad_string_to_codec (string);
+			
+			if (krad_link->video_codec == MJPEG) {
+				krad_link->mjpeg_passthru = 1;
+			}
 			
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 

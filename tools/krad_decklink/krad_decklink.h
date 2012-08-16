@@ -9,6 +9,8 @@
 #define KRAD_DECKLINK_H
 #include "krad_decklink_capture.h"
 
+#define DEFAULT_DECKLINK_DEVICE "0"
+
 typedef struct krad_decklink_St krad_decklink_t;
 
 struct krad_decklink_St {
@@ -31,7 +33,10 @@ struct krad_decklink_St {
 void krad_decklink_set_verbose(krad_decklink_t *krad_decklink, int verbose);
 
 void krad_decklink_destroy(krad_decklink_t *decklink);
-krad_decklink_t *krad_decklink_create();
+krad_decklink_t *krad_decklink_create(char *device);
+
+void krad_decklink_set_video_mode(krad_decklink_t *krad_decklink, int width, int height,
+								  int fps_numerator, int fps_denominator);
 
 void krad_decklink_info(krad_decklink_t *krad_decklink);
 void krad_decklink_start(krad_decklink_t *krad_decklink);

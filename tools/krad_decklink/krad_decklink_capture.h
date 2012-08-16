@@ -64,6 +64,15 @@ struct krad_decklink_capture_St {
 	int (*audio_frames_callback)(void *, void *, int);
 	void *callback_pointer;
 
+
+	int width;
+	int height;
+	int fps_numerator;
+	int fps_denominator;
+	
+	int device;
+
+
 };
 #endif
 
@@ -71,7 +80,10 @@ struct krad_decklink_capture_St {
 extern "C" {
 #endif
 
-krad_decklink_capture_t *krad_decklink_capture_create();
+void krad_decklink_capture_set_video_mode(krad_decklink_capture_t *krad_decklink_capture, int width, int height,
+										  int fps_numerator, int fps_denominator);
+
+krad_decklink_capture_t *krad_decklink_capture_create (int device);
 void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture);
 void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture);
 void krad_decklink_capture_info ();

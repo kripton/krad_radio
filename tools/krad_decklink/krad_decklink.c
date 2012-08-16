@@ -22,7 +22,7 @@ void krad_decklink_destroy (krad_decklink_t *krad_decklink) {
 
 }
 
-krad_decklink_t *krad_decklink_create() {
+krad_decklink_t *krad_decklink_create(char *device) {
 
 	int c;
 
@@ -34,8 +34,18 @@ krad_decklink_t *krad_decklink_create() {
 		krad_decklink->samples[c] = malloc(4 * 8192);
 	}
 	
+	krad_decklink->krad_decklink_capture = krad_decklink_capture_create(atoi(device));
+	
 	return krad_decklink;
 
+}
+
+void krad_decklink_set_video_mode(krad_decklink_t *krad_decklink, int width, int height,
+								  int fps_numerator, int fps_denominator) {			  
+						  
+	krad_decklink_capture_set_video_mode(krad_decklink->krad_decklink_capture, width, height,
+										 fps_numerator, fps_denominator);
+						  
 }
 
 void krad_decklink_set_verbose (krad_decklink_t *krad_decklink, int verbose) {
@@ -47,8 +57,6 @@ void krad_decklink_set_verbose (krad_decklink_t *krad_decklink, int verbose) {
 }
 
 void krad_decklink_start(krad_decklink_t *krad_decklink) {
-
-	krad_decklink->krad_decklink_capture = krad_decklink_capture_create();
 
 	krad_decklink_capture_set_video_callback(krad_decklink->krad_decklink_capture, krad_decklink->video_frame_callback);
 	krad_decklink_capture_set_audio_callback(krad_decklink->krad_decklink_capture, krad_decklink->audio_frames_callback);

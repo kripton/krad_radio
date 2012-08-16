@@ -213,6 +213,21 @@ void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data
 	
 }
 
+void krad_websocket_set_sample_rate ( krad_ipc_session_data_t *krad_ipc_session_data, int sample_rate) {
+
+	printkd ("set_sample_rate called %d", sample_rate);
+	
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradmixer");
+	
+	cJSON_AddStringToObject (msg, "cmd", "set_sample_rate");
+	cJSON_AddNumberToObject (msg, "sample_rate", sample_rate);
+	
+}
+
 
 /* IPC Handler */
 
@@ -376,6 +391,13 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
 					printkd ("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
 					break;
+					
+				case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
+					number = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					krad_websocket_set_sample_rate ( krad_ipc_session_data, number);
+					break;
+					
+					
 			}
 		
 		
@@ -565,6 +587,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->krad_ipc_info = 0;
 			pss->hello_sent = 0;			
 			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
+			krad_ipc_get_mixer_sample_rate (pss->krad_ipc_client);
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
 			krad_ipc_list_links (pss->krad_ipc_client);
 			krad_ipc_get_tags (pss->krad_ipc_client, NULL);		
