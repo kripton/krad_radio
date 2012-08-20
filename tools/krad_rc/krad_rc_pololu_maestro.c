@@ -13,11 +13,11 @@ void krad_rc_pololu_maestro_set_target (krad_rc_pololu_maestro_t *krad_rc_pololu
 	unsigned char command[] = {0x84, channel_actual, target_actual & 0x7F, target_actual >> 7 & 0x7F};
 
 
-	printf ("commanding %c %c %c %c\n", command[0], command[1], command[2], command[3]);
+	//printf ("commanding %c %c %c %c\n", command[0], command[1], command[2], command[3]);
 
 	wrote = write (krad_rc_pololu_maestro->fd, command, sizeof(command));
 
-	printf ("wrote was %d\n", wrote);
+	//printf ("wrote was %d\n", wrote);
 
 }
 
@@ -48,7 +48,7 @@ void krad_rc_pololu_maestro_command (krad_rc_pololu_maestro_t *krad_rc_pololu_ma
 	memcpy (&channel, command_actual, 4);
 	memcpy (&target, command_actual + 4, 4);
 	
-	printf ("commanding %u %u\n", channel, target);
+	//printf ("commanding %u %u\n", channel, target);
 	
 	krad_rc_pololu_maestro_set_target (krad_rc_pololu_maestro, channel, target);
 

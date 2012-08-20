@@ -58,7 +58,7 @@ void krad_rc_rx_run (krad_rc_rx_t *krad_rc_rx) {
 			break;
 		}
 		
-		printf ("got packet! %d\n", ret);		
+		//printf ("got packet! %d\n", ret);		
 		
 		krad_rc_command ( krad_rc_rx->krad_rc, krad_rc_rx->data + 3);
 	
