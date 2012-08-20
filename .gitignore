@@ -52,3 +52,7 @@ tests/krad_transmitter_test
 tests/krad_ticker_test
 tests/krad_xmms2_test
 tests/krad_fps_test
+krad_rc_rx_test
+krad_rc_tx_test
+krad_rc_sdl_joy_control
+krad_rc_test

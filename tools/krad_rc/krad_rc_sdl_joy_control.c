@@ -1,11 +1,15 @@
 #include "krad_rc_tx.h"
 #include "krad_rc_sdl_joy.h"
 
+int run;
 
-
+void sig_handler(int signo) {
+	run = 0;
+}
 
 int main ( int argc, char *argv[] ) {
 
+	run = 1;
 
 	krad_rc_tx_t *krad_rc_tx;
 	krad_rc_sdl_joy_t *krad_rc_sdl_joy;
@@ -15,9 +19,7 @@ int main ( int argc, char *argv[] ) {
 	int target;
 	int channel;
 	
-	int axis;
 	int value;
-	
 
 	int center;
 
@@ -45,8 +47,6 @@ int main ( int argc, char *argv[] ) {
 
 	krad_rc_tx_command ( krad_rc_tx, command, 8);
 	
-	
-	axis = 0;
 	value = 0;
 	
 	min_pos = 1219;
@@ -57,40 +57,56 @@ int main ( int argc, char *argv[] ) {
 	pos_range = max_pos - middle_pos;
 	curr_pos = middle_pos;
 	
+	signal(SIGINT, sig_handler);
 	
-	while (1) {
+	printf ("Starting joyride\n\n");	
 	
+	while (run == 1) {
 	
-		krad_rc_sdl_joy_wait (krad_rc_sdl_joy, &axis, &value);
-	
-	
-		printf ("got joy axis %d value %d\n", axis, value);
-	
-		if ((axis == 0) || (axis == 1)) {
-		
-			channel = axis;
-			memcpy (command, &channel, 4);
 			
-			if (axis == 1) {
-				value += -8600;
-			}
-			if (axis == 0) {
-				value = value * -1;
-			}			
+		channel = 0;
+		memcpy (command, &channel, 4);
 			
-			target = center + (value / 100);
-
-			usec = target * 4;
-			memcpy (command + 4, &usec, 4);
-
-			krad_rc_tx_command ( krad_rc_tx, command, 8);
+		value = krad_rc_sdl_joy->axis[0] * -1;
 		
-		}	
+		target = center + (value / 100);
+
+		usec = target * 4;
+		memcpy (command + 4, &usec, 4);
+
+		krad_rc_tx_command ( krad_rc_tx, command, 8);
 	
+		printf ("sent joy axis %d value %d           \r", 0, value);
+		fflush (stdout);
+		usleep (8000);
+		
+		
+		channel = 1;
+		memcpy (command, &channel, 4);
+
+		value = krad_rc_sdl_joy->axis[1];
+		
+		value += 8600;
+
+		value = value * -1;
+
+
+		
+		target = center + (value / 100);
+
+		usec = target * 4;
+		memcpy (command + 4, &usec, 4);
+
+		krad_rc_tx_command ( krad_rc_tx, command, 8);
 	
-		//usleep (1500);
+		printf ("sent joy axis %d value %d           \r", 1, value);
+		fflush (stdout);
+		usleep (8000);
+		
 	
 	}
+	
+	printf ("\n\njoyride over\n");	
 	
 	
 	krad_rc_sdl_joy_destroy ( krad_rc_sdl_joy );
