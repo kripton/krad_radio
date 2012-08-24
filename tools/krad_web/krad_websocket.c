@@ -229,6 +229,36 @@ void krad_websocket_set_sample_rate ( krad_ipc_session_data_t *krad_ipc_session_
 }
 
 
+void krad_websocket_set_frame_rate ( krad_ipc_session_data_t *krad_ipc_session_data, int numerator, int denominator) {
+
+
+	
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradcompositor");
+	
+	cJSON_AddStringToObject (msg, "cmd", "set_frame_rate");
+	cJSON_AddNumberToObject (msg, "numerator", numerator);
+	cJSON_AddNumberToObject (msg, "denominator", denominator);
+}
+
+void krad_websocket_set_frame_size ( krad_ipc_session_data_t *krad_ipc_session_data, int width, int height) {
+
+
+	
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradcompositor");
+	
+	cJSON_AddStringToObject (msg, "cmd", "set_frame_size");
+	cJSON_AddNumberToObject (msg, "width", width);
+	cJSON_AddNumberToObject (msg, "height", height);
+}
+
 /* IPC Handler */
 
 int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
@@ -258,6 +288,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	float crossfade;	
 	
 	uint64_t number;
+	uint64_t numbers[16];	
 	
 	char tag_item_actual[256];	
 	char tag_name_actual[256];
@@ -356,11 +387,32 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			break;
 
 		case EBML_ID_KRAD_COMPOSITOR_MSG:
-			printkd ("krad_radio_gtk_ipc_handler got message from krad COMPOSITOR\n");
+			printkd ("krad_radio_websocket_ipc_handler got message from krad COMPOSITOR\n");
+			
+			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+			
+			switch ( ebml_id ) {
+				case EBML_ID_KRAD_COMPOSITOR_FRAME_RATE:
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
+					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);					
+					numbers[1] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					krad_websocket_set_frame_rate ( krad_ipc_session_data, numbers[0], numbers[1]);
+					break;
+				case EBML_ID_KRAD_COMPOSITOR_FRAME_SIZE:
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
+					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);					
+					numbers[1] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					krad_websocket_set_frame_size ( krad_ipc_session_data, numbers[0], numbers[1]);
+					break;
+			}
+					
+			
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
-			printkd ("krad_radio_gtk_ipc_handler got message from krad mixer\n");
+			printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
 //			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			
@@ -588,6 +640,8 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->hello_sent = 0;			
 			krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
 			krad_ipc_get_mixer_sample_rate (pss->krad_ipc_client);
+			krad_ipc_compositor_get_frame_rate (pss->krad_ipc_client);
+			krad_ipc_compositor_get_frame_size (pss->krad_ipc_client);			
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
 			krad_ipc_list_links (pss->krad_ipc_client);
 			krad_ipc_get_tags (pss->krad_ipc_client, NULL);		

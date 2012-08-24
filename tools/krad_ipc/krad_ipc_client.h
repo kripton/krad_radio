@@ -100,6 +100,8 @@ void krad_ipc_compositor_list_sprites (krad_ipc_client_t *client);
 
 void krad_ipc_compositor_set_frame_rate (krad_ipc_client_t *client, int numerator, int denominator);
 void krad_ipc_compositor_set_resolution (krad_ipc_client_t *client, int width, int height);
+void krad_ipc_compositor_get_frame_size (krad_ipc_client_t *client);
+void krad_ipc_compositor_get_frame_rate (krad_ipc_client_t *client);
 
 void krad_ipc_compositor_close_display (krad_ipc_client_t *client);
 void krad_ipc_compositor_open_display (krad_ipc_client_t *client, int width, int height);

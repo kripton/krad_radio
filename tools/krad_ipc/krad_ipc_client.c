@@ -1571,6 +1571,47 @@ void krad_ipc_compositor_info (krad_ipc_client_t *client) {
 	
 }
 
+
+void krad_ipc_compositor_get_frame_rate (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t info_command;
+	command = 0;
+	info_command = 0;
+	
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_GET_FRAME_RATE, &info_command);
+	krad_ebml_finish_element (client->krad_ebml, info_command);
+
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);	
+	
+}
+
+void krad_ipc_compositor_get_frame_size (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t info_command;
+	command = 0;
+	info_command = 0;
+	
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_GET_FRAME_SIZE, &info_command);
+	krad_ebml_finish_element (client->krad_ebml, info_command);
+
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+	
+}
+
 void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
 								   int width, int height, int fps_numerator, int fps_denominator) {
 

@@ -156,7 +156,25 @@ Kradradio.prototype.got_sample_rate = function (sample_rate) {
 
 	this.sample_rate = sample_rate;
 
-	$('.kradmixer').append("<div>Sample Rate: " + this.sample_rate + " </div>"); 
+	$('.kradmixer_info').append("<div>Sample Rate: " + this.sample_rate + " </div>"); 
+
+}
+
+Kradradio.prototype.got_frame_rate = function (numerator, denominator) {
+
+	this.frame_rate_numerator = numerator;
+	this.frame_rate_denominator = denominator;
+	
+	$('.kradcompositor_info').append("<div>Frame Rate: " + this.frame_rate_numerator + " / " + this.frame_rate_denominator + "</div>"); 
+
+}
+
+Kradradio.prototype.got_frame_size = function (width, height) {
+
+	this.frame_width = width;
+	this.frame_height = height;
+
+	$('.kradcompositor_info').append("<div>Frame Size: " + this.frame_width + " x " + this.frame_height + "</div>"); 
 
 }
 
@@ -164,7 +182,31 @@ Kradradio.prototype.got_sysname = function (sysname) {
 
 	this.sysname = sysname;
 
-	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'><div class='kradradio'><h2>" + this.sysname + "</h2><div class='tags'></div></div><div class='kradmixer'></div><br clear='both'><div class='kradlink'></div><br clear='both'><div class='kradcompositor'></div></div>");
+	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'>\
+	                    <div class='kradmixer'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradmixer_info'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradmixer_tools'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradlink'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradlink_info'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradlink_tools'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradcompositor'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradcompositor_info'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradcompositor_tools'></div>\
+						<br clear='both'>\
+						<div class='kradradio'>\
+	                      <h2>" + this.sysname + "</h2>\
+	                      <div class='tags'></div>\
+	                    </div>\
+	                    <br clear='both'>\
+	                  </div>");
 }
 
 Kradradio.prototype.got_tag = function (tag_item, tag_name, tag_value) {
@@ -201,6 +243,14 @@ Kradradio.prototype.got_messages = function (msgs) {
 				kradradio.got_sample_rate (msg_arr[m].sample_rate);
 			}
 		}
+		if (msg_arr[m].com == "kradcompositor") {
+			if (msg_arr[m].cmd == "set_frame_rate") {
+				kradradio.got_frame_rate (msg_arr[m].numerator, msg_arr[m].denominator);
+			}
+			if (msg_arr[m].cmd == "set_frame_size") {
+				kradradio.got_frame_size (msg_arr[m].width, msg_arr[m].height);
+			}			
+		}		
 		if (msg_arr[m].com == "kradradio") {
 			if (msg_arr[m].info == "sysname") {
 				kradradio.got_sysname (msg_arr[m].infoval);

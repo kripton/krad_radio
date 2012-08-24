@@ -1606,6 +1606,35 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 		
 			break;
 
+		case EBML_ID_KRAD_COMPOSITOR_CMD_GET_FRAME_RATE:
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
+			
+			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FRAME_RATE, &element);
+			
+			krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_NUMERATOR,
+											 krad_compositor->frame_rate_numerator);
+
+			krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR,
+											 krad_compositor->frame_rate_denominator);			
+			krad_ipc_server_response_list_finish ( krad_ipc, element );
+			krad_ipc_server_response_finish ( krad_ipc, response);			
+			break;
+
+		case EBML_ID_KRAD_COMPOSITOR_CMD_GET_FRAME_SIZE:
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
+			
+			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FRAME_SIZE, &element);
+			
+			krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_WIDTH,
+											 krad_compositor->width);
+
+			krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_HEIGHT,
+											 krad_compositor->height);			
+			krad_ipc_server_response_list_finish ( krad_ipc, element );
+
+			krad_ipc_server_response_finish ( krad_ipc, response);
+			break;
+
 		case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT:
 			krad_compositor->snapshot++;
 			break;
