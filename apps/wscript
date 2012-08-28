@@ -121,6 +121,10 @@ includedirs = """
 /usr/include
 """.split()
 
+
+if 1
+	depsources += "../tools/krad_wayland/krad_wayland.c"
+
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
 		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses", "xmms2-client"]
