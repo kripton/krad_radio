@@ -6,6 +6,8 @@
 #include <math.h>
 #include <inttypes.h>
 
+#include "krad_system.h"
+
 #define KRAD_DECKLINK_H
 #include "krad_decklink_capture.h"
 

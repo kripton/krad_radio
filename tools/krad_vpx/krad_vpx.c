@@ -15,7 +15,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->fps_denominator = fps_denominator;
 	kradvpx->bitrate = bitrate;
 	
-	printk ("Krad Radio using libvpx version: %s\n", vpx_codec_version_str ());
+	printk ("Krad Radio using libvpx version: %s", vpx_codec_version_str ());
 
 	if ((kradvpx->image = vpx_img_alloc (NULL, VPX_IMG_FMT_YV12, kradvpx->width, kradvpx->height, 1)) == NULL) {
 		failfast ("Failed to allocate vpx image\n");
@@ -77,7 +77,7 @@ void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 	printk ("g_lag_in_frames: %d", kradvpx->cfg.g_lag_in_frames);
 	printk ("rc_min_quantizer: %d", kradvpx->cfg.rc_min_quantizer);
 	printk ("rc_max_quantizer: %d", kradvpx->cfg.rc_max_quantizer);
-
+	printk ("END Krad VP8 Encoder config");
 }
 
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate) {

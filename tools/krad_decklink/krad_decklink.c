@@ -42,6 +42,9 @@ krad_decklink_t *krad_decklink_create(char *device) {
 
 void krad_decklink_set_video_mode(krad_decklink_t *krad_decklink, int width, int height,
 								  int fps_numerator, int fps_denominator) {			  
+					
+	printk ("Krad Decklink set video mode: %dx%d - %d / %d",
+	        width, height, fps_numerator, fps_denominator);
 						  
 	krad_decklink_capture_set_video_mode(krad_decklink->krad_decklink_capture, width, height,
 										 fps_numerator, fps_denominator);
