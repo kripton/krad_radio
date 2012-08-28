@@ -4,7 +4,81 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
 static void *krad_compositor_display_thread (void *arg);
 
+#define KRAD_WAYLAND 1
 
+#ifdef KRAD_WAYLAND
+
+int krad_compositor_wayland_display_render_callback (void *pointer, uint32_t time) {
+
+	int updated;
+	uint32_t reltime;
+
+	updated = 0;
+
+
+
+	return updated;
+}
+
+static void *krad_compositor_display_thread (void *arg) {
+
+	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
+
+	prctl (PR_SET_NAME, (unsigned long) "krad_display", 0, 0, 0);
+
+	krad_wayland_t *krad_wayland;
+	krad_frame_t *krad_frame;
+	krad_compositor_port_t *krad_compositor_port;
+
+	void *buffer;
+
+	int w;
+	int h;
+	
+	krad_wayland = krad_wayland_create ();
+
+	krad_compositor_get_resolution (krad_compositor,
+							  &w,
+							  &h);
+	
+	krad_compositor_port = krad_compositor_port_create (krad_compositor, "WLOut", OUTPUT,
+														w, h);
+
+	krad_wayland->render_test_pattern = 1;
+
+	krad_wayland_set_frame_callback (krad_wayland, krad_compositor_wayland_display_render_callback, NULL);
+
+	krad_wayland_prepare_window (krad_wayland, w, h, &buffer);
+
+	krad_wayland_open_window (krad_wayland);
+
+	while (krad_compositor->display_open == 1) {
+	
+		krad_frame = krad_compositor_port_pull_frame (krad_compositor_port);
+
+		if (krad_frame != NULL) {
+
+			krad_framepool_unref_frame (krad_frame);
+
+		} else {
+			
+		}
+
+		usleep (10000);
+
+	}
+	
+	krad_compositor_port_destroy (krad_compositor, krad_compositor_port);
+
+	krad_wayland_destroy (krad_wayland);
+
+	krad_compositor->display_open = 0;
+
+	return NULL;
+
+}
+
+#else
 static void *krad_compositor_display_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
@@ -54,7 +128,7 @@ static void *krad_compositor_display_thread (void *arg) {
 	return NULL;
 
 }
-
+#endif
 
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor) {
 
