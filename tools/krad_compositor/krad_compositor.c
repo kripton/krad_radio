@@ -328,7 +328,7 @@ void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double
 	temp_transform.matrix[2][1] = pixman_double_to_fixed(m21);
 	temp_transform.matrix[2][2] = pixman_double_to_fixed(m22);
 
-	pixman_transform_invert (transform, &temp_transform);
+//	pixman_transform_invert (transform, &temp_transform);
 /*
 	transform->matrix[0][0] = pixman_int_to_fixed(1);
 	transform->matrix[0][1] = pixman_int_to_fixed(0);
@@ -484,7 +484,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 						
 						pixman_image_t *src_img;
 						pixman_image_t *dest_img;
-
+/*
 						src_img = pixman_image_create_bits (PIXMAN_a8r8g8b8,
 										 krad_compositor->port[p].crop_width, krad_compositor->port[p].crop_height, 
 										 (uint32_t *)frame->pixels,
@@ -505,7 +505,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 						pixman_image_unref (src_img);
 						pixman_image_unref (dest_img);
-
+*/
 					} else {
 						/*
 						cairo_set_source_surface (krad_compositor->krad_gui->cr,

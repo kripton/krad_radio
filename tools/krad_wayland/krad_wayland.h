@@ -10,9 +10,8 @@
 #include <signal.h>
 
 #include <wayland-client.h>
-#include <wayland-egl.h>
 
-#include "krad_wayland.h"
+#include "krad_system.h"
 
 #define KRAD_WAYLAND_BUFFER_COUNT 2
 
