@@ -282,6 +282,58 @@ void krad_ebml_header (krad_ebml_t *krad_ebml, char *doctype, char *appversion) 
 
 }
 
+void krad_ebml_write_seekhead (krad_ebml_t *krad_ebml) {
+
+	uint64_t seekhead;
+	uint64_t seekid;	
+	char *voiddata;
+	uint64_t seekitem;
+
+	krad_ebml_fileio_seek (&krad_ebml->io_adapter, krad_ebml->void_space, SEEK_SET);
+
+
+	krad_ebml->segment_size = 0;
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEKHEAD, &seekhead);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK, &seekitem);
+	
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK_ID, &seekid);
+	krad_ebml_write_element (krad_ebml, EBML_ID_SEGMENT_INFO);
+	krad_ebml_finish_element (krad_ebml, seekid);
+	krad_ebml_write_int64 (krad_ebml, EBML_ID_SEEK_POSITION, krad_ebml->segment_info_position);
+	krad_ebml_finish_element (krad_ebml, seekitem);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK, &seekitem);
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK_ID, &seekid);
+	krad_ebml_write_element (krad_ebml, EBML_ID_SEGMENT_TRACKS);
+	krad_ebml_finish_element (krad_ebml, seekid);
+	krad_ebml_write_int64 (krad_ebml, EBML_ID_SEEK_POSITION, krad_ebml->tracks_info_position);
+	krad_ebml_finish_element (krad_ebml, seekitem);
+
+	krad_ebml_finish_element (krad_ebml, seekhead);
+
+
+	krad_ebml_write_sync (krad_ebml);
+
+
+	voiddata = calloc (1, VOID_START_SIZE - krad_ebml->segment_size);
+	krad_ebml_write_data (krad_ebml, EBML_ID_VOID, voiddata, VOID_START_SIZE - krad_ebml->segment_size);
+	krad_ebml_write_sync (krad_ebml);
+	free (voiddata);
+
+	/*
+
+	Segment Info
+	Tracks Info
+	Chapters EBML_ID_CLUSTER
+	Attachments
+	Tags
+	Clusters
+	Cues
+	*/
+}
+
 void krad_ebml_finish_file_segment (krad_ebml_t *krad_ebml) {
 
 	if (krad_ebml->segment != 0) {
@@ -294,10 +346,12 @@ void krad_ebml_finish_file_segment (krad_ebml_t *krad_ebml) {
 		krad_ebml_write_sync (krad_ebml);
 
 		if (1) {
-			krad_ebml_fileio_seek (&krad_ebml->io_adapter, krad_ebml->segment + 20, SEEK_SET);
+			krad_ebml_fileio_seek (&krad_ebml->io_adapter, krad_ebml->segment + 20 + VOID_START_SIZE + VOID_START_SIZE_SIZE, SEEK_SET);
 			krad_ebml_write_float (krad_ebml, EBML_ID_DURATION, krad_ebml->segment_duration);
 			krad_ebml_write_sync (krad_ebml);
 		}
+		
+		krad_ebml_write_seekhead (krad_ebml);
 
 		krad_ebml->segment_size = 0;
 		krad_ebml->segment = 0;
@@ -307,12 +361,19 @@ void krad_ebml_finish_file_segment (krad_ebml_t *krad_ebml) {
 
 void krad_ebml_start_file_segment (krad_ebml_t *krad_ebml) {
 
+	char *voiddata;
+	
 	krad_ebml_write_element (krad_ebml, EBML_ID_SEGMENT);
 	krad_ebml_write_sync (krad_ebml);
 	krad_ebml->segment = krad_ebml_fileio_tell (&krad_ebml->io_adapter);
 	krad_ebml_write_data_size (krad_ebml, EBML_DATA_SIZE_UNKNOWN);
+	krad_ebml_write_sync (krad_ebml);	
 	krad_ebml->segment_size = 0;
 
+	voiddata = calloc (1, VOID_START_SIZE);
+	krad_ebml->void_space = krad_ebml_fileio_tell (&krad_ebml->io_adapter);	
+	krad_ebml_write_data (krad_ebml, EBML_ID_VOID, voiddata, VOID_START_SIZE);
+	free (voiddata);
 
 }
 
@@ -327,6 +388,8 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
 		(krad_ebml->io_adapter.write == krad_ebml_fileio_write)) {
 		krad_ebml_start_file_segment (krad_ebml);
+		krad_ebml_write_sync (krad_ebml);
+		krad_ebml->segment_info_position = krad_ebml_fileio_tell (&krad_ebml->io_adapter);	
 	} else {
 		krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT, &krad_ebml->segment);
 	}
@@ -340,6 +403,13 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 	krad_ebml_write_string (krad_ebml, EBML_ID_MUXINGAPP, version_string);
 	krad_ebml_write_string (krad_ebml, EBML_ID_WRITINGAPP, appversion);
 	krad_ebml_finish_element (krad_ebml, segment_info);
+
+
+	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+		(krad_ebml->io_adapter.write == krad_ebml_fileio_write)) {
+		krad_ebml_write_sync (krad_ebml);
+		krad_ebml->tracks_info_position = krad_ebml_fileio_tell (&krad_ebml->io_adapter);	
+	}
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT_TRACKS, &krad_ebml->tracks_info);
 
@@ -578,6 +648,13 @@ void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode) {
 		krad_ebml_finish_element (krad_ebml, krad_ebml->tracks_info);
 		krad_ebml->tracks_info = 0;
 		krad_ebml_write_sync (krad_ebml);
+		
+
+		if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+			(krad_ebml->io_adapter.write == krad_ebml_fileio_write)) {		
+			krad_ebml_write_sync (krad_ebml);
+			krad_ebml->cluster_start_position = krad_ebml_fileio_tell (&krad_ebml->io_adapter);			
+		}
 	}
 
 	if (krad_ebml->cluster != 0) {

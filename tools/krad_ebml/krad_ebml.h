@@ -32,6 +32,9 @@
 #define KRADEBML_VERSION "2.1"
 #endif
 
+#define VOID_START_SIZE 16382
+#define VOID_START_SIZE_SIZE 3
+
 #define EBML_LENGTH_1 0x80 // 10000000
 #define EBML_LENGTH_2 0x40 // 01000000
 #define EBML_LENGTH_3 0x20 // 00100000
@@ -54,6 +57,13 @@
 #define EBML_ID_DOCTYPEVERSION     0x4287
 #define EBML_ID_DOCTYPEREADVERSION 0x4285
 #define EBML_ID_HEADER			   0x1A45DFA3
+
+#define EBML_ID_SEEKHEAD		   0x114D9B74
+#define EBML_ID_SEEK 			   0x4DBB
+#define EBML_ID_SEEK_ID 		   0x53AB
+#define EBML_ID_SEEK_POSITION	   0x53AC
+
+
 
 #define EBML_ID_CLUSTER					0x1F43B675
 #define EBML_ID_TRACK_UID				0x73C5
@@ -288,6 +298,10 @@ struct krad_ebml_St {
 	//writing
 	uint64_t segment;
 	uint64_t segment_size;
+	uint64_t void_space;
+	uint64_t segment_info_position;
+	uint64_t tracks_info_position;
+	uint64_t cluster_start_position;
 	float segment_duration;
 	uint64_t segment_timecode;
 	uint64_t tracks_info;
