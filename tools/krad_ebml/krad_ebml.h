@@ -35,6 +35,8 @@
 #define VOID_START_SIZE 16382
 #define VOID_START_SIZE_SIZE 3
 
+#define CLUSTER_RECORDING_START_SIZE 32000
+
 #define EBML_LENGTH_1 0x80 // 10000000
 #define EBML_LENGTH_2 0x40 // 01000000
 #define EBML_LENGTH_3 0x20 // 00100000
@@ -111,6 +113,13 @@
 #define EBML_ID_TAG_NAME				0x45A3
 #define EBML_ID_TAG_STRING				0x4487
 #define EBML_ID_TAG_BINARY				0x4485
+
+#define EBML_ID_CUES					0x1C53BB6B
+#define EBML_ID_CUEPOINT 				0xBB
+#define EBML_ID_CUETIME					0xB3
+#define EBML_ID_CUETRACKPOSITIONS		0xB7
+#define EBML_ID_CUETRACK				0xF7
+#define EBML_ID_CUECLUSTERPOSITION		0xF1
 
 #define KRAD_EBML_MAX_TRACKS 10
 
@@ -268,6 +277,7 @@ struct krad_ebml_St {
 	int ebml_level;
 	uint32_t cluster_count;
 	int cluster_recording_space;
+	int current_cluster;
 	krad_ebml_cluster_t *clusters;
 	uint64_t current_cluster_timecode;
 	short last_block_timecode;
@@ -302,6 +312,7 @@ struct krad_ebml_St {
 	uint64_t segment_info_position;
 	uint64_t tracks_info_position;
 	uint64_t cluster_start_position;
+	uint64_t cues_position;	
 	float segment_duration;
 	uint64_t segment_timecode;
 	uint64_t tracks_info;
