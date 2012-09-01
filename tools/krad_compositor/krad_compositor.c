@@ -4,7 +4,7 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
 static void *krad_compositor_display_thread (void *arg);
 
-#define KRAD_WAYLAND 1
+//#define KRAD_WAYLAND 1
 
 #ifdef KRAD_WAYLAND
 
