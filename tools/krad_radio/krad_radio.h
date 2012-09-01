@@ -21,6 +21,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_xmms2.h"
+#include "krad_timer.h"
 #include "krad_ticker.h"
 #include "krad_tags.h"
 #include "krad_ipc_server.h"
@@ -57,6 +58,15 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_compositor.h"
 #include "krad_link_common.h"
 #include "krad_link.h"
+
+
+#ifndef KRAD_WAYLAND
+#define KRAD_WAYLAND 1
+#endif
+
+#ifdef KRAD_WAYLAND
+#include "krad_wayland.h"
+#endif
 
 extern int verbose;
 extern int do_shutdown;

@@ -21,9 +21,13 @@
 #include <vpx/vpx_decoder.h>
 #include <vpx/vp8dx.h>
 
+#include "krad_timer.h"
 #include "krad_system.h"
 
-#define interface (vpx_codec_vp8_cx())
+#define BENCHMARK 1
+#define BENCHMARK_COUNT 100
+
+//#define interface (vpx_codec_vp8_cx())
 
 typedef struct krad_vpx_encoder_St krad_vpx_encoder_t;
 typedef struct krad_vpx_decoder_St krad_vpx_decoder_t;
@@ -49,6 +53,16 @@ struct krad_vpx_encoder_St {
 	unsigned int frames;
 	unsigned int frames_since_keyframe;	
 	unsigned long quality;
+	
+#ifdef BENCHMARK
+	krad_timer_t *krad_timer;
+	uint64_t benchmark_times[BENCHMARK_COUNT];
+	int benchmark_total;
+	int benchmark_long;
+	int benchmark_short;
+	int benchmark_avg;
+	int benchmark_count;
+#endif
 	
 };
 

@@ -20,6 +20,7 @@ sources = """
 depsources = """
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_system/krad_system.c
+../tools/krad_ticker/krad_timer.c
 ../tools/krad_ticker/krad_ticker.c
 ../tools/krad_xmms2/krad_xmms2.c
 ../tools/krad_ebml/krad_ebml.c
@@ -122,12 +123,16 @@ includedirs = """
 """.split()
 
 
-if 1
-	depsources += "../tools/krad_wayland/krad_wayland.c"
+
+depsources += ["../tools/krad_wayland/krad_wayland.c"]
+
 
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
 		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses", "xmms2-client"]
+
+
+libs += ["wayland-client"]
 
 # FIXME option builds
 # libs = libs + ["wayland-client", "codec2"] 
