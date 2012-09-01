@@ -295,6 +295,19 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
 		printke ("Krad Decklink: Fail QueryInterface\n");
 	}
 
+	krad_decklink_capture->result = krad_decklink_capture->deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void**)&krad_decklink_capture->deckLinkConfiguration);
+	if (krad_decklink_capture->result != S_OK) {
+		printke ("Krad Decklink: Fail QueryInterface to get configuration\n");
+	} else {
+
+//		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionEmbedded);
+//		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionAESEBU);
+		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionAnalog);
+		if (krad_decklink_capture->result != S_OK) {
+			printke ("Krad Decklink: Fail confguration to set bmdAudioConnectionEmbedded\n");
+		}
+	}
+
 	krad_decklink_capture->delegate = new DeckLinkCaptureDelegate();
 	krad_decklink_capture->delegate->krad_decklink_capture = krad_decklink_capture;
 	krad_decklink_capture->deckLinkInput->SetCallback(krad_decklink_capture->delegate);
@@ -332,6 +345,13 @@ void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture) 
 		if (krad_decklink_capture->result != S_OK) {
 			printke ("Krad Decklink: Fail DisableAudioInput\n");
 		}
+		
+		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->Release();
+		if (krad_decklink_capture->result != S_OK) {
+			printke ("Krad Decklink: Fail to Release deckLinkConfiguration\n");
+		}
+		krad_decklink_capture->deckLinkConfiguration = NULL;
+		
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkInput->Release();
 		if (krad_decklink_capture->result != S_OK) {
 			printke ("Krad Decklink: Fail Release\n");

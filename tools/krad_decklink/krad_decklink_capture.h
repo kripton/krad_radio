@@ -39,6 +39,7 @@ struct krad_decklink_capture_St {
 
 	IDeckLink *deckLink;
 	IDeckLinkInput *deckLinkInput;
+	IDeckLinkConfiguration *deckLinkConfiguration;	
 	IDeckLinkIterator *deckLinkIterator;
 	IDeckLinkDisplayModeIterator *displayModeIterator;
 	IDeckLinkDisplayMode *displayMode;
