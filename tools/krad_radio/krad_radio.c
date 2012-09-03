@@ -171,8 +171,10 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 				printkd ("Got HANGUP Signal!");
 				break;
 			case SIGINT:
+				printkd ("Got SIGINT Signal!");			
 				return;
 			case SIGTERM:
+				printkd ("Got SIGTERM Signal!");			
 				return;
 			default:
 				break;

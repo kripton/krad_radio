@@ -232,9 +232,12 @@ Kradradio.prototype.got_messages = function (msgs) {
 
 	for (m in msg_arr) {
 		if (msg_arr[m].com == "kradmixer") {
+			if (msg_arr[m].cmd == "control_portgroup") {
+				kradradio.got_control_portgroup (msg_arr[m].portgroup_name, msg_arr[m].control_name, msg_arr[m].value);
+			}
 			if (msg_arr[m].cmd == "update_portgroup") {
 				kradradio.got_update_portgroup (msg_arr[m].portgroup_name, msg_arr[m].control_name, msg_arr[m].value);
-			}
+			}			
 			if (msg_arr[m].cmd == "add_portgroup") {
 				kradradio.got_add_portgroup (msg_arr[m].portgroup_name, msg_arr[m].volume, msg_arr[m].crossfade_name, msg_arr[m].crossfade );
 			}
@@ -304,9 +307,9 @@ Kradradio.prototype.push_dtmf = function (value) {
 	kradwebsocket.debug(JSONcmd);
 }
 
-Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
+Kradradio.prototype.got_control_portgroup = function (portgroup_name, control_name, value) {
 
-	kradwebsocket.debug("update portgroup " + portgroup_name + " " + value);
+	//kradwebsocket.debug("control portgroup " + portgroup_name + " " + value);
 
 	if ($('#' + portgroup_name)) {
 		if (control_name == "volume") {
@@ -317,9 +320,14 @@ Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_nam
 	}
 }
 
+Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
+
+
+}
+
 Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossfade_name, crossfade) {
 
-	$('.kradmixer').append("<div class='kradmixer_control volume_control'> <div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2><div id='ktags_" + portgroup_name + "'></div></div>");
+	$('.kradmixer').append("<div class='kradmixer_control volume_control' id='portgroup_" + portgroup_name + "_wrap'><div id='" + portgroup_name + "'></div><h2>" + portgroup_name + "</h2><div id='ktags_" + portgroup_name + "'></div></div>");
 
 	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume });
 
@@ -433,7 +441,7 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 
 Kradradio.prototype.got_remove_portgroup = function (name) {
 
-	$('#' + name).remove();
+	$('#portgroup_' + name + '_wrap').remove();
 
 }
 

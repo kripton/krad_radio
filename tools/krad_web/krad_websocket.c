@@ -28,13 +28,13 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
 	
-	printkd ("Krad Websocket: %d bytes from browser: %s", len, value);
+	//printkd ("Krad Websocket: %d bytes from browser: %s", len, value);
 
 	cJSON *cmd;
 	cJSON *part;
 	cJSON *part2;
 	cJSON *part3;
-	char *out;	
+	//char *out;	
 	
 	part = NULL;
 	part2 = NULL;
@@ -43,7 +43,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	if (!cmd) {
 		printke ("Error before: [%s]\n", cJSON_GetErrorPtr());
 	} else {
-		out = cJSON_Print (cmd);
+		//out = cJSON_Print (cmd);
 		
 		part = cJSON_GetObjectItem (cmd, "com");
 		
@@ -103,8 +103,8 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 		}		
 		
 		cJSON_Delete (cmd);
-		printkd ("%s", out);
-		free (out);
+		//printkd ("%s", out);
+		//free (out);
 	}
 
 
@@ -191,6 +191,28 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 }
 
 
+void krad_websocket_update_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
+
+	printkd ("update a portgroup called %s", portname);
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradmixer");
+	
+	cJSON_AddStringToObject (msg, "cmd", "update_portgroup");
+	cJSON_AddStringToObject (msg, "portgroup_name", portname);
+	cJSON_AddNumberToObject (msg, "volume", floatval);
+	
+	cJSON_AddStringToObject (msg, "crossfade_name", crossfade_name);
+	cJSON_AddNumberToObject (msg, "crossfade", crossfade_val);
+	
+	krad_ipc_get_tags (krad_ipc_session_data->krad_ipc_client, portname);
+
+}
+
+
 void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
 
 	printkd ("add a portgroup called %s withe a volume of %f", portname, floatval);
@@ -212,6 +234,21 @@ void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_da
 
 }
 
+void krad_websocket_remove_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname ) {
+
+	printkd ("remove a portgroup called %s", portname);
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradmixer");
+	
+	cJSON_AddStringToObject (msg, "cmd", "remove_portgroup");
+	cJSON_AddStringToObject (msg, "portgroup_name", portname);
+
+}
+
 void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, char *controlname, float floatval) {
 
 	printkd ("set portgroup called %s control %s with a value %f", portname, controlname, floatval);
@@ -222,7 +259,7 @@ void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data
 	
 	cJSON_AddStringToObject (msg, "com", "kradmixer");
 	
-	cJSON_AddStringToObject (msg, "cmd", "update_portgroup");
+	cJSON_AddStringToObject (msg, "cmd", "control_portgroup");
 	cJSON_AddStringToObject (msg, "portgroup_name", portname);
 	cJSON_AddStringToObject (msg, "control_name", controlname);
 	cJSON_AddNumberToObject (msg, "value", floatval);
@@ -470,9 +507,53 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 						}
 					}	
 					break;
-				case EBML_ID_KRAD_MIXER_PORTGROUP:
-					//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-					printkd ("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
+				case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
+					//printkd ("PORTGROUP_CREATED msg %zu bytes  \n", ebml_data_size );
+					
+					krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade );
+					krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade);
+					
+					break;
+				
+				case EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED:
+				
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);	
+
+					if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
+						//printkd ("hrm wtf2\n");
+					} else {
+						//printkd ("tag name size %zu\n", ebml_data_size);
+					}
+				
+					krad_ebml_read_string (krad_ipc->krad_ebml, portname_actual, ebml_data_size);
+					//printkd ("PORTGROUP_DESTROYED msg %zu bytes  \n", ebml_data_size );
+					
+					krad_websocket_remove_portgroup (krad_ipc_session_data, portname_actual);
+					
+					break;
+					
+				case EBML_ID_KRAD_MIXER_PORTGROUP_UPDATED:
+					//printkd ("PORTGROUP_UPDATED msg %"PRIu64" bytes  \n", ebml_data_size );
+				
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+
+					if (ebml_id == EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {				
+			
+						krad_ebml_read_string (krad_ipc->krad_ebml, portname_actual, ebml_data_size);
+			
+			
+						krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);	
+
+						if (ebml_id == EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME) {
+					
+							krad_ebml_read_string (krad_ipc->krad_ebml, crossfadename, ebml_data_size);
+					
+							//printkd ("ya %s %s\n", portname_actual, crossfadename);
+					
+						}
+					}
+				
+				
 					break;
 					
 				case EBML_ID_KRAD_MIXER_SAMPLE_RATE:

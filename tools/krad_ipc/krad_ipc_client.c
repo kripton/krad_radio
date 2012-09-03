@@ -3109,7 +3109,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						break;
 					case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printf ("%d%%\n", number);
+						printf ("%"PRIu64"%%\n", number);
 						break;
 						
 				}
