@@ -2871,11 +2871,12 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	uint64_t element;
 	uint64_t response;
 	
-	char string[128];	
+	char string[256];	
 	
 	uint64_t bigint;
 	uint8_t tinyint;
 	int k;
+	int devices;
 	
 	string[0] = '\0';
 	bigint = 0;
@@ -2904,6 +2905,29 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			krad_ipc_server_response_finish ( krad_ipc, response );	
 						
 			break;
+			
+		case EBML_ID_KRAD_LINK_CMD_LIST_DECKLINK:
+			printk ("krad linker handler! LIST_DECKLINK");
+			
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_LINK_MSG, &response);
+			
+			devices = krad_decklink_detect_devices();
+
+			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_LINK_DECKLINK_LIST, &element);
+			krad_ebml_write_int32 (krad_ipc->current_client->krad_ebml2, EBML_ID_KRAD_LIST_COUNT, devices);
+			
+			for (k = 0; k < devices; k++) {
+
+				krad_decklink_get_device_name (k, string);
+				krad_ebml_write_string (krad_ipc->current_client->krad_ebml2, EBML_ID_KRAD_LINK_DECKLINK_DEVICE_NAME, string);
+					
+			}
+			
+			krad_ipc_server_response_list_finish ( krad_ipc, element );
+			krad_ipc_server_response_finish ( krad_ipc, response );	
+						
+			break;
+			
 		case EBML_ID_KRAD_LINK_CMD_CREATE_LINK:
 			printk ("krad linker handler! CREATE_LINK");
 			for (k = 0; k < KRAD_LINKER_MAX_LINKS; k++) {
