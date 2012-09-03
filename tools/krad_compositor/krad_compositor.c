@@ -8,13 +8,37 @@ static void *krad_compositor_display_thread (void *arg);
 
 #ifdef KRAD_WAYLAND
 
+typedef struct krad_compositor_wayland_display_St krad_compositor_wayland_display_t;
+
+struct krad_compositor_wayland_display_St {
+	krad_wayland_t *krad_wayland;
+	krad_compositor_port_t *krad_compositor_port;
+	void *buffer;
+	int w;
+	int h;
+};
+
+
 int krad_compositor_wayland_display_render_callback (void *pointer, uint32_t time) {
 
-	int updated;
-	uint32_t reltime;
+	krad_compositor_wayland_display_t *krad_compositor_wayland_display = (krad_compositor_wayland_display_t *)pointer;
 
+	int updated;
+	krad_frame_t *krad_frame;
+	
 	updated = 0;
 
+	krad_frame = krad_compositor_port_pull_frame (krad_compositor_wayland_display->krad_compositor_port);
+
+	if (krad_frame != NULL) {
+		memcpy (krad_compositor_wayland_display->buffer,
+				krad_frame->pixels,
+				krad_compositor_wayland_display->w * krad_compositor_wayland_display->h * 4);
+		krad_framepool_unref_frame (krad_frame);
+		updated = 1;
+	} else {
+		
+	}
 
 
 	return updated;
@@ -26,53 +50,44 @@ static void *krad_compositor_display_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "krad_display", 0, 0, 0);
 
-	krad_wayland_t *krad_wayland;
-	krad_frame_t *krad_frame;
-	krad_compositor_port_t *krad_compositor_port;
-
-	void *buffer;
-
-	int w;
-	int h;
+	krad_compositor_wayland_display_t *krad_compositor_wayland_display;
 	
-	krad_wayland = krad_wayland_create ();
+	krad_compositor_wayland_display = calloc (1, sizeof (krad_compositor_wayland_display_t));
+	
+	krad_compositor_wayland_display->krad_wayland = krad_wayland_create ();
 
 	krad_compositor_get_resolution (krad_compositor,
-							  &w,
-							  &h);
+							  &krad_compositor_wayland_display->w,
+							  &krad_compositor_wayland_display->h);
 	
-	krad_compositor_port = krad_compositor_port_create (krad_compositor, "WLOut", OUTPUT,
-														w, h);
+	krad_compositor_wayland_display->krad_compositor_port = krad_compositor_port_create (krad_compositor, "WLOut", OUTPUT,
+																						 krad_compositor_wayland_display->w,
+																						 krad_compositor_wayland_display->h);
 
-	krad_wayland->render_test_pattern = 1;
+	//krad_wayland->render_test_pattern = 1;
 
-	krad_wayland_set_frame_callback (krad_wayland, krad_compositor_wayland_display_render_callback, NULL);
+	krad_wayland_set_frame_callback (krad_compositor_wayland_display->krad_wayland,
+									 krad_compositor_wayland_display_render_callback,
+									 krad_compositor_wayland_display);
 
-	krad_wayland_prepare_window (krad_wayland, w, h, &buffer);
+	krad_wayland_prepare_window (krad_compositor_wayland_display->krad_wayland,
+								 krad_compositor_wayland_display->w,
+								 krad_compositor_wayland_display->h,
+								 &krad_compositor_wayland_display->buffer);
 
-	krad_wayland_open_window (krad_wayland);
+	krad_wayland_open_window (krad_compositor_wayland_display->krad_wayland);
 
 	while (krad_compositor->display_open == 1) {
-	
-		krad_frame = krad_compositor_port_pull_frame (krad_compositor_port);
-
-		if (krad_frame != NULL) {
-
-			krad_framepool_unref_frame (krad_frame);
-
-		} else {
-			
-		}
-
 		usleep (10000);
-
 	}
-	
-	krad_compositor_port_destroy (krad_compositor, krad_compositor_port);
 
-	krad_wayland_destroy (krad_wayland);
+	krad_wayland_destroy (krad_compositor_wayland_display->krad_wayland);
+	
+	krad_compositor_port_destroy (krad_compositor, krad_compositor_wayland_display->krad_compositor_port);
 
 	krad_compositor->display_open = 0;
+
+	free (krad_compositor_wayland_display);
 
 	return NULL;
 

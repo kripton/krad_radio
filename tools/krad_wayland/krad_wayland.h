@@ -13,6 +13,10 @@
 
 #include "krad_system.h"
 
+
+#ifndef KRAD_WAYLAND_H
+#define KRAD_WAYLAND_H
+
 #define KRAD_WAYLAND_BUFFER_COUNT 2
 
 typedef struct krad_wayland_St krad_wayland_t;
@@ -71,4 +75,4 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland);
 
 void krad_wayland_destroy (krad_wayland_t *krad_wayland);
 krad_wayland_t *krad_wayland_create ();
-
+#endif
