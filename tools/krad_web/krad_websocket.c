@@ -125,6 +125,15 @@ void krad_websocket_set_tag (krad_ipc_session_data_t *krad_ipc_session_data, cha
 
 }
 
+void krad_websocket_add_decklink_device ( krad_ipc_session_data_t *krad_ipc_session_data, char *name, int num) {
+
+	cJSON *msg;
+
+	cJSON_AddStringToObject (msg, "com", "kradlink");
+	cJSON_AddStringToObject (msg, "cmd", "add_decklink_device");
+	cJSON_AddNumberToObject (msg, "decklink_device_num", num);
+	cJSON_AddStringToObject (msg, "decklink_device_name", name);
+}
 
 void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, krad_link_rep_t *krad_link, int link_num) {
 
@@ -269,6 +278,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	uint32_t ebml_id;	
 	uint64_t ebml_data_size;
 	//uint64_t element;
+	int list_count;
 	int list_size;
 	int i;
 	float floatval;	
@@ -362,6 +372,20 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 
 			switch ( ebml_id ) {
+			
+				case EBML_ID_KRAD_LINK_DECKLINK_LIST:
+
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
+					list_count = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					for (i = 0; i < list_count; i++) {
+						krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);						
+						krad_ebml_read_string (krad_ipc->krad_ebml, string, ebml_data_size);
+						printk("%d: %s\n", i, string);
+						krad_websocket_add_decklink_device (krad_ipc_session_data, string, i);						
+					}	
+					break;
+							
+			
 				case EBML_ID_KRAD_LINK_LINK_LIST:
 					//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
@@ -643,6 +667,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			krad_ipc_compositor_get_frame_rate (pss->krad_ipc_client);
 			krad_ipc_compositor_get_frame_size (pss->krad_ipc_client);			
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
+			krad_ipc_list_decklink (pss->krad_ipc_client);
 			krad_ipc_list_links (pss->krad_ipc_client);
 			krad_ipc_get_tags (pss->krad_ipc_client, NULL);		
 			add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);

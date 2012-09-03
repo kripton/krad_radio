@@ -137,6 +137,8 @@ function Kradradio () {
 	//this.timer;
 	this.tags = new Array();
 	
+	this.decklink_devices = new Array();	
+	
 }
 
 Kradradio.prototype.destroy = function () {
@@ -263,6 +265,9 @@ Kradradio.prototype.got_messages = function (msgs) {
 		if (msg_arr[m].com == "kradlink") {
 			if (msg_arr[m].cmd == "add_link") {
 				kradradio.got_add_link (msg_arr[m]);
+			}
+			if (msg_arr[m].cmd == "add_decklink_device") {
+				kradradio.got_add_decklink_device (msg_arr[m]);
 			}
 		}			
 	}
@@ -449,6 +454,17 @@ Kradradio.prototype.update_link = function (link_num, control_name, value) {
 	kradwebsocket.debug(JSONcmd);
 }
 	
+
+Kradradio.prototype.got_add_decklink_device = function (decklink_device) {
+
+
+	this.decklink_devices[decklink_device.decklink_device_num] = decklink_device.decklink_device_name;
+
+	$('.kradlink').append("<div class='kradlink_link'>" + this.decklink_devices[decklink_device.decklink_device_num] + "</div>");
+
+
+}
+
 
 Kradradio.prototype.got_add_link = function (link) {
 
