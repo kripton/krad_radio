@@ -439,9 +439,9 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 		
 			return 1;
-		case EBML_ID_KRAD_RADIO_CMD_INFO:
+		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO:
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_INFO, krad_system_daemon_info());
+			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_SYSTEM_INFO, krad_system_info());
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			return 1;
 			
@@ -465,6 +465,14 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_LOGNAME, krad_radio_station->logname);
+			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
+			
+			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_CPU_USAGE:
+
+			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_respond_number ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			
 			return 0;

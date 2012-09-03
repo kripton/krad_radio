@@ -166,7 +166,8 @@ void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t e
 void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32_t ebml_id, int newval);
 
 void krad_ipc_radio_uptime (krad_ipc_client_t *client);
-void krad_ipc_radio_info (krad_ipc_client_t *client);
+void krad_ipc_radio_get_system_info (krad_ipc_client_t *client);
+void krad_ipc_radio_get_system_cpu_usage (krad_ipc_client_t *client);
 
 int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
 

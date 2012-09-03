@@ -88,9 +88,14 @@ int main (int argc, char *argv[]) {
 			}
 
 			if (strncmp(argv[2], "info", 4) == 0) {
-				krad_ipc_radio_info (client);
+				krad_ipc_radio_get_system_info (client);
 				krad_ipc_print_response (client);
 			}
+			
+			if (strncmp(argv[2], "cpu", 4) == 0) {
+				krad_ipc_radio_get_system_cpu_usage (client);
+				krad_ipc_print_response (client);
+			}			
 			
 			if (strncmp(argv[2], "tags", 4) == 0) {
 

@@ -89,7 +89,7 @@ void krad_system_monitor_cpu_off ();
 int krad_system_get_cpu_usage ();
 void krad_system_monitor_cpu_on ();
 
-char *krad_system_daemon_info();
+char *krad_system_info();
 uint64_t krad_system_daemon_uptime ();
 void krad_system_info_collect ();
 

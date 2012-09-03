@@ -113,7 +113,7 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 }
 
-char *krad_system_daemon_info () {
+char *krad_system_info () {
 
 	return krad_system.info_string;
 
@@ -129,11 +129,11 @@ void krad_system_info_collect () {
 
 	krad_system.info_string_len += sprintf (krad_system.info_string, "Host: %s\n", krad_system.unix_info.nodename);
 	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
-											"System: %s %s (%s)\n", krad_system.unix_info.machine, 
+											"System: %s %s (%s)", krad_system.unix_info.machine, 
 											krad_system.unix_info.sysname, krad_system.unix_info.release);
 
-	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
-											"Krad Start Time: %llu", (unsigned long long)krad_system.krad_start_time);
+	//krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
+	//										"Krad Start Time: %llu", (unsigned long long)krad_system.krad_start_time);
 
 }
 

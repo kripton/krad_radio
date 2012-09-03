@@ -1511,7 +1511,7 @@ void krad_ipc_radio_uptime (krad_ipc_client_t *client) {
 
 }
 
-void krad_ipc_radio_info (krad_ipc_client_t *client) {
+void krad_ipc_radio_get_system_info (krad_ipc_client_t *client) {
 
 	uint64_t command;
 	uint64_t info_command;
@@ -1521,7 +1521,7 @@ void krad_ipc_radio_info (krad_ipc_client_t *client) {
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_INFO, &info_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO, &info_command);
 	krad_ebml_finish_element (client->krad_ebml, info_command);
 
 	krad_ebml_finish_element (client->krad_ebml, command);
@@ -1571,6 +1571,18 @@ void krad_ipc_radio_get_logname (krad_ipc_client_t *client) {
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_LOGNAME, &log_command);
 	krad_ebml_finish_element (client->krad_ebml, log_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
+void krad_ipc_radio_get_system_cpu_usage (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t cpu_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_CPU_USAGE, &cpu_command);
+	krad_ebml_finish_element (client->krad_ebml, cpu_command);
 	krad_ebml_finish_element (client->krad_ebml, command);
 	krad_ebml_write_sync (client->krad_ebml);
 }
@@ -3067,7 +3079,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 
 					case EBML_ID_KRAD_RADIO_UPTIME:
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printf("up ");
+						printf("up");
 						updays = number / (60*60*24);
 						if (updays) {
 							printf ("%d day%s, ", updays, (updays != 1) ? "s" : "");
@@ -3083,7 +3095,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						printf ("\n");
 					
 						break;
-					case EBML_ID_KRAD_RADIO_INFO:
+					case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
 						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
 						if (string[0] != '\0') {
 							printf ("%s\n", string);
@@ -3095,6 +3107,11 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 							printf ("%s\n", string);
 						}
 						break;
+					case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
+						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						printf ("%d%%\n", number);
+						break;
+						
 				}
 		
 		

@@ -377,7 +377,7 @@ int krad_radio_gtk_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					number = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
 					printk ("Uptime: %"PRIu64"", number);
 					break;
-				case EBML_ID_KRAD_RADIO_INFO:
+				case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
 					krad_ebml_read_string (krad_ipc->krad_ebml, string, ebml_data_size);
 					printk ("%s", string);
 					break;
