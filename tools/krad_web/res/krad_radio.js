@@ -505,8 +505,8 @@ Kradradio.prototype.got_add_link = function (link) {
 			$('#link_' + link.link_num).append("<audio controls preload='none' src='http://" + link.host + ":" + link.port + link.mount + "'>Audio tag should be here.</audio>");		
 		}
 
-		if (link.av_mode == "video only") {
-			$('#link_' + link.link_num).append("<video controls preload='none' width='480' height='270' src='http://" + link.host + ":" + link.port + link.mount + "'>Video tag should be here.</video>");		
+		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
+			$('#link_' + link.link_num).append("<video controls poster='/snapshot' preload='none' width='480' height='270' src='http://" + link.host + ":" + link.port + link.mount + "'>Video tag should be here.</video>");		
 		}
 
 		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
@@ -603,6 +603,8 @@ Kradradio.prototype.got_add_link = function (link) {
 	$( '#' + link.link_num + '_remove').bind( "click", function(event, ui) {
 		kradradio.remove_link(link.link_num);
 	});
+	
+	$('#link_' + link.link_num).append("<br clear='both'/>");	
 
 }
 	
