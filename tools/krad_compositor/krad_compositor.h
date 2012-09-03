@@ -176,6 +176,8 @@ struct krad_compositor_St {
 
 };
 
+void krad_compositor_get_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename);
+
 void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform);
 
 void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, int x, int y, int tickrate, 

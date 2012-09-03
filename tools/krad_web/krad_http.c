@@ -288,13 +288,29 @@ void *krad_http_client_thread (void *arg) {
 			
 			if (strncmp("snapshot", client->get, 8) == 0) {
 
-				if ((fd = open("/home/oneman/testy/snapshot_1346676086_8324.jpg", O_RDONLY)) > -1) {
+				if (client->krad_http->krad_radio->krad_compositor == NULL) {
+					krad_http_404 (client);
+				}
+				
+				client->filename[0] = '\0';
+				
+				krad_compositor_get_last_snapshot_name (client->krad_http->krad_radio->krad_compositor, client->filename);
+				
+				if (client->filename[0] == '\0') {
+					krad_http_404 (client);
+				}
+
+				if ((fd = open(client->filename, O_RDONLY)) > -1) {
 		
 					fstat (fd, &file_stat);
 		
 					length = file_stat.st_size;
 					
-					krad_http_write_file_headers (client, "image/jpeg", length);
+					if (strstr(client->filename, ".jpg") != NULL) {
+						krad_http_write_file_headers (client, "image/jpeg", length);
+					} else {
+						krad_http_write_file_headers (client, "image/png", length);					
+					}
 
 					while (wrote_total != length) {
 
@@ -403,7 +419,7 @@ void *krad_http_server_run (void *arg) {
 	
 }
 
-krad_http_t *krad_http_server_create (int port, int websocket_port) {
+krad_http_t *krad_http_server_create (krad_radio_t *krad_radio, int port, int websocket_port) {
 	
 	krad_http_t *krad_http = calloc(1, sizeof(krad_http_t));
 
@@ -411,6 +427,7 @@ krad_http_t *krad_http_server_create (int port, int websocket_port) {
 	int on = 1;
 	char string[7];
 
+	krad_http->krad_radio = krad_radio;
 	krad_http->port = port;
 	krad_http->websocket_port = websocket_port;
 	
