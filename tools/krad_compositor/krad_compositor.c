@@ -704,6 +704,31 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	
 }
 
+void krad_compositor_get_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename) {
+
+	if (filename == NULL) {
+		return;
+	}
+	
+	pthread_mutex_lock (&krad_compositor->last_snapshot_name_lock);
+
+	strcpy (filename, krad_compositor->last_snapshot_name);
+	
+	pthread_mutex_unlock (&krad_compositor->last_snapshot_name_lock);
+
+}
+
+void krad_compositor_set_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename) {
+
+	
+	pthread_mutex_lock (&krad_compositor->last_snapshot_name_lock);
+
+	strcpy (krad_compositor->last_snapshot_name, filename);
+	
+	pthread_mutex_unlock (&krad_compositor->last_snapshot_name_lock);
+
+}
+
 void *krad_compositor_snapshot_thread (void *arg) {
 
 	krad_compositor_snapshot_t *krad_compositor_snapshot = (krad_compositor_snapshot_t *)arg;
@@ -735,6 +760,7 @@ void *krad_compositor_snapshot_thread (void *arg) {
 			jpeg_fd = open (krad_compositor_snapshot->filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 			if (jpeg_fd > 0) {
 				while (ret != jpeg_size) {
+					// FIXME need ability to fail here
 					ret += write (jpeg_fd, jpeg_buf + ret, jpeg_size - ret);
 				}
 				close (jpeg_fd);
@@ -745,9 +771,13 @@ void *krad_compositor_snapshot_thread (void *arg) {
 		}
 		tjDestroy ( jpeg );
 	} else {
+		//FIXME need to monitor for fail
 		cairo_surface_write_to_png (krad_compositor_snapshot->krad_frame->cst, krad_compositor_snapshot->filename);
 	}
 	krad_framepool_unref_frame (krad_compositor_snapshot->krad_frame);
+	
+	krad_compositor_set_last_snapshot_name (krad_compositor_snapshot->krad_compositor, krad_compositor_snapshot->filename);
+	
 	free (krad_compositor_snapshot);
 
 	return NULL;
@@ -777,7 +807,7 @@ void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_fra
 	}
 	
 	krad_compositor_snapshot->krad_frame = krad_frame;
-	
+	krad_compositor_snapshot->krad_compositor = krad_compositor;
 	krad_compositor_snapshot->width = krad_compositor->width;
 	krad_compositor_snapshot->height = krad_compositor->height;	
 	
@@ -1365,8 +1395,9 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 	
 	krad_compositor_free_resources (krad_compositor);
 	
-	pthread_mutex_destroy (&krad_compositor->settings_lock);	
-
+	pthread_mutex_destroy (&krad_compositor->settings_lock);
+	pthread_mutex_destroy (&krad_compositor->last_snapshot_name_lock);
+	
 	free (krad_compositor->port);
 	free (krad_compositor->krad_sprite);
 	free (krad_compositor->krad_text);	
@@ -1460,6 +1491,7 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	}
 	
 	pthread_mutex_init (&krad_compositor->settings_lock, NULL);
+	pthread_mutex_init (&krad_compositor->last_snapshot_name_lock, NULL);
 	
 	krad_compositor_set_frame_rate (krad_compositor, frame_rate_numerator, frame_rate_denominator);
 	
@@ -2179,6 +2211,16 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 		
 		
 			break;
+			
+		case EBML_ID_KRAD_COMPOSITOR_CMD_GET_LAST_SNAPSHOT_NAME:
+
+			krad_compositor_get_last_snapshot_name (krad_compositor, string);
+			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
+			krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME, string);
+			krad_ipc_server_response_finish ( krad_ipc, response);
+		
+			break;
+			
 
 		case EBML_ID_KRAD_COMPOSITOR_CMD_HEX_DEMO:
 

@@ -186,6 +186,10 @@ void krad_ipc_compositor_info (krad_ipc_client_t *client);
 void krad_ipc_compositor_snapshot (krad_ipc_client_t *client);
 void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client);
 
+
+void krad_ipc_radio_get_logname (krad_ipc_client_t *client);
+void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client);
+
 void krad_ipc_get_portgroups (krad_ipc_client_t *client);
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value);
 void krad_ipc_print_response (krad_ipc_client_t *client);

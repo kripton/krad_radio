@@ -76,6 +76,7 @@ struct krad_radio_St {
 
 	char *sysname;
 	char *dir;
+	char logname[1024];	
 	
 	krad_ipc_server_t *krad_ipc;
 	krad_osc_t *krad_osc;	

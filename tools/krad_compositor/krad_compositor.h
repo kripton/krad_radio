@@ -50,6 +50,8 @@ struct krad_compositor_snapshot_St {
 	int width;
 	int height;
 
+	krad_compositor_t *krad_compositor;
+
 };
 
 struct krad_compositor_port_St {
@@ -117,7 +119,9 @@ struct krad_compositor_St {
 	
 	int snapshot;
 	int snapshot_jpeg;	
-	pthread_t snapshot_thread;	
+	pthread_t snapshot_thread;
+	char last_snapshot_name[1024];
+	pthread_mutex_t last_snapshot_name_lock;
 
 	int hex_x;
 	int hex_y;

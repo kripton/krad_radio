@@ -133,7 +133,7 @@ void krad_system_info_collect () {
 											krad_system.unix_info.sysname, krad_system.unix_info.release);
 
 	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
-											"Krad Start Time: %llu\n", (unsigned long long)krad_system.krad_start_time);
+											"Krad Start Time: %llu", (unsigned long long)krad_system.krad_start_time);
 
 }
 

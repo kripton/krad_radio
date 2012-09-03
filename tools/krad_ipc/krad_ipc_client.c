@@ -1563,6 +1563,30 @@ void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client) {
 	krad_ebml_write_sync (client->krad_ebml);
 }
 
+void krad_ipc_radio_get_logname (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t log_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_LOGNAME, &log_command);
+	krad_ebml_finish_element (client->krad_ebml, log_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
+void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t snap_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_GET_LAST_SNAPSHOT_NAME, &snap_command);
+	krad_ebml_finish_element (client->krad_ebml, snap_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
 void krad_ipc_compositor_info (krad_ipc_client_t *client) {
 
 	uint64_t command;
@@ -2194,7 +2218,7 @@ int krad_ipc_client_poll (krad_ipc_client_t *client) {
 		//*value = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 		//printf("Received number %d\n", *value);
 		
-		//krad_ipc_print_response (client);
+
 		client->handler ( client, client->ptr );
 	}
 
@@ -3030,7 +3054,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 						list_size = ebml_data_size;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
-							printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+							printf ("%s: %s - %s", tag_item, tag_name, tag_value);
 							if (bytes_read == list_size) {
 								break;
 							}
@@ -3038,7 +3062,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						break;
 					case EBML_ID_KRAD_RADIO_TAG:
 						krad_ipc_client_read_tag_inner ( client, &tag_item, &tag_name, &tag_value );
-						printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+						printf ("%s: %s - %s", tag_item, tag_name, tag_value);
 						break;
 
 					case EBML_ID_KRAD_RADIO_UPTIME:
@@ -3060,8 +3084,16 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					
 						break;
 					case EBML_ID_KRAD_RADIO_INFO:
-						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-						printf ("%s", tag_name);
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
+						break;
+					case EBML_ID_KRAD_RADIO_LOGNAME:
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
 						break;
 				}
 		
@@ -3096,7 +3128,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
 						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printk ("Krad Mixer Sample Rate: %d", number );
+						printf ("Krad Mixer Sample Rate: %"PRIu64"", number );
 						break;						
 						
 				}
@@ -3110,8 +3142,17 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 				switch ( ebml_id ) {
 				
 					case EBML_ID_KRAD_COMPOSITOR_INFO:
-						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-						printk ("%s", tag_name);
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
+						break;
+						
+					case EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME:
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
 						break;
 				
 					case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
@@ -3120,7 +3161,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						list_size = ebml_data_size;
 						i = 0;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_port ( client, tag_value)) <= list_size)) {
-							printk ("%d: %s", i, tag_value);
+							printf ("%d: %s", i, tag_value);
 							i++;
 							if (bytes_read == list_size) {
 								break;
@@ -3146,7 +3187,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						for (i = 0; i < list_count; i++) {
 							krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
 							krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-							printf("%d: %s\n", i, string);
+							printf ("%d: %s\n", i, string);
 						}	
 						break;
 				
@@ -3157,7 +3198,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						list_size = ebml_data_size;
 						i = 0;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, &krad_link)) <= list_size)) {
-							printf("%d: %s\n", krad_link->link_num, tag_value);
+							printf ("%d: %s\n", krad_link->link_num, tag_value);
 							free (krad_link);
 							i++;
 							if (bytes_read == list_size) {

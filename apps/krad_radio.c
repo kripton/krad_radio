@@ -169,7 +169,17 @@ int main (int argc, char *argv[]) {
 				if (argc == 4) {
 					krad_ipc_radio_set_dir (client, argv[3]);
 				}
-			}		
+			}
+			
+			if (strncmp(argv[2], "logname", 7) == 0) {
+				krad_ipc_radio_get_logname (client);
+				krad_ipc_print_response (client);
+			}
+			
+			if (strncmp(argv[2], "lastsnap", 8) == 0) {
+				krad_ipc_radio_get_last_snap_name (client);
+				krad_ipc_print_response (client);				
+			}			
 			
 			/* Krad Mixer Commands */
 			
