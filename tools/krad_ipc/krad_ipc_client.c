@@ -3079,7 +3079,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 
 					case EBML_ID_KRAD_RADIO_UPTIME:
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printf("up");
+						printf("up ");
 						updays = number / (60*60*24);
 						if (updays) {
 							printf ("%d day%s, ", updays, (updays != 1) ? "s" : "");
@@ -3178,7 +3178,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						list_size = ebml_data_size;
 						i = 0;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_port ( client, tag_value)) <= list_size)) {
-							printf ("%d: %s", i, tag_value);
+							printf ("%d: %s\n", i, tag_value);
 							i++;
 							if (bytes_read == list_size) {
 								break;
