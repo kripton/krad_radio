@@ -17,7 +17,7 @@
 
 #include "krad_system.h"
 
-#define BUFSIZE 8192
+#define BUFSIZE 8192 * 8
 
 typedef struct krad_http_St krad_http_t;
 typedef struct krad_http_client_St krad_http_client_t;
@@ -50,8 +50,8 @@ struct krad_http_client_St {
 	krad_http_t *krad_http;
 	pthread_t client_thread;
 
-	char in_buffer[8192];
-	char out_buffer[8192];
+	char in_buffer[BUFSIZE];
+	char out_buffer[BUFSIZE];
 	char get[256];
 	char filename[256];
 	

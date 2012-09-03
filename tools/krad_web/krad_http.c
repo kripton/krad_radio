@@ -25,6 +25,8 @@ void krad_http_destroy_client (krad_http_t *krad_http, krad_http_client_t *clien
 		
 	free (client);
 	
+	printk ("HTTP Client done.");
+	
 	pthread_exit(0);	
 
 }
@@ -34,7 +36,20 @@ void krad_http_write_headers (krad_http_client_t *client, char *content_type) {
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "HTTP/1.1 200 OK\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Status: 200 OK\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Connection: close\r\n");
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Server: Krad-Radio\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Content-Type: %s; charset=utf-8\r\n", content_type);
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "\r\n");
+
+	client->wrote = write (client->sd, client->out_buffer, strlen(client->out_buffer));
+
+}
+
+void krad_http_write_file_headers (krad_http_client_t *client, char *content_type, unsigned int length) {
+
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "HTTP/1.1 200 OK\r\n");
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Server: Krad-Radio\r\n");
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Content-Length: %d\r\n", length);
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Content-Type: %s\r\n", content_type);
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "\r\n");
 
 	client->wrote = write (client->sd, client->out_buffer, strlen(client->out_buffer));
@@ -46,6 +61,7 @@ void krad_http_404 (krad_http_client_t *client) {
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "HTTP/1.1 404 Not Found\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Status: 404 Not Found\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Connection: close\r\n");
+	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Server: Krad-Radio\r\n");	
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "Content-Type: text/html; charset=utf-8\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "\r\n");
 	client->out_buffer_pos += sprintf(client->out_buffer + client->out_buffer_pos, "404 Not Found");
@@ -177,6 +193,17 @@ void *krad_http_client_thread (void *arg) {
 
 	krad_http_client_t *client = (krad_http_client_t *)arg;
 	
+	int ret;
+	int wrote;
+	int wrot;
+	int wrote_total;
+	unsigned int length;
+	int fd;
+	struct stat file_stat;	
+	
+	wrote_total = 0;
+	
+	
 	//printf("\nNew Web Client\n");
 	
 	/*
@@ -258,7 +285,50 @@ void *krad_http_client_thread (void *arg) {
 				krad_http_destroy_client (client->krad_http, client);
 
 			}
+			
+			if (strncmp("snapshot", client->get, 8) == 0) {
 
+				if ((fd = open("/home/oneman/testy/snapshot_1346676086_8324.jpg", O_RDONLY)) > -1) {
+		
+					fstat (fd, &file_stat);
+		
+					length = file_stat.st_size;
+					
+					krad_http_write_file_headers (client, "image/jpeg", length);
+
+					while (wrote_total != length) {
+
+						ret = read (fd, client->out_buffer, BUFSIZE);
+		
+						if (ret <= 0) {
+							close(fd);
+							krad_http_destroy_client (client->krad_http, client);
+						}
+		
+						wrote = 0;
+		
+						while (wrote != ret) {
+						
+							wrot = write (client->sd, client->out_buffer + wrote, ret - wrote);
+						
+							if (wrot <= 0) {
+								close(fd);
+								krad_http_destroy_client (client->krad_http, client);
+							}
+							wrote += wrot;
+							wrote_total += wrote;			
+						
+						}
+		
+						
+					}
+					close (fd);
+				}
+
+				krad_http_destroy_client (client->krad_http, client);
+
+			}
+			
 			krad_http_404 (client);
 		
 		}
