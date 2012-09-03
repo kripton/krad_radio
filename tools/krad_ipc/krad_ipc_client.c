@@ -307,6 +307,10 @@ void krad_radio_launch_daemon (char *sysname) {
 	if (pid > 0) {
 		exit (0);
 	}
+	
+	freopen("/dev/null", "r", stdin);
+	freopen("/dev/null", "w", stdout);
+	freopen("/dev/null", "w", stderr);	
 
 	execlp ("krad_radio_daemon", "krad_radio_daemon", sysname, (char *)NULL);
 

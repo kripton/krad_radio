@@ -225,10 +225,6 @@ void krad_system_daemonize () {
 
 	pid_t pid, sid;
 
-	close (STDIN_FILENO);
-	close (STDOUT_FILENO);
-	close (STDERR_FILENO);
-
 	pid = fork();
 
 	if (pid < 0) {
@@ -238,6 +234,10 @@ void krad_system_daemonize () {
 	if (pid > 0) {
 		exit (EXIT_SUCCESS);
 	}
+
+	freopen("/dev/null", "r", stdin);
+	freopen("/dev/null", "w", stdout);
+	freopen("/dev/null", "w", stderr);
 	
 	umask(0);
  
