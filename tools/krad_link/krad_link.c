@@ -114,8 +114,6 @@ void *video_capture_thread (void *arg) {
 	
 	kradv4l2_start_capturing (krad_link->krad_v4l2);
 
-	krad_link->capture_audio = 1;
-
 	while (krad_link->capturing == 1) {
 
 		captured_frame = kradv4l2_read_frame_wait_adv (krad_link->krad_v4l2);
@@ -174,7 +172,6 @@ void *video_capture_thread (void *arg) {
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
-	krad_link->capture_audio = 2;
 	krad_link->encoding = 2;
 
 	printk ("Video capture thread exited");
@@ -619,10 +616,7 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 		krad_ringbuffer_read (krad_link->audio_capture_ringbuffer[0], (char *)samples[0], frames * 4);
 		krad_ringbuffer_read (krad_link->audio_capture_ringbuffer[1], (char *)samples[1], frames * 4);
 	}	
-	
-	if (krad_link->capture_audio == 2) {
-		krad_link->capture_audio = 3;
-	}
+
 }
 
 void *audio_encoding_thread (void *arg) {
@@ -790,10 +784,6 @@ void *audio_encoding_thread (void *arg) {
 	}
 	
 	krad_link->encoding = 4;
-	
-	while (krad_link->capture_audio != 3) {
-		usleep (5000);
-	}
 	
 	for (c = 0; c < krad_link->channels; c++) {
 		free (krad_link->samples[c]);
@@ -2074,7 +2064,6 @@ void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
 		krad_link->krad_decklink = NULL;
 	}
 	
-	krad_link->capture_audio = 3;
 	krad_link->encoding = 2;
 
 	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, krad_link->krad_mixer_portgroup);
@@ -2110,7 +2099,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 			}
 		}		
 	} else {
-		krad_link->capture_audio = 2;
 		krad_link->encoding = 2;
 	}
 	
@@ -2740,6 +2728,7 @@ void krad_linker_link_to_ebml ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 
 	krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK, &link);	
 
+	krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_NUMBER, krad_link->link_num);
 
 	switch ( krad_link->av_mode ) {
 
@@ -2935,6 +2924,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 
 					krad_linker->krad_link[k] = krad_link_create (k);
 					krad_link = krad_linker->krad_link[k];
+					krad_link->link_num = k;
 					krad_link->krad_radio = krad_linker->krad_radio;
 					krad_link->krad_linker = krad_linker;
 

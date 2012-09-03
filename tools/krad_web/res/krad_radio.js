@@ -437,6 +437,19 @@ Kradradio.prototype.got_remove_portgroup = function (name) {
 
 }
 
+Kradradio.prototype.remove_link = function (link_num) {
+
+	var cmd = {};  
+	cmd.com = "kradlink";  
+	cmd.cmd = "remove_link";
+  	cmd.link_num = link_num;  
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send (JSONcmd);
+
+	kradwebsocket.debug(JSONcmd);
+}
 
 Kradradio.prototype.update_link = function (link_num, control_name, value) {
 
@@ -581,15 +594,16 @@ Kradradio.prototype.got_add_link = function (link) {
 			$( '#link_' + link.link_num + '_opus_complexity_slider' ).bind( "slide", function(event, ui) {
 				$( '#link_' + link.link_num + '_opus_complexity_value' ).html(ui.value);
 				kradradio.update_link (link.link_num, "opus_complexity", ui.value);
-			});	
-		
-		
-		
+			});
 		}
-		
-		
-
 	}
+
+	$('#link_' + link.link_num).append("<div class='button_wrap'><div class='krad_button2' id='" + link.link_num + "_remove'>Remove</div>");
+
+	$( '#' + link.link_num + '_remove').bind( "click", function(event, ui) {
+		kradradio.remove_link(link.link_num);
+	});
+
 }
 	
 	

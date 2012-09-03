@@ -1551,6 +1551,18 @@ void krad_ipc_compositor_snapshot (krad_ipc_client_t *client) {
 	
 }
 
+void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t snap_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT_JPEG, &snap_command);
+	krad_ebml_finish_element (client->krad_ebml, snap_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
 void krad_ipc_compositor_info (krad_ipc_client_t *client) {
 
 	uint64_t command;
@@ -2482,6 +2494,8 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		bytes_read += ebml_data_size + 9;
 	}
 	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	krad_link->link_num = krad_ebml_read_number (client->krad_ebml, ebml_data_size);	
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -2951,7 +2965,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	char tag_value_actual[1024];
 
 	char string[1024];	
-	
+	krad_link_rep_t *krad_link;
 	
 	tag_item_actual[0] = '\0';	
 	tag_name_actual[0] = '\0';
@@ -3142,8 +3156,9 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	
 						list_size = ebml_data_size;
 						i = 0;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, NULL)) <= list_size)) {
-							printf("%d: %s\n", i, tag_value);
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, &krad_link)) <= list_size)) {
+							printf("%d: %s\n", krad_link->link_num, tag_value);
+							free (krad_link);
 							i++;
 							if (bytes_read == list_size) {
 								break;

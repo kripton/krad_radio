@@ -37,7 +37,7 @@ void krad_system_log_on (char *filename) {
 	}
 
 	pthread_mutex_lock (&krad_system.log_lock);
-	krad_system.log_fd = open (filename, O_WRONLY | O_CREAT | O_EXCL);
+	krad_system.log_fd = open (filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (krad_system.log_fd > 0) {
 		dprintf (krad_system.log_fd, "Logging started\n");
 	} else {

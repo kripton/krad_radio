@@ -76,6 +76,8 @@ struct krad_link_St {
 
 	krad_linker_t *krad_linker;
 
+	int link_num;
+
 	char sysname[64];
 	krad_tags_t *krad_tags;
 
@@ -153,7 +155,6 @@ struct krad_link_St {
 	
 	int encoding;
 	int capturing;
-	int capture_audio;	
 	
 	float vorbis_quality;
 	krad_ringbuffer_t *audio_capture_ringbuffer[KRAD_MIXER_MAX_CHANNELS];	

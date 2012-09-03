@@ -76,6 +76,8 @@ krad_codec_t krad_string_to_codec (char *string);
 
 struct krad_link_rep_St {
 
+	int link_num;
+
 //	krad_tags_t *krad_tags;
 	krad_link_transport_mode_t transport_mode;
 	krad_link_operation_mode_t operation_mode;

@@ -184,6 +184,7 @@ void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, u
 void krad_ipc_compositor_list_ports (krad_ipc_client_t *client);
 void krad_ipc_compositor_info (krad_ipc_client_t *client);
 void krad_ipc_compositor_snapshot (krad_ipc_client_t *client);
+void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client);
 
 void krad_ipc_get_portgroups (krad_ipc_client_t *client);
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value);

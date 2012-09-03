@@ -94,7 +94,12 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, part3->valueint);
 					}
 				}
-			}		
+			}
+			if ((part != NULL) && (strcmp(part->valuestring, "remove_link") == 0)) {
+				part = cJSON_GetObjectItem (cmd, "link_num");
+				krad_ipc_destroy_link (pss->krad_ipc_client, part->valueint);
+			}
+			
 		}		
 		
 		cJSON_Delete (cmd);
@@ -128,6 +133,8 @@ void krad_websocket_set_tag (krad_ipc_session_data_t *krad_ipc_session_data, cha
 void krad_websocket_add_decklink_device ( krad_ipc_session_data_t *krad_ipc_session_data, char *name, int num) {
 
 	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());	
 
 	cJSON_AddStringToObject (msg, "com", "kradlink");
 	cJSON_AddStringToObject (msg, "cmd", "add_decklink_device");
@@ -135,7 +142,7 @@ void krad_websocket_add_decklink_device ( krad_ipc_session_data_t *krad_ipc_sess
 	cJSON_AddStringToObject (msg, "decklink_device_name", name);
 }
 
-void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, krad_link_rep_t *krad_link, int link_num) {
+void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, krad_link_rep_t *krad_link) {
 
 	cJSON *msg;
 	
@@ -143,7 +150,7 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 	
 	cJSON_AddStringToObject (msg, "com", "kradlink");
 	cJSON_AddStringToObject (msg, "cmd", "add_link");
-	cJSON_AddNumberToObject (msg, "link_num", link_num);
+	cJSON_AddNumberToObject (msg, "link_num", krad_link->link_num);
 	cJSON_AddStringToObject (msg, "operation_mode", krad_link_operation_mode_to_string(krad_link->operation_mode));
 
 	cJSON_AddStringToObject (msg, "av_mode",  krad_link_av_mode_to_string(krad_link->av_mode));
@@ -393,7 +400,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					i = 0;
 					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep)) <= list_size)) {
 						printkd ("%d: %s\n", i, string);						
-						krad_websocket_add_link (krad_ipc_session_data, krad_link_rep, i);
+						krad_websocket_add_link (krad_ipc_session_data, krad_link_rep);
 						i++;
 						free (krad_link_rep);
 						

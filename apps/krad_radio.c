@@ -12,7 +12,7 @@ void krad_radio_command_help () {
 	printf ("\n");
 	printf ("transmitter_on transmitter_off closedisplay display lstext rmtext addtest lssprites addsprite rmsprite");
 	printf ("\n");
-	printf ("setsprite comp res snap setport update play receive record capture");
+	printf ("setsprite comp res snap jsnap setport update play receive record capture");
 	printf ("\n");
 }
 
@@ -480,7 +480,13 @@ int main (int argc, char *argv[]) {
 				if (argc == 3) {
 					krad_ipc_compositor_snapshot (client);
 				}
-			}					
+			}
+			
+			if (strncmp(argv[2], "jsnap", 5) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_snapshot_jpeg (client);
+				}
+			}				
 			
 			if (strncmp(argv[2], "comp", 4) == 0) {
 				if (argc == 3) {

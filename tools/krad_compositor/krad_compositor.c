@@ -693,8 +693,12 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}
 	
 	if (krad_compositor->snapshot > 0) {
-		krad_compositor_take_snapshot (krad_compositor, composite_frame);
+		krad_compositor_take_snapshot (krad_compositor, composite_frame, SNAPPNG);
 	}
+	
+	if (krad_compositor->snapshot_jpeg > 0) {
+		krad_compositor_take_snapshot (krad_compositor, composite_frame, SNAPJPEG);
+	}	
 	
 	krad_framepool_unref_frame (composite_frame);
 	
@@ -704,10 +708,45 @@ void *krad_compositor_snapshot_thread (void *arg) {
 
 	krad_compositor_snapshot_t *krad_compositor_snapshot = (krad_compositor_snapshot_t *)arg;
 	
-	//printk ("SNAPPY! %s", krad_compositor_snapshot->filename);
-	
-	cairo_surface_write_to_png (krad_compositor_snapshot->krad_frame->cst, krad_compositor_snapshot->filename);
-	
+	tjhandle jpeg;
+	int jpeg_fd;	
+	unsigned char *jpeg_buf;
+	long unsigned int jpeg_size;
+	int ret;
+
+	jpeg_buf = NULL;
+
+	if (krad_compositor_snapshot->jpeg == 1) {
+
+		jpeg = tjInitCompress ();
+
+		ret = tjCompress2 (jpeg,
+							 (unsigned char *)krad_compositor_snapshot->krad_frame->pixels,
+							 krad_compositor_snapshot->width,
+							 krad_compositor_snapshot->width * 4,
+							 krad_compositor_snapshot->height,
+							 TJPF_BGRA,
+							 &jpeg_buf,
+							 &jpeg_size,
+							 TJSAMP_444,
+							 90,
+							 0);
+		if (ret == 0) {
+			jpeg_fd = open (krad_compositor_snapshot->filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+			if (jpeg_fd > 0) {
+				while (ret != jpeg_size) {
+					ret += write (jpeg_fd, jpeg_buf + ret, jpeg_size - ret);
+				}
+				close (jpeg_fd);
+			}
+			tjFree (jpeg_buf);
+		} else {
+			printke("Krad Compositor: JPEG Snapshot error: %s", tjGetErrorStr());
+		}
+		tjDestroy ( jpeg );
+	} else {
+		cairo_surface_write_to_png (krad_compositor_snapshot->krad_frame->cst, krad_compositor_snapshot->filename);
+	}
 	krad_framepool_unref_frame (krad_compositor_snapshot->krad_frame);
 	free (krad_compositor_snapshot);
 
@@ -715,11 +754,10 @@ void *krad_compositor_snapshot_thread (void *arg) {
 
 }
 
-void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame) {
+void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame, krad_snapshot_fmt_t format) {
 		
 	krad_compositor_snapshot_t *krad_compositor_snapshot;
-
-	krad_compositor->snapshot--;
+	char *ext;
 
 	if (krad_compositor->dir == NULL) {	
 		return;
@@ -728,14 +766,27 @@ void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_fra
 	krad_framepool_ref_frame (krad_frame);
 		
 	krad_compositor_snapshot = calloc (1, sizeof (krad_compositor_snapshot_t));
+
+	if (format == SNAPPNG) {
+		krad_compositor->snapshot--;
+		ext = "png";
+	} else {
+		krad_compositor->snapshot_jpeg--;
+		krad_compositor_snapshot->jpeg = 1;
+		ext = "jpg";
+	}
 	
 	krad_compositor_snapshot->krad_frame = krad_frame;
 	
+	krad_compositor_snapshot->width = krad_compositor->width;
+	krad_compositor_snapshot->height = krad_compositor->height;	
+	
 	sprintf (krad_compositor_snapshot->filename,
-			 "%s/snapshot_%zu_%"PRIu64".png",
+			 "%s/snapshot_%zu_%"PRIu64".%s",
 			 krad_compositor->dir,
 			 time (NULL),
-			 krad_compositor->frame_num);
+			 krad_compositor->frame_num,
+			 ext);
 	
 	pthread_create (&krad_compositor->snapshot_thread,
 					NULL,
@@ -1727,6 +1778,9 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 		case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT:
 			krad_compositor->snapshot++;
 			break;
+		case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT_JPEG:
+			krad_compositor->snapshot_jpeg++;
+			break;	
 			
 		case EBML_ID_KRAD_COMPOSITOR_CMD_SET_FRAME_RATE:
 
