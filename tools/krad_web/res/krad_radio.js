@@ -269,6 +269,9 @@ Kradradio.prototype.got_messages = function (msgs) {
 			if (msg_arr[m].cmd == "add_link") {
 				kradradio.got_add_link (msg_arr[m]);
 			}
+			if (msg_arr[m].cmd == "remove_link") {
+				kradradio.got_remove_link (msg_arr[m]);
+			}			
 			if (msg_arr[m].cmd == "add_decklink_device") {
 				kradradio.got_add_decklink_device (msg_arr[m]);
 			}
@@ -290,7 +293,7 @@ Kradradio.prototype.update_portgroup = function (portgroup_name, control_name, v
 
 	kradwebsocket.send(JSONcmd);
 
-	kradwebsocket.debug(JSONcmd);
+	//kradwebsocket.debug(JSONcmd);
 }
 
 Kradradio.prototype.push_dtmf = function (value) {
@@ -456,7 +459,10 @@ Kradradio.prototype.remove_link = function (link_num) {
 
 	kradwebsocket.send (JSONcmd);
 
-	kradwebsocket.debug(JSONcmd);
+	//kradwebsocket.debug(JSONcmd);
+	
+	$('#link_' + link_num + '_wrap').remove();
+	
 }
 
 Kradradio.prototype.update_link = function (link_num, control_name, value) {
@@ -487,9 +493,16 @@ Kradradio.prototype.got_add_decklink_device = function (decklink_device) {
 }
 
 
+Kradradio.prototype.got_remove_link = function (link) {
+
+	$('#link_' + link.link_num + '_wrap').remove();
+
+}
+
+
 Kradradio.prototype.got_add_link = function (link) {
 
-	$('.kradlink').append("<div class='kradlink_link'> <div id='link_" + link.link_num + "'></div></div>");
+	$('.kradlink').append("<div class='kradlink_link' id='link_" + link.link_num + "_wrap'> <div id='link_" + link.link_num + "'></div></div>");
 
 	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + " " + link.av_mode + "</h3>");
 

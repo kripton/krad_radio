@@ -23,6 +23,8 @@
 	detection cache and poll?
 	
 	self destruct button?
+	
+	fix all the needlessly duplicated daemon forking jank
 
 # Thinking
 	Distributed Network Control / IPC Proxy / Krad Network / Krad Enterprise Edition

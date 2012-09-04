@@ -142,6 +142,18 @@ void krad_websocket_add_decklink_device ( krad_ipc_session_data_t *krad_ipc_sess
 	cJSON_AddStringToObject (msg, "decklink_device_name", name);
 }
 
+void krad_websocket_remove_link ( krad_ipc_session_data_t *krad_ipc_session_data, int link_num) {
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradlink");
+	cJSON_AddStringToObject (msg, "cmd", "remove_link");
+	cJSON_AddNumberToObject (msg, "link_num", link_num);
+
+}
+
 void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, krad_link_rep_t *krad_link) {
 
 	cJSON *msg;
@@ -445,6 +457,24 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 							break;
 						}
 					}	
+					break;
+					
+					
+				case EBML_ID_KRAD_LINK_LINK_CREATED:
+					
+					break;
+
+				case EBML_ID_KRAD_LINK_LINK_UPDATED:
+					
+					break;
+
+				case EBML_ID_KRAD_LINK_LINK_DESTROYED:
+					
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
+					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					
+					krad_websocket_remove_link (krad_ipc_session_data, numbers[0]);
+					
 					break;
 
 				default:

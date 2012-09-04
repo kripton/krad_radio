@@ -2937,8 +2937,6 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			}
 			break;
 		case EBML_ID_KRAD_LINK_CMD_DESTROY_LINK:
-			printk ("krad linker handler! DESTROY_LINK");
-			
 			tinyint = krad_ipc_server_read_number (krad_ipc, ebml_data_size);
 			k = tinyint;
 			printk ("krad linker handler! DESTROY_LINK: %d %u", k, tinyint);
@@ -2947,6 +2945,12 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 				krad_link_destroy (krad_linker->krad_link[k]);
 				krad_linker->krad_link[k] = NULL;
 			}
+			
+			krad_ipc_server_simple_number_broadcast ( krad_ipc,
+													  EBML_ID_KRAD_LINK_MSG,
+													  EBML_ID_KRAD_LINK_LINK_DESTROYED,
+													  EBML_ID_KRAD_LINK_LINK_NUMBER,
+											 		  k);			
 			
 			break;
 		case EBML_ID_KRAD_LINK_CMD_UPDATE_LINK:
