@@ -461,6 +461,10 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					
 					
 				case EBML_ID_KRAD_LINK_LINK_CREATED:
+				
+					krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep);
+					krad_websocket_add_link (krad_ipc_session_data, krad_link_rep);
+					free (krad_link_rep);
 					
 					break;
 

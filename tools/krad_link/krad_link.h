@@ -193,7 +193,7 @@ struct krad_link_St {
 
 };
 
-
+void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *krad_link);
 
 void krad_linker_stop_listening (krad_linker_t *krad_linker);
 int krad_linker_listen (krad_linker_t *krad_linker, int port);

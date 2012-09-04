@@ -1,18 +1,14 @@
 # Quick
 
+	update link broadcast
+	webui add link ability
+
 	VP8 portgroup IO params, ie VP8 input res != compositor res
 	snapshot button webui
-	
-	add link ability
-	add link broadcast
-	update link broadcast
-	remove link broadcast
 
-	jack portgroup add/rem controls and fix broadcast potential crash
+	jack portgroup add/rem ability
 	
 	auto destroying playback links?
-	
-	add / remove dtmf portgroup
 	
 	logtailing
 	
