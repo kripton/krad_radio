@@ -302,7 +302,7 @@ void krad_websocket_remove_portgroup ( krad_ipc_session_data_t *krad_ipc_session
 
 void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, char *controlname, float floatval) {
 
-	printkd ("set portgroup called %s control %s with a value %f", portname, controlname, floatval);
+	//printkd ("set portgroup called %s control %s with a value %f", portname, controlname, floatval);
 	
 	cJSON *msg;
 	
@@ -561,13 +561,13 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
-			printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
+			//printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
 //			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			
 			switch ( ebml_id ) {
 				case EBML_ID_KRAD_MIXER_CONTROL:
-					printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
+					//printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
 					

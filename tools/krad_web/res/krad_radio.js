@@ -141,7 +141,7 @@ Kradwebsocket.prototype.on_close = function(evt) {
 Kradwebsocket.prototype.send = function(message) {
 	if (this.connected == true) {
 	    this.websocket.send (message);
-		this.debug ("Sent " + message); 
+		//this.debug ("Sent " + message); 
 	} else {
 		this.debug ("NOT CONNECTED, wanted to send: " + message); 
 	}
@@ -371,7 +371,7 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 
 	$('.kradmixer').append("<div class='kradmixer_control volume_control' id='portgroup_" + portgroup_name + "_wrap'><div id='" + portgroup_name + "'></div><h2>" + portgroup_name + "</h2><div id='ktags_" + portgroup_name + "'></div></div>");
 
-	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume });
+	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume, step: 0.5 });
 
 	$( '#' + portgroup_name ).bind( "slide", function(event, ui) {
 		kradradio.update_portgroup (portgroup_name, "volume", ui.value);
