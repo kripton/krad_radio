@@ -174,7 +174,8 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 				printkd ("Got SIGINT Signal!");			
 				return;
 			case SIGTERM:
-				printkd ("Got SIGTERM Signal!");			
+				printkd ("Got SIGTERM Signal!");
+				krad_system_monitor_cpu_off_fast ();			
 				return;
 			default:
 				break;

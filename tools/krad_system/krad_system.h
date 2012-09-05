@@ -86,6 +86,7 @@ void krad_system_log_off ();
 void krad_system_set_monitor_cpu_interval (int ms);
 void *krad_system_monitor_cpu_thread (void *arg);
 void krad_system_monitor_cpu_off ();
+void krad_system_monitor_cpu_off_fast ();
 int krad_system_get_cpu_usage ();
 void krad_system_monitor_cpu_on ();
 
