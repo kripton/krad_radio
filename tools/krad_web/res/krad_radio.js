@@ -48,15 +48,31 @@ function Kradwebsocket (port) {
 	this.port = port;
 	this.uri = 'ws://' + location.hostname + ':' + this.port + '/';
 	this.websocket = "";
+	this.reconnection_attempts = 0;
+	this.reconnect = false;	
 	this.connected = false;
 	this.connecting = false;
-	this.debug ("Created")	
-	this.connect ();
+	this.stay_connected = true;	
+	this.debug ("Created");
+	this.connect();
+
+}
+
+Kradwebsocket.prototype.do_reconnect = function() {
+
+	if (this.connected != true) {
+		this.reconnection_attempts += 1;
+		if (this.reconnection_attempts == 3) {
+			$('body').append("<div id='websockets_connection_problem'><h2>Websockets connection problem using port " + this.port + "</h2></div>");
+		}
+		this.connect();
+	}
 
 }
 		
 Kradwebsocket.prototype.connect = function() {
 
+	this.stay_connected = true;
 	if (this.connected != true) {
 		if (this.connecting != true) {
 			this.connecting = true;
@@ -77,18 +93,32 @@ Kradwebsocket.prototype.connect = function() {
 Kradwebsocket.prototype.disconnect = function() {
 	this.connected = false;
 	this.connecting = false;
+	this.stay_connected = false;	
 	this.debug ("Disconnecting..");
+	if (this.reconnect != false) {
+		window.clearInterval(this.reconnect);
+		this.reconnect = false;
+	}
 	this.websocket.close ();
-	this.websocket.onopen = false;
-	this.websocket.onclose = false;
-	this.websocket.onmessage = false;
-	this.websocket.onerror = false;
+	//this.websocket.onopen = false;
+	//this.websocket.onclose = false;
+	//this.websocket.onmessage = false;
+	//this.websocket.onerror = false;
 }
  
 Kradwebsocket.prototype.on_open = function(evt) {
 	this.connected = true;
 	this.debug ("Connected!");
 	this.connecting = false;
+	this.reconnection_attempts = 0;
+
+	if (this.reconnect != false) {
+		window.clearInterval(this.reconnect);
+		this.reconnect = false;
+	}
+	if ($('#websockets_connection_problem')) {
+		$('#websockets_connection_problem').remove();
+	}
 
 	kradradio = new Kradradio ();	
 }
@@ -99,6 +129,12 @@ Kradwebsocket.prototype.on_close = function(evt) {
 	if (kradradio != false) {
 		kradradio.destroy ();
 		kradradio = false;
+	}
+	this.connecting = false;
+	if (this.stay_connected == true) {
+		if (this.reconnect == false) {
+			this.reconnect = setInterval(create_handler(this, this.do_reconnect), 1000);
+		}
 	}
 }
 
@@ -113,15 +149,15 @@ Kradwebsocket.prototype.send = function(message) {
 
 Kradwebsocket.prototype.on_error = function(evt) {
 	this.debug ("Error! " + evt.data);
-	this.disconnect ();
+
 }
 
 Kradwebsocket.prototype.debug = function(message) {
-	//console.log (message);
+	console.log (message);
 }
 
 Kradwebsocket.prototype.on_message = function(evt) {
-	this.debug ("got message: " + evt.data);
+	//this.debug ("got message: " + evt.data);
 
 	kradradio.got_messages (evt.data);	
 }
@@ -266,6 +302,9 @@ Kradradio.prototype.got_messages = function (msgs) {
 			
 		}
 		if (msg_arr[m].com == "kradlink") {
+			if (msg_arr[m].cmd == "update_link") {
+				kradradio.got_update_link (msg_arr[m].link_num, msg_arr[m].update_item, msg_arr[m].update_value);
+			}		
 			if (msg_arr[m].cmd == "add_link") {
 				kradradio.got_add_link (msg_arr[m]);
 			}
@@ -465,6 +504,30 @@ Kradradio.prototype.remove_link = function (link_num) {
 	
 }
 
+Kradradio.prototype.got_update_link = function (link_num, control_name, value) {
+
+	kradwebsocket.debug("got_update_link");
+
+	kradwebsocket.debug(link_num);
+	kradwebsocket.debug(control_name);
+	kradwebsocket.debug(value);		
+
+	if ($('#link_' + link_num + '_wrap')) {
+		if ((control_name == "opus_bitrate") || (control_name == "opus_complexity")) {
+		
+			$( '#link_' + link_num + '_' + control_name + '_value' ).html(value);					
+		
+			$('#link_' + link_num + '_' + control_name + '_slider').slider( "value" , value );
+
+		}
+		
+		if (control_name == "opus_frame_size") {
+			$("input[name=link_" + link_num + "_opus_frame_size][value=" + value + "]").attr('checked', 'checked');		
+		}
+	}
+
+}
+
 Kradradio.prototype.update_link = function (link_num, control_name, value) {
 
 	var cmd = {};  
@@ -478,7 +541,7 @@ Kradradio.prototype.update_link = function (link_num, control_name, value) {
 
 	kradwebsocket.send (JSONcmd);
 
-	kradwebsocket.debug(JSONcmd);
+	//kradwebsocket.debug(JSONcmd);
 }
 	
 

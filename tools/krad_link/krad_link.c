@@ -2936,6 +2936,12 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					krad_linker_ebml_to_link ( krad_ipc, krad_link );
 					
 					krad_link_run (krad_link);
+					
+					if (krad_link->audio_codec == OPUS) {
+						while (krad_link->krad_opus == NULL) {
+							usleep (2000);
+						}
+					}
 
 					krad_linker_broadcast_link_created ( krad_ipc, krad_link );
 
@@ -2962,7 +2968,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 			break;
 		case EBML_ID_KRAD_LINK_CMD_UPDATE_LINK:
 			printk ("krad linker handler! UPDATE_LINK");
-			
+
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 			
 			if (ebml_id == EBML_ID_KRAD_LINK_LINK_NUMBER) {
@@ -3057,6 +3063,17 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					}
 
 
+					if ((ebml_id != EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH) && (ebml_id != EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL)) {
+
+						krad_ipc_server_advanced_number_broadcast ( krad_ipc,
+																  EBML_ID_KRAD_LINK_MSG,
+																  EBML_ID_KRAD_LINK_LINK_UPDATED,
+																  EBML_ID_KRAD_LINK_LINK_NUMBER,
+														 		  k,
+														 		  ebml_id,
+														 		  bigint);
+
+					}
 				}
 			}
 			
