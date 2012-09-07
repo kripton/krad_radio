@@ -18,6 +18,7 @@
 			margin: 35px;
 		}
 		a { text-decoration: none; }
+		a:visited { color: #222227; }
 
 		button::-moz-focus-outer, ::-moz-focus-inner {
 			border: 1px solid transparent !important;
@@ -27,11 +28,11 @@
 			cursor: default;
 		}
 
-		.kradmixer_control { height: 132px; float: left; margin: 14px; }
+		.kradmixer_control, .kradlink_control { height: 212px; float: left; margin: 14px; }
 
-		.kradmixer_control h2 {
+		.kradmixer_control h2, .kradlink_control h2, .kradlink_control h3 {
             position: relative;
-            right: 40px;
+            right: 46px;
             bottom: 68px;
             -webkit-transform: rotate(-90deg);
             -moz-transform: rotate(-90deg);
@@ -51,7 +52,7 @@
             -o-transform: none;
 		}
 
-		.volume_control { padding-left: 28px; margin-right: 10px; padding-right: 0px; width: 50px; }
+		.volume_control, .kradlink_param_control { padding-left: 28px; margin-right: 10px; padding-right: 0px; width: 50px; }
 		.crossfade_control { width: 200px; }
 		.kradlink_link { width: 80%; margin: 20px; padding: 10px; border: 1px solid black; }
 		.dtmf_pad { width: 254px; height: 230px; padding: 2px; }
@@ -177,6 +178,10 @@
 						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
 						rgba(5,171,224,0.85) 0px 1px 5px; /* drop shadow */
 
+		}
+
+		.krad_button a, .krad_button2 a {
+			color: #222227;
 		}
 
 		.button_wrap {

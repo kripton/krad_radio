@@ -175,6 +175,8 @@ function Kradradio () {
 	
 	this.decklink_devices = new Array();	
 	
+	this.showing_snapshot_buttons = 0;	
+	
 }
 
 Kradradio.prototype.destroy = function () {
@@ -245,6 +247,37 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    </div>\
 	                    <br clear='both'>\
 	                  </div>");
+	                  
+	                  
+}
+
+
+Kradradio.prototype.show_snapshot_buttons = function () {
+
+	if (this.showing_snapshot_buttons == 0) {
+	
+		kradradio.jsnapshot();
+	
+		$('.kradcompositor').append("<br clear='both'/>");
+
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='snapshot'>Snapshot</div>");
+	
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='jsnapshot'>JPEG Snapshot</div>");	
+	
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='view_snapshot'><a target='_new' href='/snapshot'>View Last</a></div>");	
+	
+		$('.kradcompositor').append("<br clear='both'/>");
+	
+		$( '#snapshot').bind( "click", function(event, ui) {
+			kradradio.snapshot();
+		});
+	
+		$( '#jsnapshot').bind( "click", function(event, ui) {
+			kradradio.jsnapshot();
+		});
+	
+		this.showing_snapshot_buttons = 1;	
+	}
 }
 
 Kradradio.prototype.got_tag = function (tag_item, tag_name, tag_value) {
@@ -327,6 +360,32 @@ Kradradio.prototype.update_portgroup = function (portgroup_name, control_name, v
   	cmd.portgroup_name = portgroup_name;  
   	cmd.control_name = control_name;  
 	cmd.value = value;
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send(JSONcmd);
+
+	//kradwebsocket.debug(JSONcmd);
+}
+
+Kradradio.prototype.jsnapshot = function () {
+
+	var cmd = {};  
+	cmd.com = "kradcompositor";  
+	cmd.cmd = "jsnap";
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send(JSONcmd);
+
+	//kradwebsocket.debug(JSONcmd);
+}
+
+Kradradio.prototype.snapshot = function () {
+
+	var cmd = {};  
+	cmd.com = "kradcompositor";  
+	cmd.cmd = "snap";
 	
 	var JSONcmd = JSON.stringify(cmd); 
 
@@ -567,6 +626,11 @@ Kradradio.prototype.got_remove_link = function (link) {
 
 Kradradio.prototype.got_add_link = function (link) {
 
+	if (link.operation_mode == "capture") {
+		this.show_snapshot_buttons();
+	}
+
+
 	$('.kradlink').append("<div class='kradlink_link' id='link_" + link.link_num + "_wrap'> <div id='link_" + link.link_num + "'></div></div>");
 
 	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + " " + link.av_mode + "</h3>");
@@ -601,7 +665,7 @@ Kradradio.prototype.got_add_link = function (link) {
 		
 			if (link.video_codec == "Theora") {
 
-				$('#link_' + link.link_num).append("<h5>Theora Quality: <span id='link_" + link.link_num + "_theora_quality_value'>" + link.theora_quality + "</span></h5><div id='link_" + link.link_num + "_theora_quality_slider'></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_theora_quality_slider'></div><h2>Quality&nbsp;<span id='link_" + link.link_num + "_theora_quality_value'>" + link.theora_quality + "</span></h2></div>");
 
 				$('#link_' + link.link_num + '_theora_quality_slider').slider({orientation: 'vertical', value: link.theora_quality, min: 0, max: 63 });
 
@@ -613,8 +677,8 @@ Kradradio.prototype.got_add_link = function (link) {
 			}
 
 			if (link.video_codec == "VP8") {
-		
-				$('#link_' + link.link_num).append("<h5>VP8 Bitrate: <span id='link_" + link.link_num + "_vp8_bitrate_value'>" + link.vp8_bitrate + "</span></h5><div id='link_" + link.link_num + "_vp8_bitrate_slider'></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_bitrate_slider'></div><h2>Bitrate&nbsp;<span id='link_" + link.link_num + "_vp8_bitrate_value'>" + link.vp8_bitrate + "</span></h2></div>");
+
 
 				$('#link_' + link.link_num + '_vp8_bitrate_slider').slider({orientation: 'vertical', value: link.vp8_bitrate, min: 100, max: 10000 });
 
@@ -623,7 +687,7 @@ Kradradio.prototype.got_add_link = function (link) {
 					kradradio.update_link (link.link_num, "vp8_bitrate", ui.value);
 				});
 		
-				$('#link_' + link.link_num).append("<h5>VP8 Min Quantizer: <span id='link_" + link.link_num + "_vp8_min_quantizer_value'>" + link.vp8_min_quantizer + "</span></h5><div id='link_" + link.link_num + "_vp8_min_quantizer_slider'></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_min_quantizer_slider'></div><h2>Quantizer&nbsp;Min&nbsp;<span id='link_" + link.link_num + "_vp8_min_quantizer_value'>" + link.vp8_min_quantizer + "</span></h2></div>");
 
 				$('#link_' + link.link_num + '_vp8_min_quantizer_slider').slider({orientation: 'vertical', value: link.vp8_min_quantizer, min: 0, max: 33 });
 
@@ -632,7 +696,7 @@ Kradradio.prototype.got_add_link = function (link) {
 					kradradio.update_link (link.link_num, "vp8_min_quantizer", ui.value);
 				});
 				
-				$('#link_' + link.link_num).append("<h5>VP8 Max Quantizer: <span id='link_" + link.link_num + "_vp8_max_quantizer_value'>" + link.vp8_max_quantizer + "</span></h5><div id='link_" + link.link_num + "_vp8_max_quantizer_slider'></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_max_quantizer_slider'></div><h2>Quantizer&nbsp;Max&nbsp;<span id='link_" + link.link_num + "_vp8_max_quantizer_value'>" + link.vp8_max_quantizer + "</span></h2></div>");
 
 				$('#link_' + link.link_num + '_vp8_max_quantizer_slider').slider({orientation: 'vertical', value: link.vp8_max_quantizer, min: 34, max: 63 });
 
@@ -641,9 +705,9 @@ Kradradio.prototype.got_add_link = function (link) {
 					kradradio.update_link (link.link_num, "vp8_max_quantizer", ui.value);
 				});
 				
-				$('#link_' + link.link_num).append("<h5>VP8 Deadline: <span id='link_" + link.link_num + "_vp8_deadline_value'>" + link.vp8_deadline + "</span></h5><div id='link_" + link.link_num + "_vp8_deadline_slider'></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_deadline_slider'></div><h2>Deadline&nbsp;<span id='link_" + link.link_num + "_vp8_deadline_value'>" + link.vp8_deadline + "</span></h2></div>");
 
-				$('#link_' + link.link_num + '_vp8_deadline_slider').slider({orientation: 'vertical', value: link.vp8_deadline, min: 1, max: 33 });
+				$('#link_' + link.link_num + '_vp8_deadline_slider').slider({orientation: 'vertical', value: link.vp8_deadline, min: 1, max: 33000 });
 
 				$( '#link_' + link.link_num + '_vp8_deadline_slider' ).bind( "slide", function(event, ui) {
 					$( '#link_' + link.link_num + '_vp8_deadline_value' ).html(ui.value);			
@@ -729,9 +793,10 @@ Kradradio.prototype.got_add_link = function (link) {
 					kradradio.update_link (link.link_num, "opus_bandwidth", valub);
 				});
 			
+				$('#link_' + link.link_num).append("<br clear='both'/>");			
 		
-				$('#link_' + link.link_num).append("<div class='kradmixer_control volume_control'><h2>Opus bitrate:  <span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h2><div id='link_" + link.link_num + "_opus_bitrate_slider'></div></div>");
-				$('#link_' + link.link_num).append("<div class='kradmixer_control volume_control'><h2>Opus complexity: <span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h2><div id='link_" + link.link_num + "_opus_complexity_slider'></div></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_opus_bitrate_slider'></div><h2>Bitrate&nbsp;<span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h2></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_opus_complexity_slider'></div><h2>Complexity&nbsp;<span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h2></div>");
 
 
 				$('#link_' + link.link_num + '_opus_bitrate_slider').slider({orientation: 'vertical', value: link.opus_bitrate, min: 3000, max: 320000 });
@@ -751,6 +816,8 @@ Kradradio.prototype.got_add_link = function (link) {
 			}
 		}
 	}
+	
+	$('#link_' + link.link_num).append("<br clear='both'/>");
 
 	$('#link_' + link.link_num).append("<div class='button_wrap'><div class='krad_button2' id='" + link.link_num + "_remove'>Remove</div>");
 

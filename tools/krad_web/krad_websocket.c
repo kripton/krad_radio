@@ -67,6 +67,16 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 			}					
 		}
 		
+		if ((part != NULL) && (strcmp(part->valuestring, "kradcompositor") == 0)) {
+			part = cJSON_GetObjectItem (cmd, "cmd");		
+			if ((part != NULL) && (strcmp(part->valuestring, "jsnap") == 0)) {
+				krad_ipc_compositor_snapshot_jpeg (pss->krad_ipc_client);
+			}	
+			if ((part != NULL) && (strcmp(part->valuestring, "snap") == 0)) {
+				krad_ipc_compositor_snapshot (pss->krad_ipc_client);
+			}
+		}		
+		
 		if ((part != NULL) && (strcmp(part->valuestring, "kradlink") == 0)) {
 			part = cJSON_GetObjectItem (cmd, "cmd");		
 			if ((part != NULL) && (strcmp(part->valuestring, "update_link") == 0)) {
