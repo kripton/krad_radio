@@ -2016,12 +2016,12 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 	krad_link->audio_frames_captured += frames;
 	
-	float peakval[2];
+	//float peakval[2];
 	
-	peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 0);
-	peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 1);
-	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
-	krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
+	//peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 0);
+	//peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 1);
+	//krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
+	//krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
 	
 	if (krad_mixer_get_pusher(krad_link->krad_radio->krad_mixer) == DECKLINKAUDIO) {
 		krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
@@ -2037,10 +2037,10 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	krad_decklink_set_video_mode(krad_link->krad_decklink, krad_link->capture_width, krad_link->capture_height,
 								 krad_link->fps_numerator, krad_link->fps_denominator);
 	
-	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, "DecklinkIn", INPUT, 2, 
+	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->krad_decklink->simplename, INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
 	
-	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "DecklinkIn", INPUT,
+	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, krad_link->krad_decklink->simplename, INPUT,
 																	krad_link->capture_width, krad_link->capture_height);	
 	
 	

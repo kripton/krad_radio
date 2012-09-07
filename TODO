@@ -1,6 +1,10 @@
 # Quick
 
-	update link broadcast
+	
+	link info needed: vp8 bitrate, vp8 max quantizer, vorbis quality, video resolution, theora quality
+
+
+	update link broadcast addl
 	webui add link ability
 
 	VP8 portgroup IO params, ie VP8 input res != compositor res

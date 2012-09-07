@@ -16,8 +16,6 @@ void krad_decklink_destroy (krad_decklink_t *krad_decklink) {
 		free(krad_decklink->samples[c]);	
 	}
 
-	//free (krad_decklink->captured_frame_rgb);
-
 	free (krad_decklink);
 
 }
@@ -28,13 +26,18 @@ krad_decklink_t *krad_decklink_create(char *device) {
 
 	krad_decklink_t *krad_decklink = (krad_decklink_t *)calloc(1, sizeof(krad_decklink_t));
 	
-	//krad_decklink->captured_frame_rgb = malloc(1920 * 1080 * 4);
-	
+	krad_decklink->devicenum = atoi(device);
+	if (krad_decklink->devicenum > 0) {
+		sprintf(krad_decklink->simplename, "Decklink%d", krad_decklink->devicenum);
+	} else {
+		sprintf(krad_decklink->simplename, "Decklink");
+	}
+
 	for (c = 0; c < 2; c++) {
 		krad_decklink->samples[c] = malloc(4 * 8192);
 	}
 	
-	krad_decklink->krad_decklink_capture = krad_decklink_capture_create(atoi(device));
+	krad_decklink->krad_decklink_capture = krad_decklink_capture_create(krad_decklink->devicenum);
 	
 	return krad_decklink;
 
