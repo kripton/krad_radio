@@ -1807,7 +1807,7 @@ void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
 
 void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode,
 									char *host, int port, char *mount, char *password, char *codecs,
-									int video_width, int video_height, int video_bitrate, int audio_bitrate) {
+									int video_width, int video_height, int video_bitrate, char *audio_bitrate) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1816,6 +1816,9 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
+	
+	int audio_bitrate_int;
+	float vorbis_quality;
 	
 	audio_codec = VORBIS;
 	video_codec = VP8;
@@ -1873,19 +1876,75 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 				video_width = 1280;
 				video_height = 720;
 			}
+			if (video_bitrate == 0) {
+				video_bitrate = 31;
+			}
 		}		
 		
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
 		
 		if (video_codec == VP8) {
+			if (video_bitrate < 100) {
+				video_bitrate = 100;
+			}
+			
+			if (video_bitrate > 10000) {
+				video_bitrate = 10000;
+			}
 			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
-		}		
+		}
+		
+		if (video_codec == THEORA) {
+		
+			if (video_bitrate < 0) {
+				video_bitrate = 0;
+			}
+			
+			if (video_bitrate > 63) {
+				video_bitrate = 63;
+			}
+		
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, video_bitrate);	
+		}	
 		
 	}
 
 	if ((av_mode == AUDIO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (audio_codec));
+		if (audio_codec == FLAC) {
+			if (atoi(audio_bitrate) == 24) {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 24);
+			} else {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 16);
+			}
+		}
+		if (audio_codec == VORBIS) {
+			vorbis_quality = atof(audio_bitrate);
+			if (vorbis_quality == 0.0) {
+				vorbis_quality = 0.4;
+			}
+			if (vorbis_quality > 0.8) {
+				vorbis_quality = 0.8;
+			} 
+			if (vorbis_quality < 0.2) {
+				vorbis_quality = 0.2;
+			}
+		
+			krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY, vorbis_quality);
+		}
+		if (audio_codec == OPUS) {
+			audio_bitrate_int = atoi(audio_bitrate);
+			
+			if (audio_bitrate_int < 5000) {
+				audio_bitrate_int = 5000;
+			}
+			if (audio_bitrate_int > 320000) {
+				audio_bitrate_int = 320000;
+			}
+			
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, audio_bitrate_int);
+		}
 	}
 	
 	if (strcmp(password, "udp") == 0) {
@@ -1910,7 +1969,7 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 }
 
 void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs,
-									int video_width, int video_height, int video_bitrate, int audio_bitrate) {
+									int video_width, int video_height, int video_bitrate, char *audio_bitrate) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1982,12 +2041,29 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 				video_bitrate = 92 * 8;
 			}
 			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
-		}		
+		}
+		
+		if (video_codec == THEORA) {
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, video_bitrate);	
+		}	
 		
 	}
 
 	if ((av_mode == AUDIO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (audio_codec));
+		if (audio_codec == FLAC) {
+			if (atoi(audio_bitrate) == 24) {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 24);
+			} else {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 16);
+			}
+		}
+		if (audio_codec == VORBIS) {
+			krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY, atof(audio_bitrate));
+		}
+		if (audio_codec == OPUS) {
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(audio_bitrate));
+		}		
 	}
 
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FILENAME, filename);

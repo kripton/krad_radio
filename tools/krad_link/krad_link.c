@@ -458,7 +458,7 @@ void *video_encoding_thread (void *arg) {
 																	 krad_link->encoding_height,
 																	 krad_link->encoding_fps_numerator,
 																	 krad_link->encoding_fps_denominator,
-																	 DEFAULT_THEORA_QUALITY);
+																	 krad_link->theora_quality);
 	}
 	
 	/* COMPOSITOR CONNECTION */
@@ -663,13 +663,13 @@ void *audio_encoding_thread (void *arg) {
 		case FLAC:
 			krad_link->krad_flac = krad_flac_encoder_create (krad_link->channels,
 															 krad_link->krad_radio->krad_mixer->sample_rate,
-															 24);
+															 krad_link->flac_bit_depth);
 			framecnt = KRAD_DEFAULT_FLAC_FRAME_SIZE;
 			break;
 		case OPUS:
 			krad_link->krad_opus = krad_opus_encoder_create (krad_link->channels,
 															 krad_link->krad_radio->krad_mixer->sample_rate,
-															 KRAD_DEFAULT_OPUS_BITRATE,
+															 krad_link->opus_bitrate,
 															 OPUS_APPLICATION_AUDIO);
 			framecnt = KRAD_MIN_OPUS_FRAME_SIZE;
 			break;
@@ -2198,7 +2198,10 @@ krad_link_t *krad_link_create (int linknum) {
 	krad_link->operation_mode = CAPTURE;
 	krad_link->video_codec = KRAD_LINK_DEFAULT_VIDEO_CODEC;
 	krad_link->audio_codec = KRAD_LINK_DEFAULT_AUDIO_CODEC;
-	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;	
+	krad_link->vorbis_quality = DEFAULT_VORBIS_QUALITY;
+	krad_link->flac_bit_depth = KRAD_DEFAULT_FLAC_BIT_DEPTH;
+	krad_link->opus_bitrate = KRAD_DEFAULT_OPUS_BITRATE;
+	krad_link->theora_quality = DEFAULT_THEORA_QUALITY;
 	krad_link->video_source = NOVIDEO;
 	krad_link->transport_mode = TCP;
 
@@ -2605,6 +2608,16 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 				}
 			}
 			
+			if (krad_link->video_codec == THEORA) {
+				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY) {
+					printk ("hrm wtf2v");
+				} else {
+					krad_link->theora_quality = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+				}
+			}			
+			
 		}
 
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
@@ -2620,6 +2633,29 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
 			
 			krad_link->audio_codec = krad_string_to_codec (string);
+			
+			if (krad_link->audio_codec == VORBIS) {
+				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+				if (ebml_id == EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY) {
+					krad_link->vorbis_quality = krad_ebml_read_float (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+				}
+			}
+
+			if (krad_link->audio_codec == OPUS) {
+				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+				if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE) {
+					krad_link->opus_bitrate = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+				}
+			}
+			
+			if (krad_link->audio_codec == FLAC) {
+				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+				if (ebml_id == EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH) {
+					krad_link->flac_bit_depth = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+				}
+			}			
+			
+			
 		}
 	}
 	
@@ -2953,10 +2989,11 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	char string[256];	
 	
 	uint64_t bigint;
+	//int regint;
 	uint8_t tinyint;
 	int k;
 	int devices;
-	float floatval;
+	//float floatval;
 	
 	string[0] = '\0';
 	bigint = 0;
@@ -3110,8 +3147,8 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 					
 					if (krad_linker->krad_link[k]->video_codec == THEORA) {
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY) {
-							floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
-							krad_theora_encoder_quality_set (krad_linker->krad_link[k]->krad_theora_encoder, floatval);
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+							krad_theora_encoder_quality_set (krad_linker->krad_link[k]->krad_theora_encoder, bigint);
 						}
 					}				
 					

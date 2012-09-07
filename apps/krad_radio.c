@@ -331,39 +331,39 @@ int main (int argc, char *argv[]) {
 			if ((strncmp(argv[2], "link", 4) == 0) || (strncmp(argv[2], "transmit", 8) == 0)) {
 				if (argc == 7) {
 					if (strncmp(argv[2], "transmitav", 10) == 0) {
-						krad_ipc_create_transmit_link (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, 0);
+						krad_ipc_create_transmit_link (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
 					} else {
-						krad_ipc_create_transmit_link (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, 0);
+						krad_ipc_create_transmit_link (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
 					}
 				}
 				if (argc == 8) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], NULL,
-												   0, 0, 0, 0);
+												   0, 0, 0, "");
 				}
 
 				if (argc == 9) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   0, 0, 0, 0);
+												   0, 0, 0, "");
 				}
 				
 				if (argc == 10) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), 0, 0, 0);
+												   atoi(argv[9]), 0, 0, "");
 				}
 				
 				if (argc == 11) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), atoi(argv[10]), 0, 0);
+												   atoi(argv[9]), atoi(argv[10]), 0, "");
 				}
 				
 				if (argc == 12) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), 0);
+												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), "");
 				}
 				
 				if (argc == 13) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]));
+												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), argv[12]);
 				}																
 				
 			}		
@@ -390,39 +390,39 @@ int main (int argc, char *argv[]) {
 			if (strncmp(argv[2], "record", 6) == 0) {
 				if (argc == 4) {
 					if (strncmp(argv[2], "recordav", 8) == 0) {
-						krad_ipc_create_record_link (client, AUDIO_AND_VIDEO, argv[3], NULL, 0, 0, 0, 0);
+						krad_ipc_create_record_link (client, AUDIO_AND_VIDEO, argv[3], NULL, 0, 0, 0, "");
 					} else {
-						krad_ipc_create_record_link (client, AUDIO_ONLY, argv[3], NULL, 0, 0, 0, 0);
+						krad_ipc_create_record_link (client, AUDIO_ONLY, argv[3], NULL, 0, 0, 0, "");
 					}
 				}
 				if (argc == 5) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], NULL,
-												 0, 0, 0, 0);
+												 0, 0, 0, "");
 				}
 
 				if (argc == 6) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 0, 0, 0, 0);
+												 0, 0, 0, "");
 				}
 				
 				if (argc == 7) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), 0, 0, 0);
+												 atoi(argv[6]), 0, 0, "");
 				}
 				
 				if (argc == 8) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), atoi(argv[7]), 0, 0);
+												 atoi(argv[6]), atoi(argv[7]), 0, "");
 				}
 				
 				if (argc == 9) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), 0);
+												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), "");
 				}
 				
 				if (argc == 10) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]));					
+												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), argv[9]);					
 				}																
 				
 			}
