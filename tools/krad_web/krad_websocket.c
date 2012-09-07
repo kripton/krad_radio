@@ -94,23 +94,25 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, part3->valueint);
 					}
 				}
-			}
-			if ((part != NULL) && (strcmp(part->valuestring, "remove_link") == 0)) {
-				part = cJSON_GetObjectItem (cmd, "link_num");
-				krad_ipc_destroy_link (pss->krad_ipc_client, part->valueint);
-			}
+			} else {
 			
+				if ((part != NULL) && (strcmp(part->valuestring, "remove_link") == 0)) {
+					part = cJSON_GetObjectItem (cmd, "link_num");
+					krad_ipc_destroy_link (pss->krad_ipc_client, part->valueint);
+				}
+			}	
 		}		
-		
+
 		cJSON_Delete (cmd);
 		//printkd ("%s", out);
 		//free (out);
+
 	}
 
 
 	//krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
 
-	
+
 
 }
 
@@ -202,6 +204,43 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 
 }
 
+char *link_item_ebml_to_string (uint32_t item) {
+
+
+	switch ( item ) {
+	
+		case EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE:
+			return "opus_bitrate";
+		case EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY:
+			return "opus_complexity";
+		case EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE:
+			return "opus_frame_size";					
+		case EBML_ID_KRAD_LINK_LINK_VP8_BITRATE:
+			return "vp8_bitrate";
+		default:
+			return "";
+	
+	}
+}
+
+
+void krad_websocket_update_link ( krad_ipc_session_data_t *krad_ipc_session_data, int link_num, uint32_t item, int value) {
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradlink");
+	
+	cJSON_AddStringToObject (msg, "cmd", "update_link");
+	cJSON_AddNumberToObject (msg, "link_num", link_num);
+	cJSON_AddStringToObject (msg, "update_item", link_item_ebml_to_string(item));
+	cJSON_AddNumberToObject (msg, "update_value", value);
+
+	printk ("update a link %d %s %d ", link_num, link_item_ebml_to_string(item), value);
+
+}
+
 
 void krad_websocket_update_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
 
@@ -263,7 +302,7 @@ void krad_websocket_remove_portgroup ( krad_ipc_session_data_t *krad_ipc_session
 
 void krad_websocket_set_control ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, char *controlname, float floatval) {
 
-	printkd ("set portgroup called %s control %s with a value %f", portname, controlname, floatval);
+	//printkd ("set portgroup called %s control %s with a value %f", portname, controlname, floatval);
 	
 	cJSON *msg;
 	
@@ -469,6 +508,14 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					break;
 
 				case EBML_ID_KRAD_LINK_LINK_UPDATED:
+			
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
+					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+			
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
+					numbers[1] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					
+					krad_websocket_update_link (krad_ipc_session_data, numbers[0], ebml_id, numbers[1]);					
 					
 					break;
 
@@ -514,13 +561,13 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
-			printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
+			//printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
 //			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			
 			switch ( ebml_id ) {
 				case EBML_ID_KRAD_MIXER_CONTROL:
-					printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
+					//printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
 					

@@ -30,6 +30,18 @@ void krad_system_monitor_cpu_off () {
 	}
 }
 
+void krad_system_monitor_cpu_off_fast () {
+
+	if (krad_system.kcm.on == 1) {
+		pthread_cancel (krad_system.kcm.monitor_thread);
+		krad_system.kcm.on = 0;
+		if (krad_system.kcm.fd != 0) {
+			close (krad_system.kcm.fd);
+			krad_system.kcm.fd = 0;
+		}
+	}
+}
+
 void krad_system_log_on (char *filename) {
 
 	if (krad_system.log_fd > 0) {
@@ -106,6 +118,8 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 	}
 	
 	close (kcm->fd);
+	
+	kcm->fd = 0;
 	
 	printk ("Krad System CPU Monitor Off");
 	
