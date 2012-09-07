@@ -390,7 +390,8 @@ krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_le
 		failfast ("krad_opus_decoder_create problem reading opus header");	
 	}
 
-	krad_opus->input_sample_rate = krad_opus->opus_header->input_sample_rate;
+	// oops
+	//krad_opus->input_sample_rate = krad_opus->opus_header->input_sample_rate;
 
 	krad_opus->channels = krad_opus->opus_header->channels;
 
@@ -408,7 +409,7 @@ krad_opus_t *krad_opus_decoder_create (unsigned char *header_data, int header_le
 			failfast ("krad_opus_decoder_create src resampler error: %s", src_strerror (krad_opus->src_error[c]));
 		}
 	
-		krad_opus->src_data[c].src_ratio = output_sample_rate / krad_opus->input_sample_rate;
+		krad_opus->src_data[c].src_ratio = output_sample_rate / 48000;
 	
 		printk ("krad_opus_decoder_create src resampler ratio is: %f", krad_opus->src_data[c].src_ratio);	
 

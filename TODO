@@ -2,6 +2,8 @@
 
 	webui add link ability
 
+	link destroy/create broadcast not also broadcasting ass. mixer portgroup
+
 	VP8 portgroup IO params, ie VP8 input res != compositor res
 
 	jack portgroup add/rem ability
