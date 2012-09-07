@@ -2682,7 +2682,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_link->audio_codec = FLAC;
 		}
 			
-		if (strstr(krad_link->mount, "opus") != NULL) {
+		if (strstr(krad_link->mount, ".opus") != NULL) {
 			krad_link->audio_codec = OPUS;
 		}
 
@@ -2704,7 +2704,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_link->audio_codec = FLAC;
 		}
 			
-		if (strstr(krad_link->output, "opus") != NULL) {
+		if (strstr(krad_link->output, ".opus") != NULL) {
 			krad_link->audio_codec = OPUS;
 		}
 

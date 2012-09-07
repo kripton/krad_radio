@@ -338,7 +338,7 @@ int krad_opus_encoder_read (krad_opus_t *krad_opus, unsigned char *buffer, int *
 											   krad_opus->interleaved_resampled_samples,
 											   krad_opus->frame_size,
 											   buffer,
-											   500000);
+											   krad_opus->frame_size * 2);
 
 		if (bytes < 0) {
 			failfast ("Krad Opus Encoding failed: %s.", opus_strerror (bytes));
