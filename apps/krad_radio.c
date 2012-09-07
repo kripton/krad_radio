@@ -19,6 +19,7 @@ void krad_radio_command_help () {
 int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
+	int ret;
 	
 	if ((argc == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
 
@@ -50,7 +51,16 @@ int main (int argc, char *argv[]) {
 		}
 		
 		if ((strncmp(argv[2], "destroy", 7) == 0) || (strncmp(argv[2], "kill", 4) == 0)) {
-			krad_radio_destroy_daemon (argv[1]);
+			ret = krad_radio_destroy_daemon (argv[1]);
+			if (ret == 0) {
+				printf ("Daemon shutdown\n");
+			}
+			if (ret == 1) {
+				printf ("Daemon was killed\n");
+			}
+			if (ret == -1) {
+				printf ("Daemon was not running\n");
+			}
 			return 0;
 		}		
 

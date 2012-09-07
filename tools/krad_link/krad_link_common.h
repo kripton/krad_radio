@@ -95,6 +95,12 @@ struct krad_link_rep_St {
 	int width;
 	int height;
 
+	int fps_numerator;
+	int fps_denominator;
+
+	int color_depth;
+
+
 	int audio_sample_rate;
 	int audio_channels;
 

@@ -1,14 +1,10 @@
 # Quick
 
+	snapshot button webui
 	
-	link info needed: vp8 bitrate, vp8 max quantizer, vorbis quality, video resolution, theora quality
-
-
-	update link broadcast addl
 	webui add link ability
 
 	VP8 portgroup IO params, ie VP8 input res != compositor res
-	snapshot button webui
 
 	jack portgroup add/rem ability
 	
@@ -25,6 +21,8 @@
 	self destruct button?
 	
 	fix all the needlessly duplicated daemon forking jank
+
+	422 444 support for theora encoding
 
 # Thinking
 	Distributed Network Control / IPC Proxy / Krad Network / Krad Enterprise Edition

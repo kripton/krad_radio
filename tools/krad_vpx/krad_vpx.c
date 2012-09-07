@@ -27,7 +27,8 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 		failfast ("Failed to get config: %s\n", vpx_codec_err_to_string(kradvpx->res));
     }
 
-	krad_vpx_encoder_print_config (kradvpx);
+	// print default config
+	//krad_vpx_encoder_print_config (kradvpx);
 
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
@@ -39,15 +40,10 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
-	//kradvpx->cfg.g_lag_in_frames = 1;
-	
-	//kradvpx->cfg.rc_buf_sz = 8000;
-	//kradvpx->cfg.rc_buf_initial_sz = 4300;
-	//kradvpx->cfg.rc_buf_optimal_sz = 6500;
-	
-	//kradvpx->cfg.rc_max_quantizer = 55;
-	
 	kradvpx->deadline = 15 * 1000;
+
+	kradvpx->min_quantizer = kradvpx->cfg.rc_min_quantizer;
+	kradvpx->max_quantizer = kradvpx->cfg.rc_max_quantizer;
 
 	krad_vpx_encoder_print_config (kradvpx);
 

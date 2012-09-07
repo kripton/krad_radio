@@ -74,25 +74,36 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				part2 = cJSON_GetObjectItem (cmd, "control_name");
 				part3 = cJSON_GetObjectItem (cmd, "value");
 				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
-					if (strcmp(part2->valuestring, "opus_bitrate") == 0) {
-						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, part3->valueint);						
-					}
-
 					if (strcmp(part2->valuestring, "opus_signal") == 0) {
 						krad_ipc_update_link_adv (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, part3->valuestring);
 					}
-					
 					if (strcmp(part2->valuestring, "opus_bandwidth") == 0) {
 						krad_ipc_update_link_adv (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, part3->valuestring);
 					}
-
+					if (strcmp(part2->valuestring, "opus_bitrate") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, part3->valueint);						
+					}
 					if (strcmp(part2->valuestring, "opus_complexity") == 0) {
 						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, part3->valueint);
 					}
-
 					if (strcmp(part2->valuestring, "opus_frame_size") == 0) {
 						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, part3->valueint);
 					}
+					if (strcmp(part2->valuestring, "theora_quality") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, part3->valueint);
+					}
+					if (strcmp(part2->valuestring, "vp8_bitrate") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, part3->valueint);
+					}
+					if (strcmp(part2->valuestring, "vp8_min_quantizer") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, part3->valueint);
+					}
+					if (strcmp(part2->valuestring, "vp8_max_quantizer") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, part3->valueint);
+					}
+					if (strcmp(part2->valuestring, "vp8_deadline") == 0) {
+						krad_ipc_update_link_adv_num (pss->krad_ipc_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, part3->valueint);
+					}															
 				}
 			} else {
 			
@@ -183,32 +194,59 @@ void krad_websocket_add_link ( krad_ipc_session_data_t *krad_ipc_session_data, k
 
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			cJSON_AddStringToObject (msg, "video_codec",  krad_codec_to_string (krad_link->video_codec));
+
+			cJSON_AddNumberToObject (msg, "video_width",  krad_link->width);
+			cJSON_AddNumberToObject (msg, "video_height",  krad_link->height);
+			cJSON_AddNumberToObject (msg, "video_fps_numerator",  krad_link->fps_numerator);
+			cJSON_AddNumberToObject (msg, "video_fps_denominator",  krad_link->fps_denominator);
+			cJSON_AddNumberToObject (msg, "video_color_depth",  krad_link->color_depth);												
+
 		}
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			cJSON_AddStringToObject (msg, "audio_codec",  krad_codec_to_string (krad_link->audio_codec));
+
+			cJSON_AddNumberToObject (msg, "audio_channels",  krad_link->audio_channels);
+			cJSON_AddNumberToObject (msg, "audio_sample_rate",  krad_link->audio_sample_rate);
+
 		}
 		
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
-			cJSON_AddStringToObject (msg, "opus_signal",  krad_opus_signal_to_string (krad_link->opus_signal));
-			cJSON_AddStringToObject (msg, "opus_bandwidth",  krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
-			cJSON_AddNumberToObject (msg, "opus_complexity",  krad_link->opus_complexity);
-			cJSON_AddNumberToObject (msg, "opus_bitrate",  krad_link->opus_bitrate);
-			cJSON_AddNumberToObject (msg, "opus_frame_size",  krad_link->opus_frame_size);			
-		
-		}		
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			if (krad_link->audio_codec == VORBIS) {
+				cJSON_AddNumberToObject (msg, "vorbis_quality",  krad_link->vorbis_quality);
+			}
+			if (krad_link->audio_codec == FLAC) {
+				cJSON_AddNumberToObject (msg, "flac_bit_depth",  krad_link->flac_bit_depth);
+			}
+			if (krad_link->audio_codec == OPUS) {
+				cJSON_AddStringToObject (msg, "opus_signal",  krad_opus_signal_to_string (krad_link->opus_signal));
+				cJSON_AddStringToObject (msg, "opus_bandwidth",  krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
+				cJSON_AddNumberToObject (msg, "opus_complexity",  krad_link->opus_complexity);
+				cJSON_AddNumberToObject (msg, "opus_bitrate",  krad_link->opus_bitrate);
+				cJSON_AddNumberToObject (msg, "opus_frame_size",  krad_link->opus_frame_size);			
+			}
+		}
 
-	
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			if (krad_link->video_codec == THEORA) {
+				cJSON_AddNumberToObject (msg, "theora_quality",  krad_link->theora_quality);
+			}
+			if (krad_link->video_codec == VP8) {
+				cJSON_AddNumberToObject (msg, "vp8_bitrate",  krad_link->vp8_bitrate);
+				cJSON_AddNumberToObject (msg, "vp8_deadline",  krad_link->vp8_deadline);
+				cJSON_AddNumberToObject (msg, "vp8_min_quantizer",  krad_link->vp8_min_quantizer);
+				cJSON_AddNumberToObject (msg, "vp8_max_quantizer",  krad_link->vp8_max_quantizer);								
+			}
+		}
 	}	
-	
-
-
 }
 
 char *link_item_ebml_to_string (uint32_t item) {
 
-
 	switch ( item ) {
-	
+		case EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH:
+			return "opus_bandwidth";
+		case EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL:
+			return "opus_signal";				
 		case EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE:
 			return "opus_bitrate";
 		case EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY:
@@ -217,14 +255,38 @@ char *link_item_ebml_to_string (uint32_t item) {
 			return "opus_frame_size";					
 		case EBML_ID_KRAD_LINK_LINK_VP8_BITRATE:
 			return "vp8_bitrate";
+		case EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER:
+			return "vp8_min_quantizer";
+		case EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER:
+			return "vp8_max_quantizer";
+		case EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE:
+			return "vp8_deadline";
+		case EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY:
+			return "theora_quality";
 		default:
 			return "";
 	
 	}
 }
 
+void krad_websocket_update_link_string ( krad_ipc_session_data_t *krad_ipc_session_data, int link_num, uint32_t item, char *string) {
 
-void krad_websocket_update_link ( krad_ipc_session_data_t *krad_ipc_session_data, int link_num, uint32_t item, int value) {
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradlink");
+	
+	cJSON_AddStringToObject (msg, "cmd", "update_link");
+	cJSON_AddNumberToObject (msg, "link_num", link_num);
+	cJSON_AddStringToObject (msg, "update_item", link_item_ebml_to_string(item));
+	cJSON_AddStringToObject (msg, "update_value", string);
+
+	printk ("update a link %d %s %s ", link_num, link_item_ebml_to_string(item), string);
+
+}
+
+void krad_websocket_update_link_number ( krad_ipc_session_data_t *krad_ipc_session_data, int link_num, uint32_t item, int value) {
 
 	cJSON *msg;
 	
@@ -511,12 +573,16 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			
 					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
 					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
-			
-					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
-					numbers[1] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
-					
-					krad_websocket_update_link (krad_ipc_session_data, numbers[0], ebml_id, numbers[1]);					
-					
+
+					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);			
+					if ((ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH) || (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL)) {
+						krad_ebml_read_string (krad_ipc->krad_ebml, string, ebml_data_size);
+						krad_websocket_update_link_string (krad_ipc_session_data, numbers[0], ebml_id, string);
+					} else {
+						numbers[1] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+						krad_websocket_update_link_number (krad_ipc_session_data, numbers[0], ebml_id, numbers[1]);						
+					}
+
 					break;
 
 				case EBML_ID_KRAD_LINK_LINK_DESTROYED:

@@ -262,23 +262,37 @@ int krad_radio_find_daemon_pid (char *sysname) {
 
 }
 
-void krad_radio_destroy_daemon (char *sysname) {
+int krad_radio_destroy_daemon (char *sysname) {
 
 	int pid;
+	int wait_time_total;
+	int wait_time_interval;	
+	int clean_shutdown_wait_time_limit;
 	
 	pid = 0;
-	
+	wait_time_total = 0;
+	clean_shutdown_wait_time_limit = 1000000;
+	wait_time_interval = clean_shutdown_wait_time_limit / 40;
+		
 	pid = krad_radio_find_daemon_pid (sysname);
 	
 	if (pid != 0) {
 		kill (pid, 15);
-		usleep (500000);
+		while ((pid != 0) && (wait_time_total < clean_shutdown_wait_time_limit)) {
+			usleep (wait_time_interval);
+			wait_time_total += wait_time_interval;
+			pid = krad_radio_find_daemon_pid (sysname);
+		}
 		pid = krad_radio_find_daemon_pid (sysname);
 		if (pid != 0) {
 			kill (pid, 9);
+			return 1;
+		} else {
+			return 0;
 		}
 	}
-
+	
+	return -1;
 }
 
 void krad_radio_launch_daemon (char *sysname) {
@@ -2384,88 +2398,76 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	
 	pos = 0;
 	
+	pos += sprintf (text + pos, "%s %s", 
+					krad_link_operation_mode_to_string (krad_link->operation_mode),
+					krad_link_av_mode_to_string (krad_link->av_mode));
+
 	if ((krad_link->operation_mode == RECORD) || (krad_link->operation_mode == TRANSMIT)) {
 
+		if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == UDP)) {
+			pos += sprintf (text + pos, " %s", krad_link_transport_mode_to_string (krad_link->transport_mode));
+		}
+
 		if (krad_link->operation_mode == TRANSMIT) {
-	
-			pos += sprintf (text + pos, "%s - %s - %s:%d%s %s",
-							krad_link_operation_mode_to_string (krad_link->operation_mode),
-							krad_link_av_mode_to_string (krad_link->av_mode),
-							krad_link->host, krad_link->port, krad_link->mount,
-							krad_link_transport_mode_to_string(krad_link->transport_mode));
-							
-							
-							
+			pos += sprintf (text + pos, " to %s:%d%s", krad_link->host, krad_link->port, krad_link->mount);
 		}
 
 		if (krad_link->operation_mode == RECORD) {
-	
-			pos += sprintf (text + pos, "%s - %s - %s",
-							krad_link_operation_mode_to_string (krad_link->operation_mode),
-							krad_link_av_mode_to_string (krad_link->av_mode),
-							krad_link->filename);
+			pos += sprintf (text + pos, " to %s", krad_link->filename);
 		}
 				
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			pos += sprintf (text + pos, " %s", krad_codec_to_string (krad_link->video_codec));
-		}
 
-		if (krad_link->av_mode == AUDIO_AND_VIDEO) {
-			pos += sprintf (text + pos, " +");
-		}
+			pos += sprintf (text + pos, " Video -");
 
-		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			pos += sprintf (text + pos, "Sample Rate: %d", krad_link->audio_sample_rate);
-		}
-		
-		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			pos += sprintf (text + pos, "Channels: %d", krad_link->audio_channels);
-		}		
-		
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == VORBIS)) {
-			pos += sprintf (text + pos, " Bit Depth: %d", krad_link->flac_bit_depth);
-		}		
+			pos += sprintf (text + pos, " %dx%d %d/%d %d",
+							krad_link->width, krad_link->height,
+							krad_link->fps_numerator, krad_link->fps_denominator,
+							krad_link->color_depth);
 
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == FLAC)) {
-			pos += sprintf (text + pos, " Quality: %f", krad_link->vorbis_quality); 
-		}		
+			pos += sprintf (text + pos, " Codec: %s", krad_codec_to_string (krad_link->video_codec));
 
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
-			pos += sprintf (text + pos, " Complexity: %d Bitrate: %d Frame Size: %d Signal: %s Bandwidth: %s", krad_link->opus_complexity,
-							krad_link->opus_bitrate, krad_link->opus_frame_size, krad_opus_signal_to_string (krad_link->opus_signal),
-							krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
-
-		}
-		
-		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == THEORA)) {
-			pos += sprintf (text + pos, " Quality: %d", krad_link->theora_quality); 
-		}	
+			if (krad_link->video_codec == THEORA) {
+				pos += sprintf (text + pos, " Quality: %d", krad_link->theora_quality); 
+			}	
 	
-		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == VP8)) {
-			pos += sprintf (text + pos, " Bit Rate: %d Min Quantizer: %d Max Quantizer: %d Deadline: %d", krad_link->vp8_bitrate,
-							krad_link->vp8_min_quantizer, krad_link->vp8_max_quantizer, krad_link->vp8_deadline);
-		}	
-				
+			if (krad_link->video_codec == VP8) {
+				pos += sprintf (text + pos, " Bitrate: %d Min Quantizer: %d Max Quantizer: %d Deadline: %d",
+								krad_link->vp8_bitrate, krad_link->vp8_min_quantizer,
+								krad_link->vp8_max_quantizer, krad_link->vp8_deadline);
+			}
+		}
+
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			pos += sprintf (text + pos, " Audio -");
+			pos += sprintf (text + pos, " Sample Rate: %d", krad_link->audio_sample_rate);
+			pos += sprintf (text + pos, " Channels: %d", krad_link->audio_channels);
+			pos += sprintf (text + pos, " Codec: %s", krad_codec_to_string (krad_link->audio_codec));
+						
+			if (krad_link->audio_codec == FLAC) {
+				pos += sprintf (text + pos, " Bit Depth: %d", krad_link->flac_bit_depth);
+			}		
+
+			if (krad_link->audio_codec == VORBIS) {
+				pos += sprintf (text + pos, " Quality: %.1f", krad_link->vorbis_quality); 
+			}		
+
+			if (krad_link->audio_codec == OPUS) {
+				pos += sprintf (text + pos, " Complexity: %d Bitrate: %d Frame Size: %d Signal: %s Bandwidth: %s", krad_link->opus_complexity,
+								krad_link->opus_bitrate, krad_link->opus_frame_size, krad_opus_signal_to_string (krad_link->opus_signal),
+								krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
+
+			}
+		}
 	}
 
 	if (krad_link->operation_mode == RECEIVE) {
-		
-		pos += sprintf (text + pos, "%s - %s", 
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_transport_mode_to_string (krad_link->transport_mode));
-						
 		if ((krad_link->transport_mode == UDP) || (krad_link->transport_mode == TCP)) {
 			pos += sprintf (text + pos, " Port %d", krad_link->port);
 		}
-	
 	}
 	
 	if (krad_link->operation_mode == PLAYBACK) {
-		
-		pos += sprintf (text + pos, "%s - %s", 
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_transport_mode_to_string (krad_link->transport_mode));
-						
 		if (krad_link->transport_mode == FILESYSTEM) {
 			pos += sprintf (text + pos, " File %s", krad_link->filename);
 		}
@@ -2474,22 +2476,13 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 			pos += sprintf (text + pos, " %s:%d%s",
 							krad_link->host, krad_link->port, krad_link->mount);
 		}
-	
 	}
-	
 	
 	if (krad_link->operation_mode == CAPTURE) {
-		
-		pos += sprintf (text + pos, "%s - %s - %s", 
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_av_mode_to_string (krad_link->av_mode),
-						krad_link_video_source_to_string (krad_link->video_source));
-	
+		pos += sprintf (text + pos, " from %s", krad_link_video_source_to_string (krad_link->video_source));
 	}
-	
-		
-	return pos;
 
+	return pos;
 }
 
 int krad_ipc_client_read_port ( krad_ipc_client_t *client, char *text) {
@@ -2808,15 +2801,35 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			}					
 
 		}
-/*		
+
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 2);
-			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 2);						
-			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_FRAME_RATE_NUMERATOR, 2);
-			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_FRAME_RATE_DENOMINATOR, 2);
-			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_COLOR, 420);									
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH) {
+				krad_link->width = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT) {
+				krad_link->height = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_FPS_NUMERATOR) {
+				krad_link->fps_numerator = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_FPS_DENOMINATOR) {
+				krad_link->fps_denominator = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}									
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VIDEO_COLOR_DEPTH) {
+				krad_link->color_depth = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}			
 		}		
-*/
+
 		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
 
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
@@ -2894,8 +2907,10 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		}
 	}
 	
-	krad_link_rep_to_string ( krad_link, text );
-
+	if (text != NULL) {
+		krad_link_rep_to_string ( krad_link, text );
+	}
+	
 	if (krad_link_rep != NULL) {
 		*krad_link_rep = krad_link;
 	} else {

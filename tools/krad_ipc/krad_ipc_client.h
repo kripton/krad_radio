@@ -69,7 +69,7 @@ struct krad_ipc_client_St {
 
 };
 
-void krad_radio_destroy_daemon (char *sysname);
+int krad_radio_destroy_daemon (char *sysname);
 int krad_radio_find_daemon_pid (char *sysname);
 
 void krad_radio_watchdog (char *config_file);
