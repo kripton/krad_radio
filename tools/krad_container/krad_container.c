@@ -19,7 +19,17 @@ krad_container_type_t krad_link_select_container (char *string) {
 	return EBML;
 }
 
+char *krad_container_get_container_string (krad_container_t *krad_container) {
+	if (krad_container->container_type == OGG) {
+		return "Ogg";
+	} else {
+		return "MKV";		
+	}
+}
 
+int krad_container_get_container (krad_container_t *krad_container) {
+	return krad_container->container_type;
+}
 
 int krad_container_track_count (krad_container_t *krad_container) {
 	if (krad_container->container_type == OGG) {

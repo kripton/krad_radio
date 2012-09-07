@@ -117,11 +117,11 @@ Kradwebsocket.prototype.on_error = function(evt) {
 }
 
 Kradwebsocket.prototype.debug = function(message) {
-	//console.log (message);
+	console.log (message);
 }
 
 Kradwebsocket.prototype.on_message = function(evt) {
-	this.debug ("got message: " + evt.data);
+	//this.debug ("got message: " + evt.data);
 
 	kradradio.got_messages (evt.data);	
 }
@@ -266,6 +266,9 @@ Kradradio.prototype.got_messages = function (msgs) {
 			
 		}
 		if (msg_arr[m].com == "kradlink") {
+			if (msg_arr[m].cmd == "update_link") {
+				kradradio.got_update_link (msg_arr[m].link_num, msg_arr[m].update_item, msg_arr[m].update_value);
+			}		
 			if (msg_arr[m].cmd == "add_link") {
 				kradradio.got_add_link (msg_arr[m]);
 			}
@@ -463,6 +466,30 @@ Kradradio.prototype.remove_link = function (link_num) {
 	
 	$('#link_' + link_num + '_wrap').remove();
 	
+}
+
+Kradradio.prototype.got_update_link = function (link_num, control_name, value) {
+
+	kradwebsocket.debug("got_update_link");
+
+	kradwebsocket.debug(link_num);
+	kradwebsocket.debug(control_name);
+	kradwebsocket.debug(value);		
+
+	if ($('#link_' + link_num + '_wrap')) {
+		if ((control_name == "opus_bitrate") || (control_name == "opus_complexity")) {
+		
+			$( '#link_' + link_num + '_' + control_name + '_value' ).html(value);					
+		
+			$('#link_' + link_num + '_' + control_name + '_slider').slider( "value" , value );
+
+		}
+		
+		if (control_name == "opus_frame_size") {
+			$("input[name=link_" + link_num + "_opus_frame_size][value=" + value + "]").attr('checked', 'checked');		
+		}
+	}
+
 }
 
 Kradradio.prototype.update_link = function (link_num, control_name, value) {

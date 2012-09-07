@@ -91,9 +91,11 @@ struct krad_link_rep_St {
 	int port;
 	char mount[512];
 	char password[512];
+
 	int width;
 	int height;
-	float vorbis_quality;
+
+	int audio_sample_rate;
 	int audio_channels;
 
 	int opus_bandwidth;
@@ -102,6 +104,15 @@ struct krad_link_rep_St {
 	int opus_complexity;
 	int opus_frame_size;
 
+	float vorbis_quality;
+	int flac_bit_depth;
+
+	int theora_quality;
+
+	int vp8_bitrate;
+	int vp8_deadline;
+	int vp8_min_quantizer;
+	int vp8_max_quantizer;
 };
 
 

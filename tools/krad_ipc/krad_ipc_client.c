@@ -2415,15 +2415,36 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 		}
 
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			pos += sprintf (text + pos, " %s", krad_codec_to_string (krad_link->audio_codec));
+			pos += sprintf (text + pos, "Sample Rate: %d", krad_link->audio_sample_rate);
 		}
+		
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			pos += sprintf (text + pos, "Channels: %d", krad_link->audio_channels);
+		}		
+		
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == VORBIS)) {
+			pos += sprintf (text + pos, " Bit Depth: %d", krad_link->flac_bit_depth);
+		}		
+
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == FLAC)) {
+			pos += sprintf (text + pos, " Quality: %f", krad_link->vorbis_quality); 
+		}		
 
 		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
 			pos += sprintf (text + pos, " Complexity: %d Bitrate: %d Frame Size: %d Signal: %s Bandwidth: %s", krad_link->opus_complexity,
 							krad_link->opus_bitrate, krad_link->opus_frame_size, krad_opus_signal_to_string (krad_link->opus_signal),
 							krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
 
-		}				
+		}
+		
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == THEORA)) {
+			pos += sprintf (text + pos, " Quality: %d", krad_link->theora_quality); 
+		}	
+	
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == VP8)) {
+			pos += sprintf (text + pos, " Bit Rate: %d Min Quantizer: %d Max Quantizer: %d Deadline: %d", krad_link->vp8_bitrate,
+							krad_link->vp8_min_quantizer, krad_link->vp8_max_quantizer, krad_link->vp8_deadline);
+		}	
 				
 	}
 
@@ -2774,8 +2795,29 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		}
 
 
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+		
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_AUDIO_CHANNELS) {
+				krad_link->audio_channels = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_AUDIO_SAMPLE_RATE) {
+				krad_link->audio_sample_rate = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}					
 
+		}
+/*		
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 2);						
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_FRAME_RATE_NUMERATOR, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_FRAME_RATE_DENOMINATOR, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_COLOR, 420);									
+		}		
+*/
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
 
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 			if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL) {
@@ -2802,14 +2844,57 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 			if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE) {
 				krad_link->opus_frame_size = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-			}								
+			}	
 
+			//EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
 		}
 
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == VORBIS)) {
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY) {
+				krad_link->vorbis_quality = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+			}
+		}
+
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == FLAC)) {
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH) {
+				krad_link->flac_bit_depth = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}			
+		}
+
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == THEORA)) {
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY) {
+				krad_link->theora_quality = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+		}
+
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == VP8)) {
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_BITRATE) {
+				krad_link->vp8_bitrate = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER) {
+				krad_link->vp8_min_quantizer = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+						
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER) {
+				krad_link->vp8_max_quantizer = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE) {
+				krad_link->vp8_deadline = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+		}
 	}
 	
 	krad_link_rep_to_string ( krad_link, text );
-
 
 	if (krad_link_rep != NULL) {
 		*krad_link_rep = krad_link;

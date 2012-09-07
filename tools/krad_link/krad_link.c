@@ -447,9 +447,9 @@ void *video_encoding_thread (void *arg) {
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
-		krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, (((1000 / ((krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 3) * 1000));
+		krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, (((1000 / ((krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 3) * 1000));
 
-		printk ("Video encoding quality set to %ld", krad_link->krad_vpx_encoder->quality);
+		printk ("Video encoding deadline set to %ld", krad_link->krad_vpx_encoder->deadline);
 	
 	}
 	
@@ -499,17 +499,17 @@ void *video_encoding_thread (void *arg) {
 		
 			if (krad_link->video_codec == VP8) {
 		
-				if (krad_vpx_encoder_quality_get(krad_link->krad_vpx_encoder) > 1) {	
+				if (krad_vpx_encoder_deadline_get(krad_link->krad_vpx_encoder) > 1) {	
 					if (krad_compositor_port_frames_avail (krad_link->krad_compositor_port) > 25) {
-						krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder, 1);
-						printk ("Alert! Reduced VP8 quality due to frames avail > 25");
+						krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, 1);
+						printk ("Alert! Reduced VP8 deadline due to frames avail > 25");
 					}
 				}
-				if (krad_vpx_encoder_quality_get(krad_link->krad_vpx_encoder) == 1) {
+				if (krad_vpx_encoder_deadline_get(krad_link->krad_vpx_encoder) == 1) {
 					if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < 1) {
-						krad_vpx_encoder_quality_set (krad_link->krad_vpx_encoder,
+						krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder,
 												  ((((1000 / (krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 2) * 1000));
-						printk ("Alert! Increased VP8 quality");
+						printk ("Alert! Increased VP8 deadline");
 					}				
 				}			
 				packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
@@ -2840,12 +2840,10 @@ void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *k
 				krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (krad_link->audio_codec));
 				break;
 		}
-		
+
 		if (krad_link->operation_mode == TRANSMIT) {
-	
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, 
 									krad_link_transport_mode_to_string (krad_link->transport_mode));
-	
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_HOST, krad_link->host);
 			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->port);
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_MOUNT, krad_link->mount);
@@ -2855,8 +2853,20 @@ void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *k
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_FILENAME, krad_link->output);
 		}
 
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AUDIO_CHANNELS, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AUDIO_SAMPLE_RATE, 48000);
+		}
+/*		
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, 2);						
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_FRAME_RATE_NUMERATOR, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_FRAME_RATE_DENOMINATOR, 2);
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VIDEO_COLOR, 420);									
+		}		
+*/
 		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
-
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, 
 									krad_opus_signal_to_string (krad_opus_get_signal (krad_link->krad_opus)));
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, 
@@ -2865,10 +2875,27 @@ void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *k
 			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, krad_opus_get_complexity (krad_link->krad_opus));
 			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, krad_opus_get_frame_size (krad_link->krad_opus));
 
-			//EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));		
-
+			//EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
 		}
 
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == VORBIS)) {
+			krad_ebml_write_float (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY, krad_link->krad_vorbis->quality);
+		}
+
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == FLAC)) {
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, krad_link->krad_flac->bit_depth);
+		}
+
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == THEORA)) {
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, krad_theora_encoder_quality_get (krad_link->krad_theora_encoder));
+		}
+
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == VP8)) {
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, krad_vpx_encoder_bitrate_get (krad_link->krad_vpx_encoder));
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, krad_vpx_encoder_min_quantizer_get (krad_link->krad_vpx_encoder));
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, krad_vpx_encoder_max_quantizer_get (krad_link->krad_vpx_encoder));
+			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, krad_vpx_encoder_deadline_get (krad_link->krad_vpx_encoder));
+		}
 	}
 	
 	krad_ebml_finish_element (client->krad_ebml2, link);
@@ -2893,6 +2920,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 	uint8_t tinyint;
 	int k;
 	int devices;
+	float floatval;
 	
 	string[0] = '\0';
 	bigint = 0;
@@ -2996,6 +3024,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 
 							krad_opus_set_signal (krad_linker->krad_link[k]->krad_opus, 
 													krad_opus_string_to_signal(string));
+							return 0;
 						}
 						
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH) {
@@ -3004,6 +3033,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							
 							krad_opus_set_bandwidth (krad_linker->krad_link[k]->krad_opus, 
 													krad_opus_string_to_bandwidth(string));
+							return 0;
 						}						
 
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE) {
@@ -3012,6 +3042,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							if ((bigint >= 500) && (bigint <= 512000)) {
 								krad_opus_set_bitrate (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
+							return 0;
 						}
 						
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY) {
@@ -3020,6 +3051,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							if ((bigint >= 0) && (bigint <= 10)) {
 								krad_opus_set_complexity (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
+							return 0;
 						}						
 				
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE) {
@@ -3027,6 +3059,7 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							if ((bigint == 120) || (bigint == 240) || (bigint == 480) || (bigint == 960) || (bigint == 1920) || (bigint == 2880)) {
 								krad_opus_set_frame_size (krad_linker->krad_link[k]->krad_opus, bigint);
 							}
+							return 0;
 						}
 						
 						//FIXME verify ogg container
@@ -3035,9 +3068,17 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							if ((bigint > 0) && (bigint < 200)) {					
 								krad_ogg_set_max_packets_per_page (krad_linker->krad_link[k]->krad_container->krad_ogg, bigint);
 							}
+							return 0;
 						}
-				
 					}
+					
+					if (krad_linker->krad_link[k]->video_codec == THEORA) {
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY) {
+							floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+							krad_theora_encoder_quality_set (krad_linker->krad_link[k]->krad_theora_encoder, floatval);
+							return 0;
+						}
+					}				
 					
 					if (krad_linker->krad_link[k]->video_codec == VP8) {
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_BITRATE) {
@@ -3046,17 +3087,41 @@ int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ip
 							if (bigint > 0) {
 								krad_vpx_encoder_bitrate_set (krad_linker->krad_link[k]->krad_vpx_encoder, bigint);
 							}
+							return 0;							
 						}
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER) {
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+					
+							if (bigint > 0) {
+								krad_vpx_encoder_min_quantizer_set (krad_linker->krad_link[k]->krad_vpx_encoder, bigint);
+							}
+							return 0;
+						}
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER) {
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+					
+							if (bigint > 0) {
+								krad_vpx_encoder_max_quantizer_set (krad_linker->krad_link[k]->krad_vpx_encoder, bigint);
+							}
+							return 0;
+						}
+						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE) {
+							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+					
+							if (bigint > 0) {
+								krad_vpx_encoder_deadline_set (krad_linker->krad_link[k]->krad_vpx_encoder, bigint);
+							}
+							return 0;							
+						}												
 						if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_FORCE_KEYFRAME) {
 							bigint = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
 					
 							if (bigint > 0) {
 								krad_vpx_encoder_want_keyframe (krad_linker->krad_link[k]->krad_vpx_encoder);
 							}
+							return 0;							
 						}
 					}
-
-
 				}
 			}
 			
