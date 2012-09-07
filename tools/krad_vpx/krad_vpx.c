@@ -47,7 +47,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	
 	//kradvpx->cfg.rc_max_quantizer = 55;
 	
-	kradvpx->quality = 15 * 1000;
+	kradvpx->deadline = 15 * 1000;
 
 	krad_vpx_encoder_print_config (kradvpx);
 
@@ -75,7 +75,7 @@ void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 	printk ("rc_target_bitrate: %d", kradvpx->cfg.rc_target_bitrate);
 	printk ("kf_max_dist: %d", kradvpx->cfg.kf_max_dist);
 	printk ("kf_min_dist: %d", kradvpx->cfg.kf_min_dist);	
-	printk ("deadline: %d", kradvpx->quality);	
+	printk ("deadline: %d", kradvpx->deadline);	
 	printk ("rc_buf_sz: %d", kradvpx->cfg.rc_buf_sz);	
 	printk ("rc_buf_initial_sz: %d", kradvpx->cfg.rc_buf_initial_sz);	
 	printk ("rc_buf_optimal_sz: %d", kradvpx->cfg.rc_buf_optimal_sz);
@@ -86,18 +86,42 @@ void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 	printk ("END Krad VP8 Encoder config");
 }
 
+int krad_vpx_encoder_bitrate_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->bitrate;
+}
+
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate) {
 	kradvpx->bitrate = bitrate;
 	kradvpx->cfg.rc_target_bitrate = kradvpx->bitrate;
 	kradvpx->update_config = 1;
 }
 
-void krad_vpx_encoder_quality_set (krad_vpx_encoder_t *kradvpx, int quality) {
-	kradvpx->quality = quality;
+int krad_vpx_encoder_min_quantizer_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->min_quantizer;
 }
 
-int krad_vpx_encoder_quality_get (krad_vpx_encoder_t *kradvpx) {
-	return kradvpx->quality;
+void krad_vpx_encoder_min_quantizer_set (krad_vpx_encoder_t *kradvpx, int min_quantizer) {
+	kradvpx->min_quantizer = min_quantizer;
+	kradvpx->cfg.rc_min_quantizer = kradvpx->min_quantizer;
+	kradvpx->update_config = 1;
+}
+
+int krad_vpx_encoder_max_quantizer_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->max_quantizer;
+}
+
+void krad_vpx_encoder_max_quantizer_set (krad_vpx_encoder_t *kradvpx, int max_quantizer) {
+	kradvpx->max_quantizer = max_quantizer;
+	kradvpx->cfg.rc_max_quantizer = kradvpx->max_quantizer;
+	kradvpx->update_config = 1;
+}
+
+void krad_vpx_encoder_deadline_set (krad_vpx_encoder_t *kradvpx, int deadline) {
+	kradvpx->deadline = deadline;
+}
+
+int krad_vpx_encoder_deadline_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->deadline;
 }
 
 void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg) {
@@ -192,7 +216,6 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 	if (kradvpx->update_config == 1) {
 		krad_vpx_encoder_config_set (kradvpx, &kradvpx->cfg);
 		kradvpx->update_config = 0;
-		//printk ("Krad VP8: bitrate should now be: %dk", kradvpx->cfg.rc_target_bitrate);
 		krad_vpx_encoder_print_config (kradvpx);
 	}
 
@@ -200,7 +223,7 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 	krad_vpx_benchmark_start(kradvpx);
 	#endif
 
-	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->quality)) {
+	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->deadline)) {
 		krad_vpx_fail (&kradvpx->encoder, "Failed to encode frame");
 	}
 

@@ -153,15 +153,29 @@ void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora) {
 	free (krad_theora->ycbcr[1].data);
 	free (krad_theora->ycbcr[2].data);
 	
-	free(krad_theora);
+	free (krad_theora);
 
+}
+
+int krad_theora_encoder_quality_get (krad_theora_encoder_t *krad_theora) {
+	return krad_theora->quality;
+}
+
+void krad_theora_encoder_quality_set (krad_theora_encoder_t *krad_theora, int quality) {
+	krad_theora->quality = quality;
+	krad_theora->update_config = 1;
 }
 
 int krad_theora_encoder_write (krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe) {
 	
 	int ret;
-	
 	int key;
+
+	if (krad_theora->update_config) {
+		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_QUALITY, &krad_theora->quality, sizeof(int));
+		krad_theora->update_config = 0;	
+	}
+
 	
 	ret = th_encode_ycbcr_in (krad_theora->encoder, krad_theora->ycbcr);
 	if (ret != 0) {
