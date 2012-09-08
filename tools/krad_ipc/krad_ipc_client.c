@@ -1935,7 +1935,9 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 		}
 		if (audio_codec == OPUS) {
 			audio_bitrate_int = atoi(audio_bitrate);
-			
+			if (audio_bitrate_int == 0) {
+				audio_bitrate_int = 132000;
+			} 
 			if (audio_bitrate_int < 5000) {
 				audio_bitrate_int = 5000;
 			}
