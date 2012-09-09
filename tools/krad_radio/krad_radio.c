@@ -171,8 +171,11 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 				printkd ("Got HANGUP Signal!");
 				break;
 			case SIGINT:
+				printkd ("Got SIGINT Signal!");			
 				return;
 			case SIGTERM:
+				printkd ("Got SIGTERM Signal!");
+				krad_system_monitor_cpu_off_fast ();			
 				return;
 			default:
 				break;
@@ -208,11 +211,9 @@ static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir ) {
 		krad_compositor_set_dir (krad_radio_station->krad_compositor, krad_radio_station->dir);
 	}
 
-	//TEMP
-	char logfilename[1024];
-	sprintf (logfilename, "%s/%s_%zu.log", dir, krad_radio_station->sysname, time (NULL));
+	sprintf (krad_radio_station->logname, "%s/%s_%zu.log", dir, krad_radio_station->sysname, time (NULL));
 	verbose = 1;
-	krad_system_log_on (logfilename);
+	krad_system_log_on (krad_radio_station->logname);
 
 }
 
@@ -380,7 +381,7 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				krad_websocket_server_destroy (krad_radio_station->krad_websocket);
 			}		
 		
-			krad_radio_station->krad_http = krad_http_server_create ( numbers[0], numbers[1] );
+			krad_radio_station->krad_http = krad_http_server_create ( krad_radio_station, numbers[0], numbers[1] );
 			krad_radio_station->krad_websocket = krad_websocket_server_create ( krad_radio_station->sysname, numbers[1] );
 		
 			return 0;
@@ -436,15 +437,14 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return 0;
 			
 		case EBML_ID_KRAD_RADIO_CMD_UPTIME:
-		
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_respond_number ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_UPTIME, krad_system_daemon_uptime());
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 		
 			return 1;
-		case EBML_ID_KRAD_RADIO_CMD_INFO:
+		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO:
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_INFO, krad_system_daemon_info());
+			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_SYSTEM_INFO, krad_system_info());
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			return 1;
 			
@@ -462,8 +462,24 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				krad_radio_set_dir ( krad_radio_station, tag_value_actual );
 			}
 			
-			return 0;			
+			return 0;
+	
+		case EBML_ID_KRAD_RADIO_CMD_GET_LOGNAME:
+
+			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_LOGNAME, krad_radio_station->logname);
+			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			
+			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_CPU_USAGE:
+
+			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_respond_number ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
+			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
+			
+			return 0;
+
 		default:
 			printke ("Krad Radio Command Unknown! %u", command);
 			return 0;

@@ -69,7 +69,7 @@ struct krad_ipc_client_St {
 
 };
 
-void krad_radio_destroy_daemon (char *sysname);
+int krad_radio_destroy_daemon (char *sysname);
 int krad_radio_find_daemon_pid (char *sysname);
 
 void krad_radio_watchdog (char *config_file);
@@ -150,14 +150,14 @@ void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_por
 void krad_ipc_create_receive_link (krad_ipc_client_t *client, int port);
 //void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *host, int port, char *mount, char *password);
 void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs,
-								  int video_width, int video_height, int video_bitrate, int audio_bitrate);
+								  int video_width, int video_height, int video_bitrate, char *audio_bitrate);
 
 void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
 								   int width, int height, int fps_numerator, int fps_denominator);
 
 void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *host, int port,
 									char *mount, char *password, char *codecs,
-									int video_width, int video_height, int video_bitrate, int audio_bitrate);
+									int video_width, int video_height, int video_bitrate, char *audio_bitrate);
 
 void krad_ipc_list_links (krad_ipc_client_t *client);
 void krad_ipc_destroy_link (krad_ipc_client_t *client, int number);
@@ -166,7 +166,8 @@ void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t e
 void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32_t ebml_id, int newval);
 
 void krad_ipc_radio_uptime (krad_ipc_client_t *client);
-void krad_ipc_radio_info (krad_ipc_client_t *client);
+void krad_ipc_radio_get_system_info (krad_ipc_client_t *client);
+void krad_ipc_radio_get_system_cpu_usage (krad_ipc_client_t *client);
 
 int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
 
@@ -175,6 +176,8 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
 
+void krad_ipc_list_decklink (krad_ipc_client_t *client);
+
 void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height, uint32_t crop_x, uint32_t crop_y,
 										uint32_t crop_width, uint32_t crop_height, float opacity, float rotation);
@@ -182,6 +185,11 @@ void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, u
 void krad_ipc_compositor_list_ports (krad_ipc_client_t *client);
 void krad_ipc_compositor_info (krad_ipc_client_t *client);
 void krad_ipc_compositor_snapshot (krad_ipc_client_t *client);
+void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client);
+
+
+void krad_ipc_radio_get_logname (krad_ipc_client_t *client);
+void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client);
 
 void krad_ipc_get_portgroups (krad_ipc_client_t *client);
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value);

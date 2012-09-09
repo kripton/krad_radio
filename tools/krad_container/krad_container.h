@@ -19,6 +19,9 @@ struct krad_container_St {
 	
 };
 
+int krad_container_get_container (krad_container_t *krad_container);
+char *krad_container_get_container_string (krad_container_t *krad_container);
+
 int krad_container_track_count (krad_container_t *krad_container);
 krad_codec_t krad_container_track_codec (krad_container_t *krad_container, int track);
 int krad_container_track_header_count (krad_container_t *krad_container, int track);

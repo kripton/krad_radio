@@ -20,6 +20,7 @@ sources = """
 depsources = """
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_system/krad_system.c
+../tools/krad_ticker/krad_timer.c
 ../tools/krad_ticker/krad_ticker.c
 ../tools/krad_xmms2/krad_xmms2.c
 ../tools/krad_ebml/krad_ebml.c
@@ -121,10 +122,7 @@ includedirs = """
 /usr/include
 """.split()
 
-
-
 depsources += ["../tools/krad_wayland/krad_wayland.c"]
-
 
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
@@ -136,7 +134,17 @@ libs += ["wayland-client"]
 # FIXME option builds
 # libs = libs + ["wayland-client", "codec2"] 
 
+def remake_webres(web):
+	cmd = 'xxd -i tools/krad_web/res/krad_radio.html tools/krad_web/res/krad_radio.html.h'
+	web.exec_command(cmd)
+
+	cmd = 'xxd -i tools/krad_web/res/krad_radio.js tools/krad_web/res/krad_radio.js.h'
+	web.exec_command(cmd)
+
+
 def configure(conf):
+
+	remake_webres(conf)	
 	
 	for l in libs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
@@ -144,11 +152,7 @@ def configure(conf):
 
 def build(bld):
 
-	cmd = 'xxd -i tools/krad_web/res/krad_radio.html tools/krad_web/res/krad_radio.html.h'
-	bld.exec_command(cmd)
-
-	cmd = 'xxd -i tools/krad_web/res/krad_radio.js tools/krad_web/res/krad_radio.js.h'
-	bld.exec_command(cmd)
+	remake_webres(bld)
 
 	for p in programs:
 

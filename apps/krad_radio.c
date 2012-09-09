@@ -12,13 +12,14 @@ void krad_radio_command_help () {
 	printf ("\n");
 	printf ("transmitter_on transmitter_off closedisplay display lstext rmtext addtest lssprites addsprite rmsprite");
 	printf ("\n");
-	printf ("setsprite comp res snap setport update play receive record capture");
+	printf ("setsprite comp res snap jsnap setport update play receive record capture");
 	printf ("\n");
 }
 
 int main (int argc, char *argv[]) {
 
 	krad_ipc_client_t *client;
+	int ret;
 	
 	if ((argc == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
 
@@ -50,7 +51,16 @@ int main (int argc, char *argv[]) {
 		}
 		
 		if ((strncmp(argv[2], "destroy", 7) == 0) || (strncmp(argv[2], "kill", 4) == 0)) {
-			krad_radio_destroy_daemon (argv[1]);
+			ret = krad_radio_destroy_daemon (argv[1]);
+			if (ret == 0) {
+				printf ("Daemon shutdown\n");
+			}
+			if (ret == 1) {
+				printf ("Daemon was killed\n");
+			}
+			if (ret == -1) {
+				printf ("Daemon was not running\n");
+			}
 			return 0;
 		}		
 
@@ -73,7 +83,14 @@ int main (int argc, char *argv[]) {
 
 				}
 			}			
-			
+
+			if ((strncmp(argv[2], "lsd", 3) == 0) && (strlen(argv[2]) == 3)) {
+				if (argc == 3) {
+					krad_ipc_list_decklink (client);
+					krad_ipc_print_response (client);					
+
+				}
+			}			
 			
 			if (strncmp(argv[2], "uptime", 6) == 0) {
 				krad_ipc_radio_uptime (client);
@@ -81,9 +98,14 @@ int main (int argc, char *argv[]) {
 			}
 
 			if (strncmp(argv[2], "info", 4) == 0) {
-				krad_ipc_radio_info (client);
+				krad_ipc_radio_get_system_info (client);
 				krad_ipc_print_response (client);
 			}
+			
+			if (strncmp(argv[2], "cpu", 4) == 0) {
+				krad_ipc_radio_get_system_cpu_usage (client);
+				krad_ipc_print_response (client);
+			}			
 			
 			if (strncmp(argv[2], "tags", 4) == 0) {
 
@@ -162,7 +184,17 @@ int main (int argc, char *argv[]) {
 				if (argc == 4) {
 					krad_ipc_radio_set_dir (client, argv[3]);
 				}
-			}		
+			}
+			
+			if (strncmp(argv[2], "logname", 7) == 0) {
+				krad_ipc_radio_get_logname (client);
+				krad_ipc_print_response (client);
+			}
+			
+			if (strncmp(argv[2], "lastsnap", 8) == 0) {
+				krad_ipc_radio_get_last_snap_name (client);
+				krad_ipc_print_response (client);				
+			}			
 			
 			/* Krad Mixer Commands */
 			
@@ -299,39 +331,39 @@ int main (int argc, char *argv[]) {
 			if ((strncmp(argv[2], "link", 4) == 0) || (strncmp(argv[2], "transmit", 8) == 0)) {
 				if (argc == 7) {
 					if (strncmp(argv[2], "transmitav", 10) == 0) {
-						krad_ipc_create_transmit_link (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, 0);
+						krad_ipc_create_transmit_link (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
 					} else {
-						krad_ipc_create_transmit_link (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, 0);
+						krad_ipc_create_transmit_link (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
 					}
 				}
 				if (argc == 8) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], NULL,
-												   0, 0, 0, 0);
+												   0, 0, 0, "");
 				}
 
 				if (argc == 9) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   0, 0, 0, 0);
+												   0, 0, 0, "");
 				}
 				
 				if (argc == 10) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), 0, 0, 0);
+												   atoi(argv[9]), 0, 0, "");
 				}
 				
 				if (argc == 11) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), atoi(argv[10]), 0, 0);
+												   atoi(argv[9]), atoi(argv[10]), 0, "");
 				}
 				
 				if (argc == 12) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), 0);
+												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), "");
 				}
 				
 				if (argc == 13) {
 					krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
-												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]));
+												   atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), argv[12]);
 				}																
 				
 			}		
@@ -358,39 +390,39 @@ int main (int argc, char *argv[]) {
 			if (strncmp(argv[2], "record", 6) == 0) {
 				if (argc == 4) {
 					if (strncmp(argv[2], "recordav", 8) == 0) {
-						krad_ipc_create_record_link (client, AUDIO_AND_VIDEO, argv[3], NULL, 0, 0, 0, 0);
+						krad_ipc_create_record_link (client, AUDIO_AND_VIDEO, argv[3], NULL, 0, 0, 0, "");
 					} else {
-						krad_ipc_create_record_link (client, AUDIO_ONLY, argv[3], NULL, 0, 0, 0, 0);
+						krad_ipc_create_record_link (client, AUDIO_ONLY, argv[3], NULL, 0, 0, 0, "");
 					}
 				}
 				if (argc == 5) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], NULL,
-												 0, 0, 0, 0);
+												 0, 0, 0, "");
 				}
 
 				if (argc == 6) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 0, 0, 0, 0);
+												 0, 0, 0, "");
 				}
 				
 				if (argc == 7) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), 0, 0, 0);
+												 atoi(argv[6]), 0, 0, "");
 				}
 				
 				if (argc == 8) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), atoi(argv[7]), 0, 0);
+												 atoi(argv[6]), atoi(argv[7]), 0, "");
 				}
 				
 				if (argc == 9) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), 0);
+												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), "");
 				}
 				
 				if (argc == 10) {
 					krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
-												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]));					
+												 atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), argv[9]);					
 				}																
 				
 			}
@@ -426,10 +458,21 @@ int main (int argc, char *argv[]) {
 				}
 
 				if (argc == 6) {
-				
 					if (strcmp(argv[4], "vp8_bitrate") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, atoi(argv[5]));
-					}				
+					}
+					if (strcmp(argv[4], "vp8_min_quantizer") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, atoi(argv[5]));
+					}
+					if (strcmp(argv[4], "vp8_max_quantizer") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, atoi(argv[5]));
+					}
+					if (strcmp(argv[4], "vp8_deadline") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, atoi(argv[5]));
+					}
+					if (strcmp(argv[4], "theora_quality") == 0) {
+						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, atoi(argv[5]));
+					}																			
 					if (strcmp(argv[4], "opus_bitrate") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(argv[5]));
 					}				
@@ -439,7 +482,7 @@ int main (int argc, char *argv[]) {
 					if (strcmp(argv[4], "opus_signal") == 0) {
 						krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
 					}
-					if (strcmp(argv[4], "opus_comp") == 0) {
+					if (strcmp(argv[4], "opus_complexity") == 0) {
 						krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, atoi(argv[5]));
 					}
 					if (strcmp(argv[4], "opus_framesize") == 0) {
@@ -473,7 +516,13 @@ int main (int argc, char *argv[]) {
 				if (argc == 3) {
 					krad_ipc_compositor_snapshot (client);
 				}
-			}					
+			}
+			
+			if (strncmp(argv[2], "jsnap", 5) == 0) {
+				if (argc == 3) {
+					krad_ipc_compositor_snapshot_jpeg (client);
+				}
+			}				
 			
 			if (strncmp(argv[2], "comp", 4) == 0) {
 				if (argc == 3) {

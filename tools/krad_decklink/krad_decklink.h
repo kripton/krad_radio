@@ -29,6 +29,9 @@ struct krad_decklink_St {
 	
 	unsigned char *captured_frame_rgb;
 	
+	int devicenum;
+	char simplename[64];
+	
 };
 
 

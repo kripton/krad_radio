@@ -76,6 +76,8 @@ krad_codec_t krad_string_to_codec (char *string);
 
 struct krad_link_rep_St {
 
+	int link_num;
+
 //	krad_tags_t *krad_tags;
 	krad_link_transport_mode_t transport_mode;
 	krad_link_operation_mode_t operation_mode;
@@ -89,9 +91,17 @@ struct krad_link_rep_St {
 	int port;
 	char mount[512];
 	char password[512];
+
 	int width;
 	int height;
-	float vorbis_quality;
+
+	int fps_numerator;
+	int fps_denominator;
+
+	int color_depth;
+
+
+	int audio_sample_rate;
 	int audio_channels;
 
 	int opus_bandwidth;
@@ -100,6 +110,15 @@ struct krad_link_rep_St {
 	int opus_complexity;
 	int opus_frame_size;
 
+	float vorbis_quality;
+	int flac_bit_depth;
+
+	int theora_quality;
+
+	int vp8_bitrate;
+	int vp8_deadline;
+	int vp8_min_quantizer;
+	int vp8_max_quantizer;
 };
 
 

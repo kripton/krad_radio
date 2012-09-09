@@ -25,6 +25,11 @@ typedef enum {
 	WAYLAND,
 } krad_display_api_t;
 
+typedef enum {
+	SNAPJPEG = 20000,	
+	SNAPPNG,
+} krad_snapshot_fmt_t;
+
 typedef struct krad_compositor_St krad_compositor_t;
 typedef struct krad_compositor_port_St krad_compositor_port_t;
 typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
@@ -38,8 +43,14 @@ struct krad_point_St {
 
 struct krad_compositor_snapshot_St {
 
+	int jpeg;
 	krad_frame_t *krad_frame;
 	char filename[512];
+
+	int width;
+	int height;
+
+	krad_compositor_t *krad_compositor;
 
 };
 
@@ -107,7 +118,10 @@ struct krad_compositor_St {
 	char *dir;
 	
 	int snapshot;
-	pthread_t snapshot_thread;	
+	int snapshot_jpeg;	
+	pthread_t snapshot_thread;
+	char last_snapshot_name[1024];
+	pthread_mutex_t last_snapshot_name_lock;
 
 	int hex_x;
 	int hex_y;
@@ -161,6 +175,8 @@ struct krad_compositor_St {
 	pixman_transform_t keystone;
 
 };
+
+void krad_compositor_get_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename);
 
 void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform);
 
@@ -249,7 +265,7 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 										   int frame_rate_numerator, int frame_rate_denominator);
 
 
-void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame);
+void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame, krad_snapshot_fmt_t format);
 void *krad_compositor_snapshot_thread (void *arg);
 
 

@@ -1,3 +1,29 @@
+# Quick
+
+	webui add link ability
+
+	link destroy/create broadcast not also broadcasting ass. mixer portgroup
+
+	VP8 portgroup IO params, ie VP8 input res != compositor res
+
+	jack portgroup add/rem ability
+	
+	auto destroying playback links?
+	
+	logtailing
+	
+	uptime/cpu/sysinfo
+	
+	xmms2 playback ctls?
+	
+	detection cache and poll?
+	
+	self destruct button?
+	
+	fix all the needlessly duplicated daemon forking jank
+
+	422 444 support for theora encoding
+
 # Thinking
 	Distributed Network Control / IPC Proxy / Krad Network / Krad Enterprise Edition
 	Server side playlist, unavoidble to clone xmms2's groundbreaking work here?

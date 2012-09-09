@@ -30,6 +30,18 @@ void krad_system_monitor_cpu_off () {
 	}
 }
 
+void krad_system_monitor_cpu_off_fast () {
+
+	if (krad_system.kcm.on == 1) {
+		pthread_cancel (krad_system.kcm.monitor_thread);
+		krad_system.kcm.on = 0;
+		if (krad_system.kcm.fd != 0) {
+			close (krad_system.kcm.fd);
+			krad_system.kcm.fd = 0;
+		}
+	}
+}
+
 void krad_system_log_on (char *filename) {
 
 	if (krad_system.log_fd > 0) {
@@ -37,7 +49,7 @@ void krad_system_log_on (char *filename) {
 	}
 
 	pthread_mutex_lock (&krad_system.log_lock);
-	krad_system.log_fd = open (filename, O_WRONLY | O_CREAT | O_EXCL);
+	krad_system.log_fd = open (filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (krad_system.log_fd > 0) {
 		dprintf (krad_system.log_fd, "Logging started\n");
 	} else {
@@ -107,13 +119,15 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 	
 	close (kcm->fd);
 	
+	kcm->fd = 0;
+	
 	printk ("Krad System CPU Monitor Off");
 	
 	return NULL;
 
 }
 
-char *krad_system_daemon_info () {
+char *krad_system_info () {
 
 	return krad_system.info_string;
 
@@ -129,11 +143,11 @@ void krad_system_info_collect () {
 
 	krad_system.info_string_len += sprintf (krad_system.info_string, "Host: %s\n", krad_system.unix_info.nodename);
 	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
-											"System: %s %s (%s)\n", krad_system.unix_info.machine, 
+											"System: %s %s (%s)", krad_system.unix_info.machine, 
 											krad_system.unix_info.sysname, krad_system.unix_info.release);
 
-	krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
-											"Krad Start Time: %llu\n", (unsigned long long)krad_system.krad_start_time);
+	//krad_system.info_string_len += sprintf (krad_system.info_string + krad_system.info_string_len, 
+	//										"Krad Start Time: %llu", (unsigned long long)krad_system.krad_start_time);
 
 }
 
@@ -225,10 +239,6 @@ void krad_system_daemonize () {
 
 	pid_t pid, sid;
 
-	close (STDIN_FILENO);
-	close (STDOUT_FILENO);
-	close (STDERR_FILENO);
-
 	pid = fork();
 
 	if (pid < 0) {
@@ -238,6 +248,10 @@ void krad_system_daemonize () {
 	if (pid > 0) {
 		exit (EXIT_SUCCESS);
 	}
+
+	freopen("/dev/null", "r", stdin);
+	freopen("/dev/null", "w", stdout);
+	freopen("/dev/null", "w", stderr);
 	
 	umask(0);
  

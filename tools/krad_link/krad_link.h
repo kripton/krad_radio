@@ -9,10 +9,11 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #define KRAD_LINK_H
 
 #define DEFAULT_VPX_BITRATE 92 * 8
-#define DEFAULT_THEORA_QUALITY 42
+#define DEFAULT_THEORA_QUALITY 31
 #define DEFAULT_CAPTURE_BUFFER_FRAMES 50
 #define DEFAULT_DECODING_BUFFER_FRAMES 50
 #define DEFAULT_VORBIS_QUALITY 0.4
+#define KRAD_DEFAULT_FLAC_BIT_DEPTH 16
 #define DEFAULT_COMPOSITOR_WIDTH 1280
 #define DEFAULT_COMPOSITOR_HEIGHT 720
 #define DEFAULT_COMPOSITOR_FPS 30
@@ -76,6 +77,8 @@ struct krad_link_St {
 
 	krad_linker_t *krad_linker;
 
+	int link_num;
+
 	char sysname[64];
 	krad_tags_t *krad_tags;
 
@@ -128,6 +131,9 @@ struct krad_link_St {
 	int sd;
 
 	int vp8_bitrate;
+	int theora_quality;
+	int flac_bit_depth;
+	int opus_bitrate;	
 	
 	int capture_width;
 	int capture_height;
@@ -153,7 +159,6 @@ struct krad_link_St {
 	
 	int encoding;
 	int capturing;
-	int capture_audio;	
 	
 	float vorbis_quality;
 	krad_ringbuffer_t *audio_capture_ringbuffer[KRAD_MIXER_MAX_CHANNELS];	
@@ -192,7 +197,7 @@ struct krad_link_St {
 
 };
 
-
+void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *krad_link);
 
 void krad_linker_stop_listening (krad_linker_t *krad_linker);
 int krad_linker_listen (krad_linker_t *krad_linker, int port);

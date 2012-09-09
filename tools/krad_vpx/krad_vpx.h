@@ -21,9 +21,11 @@
 #include <vpx/vpx_decoder.h>
 #include <vpx/vp8dx.h>
 
+#include "krad_timer.h"
 #include "krad_system.h"
 
-//#define interface (vpx_codec_vp8_cx())
+#define BENCHMARK 1
+#define BENCHMARK_COUNT 100
 
 typedef struct krad_vpx_encoder_St krad_vpx_encoder_t;
 typedef struct krad_vpx_decoder_St krad_vpx_decoder_t;
@@ -35,7 +37,10 @@ struct krad_vpx_encoder_St {
 	
 	int fps_numerator;
 	int fps_denominator;
+
 	int bitrate;
+	int min_quantizer;
+	int max_quantizer;
 
 	int update_config;
     vpx_codec_ctx_t encoder;
@@ -48,7 +53,17 @@ struct krad_vpx_encoder_St {
     int flags;
 	unsigned int frames;
 	unsigned int frames_since_keyframe;	
-	unsigned long quality;
+	unsigned long deadline;
+	
+#ifdef BENCHMARK
+	krad_timer_t *krad_timer;
+	uint64_t benchmark_times[BENCHMARK_COUNT];
+	int benchmark_total;
+	int benchmark_long;
+	int benchmark_short;
+	int benchmark_avg;
+	int benchmark_count;
+#endif
 	
 };
 
@@ -59,7 +74,6 @@ struct krad_vpx_decoder_St {
 
     int flags;
 	int frames;
-	int quality;
     int dec_flags;
 
     vpx_codec_err_t	res;
@@ -77,10 +91,16 @@ struct krad_vpx_decoder_St {
 
 };
 
-void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx);
+int krad_vpx_encoder_min_quantizer_get (krad_vpx_encoder_t *kradvpx);
+void krad_vpx_encoder_min_quantizer_set (krad_vpx_encoder_t *kradvpx, int min_quantizer);
+int krad_vpx_encoder_max_quantizer_get (krad_vpx_encoder_t *kradvpx);
+void krad_vpx_encoder_max_quantizer_set (krad_vpx_encoder_t *kradvpx, int max_quantizer);
+int krad_vpx_encoder_bitrate_get (krad_vpx_encoder_t *kradvpx);
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate);
-void krad_vpx_encoder_quality_set (krad_vpx_encoder_t *kradvpx, int quality);
-int krad_vpx_encoder_quality_get (krad_vpx_encoder_t *kradvpx);
+void krad_vpx_encoder_deadline_set (krad_vpx_encoder_t *kradvpx, int deadline);
+int krad_vpx_encoder_deadline_get (krad_vpx_encoder_t *kradvpx);
+
+void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx);
 
 void krad_vpx_encoder_finish (krad_vpx_encoder_t *kradvpx);
 void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg);

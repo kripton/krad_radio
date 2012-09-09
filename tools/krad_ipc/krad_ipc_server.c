@@ -510,6 +510,77 @@ void krad_ipc_server_respond_string ( krad_ipc_server_t *krad_ipc_server, uint32
 
 }
 
+void krad_ipc_server_simple_number_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num) {
+
+	int c;
+
+	uint64_t element;
+	uint64_t subelement;
+
+	element = 0;
+	subelement = 0;
+
+	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
+			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, num);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
+			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+		}
+	}
+}
+
+void krad_ipc_server_advanced_number_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num, uint32_t ebml_subid3, int num2) {
+
+	int c;
+
+	uint64_t element;
+	uint64_t subelement;
+
+	element = 0;
+	subelement = 0;
+
+	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
+			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, num);
+
+			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid3, num2);
+			
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
+			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+		}
+	}
+}
+
+void krad_ipc_server_advanced_string_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num, uint32_t ebml_subid3, char *string) {
+
+	int c;
+
+	uint64_t element;
+	uint64_t subelement;
+
+	element = 0;
+	subelement = 0;
+
+	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
+			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
+			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, num);
+
+			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, ebml_subid3, string);
+			
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
+			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
+			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+		}
+	}
+}
 
 void krad_ipc_server_simple_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, char *string) {
 

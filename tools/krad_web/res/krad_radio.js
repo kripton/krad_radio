@@ -48,15 +48,31 @@ function Kradwebsocket (port) {
 	this.port = port;
 	this.uri = 'ws://' + location.hostname + ':' + this.port + '/';
 	this.websocket = "";
+	this.reconnection_attempts = 0;
+	this.reconnect = false;	
 	this.connected = false;
 	this.connecting = false;
-	this.debug ("Created")	
-	this.connect ();
+	this.stay_connected = true;	
+	this.debug ("Created");
+	this.connect();
+
+}
+
+Kradwebsocket.prototype.do_reconnect = function() {
+
+	if (this.connected != true) {
+		this.reconnection_attempts += 1;
+		if (this.reconnection_attempts == 3) {
+			$('body').append("<div id='websockets_connection_problem'><h2>Websockets connection problem using port " + this.port + "</h2></div>");
+		}
+		this.connect();
+	}
 
 }
 		
 Kradwebsocket.prototype.connect = function() {
 
+	this.stay_connected = true;
 	if (this.connected != true) {
 		if (this.connecting != true) {
 			this.connecting = true;
@@ -77,18 +93,32 @@ Kradwebsocket.prototype.connect = function() {
 Kradwebsocket.prototype.disconnect = function() {
 	this.connected = false;
 	this.connecting = false;
+	this.stay_connected = false;	
 	this.debug ("Disconnecting..");
+	if (this.reconnect != false) {
+		window.clearInterval(this.reconnect);
+		this.reconnect = false;
+	}
 	this.websocket.close ();
-	this.websocket.onopen = false;
-	this.websocket.onclose = false;
-	this.websocket.onmessage = false;
-	this.websocket.onerror = false;
+	//this.websocket.onopen = false;
+	//this.websocket.onclose = false;
+	//this.websocket.onmessage = false;
+	//this.websocket.onerror = false;
 }
  
 Kradwebsocket.prototype.on_open = function(evt) {
 	this.connected = true;
 	this.debug ("Connected!");
 	this.connecting = false;
+	this.reconnection_attempts = 0;
+
+	if (this.reconnect != false) {
+		window.clearInterval(this.reconnect);
+		this.reconnect = false;
+	}
+	if ($('#websockets_connection_problem')) {
+		$('#websockets_connection_problem').remove();
+	}
 
 	kradradio = new Kradradio ();	
 }
@@ -100,12 +130,18 @@ Kradwebsocket.prototype.on_close = function(evt) {
 		kradradio.destroy ();
 		kradradio = false;
 	}
+	this.connecting = false;
+	if (this.stay_connected == true) {
+		if (this.reconnect == false) {
+			this.reconnect = setInterval(create_handler(this, this.do_reconnect), 1000);
+		}
+	}
 }
 
 Kradwebsocket.prototype.send = function(message) {
 	if (this.connected == true) {
 	    this.websocket.send (message);
-		this.debug ("Sent " + message); 
+		//this.debug ("Sent " + message); 
 	} else {
 		this.debug ("NOT CONNECTED, wanted to send: " + message); 
 	}
@@ -113,15 +149,15 @@ Kradwebsocket.prototype.send = function(message) {
 
 Kradwebsocket.prototype.on_error = function(evt) {
 	this.debug ("Error! " + evt.data);
-	this.disconnect ();
+
 }
 
 Kradwebsocket.prototype.debug = function(message) {
-	//console.log (message);
+	console.log (message);
 }
 
 Kradwebsocket.prototype.on_message = function(evt) {
-	this.debug ("got message: " + evt.data);
+	//this.debug ("got message: " + evt.data);
 
 	kradradio.got_messages (evt.data);	
 }
@@ -136,6 +172,10 @@ function Kradradio () {
 	//this.update_rate = 50;
 	//this.timer;
 	this.tags = new Array();
+	
+	this.decklink_devices = new Array();	
+	
+	this.showing_snapshot_buttons = 0;	
 	
 }
 
@@ -207,6 +247,37 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    </div>\
 	                    <br clear='both'>\
 	                  </div>");
+	                  
+	                  
+}
+
+
+Kradradio.prototype.show_snapshot_buttons = function () {
+
+	if (this.showing_snapshot_buttons == 0) {
+	
+		kradradio.jsnapshot();
+	
+		$('.kradcompositor').append("<br clear='both'/>");
+
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='snapshot'>Snapshot</div>");
+	
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='jsnapshot'>JPEG Snapshot</div>");	
+	
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='view_snapshot'><a target='_new' href='/snapshot'>View Last</a></div>");	
+	
+		$('.kradcompositor').append("<br clear='both'/>");
+	
+		$( '#snapshot').bind( "click", function(event, ui) {
+			kradradio.snapshot();
+		});
+	
+		$( '#jsnapshot').bind( "click", function(event, ui) {
+			kradradio.jsnapshot();
+		});
+	
+		this.showing_snapshot_buttons = 1;	
+	}
 }
 
 Kradradio.prototype.got_tag = function (tag_item, tag_name, tag_value) {
@@ -230,9 +301,12 @@ Kradradio.prototype.got_messages = function (msgs) {
 
 	for (m in msg_arr) {
 		if (msg_arr[m].com == "kradmixer") {
+			if (msg_arr[m].cmd == "control_portgroup") {
+				kradradio.got_control_portgroup (msg_arr[m].portgroup_name, msg_arr[m].control_name, msg_arr[m].value);
+			}
 			if (msg_arr[m].cmd == "update_portgroup") {
 				kradradio.got_update_portgroup (msg_arr[m].portgroup_name, msg_arr[m].control_name, msg_arr[m].value);
-			}
+			}			
 			if (msg_arr[m].cmd == "add_portgroup") {
 				kradradio.got_add_portgroup (msg_arr[m].portgroup_name, msg_arr[m].volume, msg_arr[m].crossfade_name, msg_arr[m].crossfade );
 			}
@@ -261,8 +335,17 @@ Kradradio.prototype.got_messages = function (msgs) {
 			
 		}
 		if (msg_arr[m].com == "kradlink") {
+			if (msg_arr[m].cmd == "update_link") {
+				kradradio.got_update_link (msg_arr[m].link_num, msg_arr[m].update_item, msg_arr[m].update_value);
+			}		
 			if (msg_arr[m].cmd == "add_link") {
 				kradradio.got_add_link (msg_arr[m]);
+			}
+			if (msg_arr[m].cmd == "remove_link") {
+				kradradio.got_remove_link (msg_arr[m]);
+			}			
+			if (msg_arr[m].cmd == "add_decklink_device") {
+				kradradio.got_add_decklink_device (msg_arr[m]);
 			}
 		}			
 	}
@@ -282,7 +365,33 @@ Kradradio.prototype.update_portgroup = function (portgroup_name, control_name, v
 
 	kradwebsocket.send(JSONcmd);
 
-	kradwebsocket.debug(JSONcmd);
+	//kradwebsocket.debug(JSONcmd);
+}
+
+Kradradio.prototype.jsnapshot = function () {
+
+	var cmd = {};  
+	cmd.com = "kradcompositor";  
+	cmd.cmd = "jsnap";
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send(JSONcmd);
+
+	//kradwebsocket.debug(JSONcmd);
+}
+
+Kradradio.prototype.snapshot = function () {
+
+	var cmd = {};  
+	cmd.com = "kradcompositor";  
+	cmd.cmd = "snap";
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send(JSONcmd);
+
+	//kradwebsocket.debug(JSONcmd);
 }
 
 Kradradio.prototype.push_dtmf = function (value) {
@@ -299,9 +408,9 @@ Kradradio.prototype.push_dtmf = function (value) {
 	kradwebsocket.debug(JSONcmd);
 }
 
-Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
+Kradradio.prototype.got_control_portgroup = function (portgroup_name, control_name, value) {
 
-	kradwebsocket.debug("update portgroup " + portgroup_name + " " + value);
+	//kradwebsocket.debug("control portgroup " + portgroup_name + " " + value);
 
 	if ($('#' + portgroup_name)) {
 		if (control_name == "volume") {
@@ -312,11 +421,16 @@ Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_nam
 	}
 }
 
+Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_name, value) {
+
+
+}
+
 Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossfade_name, crossfade) {
 
-	$('.kradmixer').append("<div class='kradmixer_control volume_control'> <div id='" + portgroup_name + "'></div> <h2>" + portgroup_name + "</h2><div id='ktags_" + portgroup_name + "'></div></div>");
+	$('.kradmixer').append("<div class='kradmixer_control volume_control' id='portgroup_" + portgroup_name + "_wrap'><div id='" + portgroup_name + "'></div><h2>" + portgroup_name + "</h2><div id='ktags_" + portgroup_name + "'></div></div>");
 
-	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume });
+	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume, step: 0.5 });
 
 	$( '#' + portgroup_name ).bind( "slide", function(event, ui) {
 		kradradio.update_portgroup (portgroup_name, "volume", ui.value);
@@ -428,10 +542,52 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 
 Kradradio.prototype.got_remove_portgroup = function (name) {
 
-	$('#' + name).remove();
+	$('#portgroup_' + name + '_wrap').remove();
 
 }
 
+Kradradio.prototype.remove_link = function (link_num) {
+
+	var cmd = {};  
+	cmd.com = "kradlink";  
+	cmd.cmd = "remove_link";
+  	cmd.link_num = link_num;  
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send (JSONcmd);
+
+	//kradwebsocket.debug(JSONcmd);
+	
+	$('#link_' + link_num + '_wrap').remove();
+	
+}
+
+Kradradio.prototype.got_update_link = function (link_num, control_name, value) {
+
+	kradwebsocket.debug("got_update_link");
+
+	kradwebsocket.debug(link_num);
+	kradwebsocket.debug(control_name);
+	kradwebsocket.debug(value);		
+
+	if ($('#link_' + link_num + '_wrap')) {
+		if ((control_name == "opus_frame_size") || (control_name == "opus_signal") || (control_name == "opus_bandwidth")) {
+			
+			control_radio = "link_" + link_num + "_" + control_name;
+			
+			$('[name=' + control_radio + ']').prop('checked',false);
+			$('[name=' + control_radio + '][value="' + value + '"]').prop('checked',true);
+			
+			$('#link_' + link_num + '_' + control_name + '_setting').buttonset( "refresh" );
+						
+		} else {
+			$('#link_' + link_num + '_' + control_name + '_value').html(value);							
+			$('#link_' + link_num + '_' + control_name + '_slider').slider( "value" , value );
+		}
+	}
+
+}
 
 Kradradio.prototype.update_link = function (link_num, control_name, value) {
 
@@ -446,13 +602,36 @@ Kradradio.prototype.update_link = function (link_num, control_name, value) {
 
 	kradwebsocket.send (JSONcmd);
 
-	kradwebsocket.debug(JSONcmd);
+	//kradwebsocket.debug(JSONcmd);
 }
 	
 
+Kradradio.prototype.got_add_decklink_device = function (decklink_device) {
+
+
+	this.decklink_devices[decklink_device.decklink_device_num] = decklink_device.decklink_device_name;
+
+	$('.kradlink').append("<div class='kradlink_link'>" + this.decklink_devices[decklink_device.decklink_device_num] + "</div>");
+
+
+}
+
+
+Kradradio.prototype.got_remove_link = function (link) {
+
+	$('#link_' + link.link_num + '_wrap').remove();
+
+}
+
+
 Kradradio.prototype.got_add_link = function (link) {
 
-	$('.kradlink').append("<div class='kradlink_link'> <div id='link_" + link.link_num + "'></div></div>");
+	if (link.operation_mode == "capture") {
+		this.show_snapshot_buttons();
+	}
+
+
+	$('.kradlink').append("<div class='kradlink_link' id='link_" + link.link_num + "_wrap'> <div id='link_" + link.link_num + "'></div></div>");
 
 	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + " " + link.av_mode + "</h3>");
 
@@ -466,114 +645,188 @@ Kradradio.prototype.got_add_link = function (link) {
 	if (link.operation_mode == "transmit") {
 
 		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
-			$('#link_' + link.link_num).append("<h5>Video Codec: " + link.video_codec + "</h5>");
+			$('#link_' + link.link_num).append("<h5>Video Codec: " + link.video_codec + " Resolution: " + link.video_width + "x" + link.video_height + " Frame Rate: " + link.video_fps_numerator + " / " + link.video_fps_denominator + " Color Depth: " + link.video_color_depth + "</h5>");
 		}
 		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
-			$('#link_' + link.link_num).append("<h5>Audio Codec: " + link.audio_codec + "</h5>");
+			$('#link_' + link.link_num).append("<h5>Audio Codec: " + link.audio_codec + " Channels: " + link.audio_channels + " Sample Rate: " + link.audio_sample_rate + "</h5>");
 		}
 		
 		if (link.av_mode == "audio only") {
 			$('#link_' + link.link_num).append("<audio controls preload='none' src='http://" + link.host + ":" + link.port + link.mount + "'>Audio tag should be here.</audio>");		
 		}
 
-		if (link.av_mode == "video only") {
-			$('#link_' + link.link_num).append("<video controls preload='none' width='480' height='270' src='http://" + link.host + ":" + link.port + link.mount + "'>Video tag should be here.</video>");		
+		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
+			$('#link_' + link.link_num).append("<video controls poster='/snapshot' preload='none' width='480' height='270' src='http://" + link.host + ":" + link.port + link.mount + "'>Video tag should be here.</video>");		
 		}
 
 		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
 		
+		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
 		
-		if ((link.audio_codec == "Opus") && ((link.av_mode == "audio only") || (link.av_mode == "audio and video"))) {
+			if (link.video_codec == "Theora") {
+
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_theora_quality_slider'></div><h2>Quality&nbsp;<span id='link_" + link.link_num + "_theora_quality_value'>" + link.theora_quality + "</span></h2></div>");
+
+				$('#link_' + link.link_num + '_theora_quality_slider').slider({orientation: 'vertical', value: link.theora_quality, min: 0, max: 63 });
+
+				$( '#link_' + link.link_num + '_theora_quality_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_theora_quality_value' ).html(ui.value);			
+					kradradio.update_link (link.link_num, "theora_quality", ui.value);
+				});
+
+			}
+
+			if (link.video_codec == "VP8") {
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_bitrate_slider'></div><h2>Bitrate&nbsp;<span id='link_" + link.link_num + "_vp8_bitrate_value'>" + link.vp8_bitrate + "</span></h2></div>");
+
+
+				$('#link_' + link.link_num + '_vp8_bitrate_slider').slider({orientation: 'vertical', value: link.vp8_bitrate, min: 100, max: 10000 });
+
+				$( '#link_' + link.link_num + '_vp8_bitrate_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_vp8_bitrate_value' ).html(ui.value);			
+					kradradio.update_link (link.link_num, "vp8_bitrate", ui.value);
+				});
 		
-			$('#link_' + link.link_num).append("<h5>Opus frame size: </h5>");
-			
-			
-			
-			frame_size_controls = '<div id="link_' + link.link_num + '_opus_frame_size_setting">\
-				<input type="radio" id="radio1" name="link_' + link.link_num + '_opus_frame_size" value="120"/><label for="radio1">120</label>\
-				<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" value="240"/><label for="radio2">240</label>\
-				<input type="radio" id="radio3" name="link_' + link.link_num + '_opus_frame_size" value="480"/><label for="radio3">480</label>\
-				<input type="radio" id="radio4" name="link_' + link.link_num + '_opus_frame_size" value="960"/><label for="radio4">960</label>\
-				<input type="radio" id="radio5" name="link_' + link.link_num + '_opus_frame_size" value="1920"/><label for="radio5">1920</label>\
-				<input type="radio" id="radio6" name="link_' + link.link_num + '_opus_frame_size" value="2880"/><label for="radio6">2880</label>\
-			</div>';
-			
-			$('#link_' + link.link_num).append(frame_size_controls);
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_min_quantizer_slider'></div><h2>Quantizer&nbsp;Min&nbsp;<span id='link_" + link.link_num + "_vp8_min_quantizer_value'>" + link.vp8_min_quantizer + "</span></h2></div>");
 
-			$("input[name=link_" + link.link_num + "_opus_frame_size][value=" + link.opus_frame_size + "]").attr('checked', 'checked');
+				$('#link_' + link.link_num + '_vp8_min_quantizer_slider').slider({orientation: 'vertical', value: link.vp8_min_quantizer, min: 0, max: 33 });
 
-			$('#link_' + link.link_num + '_opus_frame_size_setting').buttonset();			
+				$( '#link_' + link.link_num + '_vp8_min_quantizer_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_vp8_min_quantizer_value' ).html(ui.value);			
+					kradradio.update_link (link.link_num, "vp8_min_quantizer", ui.value);
+				});
+				
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_max_quantizer_slider'></div><h2>Quantizer&nbsp;Max&nbsp;<span id='link_" + link.link_num + "_vp8_max_quantizer_value'>" + link.vp8_max_quantizer + "</span></h2></div>");
 
-			$( "input[name=link_" + link.link_num + "_opus_frame_size]" ).bind( "change", function(event, ui) {
-				var valu = $('input[name=link_' + link.link_num + '_opus_frame_size]:checked').val();
-				kradradio.update_link (link.link_num, "opus_frame_size", parseInt (valu));
-			});
+				$('#link_' + link.link_num + '_vp8_max_quantizer_slider').slider({orientation: 'vertical', value: link.vp8_max_quantizer, min: 34, max: 63 });
 
-			signal_controls = '<h5>Opus Signal Type: </h5><div id="link_' + link.link_num + '_opus_signal_setting">\
-				<input type="radio" id="radio7" name="link_' + link.link_num + '_opus_signal" value="OPUS_AUTO"/><label for="radio7">Auto</label>\
-				<input type="radio" id="radio8" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_VOICE"/><label for="radio8">Voice</label>\
-				<input type="radio" id="radio9" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_MUSIC"/><label for="radio9">Music</label>\
-			</div>';
-			
-			$('#link_' + link.link_num).append(signal_controls);
+				$( '#link_' + link.link_num + '_vp8_max_quantizer_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_vp8_max_quantizer_value' ).html(ui.value);			
+					kradradio.update_link (link.link_num, "vp8_max_quantizer", ui.value);
+				});
+				
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_deadline_slider'></div><h2>Deadline&nbsp;<span id='link_" + link.link_num + "_vp8_deadline_value'>" + link.vp8_deadline + "</span></h2></div>");
 
-			$("input[name=link_" + link.link_num + "_opus_signal][value=" + link.opus_signal + "]").attr('checked', 'checked');
-			
-			$('#link_' + link.link_num + '_opus_signal_setting').buttonset();
+				$('#link_' + link.link_num + '_vp8_deadline_slider').slider({orientation: 'vertical', value: link.vp8_deadline, min: 1, max: 33000 });
 
-			$( "input[name=link_" + link.link_num + "_opus_signal]" ).bind( "change", function(event, ui) {
-				var valus = $('input[name=link_' + link.link_num + '_opus_signal]:checked').val();
-				kradradio.update_link (link.link_num, "opus_signal", valus);
-			});	
-			
-			
-			bandwidth_controls = '<h5>Opus Audio Bandwidth: </h5><div id="link_' + link.link_num + '_opus_bandwidth_setting">\
-				<input type="radio" id="radio10" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_AUTO"/><label for="radio10">Auto</label>\
-				<input type="radio" id="radio11" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_NARROWBAND"/><label for="radio11">Narrowband</label>\
-				<input type="radio" id="radio12" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_MEDIUMBAND"/><label for="radio12">Mediumband</label>\
-				<input type="radio" id="radio13" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_WIDEBAND"/><label for="radio13">Wideband</label>\
-				<input type="radio" id="radio14" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_SUPERWIDEBAND"/><label for="radio14">Super Wideband</label>\
-				<input type="radio" id="radio15" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_FULLBAND"/><label for="radio15">Fullband</label>\
-			</div>';
-			
-			$('#link_' + link.link_num).append(bandwidth_controls);
-
-			$("input[name=link_" + link.link_num + "_opus_bandwidth][value=" + link.opus_bandwidth + "]").attr('checked', 'checked');
-			
-			$('#link_' + link.link_num + '_opus_bandwidth_setting').buttonset();
-
-			$( "input[name=link_" + link.link_num + "_opus_bandwidth]" ).bind( "change", function(event, ui) {
-				var valub = $('input[name=link_' + link.link_num + '_opus_bandwidth]:checked').val();
-				kradradio.update_link (link.link_num, "opus_bandwidth", valub);
-			});
-			
-			
-			$('#link_' + link.link_num).append("<h5>Opus bitrate: <span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h5><div id='link_" + link.link_num + "_opus_bitrate_slider'></div>");
-			$('#link_' + link.link_num).append("<h5>Opus complexity: <span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h5><div id='link_" + link.link_num + "_opus_complexity_slider'></div>");
-
-
-			$('#link_' + link.link_num + '_opus_bitrate_slider').slider({orientation: 'vertical', value: link.opus_bitrate, min: 3000, max: 320000 });
-
-			$( '#link_' + link.link_num + '_opus_bitrate_slider' ).bind( "slide", function(event, ui) {
-				$( '#link_' + link.link_num + '_opus_bitrate_value' ).html(ui.value);			
-				kradradio.update_link (link.link_num, "opus_bitrate", ui.value);
-			});		
-
-
-			$('#link_' + link.link_num + '_opus_complexity_slider').slider({orientation: 'vertical', value: link.opus_complexity, min: 0, max: 10 });
-
-			$( '#link_' + link.link_num + '_opus_complexity_slider' ).bind( "slide", function(event, ui) {
-				$( '#link_' + link.link_num + '_opus_complexity_value' ).html(ui.value);
-				kradradio.update_link (link.link_num, "opus_complexity", ui.value);
-			});	
+				$( '#link_' + link.link_num + '_vp8_deadline_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_vp8_deadline_value' ).html(ui.value);			
+					kradradio.update_link (link.link_num, "vp8_deadline", ui.value);
+				});		
+		
+			}
+		
+		}		
+		
+		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
+		
+			if (link.audio_codec == "FLAC") {
+				$('#link_' + link.link_num).append("<h5>FLAC Bit Depth: " + link.flac_bit_depth + "</h5>");
+			}		
+		
+			if (link.audio_codec == "Vorbis") {
+				$('#link_' + link.link_num).append("<h5>Vorbis Quality: " + link.vorbis_quality + "</h5>");
+			}		
+		
+			if (link.audio_codec == "Opus") {
 		
 		
+				$('#link_' + link.link_num).append("<h5>Opus frame size: </h5>");
+			
+			
+			
+				frame_size_controls = '<div id="link_' + link.link_num + '_opus_frame_size_setting">\
+					<input type="radio" id="radio1" name="link_' + link.link_num + '_opus_frame_size" value="120"/><label for="radio1">120</label>\
+					<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" value="240"/><label for="radio2">240</label>\
+					<input type="radio" id="radio3" name="link_' + link.link_num + '_opus_frame_size" value="480"/><label for="radio3">480</label>\
+					<input type="radio" id="radio4" name="link_' + link.link_num + '_opus_frame_size" value="960"/><label for="radio4">960</label>\
+					<input type="radio" id="radio5" name="link_' + link.link_num + '_opus_frame_size" value="1920"/><label for="radio5">1920</label>\
+					<input type="radio" id="radio6" name="link_' + link.link_num + '_opus_frame_size" value="2880"/><label for="radio6">2880</label>\
+				</div>';
+			
+				$('#link_' + link.link_num).append(frame_size_controls);
+
+				$("input[name=link_" + link.link_num + "_opus_frame_size][value=" + link.opus_frame_size + "]").attr('checked', 'checked');
+
+				$('#link_' + link.link_num + '_opus_frame_size_setting').buttonset();			
+
+				$( "input[name=link_" + link.link_num + "_opus_frame_size]" ).bind( "change", function(event, ui) {
+					var valu = $('input[name=link_' + link.link_num + '_opus_frame_size]:checked').val();
+					kradradio.update_link (link.link_num, "opus_frame_size", parseInt (valu));
+				});
+
+				signal_controls = '<h5>Opus Signal Type: </h5><div id="link_' + link.link_num + '_opus_signal_setting">\
+					<input type="radio" id="radio7" name="link_' + link.link_num + '_opus_signal" value="OPUS_AUTO"/><label for="radio7">Auto</label>\
+					<input type="radio" id="radio8" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_VOICE"/><label for="radio8">Voice</label>\
+					<input type="radio" id="radio9" name="link_' + link.link_num + '_opus_signal" value="OPUS_SIGNAL_MUSIC"/><label for="radio9">Music</label>\
+				</div>';
+			
+				$('#link_' + link.link_num).append(signal_controls);
+
+				$("input[name=link_" + link.link_num + "_opus_signal][value=" + link.opus_signal + "]").attr('checked', 'checked');
+			
+				$('#link_' + link.link_num + '_opus_signal_setting').buttonset();
+
+				$( "input[name=link_" + link.link_num + "_opus_signal]" ).bind( "change", function(event, ui) {
+					var valus = $('input[name=link_' + link.link_num + '_opus_signal]:checked').val();
+					kradradio.update_link (link.link_num, "opus_signal", valus);
+				});	
+			
+			
+				bandwidth_controls = '<h5>Opus Audio Bandwidth: </h5><div id="link_' + link.link_num + '_opus_bandwidth_setting">\
+					<input type="radio" id="radio10" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_AUTO"/><label for="radio10">Auto</label>\
+					<input type="radio" id="radio11" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_NARROWBAND"/><label for="radio11">Narrowband</label>\
+					<input type="radio" id="radio12" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_MEDIUMBAND"/><label for="radio12">Mediumband</label>\
+					<input type="radio" id="radio13" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_WIDEBAND"/><label for="radio13">Wideband</label>\
+					<input type="radio" id="radio14" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_SUPERWIDEBAND"/><label for="radio14">Super Wideband</label>\
+					<input type="radio" id="radio15" name="link_' + link.link_num + '_opus_bandwidth" value="OPUS_BANDWIDTH_FULLBAND"/><label for="radio15">Fullband</label>\
+				</div>';
+			
+				$('#link_' + link.link_num).append(bandwidth_controls);
+
+				$("input[name=link_" + link.link_num + "_opus_bandwidth][value=" + link.opus_bandwidth + "]").attr('checked', 'checked');
+			
+				$('#link_' + link.link_num + '_opus_bandwidth_setting').buttonset();
+
+				$( "input[name=link_" + link.link_num + "_opus_bandwidth]" ).bind( "change", function(event, ui) {
+					var valub = $('input[name=link_' + link.link_num + '_opus_bandwidth]:checked').val();
+					kradradio.update_link (link.link_num, "opus_bandwidth", valub);
+				});
+			
+				$('#link_' + link.link_num).append("<br clear='both'/>");			
 		
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_opus_bitrate_slider'></div><h2>Bitrate&nbsp;<span id='link_" + link.link_num + "_opus_bitrate_value'>" + link.opus_bitrate + "</span></h2></div>");
+				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_opus_complexity_slider'></div><h2>Complexity&nbsp;<span id='link_" + link.link_num + "_opus_complexity_value'>" + link.opus_complexity + "</span></h2></div>");
+
+
+				$('#link_' + link.link_num + '_opus_bitrate_slider').slider({orientation: 'vertical', value: link.opus_bitrate, min: 3000, max: 320000 });
+
+				$( '#link_' + link.link_num + '_opus_bitrate_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_opus_bitrate_value' ).html(ui.value);			
+					kradradio.update_link (link.link_num, "opus_bitrate", ui.value);
+				});		
+
+
+				$('#link_' + link.link_num + '_opus_complexity_slider').slider({orientation: 'vertical', value: link.opus_complexity, min: 0, max: 10 });
+
+				$( '#link_' + link.link_num + '_opus_complexity_slider' ).bind( "slide", function(event, ui) {
+					$( '#link_' + link.link_num + '_opus_complexity_value' ).html(ui.value);
+					kradradio.update_link (link.link_num, "opus_complexity", ui.value);
+				});
+			}
 		}
-		
-		
-
 	}
+	
+	$('#link_' + link.link_num).append("<br clear='both'/>");
+
+	$('#link_' + link.link_num).append("<div class='button_wrap'><div class='krad_button2' id='" + link.link_num + "_remove'>Remove</div>");
+
+	$( '#' + link.link_num + '_remove').bind( "click", function(event, ui) {
+		kradradio.remove_link(link.link_num);
+	});
+	
+	$('#link_' + link.link_num).append("<br clear='both'/>");	
+
 }
 	
 	

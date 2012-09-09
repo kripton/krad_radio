@@ -27,7 +27,8 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 		failfast ("Failed to get config: %s\n", vpx_codec_err_to_string(kradvpx->res));
     }
 
-	krad_vpx_encoder_print_config (kradvpx);
+	// print default config
+	//krad_vpx_encoder_print_config (kradvpx);
 
 	kradvpx->cfg.g_w = kradvpx->width;
 	kradvpx->cfg.g_h = kradvpx->height;
@@ -39,15 +40,10 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->cfg.kf_mode = VPX_KF_AUTO;
 	kradvpx->cfg.rc_end_usage = VPX_VBR;
 	
-	//kradvpx->cfg.g_lag_in_frames = 1;
-	
-	//kradvpx->cfg.rc_buf_sz = 8000;
-	//kradvpx->cfg.rc_buf_initial_sz = 4300;
-	//kradvpx->cfg.rc_buf_optimal_sz = 6500;
-	
-	//kradvpx->cfg.rc_max_quantizer = 55;
-	
-	kradvpx->quality = 15 * 1000;
+	kradvpx->deadline = 15 * 1000;
+
+	kradvpx->min_quantizer = kradvpx->cfg.rc_min_quantizer;
+	kradvpx->max_quantizer = kradvpx->cfg.rc_max_quantizer;
 
 	krad_vpx_encoder_print_config (kradvpx);
 
@@ -56,6 +52,12 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	}
 
 	krad_vpx_encoder_print_config (kradvpx);
+
+
+#ifdef BENCHMARK
+	printk ("Benchmarking enabled, reporting every %d frames", BENCHMARK_COUNT);
+kradvpx->krad_timer = krad_timer_create();
+#endif
 
 	return kradvpx;
 
@@ -69,7 +71,7 @@ void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 	printk ("rc_target_bitrate: %d", kradvpx->cfg.rc_target_bitrate);
 	printk ("kf_max_dist: %d", kradvpx->cfg.kf_max_dist);
 	printk ("kf_min_dist: %d", kradvpx->cfg.kf_min_dist);	
-	printk ("deadline: %d", kradvpx->quality);	
+	printk ("deadline: %d", kradvpx->deadline);	
 	printk ("rc_buf_sz: %d", kradvpx->cfg.rc_buf_sz);	
 	printk ("rc_buf_initial_sz: %d", kradvpx->cfg.rc_buf_initial_sz);	
 	printk ("rc_buf_optimal_sz: %d", kradvpx->cfg.rc_buf_optimal_sz);
@@ -80,18 +82,42 @@ void krad_vpx_encoder_print_config (krad_vpx_encoder_t *kradvpx) {
 	printk ("END Krad VP8 Encoder config");
 }
 
+int krad_vpx_encoder_bitrate_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->bitrate;
+}
+
 void krad_vpx_encoder_bitrate_set (krad_vpx_encoder_t *kradvpx, int bitrate) {
 	kradvpx->bitrate = bitrate;
 	kradvpx->cfg.rc_target_bitrate = kradvpx->bitrate;
 	kradvpx->update_config = 1;
 }
 
-void krad_vpx_encoder_quality_set (krad_vpx_encoder_t *kradvpx, int quality) {
-	kradvpx->quality = quality;
+int krad_vpx_encoder_min_quantizer_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->min_quantizer;
 }
 
-int krad_vpx_encoder_quality_get (krad_vpx_encoder_t *kradvpx) {
-	return kradvpx->quality;
+void krad_vpx_encoder_min_quantizer_set (krad_vpx_encoder_t *kradvpx, int min_quantizer) {
+	kradvpx->min_quantizer = min_quantizer;
+	kradvpx->cfg.rc_min_quantizer = kradvpx->min_quantizer;
+	kradvpx->update_config = 1;
+}
+
+int krad_vpx_encoder_max_quantizer_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->max_quantizer;
+}
+
+void krad_vpx_encoder_max_quantizer_set (krad_vpx_encoder_t *kradvpx, int max_quantizer) {
+	kradvpx->max_quantizer = max_quantizer;
+	kradvpx->cfg.rc_max_quantizer = kradvpx->max_quantizer;
+	kradvpx->update_config = 1;
+}
+
+void krad_vpx_encoder_deadline_set (krad_vpx_encoder_t *kradvpx, int deadline) {
+	kradvpx->deadline = deadline;
+}
+
+int krad_vpx_encoder_deadline_get (krad_vpx_encoder_t *kradvpx) {
+	return kradvpx->deadline;
 }
 
 void krad_vpx_encoder_config_set (krad_vpx_encoder_t *kradvpx, vpx_codec_enc_cfg_t *cfg) {
@@ -114,6 +140,10 @@ void krad_vpx_encoder_destroy (krad_vpx_encoder_t *kradvpx) {
 	}
 	vpx_codec_destroy (&kradvpx->encoder);
 
+#ifdef BENCHMARK
+krad_timer_destroy(kradvpx->krad_timer);
+#endif
+
 	free (kradvpx);
 
 }
@@ -131,16 +161,65 @@ void krad_vpx_encoder_want_keyframe (krad_vpx_encoder_t *kradvpx) {
 	kradvpx->flags = VPX_EFLAG_FORCE_KF;
 }
 
+
+void krad_vpx_benchmark_start (krad_vpx_encoder_t *kradvpx) {
+	krad_timer_start(kradvpx->krad_timer);
+}
+
+void krad_vpx_benchmark_finish (krad_vpx_encoder_t *kradvpx) {
+
+	int b;
+
+	krad_timer_finish(kradvpx->krad_timer);
+
+	kradvpx->benchmark_times[kradvpx->benchmark_count] = krad_timer_duration_ms(kradvpx->krad_timer);
+
+	kradvpx->benchmark_count++;
+
+	if (kradvpx->benchmark_count == BENCHMARK_COUNT) {
+
+		kradvpx->benchmark_total = 0;
+		kradvpx->benchmark_long = 0;
+		kradvpx->benchmark_short = 66666;
+		kradvpx->benchmark_avg = 0;
+	
+
+		for (b = 0; b < BENCHMARK_COUNT; b++) {
+	
+			if (kradvpx->benchmark_times[b] < kradvpx->benchmark_short) {
+				kradvpx->benchmark_short = kradvpx->benchmark_times[b];
+			}
+			if (kradvpx->benchmark_times[b] > kradvpx->benchmark_long) {
+				kradvpx->benchmark_long = kradvpx->benchmark_times[b];
+			}
+	
+			kradvpx->benchmark_total += kradvpx->benchmark_times[b];
+	
+		}
+
+		kradvpx->benchmark_avg = kradvpx->benchmark_total / BENCHMARK_COUNT;
+
+		printk ("VPX Benchmark: Frames: %d Shortest: %d Longest: %d Avg: %d",
+				BENCHMARK_COUNT, kradvpx->benchmark_short, kradvpx->benchmark_long, kradvpx->benchmark_avg);
+
+		kradvpx->benchmark_count = 0;
+	}
+
+}
+
 int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet, int *keyframe) {
 
 	if (kradvpx->update_config == 1) {
 		krad_vpx_encoder_config_set (kradvpx, &kradvpx->cfg);
 		kradvpx->update_config = 0;
-		//printk ("Krad VP8: bitrate should now be: %dk", kradvpx->cfg.rc_target_bitrate);
 		krad_vpx_encoder_print_config (kradvpx);
 	}
 
-	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->quality)) {
+	#ifdef BENCHMARK
+	krad_vpx_benchmark_start(kradvpx);
+	#endif
+
+	if (vpx_codec_encode(&kradvpx->encoder, kradvpx->image, kradvpx->frames, 1, kradvpx->flags, kradvpx->deadline)) {
 		krad_vpx_fail (&kradvpx->encoder, "Failed to encode frame");
 	}
 
@@ -160,6 +239,9 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 				kradvpx->frames_since_keyframe = 0;
 				//printkd ("keyframe is %d pts is -%ld-\n", *keyframe, kradvpx->pkt->data.frame.pts);
 			}
+			#ifdef BENCHMARK
+			krad_vpx_benchmark_finish(kradvpx);
+			#endif
 			return kradvpx->pkt->data.frame.sz;
 		}
 	}

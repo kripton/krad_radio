@@ -15,14 +15,19 @@
 #include <poll.h>
 #include <pthread.h>
 
-#include "krad_system.h"
+#include "krad_radio.h"
 
-#define BUFSIZE 8192
+#define BUFSIZE 8192 * 8
 
 typedef struct krad_http_St krad_http_t;
 typedef struct krad_http_client_St krad_http_client_t;
 
+#ifndef KRAD_HTTP_H
+#define KRAD_HTTP_H
+
 struct krad_http_St {
+
+	krad_radio_t *krad_radio;
 
 	krad_http_client_t *current_client;
 	krad_http_client_t *clients;
@@ -50,10 +55,10 @@ struct krad_http_client_St {
 	krad_http_t *krad_http;
 	pthread_t client_thread;
 
-	char in_buffer[8192];
-	char out_buffer[8192];
+	char in_buffer[1024];
+	char out_buffer[BUFSIZE];
 	char get[256];
-	char filename[256];
+	char filename[1024];
 	
 	int in_buffer_pos;
 	int out_buffer_pos;
@@ -72,7 +77,8 @@ void krad_http_write_headers (krad_http_client_t *client, char *content_type);
 void krad_http_404 (krad_http_client_t *client);
 
 void *krad_http_server_run (void *arg);
-krad_http_t *krad_http_server_create (int port, int websocket_port);
+krad_http_t *krad_http_server_create (krad_radio_t *krad_radio, int port, int websocket_port);
 void krad_http_server_destroy (krad_http_t *krad_http);
 
+#endif
 

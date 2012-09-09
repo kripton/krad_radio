@@ -262,23 +262,37 @@ int krad_radio_find_daemon_pid (char *sysname) {
 
 }
 
-void krad_radio_destroy_daemon (char *sysname) {
+int krad_radio_destroy_daemon (char *sysname) {
 
 	int pid;
+	int wait_time_total;
+	int wait_time_interval;	
+	int clean_shutdown_wait_time_limit;
 	
 	pid = 0;
-	
+	wait_time_total = 0;
+	clean_shutdown_wait_time_limit = 1000000;
+	wait_time_interval = clean_shutdown_wait_time_limit / 40;
+		
 	pid = krad_radio_find_daemon_pid (sysname);
 	
 	if (pid != 0) {
 		kill (pid, 15);
-		usleep (500000);
+		while ((pid != 0) && (wait_time_total < clean_shutdown_wait_time_limit)) {
+			usleep (wait_time_interval);
+			wait_time_total += wait_time_interval;
+			pid = krad_radio_find_daemon_pid (sysname);
+		}
 		pid = krad_radio_find_daemon_pid (sysname);
 		if (pid != 0) {
 			kill (pid, 9);
+			return 1;
+		} else {
+			return 0;
 		}
 	}
-
+	
+	return -1;
 }
 
 void krad_radio_launch_daemon (char *sysname) {
@@ -307,6 +321,10 @@ void krad_radio_launch_daemon (char *sysname) {
 	if (pid > 0) {
 		exit (0);
 	}
+	
+	freopen("/dev/null", "r", stdin);
+	freopen("/dev/null", "w", stdout);
+	freopen("/dev/null", "w", stderr);	
 
 	execlp ("krad_radio_daemon", "krad_radio_daemon", sysname, (char *)NULL);
 
@@ -1511,7 +1529,7 @@ void krad_ipc_radio_uptime (krad_ipc_client_t *client) {
 
 }
 
-void krad_ipc_radio_info (krad_ipc_client_t *client) {
+void krad_ipc_radio_get_system_info (krad_ipc_client_t *client) {
 
 	uint64_t command;
 	uint64_t info_command;
@@ -1521,7 +1539,7 @@ void krad_ipc_radio_info (krad_ipc_client_t *client) {
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_INFO, &info_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO, &info_command);
 	krad_ebml_finish_element (client->krad_ebml, info_command);
 
 	krad_ebml_finish_element (client->krad_ebml, command);
@@ -1549,6 +1567,54 @@ void krad_ipc_compositor_snapshot (krad_ipc_client_t *client) {
 		
 	krad_ebml_write_sync (client->krad_ebml);	
 	
+}
+
+void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t snap_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT_JPEG, &snap_command);
+	krad_ebml_finish_element (client->krad_ebml, snap_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
+void krad_ipc_radio_get_logname (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t log_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_LOGNAME, &log_command);
+	krad_ebml_finish_element (client->krad_ebml, log_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
+void krad_ipc_radio_get_system_cpu_usage (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t cpu_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_CPU_USAGE, &cpu_command);
+	krad_ebml_finish_element (client->krad_ebml, cpu_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
+}
+
+void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client) {
+
+	uint64_t command;
+	uint64_t snap_command;
+	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_GET_LAST_SNAPSHOT_NAME, &snap_command);
+	krad_ebml_finish_element (client->krad_ebml, snap_command);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	krad_ebml_write_sync (client->krad_ebml);
 }
 
 void krad_ipc_compositor_info (krad_ipc_client_t *client) {
@@ -1741,7 +1807,7 @@ void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
 
 void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode,
 									char *host, int port, char *mount, char *password, char *codecs,
-									int video_width, int video_height, int video_bitrate, int audio_bitrate) {
+									int video_width, int video_height, int video_bitrate, char *audio_bitrate) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1750,6 +1816,9 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
+	
+	int audio_bitrate_int;
+	float vorbis_quality;
 	
 	audio_codec = VORBIS;
 	video_codec = VP8;
@@ -1807,19 +1876,77 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 				video_width = 1280;
 				video_height = 720;
 			}
+			if (video_bitrate == 0) {
+				video_bitrate = 31;
+			}
 		}		
 		
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
 		
 		if (video_codec == VP8) {
+			if (video_bitrate < 100) {
+				video_bitrate = 100;
+			}
+			
+			if (video_bitrate > 10000) {
+				video_bitrate = 10000;
+			}
 			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
-		}		
+		}
+		
+		if (video_codec == THEORA) {
+		
+			if (video_bitrate < 0) {
+				video_bitrate = 0;
+			}
+			
+			if (video_bitrate > 63) {
+				video_bitrate = 63;
+			}
+		
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, video_bitrate);	
+		}	
 		
 	}
 
 	if ((av_mode == AUDIO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (audio_codec));
+		if (audio_codec == FLAC) {
+			if (atoi(audio_bitrate) == 24) {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 24);
+			} else {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 16);
+			}
+		}
+		if (audio_codec == VORBIS) {
+			vorbis_quality = atof(audio_bitrate);
+			if (vorbis_quality == 0.0) {
+				vorbis_quality = 0.4;
+			}
+			if (vorbis_quality > 0.8) {
+				vorbis_quality = 0.8;
+			} 
+			if (vorbis_quality < 0.2) {
+				vorbis_quality = 0.2;
+			}
+		
+			krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY, vorbis_quality);
+		}
+		if (audio_codec == OPUS) {
+			audio_bitrate_int = atoi(audio_bitrate);
+			if (audio_bitrate_int == 0) {
+				audio_bitrate_int = 132000;
+			} 
+			if (audio_bitrate_int < 5000) {
+				audio_bitrate_int = 5000;
+			}
+			if (audio_bitrate_int > 320000) {
+				audio_bitrate_int = 320000;
+			}
+			
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, audio_bitrate_int);
+		}
 	}
 	
 	if (strcmp(password, "udp") == 0) {
@@ -1844,7 +1971,7 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 }
 
 void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs,
-									int video_width, int video_height, int video_bitrate, int audio_bitrate) {
+									int video_width, int video_height, int video_bitrate, char *audio_bitrate) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1916,12 +2043,29 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 				video_bitrate = 92 * 8;
 			}
 			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, video_bitrate);	
-		}		
+		}
+		
+		if (video_codec == THEORA) {
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, video_bitrate);	
+		}	
 		
 	}
 
 	if ((av_mode == AUDIO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (audio_codec));
+		if (audio_codec == FLAC) {
+			if (atoi(audio_bitrate) == 24) {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 24);
+			} else {
+				krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH, 16);
+			}
+		}
+		if (audio_codec == VORBIS) {
+			krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY, atof(audio_bitrate));
+		}
+		if (audio_codec == OPUS) {
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(audio_bitrate));
+		}		
 	}
 
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FILENAME, filename);
@@ -1929,6 +2073,31 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 	krad_ebml_finish_element (client->krad_ebml, link);
 
 	krad_ebml_finish_element (client->krad_ebml, create_link);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_list_decklink (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t list_decklink;
+	
+	linker_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_LIST_DECKLINK, &list_decklink);
+
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
+	//krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
+
+	krad_ebml_finish_element (client->krad_ebml, list_decklink);
 	krad_ebml_finish_element (client->krad_ebml, linker_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
 		
@@ -2157,7 +2326,7 @@ int krad_ipc_client_poll (krad_ipc_client_t *client) {
 		//*value = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 		//printf("Received number %d\n", *value);
 		
-		//krad_ipc_print_response (client);
+
 		client->handler ( client, client->ptr );
 	}
 
@@ -2307,67 +2476,76 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 	
 	pos = 0;
 	
+	pos += sprintf (text + pos, "%s %s", 
+					krad_link_operation_mode_to_string (krad_link->operation_mode),
+					krad_link_av_mode_to_string (krad_link->av_mode));
+
 	if ((krad_link->operation_mode == RECORD) || (krad_link->operation_mode == TRANSMIT)) {
 
+		if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == UDP)) {
+			pos += sprintf (text + pos, " %s", krad_link_transport_mode_to_string (krad_link->transport_mode));
+		}
+
 		if (krad_link->operation_mode == TRANSMIT) {
-	
-			pos += sprintf (text + pos, "%s - %s - %s:%d%s %s",
-							krad_link_operation_mode_to_string (krad_link->operation_mode),
-							krad_link_av_mode_to_string (krad_link->av_mode),
-							krad_link->host, krad_link->port, krad_link->mount,
-							krad_link_transport_mode_to_string(krad_link->transport_mode));
-							
-							
-							
+			pos += sprintf (text + pos, " to %s:%d%s", krad_link->host, krad_link->port, krad_link->mount);
 		}
 
 		if (krad_link->operation_mode == RECORD) {
-	
-			pos += sprintf (text + pos, "%s - %s - %s",
-							krad_link_operation_mode_to_string (krad_link->operation_mode),
-							krad_link_av_mode_to_string (krad_link->av_mode),
-							krad_link->filename);
+			pos += sprintf (text + pos, " to %s", krad_link->filename);
 		}
 				
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			pos += sprintf (text + pos, " %s", krad_codec_to_string (krad_link->video_codec));
-		}
 
-		if (krad_link->av_mode == AUDIO_AND_VIDEO) {
-			pos += sprintf (text + pos, " +");
+			pos += sprintf (text + pos, " Video -");
+
+			pos += sprintf (text + pos, " %dx%d %d/%d %d",
+							krad_link->width, krad_link->height,
+							krad_link->fps_numerator, krad_link->fps_denominator,
+							krad_link->color_depth);
+
+			pos += sprintf (text + pos, " Codec: %s", krad_codec_to_string (krad_link->video_codec));
+
+			if (krad_link->video_codec == THEORA) {
+				pos += sprintf (text + pos, " Quality: %d", krad_link->theora_quality); 
+			}	
+	
+			if (krad_link->video_codec == VP8) {
+				pos += sprintf (text + pos, " Bitrate: %d Min Quantizer: %d Max Quantizer: %d Deadline: %d",
+								krad_link->vp8_bitrate, krad_link->vp8_min_quantizer,
+								krad_link->vp8_max_quantizer, krad_link->vp8_deadline);
+			}
 		}
 
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			pos += sprintf (text + pos, " %s", krad_codec_to_string (krad_link->audio_codec));
+			pos += sprintf (text + pos, " Audio -");
+			pos += sprintf (text + pos, " Sample Rate: %d", krad_link->audio_sample_rate);
+			pos += sprintf (text + pos, " Channels: %d", krad_link->audio_channels);
+			pos += sprintf (text + pos, " Codec: %s", krad_codec_to_string (krad_link->audio_codec));
+						
+			if (krad_link->audio_codec == FLAC) {
+				pos += sprintf (text + pos, " Bit Depth: %d", krad_link->flac_bit_depth);
+			}		
+
+			if (krad_link->audio_codec == VORBIS) {
+				pos += sprintf (text + pos, " Quality: %.1f", krad_link->vorbis_quality); 
+			}		
+
+			if (krad_link->audio_codec == OPUS) {
+				pos += sprintf (text + pos, " Complexity: %d Bitrate: %d Frame Size: %d Signal: %s Bandwidth: %s", krad_link->opus_complexity,
+								krad_link->opus_bitrate, krad_link->opus_frame_size, krad_opus_signal_to_string (krad_link->opus_signal),
+								krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
+
+			}
 		}
-
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
-			pos += sprintf (text + pos, " Complexity: %d Bitrate: %d Frame Size: %d Signal: %s Bandwidth: %s", krad_link->opus_complexity,
-							krad_link->opus_bitrate, krad_link->opus_frame_size, krad_opus_signal_to_string (krad_link->opus_signal),
-							krad_opus_bandwidth_to_string (krad_link->opus_bandwidth));
-
-		}				
-				
 	}
 
 	if (krad_link->operation_mode == RECEIVE) {
-		
-		pos += sprintf (text + pos, "%s - %s", 
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_transport_mode_to_string (krad_link->transport_mode));
-						
 		if ((krad_link->transport_mode == UDP) || (krad_link->transport_mode == TCP)) {
 			pos += sprintf (text + pos, " Port %d", krad_link->port);
 		}
-	
 	}
 	
 	if (krad_link->operation_mode == PLAYBACK) {
-		
-		pos += sprintf (text + pos, "%s - %s", 
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_transport_mode_to_string (krad_link->transport_mode));
-						
 		if (krad_link->transport_mode == FILESYSTEM) {
 			pos += sprintf (text + pos, " File %s", krad_link->filename);
 		}
@@ -2376,22 +2554,13 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 			pos += sprintf (text + pos, " %s:%d%s",
 							krad_link->host, krad_link->port, krad_link->mount);
 		}
-	
 	}
-	
 	
 	if (krad_link->operation_mode == CAPTURE) {
-		
-		pos += sprintf (text + pos, "%s - %s - %s", 
-						krad_link_operation_mode_to_string (krad_link->operation_mode),
-						krad_link_av_mode_to_string (krad_link->av_mode),
-						krad_link_video_source_to_string (krad_link->video_source));
-	
+		pos += sprintf (text + pos, " from %s", krad_link_video_source_to_string (krad_link->video_source));
 	}
-	
-		
-	return pos;
 
+	return pos;
 }
 
 int krad_ipc_client_read_port ( krad_ipc_client_t *client, char *text) {
@@ -2457,6 +2626,8 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		bytes_read += ebml_data_size + 9;
 	}
 	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	krad_link->link_num = krad_ebml_read_number (client->krad_ebml, ebml_data_size);	
 	
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -2695,8 +2866,49 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 		}
 
 
-		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+		
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_AUDIO_CHANNELS) {
+				krad_link->audio_channels = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_AUDIO_SAMPLE_RATE) {
+				krad_link->audio_sample_rate = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}					
 
+		}
+
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH) {
+				krad_link->width = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT) {
+				krad_link->height = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_FPS_NUMERATOR) {
+				krad_link->fps_numerator = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_FPS_DENOMINATOR) {
+				krad_link->fps_denominator = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}									
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VIDEO_COLOR_DEPTH) {
+				krad_link->color_depth = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}			
+		}		
+
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == OPUS)) {
 
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 			if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL) {
@@ -2723,15 +2935,60 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 			if (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE) {
 				krad_link->opus_frame_size = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-			}								
+			}	
 
+			//EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
 		}
 
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == VORBIS)) {
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VORBIS_QUALITY) {
+				krad_link->vorbis_quality = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+			}
+		}
+
+		if (((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->audio_codec == FLAC)) {
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_FLAC_BIT_DEPTH) {
+				krad_link->flac_bit_depth = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}			
+		}
+
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == THEORA)) {
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY) {
+				krad_link->theora_quality = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+		}
+
+		if (((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) && (krad_link->video_codec == VP8)) {
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_BITRATE) {
+				krad_link->vp8_bitrate = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER) {
+				krad_link->vp8_min_quantizer = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+						
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER) {
+				krad_link->vp8_max_quantizer = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			if (ebml_id == EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE) {
+				krad_link->vp8_deadline = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+			}
+		}
 	}
 	
-	krad_link_rep_to_string ( krad_link, text );
-
-
+	if (text != NULL) {
+		krad_link_rep_to_string ( krad_link, text );
+	}
+	
 	if (krad_link_rep != NULL) {
 		*krad_link_rep = krad_link;
 	} else {
@@ -2924,10 +3181,15 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	char tag_name_actual[256];
 	char tag_item_actual[256];
 	char tag_value_actual[1024];
+
+	char string[1024];	
+	krad_link_rep_t *krad_link;
 	
 	tag_item_actual[0] = '\0';	
 	tag_name_actual[0] = '\0';
 	tag_value_actual[0] = '\0';
+	
+	string[0] = '\0';	
 	
 	char *tag_item = tag_item_actual;
 	char *tag_name = tag_name_actual;
@@ -2939,6 +3201,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	
 	int bytes_read;
 	int list_size;
+	int list_count;	
 	
 	list_size = 0;
 	bytes_read = 0;
@@ -2985,7 +3248,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 						list_size = ebml_data_size;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
-							printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+							printf ("%s: %s - %s", tag_item, tag_name, tag_value);
 							if (bytes_read == list_size) {
 								break;
 							}
@@ -2993,7 +3256,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						break;
 					case EBML_ID_KRAD_RADIO_TAG:
 						krad_ipc_client_read_tag_inner ( client, &tag_item, &tag_name, &tag_value );
-						printk ("%s: %s - %s", tag_item, tag_name, tag_value);
+						printf ("%s: %s - %s", tag_item, tag_name, tag_value);
 						break;
 
 					case EBML_ID_KRAD_RADIO_UPTIME:
@@ -3014,10 +3277,23 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						printf ("\n");
 					
 						break;
-					case EBML_ID_KRAD_RADIO_INFO:
-						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-						printf ("%s", tag_name);
+					case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
 						break;
+					case EBML_ID_KRAD_RADIO_LOGNAME:
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
+						break;
+					case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
+						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						printf ("%"PRIu64"%%\n", number);
+						break;
+						
 				}
 		
 		
@@ -3051,7 +3327,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
 						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printk ("Krad Mixer Sample Rate: %d", number );
+						printf ("Krad Mixer Sample Rate: %"PRIu64"", number );
 						break;						
 						
 				}
@@ -3065,8 +3341,17 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 				switch ( ebml_id ) {
 				
 					case EBML_ID_KRAD_COMPOSITOR_INFO:
-						krad_ebml_read_string (client->krad_ebml, tag_name, ebml_data_size);
-						printk ("%s", tag_name);
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
+						break;
+						
+					case EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME:
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
 						break;
 				
 					case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
@@ -3075,7 +3360,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						list_size = ebml_data_size;
 						i = 0;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_port ( client, tag_value)) <= list_size)) {
-							printk ("%d: %s", i, tag_value);
+							printf ("%d: %s\n", i, tag_value);
 							i++;
 							if (bytes_read == list_size) {
 								break;
@@ -3093,13 +3378,27 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 
 				switch ( ebml_id ) {
+				
+					case EBML_ID_KRAD_LINK_DECKLINK_LIST:
+
+						krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+						list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						for (i = 0; i < list_count; i++) {
+							krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
+							krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+							printf ("%d: %s\n", i, string);
+						}	
+						break;
+				
+				
 					case EBML_ID_KRAD_LINK_LINK_LIST:
 						//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
 	
 						list_size = ebml_data_size;
 						i = 0;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, NULL)) <= list_size)) {
-							printf("%d: %s\n", i, tag_value);
+						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, &krad_link)) <= list_size)) {
+							printf ("%d: %s\n", krad_link->link_num, tag_value);
+							free (krad_link);
 							i++;
 							if (bytes_read == list_size) {
 								break;
