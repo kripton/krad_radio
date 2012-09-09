@@ -21,7 +21,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 		failfast ("Failed to allocate vpx image\n");
 	}
 
-	kradvpx->res = vpx_codec_enc_config_default (interface, &kradvpx->cfg, 0);
+	kradvpx->res = vpx_codec_enc_config_default (vpx_codec_vp8_cx(), &kradvpx->cfg, 0);
 
 	if (kradvpx->res) {
 		failfast ("Failed to get config: %s\n", vpx_codec_err_to_string(kradvpx->res));
@@ -51,7 +51,7 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 
 	krad_vpx_encoder_print_config (kradvpx);
 
-	if (vpx_codec_enc_init(&kradvpx->encoder, interface, &kradvpx->cfg, 0)) {
+	if (vpx_codec_enc_init(&kradvpx->encoder, vpx_codec_vp8_cx(), &kradvpx->cfg, 0)) {
 		 krad_vpx_fail (&kradvpx->encoder, "Failed to initialize encoder");
 	}
 
