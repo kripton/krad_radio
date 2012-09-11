@@ -120,6 +120,10 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				if ((part != NULL) && (strcmp(part->valuestring, "remove_link") == 0)) {
 					part = cJSON_GetObjectItem (cmd, "link_num");
 					krad_ipc_destroy_link (pss->krad_ipc_client, part->valueint);
+				} else {
+					if ((part != NULL) && (strcmp(part->valuestring, "add_link") == 0)) {
+						
+					}
 				}
 			}	
 		}		

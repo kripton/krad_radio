@@ -13,7 +13,7 @@
             user-select: none;
             -moz-user-select: none;
             -webkit-user-select: none;
-			color: #eee;
+			color: #ccc;
 			background-color: #505050;
 			margin: 35px;
 		}
@@ -26,6 +26,13 @@
 
 		h1, h2, h3, h4, h5, h6 {
 			cursor: default;
+		}
+
+		.kradlink_link h3 {
+            color: #919191;
+            text-shadow: 0px 0px 0px #444;
+            font-weight: bold; 
+            font-size: 26px;
 		}
 
 		.kradmixer_control, .kradlink_control { height: 212px; float: left; margin: 14px; }
@@ -51,10 +58,10 @@
             -moz-transform: none;
             -o-transform: none;
 		}
-
+		
 		.volume_control, .kradlink_param_control { padding-left: 28px; margin-right: 10px; padding-right: 0px; width: 50px; }
 		.crossfade_control { width: 200px; }
-		.kradlink_link { width: 80%; margin: 20px; padding: 10px; border: 1px solid black; }
+		.kradlink_link { width: 80%; margin: 20px; margin-bottom: 32px; padding: 10px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #616161; }
 		.dtmf_pad { width: 254px; height: 230px; padding: 2px; }
 		.dtmf_button { color: #FFFFFF; 
 					   background-color: #0000FF; text-align: center; width: 22px; height: 22px; margin: 2px;
@@ -65,7 +72,7 @@
 						   border: 1px solid grey; cursor: pointer; float: left; }
 						   
         .kradlink { margin-top: 132px; }
-        .tag { white-space: nowrap; font-family: Monospace; font-size: 14px; }
+        .tag { white-space: nowrap; font-family: Helvetica,sans-serif; font-size: 14px; }
 	</style>
 	
 	<style>
@@ -177,6 +184,281 @@
 			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
 						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
 						rgba(5,171,224,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+		
+		.krad_button3 {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(171,171,171,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 0%,rgba(171,171,171,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(171,171,171,1);
+			border-left: 0px solid rgba(171,171,171,1);
+			border-right: 0.13em solid rgba(171,171,171,0.1);
+			border-bottom: 0.13em solid rgba(171,171,171,0.1);
+
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(171,171,171,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button3:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 12%,rgba(171,171,171,1) 100%);
+			border-top: 0em solid rgba(171,171,171,1);
+			border-left: 0px solid rgba(171,171,171,1);
+			border-right: 0.13em solid rgba(171,171,171,1);
+			border-bottom: 0.13em solid rgba(171,171,171,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(171,171,171,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+		
+		
+		.krad_button4 {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(171,5,224,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 0%,rgba(171,5,224,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(171,5,224,1);
+			border-left: 0px solid rgba(171,5,224,1);
+			border-right: 0.13em solid rgba(171,5,224,0.1);
+			border-bottom: 0.13em solid rgba(171,5,224,0.1);
+
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(171,5,224,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button4:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 12%,rgba(171,5,224,1) 100%);
+			border-top: 0em solid rgba(171,5,224,1);
+			border-left: 0px solid rgba(171,5,224,1);
+			border-right: 0.13em solid rgba(171,5,224,1);
+			border-bottom: 0.13em solid rgba(171,5,224,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(171,5,224,0.85) 0px 1px 5px; /* drop shadow */
+
+		}			
+
+		
+		.krad_button5 {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(244,5,35,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 0%,rgba(244,5,35,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(244,5,35,1);
+			border-left: 0px solid rgba(244,5,35,1);
+			border-right: 0.13em solid rgba(244,5,35,0.1);
+			border-bottom: 0.13em solid rgba(244,5,35,0.1);
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(244,5,35,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button5:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 12%,rgba(244,5,35,1) 100%);
+			border-top: 0em solid rgba(244,5,35,1);
+			border-left: 0px solid rgba(244,5,35,1);
+			border-right: 0.13em solid rgba(244,5,35,1);
+			border-bottom: 0.13em solid rgba(244,5,35,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(244,5,35,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+
+		.krad_button6 {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(222,5,22,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 0%,rgba(222,5,22,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(222,5,22,1);
+			border-left: 0px solid rgba(222,5,22,1);
+			border-right: 0.13em solid rgba(222,5,22,0.1);
+			border-bottom: 0.13em solid rgba(222,5,22,0.1);
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(222,5,22,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button6:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 12%,rgba(222,5,22,1) 100%);
+			border-top: 0em solid rgba(222,5,22,1);
+			border-left: 0px solid rgba(222,5,22,1);
+			border-right: 0.13em solid rgba(222,5,22,1);
+			border-bottom: 0.13em solid rgba(222,5,22,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(222,5,22,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+
+
+		.krad_button7 {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			font-size: 16px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(22,222,5,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 0%,rgba(22,222,5,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(22,222,5,1);
+			border-left: 0px solid rgba(22,222,5,1);
+			border-right: 0.13em solid rgba(22,222,5,0.1);
+			border-bottom: 0.13em solid rgba(22,222,5,0.1);
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(22,222,5,1) 0px 1px 5px; /* drop shadow */
+
+		}
+	
+		.krad_button7:active {
+			margin-left: 10px;
+			margin-right: 10px;
+			margin-top: 9px;
+			margin-bottom: 9px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 8px;
+			padding-bottom: 7px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(83,203,241,1) 12%,rgba(22,222,5,1) 100%);
+			border-top: 0em solid rgba(22,222,5,1);
+			border-left: 0px solid rgba(22,222,5,1);
+			border-right: 0.13em solid rgba(22,222,5,1);
+			border-bottom: 0.13em solid rgba(22,222,5,1);
+			text-shadow: rgba(22,22,222,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(22,222,5,0.85) 0px 1px 5px; /* drop shadow */
 
 		}
 

@@ -218,6 +218,21 @@ Kradradio.prototype.got_frame_size = function (width, height) {
 
 }
 
+
+Kradradio.prototype.add_kradlink_tools = function () {
+	$('.kradlink_tools').append("<div class='kradlink_add_link'></div>");
+	
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button3' id='capture'>Capture</div>");	
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button2' id='record'>Record</div>");
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button' id='transmit'>Transmit</div>");		
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button4' id='capture'>Monkey</div>");
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button5' id='capture'>Unicorn</div>");
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button6' id='capture'>Bacon</div>");	
+	$('.kradlink_add_link').append("<div class='button_wrap'><div class='krad_button7' id='capture'>Activate</div>");		
+
+}
+
+
 Kradradio.prototype.got_sysname = function (sysname) {
 
 	this.sysname = sysname;
@@ -247,8 +262,10 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    </div>\
 	                    <br clear='both'>\
 	                  </div>");
-	                  
-	                  
+	 
+	 
+	this.add_kradlink_tools();
+       
 }
 
 
@@ -260,11 +277,11 @@ Kradradio.prototype.show_snapshot_buttons = function () {
 	
 		$('.kradcompositor').append("<br clear='both'/>");
 
-		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='snapshot'>Snapshot</div>");
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button3' id='snapshot'>Snapshot</div>");
 	
-		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='jsnapshot'>JPEG Snapshot</div>");	
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button3' id='jsnapshot'>JPEG Snapshot</div>");	
 	
-		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button2' id='view_snapshot'><a target='_new' href='/snapshot'>View Last</a></div>");	
+		$('.kradcompositor').append("<div class='button_wrap'><div class='krad_button3' id='view_snapshot'><a target='_new' href='/snapshot'>View Last</a></div>");	
 	
 		$('.kradcompositor').append("<br clear='both'/>");
 	
@@ -630,17 +647,15 @@ Kradradio.prototype.got_add_link = function (link) {
 		this.show_snapshot_buttons();
 	}
 
-
 	$('.kradlink').append("<div class='kradlink_link' id='link_" + link.link_num + "_wrap'> <div id='link_" + link.link_num + "'></div></div>");
 
-	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + " " + link.av_mode + "</h3>");
+	$('#link_' + link.link_num).append("<h3>" + link.operation_mode + " " + link.av_mode.replace(" only","") + "</h3>");
 
 	$('#link_' + link.link_num).append("<div id='ktags_link" + link.link_num + "'></div>");
 
 	if (link.operation_mode == "capture") {
 		$('#link_' + link.link_num).append("<h5>" + link.video_source + "</h5>");
 	}
-
 
 	if (link.operation_mode == "transmit") {
 
@@ -650,6 +665,19 @@ Kradradio.prototype.got_add_link = function (link) {
 		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
 			$('#link_' + link.link_num).append("<h5>Audio Codec: " + link.audio_codec + " Channels: " + link.audio_channels + " Sample Rate: " + link.audio_sample_rate + "</h5>");
 		}
+
+		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
+		
+			if (link.audio_codec == "FLAC") {
+				$('#link_' + link.link_num).append("<h5>FLAC Bit Depth: " + link.flac_bit_depth + "</h5>");
+			}		
+		
+			if (link.audio_codec == "Vorbis") {
+				$('#link_' + link.link_num).append("<h5>Vorbis Quality: " + link.vorbis_quality + "</h5>");
+			}
+		}
+
+		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
 		
 		if (link.av_mode == "audio only") {
 			$('#link_' + link.link_num).append("<audio controls preload='none' src='http://" + link.host + ":" + link.port + link.mount + "'>Audio tag should be here.</audio>");		
@@ -659,8 +687,8 @@ Kradradio.prototype.got_add_link = function (link) {
 			$('#link_' + link.link_num).append("<video controls poster='/snapshot' preload='none' width='480' height='270' src='http://" + link.host + ":" + link.port + link.mount + "'>Video tag should be here.</video>");		
 		}
 
-		$('#link_' + link.link_num).append("<h5><a href='http://" + link.host + ":" + link.port + link.mount + "'>" + link.host + ":" + link.port + link.mount + "</a></h5>");
-		
+		$('#link_' + link.link_num).append("<br clear='both'/><br clear='both'/>");
+
 		if ((link.av_mode == "video only") || (link.av_mode == "audio and video")) {
 		
 			if (link.video_codec == "Theora") {
@@ -678,7 +706,6 @@ Kradradio.prototype.got_add_link = function (link) {
 
 			if (link.video_codec == "VP8") {
 				$('#link_' + link.link_num).append("<div class='kradlink_control kradlink_param_control'><div id='link_" + link.link_num + "_vp8_bitrate_slider'></div><h2>Bitrate&nbsp;<span id='link_" + link.link_num + "_vp8_bitrate_value'>" + link.vp8_bitrate + "</span></h2></div>");
-
 
 				$('#link_' + link.link_num + '_vp8_bitrate_slider').slider({orientation: 'vertical', value: link.vp8_bitrate, min: 100, max: 10000 });
 
@@ -715,26 +742,15 @@ Kradradio.prototype.got_add_link = function (link) {
 				});		
 		
 			}
-		
-		}		
+		}	
 		
 		if ((link.av_mode == "audio only") || (link.av_mode == "audio and video")) {
-		
-			if (link.audio_codec == "FLAC") {
-				$('#link_' + link.link_num).append("<h5>FLAC Bit Depth: " + link.flac_bit_depth + "</h5>");
-			}		
-		
-			if (link.audio_codec == "Vorbis") {
-				$('#link_' + link.link_num).append("<h5>Vorbis Quality: " + link.vorbis_quality + "</h5>");
-			}		
-		
+	
 			if (link.audio_codec == "Opus") {
 		
 		
 				$('#link_' + link.link_num).append("<h5>Opus frame size: </h5>");
-			
-			
-			
+
 				frame_size_controls = '<div id="link_' + link.link_num + '_opus_frame_size_setting">\
 					<input type="radio" id="radio1" name="link_' + link.link_num + '_opus_frame_size" value="120"/><label for="radio1">120</label>\
 					<input type="radio" id="radio2" name="link_' + link.link_num + '_opus_frame_size" value="240"/><label for="radio2">240</label>\
@@ -806,7 +822,6 @@ Kradradio.prototype.got_add_link = function (link) {
 					kradradio.update_link (link.link_num, "opus_bitrate", ui.value);
 				});		
 
-
 				$('#link_' + link.link_num + '_opus_complexity_slider').slider({orientation: 'vertical', value: link.opus_complexity, min: 0, max: 10 });
 
 				$( '#link_' + link.link_num + '_opus_complexity_slider' ).bind( "slide", function(event, ui) {
@@ -819,13 +834,13 @@ Kradradio.prototype.got_add_link = function (link) {
 	
 	$('#link_' + link.link_num).append("<br clear='both'/>");
 
-	$('#link_' + link.link_num).append("<div class='button_wrap'><div class='krad_button2' id='" + link.link_num + "_remove'>Remove</div>");
+	$('#link_' + link.link_num).append("<div class='button_wrap'><div class='krad_button6' id='" + link.link_num + "_remove'>Remove</div>");
 
 	$( '#' + link.link_num + '_remove').bind( "click", function(event, ui) {
 		kradradio.remove_link(link.link_num);
 	});
 	
-	$('#link_' + link.link_num).append("<br clear='both'/>");	
+	$('#link_' + link.link_num).append("<br clear='both'/><br clear='both'/>");	
 
 }
 	

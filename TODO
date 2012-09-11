@@ -2,6 +2,10 @@
 
 	webui add link ability
 
+	capture
+	transmit
+	record
+
 	link destroy/create broadcast not also broadcasting ass. mixer portgroup
 
 	VP8 portgroup IO params, ie VP8 input res != compositor res
@@ -14,7 +18,7 @@
 	
 	uptime/cpu/sysinfo
 	
-	xmms2 playback ctls?
+	xmms2 playback ctls? - prev / play / pause / stop / next
 	
 	detection cache and poll?
 	
