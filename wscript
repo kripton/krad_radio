@@ -21,6 +21,16 @@ def options(opt):
 	opt.load('compiler_c')
 	opt.load('compiler_cxx')
 	
+def check_way(way):
+	try:  
+	   os.environ["WAYRAD"]
+	except KeyError: 
+		return
+	if os.environ['WAYRAD']:
+		print("WAYRAD DETECTED!")
+		way.env['WAYRAD'] = "yes"
+		way.env.append_unique('CFLAGS', ['-DWAYRAD'])
+
 def configure(conf):
 
 	platform = sys.platform
@@ -34,14 +44,18 @@ def configure(conf):
 	if conf.env['IS_MACOSX']:
 		print("MacOS X detected :(")
 
+	check_way(conf)
+
 	conf.load('compiler_c')	
 	conf.load('compiler_cxx')
 
 	conf.check_tool('gcc')
 	conf.check_tool('gnu_dirs')
 #	conf.env.append_unique('CFLAGS', ['-g', '-Wall', '-Wno-unused-variable', '-Wno-unused-but-set-variable'])
+	conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
 	conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
 	conf.recurse(subdirs, mandatory = False)
 	
 def build(bld):
-    bld.recurse(subdirs, mandatory = False)
+	check_way(bld)
+	bld.recurse(subdirs, mandatory = False)

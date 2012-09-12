@@ -60,6 +60,11 @@ struct krad_system_cpu_monitor_St {
 	int on;	
 	
 	pthread_t monitor_thread;
+	
+	void *callback_pointer;
+	void (*cpu_monitor_callback)( void *, uint32_t);
+	
+	int unset_cpu_monitor_callback;
 
 };
 
@@ -68,7 +73,7 @@ struct krad_system_St {
 	char info_string[1024];
 	int info_string_len;
 	
-	int system_cpu_usage;
+	uint32_t system_cpu_usage;
 	
 	krad_system_cpu_monitor_t kcm;
 	struct utsname unix_info;
@@ -82,6 +87,9 @@ struct krad_system_St {
 
 void krad_system_log_on (char *filename);
 void krad_system_log_off ();
+void krad_system_unset_monitor_cpu_callback ();
+void krad_system_set_monitor_cpu_callback (void *callback_pointer, 
+									 void (*cpu_monitor_callback)( void *, uint32_t));
 
 void krad_system_set_monitor_cpu_interval (int ms);
 void *krad_system_monitor_cpu_thread (void *arg);

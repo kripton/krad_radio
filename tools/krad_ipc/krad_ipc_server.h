@@ -117,8 +117,13 @@ struct krad_ipc_server_client_St {
 
 };
 
+void krad_ipc_release_client (krad_ipc_server_client_t *client);
+int krad_ipc_aquire_client (krad_ipc_server_client_t *client);
+
 void krad_ipc_server_register_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id );
 void krad_ipc_server_add_client_to_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id );
+
+void krad_ipc_server_simplest_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t val);
 
 
 void krad_ipc_server_advanced_string_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num, uint32_t ebml_subid3, char *string);

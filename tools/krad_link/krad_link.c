@@ -2762,17 +2762,16 @@ void krad_linker_broadcast_link_created ( krad_ipc_server_t *krad_ipc_server, kr
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
 		//if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 		if (krad_ipc_server->clients[c].broadcasts == 1) {
-		
-			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_LINK_MSG, &element);	
-			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_LINK_LINK_CREATED, &subelement);		
-		
-			krad_linker_link_to_ebml ( &krad_ipc_server->clients[c], krad_link);
-			
-			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
-			krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
-			krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);	
-			
-		}	
+			if (krad_ipc_aquire_client (&krad_ipc_server->clients[c])) {
+				krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_LINK_MSG, &element);	
+				krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_LINK_LINK_CREATED, &subelement);		
+				krad_linker_link_to_ebml ( &krad_ipc_server->clients[c], krad_link);
+				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
+				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
+				krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
+				krad_ipc_release_client (&krad_ipc_server->clients[c]);
+			}
+		}
 	}
 }
 

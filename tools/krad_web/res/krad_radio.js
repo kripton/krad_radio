@@ -175,8 +175,8 @@ function Kradradio () {
 	
 	this.decklink_devices = new Array();	
 	
-	this.showing_snapshot_buttons = 0;	
-	
+	this.showing_snapshot_buttons = 0;
+	this.system_cpu_usage = 0;
 	this.admin = 0;
 	this.kode = "";
 	this.secretkode = "31337";	
@@ -401,6 +401,13 @@ Kradradio.prototype.add_kradlink_tools = function () {
 
 }
 
+Kradradio.prototype.got_system_cpu_usage = function (system_cpu_usage) {
+
+	this.system_cpu_usage = system_cpu_usage;
+
+	$('.system_cpu_usage').html(this.system_cpu_usage);
+
+}
 
 Kradradio.prototype.got_sysname = function (sysname) {
 
@@ -428,6 +435,7 @@ Kradradio.prototype.got_sysname = function (sysname) {
 						<div class='kradradio'>\
 	                      <h2 class='sysname'>" + this.sysname + "</h2>\
 	                      <div class='tags'></div>\
+	                      <div class='system_cpu_usage'></div>\
 	                    </div>\
 	                    <br clear='both'>\
 	                  </div>");
@@ -512,6 +520,9 @@ Kradradio.prototype.got_messages = function (msgs) {
 			}			
 		}		
 		if (msg_arr[m].com == "kradradio") {
+			if (msg_arr[m].info == "cpu") {
+				kradradio.got_system_cpu_usage (msg_arr[m].system_cpu_usage);
+			}
 			if (msg_arr[m].info == "sysname") {
 				kradradio.got_sysname (msg_arr[m].infoval);
 			}

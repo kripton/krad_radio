@@ -115,7 +115,6 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 
 }
 
-
 void krad_radio_daemon (char *sysname) {
 
 	pid_t pid;
@@ -141,6 +140,15 @@ void krad_radio_daemon (char *sysname) {
 	}
 }
 
+void krad_radio_cpu_monitor_callback (krad_radio_t *krad_radio_station, uint32_t usage) {
+
+	//printk ("System CPU Usage: %d%%", usage);
+	krad_ipc_server_simplest_broadcast ( krad_radio_station->krad_ipc,
+										 EBML_ID_KRAD_RADIO_MSG,
+										 EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE,
+										 usage);
+
+}
 
 static void krad_radio_run (krad_radio_t *krad_radio_station) {
 
@@ -158,6 +166,10 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
     }
 
   	krad_system_monitor_cpu_on ();
+  	
+	krad_system_set_monitor_cpu_callback ((void *)krad_radio_station, 
+									 (void (*)(void *, uint32_t))krad_radio_cpu_monitor_callback);  	
+  	
 	krad_compositor_start_ticker (krad_radio_station->krad_compositor);
 	krad_mixer_start_ticker (krad_radio_station->krad_mixer);  	
 

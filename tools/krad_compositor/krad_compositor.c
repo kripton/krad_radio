@@ -4,9 +4,7 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
 static void *krad_compositor_display_thread (void *arg);
 
-//#define KRAD_WAYLAND 1
-
-#ifdef KRAD_WAYLAND
+#ifdef WAYRAD
 
 typedef struct krad_compositor_wayland_display_St krad_compositor_wayland_display_t;
 
@@ -372,7 +370,7 @@ void krad_compositor_render_background (krad_compositor_t *krad_compositor, krad
 }
 
 void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform) {
-
+/*
     double q0x = q[0].x, q0y = q[0].y;
     double q1x = q[1].x, q1y = q[1].y;
     double q2x = q[2].x, q2y = q[2].y;
@@ -418,7 +416,7 @@ void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double
 	temp_transform.matrix[2][2] = pixman_double_to_fixed(m22);
 
 //	pixman_transform_invert (transform, &temp_transform);
-/*
+
 	transform->matrix[0][0] = pixman_int_to_fixed(1);
 	transform->matrix[0][1] = pixman_int_to_fixed(0);
 	transform->matrix[0][2] = pixman_int_to_fixed(0);
@@ -570,10 +568,10 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 					}
 	
 					if (krad_compositor->enable_keystone) {
-						
+/*
 						pixman_image_t *src_img;
 						pixman_image_t *dest_img;
-/*
+
 						src_img = pixman_image_create_bits (PIXMAN_a8r8g8b8,
 										 krad_compositor->port[p].crop_width, krad_compositor->port[p].crop_height, 
 										 (uint32_t *)frame->pixels,

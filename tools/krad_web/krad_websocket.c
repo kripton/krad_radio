@@ -175,6 +175,18 @@ void krad_websocket_set_tag (krad_ipc_session_data_t *krad_ipc_session_data, cha
 
 }
 
+void krad_websocket_set_cpu_usage (krad_ipc_session_data_t *krad_ipc_session_data, int usage) {
+
+	cJSON *msg;
+	
+	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
+	
+	cJSON_AddStringToObject (msg, "com", "kradradio");
+	cJSON_AddStringToObject (msg, "info", "cpu");
+	cJSON_AddNumberToObject (msg, "system_cpu_usage", usage);
+
+}
+
 void krad_websocket_add_decklink_device ( krad_ipc_session_data_t *krad_ipc_session_data, char *name, int num) {
 
 	cJSON *msg;
@@ -525,6 +537,12 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 		
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			switch ( ebml_id ) {
+			
+				case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
+					number = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
+					//printk ("System CPU Usage: %d%%", number);
+					krad_websocket_set_cpu_usage (krad_ipc_session_data, number);
+					break;
 
 				case EBML_ID_KRAD_RADIO_TAG_LIST:
 					//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);

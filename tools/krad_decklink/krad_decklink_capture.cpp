@@ -458,7 +458,7 @@ int krad_decklink_cpp_detect_devices () {
 	IDeckLinkIterator *deckLinkIterator;
 	IDeckLink *deckLink;
 	int device_count;
-	HRESULT result;
+	//HRESULT result;
 	
 	device_count = 0;
 	

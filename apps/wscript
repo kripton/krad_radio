@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 programs = """
 krad_radio_daemon.c
 """.split()
@@ -12,10 +14,6 @@ krad_radio_gtk.c
 
 sources = """
 """.split()
-
-# FIXME option builds
-# FIXME ../tools/krad_wayland/krad_wayland.c
-# FIXME ../tools/krad_codec2/krad_codec2.c
 
 depsources = """
 ../tools/krad_link/krad_link_common.c
@@ -89,7 +87,6 @@ includedirs = """
 ../tools/krad_ipc/
 ../tools/krad_tags/
 ../tools/krad_audio/
-../tools/krad_wayland/
 ../tools/krad_theora/
 ../tools/krad_jack/
 ../tools/krad_pulse/
@@ -122,17 +119,19 @@ includedirs = """
 /usr/include
 """.split()
 
-depsources += ["../tools/krad_wayland/krad_wayland.c"]
-
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
 		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses", "xmms2-client"]
 
+def check_way(way):
 
-libs += ["wayland-client"]
+	global depsources
+	global libs
 
-# FIXME option builds
-# libs = libs + ["wayland-client", "codec2"] 
+	if way.env['WAYRAD']:
+		#print("WAYRAD DETECTED!")	
+		depsources += ["../tools/krad_wayland/krad_wayland.c"]
+		libs += ["wayland-client"]
 
 def remake_webres(web):
 	cmd = 'xxd -i tools/krad_web/res/krad_radio.html tools/krad_web/res/krad_radio.html.h'
@@ -145,6 +144,7 @@ def remake_webres(web):
 def configure(conf):
 
 	remake_webres(conf)	
+	check_way(conf)
 	
 	for l in libs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
@@ -153,6 +153,7 @@ def configure(conf):
 def build(bld):
 
 	remake_webres(bld)
+	check_way(bld)
 
 	for p in programs:
 

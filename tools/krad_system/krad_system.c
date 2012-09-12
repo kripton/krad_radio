@@ -103,6 +103,14 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 			kcm->diff_total = kcm->total - kcm->last_total;
 
 			kcm->usage = (1000 * (kcm->diff_total - kcm->diff_idle) / kcm->diff_total + 5) / 10;
+			
+			if (kcm->usage < 0) {
+				kcm->usage = 0;
+			} else {
+				if (kcm->usage > 100) {
+					kcm->usage = 100;
+				}
+			} 
 
 			krad_system.system_cpu_usage = kcm->usage;
 
@@ -111,6 +119,16 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 			kcm->last_idle = kcm->idle;
 			kcm->last_total = kcm->total;
+			
+			if (kcm->unset_cpu_monitor_callback == 1) {
+				kcm->callback_pointer = NULL;
+				kcm->cpu_monitor_callback = NULL;
+				kcm->unset_cpu_monitor_callback = 0;
+			}
+			
+			if (kcm->cpu_monitor_callback) {
+				kcm->cpu_monitor_callback (kcm->callback_pointer, krad_system.system_cpu_usage);
+			}
 
 		}
 
@@ -126,6 +144,27 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 	return NULL;
 
 }
+
+void krad_system_unset_monitor_cpu_callback () {
+	
+	krad_system_cpu_monitor_t *kcm;
+	kcm = &krad_system.kcm;
+	kcm->unset_cpu_monitor_callback = 1;
+									 
+}
+									 
+
+void krad_system_set_monitor_cpu_callback (void *callback_pointer, 
+									 void (*cpu_monitor_callback)( void *, uint32_t)) {
+	
+	krad_system_cpu_monitor_t *kcm;
+	kcm = &krad_system.kcm;
+		
+	kcm->callback_pointer = callback_pointer;
+	kcm->cpu_monitor_callback = cpu_monitor_callback;							 
+
+}
+
 
 char *krad_system_info () {
 
