@@ -179,7 +179,9 @@ function Kradradio () {
 	this.system_cpu_usage = 0;
 	this.admin = 0;
 	this.kode = "";
-	this.secretkode = "31337";	
+	this.secretkode = "31337";
+	
+	this.prepare_link_operation_mode = "";
 	
 }
 
@@ -229,11 +231,29 @@ Kradradio.prototype.add_link = function () {
 	cmd.com = "kradlink";  
 	cmd.cmd = "add_link";
 
-  	cmd.host = $('[name=prepare_link_server_info_url]').val();
-  	cmd.port = $('[name=prepare_link_server_info_port]').val();
-  	cmd.mount = $('[name=prepare_link_server_info_mount]').val();
-  	cmd.password = $('[name=prepare_link_server_info_password]').val();
-	
+	cmd.operation_mode = this.prepare_link_operation_mode;
+  	cmd.av_mode = $('[name=prepare_link_avmode]:radio:checked').val();
+
+	if (cmd.operation_mode == "transmit") {
+	  	cmd.host = $('[name=prepare_link_server_info_url]').val();
+	  	cmd.port = $('[name=prepare_link_server_info_port]').val();
+	  	cmd.mount = $('[name=prepare_link_server_info_mount]').val();
+	  	cmd.password = $('[name=prepare_link_server_info_password]').val();
+	}
+
+	if (cmd.operation_mode == "record") {
+	  	cmd.filename = $('[name=prepare_link_filename]').val();
+	}
+
+	if ((cmd.operation_mode == "record") || (cmd.operation_mode == "transmit")) {
+		if ((cmd.av_mode == "audio_only") || (cmd.av_mode == "audio_and_video")) {
+  			cmd.audio_codec = $('[name=prepare_link_audio_codec]:radio:checked').val();	
+		}
+		if ((cmd.av_mode == "video_only") || (cmd.av_mode == "audio_and_video")) {
+  			cmd.video_codec = $('[name=prepare_link_video_codec]:radio:checked').val();
+		}
+	}
+
 	cmd.port = parseInt(cmd.port);
 	
 	var JSONcmd = JSON.stringify(cmd); 
@@ -263,6 +283,8 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').empty();	
 		$('.kradlink_prepare_link').append("<h3>Add Capture</h3>");
 		
+		kradradio.prepare_link_operation_mode = "capture";
+		
 		if (kradradio.admin) {
 			$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button7' id='add_link'>Begin</div>");
 		} else {
@@ -279,6 +301,8 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').empty();	
 		$('.kradlink_prepare_link').append("<h3>Create Recording</h3>");
 		
+		kradradio.prepare_link_operation_mode = "record";		
+		
 		avmode = '<div id="prepare_link_avmode">\
 			<input type="radio" id="radio1900" name="prepare_link_avmode" value="audio_only"/><label for="radio1900">Audio</label>\
 			<input type="radio" id="radio2900" name="prepare_link_avmode" value="video_only"/><label for="radio2900">Video</label>\
@@ -292,14 +316,14 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		</div>';
 
 		video_codec = '<div id="prepare_link_video_codec">\
-			<input type="radio" id="radio1600" name="prepare_link_video_codec" value="ogg"/><label for="radio1600">Theora</label>\
-			<input type="radio" id="radio2600" name="prepare_link_video_codec" value="mkv"/><label for="radio2600">VP8</label>\
+			<input type="radio" id="radio1600" name="prepare_link_video_codec" value="theora"/><label for="radio1600">Theora</label>\
+			<input type="radio" id="radio2600" name="prepare_link_video_codec" value="vp8"/><label for="radio2600">VP8</label>\
 		</div>';
 	
 		audio_codec = '<div id="prepare_link_audio_codec">\
-			<input type="radio" id="radio1700" name="prepare_link_audio_codec" value="ogg"/><label for="radio1700">Opus</label>\
-			<input type="radio" id="radio2700" name="prepare_link_audio_codec" value="mkv"/><label for="radio2700">Vorbis</label>\
-			<input type="radio" id="radio3700" name="prepare_link_audio_codec" value="webm"/><label for="radio3700">FLAC</label>\
+			<input type="radio" id="radio1700" name="prepare_link_audio_codec" value="opus"/><label for="radio1700">Opus</label>\
+			<input type="radio" id="radio2700" name="prepare_link_audio_codec" value="vorbis"/><label for="radio2700">Vorbis</label>\
+			<input type="radio" id="radio3700" name="prepare_link_audio_codec" value="flac"/><label for="radio3700">FLAC</label>\
 		</div>';
 
 	
@@ -332,6 +356,7 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').empty();	
 		$('.kradlink_prepare_link').append("<h3>Add Transmission</h3>");
 		
+		kradradio.prepare_link_operation_mode = "transmit";		
 		
 		avmode = '<div id="prepare_link_avmode">\
 			<input type="radio" id="radio1900" name="prepare_link_avmode" value="audio_only"/><label for="radio1900">Audio</label>\
@@ -346,14 +371,14 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		</div>';
 
 		video_codec = '<div id="prepare_link_video_codec">\
-			<input type="radio" id="radio1600" name="prepare_link_video_codec" value="ogg"/><label for="radio1600">Theora</label>\
-			<input type="radio" id="radio2600" name="prepare_link_video_codec" value="mkv"/><label for="radio2600">VP8</label>\
+			<input type="radio" id="radio1600" name="prepare_link_video_codec" value="theora"/><label for="radio1600">Theora</label>\
+			<input type="radio" id="radio2600" name="prepare_link_video_codec" value="vp8"/><label for="radio2600">VP8</label>\
 		</div>';
 	
 		audio_codec = '<div id="prepare_link_audio_codec">\
-			<input type="radio" id="radio1700" name="prepare_link_audio_codec" value="ogg"/><label for="radio1700">Opus</label>\
-			<input type="radio" id="radio2700" name="prepare_link_audio_codec" value="mkv"/><label for="radio2700">Vorbis</label>\
-			<input type="radio" id="radio3700" name="prepare_link_audio_codec" value="webm"/><label for="radio3700">FLAC</label>\
+			<input type="radio" id="radio1700" name="prepare_link_audio_codec" value="opus"/><label for="radio1700">Opus</label>\
+			<input type="radio" id="radio2700" name="prepare_link_audio_codec" value="vorbis"/><label for="radio2700">Vorbis</label>\
+			<input type="radio" id="radio3700" name="prepare_link_audio_codec" value="flac"/><label for="radio3700">FLAC</label>\
 		</div>';
 	
 	

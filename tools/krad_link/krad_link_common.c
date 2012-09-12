@@ -102,27 +102,23 @@ char *krad_codec_to_string (krad_codec_t codec) {
 
 krad_codec_t krad_string_to_codec (char *string) {
 
-	if (strcmp(string, "Vorbis") == 0) {
+	if ((strcmp(string, "Vorbis") == 0) || (strcmp(string, "vorbis") == 0)) {
 		return VORBIS;
 	}
 
-	if (strcmp(string, "FLAC") == 0) {
+	if ((strcmp(string, "FLAC") == 0) || (strcmp(string, "flac") == 0)) {
 		return FLAC;
 	}
 
-	if (strcmp(string, "Opus") == 0) {
+	if ((strcmp(string, "Opus") == 0) || (strcmp(string, "opus") == 0)) {
 		return OPUS;
 	}
 
-	if (strcmp(string, "VP8") == 0) {
+	if ((strcmp(string, "VP8") == 0) || (strcmp(string, "vp8") == 0)) {
 		return VP8;
 	}
-
-	if (strcmp(string, "VP8") == 0) {
-		return TRANSMIT;
-	}
 	
-	if (strcmp(string, "Theora") == 0) {
+	if ((strcmp(string, "Theora") == 0) || (strcmp(string, "theora") == 0)) {
 		return THEORA;
 	}
 	
@@ -148,11 +144,13 @@ krad_codec_t krad_string_to_codec (char *string) {
 
 krad_link_av_mode_t krad_link_string_to_av_mode (char *string) {
 
-	if ((strcmp(string, "av") == 0) || (strcmp(string, "audiovideo") == 0) || (strcmp(string, "audio and video") == 0)) {
+	if ((strcmp(string, "av") == 0) || (strcmp(string, "audiovideo") == 0) || (strcmp(string, "audio and video") == 0)
+	 	|| (strcmp(string, "audio_and_video") == 0)) {
 		return AUDIO_AND_VIDEO;
 	}
 
-	if ((strcmp(string, "video") == 0) || (strcmp(string, "videoonly") == 0) || (strcmp(string, "video only") == 0)) {
+	if ((strcmp(string, "video") == 0) || (strcmp(string, "videoonly") == 0) || (strcmp(string, "video only") == 0)
+	 	|| (strcmp(string, "video_only") == 0)) {
 		return VIDEO_ONLY;
 	}
 

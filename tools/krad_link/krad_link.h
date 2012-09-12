@@ -134,7 +134,8 @@ struct krad_link_St {
 	int theora_quality;
 	int flac_bit_depth;
 	int opus_bitrate;	
-	
+	float vorbis_quality;
+
 	int capture_width;
 	int capture_height;
 	int capture_fps;
@@ -160,7 +161,6 @@ struct krad_link_St {
 	int encoding;
 	int capturing;
 	
-	float vorbis_quality;
 	krad_ringbuffer_t *audio_capture_ringbuffer[KRAD_MIXER_MAX_CHANNELS];	
 	krad_ringbuffer_t *audio_input_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	krad_ringbuffer_t *audio_output_ringbuffer[KRAD_MIXER_MAX_CHANNELS];

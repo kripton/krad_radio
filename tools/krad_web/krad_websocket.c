@@ -27,31 +27,26 @@ krad_websocket_t *krad_websocket_glob;
 void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	
 	float floatval;
-	
-	//printkd ("Krad Websocket: %d bytes from browser: %s", len, value);
-
+	krad_link_rep_t krad_link;
 	cJSON *cmd;
 	cJSON *part;
 	cJSON *part2;
 	cJSON *part3;
+	cJSON *item;
+	char codecs[64];
+	char audio_bitrate[64];
+	int video_bitrate;
 	
-	
-	cJSON *host;
-	cJSON *port;
-	cJSON *mount;
-	cJSON *password;	
-	
-	//char *out;	
-	
+	video_bitrate = 0;
 	part = NULL;
 	part2 = NULL;
+	
 	cmd = cJSON_Parse (value);
 	
 	if (!cmd) {
 		printke ("Error before: [%s]\n", cJSON_GetErrorPtr());
 	} else {
-		//out = cJSON_Print (cmd);
-		
+
 		part = cJSON_GetObjectItem (cmd, "com");
 		
 		if ((part != NULL) && (strcmp(part->valuestring, "kradmixer") == 0)) {
@@ -130,33 +125,143 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				} else {
 					if ((part != NULL) && (strcmp(part->valuestring, "add_link") == 0)) {
 
-						host = cJSON_GetObjectItem (cmd, "host");
-						port = cJSON_GetObjectItem (cmd, "port");
-						mount = cJSON_GetObjectItem (cmd, "mount");
-						password = cJSON_GetObjectItem (cmd, "password");
+						memset (&krad_link, 0, sizeof(krad_link_rep_t));
+						memset (codecs, 0, sizeof(codecs));
+						memset (audio_bitrate, 0, sizeof(audio_bitrate));
 
-						//char *host, int port, char *mount, char *password, char *codecs,
-						//			int video_width, int video_height, int video_bitrate, char *audio_bitrate
+						item = cJSON_GetObjectItem (cmd, "operation_mode");
+						if (item != NULL) {
+							krad_link.operation_mode = krad_link_string_to_operation_mode (item->valuestring);	
+					
+							if (krad_link.operation_mode == TRANSMIT) {
+							
+								item = cJSON_GetObjectItem (cmd, "host");
+								if (item != NULL) {
+									strncpy (krad_link.host, item->valuestring, sizeof(krad_link.host));
+								}
+								item = cJSON_GetObjectItem (cmd, "mount");
+								if (item != NULL) {
+									strncpy (krad_link.mount, item->valuestring, sizeof(krad_link.mount));
+								}
+								item = cJSON_GetObjectItem (cmd, "password");
+								if (item != NULL) {
+									strncpy (krad_link.password, item->valuestring, sizeof(krad_link.password));
+								}																
+								item = cJSON_GetObjectItem (cmd, "port");
+								if (item != NULL) {
+									krad_link.port = item->valueint;
+								}
+								
+								if ((strlen(krad_link.host)) && (strlen(krad_link.mount)) && (strlen(krad_link.password)) && (krad_link.port)) {
+									item = cJSON_GetObjectItem (cmd, "av_mode");
+									if (item != NULL) {
+										krad_link.av_mode = krad_link_string_to_av_mode (item->valuestring);
+									}
+
+									if ((krad_link.av_mode == AUDIO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {
+										item = cJSON_GetObjectItem (cmd, "audio_codec");
+										if (item != NULL) {
+											strcat (codecs, item->valuestring);
+											krad_link.audio_codec = krad_string_to_codec (item->valuestring);
+										}
+										item = cJSON_GetObjectItem (cmd, "audio_bitrate");
+										if (item != NULL) {
+											if (krad_link.audio_codec == VORBIS) {
+												krad_link.vorbis_quality = item->valuedouble;
+												sprintf(audio_bitrate, "%f", krad_link.vorbis_quality);												
+											}
+											if (krad_link.audio_codec == OPUS) {
+												krad_link.opus_bitrate = item->valueint;
+												sprintf(audio_bitrate, "%d", krad_link.opus_bitrate);												
+											}
+											if (krad_link.audio_codec == FLAC) {
+												krad_link.flac_bit_depth = item->valueint;
+												sprintf(audio_bitrate, "%d", krad_link.flac_bit_depth);
+											}
+										}
+									}
+								
+									if ((krad_link.av_mode == VIDEO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {
+										item = cJSON_GetObjectItem (cmd, "video_codec");
+										if (item != NULL) {
+											strcat (codecs, item->valuestring);
+											krad_link.video_codec = krad_string_to_codec (item->valuestring);										
+										}
+										item = cJSON_GetObjectItem (cmd, "video_bitrate");
+										if (item != NULL) {
+											if (krad_link.video_codec == THEORA) {
+												krad_link.theora_quality = item->valueint;
+												video_bitrate = krad_link.theora_quality;
+											}
+											if (krad_link.video_codec == VP8) {
+												krad_link.vp8_bitrate = item->valueint;
+												video_bitrate = krad_link.vp8_bitrate;
+											}
+										}									
+
+										item = cJSON_GetObjectItem (cmd, "video_width");
+										if (item != NULL) {
+											krad_link.width = item->valueint;
+										}								
+
+										item = cJSON_GetObjectItem (cmd, "video_height");
+										if (item != NULL) {
+											krad_link.height = item->valueint;
+										}		
+									}								
 						
-						krad_ipc_create_transmit_link (pss->krad_ipc_client, krad_link_string_to_av_mode ("audio"),
-													   host->valuestring, port->valueint, mount->valuestring, password->valuestring, "opus",
-												  	   0, 0, 0, "");
+									char *string = malloc(2048);
+									krad_link_rep_to_string (&krad_link, string);
+									printk("%s", string);
+									free(string);
+									krad_ipc_create_transmit_link (pss->krad_ipc_client, krad_link.av_mode,
+																   krad_link.host, krad_link.port, krad_link.mount, krad_link.password, codecs,
+															  	   krad_link.width, krad_link.height, video_bitrate, audio_bitrate);
+														  	   
+								}
+														  	   
+							}
+							
+							if (krad_link.operation_mode == RECORD) {
+							/*
+									cJSON *filename;
+	
+
+							cJSON *operation_mode;
+							cJSON *av_mode;	
+							cJSON *codecs;	
+	
+							cJSON *video_width;
+							cJSON *video_height;
+							cJSON *video_bitrate;
+							cJSON *audio_bitrate;					
+							*/
+							}
+							
+							if (krad_link.operation_mode == CAPTURE) {
+					
+							/*
+							cJSON *av_mode;	
+
+	
+							cJSON *video_width;
+							cJSON *video_height;
+
+	
+							cJSON *video_source;
+							cJSON *video_device;
+							cJSON *video_fps_numerator
+							cJSON *video_fps_denominator;		
+							*/
+							}							
+					
+						}
 					}
 				}
 			}	
 		}		
-
 		cJSON_Delete (cmd);
-		//printkd ("%s", out);
-		//free (out);
-
 	}
-
-
-	//krad_ipc_set_control (pss->krad_ipc_client, "Music1", "volume", floatval);
-
-
-
 }
 
 /* callbacks from ipc handler to add JSON to websocket message */
