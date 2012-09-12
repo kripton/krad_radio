@@ -34,6 +34,21 @@
             font-weight: bold; 
             font-size: 26px;
 		}
+		
+		.prepare_link_server_info label {
+		   	font-weight: bold;
+		   	position: absolute;
+			width: 110px;
+			padding-top: 7px;
+		}
+		
+		input[type="text"], input[type="password"] {
+			padding: 3px;
+			margin: 6px;
+			margin-left: 120px;
+			background-color: #616161;
+			border: 1px solid #616161;
+		}
 
 		.kradmixer_control, .kradlink_control { height: 212px; float: left; margin: 14px; }
 
@@ -58,9 +73,24 @@
             -moz-transform: none;
             -o-transform: none;
 		}
+		.sysname {
+		
+		    color: #666;
+            text-shadow: 0px 0px 0px #444;
+            font-weight: bold; 
+            font-size: 42px;
+            margin-left: 42px;
+		}
+		
+		.kradlink_prepare_link {
+			margin-left: 16px;
+		}
 		
 		.volume_control, .kradlink_param_control { padding-left: 28px; margin-right: 10px; padding-right: 0px; width: 50px; }
 		.crossfade_control { width: 200px; }
+		.kradmixer_tools, .kradcompositor_tools { display: none; width: 80%; margin: 20px; margin-bottom: 32px; padding: 10px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #505050; }		
+		.kradlink_tools { width: 80%; margin: 20px; margin-bottom: 32px; padding: 10px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #616161; }
+		.kradlink_info, .kradmixer_info, .kradcompositor_info { width: 80%; margin: 2px; margin-bottom: 4px; padding: 2px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #505050; }
 		.kradlink_link { width: 80%; margin: 20px; margin-bottom: 32px; padding: 10px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #616161; }
 		.dtmf_pad { width: 254px; height: 230px; padding: 2px; }
 		.dtmf_button { color: #FFFFFF; 
@@ -76,7 +106,9 @@
 	</style>
 	
 	<style>
-
+	
+		/* d2f700 */
+		
 		.krad_button {
 		    min-width: 20px;
 		    text-align: center;

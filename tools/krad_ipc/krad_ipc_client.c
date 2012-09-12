@@ -498,6 +498,19 @@ void krad_radio_watchdog (char *config_file) {
 
 }
 
+
+void krad_ipc_broadcast_subscribe (krad_ipc_client_t *client, uint32_t broadcast_id) {
+
+	uint64_t radio_command;
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_BROADCAST_SUBSCRIBE, broadcast_id);
+	krad_ebml_finish_element (client->krad_ebml, radio_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_get_portgroups (krad_ipc_client_t *client) {
 
 	//uint64_t ipc_command;

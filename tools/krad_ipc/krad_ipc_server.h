@@ -43,6 +43,10 @@
 
 #define EBML_ID_KRAD_IPC_CMD 0x4444
 
+
+#define MAX_BROADCASTS 128
+
+
 enum krad_ipc_shutdown {
 	KRAD_IPC_STARTING = -1,
 	KRAD_IPC_RUNNING,
@@ -79,6 +83,10 @@ struct krad_ipc_server_St {
 	int (*handler)(void *, int *, void *);
 	void *pointer;
 	
+	
+	uint32_t broadcasts[MAX_BROADCASTS];
+	int broadcasts_count;
+	
 };
 
 struct krad_ipc_server_client_St {
@@ -104,7 +112,14 @@ struct krad_ipc_server_client_St {
 
 	pthread_mutex_t client_lock;
 
+
+	int broadcasts;
+
 };
+
+void krad_ipc_server_register_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id );
+void krad_ipc_server_add_client_to_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id );
+
 
 void krad_ipc_server_advanced_string_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num, uint32_t ebml_subid3, char *string);
 void krad_ipc_server_advanced_number_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num, uint32_t ebml_subid3, int num2);

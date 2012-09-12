@@ -2760,7 +2760,8 @@ void krad_linker_broadcast_link_created ( krad_ipc_server_t *krad_ipc_server, kr
 	uint64_t subelement;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		//if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if (krad_ipc_server->clients[c].broadcasts == 1) {
 		
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_LINK_MSG, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_LINK_LINK_CREATED, &subelement);		

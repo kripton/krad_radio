@@ -34,6 +34,13 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 	cJSON *part;
 	cJSON *part2;
 	cJSON *part3;
+	
+	
+	cJSON *host;
+	cJSON *port;
+	cJSON *mount;
+	cJSON *password;	
+	
 	//char *out;	
 	
 	part = NULL;
@@ -122,7 +129,18 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 					krad_ipc_destroy_link (pss->krad_ipc_client, part->valueint);
 				} else {
 					if ((part != NULL) && (strcmp(part->valuestring, "add_link") == 0)) {
+
+						host = cJSON_GetObjectItem (cmd, "host");
+						port = cJSON_GetObjectItem (cmd, "port");
+						mount = cJSON_GetObjectItem (cmd, "mount");
+						password = cJSON_GetObjectItem (cmd, "password");
+
+						//char *host, int port, char *mount, char *password, char *codecs,
+						//			int video_width, int video_height, int video_bitrate, char *audio_bitrate
 						
+						krad_ipc_create_transmit_link (pss->krad_ipc_client, krad_link_string_to_av_mode ("audio"),
+													   host->valuestring, port->valueint, mount->valuestring, password->valuestring, "opus",
+												  	   0, 0, 0, "");
 					}
 				}
 			}	
@@ -918,7 +936,8 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			krad_ipc_get_portgroups (pss->krad_ipc_client);
 			krad_ipc_list_decklink (pss->krad_ipc_client);
 			krad_ipc_list_links (pss->krad_ipc_client);
-			krad_ipc_get_tags (pss->krad_ipc_client, NULL);		
+			krad_ipc_get_tags (pss->krad_ipc_client, NULL);
+			krad_ipc_broadcast_subscribe (pss->krad_ipc_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
 			add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
 
 			break;

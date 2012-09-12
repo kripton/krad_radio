@@ -105,6 +105,8 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}
 	
+	krad_ipc_server_register_broadcast ( krad_radio->krad_ipc, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST );
+	
 	krad_mixer_set_ipc (krad_radio->krad_mixer, krad_radio->krad_ipc);
 	krad_tags_set_set_tag_callback (krad_radio->krad_tags, krad_radio->krad_ipc, 
 									(void (*)(void *, char *, char *, char *))krad_ipc_server_broadcast_tag);
@@ -478,6 +480,14 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ipc_server_respond_number ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			
+			return 0;
+			
+		case EBML_ID_KRAD_RADIO_CMD_BROADCAST_SUBSCRIBE:
+		
+			numbers[0] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);		
+		
+			krad_ipc_server_add_client_to_broadcast ( krad_radio_station->krad_ipc, numbers[0] );
+		
 			return 0;
 
 		default:

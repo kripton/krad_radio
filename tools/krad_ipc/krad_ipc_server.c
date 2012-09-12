@@ -236,6 +236,7 @@ void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 	}
 	client->input_buffer_pos = 0;
 	client->output_buffer_pos = 0;
+	client->broadcasts = 0;
 	client->confirmed = 0;
 	memset (client->input_buffer, 0, sizeof(client->input_buffer));
 	memset (client->output_buffer, 0, sizeof(client->output_buffer));
@@ -246,67 +247,6 @@ void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 	//printk ("Krad IPC Server: Client Disconnected");
 
 }
-
-/*
-void krad_ipc_server_client_broadcast (krad_ipc_server_t *krad_ipc_server, char *data, int size, int broadcast_level) {
-
-	krad_ipc_server_client_broadcast_skip(krad_ipc_server, data, size, broadcast_level, NULL);
-
-}
-
-void krad_ipc_server_client_broadcast_skip (krad_ipc_server_t *krad_ipc_server, char *data, int size, int broadcast_level, krad_ipc_server_client_t *client) {
-
-	pthread_rwlock_wrlock (&krad_ipc_server->send_lock);								
-	//printk ("Krad IPC Server: broadcasting start\n");
-
-	for(krad_ipc_server->c = 0; krad_ipc_server->c < KRAD_IPC_SERVER_MAX_CLIENTS; krad_ipc_server->c++) {
-		if ((krad_ipc_server->client[krad_ipc_server->c].active == 1) && (krad_ipc_server->client[krad_ipc_server->c].broadcast_level >= broadcast_level) && (&krad_ipc_server->client[krad_ipc_server->c] != client)) {
-			send (krad_ipc_server->client[krad_ipc_server->c].sd, data, size, 0);
-		}
-	}
-	
-	//printk ("Krad IPC Server: broadcasting end\n");
-	pthread_rwlock_unlock (&krad_ipc_server->send_lock);
-
-	//printk ("Krad IPC Server: broadcasting: %s\n", data);
-
-}
-
-
-void krad_ipc_server_set_client_broadcasts(krad_ipc_server_t *krad_ipc_server, void *client_pointer, int broadcast_level) {
-
-	// locking here is just becasue we are cheaply using that same c counter
-	pthread_rwlock_wrlock (&krad_ipc_server->send_lock);								
-
-	for (krad_ipc_server->c = 0; krad_ipc_server->c < KRAD_IPC_SERVER_MAX_CLIENTS; krad_ipc_server->c++) {
-		if ((krad_ipc_server->client[krad_ipc_server->c].active == 1) && (krad_ipc_server->client[krad_ipc_server->c].client_pointer == client_pointer)) {
-
-			//reset old broadcast level
-			if (krad_ipc_server->client[krad_ipc_server->c].broadcast_level > 0) {
-				krad_ipc_server->broadcast_clients_level[krad_ipc_server->client[krad_ipc_server->c].broadcast_level]--;
-				krad_ipc_server->broadcast_clients--;
-			}
-
-			// set new
-			krad_ipc_server->client[krad_ipc_server->c].broadcast_level = broadcast_level;
-		}
-	}
-	krad_ipc_server->broadcast_clients++;
-	krad_ipc_server->broadcast_clients_level[broadcast_level]++;
-	
-	pthread_rwlock_unlock (&krad_ipc_server->send_lock);								
-
-}
-
-
-void krad_ipc_server_client_send (void *client, char *data) {
-
-	krad_ipc_client_t *kclient = (krad_ipc_client_t *)client;
-
-	send (kclient->sd, data, strlen(data), 0);
-
-}
-*/
 
 void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) {
 
@@ -461,8 +401,8 @@ void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_s
 	uint64_t subelement;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
-
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		//if (krad_ipc_server->clients[c].broadcasts == 1) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_MSG, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CREATED, &subelement);
 
@@ -521,7 +461,7 @@ void krad_ipc_server_simple_number_broadcast ( krad_ipc_server_t *krad_ipc_serve
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
 			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, num);
@@ -543,7 +483,7 @@ void krad_ipc_server_advanced_number_broadcast ( krad_ipc_server_t *krad_ipc_ser
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
 			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, num);
@@ -568,7 +508,7 @@ void krad_ipc_server_advanced_string_broadcast ( krad_ipc_server_t *krad_ipc_ser
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
 			krad_ebml_write_int32 (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, num);
@@ -593,7 +533,7 @@ void krad_ipc_server_simple_broadcast ( krad_ipc_server_t *krad_ipc_server, uint
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, ebml_subid2, string);
@@ -615,7 +555,7 @@ void krad_ipc_server_mixer_broadcast2 ( krad_ipc_server_t *krad_ipc_server, uint
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portname);
@@ -638,7 +578,7 @@ void krad_ipc_server_mixer_broadcast ( krad_ipc_server_t *krad_ipc_server, uint3
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_id, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, ebml_subid, &subelement);	
 			krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portname);
@@ -663,7 +603,7 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
 		//if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
-		if (krad_ipc_server->clients[c].confirmed == 1) {		
+		if (krad_ipc_server->clients[c].broadcasts == 1) {
 			pthread_mutex_lock (&krad_ipc_server->clients[c].client_lock);
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_MSG, &element);	
 			krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG, &subelement);	
@@ -677,6 +617,23 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 			pthread_mutex_unlock (&krad_ipc_server->clients[c].client_lock);
 		}
 	}
+}
+
+void krad_ipc_server_register_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id ) {
+
+	krad_ipc_server->broadcasts[krad_ipc_server->broadcasts_count] = broadcast_ebml_id;
+	krad_ipc_server->broadcasts_count++;
+
+}
+
+void krad_ipc_server_add_client_to_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id ) {
+
+	if (broadcast_ebml_id == EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST) {
+		printk("client subscribing to global broadcasts");
+	}
+	
+	krad_ipc_server->current_client->broadcasts = 1;
+	
 }
 
 
@@ -783,63 +740,9 @@ void *krad_ipc_server_run_thread (void *arg) {
 								krad_ebml_write_sync (krad_ipc_server->current_client->krad_ebml2);
 								pthread_mutex_unlock (&client->client_lock);
 							}
-						
 						}
-						//printk ("Krad IPC Server: got %d bytes\n", client->bytes);
-	/*	
-						while (strchr(client->recbuffer, '|') != NULL) {
-						
-							//printk ("Krad IPC Server: found delmitmer\n");
-						
-							client->msglen = strcspn(client->recbuffer, "|");
-							strncpy(client->buffer, client->recbuffer, client->msglen);
-							if (client->msglen == (client->bytes - 1)) {
-								//printk ("Krad IPC Server: one msg buf, nuked\n");
-								client->bytes = 0;
-								client->recbuffer[client->bytes] = '\0';
-							} else {
-								//printk ("Krad IPC Server: multi .. memmoved\n");
-								memmove(client->recbuffer, client->recbuffer + client->msglen + 1, client->bytes - (client->msglen + 1));
-								client->bytes = client->bytes - (client->msglen + 1);
-							}
-
-	
-							client->buffer[client->msglen] = '\0';
-	
-							if (client->krad_ipc_server->handler != NULL) {
-								//client->broadcast = client->krad_ipc_server->handler(client->buffer, client->client_pointer);
-							}
-		
-							// we should be adding 1 to this for the null value
-							// but we add it in in the client libs, so whatever
-							client->rbytes = (strlen(client->buffer));
-							printk ("Krad IPC Server: broadcast was %d bytes returned is %d\n", client->broadcast, client->rbytes);
-							// returned bytes
-							if (client->rbytes > 0) {
-
-								// 0 = no broadcast, 1 = broadcast to everyone but me, 2 = broadcast to everyone including back to me
-								if (client->broadcast) {
-				
-									if (client->broadcast == 1) {
-										krad_ipc_server_client_broadcast_skip(client->krad_ipc_server, client->buffer, client->rbytes, 1, client);
-									} else {
-										krad_ipc_server_client_broadcast(client->krad_ipc_server, client->buffer, client->rbytes, 1);
-									}
-									client->broadcast = 0;
-								} else {
-									printk ("Krad IPC Server: sending %s\n", client->buffer);
-
-									send (client->sd, client->buffer, client->rbytes, 0);
-
-								}
-							}
-						}
-	*/	
 					}
 					
-					
-					
-				
 					if (krad_ipc_server->sockets[s].revents & POLLOUT) {
 						//printk ("I could write\n");
 					}
@@ -861,10 +764,6 @@ void *krad_ipc_server_run_thread (void *arg) {
 						krad_ipc_disconnect_client (client);
 						continue;
 					}
-					
-					
-					
-					
 				}
 			}
 		}

@@ -69,6 +69,8 @@ struct krad_ipc_client_St {
 
 };
 
+void krad_ipc_broadcast_subscribe (krad_ipc_client_t *client, uint32_t broadcast_id);
+
 int krad_radio_destroy_daemon (char *sysname);
 int krad_radio_find_daemon_pid (char *sysname);
 
