@@ -212,7 +212,7 @@ int krad_vpx_encoder_write (krad_vpx_encoder_t *kradvpx, unsigned char **packet,
 	if (kradvpx->update_config == 1) {
 		krad_vpx_encoder_config_set (kradvpx, &kradvpx->cfg);
 		kradvpx->update_config = 0;
-		krad_vpx_encoder_print_config (kradvpx);
+		//krad_vpx_encoder_print_config (kradvpx);
 	}
 
 	#ifdef BENCHMARK
