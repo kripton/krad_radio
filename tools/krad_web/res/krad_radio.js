@@ -173,7 +173,8 @@ function Kradradio () {
 	//this.timer;
 	this.tags = new Array();
 	
-	this.decklink_devices = new Array();	
+	this.decklink_devices = new Array();
+	this.v4l2_devices = new Array();	
 	
 	this.showing_snapshot_buttons = 0;
 	this.system_cpu_usage = 0;
@@ -242,7 +243,7 @@ Kradradio.prototype.add_link = function () {
 	}
 
 	if (cmd.operation_mode == "record") {
-	  	cmd.filename = $('[name=prepare_link_filename]').val();
+	  	cmd.filename = $('[name=prepare_link_file_info_path]').val();
 	}
 
 	if ((cmd.operation_mode == "record") || (cmd.operation_mode == "transmit")) {
@@ -253,6 +254,16 @@ Kradradio.prototype.add_link = function () {
   			cmd.video_codec = $('[name=prepare_link_video_codec]:radio:checked').val();
 		}
 	}
+
+	if (cmd.operation_mode == "capture") {
+		cmd.video_width = 1280;
+		cmd.video_height = 720;
+		cmd.fps_numerator = 60000;
+		cmd.fps_denominator = 1000;
+		cmd.video_source = "decklink";
+		cmd.video_device = $('[name=prepare_link_device]:radio:checked').val();
+	}
+
 
 	cmd.port = parseInt(cmd.port);
 	
@@ -283,18 +294,51 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').empty();	
 		$('.kradlink_prepare_link').append("<h3>Add Capture</h3>");
 		
-		kradradio.prepare_link_operation_mode = "capture";
+		if ((kradradio.decklink_devices.length == 0) && (kradradio.v4l2_devices.length == 0)) {
 		
-		if (kradradio.admin) {
-			$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button7' id='add_link'>Begin</div>");
+			$('.kradlink_prepare_link').append("<p>No V4L2 or Decklink devices detected.</p><br clear='both'/>");	
+		
 		} else {
-			$('.kradlink_prepare_link').append("<p>Sorry your not an admin.. but you could be one day!</p><br clear='both'/>");
-		}
+			kradradio.prepare_link_operation_mode = "capture";
+		
+			avmode = '<div id="prepare_link_avmode">\
+				<input type="radio" id="radio1900" name="prepare_link_avmode" value="audio_only"/><label for="radio1900">Audio</label>\
+				<input type="radio" id="radio2900" name="prepare_link_avmode" value="video_only"/><label for="radio2900">Video</label>\
+				<input type="radio" id="radio3900" name="prepare_link_avmode" value="audio_and_video"/><label for="radio3900">Audio and Video</label>\
+			</div>';		
 
-		$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button3' id='cancel_add_link'>Cancel</div>");
-		$( '#cancel_add_link').bind( "click", function(event, ui) {
-			$('.kradlink_prepare_link').empty();
-		});
+			$('.kradlink_prepare_link').append(avmode);		
+			$('.kradlink_prepare_link').append("<br clear='both'/>");
+		
+			devices = '<div id="prepare_link_device">';
+				for (i = 0; i < kradradio.decklink_devices.length; i++) {
+					devices += '<input type="radio" id="radio1991' + i + '" name="prepare_link_device" value="' + i + '"/><label for="radio1991' + i + '">' + kradradio.decklink_devices[i] + '</label>';
+				}
+			devices += '</div>';
+				
+			$('.kradlink_prepare_link').append(devices);		
+			$('.kradlink_prepare_link').append("<br clear='both'/>");
+						
+			$('#prepare_link_avmode').buttonset();
+			$('#prepare_link_device').buttonset();
+		
+			if (kradradio.admin) {
+				$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button7' id='add_link'>Begin</div>");
+				$( '#add_link').bind( "click", function(event, ui) {
+					kradradio.add_link();
+					$('.kradlink_prepare_link').empty();
+				});			
+			} else {
+				$('.kradlink_prepare_link').append("<p>Sorry your not an admin.. but you could be one day!</p><br clear='both'/>");
+			}
+
+			$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button3' id='cancel_add_link'>Cancel</div>");
+			$( '#cancel_add_link').bind( "click", function(event, ui) {
+				$('.kradlink_prepare_link').empty();
+			});
+		
+		}
+		
 	});	
 
 	$( '#record').bind( "click", function(event, ui) {
@@ -325,6 +369,11 @@ Kradradio.prototype.add_kradlink_tools = function () {
 			<input type="radio" id="radio2700" name="prepare_link_audio_codec" value="vorbis"/><label for="radio2700">Vorbis</label>\
 			<input type="radio" id="radio3700" name="prepare_link_audio_codec" value="flac"/><label for="radio3700">FLAC</label>\
 		</div>';
+		
+		file_info = '<div id="prepare_link_file_info" class="prepare_link_file_info">\
+			<label for="radio1550">Filename</label><input style="width: 400px;" type="text" id="radio1550" name="prepare_link_file_info_path" value=""/>\
+			<br clear="both"/>\
+		</div>';
 
 	
 		$('.kradlink_prepare_link').append(container);
@@ -334,6 +383,10 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').append(video_codec);
 		$('.kradlink_prepare_link').append("<br clear='both'/>");			
 		$('.kradlink_prepare_link').append(audio_codec);
+
+		$('.kradlink_prepare_link').append("<br clear='both'/>");			
+		$('.kradlink_prepare_link').append(file_info);
+						
 						
 		$('#prepare_link_avmode').buttonset();
 		$('#prepare_link_container').buttonset();
@@ -342,7 +395,11 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		
 		$('.kradlink_prepare_link').append("<br clear='both'/>");
 		if (kradradio.admin) {
-			$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button7' id='add_link'>Start</div>");		
+			$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button7' id='add_link'>Start</div>");
+			$( '#add_link').bind( "click", function(event, ui) {
+				kradradio.add_link();
+				$('.kradlink_prepare_link').empty();
+			});				
 		} else {
 			$('.kradlink_prepare_link').append("<p>Sorry your not an admin.. but you could be one day!</p><br clear='both'/>");
 		}
@@ -399,7 +456,7 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').append(video_codec);
 		$('.kradlink_prepare_link').append("<br clear='both'/>");			
 		$('.kradlink_prepare_link').append(audio_codec);
-						
+
 		$('.kradlink_prepare_link').append("<br clear='both'/>");			
 		$('.kradlink_prepare_link').append(server_info);						
 						
