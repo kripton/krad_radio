@@ -6,7 +6,7 @@ typedef struct cpu_meter_St cpu_meter_t;
 
 struct cpu_meter_St {
 
-	kradgui_t *krad_gui;
+	krad_gui_t *krad_gui;
 	krad_wayland_t *krad_wayland;
 
 	void *buffer;
@@ -43,8 +43,8 @@ int cpu_meter_render_callback (void *pointer, uint32_t time) {
 	}
 
 	if (cpu_meter->displayed_cpu_usage != cpu_meter->cpu_usage) {
-		kradgui_render (cpu_meter->krad_gui);
-		kradgui_render_meter ( cpu_meter->krad_gui, cpu_meter->x, cpu_meter->y, cpu_meter->size, cpu_meter->cpu_usage );
+		krad_gui_render (cpu_meter->krad_gui);
+		krad_gui_render_meter ( cpu_meter->krad_gui, cpu_meter->x, cpu_meter->y, cpu_meter->size, cpu_meter->cpu_usage );
 		//memcpy (buffer, cpu_meter->krad_gui->data, cpu_meter->width * cpu_meter->height * 4);
 		cpu_meter->displayed_cpu_usage = cpu_meter->cpu_usage;
 		updated = 1;
@@ -77,7 +77,7 @@ static void show_cpu_meter_window (int width, int height) {
 
 	krad_wayland_prepare_window (cpu_meter->krad_wayland, cpu_meter->width, cpu_meter->height, &cpu_meter->buffer);
 
-	cpu_meter->krad_gui = kradgui_create_with_external_surface (cpu_meter->width, cpu_meter->height, cpu_meter->buffer);
+	cpu_meter->krad_gui = krad_gui_create_with_external_surface (cpu_meter->width, cpu_meter->height, cpu_meter->buffer);
 
 	cpu_meter->krad_gui->update_drawtime = 0;
 	cpu_meter->krad_gui->print_drawtime = 0;
@@ -85,7 +85,7 @@ static void show_cpu_meter_window (int width, int height) {
 	//krad_gui->render_wheel = 1;
 	//krad_gui->render_ftest = 1;
 	//krad_gui->render_tearbar = 1;
-	//kradgui_test_screen (krad_gui, "Gtk test");
+	//krad_gui_test_screen (krad_gui, "Gtk test");
 
 
 	krad_wayland_set_frame_callback (cpu_meter->krad_wayland, cpu_meter_render_callback, cpu_meter);
@@ -98,7 +98,7 @@ static void show_cpu_meter_window (int width, int height) {
 
 	krad_wayland_destroy (cpu_meter->krad_wayland);
 
-	kradgui_destroy (cpu_meter->krad_gui);
+	krad_gui_destroy (cpu_meter->krad_gui);
 
 	free (cpu_meter);
 

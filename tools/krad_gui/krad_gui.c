@@ -15,6 +15,9 @@ krad_gui_t *krad_gui_create (int width, int height) {
 	krad_gui_reset_elapsed_time (krad_gui);
 	krad_gui_set_total_track_time_ms (krad_gui, 45 * 60 * 1000);
 	
+	krad_gui->cursor_x = -1;
+	krad_gui->cursor_y = -1;		
+	
 	clock_gettime (CLOCK_MONOTONIC, &krad_gui->start_time);
 	
 	return krad_gui;
@@ -725,6 +728,97 @@ void krad_gui_render_selector (krad_gui_t *krad_gui, int x, int y, int w) {
 
 }
 
+void krad_gui_set_click (krad_gui_t *krad_gui, int click) {
+	krad_gui->click = click;
+}
+
+int krad_gui_render_selector_selected (krad_gui_t *krad_gui, int x, int y, int size, char *label) {
+
+	cairo_t *cr;
+	double px;
+	double py;
+	cairo_text_extents_t extents;
+	int width;
+	int height;
+	
+	px = krad_gui->cursor_x;
+	py = krad_gui->cursor_y;
+	
+	cr = krad_gui->cr;	
+
+	char *font = "sans";
+	
+	if (label != NULL) {
+		cairo_select_font_face (cr, font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+		cairo_set_font_size (cr, size);
+		cairo_text_extents (cr, label, &extents);
+		width = extents.width + size;
+		height = size * 1.2;
+	}
+
+	cairo_save (cr);
+		
+	cairo_set_line_width (cr, 3);
+	//cairo_set_source_rgb (cr, ORANGE);
+
+	cairo_translate (cr, x, y);
+
+	cairo_move_to (cr, 0, 0);
+	cairo_rel_line_to (cr, width, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));
+	cairo_rel_line_to (cr, height/3, 0);
+	cairo_rotate (cr, -60 * (M_PI/180.0));	
+	cairo_rel_line_to (cr, 0, height);
+	cairo_rotate (cr, 120 * (M_PI/180.0));
+	cairo_rel_line_to (cr, height/3, 0);
+	cairo_rotate (cr, 60 * (M_PI/180.0));	
+	cairo_rel_line_to (cr, width, 0);
+	cairo_close_path (cr);
+	
+	cairo_user_to_device (cr, &px, &py);
+	//cairo_set_source_rgba (cr, BLUE_TRANS);
+	//cairo_fill (cr);	
+	
+	if ((cairo_in_fill(cr, px, py) != 0) || (cairo_in_stroke(cr, px, py) != 0)) {
+		if (krad_gui->click) {
+			cairo_set_source_rgb (cr, ORANGE);
+			cairo_fill_preserve (cr);
+			cairo_set_source_rgb (cr, GREEN);
+			cairo_stroke (cr);
+		} else {
+			//cairo_set_source_rgb (cr, BLUE);
+			//cairo_fill_preserve (cr);			
+			cairo_set_source_rgb (cr, GREEN);
+			cairo_stroke (cr);
+
+		}
+	} else {
+		cairo_set_source_rgba (cr, BLUE_TRANS);
+		cairo_fill (cr);		
+	}
+	
+	cairo_restore (cr);
+	
+	if (label != NULL) {
+		cairo_save (cr);
+		cairo_translate (cr, x, y);	
+		cairo_select_font_face (cr, font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+		cairo_set_font_size (cr, size);
+		cairo_set_source_rgb (cr, GREY3);
+		cairo_move_to (cr, size/2, height + height/8);	
+		cairo_show_text (cr, label);
+		cairo_stroke (cr);
+		cairo_restore (cr);
+	}
+	
+	
+	return width + height/3;
+
+}
+
+
+
+
 void krad_gui_render_hex (krad_gui_t *krad_gui, int x, int y, int w) {
 
 
@@ -1107,6 +1201,13 @@ vdir2 = atan2 (vposy - vposy2, vposx - vposx2) * 180 / M_PI;
 	krad_gui_render_viper (krad_gui, vposx2, vposy2, 32, vdir2);
 
 	
+}
+
+void krad_gui_set_pointer (krad_gui_t *krad_gui, int x, int y) {
+
+	krad_gui->cursor_x = x;
+	krad_gui->cursor_y = y;
+
 }
 
 void krad_gui_render_ftest (krad_gui_t *krad_gui) {

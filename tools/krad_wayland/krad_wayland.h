@@ -33,6 +33,16 @@ struct krad_wayland_display_St {
 
 	struct wl_shm_listener shm_listener;
 
+	struct wl_seat *seat;
+	struct wl_pointer *pointer;
+
+	struct wl_seat_listener seat_listener;
+	struct wl_pointer_listener pointer_listener;
+	
+	
+	int pointer_x;
+	int pointer_y;
+
 };
 
 struct krad_wayland_window_St {
@@ -64,6 +74,8 @@ struct krad_wayland_St {
 	int render_test_pattern;
 
 	int running;
+	int click;
+	int mousein;	
 
 };
 

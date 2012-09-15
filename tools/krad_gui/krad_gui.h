@@ -24,6 +24,8 @@
 // device colors
 #define BLUE 0.0, 0.152 / 0.255 * 1.0, 0.212 / 0.255 * 1.0
 #define BLUE_TRANS 0.0, 0.152 / 0.255 * 1.0, 0.212 / 0.255 * 1.0, 0.255
+#define BLUE_TRANS2 0.0, 0.152 / 0.255 * 1.0, 0.212 / 0.255 * 1.0, 0.144 / 0.255 * 1.0
+#define BLUE_TRANS3 0.0, 0.122 / 0.255 * 1.0, 0.112 / 0.255 * 1.0, 0.144 / 0.255 * 1.0
 #define GREEN  0.001 / 0.255 * 1.0, 0.187 / 0.255 * 1.0, 0.0
 #define LGREEN  0.001 / 0.255 * 1.0, 0.187 / 0.255 * 1.0, 0.0, 0.044 / 0.255 * 1.0
 #define WHITE 0.222 / 0.255 * 1.0, 0.232 / 0.255 * 1.0, 0.233 / 0.255 * 1.0
@@ -184,6 +186,8 @@ struct krad_gui_St {
 
 	int cursor_x;
 	int cursor_y;
+	int click;
+	int mousein;
 	
 	int clear;
 	
@@ -226,6 +230,10 @@ struct krad_gui_playback_state_status_St {
 
 };
 
+int krad_gui_render_selector_selected (krad_gui_t *krad_gui, int x, int y, int size, char *label);
+
+void krad_gui_set_click (krad_gui_t *krad_gui, int click);
+void krad_gui_set_pointer (krad_gui_t *krad_gui, int x, int y);
 
 void krad_gui_set_surface (krad_gui_t *krad_gui, cairo_surface_t *cst);
 
