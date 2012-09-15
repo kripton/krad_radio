@@ -77,7 +77,7 @@ int dockpanel_render_callback (void *pointer, uint32_t xtime) {
 	
 		krad_gui_render (dockpanel->krad_gui);
 		
-		dockpanel->size = 22;
+		dockpanel->size = 28;
 		dockpanel->margin = dockpanel->size/8;	
 		cur_width = dockpanel->margin;
 	
@@ -96,7 +96,7 @@ int dockpanel_render_callback (void *pointer, uint32_t xtime) {
 		cairo_select_font_face (dockpanel->krad_gui->cr, "sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 		cairo_set_font_size (dockpanel->krad_gui->cr, dockpanel->size);
 		cairo_set_source_rgb (dockpanel->krad_gui->cr, GREY3);
-		cairo_move_to (dockpanel->krad_gui->cr, cur_width + dockpanel->size * 5,  dockpanel->margin*4 + dockpanel->size);
+		cairo_move_to (dockpanel->krad_gui->cr, cur_width + dockpanel->size * 5,  dockpanel->margin*9 + dockpanel->size);
 		
 		//krad_gui_render_hex (dockpanel->krad_gui, cur_width + dockpanel->size * 6,  dockpanel->margin*4 + dockpanel->size, 12);	
 		
@@ -137,6 +137,9 @@ static void show_dockpanel_window (int width, int height) {
 
 	dockpanel->krad_gui->update_drawtime = 0;
 	dockpanel->krad_gui->print_drawtime = 0;
+
+	dockpanel->krad_gui->clear = 1;
+	//dockpanel->krad_gui->overlay = 1;
 
 	//dockpanel->krad_gui->render_wheel = 1;
 	//dockpanel->krad_gui->render_ftest = 1;

@@ -115,10 +115,10 @@ krad_wayland_pointer_handle_enter(void *data, struct wl_pointer *pointer,
 		     wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
 	krad_wayland_t *krad_wayland = data;
-	struct window *window;
-	struct widget *widget;
-	float sx = wl_fixed_to_double(sx_w);
-	float sy = wl_fixed_to_double(sy_w);
+	//struct window *window;
+	//struct widget *widget;
+	//float sx = wl_fixed_to_double(sx_w);
+	//float sy = wl_fixed_to_double(sy_w);
 
 	krad_wayland->display->pointer_x = wl_fixed_to_int(sx_w);
 	krad_wayland->display->pointer_y = wl_fixed_to_int(sy_w);
@@ -128,7 +128,7 @@ krad_wayland_pointer_handle_enter(void *data, struct wl_pointer *pointer,
 	/*
 
 	if (!surface) {
-		/* enter event for a window we've just destroyed 
+		// enter event for a window we've just destroyed 
 		return;
 	}
 
@@ -140,7 +140,7 @@ krad_wayland_pointer_handle_enter(void *data, struct wl_pointer *pointer,
 	if (window->pool) {
 		shm_pool_destroy(window->pool);
 		window->pool = NULL;
-		/* Schedule a redraw to free the pool 
+		//Schedule a redraw to free the pool 
 		window_schedule_redraw(window);
 	}
 
@@ -177,8 +177,8 @@ krad_wayland_pointer_handle_motion(void *data, struct wl_pointer *pointer,
 	struct widget *widget;
 	int cursor = CURSOR_LEFT_PTR;
 	*/
-	float sx = wl_fixed_to_double(sx_w);
-	float sy = wl_fixed_to_double(sy_w);
+	//float sx = wl_fixed_to_double(sx_w);
+	//float sy = wl_fixed_to_double(sy_w);
 
 	krad_wayland->display->pointer_x = wl_fixed_to_int(sx_w);
 	krad_wayland->display->pointer_y = wl_fixed_to_int(sy_w);
@@ -247,7 +247,8 @@ static void
 krad_wayland_pointer_handle_axis(void *data, struct wl_pointer *pointer,
 		    uint32_t time, uint32_t axis, wl_fixed_t value)
 {
-	krad_wayland_t *krad_wayland = data;
+	//krad_wayland_t *krad_wayland = data;
+
 	/*
 	struct widget *widget;
 
@@ -484,7 +485,7 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 	}
 }
 
-int krad_wayland_set_window_title (krad_wayland_t *krad_wayland, char *title) {
+void krad_wayland_set_window_title (krad_wayland_t *krad_wayland, char *title) {
 	strncpy (krad_wayland->window->title, title, sizeof(krad_wayland->window->title));
 }
 

@@ -82,7 +82,7 @@ struct krad_wayland_St {
 
 
 void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, uint32_t), void *pointer);
-int krad_wayland_set_window_title (krad_wayland_t *krad_wayland, char *title);
+void krad_wayland_set_window_title (krad_wayland_t *krad_wayland, char *title);
 int krad_wayland_prepare_window (krad_wayland_t *krad_wayland, int width, int height, void **buffer);
 int krad_wayland_open_window (krad_wayland_t *krad_wayland);
 
