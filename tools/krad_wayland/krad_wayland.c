@@ -414,6 +414,8 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland) {
 	krad_wayland->window->shell_surface = wl_shell_get_shell_surface (krad_wayland->display->shell, 
 																	  krad_wayland->window->surface);
 
+	wl_shell_surface_set_title (krad_wayland->window->shell_surface, krad_wayland->window->title);
+
 	if (krad_wayland->window->shell_surface) {
 		wl_shell_surface_add_listener (krad_wayland->window->shell_surface, 
 									   &krad_wayland->window->surface_listener,
@@ -482,6 +484,9 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 	}
 }
 
+int krad_wayland_set_window_title (krad_wayland_t *krad_wayland, char *title) {
+	strncpy (krad_wayland->window->title, title, sizeof(krad_wayland->window->title));
+}
 
 int krad_wayland_prepare_window (krad_wayland_t *krad_wayland, int width, int height, void **buffer) {
 

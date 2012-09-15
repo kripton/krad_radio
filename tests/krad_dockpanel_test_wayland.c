@@ -98,7 +98,7 @@ int dockpanel_render_callback (void *pointer, uint32_t xtime) {
 		cairo_set_source_rgb (dockpanel->krad_gui->cr, GREY3);
 		cairo_move_to (dockpanel->krad_gui->cr, cur_width + dockpanel->size * 5,  dockpanel->margin*4 + dockpanel->size);
 		
-		krad_gui_render_hex (dockpanel->krad_gui, cur_width + dockpanel->size * 6,  dockpanel->margin*4 + dockpanel->size, 12);	
+		//krad_gui_render_hex (dockpanel->krad_gui, cur_width + dockpanel->size * 6,  dockpanel->margin*4 + dockpanel->size, 12);	
 		
 		cairo_show_text (dockpanel->krad_gui->cr, "The Present.");
 		cairo_stroke (dockpanel->krad_gui->cr);
@@ -132,7 +132,7 @@ static void show_dockpanel_window (int width, int height) {
 	dockpanel->krad_wayland = krad_wayland_create ();
 
 	krad_wayland_prepare_window (dockpanel->krad_wayland, dockpanel->width, dockpanel->height, &dockpanel->buffer);
-
+	krad_wayland_set_window_title (dockpanel->krad_wayland, "Krad Dock");
 	dockpanel->krad_gui = krad_gui_create_with_external_surface (dockpanel->width, dockpanel->height, dockpanel->buffer);
 
 	dockpanel->krad_gui->update_drawtime = 0;
