@@ -91,7 +91,9 @@ struct krad_link_rep_St {
 	int port;
 	char mount[512];
 	char password[512];
-
+	
+	char video_device[512];
+	
 	int width;
 	int height;
 

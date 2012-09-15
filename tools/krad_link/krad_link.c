@@ -2543,12 +2543,9 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		} else {
 			krad_link->fps_denominator = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 		}
-
-	
 	}
 	
 	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
-
 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
@@ -2746,10 +2743,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 
 		krad_link->transport_mode = FILESYSTEM;
 
-	}	
-	
-	
-
+	}
 }
 
 

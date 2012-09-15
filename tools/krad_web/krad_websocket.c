@@ -131,7 +131,51 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 
 						item = cJSON_GetObjectItem (cmd, "operation_mode");
 						if (item != NULL) {
+
 							krad_link.operation_mode = krad_link_string_to_operation_mode (item->valuestring);	
+					
+							if ((krad_link.operation_mode != TRANSMIT) && (krad_link.operation_mode != RECORD) && 
+								(krad_link.operation_mode != CAPTURE)) {
+								
+								cJSON_Delete (cmd);
+								return;
+					
+							}
+							
+							item = cJSON_GetObjectItem (cmd, "av_mode");
+							if (item != NULL) {
+								krad_link.av_mode = krad_link_string_to_av_mode (item->valuestring);
+							} else {
+								cJSON_Delete (cmd);
+								return;
+							}
+								
+							if (krad_link.operation_mode == CAPTURE) {
+								item = cJSON_GetObjectItem (cmd, "video_source");
+								if (item != NULL) {
+									krad_link.video_source = krad_link_string_to_video_source (item->valuestring);
+								}
+								item = cJSON_GetObjectItem (cmd, "video_device");
+								if (item != NULL) {
+									strncpy (krad_link.video_device, item->valuestring, sizeof(krad_link.video_device));
+								}
+								if ((krad_link.video_source == NOVIDEO) || (strlen(krad_link.video_device) == 0)) {
+									cJSON_Delete (cmd);
+									return;
+								}
+							}					
+							
+							if (krad_link.operation_mode == RECORD) {
+								item = cJSON_GetObjectItem (cmd, "filename");
+								if (item != NULL) {
+									strncpy (krad_link.filename, item->valuestring, sizeof(krad_link.filename));
+								}
+								if (strlen(krad_link.filename) == 0) {
+									cJSON_Delete (cmd);
+									return;
+								}
+							}
+							
 					
 							if (krad_link.operation_mode == TRANSMIT) {
 							
@@ -152,109 +196,112 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 									krad_link.port = item->valueint;
 								}
 								
-								if ((strlen(krad_link.host)) && (strlen(krad_link.mount)) && (strlen(krad_link.password)) && (krad_link.port)) {
-									item = cJSON_GetObjectItem (cmd, "av_mode");
-									if (item != NULL) {
-										krad_link.av_mode = krad_link_string_to_av_mode (item->valuestring);
-									}
-
-									if ((krad_link.av_mode == AUDIO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {
-										item = cJSON_GetObjectItem (cmd, "audio_codec");
-										if (item != NULL) {
-											strcat (codecs, item->valuestring);
-											krad_link.audio_codec = krad_string_to_codec (item->valuestring);
-										}
-										item = cJSON_GetObjectItem (cmd, "audio_bitrate");
-										if (item != NULL) {
-											if (krad_link.audio_codec == VORBIS) {
-												krad_link.vorbis_quality = item->valuedouble;
-												sprintf(audio_bitrate, "%f", krad_link.vorbis_quality);												
-											}
-											if (krad_link.audio_codec == OPUS) {
-												krad_link.opus_bitrate = item->valueint;
-												sprintf(audio_bitrate, "%d", krad_link.opus_bitrate);												
-											}
-											if (krad_link.audio_codec == FLAC) {
-												krad_link.flac_bit_depth = item->valueint;
-												sprintf(audio_bitrate, "%d", krad_link.flac_bit_depth);
-											}
-										}
-									}
-								
-									if ((krad_link.av_mode == VIDEO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {
-										item = cJSON_GetObjectItem (cmd, "video_codec");
-										if (item != NULL) {
-											strcat (codecs, item->valuestring);
-											krad_link.video_codec = krad_string_to_codec (item->valuestring);										
-										}
-										item = cJSON_GetObjectItem (cmd, "video_bitrate");
-										if (item != NULL) {
-											if (krad_link.video_codec == THEORA) {
-												krad_link.theora_quality = item->valueint;
-												video_bitrate = krad_link.theora_quality;
-											}
-											if (krad_link.video_codec == VP8) {
-												krad_link.vp8_bitrate = item->valueint;
-												video_bitrate = krad_link.vp8_bitrate;
-											}
-										}									
-
-										item = cJSON_GetObjectItem (cmd, "video_width");
-										if (item != NULL) {
-											krad_link.width = item->valueint;
-										}								
-
-										item = cJSON_GetObjectItem (cmd, "video_height");
-										if (item != NULL) {
-											krad_link.height = item->valueint;
-										}		
-									}								
-						
-									char *string = malloc(2048);
-									krad_link_rep_to_string (&krad_link, string);
-									printk("%s", string);
-									free(string);
-									krad_ipc_create_transmit_link (pss->krad_ipc_client, krad_link.av_mode,
-																   krad_link.host, krad_link.port, krad_link.mount, krad_link.password, codecs,
-															  	   krad_link.width, krad_link.height, video_bitrate, audio_bitrate);
-														  	   
+								if (!((strlen(krad_link.host)) && (strlen(krad_link.mount)) && (strlen(krad_link.password)) && (krad_link.port))) {
+									cJSON_Delete (cmd);
+									return;
 								}
-														  	   
+							}
+							
+							if ((krad_link.operation_mode == TRANSMIT) || (krad_link.operation_mode == RECORD)) {
+
+								if ((krad_link.av_mode == AUDIO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {
+									item = cJSON_GetObjectItem (cmd, "audio_codec");
+									if (item != NULL) {
+										strcat (codecs, item->valuestring);
+										krad_link.audio_codec = krad_string_to_codec (item->valuestring);
+									}
+									item = cJSON_GetObjectItem (cmd, "audio_bitrate");
+									if (item != NULL) {
+										if (krad_link.audio_codec == VORBIS) {
+											krad_link.vorbis_quality = item->valuedouble;
+											sprintf(audio_bitrate, "%f", krad_link.vorbis_quality);												
+										}
+										if (krad_link.audio_codec == OPUS) {
+											krad_link.opus_bitrate = item->valueint;
+											sprintf(audio_bitrate, "%d", krad_link.opus_bitrate);												
+										}
+										if (krad_link.audio_codec == FLAC) {
+											krad_link.flac_bit_depth = item->valueint;
+											sprintf(audio_bitrate, "%d", krad_link.flac_bit_depth);
+										}
+									}
+								}
+							
+								if ((krad_link.av_mode == VIDEO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {
+									item = cJSON_GetObjectItem (cmd, "video_codec");
+									if (item != NULL) {
+										strcat (codecs, item->valuestring);
+										krad_link.video_codec = krad_string_to_codec (item->valuestring);										
+									}
+									item = cJSON_GetObjectItem (cmd, "video_bitrate");
+									if (item != NULL) {
+										if (krad_link.video_codec == THEORA) {
+											krad_link.theora_quality = item->valueint;
+											video_bitrate = krad_link.theora_quality;
+										}
+										if (krad_link.video_codec == VP8) {
+											krad_link.vp8_bitrate = item->valueint;
+											video_bitrate = krad_link.vp8_bitrate;
+										}
+									}
+								}
+							}
+							
+							if ((krad_link.av_mode == VIDEO_ONLY) || (krad_link.av_mode == AUDIO_AND_VIDEO)) {								
+
+								item = cJSON_GetObjectItem (cmd, "video_width");
+								if (item != NULL) {
+									krad_link.width = item->valueint;
+								}								
+
+								item = cJSON_GetObjectItem (cmd, "video_height");
+								if (item != NULL) {
+									krad_link.height = item->valueint;
+								}
+								
+								item = cJSON_GetObjectItem (cmd, "fps_numerator");
+								if (item != NULL) {
+									krad_link.fps_numerator = item->valueint;
+								}								
+
+								item = cJSON_GetObjectItem (cmd, "fps_denominator");
+								if (item != NULL) {
+									krad_link.fps_denominator = item->valueint;
+								}
+
+								item = cJSON_GetObjectItem (cmd, "color_depth");
+								if (item != NULL) {
+									krad_link.color_depth = item->valueint;
+								} else {
+									krad_link.color_depth = 420;
+								}
+							}
+							
+							char *string = malloc(2048);
+							krad_link_rep_to_string (&krad_link, string);
+							printk("%s", string);
+							free(string);
+
+							if (krad_link.operation_mode == TRANSMIT) {
+								krad_ipc_create_transmit_link (pss->krad_ipc_client, krad_link.av_mode,
+															   krad_link.host, krad_link.port, krad_link.mount, krad_link.password, codecs,
+														  	   krad_link.width, krad_link.height, video_bitrate, audio_bitrate);
 							}
 							
 							if (krad_link.operation_mode == RECORD) {
-							/*
-									cJSON *filename;
-	
-
-							cJSON *operation_mode;
-							cJSON *av_mode;	
-							cJSON *codecs;	
-	
-							cJSON *video_width;
-							cJSON *video_height;
-							cJSON *video_bitrate;
-							cJSON *audio_bitrate;					
-							*/
+								krad_ipc_create_record_link (pss->krad_ipc_client, krad_link.av_mode,
+															 krad_link.filename, codecs,
+															 krad_link.width, krad_link.height,
+															 video_bitrate, audio_bitrate);							
 							}
 							
 							if (krad_link.operation_mode == CAPTURE) {
-					
-							/*
-							cJSON *av_mode;	
-
-	
-							cJSON *video_width;
-							cJSON *video_height;
-
-	
-							cJSON *video_source;
-							cJSON *video_device;
-							cJSON *video_fps_numerator
-							cJSON *video_fps_denominator;		
-							*/
-							}							
-					
+								krad_ipc_create_capture_link (pss->krad_ipc_client,
+															  krad_link.video_source, krad_link.video_device,
+															  krad_link.width, krad_link.height,
+															  krad_link.fps_numerator, krad_link.fps_denominator,
+															  krad_link.av_mode);
+							}
 						}
 					}
 				}
