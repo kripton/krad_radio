@@ -1,11 +1,5 @@
 # Quick
 
-	webui add link ability
-
-	capture
-	transmit
-	record
-
 	link destroy/create broadcast not also broadcasting ass. mixer portgroup
 
 	VP8 portgroup IO params, ie VP8 input res != compositor res
@@ -14,11 +8,11 @@
 	
 	auto destroying playback links?
 	
-	logtailing
+	ringbuffer based log and log via ipc
 	
-	uptime/cpu/sysinfo
+	uptime/sysinfo
 	
-	xmms2 playback ctls? - prev / play / pause / stop / next
+	xmms2 playback status
 	
 	detection cache and poll?
 	
@@ -26,7 +20,7 @@
 	
 	fix all the needlessly duplicated daemon forking jank
 
-	422 444 support for theora encoding
+	422 444 support for theora encoding, decklink capture
 
 # Thinking
 	Distributed Network Control / IPC Proxy / Krad Network / Krad Enterprise Edition
@@ -42,25 +36,18 @@
 # Console Client
 	Inline per command help
 
-# GTK Client
-	Remove/Display differently output mixer portgroups?
-	Tagging
-	Port Add/Remove
-
 # IPC
-	->Require Request for broadcasts<- segfault happeing rarely due to this?
 	Levels Via IPC
 	Migrate / Massage handler to clientlib
 
 # Code Style / Build sys / Version Control / Release
 	Replace sleep/check antipattern with pthread conds
 	Krad Link shutdown sequence legibility -enum
-	Waf Optional buildings: Codec2/Wayland/X11/XMMS2
+	Waf Optional buildings: /X11/XMMS2
 		Server side dlopen
 
 # Audio I/O
 	ALSA - Fix
-	Pulseaudio - Fix
 
 # Ogg
 	Mark EOS correctly on recordings
@@ -70,8 +57,6 @@
 
 # EBML
 	fail cleanly on streaming erros without exit()
-	Logging/Debug callback, nestegg compatible
-	write cues when recording to a file	
 
 # Transmitter
 	Fix ringbuffer usage

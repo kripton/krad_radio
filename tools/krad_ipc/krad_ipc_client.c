@@ -330,7 +330,57 @@ void krad_radio_launch_daemon (char *sysname) {
 
 }
 
-void krad_radio_watchdog_run_script (char *filename) {
+void krad_radio_watchdog_run_program_with_options (char *filename, char *const options[]) {
+
+	pid_t pid;
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		if (waitpid(pid, NULL, 0) != pid) {
+			failfast ("waitpid error launching daemon!");
+		}
+		return;
+	}
+
+	pid = fork();
+
+	if (pid < 0) {
+		exit (1);
+	}
+
+	if (pid > 0) {
+		exit (0);
+	}
+
+	execv (filename, options);
+
+}
+
+
+void krad_radio_watchdog_run_jack_dummy_44100 () {
+
+	char *const jack_options[] = {"/usr/bin/jackd", "--silent", "-ddummy", "-r44100", NULL};
+
+	krad_radio_watchdog_run_program_with_options ("/usr/bin/jackd", jack_options);
+}
+
+void krad_radio_watchdog_run_xmms2d_with_ipc_path (char *ipc_path) {
+
+	char ipc_option[256];
+	
+	sprintf(ipc_option, "--ipc-socket=%s", ipc_path);
+
+	char *xmms2_options[] = {"/usr/local/bin/xmms2d", "--output=jack", "--quiet", ipc_option, NULL};
+
+	krad_radio_watchdog_run_program_with_options ("/usr/local/bin/xmms2d", xmms2_options);
+}
+
+void krad_radio_watchdog_run_program (char *filename) {
 
 	pid_t pid;
 
@@ -427,7 +477,7 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 			} else {
 				krad_radio_destroy_daemon (sysname);
 				if (launch_script != NULL) {
-					krad_radio_watchdog_run_script (launch_script);
+					krad_radio_watchdog_run_program (launch_script);
 				} else {
 					krad_radio_launch_daemon (sysname);
 				}
@@ -438,7 +488,7 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 	}
 	wait (NULL);
 
-	usleep (4000000);
+	usleep (5000000);
 
 }
 
@@ -484,6 +534,10 @@ void krad_radio_watchdog (char *config_file) {
 	krad_radio_watchdog = calloc (1, sizeof(krad_radio_watchdog_t));
 
 	krad_radio_watchdog_read_config (krad_radio_watchdog, config_file);
+
+	//krad_radio_watchdog_run_jack_dummy_44100 ();
+	//usleep(500000);
+	//krad_radio_watchdog_run_xmms2d_with_ipc_path ("/tmp/xmms-ipc-music1");
 
 	while (1) {
 		for (d = 0; d < krad_radio_watchdog->count; d++) {
