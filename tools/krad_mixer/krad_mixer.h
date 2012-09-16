@@ -15,7 +15,7 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
 #include "hardlimiter.h"
 
-
+#include "krad_mixer_common.h"
 
 typedef enum {
 	OUTPUT,

@@ -781,6 +781,7 @@ int krad_gui_render_selector_selected (krad_gui_t *krad_gui, int x, int y, int s
 	
 	if ((cairo_in_fill(cr, px, py) != 0) || (cairo_in_stroke(cr, px, py) != 0)) {
 		if (krad_gui->click) {
+			krad_gui->render_ftest = 1;
 			cairo_set_source_rgb (cr, ORANGE);
 			cairo_fill_preserve (cr);
 			cairo_set_source_rgb (cr, GREEN);

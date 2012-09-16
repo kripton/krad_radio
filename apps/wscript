@@ -8,9 +8,10 @@ krad_radio_daemon.c
 
 programs2 = """
 krad_radio.c
-krad_radio_ncurses.c
-krad_radio_gtk.c
 """.split()
+
+#krad_radio_ncurses.c
+#krad_radio_gtk.c
 
 sources = """
 """.split()
@@ -121,7 +122,9 @@ includedirs = """
 
 libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
-		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "ncurses", "xmms2-client"]
+		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "xmms2-client"]
+
+# "ncurses",
 
 def check_way(way):
 

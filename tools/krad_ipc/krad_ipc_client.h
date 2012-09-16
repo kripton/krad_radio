@@ -26,6 +26,7 @@
 #include "krad_system.h"
 #include "krad_ebml.h"
 #include "krad_link_common.h"
+#include "krad_mixer_common.h"
 
 #define KRAD_IPC_BUFFER_SIZE 16384
 #ifndef KRAD_IPC_CLIENT
@@ -173,7 +174,7 @@ void krad_ipc_radio_get_system_cpu_usage (krad_ipc_client_t *client);
 
 int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
 
-int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade );
+int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade, int *has_xmms2 );
 
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);

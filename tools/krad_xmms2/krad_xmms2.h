@@ -45,6 +45,8 @@ struct krad_xmms_St {
 	char title[512];
 	char artist[512];
 
+	uint64_t last_nextprev_cmd_time;
+
 	krad_tags_t *krad_tags;
 
 };

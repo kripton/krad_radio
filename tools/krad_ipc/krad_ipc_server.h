@@ -141,7 +141,7 @@ void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, 
 
 
 void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  int io_type, float volume,  char *mixgroup, char *crossfade_name, float crossfade_value );
+											  int io_type, float volume,  char *mixgroup, char *crossfade_name, float crossfade_value, int xmms2 );
 											  
 void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_item, char **tag_name, char **tag_value );
 
@@ -156,7 +156,7 @@ void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
 krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server, int sd);
 
 void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  	   int io_type, float volume, char *mixbus );
+											  	   int io_type, float volume, char *mixbus, int xmms2 );
 void krad_ipc_server_mixer_broadcast2 ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, char *portname, uint32_t ebml_subid2, char *string);
 void krad_ipc_server_simple_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, char *string);
 void krad_ipc_server_simple_number_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint32_t ebml_subid, uint32_t ebml_subid2, int num);

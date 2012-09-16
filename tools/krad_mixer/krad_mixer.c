@@ -730,7 +730,7 @@ void krad_mixer_portgroup_xmms2_cmd (krad_mixer_t *krad_mixer, char *portgroupna
 
 	portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
 
-	if (portgroup->krad_xmms != NULL) {
+	if ((portgroup != NULL) && (portgroup->krad_xmms != NULL)) {
 		if (strncmp(xmms2_cmd, "play", 4) == 0) {
 			krad_xmms_playback_cmd (portgroup->krad_xmms, PLAY);
 			return;
@@ -966,6 +966,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	char controlname[1024];	
 	float floatval;
 
+	int has_xmms2;
+
 	char string[1024];
 	int direction;
 	int number;
@@ -1155,6 +1157,11 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 				if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
 					crossfade_name = "";
 					crossfade_value = 0.0f;
+					has_xmms2 = 0;
+					if (portgroup->krad_xmms != NULL) {
+						has_xmms2 = 1;
+					}
+					
 					if (portgroup->crossfade_group != NULL) {
 					
 						if (portgroup->crossfade_group->portgroup[0] == portgroup) {
@@ -1164,7 +1171,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 					}
 				
 					krad_ipc_server_response_add_portgroup ( krad_ipc, portgroup->sysname, portgroup->channels,
-											  				 portgroup->io_type, portgroup->volume[0],  portgroup->mixbus->sysname, crossfade_name, crossfade_value );
+											  				 portgroup->io_type, portgroup->volume[0],
+											  				 portgroup->mixbus->sysname, crossfade_name,
+											  				 crossfade_value, has_xmms2 );
 				}
 			}
 			
@@ -1214,7 +1223,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			if (portgroup != NULL) {
 
 				krad_ipc_server_broadcast_portgroup_created ( krad_ipc, portgroup->sysname, portgroup->channels,
-												  	   		  portgroup->io_type, portgroup->volume[0], portgroup->mixbus->sysname );
+												  	   		  portgroup->io_type, portgroup->volume[0],
+												  	   		  portgroup->mixbus->sysname, 0 );
 			}
 		
 			break;

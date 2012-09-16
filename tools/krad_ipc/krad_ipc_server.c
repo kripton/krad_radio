@@ -391,7 +391,7 @@ void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char
 }
 
 void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  int io_type, float volume, char *mixbus, char *crossfade_name, float crossfade_value ) {
+											  int io_type, float volume, char *mixbus, char *crossfade_name, float crossfade_value, int xmms2) {
 
 	uint64_t portgroup;
 
@@ -409,13 +409,13 @@ void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server
 
 	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, crossfade_name);
 	krad_ebml_write_float (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, crossfade_value);	
-
+	krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, xmms2);
 	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, portgroup);
 
 }
 
 void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  	   int io_type, float volume, char *mixbus ) {
+											  	   int io_type, float volume, char *mixbus, int xmms2 ) {
 
 	int c;
 	uint64_t portgroup;
@@ -443,7 +443,7 @@ void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_s
 
 				krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
 				krad_ebml_write_float (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, 0.0);	
-
+				krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, xmms2);
 				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, portgroup);
 			
 				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);
@@ -494,7 +494,7 @@ void krad_ipc_server_simple_number_broadcast ( krad_ipc_server_t *krad_ipc_serve
 				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, element);
 				krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
 				krad_ipc_release_client (&krad_ipc_server->clients[c]);
-			}			
+			}		
 		}
 	}
 }

@@ -102,7 +102,8 @@
 						   border: 1px solid grey; cursor: pointer; float: left; }
 						   
         .kradlink { margin-top: 132px; }
-        .tag { white-space: nowrap; font-family: Helvetica,sans-serif; font-size: 14px; }
+        .tag { white-space: nowrap; font-family: Helvetica,sans-serif; font-size: 14px; color: #ccc; margin-top: 4px}
+
 	</style>
 	
 	<style>
@@ -491,6 +492,62 @@
 			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
 						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
 						rgba(22,222,5,0.85) 0px 1px 5px; /* drop shadow */
+
+		}
+
+
+		.krad_button_small {
+		    min-width: 20px;
+		    text-align: center;
+			cursor: default;
+			margin-left: 6px;
+			margin-right: 6px;
+			margin-top: 4px;
+			margin-bottom: 4px;
+			padding-left: 8px;
+			padding-right: 8px;
+			padding-top: 5px;
+			padding-bottom: 4px;
+			font-size: 14px;
+			font-weight: bold;
+			font-family: Helvetica, sans-serif;
+			color: #222227;
+			user-select: none;
+			background-color: rgba(171,171,171,1);
+			border-color: #553344;
+			border-radius: 2px;
+			background: radial-gradient(ellipse at center, rgba(151,151,151,1) 0%,rgba(171,171,171,1) 100%);
+			text-shadow: rgba(22,22,22,.3) 0 1px 2px;
+			border-top: 0em solid rgba(171,171,171,1);
+			border-left: 0px solid rgba(171,171,171,1);
+			border-right: 0.13em solid rgba(171,171,171,0.1);
+			border-bottom: 0.13em solid rgba(171,171,171,0.1);
+
+			box-shadow:  inset rgba(0,0,133,0.15) 0 -0.1em .3em, /* inner shadow */ 
+						/*hsl(0, 22%, 60%) 0 .1em 1px, hsl(0, 53%, 45%) 0 .1em 1px, /* color border */
+						rgba(171,171,171,1) 0px 1px 5px; /* drop shadow */
+
+		}
+
+		.krad_button_small:active {
+			margin-left: 6px;
+			margin-right: 6px;
+			margin-top: 5px;
+			margin-bottom: 5px;
+			padding-left: 8px;
+			padding-right: 8px;
+			padding-top: 5px;
+			padding-bottom: 4px;
+			color: #191915;
+			background: radial-gradient(ellipse at center, rgba(151,151,151,1) 12%,rgba(171,171,171,1) 100%);
+			border-top: 0em solid rgba(171,171,171,1);
+			border-left: 0px solid rgba(171,171,171,1);
+			border-right: 0.13em solid rgba(171,171,171,1);
+			border-bottom: 0.13em solid rgba(171,171,171,1);
+			text-shadow: rgba(22,22,22,.35) 0 1px 2px;
+			box-shadow:  inset rgba(0,0,133,0.13) 0 -0.1em .3em, /* inner shadow */ 
+						/* hsl(0, 22%, 60%) 0 .1em 3px, hsl(0, 33%, 45%) 0 .1em 1px, /* color border */
+						rgba(171,171,171,0.85) 0px 1px 5px; /* drop shadow */
 
 		}
 

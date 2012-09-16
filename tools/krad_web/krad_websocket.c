@@ -56,8 +56,12 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				part2 = cJSON_GetObjectItem (cmd, "control_name");
 				part3 = cJSON_GetObjectItem (cmd, "value");
 				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
-					floatval = part3->valuedouble;
-					krad_ipc_set_control (pss->krad_ipc_client, part->valuestring, part2->valuestring, floatval);
+					if (strcmp(part2->valuestring, "xmms2") == 0) {
+						krad_ipc_mixer_portgroup_xmms2_cmd (pss->krad_ipc_client, part->valuestring, part3->valuestring);
+					} else {
+						floatval = part3->valuedouble;
+						krad_ipc_set_control (pss->krad_ipc_client, part->valuestring, part2->valuestring, floatval);
+					}
 				}
 			}
 			
@@ -66,7 +70,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				if (part != NULL) {
 					krad_ipc_mixer_push_tone (pss->krad_ipc_client, part->valuestring);
 				}
-			}					
+			}
 		}
 		
 		if ((part != NULL) && (strcmp(part->valuestring, "kradcompositor") == 0)) {
@@ -522,7 +526,7 @@ void krad_websocket_update_portgroup ( krad_ipc_session_data_t *krad_ipc_session
 }
 
 
-void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val ) {
+void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_data, char *portname, float floatval, char *crossfade_name, float crossfade_val, int xmms2 ) {
 
 	//printkd ("add a portgroup called %s withe a volume of %f", portname, floatval);
 
@@ -538,6 +542,8 @@ void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_da
 	
 	cJSON_AddStringToObject (msg, "crossfade_name", crossfade_name);
 	cJSON_AddNumberToObject (msg, "crossfade", crossfade_val);
+	
+	cJSON_AddNumberToObject (msg, "xmms2", xmms2);	
 	
 	krad_ipc_get_tags (krad_ipc_session_data->krad_ipc_client, portname);
 
@@ -627,6 +633,8 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 	krad_ipc_session_data_t *krad_ipc_session_data = (krad_ipc_session_data_t *)ptr;
 
+	int has_xmms2;
+
 	uint32_t message;
 	uint32_t ebml_id;	
 	uint64_t ebml_data_size;
@@ -668,6 +676,8 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	krad_link_rep_t *krad_link_rep;
 	
 	krad_link_rep = NULL;
+	
+	has_xmms2 = 0;	
 	
 	bytes_read = 0;
 	ebml_id = 0;
@@ -805,7 +815,6 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 		case EBML_ID_KRAD_COMPOSITOR_MSG:
 			//printkd ("krad_radio_websocket_ipc_handler got message from krad COMPOSITOR\n");
-			
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			
 			switch ( ebml_id ) {
@@ -829,7 +838,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 			break;
 			
 		case EBML_ID_KRAD_MIXER_MSG:
-			//printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
+//			printkd ("krad_radio_websocket_ipc_handler got message from krad mixer\n");
 //			krad_ipc_server_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 			
@@ -838,18 +847,14 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					//printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
-					
 					krad_websocket_set_control ( krad_ipc_session_data, portname, controlname, floatval);
-					
-					
-					
 					
 					break;	
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
 					//printkd ("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade )) <= list_size)) {
-						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade);
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
+						krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
 						
 						if (bytes_read == list_size) {
 							break;
@@ -859,8 +864,8 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 				case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
 					//printkd ("PORTGROUP_CREATED msg %zu bytes  \n", ebml_data_size );
 					
-					krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade );
-					krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade);
+					krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade, &has_xmms2 );
+					krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
 					
 					break;
 				
