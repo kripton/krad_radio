@@ -679,7 +679,8 @@ void krad_ipc_set_tag (krad_ipc_client_t *client, char *item, char *tag_name, ch
 
 }
 
-void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_port) {
+void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_port,
+					char *headcode, char *header, char *footer) {
 
 	//uint64_t ipc_command;
 	uint64_t radio_command;
@@ -692,6 +693,10 @@ void krad_ipc_webon (krad_ipc_client_t *client, int http_port, int websocket_por
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_HTTP_PORT, http_port);	
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_WEBSOCKET_PORT, websocket_port);	
 
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_WEB_HEADCODE, headcode);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_WEB_HEADER, header);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_WEB_FOOTER, footer);
+	
 	krad_ebml_finish_element (client->krad_ebml, webon);
 	krad_ebml_finish_element (client->krad_ebml, radio_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);

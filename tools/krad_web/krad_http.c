@@ -419,31 +419,196 @@ void *krad_http_server_run (void *arg) {
 	
 }
 
-krad_http_t *krad_http_server_create (krad_radio_t *krad_radio, int port, int websocket_port) {
+static char *krad_http_server_load_file_or_string (char *input) {
+
+	int fd;
+	char *string;
+	unsigned int length;
+	struct stat file_stat;
+	int bytes_read;
+	int ret;
+	
+	fd = 0;
+	bytes_read = 0;
+	string = NULL;
+
+	if (input == NULL) {
+		return NULL;
+	}
+
+	if ((strlen(input)) && (input[0] == '/')) {
+	
+		fd = open (input, O_RDONLY);
+		if (fd < 1) {
+			printke("could not open");		
+			return NULL;
+		}
+		fstat (fd, &file_stat);
+		length = file_stat.st_size;
+		if (length > 1000000) {
+			printke("too big");
+			close (fd);
+			return NULL;
+		}
+
+		string = calloc (1, length);				
+		
+		while (bytes_read < length) {
+		
+			ret = read (fd, string + bytes_read, length - bytes_read);
+		
+			if (ret < 0) {
+				printke("read fail");
+				close (fd);
+				free (string);
+				return NULL;
+			}
+		
+			bytes_read += ret;
+		
+		}
+		
+		close (fd);
+	
+		return string;
+	
+	} else {
+		return strdup (input);
+	}
+
+}
+
+static void krad_http_server_setup_html (krad_http_t *krad_http) {
+
+	char string[64];
+	char *html_template;
+	int html_template_len;
+	int total_len;
+	int len;
+	int pos;
+	int template_pos;
+	
+	template_pos = 0;
+	pos = 0;
+	len = 0;
+	total_len = 0;
+	
+	memset (string, 0, sizeof(string));
+	snprintf (string, 7, "%d", krad_http->websocket_port);
+	total_len += strlen(string);
+	krad_http->js = (char *)tools_krad_web_res_krad_radio_js;
+	krad_http->js_len = tools_krad_web_res_krad_radio_js_len;
+	krad_http->js[krad_http->js_len] = '\0';
+	
+	html_template = (char *)tools_krad_web_res_krad_radio_html;
+	html_template_len = tools_krad_web_res_krad_radio_html_len - 1;
+	total_len += html_template_len - 4;
+
+	krad_http->headcode = krad_http_server_load_file_or_string (krad_http->headcode_source);
+	krad_http->htmlheader = krad_http_server_load_file_or_string (krad_http->htmlheader_source);
+	krad_http->htmlfooter = krad_http_server_load_file_or_string (krad_http->htmlfooter_source);
+	
+	if (krad_http->headcode != NULL) {
+		total_len += strlen(krad_http->headcode);
+	}
+	if (krad_http->htmlheader != NULL) {
+		total_len += strlen(krad_http->htmlheader);		
+	}
+	if (krad_http->htmlfooter != NULL) {
+		total_len += strlen(krad_http->htmlfooter);		
+	}
+
+	krad_http->html_len = total_len + 1;
+	krad_http->html = calloc (1, krad_http->html_len);
+	
+	len = strcspn (html_template, "~");
+	strncpy (krad_http->html, html_template, len);
+	strcpy (krad_http->html + len, string);
+	pos = len + strlen(string);
+	template_pos = len + 1;
+	
+	len = strcspn (html_template + template_pos, "~");
+	strncpy (krad_http->html + pos, html_template + template_pos, len);
+	template_pos += len + 1;
+	pos += len;
+	if (krad_http->headcode != NULL) {
+		len = strlen(krad_http->headcode);
+		strncpy (krad_http->html + pos, krad_http->headcode, len);
+		pos += len;
+	}
+	
+	len = strcspn (html_template + template_pos, "~");
+	strncpy (krad_http->html + pos, html_template + template_pos, len);
+	template_pos += len + 1;
+	pos += len;
+	if (krad_http->htmlheader != NULL) {
+		len = strlen(krad_http->htmlheader);
+		strncpy (krad_http->html + pos, krad_http->htmlheader, len);
+		pos += len;
+	}
+	
+	len = strcspn (html_template + template_pos, "~");
+	strncpy (krad_http->html + pos, html_template + template_pos, len);
+	template_pos += len + 1;
+	pos += len;
+	if (krad_http->htmlfooter != NULL) {
+		len = strlen(krad_http->htmlfooter);
+		strncpy (krad_http->html + pos, krad_http->htmlfooter, len);
+		pos += len;
+	}
+	
+	len = html_template_len - template_pos;
+	strncpy (krad_http->html + pos, html_template + template_pos, len);
+	template_pos += len;
+	pos += len;	
+	
+	if (template_pos != html_template_len) {
+		failfast("html template miscalculation: %d %d", template_pos, html_template_len);
+	}	
+	
+	if (pos != total_len) {
+		printke("html miscalculation: %d %d", pos, total_len);
+	}
+
+	krad_http->html[total_len] = '\0';
+
+	if (krad_http->headcode != NULL) {
+		free (krad_http->headcode);
+		krad_http->headcode = NULL;		
+	}
+	if (krad_http->htmlheader != NULL) {
+		free (krad_http->htmlheader);
+		krad_http->htmlheader = NULL;		
+	}
+	if (krad_http->htmlfooter != NULL) {
+		free (krad_http->htmlfooter);
+		krad_http->htmlfooter = NULL;		
+	}		
+}
+
+krad_http_t *krad_http_server_create (krad_radio_t *krad_radio, int port, int websocket_port,
+									  char *headcode, char *htmlheader, char *htmlfooter) {
 	
 	krad_http_t *krad_http = calloc(1, sizeof(krad_http_t));
 
 	static struct sockaddr_in serv_addr;
 	int on = 1;
-	char string[7];
 
 	krad_http->krad_radio = krad_radio;
 	krad_http->port = port;
 	krad_http->websocket_port = websocket_port;
 	
-	krad_http->js = (char *)tools_krad_web_res_krad_radio_js;
-	krad_http->html = (char *)tools_krad_web_res_krad_radio_html;
-	krad_http->js_len = tools_krad_web_res_krad_radio_js_len;
-	krad_http->html_len = tools_krad_web_res_krad_radio_html_len;
-	
-	snprintf (string, 7, "%6d", krad_http->websocket_port);		
-	memcpy (strstr (krad_http->html, "WSPORT"), string, 6);	
-	
+	krad_http->headcode_source = headcode;
+	krad_http->htmlheader_source = htmlheader;
+	krad_http->htmlfooter_source = htmlfooter;
+
 	if (krad_http->port < 0 || krad_http->port > 65535) {
 		failfast ("krad_http port number error\n");
 	}
-	
+
 	printk ("Krad Web Starting Up on port %d", krad_http->port);
+
+	krad_http_server_setup_html (krad_http);
 
 	krad_http->homedir = getenv ("HOME");
  	

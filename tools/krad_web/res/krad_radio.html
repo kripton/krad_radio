@@ -967,11 +967,15 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
 			}
 		});		
 		$(document).ready(function() {
-			var websocket_port = WSPORT;
+			var websocket_port = ~;
 			kradwebsocket = new Kradwebsocket (websocket_port);
 		});
 	</script>
+	~
 </head>
 <body>
+~
+<div id="kradradio"></div>
+~
 </body>
 </html>

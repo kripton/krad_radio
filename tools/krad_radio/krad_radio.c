@@ -261,6 +261,14 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	
 	int i;
 	
+	char string1[512];	
+	char string2[512];
+	char string3[512];	
+	
+	string1[0] = '\0';
+	string2[0] = '\0';
+	string3[0] = '\0';	
+	
 	krad_tags = NULL;
 	i = 0;
 	command = 0;
@@ -389,15 +397,41 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			numbers[1] = krad_ebml_read_number ( krad_radio_station->krad_ipc->current_client->krad_ebml, ebml_data_size);
 		
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_WEB_HEADCODE) {
+				failfast ("missing item");
+			}
+			
+			krad_ebml_read_string (krad_radio_station->krad_ipc->current_client->krad_ebml, string1, ebml_data_size);
+		
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_WEB_HEADER) {
+				failfast ("missing item");
+			}
+			
+			krad_ebml_read_string (krad_radio_station->krad_ipc->current_client->krad_ebml, string2, ebml_data_size);
+			
+			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_WEB_FOOTER) {
+				failfast ("missing item");
+			}
+			
+			krad_ebml_read_string (krad_radio_station->krad_ipc->current_client->krad_ebml, string3, ebml_data_size);
+		
+		
 			// Remove existing if existing (ie. I am changing the port)
 			if (krad_radio_station->krad_http != NULL) {
 				krad_http_server_destroy (krad_radio_station->krad_http);
 			}
 			if (krad_radio_station->krad_websocket != NULL) {
 				krad_websocket_server_destroy (krad_radio_station->krad_websocket);
-			}		
+			}
 		
-			krad_radio_station->krad_http = krad_http_server_create ( krad_radio_station, numbers[0], numbers[1] );
+			krad_radio_station->krad_http = krad_http_server_create ( krad_radio_station, numbers[0], numbers[1],
+																	  string1, string2, string3 );
 			krad_radio_station->krad_websocket = krad_websocket_server_create ( krad_radio_station->sysname, numbers[1] );
 		
 			return 0;

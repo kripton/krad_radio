@@ -63,7 +63,7 @@ Kradwebsocket.prototype.do_reconnect = function() {
 	if (this.connected != true) {
 		this.reconnection_attempts += 1;
 		if (this.reconnection_attempts == 3) {
-			$('body').append("<div id='websockets_connection_problem'><h2>Websockets connection problem using port " + this.port + "</h2></div>");
+			$('#kradradio').append("<div id='websockets_connection_problem'><h2>Websockets connection problem using port " + this.port + "</h2></div>");
 		}
 		this.connect();
 	}
@@ -495,7 +495,7 @@ Kradradio.prototype.got_sysname = function (sysname) {
 
 	this.sysname = sysname;
 
-	$('body').append("<div class='kradradio_station' id='" + this.sysname + "'>\
+	$('#kradradio').append("<div class='kradradio_station' id='" + this.sysname + "'>\
 	                    <div class='kradmixer'></div>\
 	                    <br clear='both'>\
 	                    <div class='kradcompositor'></div>\

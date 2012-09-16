@@ -159,7 +159,16 @@ int main (int argc, char *argv[]) {
 			
 			if (strncmp(argv[2], "webon", 5) == 0) {
 				if (argc == 5) {
-					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]));
+					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), "", "", "");
+				}
+				if (argc == 6) {
+					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), argv[5], "", "");
+				}
+				if (argc == 7) {
+					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), argv[5], argv[6], "");
+				}
+				if (argc == 8) {
+					krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), argv[5], argv[6], argv[7]);
 				}
 			}			
 			
