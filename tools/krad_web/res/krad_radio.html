@@ -16,6 +16,8 @@
 			color: #ccc;
 			background-color: #505050;
 			margin: 0px;
+			margin-left: 10%;
+			margin-right: 5%;			
 		}
 		a { text-decoration: none; }
 		a:visited { color: #222227; }
@@ -50,7 +52,11 @@
 			border: 1px solid #616161;
 		}
 
-		.kradmixer_control, .kradlink_control { height: 212px; float: left; margin: 14px; }
+		.kradmixer_control {
+			margin-top: 24px;
+		}
+
+		.kradmixer_control, .kradlink_control { height: 122px; float: left; margin: 14px; }
 
 		.kradmixer_control h2, .kradlink_control h2, .kradlink_control h3 {
             position: relative;
@@ -64,7 +70,16 @@
             font-weight: bold; 
             font-size: 26px;
         }
-
+		
+		.crossfade_control {
+            position: relative;
+            text-align: center;
+            margin: 64px;
+            -webkit-transform: none;
+            -moz-transform: none;
+            -o-transform: none;
+		}
+		
 		.crossfade_control h2 {
             position: static;
             text-align: center;
@@ -86,7 +101,7 @@
 			margin-left: 16px;
 		}
 		
-		.volume_control, .kradlink_param_control { padding-left: 28px; margin-right: 10px; padding-right: 0px; width: 50px; }
+		.volume_control, .kradlink_param_control { padding-left: 78px; margin-right: 40px; padding-right: 20px; width: 50px; }
 		.crossfade_control { width: 200px; }
 		.kradmixer_tools, .kradcompositor_tools { display: none; width: 80%; margin: 20px; margin-bottom: 32px; padding: 10px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #505050; }		
 		.kradlink_tools { width: 80%; margin: 20px; margin-bottom: 32px; padding: 10px; padding-top: 2px; padding-left: 20px;  border-left: 12px solid #616161; }
@@ -103,6 +118,8 @@
 						   
         .kradlink { margin-top: 132px; }
         .tag { white-space: nowrap; font-family: Helvetica,sans-serif; font-size: 14px; color: #ccc; margin-top: 4px}
+        .nowplaying { font-weight: normal; font-size: 18px; margin-left: 6px; white-space: wrap; color: #9faa8b; text-shadow: #111112 5px 2px 5px; }
+        .playtime { float: left; margin-left: 6px; margin-top: 9px; margin-bottom: 8px; box-shadow: inset #192122 1px 1px 2px; border-radius: 2px; border: 0px solid #444; padding: 3px; font-weight: normal; font-size: 16px; color: #8aaa03; background-color: #434244; text-align: right; padding-right: 9px; width: 48px; }
 
 	</style>
 	

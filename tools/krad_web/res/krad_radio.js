@@ -22,11 +22,11 @@ Tag.prototype.show = function() {
 	if ((this.tag_name != "artist") && (this.tag_name != "title")) {
 
 		if (this.tag_name == "now_playing") {
-			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'><span class='tag_value'>" + this.tag_value + "</span></div>");
+			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag nowplaying'><span class='tag_value'>" + this.tag_value + "</span></div>");
 			return;
 		}
 		if (this.tag_name == "playtime") {
-			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'><span class='tag_value'>" + this.tag_value + "</span></div>");
+			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag playtime'><span class='tag_value'>" + this.tag_value + "</span></div>");
 			return;
 		}
 	
@@ -181,7 +181,8 @@ function Kradradio () {
 	this.admin = 0;
 	this.kode = "";
 	this.secretkode = "31337";
-	
+	this.portgroup_count = 0;
+	this.xmms2_portgroup_count = 0;
 	this.prepare_link_operation_mode = "";
 	
 }
@@ -498,6 +499,10 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	$('#kradradio').append("<div class='kradradio_station' id='" + this.sysname + "'>\
 	                    <div class='kradmixer'></div>\
 	                    <br clear='both'>\
+	                    <div class='kradmixer_beta'></div>\
+	                    <br clear='both'>\
+	                    <div class='kradmixer_cappa'></div>\
+	                    <br clear='both'>\
 	                    <div class='kradcompositor'></div>\
 	                    <br clear='both'>\
 	                    <div class='kradlink'></div>\
@@ -741,17 +746,17 @@ Kradradio.prototype.got_update_portgroup = function (portgroup_name, control_nam
 
 Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossfade_name, crossfade, xmms2) {
 
-	$('.kradmixer').append("<div class='kradmixer_control volume_control' id='portgroup_" + portgroup_name + "_wrap'><div id='" + portgroup_name + "'></div><h2>" + portgroup_name + "</h2></div>");
+	this.portgroup_count += 1;
 
-	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume, step: 0.5 });
+	if (xmms2 == 1) {
+		this.xmms2_portgroup_count += 1;
+	}
 
-	$( '#' + portgroup_name ).bind( "slide", function(event, ui) {
-		kradradio.update_portgroup (portgroup_name, "volume", ui.value);
-	});
-	
+	volume_div = "<div class='kradmixer_control volume_control' id='portgroup_" + portgroup_name + "_wrap'><div id='" + portgroup_name + "'></div><h2>" + portgroup_name + "</h2></div>";
+
 	if (portgroup_name == "DTMF") {
 	
-		$('.kradmixer').append("<div class='kradmixer_control dtmf_pad'> <div id='" + portgroup_name + "_dtmf'> </div> </div>");
+		$('.kradmixer_cappa').append("<div class='kradmixer_control dtmf_pad'> <div id='" + portgroup_name + "_dtmf'> </div> </div>");
 	
 		$('#' + portgroup_name + '_dtmf').append("<div class='button_wrap'><div class='krad_button' id='" + portgroup_name + "_dtmf_1'>1</div></div>");
 		$('#' + portgroup_name + '_dtmf').append("<div class='button_wrap'><div class='krad_button' id='" + portgroup_name + "_dtmf_2'>2</div></div>");
@@ -838,6 +843,18 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 		});
 	}
 	
+	if (portgroup_name == "DTMF") {
+		$('.kradmixer_cappa').append(volume_div);
+	} else {
+		$('.kradmixer').append(volume_div);
+	}
+
+	$('#' + portgroup_name).slider({orientation: 'vertical', value: volume, step: 0.5 });
+
+	$( '#' + portgroup_name ).bind( "slide", function(event, ui) {
+		kradradio.update_portgroup (portgroup_name, "volume", ui.value);
+	});
+
 	if (crossfade_name.length > 0) {
 	
 		$('.kradmixer').append("<div class='kradmixer_control crossfade_control'> <div id='" + portgroup_name + "_crossfade'></div> <h2>" + portgroup_name + " - " + crossfade_name + "</h2></div>");
@@ -849,9 +866,20 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 		});
 	}
 	
-	
 	if (xmms2 == 1) {
-		$('.kradmixer').append("<div class='kradmixer_control xmms2_control'><div id='ktags_" + portgroup_name + "'></div><br clear='both'/><div id='" + portgroup_name + "_xmms2'></div></div>");
+		xmms2_controls = "<div class='kradmixer_control xmms2_control'><div id='ktags_" + portgroup_name + "'></div><br clear='both'/><div id='" + portgroup_name + "_xmms2'></div></div>";
+
+		if (this.xmms2_portgroup_count == 1) {
+		
+			//if ($('.dtmf_pad')) {
+			//	$('.dtmf_pad').after(xmms2_controls);
+			//} else {
+				$('.kradmixer_beta').prepend(xmms2_controls);
+			//}
+		} else {
+			$('.kradmixer_beta').append(xmms2_controls);
+		}
+
 		$('#' + portgroup_name + '_xmms2').append("<div class='button_wrap'><div class='krad_button_small' id='" + portgroup_name + "_xmms2_prev'>PREV</div></div>");
 		$('#' + portgroup_name + '_xmms2').append("<div class='button_wrap'><div class='krad_button_small' id='" + portgroup_name + "_xmms2_play'>PLAY</div></div>");
 		$('#' + portgroup_name + '_xmms2').append("<div class='button_wrap'><div class='krad_button_small' id='" + portgroup_name + "_xmms2_pause'>PAUSE</div></div>");
@@ -878,10 +906,9 @@ Kradradio.prototype.got_add_portgroup = function (portgroup_name, volume, crossf
 			kradradio.update_portgroup(portgroup_name, "xmms2", "next");
 		});
 	} else {
-	
 		$('#portgroup_' + portgroup_name + '_wrap').append("<div id='ktags_" + portgroup_name + "'></div>");
-	
 	}
+
 }
 
 Kradradio.prototype.got_remove_portgroup = function (name) {
