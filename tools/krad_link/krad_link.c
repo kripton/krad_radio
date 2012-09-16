@@ -8,62 +8,6 @@ static void krad_linker_listen_destroy_client (krad_linker_listen_client_t *krad
 static void krad_linker_listen_create_client (krad_linker_t *krad_linker, int sd);
 static void *krad_linker_listen_client_thread (void *arg);
 
-
-
-static inline int blend_pixel ( int pixela, int pixelb ) {
-
-    int result;
-    
-    result = 0;
-    
-    result += pixela;
-    result += pixelb;
-    result /= 2;
-
-    if( result > 255 )
-    {
-        result = 255;
-    }
-    if( result < 0 )
-    {
-        result = 0;
-    }
-
-    return result;
-}
-
-static void deinterlace_blend_line ( uint8_t *dst, uint8_t *src, int stride) {
-    
-    int p;
-
-    for( p = 0; p < stride; p++)
-    {
-        int current_pixel;
-        int pixel_above_current_pixel;
-
-        pixel_above_current_pixel = src[-stride];
-        current_pixel = src[0];
-
-        dst[0] = blend_pixel ( current_pixel, pixel_above_current_pixel );
-
-        dst++;
-        src++;
-    }
-}
-
-void deinterlace_blend (uint8_t *pixels, int height, int stride) {
-
-
-	int line;
-	
-    for ( line = 1; line < (height - 1); line++) {
-
-		deinterlace_blend_line ( &pixels[stride * line], &pixels[stride * line], stride);
-
-	}
-
-}
-
 void *video_capture_thread (void *arg) {
 
 	prctl (PR_SET_NAME, (unsigned long) "kradlink_vidcap", 0, 0, 0);
@@ -91,8 +35,6 @@ void *video_capture_thread (void *arg) {
 				krad_link->krad_v4l2->width, krad_link->krad_v4l2->height
 				);
 				 
-
-
 		krad_link->capture_width = krad_link->krad_v4l2->width;
 		krad_link->capture_height = krad_link->krad_v4l2->height;
 	}
@@ -1965,12 +1907,6 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 		krad_frame->yuv_strides[2] = 0;
 		krad_frame->yuv_strides[3] = 0;
 
-		//if (1) {
-		//	// try 134 !! do it 134 * 2 = 268 + 812 = 10
-		//	krad_frame->yuv_pixels[0] = buffer + (stride * 134) + (240 * 2);
-		//	deinterlace_blend (krad_frame->yuv_pixels[0], krad_link->capture_height, stride);
-		//}
-		
 		krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
 		krad_framepool_unref_frame (krad_frame);
@@ -2006,22 +1942,12 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 	int c;
 
-	//printk ("krad link decklink audio %d frames", frames);
-
 	for (c = 0; c < 2; c++) {
 		krad_link_int16_to_float ( krad_link->krad_decklink->samples[c], (char *)buffer + (c * 2), frames, 4);
 		krad_ringbuffer_write (krad_link->audio_capture_ringbuffer[c], (char *)krad_link->krad_decklink->samples[c], frames * 4);
-		//compute_peak(krad_link->krad_audio, KINPUT, krad_link->krad_decklink->samples[c], c, frames, 0);
 	}
 
 	krad_link->audio_frames_captured += frames;
-	
-	//float peakval[2];
-	
-	//peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 0);
-	//peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (krad_link->krad_radio->krad_mixer, "DecklinkIn"), 1);
-	//krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
-	//krad_compositor_set_peak (krad_link->krad_radio->krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
 	
 	if (krad_mixer_get_pusher(krad_link->krad_radio->krad_mixer) == DECKLINKAUDIO) {
 		krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
@@ -2051,7 +1977,7 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
 	
 	if (krad_mixer_has_pusher(krad_link->krad_radio->krad_mixer) == 0) {
-	//	krad_mixer_set_pusher (krad_link->krad_radio->krad_mixer, DECKLINKAUDIO);
+		//	krad_mixer_set_pusher (krad_link->krad_radio->krad_mixer, DECKLINKAUDIO);
 	}
 	
 	krad_decklink_start (krad_link->krad_decklink);

@@ -1,5 +1,6 @@
 #include "krad_compositor.h"
 
+static void krad_compositor_update_peaks (krad_compositor_t *krad_compositor);
 static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
 static void *krad_compositor_display_thread (void *arg);
@@ -652,6 +653,9 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}
 	
 	if (krad_compositor->render_vu_meters > 0) {
+	
+		krad_compositor_update_peaks (krad_compositor);
+	
 		krad_gui_render_meter (krad_compositor->krad_gui, 110, krad_compositor->krad_gui->height - 30, 64,
 		                      krad_compositor->krad_gui->output_current[0]);
 		krad_gui_render_meter (krad_compositor->krad_gui, krad_compositor->krad_gui->width - 110,
@@ -1621,6 +1625,38 @@ void krad_compositor_set_dir (krad_compositor_t *krad_compositor, char *dir) {
 	krad_compositor->dir = strdup (dir);
 
 }
+
+void krad_compositor_set_krad_mixer (krad_compositor_t *krad_compositor, krad_mixer_t *krad_mixer) {
+	krad_compositor->krad_mixer = krad_mixer;
+}
+
+void krad_compositor_unset_krad_mixer (krad_compositor_t *krad_compositor) {
+	krad_compositor->krad_mixer = NULL;
+}
+
+static void krad_compositor_update_peaks (krad_compositor_t *krad_compositor) {
+
+	float peakval[2];
+	
+	if ((krad_compositor->krad_mixer != NULL) && (krad_compositor->krad_mixer->master_mix != NULL)) {
+		
+		//peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_compositor->krad_mixer->master_mix, 0);
+		//peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_compositor->krad_mixer->master_mix, 1);
+		//peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_mixer_get_portgroup_from_sysname (
+		//													   krad_compositor->krad_mixer, "music"), 1);
+		peakval[0] = krad_mixer_portgroup_read_channel_peak (krad_compositor->krad_mixer->master_mix, 0);
+		peakval[1] = krad_mixer_portgroup_read_channel_peak (krad_compositor->krad_mixer->master_mix, 1);
+
+	} else {
+		peakval[0] = 0;
+		peakval[1] = 0;
+	}
+	
+	krad_compositor_set_peak (krad_compositor, 0, krad_mixer_peak_scale(peakval[0]));
+	krad_compositor_set_peak (krad_compositor, 1, krad_mixer_peak_scale(peakval[1]));
+
+}
+
 
 void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value) {
 	

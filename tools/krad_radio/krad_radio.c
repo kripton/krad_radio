@@ -82,7 +82,9 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 	if (krad_radio->krad_compositor == NULL) {
 		krad_radio_destroy (krad_radio);
 		return NULL;
-	}	
+	}
+	
+	krad_compositor_set_krad_mixer (krad_radio->krad_compositor, krad_radio->krad_mixer);	
 	
 	krad_radio->krad_linker = krad_linker_create (krad_radio);
 	

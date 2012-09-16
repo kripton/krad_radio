@@ -394,6 +394,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 					portgroup_mix_samples ( mixbus, portgroup, nframes );
 				}
 			}
+			//krad_mixer_portgroup_compute_peaks (mixbus, nframes);
 		}
 	}
 

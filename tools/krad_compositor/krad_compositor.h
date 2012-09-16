@@ -132,6 +132,7 @@ struct krad_compositor_St {
 	char *bug_filename;
 	
 	int render_vu_meters;
+	krad_mixer_t *krad_mixer;
 
 	krad_framepool_t *krad_framepool;
 
@@ -175,6 +176,8 @@ struct krad_compositor_St {
 	pixman_transform_t keystone;
 
 };
+void krad_compositor_unset_krad_mixer (krad_compositor_t *krad_compositor);
+void krad_compositor_set_krad_mixer (krad_compositor_t *krad_compositor, krad_mixer_t *krad_mixer);
 
 void krad_compositor_get_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename);
 
