@@ -160,6 +160,43 @@ void krad_sprite_reset (krad_sprite_t *krad_sprite) {
 	krad_sprite->new_yscale = krad_sprite->yscale;
 	krad_sprite->new_opacity = krad_sprite->opacity;
 	krad_sprite->new_rotation = krad_sprite->rotation;
+
+	krad_sprite->start_x = krad_sprite->x;
+	krad_sprite->start_y = krad_sprite->y;
+	krad_sprite->change_x_amount = 0;
+	krad_sprite->change_y_amount = 0;	
+	krad_sprite->x_time = 0;
+	krad_sprite->y_time = 0;
+	
+	krad_sprite->x_duration = 0;
+	krad_sprite->y_duration = 0;
+
+	krad_sprite->start_rotation = krad_sprite->rotation;
+	krad_sprite->start_opacity = krad_sprite->opacity;
+	krad_sprite->start_xscale = krad_sprite->xscale;
+	krad_sprite->start_yscale = krad_sprite->yscale;	
+	
+	krad_sprite->rotation_change_amount = 0;
+	krad_sprite->opacity_change_amount = 0;
+	krad_sprite->xscale_change_amount = 0;
+	krad_sprite->yscale_change_amount = 0;
+	
+	krad_sprite->rotation_time = 0;
+	krad_sprite->opacity_time = 0;
+	krad_sprite->xscale_time = 0;
+	krad_sprite->yscale_time = 0;
+	
+	krad_sprite->rotation_duration = 0;
+	krad_sprite->opacity_duration = 0;
+	krad_sprite->xscale_duration = 0;
+	krad_sprite->yscale_duration = 0;	
+	
+	krad_sprite->krad_ease_x = krad_ease_random();
+	krad_sprite->krad_ease_y = krad_ease_random();
+	krad_sprite->krad_ease_xscale = krad_ease_random();
+	krad_sprite->krad_ease_yscale = krad_ease_random();
+	krad_sprite->krad_ease_rotation = krad_ease_random();
+	krad_sprite->krad_ease_opacity = krad_ease_random();
 	
 }
 
