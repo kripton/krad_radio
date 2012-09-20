@@ -387,27 +387,27 @@ void krad_sprite_update (krad_sprite_t *krad_sprite) {
 	}
 	*/
 	
-	if (krad_sprite->new_x != krad_sprite->x) {
+	if (krad_sprite->x_time != krad_sprite->x_duration) {
 		krad_sprite->x = krad_ease (krad_sprite->krad_ease_x, krad_sprite->x_time++, krad_sprite->start_x, krad_sprite->change_x_amount, krad_sprite->x_duration);
 	}	
 	
-	if (krad_sprite->new_y != krad_sprite->y) {
+	if (krad_sprite->y_time != krad_sprite->y_duration) {
 		krad_sprite->y = krad_ease (krad_sprite->krad_ease_y, krad_sprite->y_time++, krad_sprite->start_y, krad_sprite->change_y_amount, krad_sprite->y_duration);
 	}
 	
-	if (krad_sprite->new_rotation != krad_sprite->rotation) {
+	if (krad_sprite->rotation_time != krad_sprite->rotation_duration) {
 		krad_sprite->rotation = krad_ease (krad_sprite->krad_ease_rotation, krad_sprite->rotation_time++, krad_sprite->start_rotation, krad_sprite->rotation_change_amount, krad_sprite->rotation_duration);
 	}
 	
-	if (krad_sprite->new_opacity != krad_sprite->opacity) {
+	if (krad_sprite->opacity_time != krad_sprite->opacity_duration) {
 		krad_sprite->opacity = krad_ease (krad_sprite->krad_ease_opacity, krad_sprite->opacity_time++, krad_sprite->start_opacity, krad_sprite->opacity_change_amount, krad_sprite->opacity_duration);
 	}
 	
-	if (krad_sprite->new_xscale != krad_sprite->xscale) {
+	if (krad_sprite->xscale_time != krad_sprite->xscale_duration) {
 		krad_sprite->xscale = krad_ease (krad_sprite->krad_ease_xscale, krad_sprite->xscale_time++, krad_sprite->start_xscale, krad_sprite->xscale_change_amount, krad_sprite->xscale_duration);
 	}
 	
-	if (krad_sprite->new_yscale != krad_sprite->yscale) {
+	if (krad_sprite->yscale_time != krad_sprite->yscale_duration) {
 		krad_sprite->yscale = krad_ease (krad_sprite->krad_ease_yscale, krad_sprite->yscale_time++, krad_sprite->start_yscale, krad_sprite->yscale_change_amount, krad_sprite->yscale_duration);
 	}
 	
