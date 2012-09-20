@@ -57,3 +57,4 @@ krad_rc_tx_test
 krad_rc_sdl_joy_control
 krad_rc_test
 tests/krad_dockpanel_test_wayland
+tests/krad_easing_test

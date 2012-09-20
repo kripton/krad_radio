@@ -25,6 +25,7 @@ depsources = """
 ../tools/krad_ebml/krad_ebml.c
 ../tools/krad_compositor/krad_sprite.c
 ../tools/krad_compositor/krad_text.c
+../tools/krad_compositor/krad_easing.c
 ../tools/krad_compositor/krad_compositor.c
 ../tools/krad_framepool/krad_framepool.c
 ../tools/krad_osc/krad_osc.c
