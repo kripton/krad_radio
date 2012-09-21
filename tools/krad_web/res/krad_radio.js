@@ -432,6 +432,20 @@ Kradradio.prototype.add_kradlink_tools = function () {
 			<input type="radio" id="radio1600" name="prepare_link_video_codec" value="theora"/><label for="radio1600">Theora</label>\
 			<input type="radio" id="radio2600" name="prepare_link_video_codec" value="vp8"/><label for="radio2600">VP8</label>\
 		</div>';
+		
+		video_resolution = '<div id="prepare_link_video_resolution">\
+			<input type="radio" id="radio91600" name="prepare_link_video_resolution" value="320x240"/><label for="radio91600">320x240</label>\
+			<input type="radio" id="radio92600" name="prepare_link_video_resolution" value="640x480"/><label for="radio92600">640x480</label>\
+			<input type="radio" id="radio92601" name="prepare_link_video_resolution" value="480x270"/><label for="radio92601">480x270</label>\
+			<input type="radio" id="radio92611" name="prepare_link_video_resolution" value="640x360"/><label for="radio92611">640x360</label>\
+			<input type="radio" id="radio92602" name="prepare_link_video_resolution" value="960x540"/><label for="radio92602">960x540</label>\
+			<input type="radio" id="radio92603" name="prepare_link_video_resolution" value="1280x720"/><label for="radio92603">1280x720</label>\
+			<input type="radio" id="radio92644" name="prepare_link_video_resolution" value="1920x816"/><label for="radio92644">1920x816</label>\
+			<input type="radio" id="radio92604" name="prepare_link_video_resolution" value="1920x1080"/><label for="radio92604">1920x1080</label>\
+			<input type="radio" id="radio92655" name="prepare_link_video_resolution" value="2048x1556"/><label for="radio92655">2048x1556</label>\
+			<input type="radio" id="radio92654" name="prepare_link_video_resolution" value="3840x2160"/><label for="radio92654">3840x2160</label>\
+			<input type="radio" id="radio93654" name="prepare_link_video_resolution" value="custom"/><label for="radio93654">Custom</label>\
+		</div>';
 	
 		audio_codec = '<div id="prepare_link_audio_codec">\
 			<input type="radio" id="radio1700" name="prepare_link_audio_codec" value="opus"/><label for="radio1700">Opus</label>\
@@ -452,8 +466,10 @@ Kradradio.prototype.add_kradlink_tools = function () {
 	
 		$('.kradlink_prepare_link').append(container);
 		$('.kradlink_prepare_link').append("<br clear='both'/>");			
-		$('.kradlink_prepare_link').append(avmode);		
-		$('.kradlink_prepare_link').append("<br clear='both'/>");			
+		$('.kradlink_prepare_link').append(avmode);
+		$('.kradlink_prepare_link').append("<br clear='both'/>");
+		$('.kradlink_prepare_link').append(video_resolution);
+		$('.kradlink_prepare_link').append("<br clear='both'/>");					
 		$('.kradlink_prepare_link').append(video_codec);
 		$('.kradlink_prepare_link').append("<br clear='both'/>");			
 		$('.kradlink_prepare_link').append(audio_codec);
@@ -462,6 +478,7 @@ Kradradio.prototype.add_kradlink_tools = function () {
 		$('.kradlink_prepare_link').append(server_info);						
 						
 		$('#prepare_link_avmode').buttonset();
+		$('#prepare_link_video_resolution').buttonset();		
 		$('#prepare_link_container').buttonset();
 		$('#prepare_link_audio_codec').buttonset();		
 		$('#prepare_link_video_codec').buttonset();

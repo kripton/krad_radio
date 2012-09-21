@@ -115,6 +115,9 @@ struct krad_link_St {
 	
 	krad_link_transport_mode_t transport_mode;
 	
+
+	char audio_input[128];	
+	
 	char device[512];
 	char alsa_capture_device[512];
 	char alsa_playback_device[512];

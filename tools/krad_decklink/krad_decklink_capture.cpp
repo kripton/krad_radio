@@ -145,6 +145,7 @@ krad_decklink_capture_t *krad_decklink_capture_create(int device) {
 	
 	krad_decklink_capture->device = device;
 	krad_decklink_capture->inputFlags = 0;
+	krad_decklink_capture->audio_input = bmdAudioConnectionEmbedded;	
 	krad_decklink_capture->audio_sample_rate = bmdAudioSampleRate48kHz;
 	krad_decklink_capture->audio_channels = 2;
 	krad_decklink_capture->audio_bit_depth = 16;
@@ -174,6 +175,22 @@ krad_decklink_capture_t *krad_decklink_capture_create(int device) {
 
 	return krad_decklink_capture;
 	
+}
+
+void krad_decklink_capture_set_audio_input(krad_decklink_capture_t *krad_decklink_capture, char *audio_input) {
+
+	krad_decklink_capture->audio_input = bmdAudioConnectionEmbedded;
+
+	if ((strstr(audio_input, "Analog") == 0) || (strstr(audio_input, "analog") == 0)) {
+		krad_decklink_capture->audio_input = bmdAudioConnectionAnalog;
+		return;
+	}
+
+	if ((strstr(audio_input, "AESEBU") == 0) || (strstr(audio_input, "aesebu") == 0) || 
+		(strstr(audio_input, "SPDIF") == 0) || (strstr(audio_input, "spdif") == 0)) {
+		krad_decklink_capture->audio_input = bmdAudioConnectionAESEBU;
+		return;
+	}
 }
 
 
@@ -300,9 +317,7 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
 		printke ("Krad Decklink: Fail QueryInterface to get configuration\n");
 	} else {
 
-//		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionEmbedded);
-//		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionAESEBU);
-		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionAnalog);
+		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, krad_decklink_capture->audio_input);
 		if (krad_decklink_capture->result != S_OK) {
 			printke ("Krad Decklink: Fail confguration to set bmdAudioConnectionEmbedded\n");
 		}

@@ -388,24 +388,29 @@ int main (int argc, char *argv[]) {
 
 				if (argc == 4) {
 					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), "",
-												  0, 0, 0, 0, val);
+												  0, 0, 0, 0, val, "");
 				}
 				if (argc == 5) {
 					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
-												  0, 0, 0, 0, val);
+												  0, 0, 0, 0, val, "");
 				}
 				if (argc == 7) {
 					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
-												  atoi(argv[5]), atoi(argv[6]), 0, 0, val);
+												  atoi(argv[5]), atoi(argv[6]), 0, 0, val, "");
 				}
 				if (argc == 9) {
 					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
-												  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), val);
+												  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), val, "");
 				}
 				if (argc == 10) {
 					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
 												  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
-												  krad_link_string_to_av_mode (argv[9]));
+												  krad_link_string_to_av_mode (argv[9]), "");
+				}
+				if (argc == 11) {
+					krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+												  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
+												  krad_link_string_to_av_mode (argv[9]), argv[10]);
 				}
 			}
 			

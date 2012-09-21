@@ -1751,7 +1751,8 @@ void krad_ipc_compositor_get_frame_size (krad_ipc_client_t *client) {
 }
 
 void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
-								   int width, int height, int fps_numerator, int fps_denominator, krad_link_av_mode_t av_mode) {
+								   int width, int height, int fps_numerator, int fps_denominator,
+								   krad_link_av_mode_t av_mode, char *audio_input) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1770,6 +1771,11 @@ void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_so
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE, krad_link_video_source_to_string (video_source));
 
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_CAPTURE_DEVICE, device);
+	
+	if (video_source == DECKLINK) {
+		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_CAPTURE_DECKLINK_AUDIO_INPUT, audio_input);
+	}
+	
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, width);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, height);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FPS_NUMERATOR, fps_numerator);

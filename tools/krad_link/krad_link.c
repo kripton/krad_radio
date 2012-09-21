@@ -1960,8 +1960,10 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 
 	krad_link->krad_decklink = krad_decklink_create (krad_link->device);
-	krad_decklink_set_video_mode(krad_link->krad_decklink, krad_link->capture_width, krad_link->capture_height,
-								 krad_link->fps_numerator, krad_link->fps_denominator);
+	krad_decklink_set_video_mode (krad_link->krad_decklink, krad_link->capture_width, krad_link->capture_height,
+								  krad_link->fps_numerator, krad_link->fps_denominator);
+	
+	krad_decklink_set_audio_input (krad_link->krad_decklink, krad_link->audio_input);
 	
 	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->krad_decklink->simplename, INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
@@ -2386,7 +2388,6 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 
 			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->mount, ebml_data_size);
 		}
-	
 	}
 	
 	if (krad_link->operation_mode == CAPTURE) {
@@ -2398,7 +2399,6 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		} else {
 			//printk ("tag size %zu", ebml_data_size);
 		}
-	
 	
 		krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, string, ebml_data_size);
 	
@@ -2436,6 +2436,16 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			if (strlen(krad_link->device) == 0) {
 				strncpy(krad_link->device, DEFAULT_DECKLINK_DEVICE, sizeof(krad_link->device));
 			}
+			
+			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+			if (ebml_id != EBML_ID_KRAD_LINK_LINK_CAPTURE_DECKLINK_AUDIO_INPUT) {
+				printk ("hrm wtf");
+			} else {
+				//printk ("tag size %zu", ebml_data_size);
+			}
+	
+			krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, krad_link->audio_input, ebml_data_size);	
 		}		
 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
@@ -2802,22 +2812,18 @@ void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *k
 								krad_link_transport_mode_to_string (krad_link->transport_mode));
 	
 		if (krad_link->transport_mode == FILESYSTEM) {
-	
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_FILENAME, krad_link->input);
 		}
-		
+
 		if (krad_link->transport_mode == TCP) {
-	
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_HOST, krad_link->host);
 			krad_ebml_write_int32 (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_PORT, krad_link->port);
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_MOUNT, krad_link->mount);
 		}
-		
 	}
 	
 	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
 		switch ( krad_link->av_mode ) {
-
 			case AUDIO_ONLY:
 				krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC, krad_codec_to_string (krad_link->audio_codec));
 				break;
