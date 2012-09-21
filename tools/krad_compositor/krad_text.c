@@ -12,14 +12,12 @@ krad_text_t *krad_text_create () {
 	krad_text_reset (krad_text);
 	
 	return krad_text;
-
 }
 
 
 void krad_text_destroy (krad_text_t *krad_text) {
 	krad_text_reset (krad_text);
 	free (krad_text);
-
 }
 
 void krad_text_reset (krad_text_t *krad_text) {

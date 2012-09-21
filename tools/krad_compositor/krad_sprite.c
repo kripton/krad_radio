@@ -217,21 +217,6 @@ void krad_sprite_set_xy (krad_sprite_t *krad_sprite, int x, int y) {
 	
 }
 
-void krad_sprite_set_new_xy (krad_sprite_t *krad_sprite, int x, int y) {
-	krad_sprite->x_duration = rand() % 100 + 10;
-	krad_sprite->x_time = 0;
-	krad_sprite->y_duration = rand() % 100 + 10;
-	krad_sprite->y_time = 0;
-	krad_sprite->start_x = krad_sprite->x;
-	krad_sprite->start_y = krad_sprite->y;
-	krad_sprite->change_x_amount = x - krad_sprite->start_x;
-	krad_sprite->change_y_amount = y - krad_sprite->start_y;
-	krad_sprite->krad_ease_x = krad_ease_random();
-	krad_sprite->krad_ease_y = krad_ease_random();		
-	krad_sprite->new_x = x;
-	krad_sprite->new_y = y;
-}
-
 void krad_sprite_set_scale (krad_sprite_t *krad_sprite, float scale) {
 	krad_sprite->xscale = scale;
 	krad_sprite->yscale = scale;
@@ -257,6 +242,25 @@ void krad_sprite_set_opacity (krad_sprite_t *krad_sprite, float opacity) {
 void krad_sprite_set_rotation (krad_sprite_t *krad_sprite, float rotation) {
 	krad_sprite->rotation = rotation;
 	krad_sprite->new_rotation = krad_sprite->rotation;
+}
+
+void krad_sprite_set_tickrate (krad_sprite_t *krad_sprite, int tickrate) {
+	krad_sprite->tickrate = tickrate;
+}
+
+void krad_sprite_set_new_xy (krad_sprite_t *krad_sprite, int x, int y) {
+	krad_sprite->x_duration = rand() % 100 + 10;
+	krad_sprite->x_time = 0;
+	krad_sprite->y_duration = rand() % 100 + 10;
+	krad_sprite->y_time = 0;
+	krad_sprite->start_x = krad_sprite->x;
+	krad_sprite->start_y = krad_sprite->y;
+	krad_sprite->change_x_amount = x - krad_sprite->start_x;
+	krad_sprite->change_y_amount = y - krad_sprite->start_y;
+	krad_sprite->krad_ease_x = krad_ease_random();
+	krad_sprite->krad_ease_y = krad_ease_random();		
+	krad_sprite->new_x = x;
+	krad_sprite->new_y = y;
 }
 
 void krad_sprite_set_new_scale (krad_sprite_t *krad_sprite, float scale) {
@@ -310,10 +314,6 @@ void krad_sprite_set_new_rotation (krad_sprite_t *krad_sprite, float rotation) {
 	krad_sprite->new_rotation = rotation;
 }
 
-void krad_sprite_set_tickrate (krad_sprite_t *krad_sprite, int tickrate) {
-	krad_sprite->tickrate = tickrate;
-}
-
 void krad_sprite_render_xy (krad_sprite_t *krad_sprite, cairo_t *cr, int x, int y) {
 
 	krad_sprite_set_xy (krad_sprite, x, y);
@@ -323,107 +323,6 @@ void krad_sprite_render_xy (krad_sprite_t *krad_sprite, cairo_t *cr, int x, int 
 
 void krad_sprite_update (krad_sprite_t *krad_sprite) {
 
-//	int amount;
-	
-//	amount = krad_sprite->tickrate;
-	/*
-	if (krad_sprite->new_x != krad_sprite->x) {
-		if (krad_sprite->new_x > krad_sprite->x) {
-			if (krad_sprite->x + amount >= krad_sprite->new_x) {
-				krad_sprite->x = krad_sprite->new_x;
-			} else {
-				krad_sprite->x = krad_sprite->x + amount;
-			}
-		} else {
-			if (krad_sprite->x - amount <= krad_sprite->new_x) {
-				krad_sprite->x = krad_sprite->new_x;
-			} else {
-				krad_sprite->x = krad_sprite->x - amount;
-			}
-		}
-	}
-
-	if (krad_sprite->new_y != krad_sprite->y) {
-		if (krad_sprite->new_y > krad_sprite->y) {
-			if (krad_sprite->y + amount >= krad_sprite->new_y) {
-				krad_sprite->y = krad_sprite->new_y;
-			} else {
-				krad_sprite->y = krad_sprite->y + amount;
-			}
-		} else {
-			if (krad_sprite->y - amount <= krad_sprite->new_y) {
-				krad_sprite->y = krad_sprite->new_y;
-			} else {
-				krad_sprite->y = krad_sprite->y - amount;
-			}
-		}
-	}
-	
-	if (krad_sprite->new_rotation != krad_sprite->rotation) {
-		if (krad_sprite->new_rotation > krad_sprite->rotation) {
-			if (krad_sprite->rotation + 0.7f >= krad_sprite->new_rotation) {
-				krad_sprite->rotation = krad_sprite->new_rotation;
-			} else {
-				krad_sprite->rotation = krad_sprite->rotation + 0.7f;
-			}
-		} else {
-			if (krad_sprite->rotation - 0.7f <= krad_sprite->new_rotation) {
-				krad_sprite->rotation = krad_sprite->new_rotation;
-			} else {
-				krad_sprite->rotation = krad_sprite->rotation - 0.7f;
-			}
-		}
-	}
-	
-	if (krad_sprite->new_opacity != krad_sprite->opacity) {
-		if (krad_sprite->new_opacity > krad_sprite->opacity) {
-			if (krad_sprite->opacity + 0.02f >= krad_sprite->new_opacity) {
-				krad_sprite->opacity = krad_sprite->new_opacity;
-			} else {
-				krad_sprite->opacity = krad_sprite->opacity + 0.02f;
-			}
-		} else {
-			if (krad_sprite->opacity - 0.02f <= krad_sprite->new_opacity) {
-				krad_sprite->opacity = krad_sprite->new_opacity;
-			} else {
-				krad_sprite->opacity = krad_sprite->opacity - 0.02f;
-			}
-		}
-	}
-	
-	if (krad_sprite->new_xscale != krad_sprite->xscale) {
-		if (krad_sprite->new_xscale > krad_sprite->xscale) {
-			if (krad_sprite->xscale + 0.2f >= krad_sprite->new_xscale) {
-				krad_sprite->xscale = krad_sprite->new_xscale;
-			} else {
-				krad_sprite->xscale = krad_sprite->xscale + 0.2f;
-			}
-		} else {
-			if (krad_sprite->xscale - 0.2f <= krad_sprite->new_xscale) {
-				krad_sprite->xscale = krad_sprite->new_xscale;
-			} else {
-				krad_sprite->xscale = krad_sprite->xscale - 0.2f;
-			}
-		}
-	}
-	
-	if (krad_sprite->new_yscale != krad_sprite->yscale) {
-		if (krad_sprite->new_yscale > krad_sprite->yscale) {
-			if (krad_sprite->yscale + 0.2f >= krad_sprite->new_yscale) {
-				krad_sprite->yscale = krad_sprite->new_yscale;
-			} else {
-				krad_sprite->yscale = krad_sprite->yscale + 0.2f;
-			}
-		} else {
-			if (krad_sprite->yscale - 0.2f <= krad_sprite->new_yscale) {
-				krad_sprite->yscale = krad_sprite->new_yscale;
-			} else {
-				krad_sprite->yscale = krad_sprite->yscale - 0.2f;
-			}
-		}
-	}
-	*/
-	
 	if (krad_sprite->x_time != krad_sprite->x_duration) {
 		krad_sprite->x = krad_ease (krad_sprite->krad_ease_x, krad_sprite->x_time++, krad_sprite->start_x, krad_sprite->change_x_amount, krad_sprite->x_duration);
 	}	
@@ -508,9 +407,5 @@ void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr) {
 	cairo_restore (cr);
 	
 	krad_sprite_tick (krad_sprite);
-	
-	//printk ("Tick: %d Frame: %d",
-	//		krad_sprite->tick, krad_sprite->frame);
-			
 	
 }
