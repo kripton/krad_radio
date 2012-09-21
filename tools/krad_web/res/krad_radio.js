@@ -306,8 +306,39 @@ Kradradio.prototype.add_kradlink_tools = function () {
 				<input type="radio" id="radio1900" name="prepare_link_avmode" value="audio_only"/><label for="radio1900">Audio</label>\
 				<input type="radio" id="radio2900" name="prepare_link_avmode" value="video_only"/><label for="radio2900">Video</label>\
 				<input type="radio" id="radio3900" name="prepare_link_avmode" value="audio_and_video"/><label for="radio3900">Audio and Video</label>\
-			</div>';		
+			</div>';
+			
+			audio_input = '<div id="prepare_link_audio_input">\
+				<input type="radio" id="radio431700" name="prepare_link_audio_input" value="opus"/><label for="radio431700">Embedded</label>\
+				<input type="radio" id="radio432700" name="prepare_link_audio_input" value="vorbis"/><label for="radio432700">AES/EBU</label>\
+				<input type="radio" id="radio433700" name="prepare_link_audio_input" value="flac"/><label for="radio433700">Analog</label>\
+			</div>';
+			
+			video_resolution = '<div id="prepare_link_video_resolution">\
+				<input type="radio" id="radio91600" name="prepare_link_video_resolution" value="320x240"/><label for="radio91600">320x240</label>\
+				<input type="radio" id="radio92600" name="prepare_link_video_resolution" value="640x480"/><label for="radio92600">640x480</label>\
+				<input type="radio" id="radio92601" name="prepare_link_video_resolution" value="480x270"/><label for="radio92601">480x270</label>\
+				<input type="radio" id="radio92611" name="prepare_link_video_resolution" value="640x360"/><label for="radio92611">640x360</label>\
+				<input type="radio" id="radio92602" name="prepare_link_video_resolution" value="960x540"/><label for="radio92602">960x540</label>\
+				<input type="radio" id="radio92603" name="prepare_link_video_resolution" value="1280x720"/><label for="radio92603">1280x720</label>\
+				<input type="radio" id="radio92644" name="prepare_link_video_resolution" value="1920x816"/><label for="radio92644">1920x816</label>\
+				<input type="radio" id="radio92604" name="prepare_link_video_resolution" value="1920x1080"/><label for="radio92604">1920x1080</label>\
+				<input type="radio" id="radio92655" name="prepare_link_video_resolution" value="2048x1556"/><label for="radio92655">2048x1556</label>\
+				<input type="radio" id="radio92654" name="prepare_link_video_resolution" value="3840x2160"/><label for="radio92654">3840x2160</label>\
+				<input type="radio" id="radio93654" name="prepare_link_video_resolution" value="custom"/><label for="radio93654">Custom</label>\
+			</div>';
 
+			video_framerate = '<div id="prepare_link_video_framerate">\
+				<input type="radio" id="radio191600" name="prepare_link_video_framerate" value="24000/1001"/><label for="radio191600">23.98 - 24000/1001</label>\
+				<input type="radio" id="radio192600" name="prepare_link_video_framerate" value="24000/1000"/><label for="radio192600">24 - 24000/1000</label>\
+				<input type="radio" id="radio192601" name="prepare_link_video_framerate" value="30000/1001"/><label for="radio192601">29.97 - 30000/1001</label>\
+				<input type="radio" id="radio192611" name="prepare_link_video_framerate" value="30000/1000"/><label for="radio192611">30 - 30000/1000</label>\
+				<input type="radio" id="radio192602" name="prepare_link_video_framerate" value="60000/1001"/><label for="radio192602">59.94 - 60000/1001</label>\
+				<input type="radio" id="radio192603" name="prepare_link_video_framerate" value="60000/1000"/><label for="radio192603">60 - 60000/1000</label>\
+			</div>';
+
+			$('.kradlink_prepare_link').append(audio_input);		
+			$('.kradlink_prepare_link').append("<br clear='both'/>");
 			$('.kradlink_prepare_link').append(avmode);		
 			$('.kradlink_prepare_link').append("<br clear='both'/>");
 		
@@ -320,9 +351,18 @@ Kradradio.prototype.add_kradlink_tools = function () {
 			$('.kradlink_prepare_link').append(devices);		
 			$('.kradlink_prepare_link').append("<br clear='both'/>");
 						
+			$('.kradlink_prepare_link').append(video_resolution);		
+			$('.kradlink_prepare_link').append("<br clear='both'/>");
+
+			$('.kradlink_prepare_link').append(video_framerate);		
+			$('.kradlink_prepare_link').append("<br clear='both'/>");
+						
+			$('#prepare_link_audio_input').buttonset();
 			$('#prepare_link_avmode').buttonset();
 			$('#prepare_link_device').buttonset();
-		
+			$('#prepare_link_video_resolution').buttonset();
+			$('#prepare_link_video_framerate').buttonset();			
+
 			if (kradradio.admin) {
 				$('.kradlink_prepare_link').append("<div class='button_wrap'><div class='krad_button7' id='add_link'>Begin</div>");
 				$( '#add_link').bind( "click", function(event, ui) {
