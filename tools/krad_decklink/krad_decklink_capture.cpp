@@ -182,15 +182,20 @@ void krad_decklink_capture_set_audio_input(krad_decklink_capture_t *krad_decklin
 	krad_decklink_capture->audio_input = bmdAudioConnectionEmbedded;
 
 	if ((strstr(audio_input, "Analog") == 0) || (strstr(audio_input, "analog") == 0)) {
+		printk ("Krad Decklink: Selected Analog Audio Input");
 		krad_decklink_capture->audio_input = bmdAudioConnectionAnalog;
 		return;
 	}
 
 	if ((strstr(audio_input, "AESEBU") == 0) || (strstr(audio_input, "aesebu") == 0) || 
 		(strstr(audio_input, "SPDIF") == 0) || (strstr(audio_input, "spdif") == 0)) {
+		printk ("Krad Decklink: Selected AESEBU Audio Input");		
 		krad_decklink_capture->audio_input = bmdAudioConnectionAESEBU;
 		return;
 	}
+	
+	printk ("Krad Decklink: Selected Embedded Audio Input");
+	
 }
 
 
