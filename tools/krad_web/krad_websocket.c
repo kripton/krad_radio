@@ -82,6 +82,18 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 				krad_ipc_compositor_snapshot (pss->krad_ipc_client);
 			}
 		}		
+	
+		if ((part != NULL) && (strcmp(part->valuestring, "kradradio") == 0)) {
+			part = cJSON_GetObjectItem (cmd, "cmd");		
+			if ((part != NULL) && (strcmp(part->valuestring, "stag") == 0)) {
+				part2 = cJSON_GetObjectItem (cmd, "tag_name");
+				part3 = cJSON_GetObjectItem (cmd, "tag_value");
+				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {			
+					krad_ipc_set_tag (pss->krad_ipc_client, NULL, part2->valuestring, part3->valuestring);
+					//printk("aye got %s %s", part2->valuestring, part3->valuestring);
+				}
+			}	
+		}
 		
 		if ((part != NULL) && (strcmp(part->valuestring, "kradlink") == 0)) {
 			part = cJSON_GetObjectItem (cmd, "cmd");		

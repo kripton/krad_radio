@@ -3400,7 +3400,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 						list_size = ebml_data_size;
 						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
-							printf ("%s: %s - %s", tag_item, tag_name, tag_value);
+							printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
 							if (bytes_read == list_size) {
 								break;
 							}
@@ -3408,7 +3408,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						break;
 					case EBML_ID_KRAD_RADIO_TAG:
 						krad_ipc_client_read_tag_inner ( client, &tag_item, &tag_name, &tag_value );
-						printf ("%s: %s - %s", tag_item, tag_name, tag_value);
+						printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
 						break;
 
 					case EBML_ID_KRAD_RADIO_UPTIME:
