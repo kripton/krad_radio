@@ -195,8 +195,9 @@ class KradStation
 	def cmd(action)
 		thecmd = "krad_radio #{@name} #{action}"
 		puts "command: #{thecmd}"
-		`#{thecmd}`
+		ret = `#{thecmd}`.chomp
 		sleep 0.1
+		return ret
 	end
 
 	def info()

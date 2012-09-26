@@ -653,6 +653,15 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    <br clear='both'>\
 	                    <div class='kradcompositor'></div>\
 	                    <br clear='both'>\
+						<div class='kradradio'>\
+							<h2 class='sysname'>" + this.sysname + "</h2>\
+							<br clear='both'>\
+							<div class='kradradio_tools'></div>\
+							<br clear='both'>\
+							<div class='station_tags tags'></div>\
+							<div class='system_cpu_usage'></div>\
+	                    </div>\
+	                    <br clear='both'>\
 	                    <div class='kradlink'></div>\
 	                    <br clear='both'>\
 						<div class='kradmixer_info'></div>\
@@ -666,15 +675,6 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    <div class='kradcompositor_tools'></div>\
 						<br clear='both'>\
 	                    <div class='kradlink_tools'></div>\
-	                    <br clear='both'>\
-						<div class='kradradio'>\
-							<h2 class='sysname'>" + this.sysname + "</h2>\
-							<br clear='both'>\
-							<div class='kradradio_tools'></div>\
-							<br clear='both'>\
-							<div class='station_tags tags'></div>\
-							<div class='system_cpu_usage'></div>\
-	                    </div>\
 	                    <br clear='both'>\
 	                  </div>");
 	 
