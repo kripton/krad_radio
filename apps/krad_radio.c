@@ -91,7 +91,15 @@ int main (int argc, char *argv[]) {
 					krad_ipc_print_response (client);					
 
 				}
-			}			
+			}
+			
+			if ((strncmp(argv[2], "lsv", 3) == 0) && (strlen(argv[2]) == 3)) {
+				if (argc == 3) {
+					krad_ipc_list_v4l2 (client);
+					krad_ipc_print_response (client);					
+
+				}
+			}						
 			
 			if (strncmp(argv[2], "uptime", 6) == 0) {
 				krad_ipc_radio_uptime (client);

@@ -2203,6 +2203,31 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 
 }
 
+void krad_ipc_list_v4l2 (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t linker_command;
+	uint64_t list_v4l2;
+	
+	linker_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_LIST_V4L2, &list_v4l2);
+
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
+	//krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
+
+	krad_ebml_finish_element (client->krad_ebml, list_v4l2);
+	krad_ebml_finish_element (client->krad_ebml, linker_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_list_decklink (krad_ipc_client_t *client) {
 
 	//uint64_t ipc_command;
@@ -3541,6 +3566,18 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 							printf ("%d: %s\n", i, string);
 						}	
 						break;
+				
+				
+					case EBML_ID_KRAD_LINK_V4L2_LIST:
+
+						krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+						list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						for (i = 0; i < list_count; i++) {
+							krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
+							krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+							printf ("%d: %s\n", i, string);
+						}	
+						break;				
 				
 				
 					case EBML_ID_KRAD_LINK_LINK_LIST:

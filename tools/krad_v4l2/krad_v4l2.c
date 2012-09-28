@@ -897,24 +897,62 @@ int kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, u
 }
 
 
-void kradv4l2_list_devices () {
+int kradv4l2_detect_devices () {
 
 	DIR *dp;
 	struct dirent *ep;
+	int count;
+	
+	count = 0;
 
 	dp = opendir ("/dev");
 	
 	if (dp == NULL) {
 		printke ("Couldn't open the /dev directory");
-		return;
+		return 0;
 	}
 	
 	while ((ep = readdir(dp))) {
 		if (memcmp(ep->d_name, "video", 5) == 0) {
 			printk("Found V4L2 Device: /dev/%s", ep->d_name);
+			count++;
 		}
 	}
 	closedir (dp);
 
+	return count;
+
 }
+
+int kradv4l2_get_device_filename (int device_num, char *device_name) {
+
+	DIR *dp;
+	struct dirent *ep;
+	int count;
+	
+	count = 0;
+
+	dp = opendir ("/dev");
+	
+	if (dp == NULL) {
+		printke ("Couldn't open the /dev directory");
+		return 0;
+	}
+	
+	while ((ep = readdir(dp))) {
+		if (memcmp(ep->d_name, "video", 5) == 0) {
+			count++;
+			if (count == device_num) {
+				sprintf (device_name, "/dev/%s", ep->d_name);
+				closedir (dp);
+				return 1;
+			}
+		}
+	}
+	closedir (dp);
+
+	return 0;
+
+}
+
 
