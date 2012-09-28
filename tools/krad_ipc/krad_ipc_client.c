@@ -2228,6 +2228,32 @@ void krad_ipc_list_v4l2 (krad_ipc_client_t *client) {
 
 }
 
+void krad_ipc_mixer_jack_running (krad_ipc_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t jack_running;
+	
+	mixer_command = 0;
+	//set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_JACK_RUNNING, &jack_running);
+
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
+	//krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
+	//krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
+
+	krad_ebml_finish_element (client->krad_ebml, jack_running);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+
+}
+
 void krad_ipc_list_decklink (krad_ipc_client_t *client) {
 
 	//uint64_t ipc_command;
@@ -3505,7 +3531,19 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 						printf ("Krad Mixer Sample Rate: %"PRIu64"", number );
-						break;						
+						break;
+						
+					case EBML_ID_KRAD_MIXER_JACK_RUNNING:
+						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+						if (number > 0) {
+							printf ("Yes\n");
+						} else {
+							printf ("Jack Server not running\n");
+						}
+						break;
+						
+										
 						
 				}
 		

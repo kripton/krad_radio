@@ -10,11 +10,9 @@
 	
 	ringbuffer based log and log via ipc
 	
-	uptime/sysinfo
-	
 	xmms2 playback status
 	
-	detection cache and poll?
+	detection cache and poll/inotify?
 	
 	self destruct button?
 	

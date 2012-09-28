@@ -85,6 +85,14 @@ int main (int argc, char *argv[]) {
 				}
 			}			
 
+			if (((strncmp(argv[2], "jacked", 6) == 0) || (strncmp(argv[2], "jackup", 6) == 0)) && (strlen(argv[2]) == 6)) {
+				if (argc == 3) {
+					krad_ipc_mixer_jack_running (client);
+					krad_ipc_print_response (client);					
+
+				}
+			}
+
 			if ((strncmp(argv[2], "lsd", 3) == 0) && (strlen(argv[2]) == 3)) {
 				if (argc == 3) {
 					krad_ipc_list_decklink (client);

@@ -180,6 +180,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value );
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
 
+void krad_ipc_mixer_jack_running (krad_ipc_client_t *client);
 void krad_ipc_list_v4l2 (krad_ipc_client_t *client);
 void krad_ipc_list_decklink (krad_ipc_client_t *client);
 
