@@ -941,12 +941,12 @@ int kradv4l2_get_device_filename (int device_num, char *device_name) {
 	
 	while ((ep = readdir(dp))) {
 		if (memcmp(ep->d_name, "video", 5) == 0) {
-			count++;
 			if (count == device_num) {
 				sprintf (device_name, "/dev/%s", ep->d_name);
 				closedir (dp);
 				return 1;
 			}
+			count++;
 		}
 	}
 	closedir (dp);
