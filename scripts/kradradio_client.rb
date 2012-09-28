@@ -200,6 +200,39 @@ class KradStation
 		return ret
 	end
 
+	def jack?
+		return jacked?
+	end	
+
+	def jack_running?
+		return jacked?
+	end	
+	
+	def jacked?
+		resp = `krad_radio #{@name} jacked`.chomp
+		if resp.downcase == "yes"
+			return True
+		else 
+			return False
+		end
+	end
+	
+	def get_v4l2_device(num=0)
+		resp = `krad_radio #{@name} lsv`.chomp
+		count = 0
+		resp.lines do |device| 
+			if (count == num)
+				return device
+			end
+			count = count + 1
+		end
+		return ""
+	end
+	
+	def get_v4l2_devices()
+		return `krad_radio #{@name} lsv`.chomp
+	end	
+
 	def info()
 		return `krad_radio #{@name} info`.chomp
 	end
