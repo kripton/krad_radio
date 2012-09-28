@@ -211,9 +211,9 @@ class KradStation
 	def jacked?
 		resp = `krad_radio #{@name} jacked`.chomp
 		if resp.downcase == "yes"
-			return True
+			return true
 		else 
-			return False
+			return false
 		end
 	end
 	
