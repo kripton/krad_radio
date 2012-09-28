@@ -3613,7 +3613,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 						for (i = 0; i < list_count; i++) {
 							krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
 							krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-							printf ("%d: %s\n", i, string);
+							printf ("%s\n", string);
 						}	
 						break;				
 				
