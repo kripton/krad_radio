@@ -2428,8 +2428,8 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 				strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
 			}
 			
-			krad_link->mjpeg_mode = 1;
-			krad_link->mjpeg_passthru = 1;
+			krad_link->mjpeg_mode = 0;
+			krad_link->mjpeg_passthru = 0;
 			
 		}
 		if (krad_link->video_source == DECKLINK) {
