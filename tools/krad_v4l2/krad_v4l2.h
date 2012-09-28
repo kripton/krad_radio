@@ -104,8 +104,8 @@ char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2);
 char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2);
 void kradv4l2_frame_done (krad_v4l2_t *kradv4l2);
 
-void kradv4l2_list_devices ();
-
+int kradv4l2_detect_devices ();
+int kradv4l2_get_device_filename (int device_num, char *device_name);
 /* private */
 
 void kradv4l2_init_device (krad_v4l2_t *kradv4l2);

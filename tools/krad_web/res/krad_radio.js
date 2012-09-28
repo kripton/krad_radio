@@ -19,24 +19,53 @@ function Tag (tag_item, tag_name, tag_value) {
 
 Tag.prototype.show = function() {
 
-	if ((this.tag_name != "artist") && (this.tag_name != "title")) {
+	if (this.tag_item == "station") {
+		
+		text = "Station Tag: " + this.tag_name + " - " + this.tag_value;
+		
+		kradwebsocket.debug(text);
+		
+		if (this.tag_name.indexOf("_bool") != -1) {
 
-		if (this.tag_name == "now_playing") {
-			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag nowplaying'><span class='tag_value'>" + this.tag_value + "</span></div>");
-			return;
-		}
-		if (this.tag_name == "playtime") {
-			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag playtime'><span class='tag_value'>" + this.tag_value + "</span></div>");
-			return;
-		}
+			$('.kradradio_tools').append("<div class='button_wrap'><div class='krad_button_toggle' id='" + this.tag_name + "'>" + this.tag_name.replace("_bool","").replace("_", " ") + "</div>");
+			$('.kradlink_tools').append("<br clear='both'/>");	
 	
-		$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'>" + this.tag_item + ": " + this.tag_name + " - <span class='tag_value'>" + this.tag_value + "</span></div>");					
+			kradradio.add_bool(this.tag_name);
+			kradradio.got_set_bool(this.tag_name, this.tag_value);
+
+			$( '#' + this.tag_name).bind( "click", {bool: this.tag_name}, function(event, ui) {
+				kradradio.toggle_bool(event.data.bool);
+			});
+			
+			
+		} else {
+			$('.station_tags').append("<div id='ktag_" + this.tag_num + "' class='tag'>" + this.tag_item + ": " + this.tag_name + " - <span class='tag_value'>" + this.tag_value + "</span></div>");		
+		}
+
+	} else {
+
+		if ((this.tag_name != "artist") && (this.tag_name != "title")) {
+
+			if (this.tag_name == "now_playing") {
+				$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag nowplaying'><span class='tag_value'>" + this.tag_value + "</span></div>");
+				return;
+			}
+			if (this.tag_name == "playtime") {
+				$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag playtime'><span class='tag_value'>" + this.tag_value + "</span></div>");
+				return;
+			}
+	
+			$('#ktags_' + this.tag_item).append("<div id='ktag_" + this.tag_num + "' class='tag'>" + this.tag_item + ": " + this.tag_name + " - <span class='tag_value'>" + this.tag_value + "</span></div>");					
+		}
 	}
 }
 
 Tag.prototype.update_value = function(tag_value) {
 
 	this.tag_value = tag_value;
+	if (this.tag_name.indexOf("_bool") != -1) {	
+		kradradio.got_set_bool(this.tag_name, this.tag_value);
+	}	
 	if ((this.tag_name != "artist") && (this.tag_name != "title")) {
 		$('#ktag_' + this.tag_num + ' .tag_value').html(this.tag_value);
 	}
@@ -176,6 +205,8 @@ function Kradradio () {
 	this.decklink_devices = new Array();
 	this.v4l2_devices = new Array();	
 	
+	this.bools = new Object();	
+	
 	this.showing_snapshot_buttons = 0;
 	this.system_cpu_usage = 0;
 	this.admin = 0;
@@ -198,6 +229,66 @@ Kradradio.prototype.destroy = function () {
 	//	this.real_interfaces[real_interface].destroy();
 	//}
 
+}
+
+Kradradio.prototype.add_bool = function (name) {
+	this.bools[name] = 'false';
+}
+
+Kradradio.prototype.set_bool = function (name, value) {
+	this.bools[name] = value.toString();
+	if (this.bools[name] == 'false') {
+		$( '#' + name).removeClass("krad_button_toggle_on");		
+	} else {
+		$( '#' + name).addClass("krad_button_toggle_on");		
+	}
+	this.set_tag(name, this.bools[name]);
+}
+
+Kradradio.prototype.got_set_bool = function (name, value) {
+	this.bools[name] = value.toString();
+	if (this.bools[name] == 'false') {
+		$( '#' + name).removeClass("krad_button_toggle_on");		
+	} else {
+		$( '#' + name).addClass("krad_button_toggle_on");		
+	}
+}
+
+Kradradio.prototype.get_bool = function (name) {
+	return this.bools[name];
+}
+
+Kradradio.prototype.toggle_bool = function (name) {
+	if (this.bools[name] == 'false') {
+		this.bools[name] = 'true';
+		$( '#' + name).addClass("krad_button_toggle_on");		
+		this.set_tag(name, this.bools[name]);
+	} else {
+		if (this.bools[name] == 'true') {
+			this.bools[name] = 'false';
+		}
+		$( '#' + name).removeClass("krad_button_toggle_on");
+		this.set_tag(name, this.bools[name]);
+	}
+}
+
+Kradradio.prototype.remove_bool = function (name) {
+	this.bools[name] = 'false';
+}
+
+Kradradio.prototype.set_tag = function (name, value) {
+
+	var cmd = {};  
+	cmd.com = "kradradio";  
+	cmd.cmd = "stag";
+	cmd.tag_name = name;
+	cmd.tag_value = value;
+	
+	var JSONcmd = JSON.stringify(cmd); 
+
+	kradwebsocket.send(JSONcmd);
+
+	//kradwebsocket.debug(JSONcmd);
 }
 
 Kradradio.prototype.got_sample_rate = function (sample_rate) {
@@ -562,6 +653,15 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    <br clear='both'>\
 	                    <div class='kradcompositor'></div>\
 	                    <br clear='both'>\
+						<div class='kradradio'>\
+							<h2 class='sysname'>" + this.sysname + "</h2>\
+							<br clear='both'>\
+							<div class='kradradio_tools'></div>\
+							<br clear='both'>\
+							<div class='station_tags tags'></div>\
+							<div class='system_cpu_usage'></div>\
+	                    </div>\
+	                    <br clear='both'>\
 	                    <div class='kradlink'></div>\
 	                    <br clear='both'>\
 						<div class='kradmixer_info'></div>\
@@ -575,12 +675,6 @@ Kradradio.prototype.got_sysname = function (sysname) {
 	                    <div class='kradcompositor_tools'></div>\
 						<br clear='both'>\
 	                    <div class='kradlink_tools'></div>\
-	                    <br clear='both'>\
-						<div class='kradradio'>\
-	                      <h2 class='sysname'>" + this.sysname + "</h2>\
-	                      <div class='tags'></div>\
-	                      <div class='system_cpu_usage'></div>\
-	                    </div>\
 	                    <br clear='both'>\
 	                  </div>");
 	 

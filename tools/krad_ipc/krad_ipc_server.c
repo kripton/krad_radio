@@ -662,9 +662,7 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		//if ((krad_ipc_server->clients[c].confirmed == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
-		if (krad_ipc_server->clients[c].broadcasts == 1) {
-			//pthread_mutex_lock (&krad_ipc_server->clients[c].client_lock);
+		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
 			if (krad_ipc_aquire_client (&krad_ipc_server->clients[c])) {
 				krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_MSG, &element);	
 				krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG, &subelement);	
@@ -677,7 +675,6 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 				krad_ebml_write_sync (krad_ipc_server->clients[c].krad_ebml2);
 				krad_ipc_release_client (&krad_ipc_server->clients[c]);
 			}
-			//pthread_mutex_unlock (&krad_ipc_server->clients[c].client_lock);
 		}
 	}
 }
