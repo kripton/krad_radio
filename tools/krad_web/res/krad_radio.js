@@ -1153,6 +1153,10 @@ Kradradio.prototype.got_remove_link = function (link) {
 
 Kradradio.prototype.got_add_link = function (link) {
 
+	if (link.host == "transmitter") {
+		link.host = window.document.location.hostname;
+	}
+
 	if (link.operation_mode == "capture") {
 		this.show_snapshot_buttons();
 	}

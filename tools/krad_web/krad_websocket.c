@@ -1121,12 +1121,11 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 				krad_ipc_set_handler_callback (pss->krad_ipc_client, krad_websocket_ipc_handler, pss);
 				krad_ipc_get_mixer_sample_rate (pss->krad_ipc_client);
 				krad_ipc_compositor_get_frame_rate (pss->krad_ipc_client);
-				krad_ipc_get_tags (pss->krad_ipc_client, NULL);
 				krad_ipc_compositor_get_frame_size (pss->krad_ipc_client);			
 				krad_ipc_get_portgroups (pss->krad_ipc_client);
 				krad_ipc_list_decklink (pss->krad_ipc_client);
 				krad_ipc_list_links (pss->krad_ipc_client);
-
+				krad_ipc_get_tags (pss->krad_ipc_client, NULL);
 				krad_ipc_broadcast_subscribe (pss->krad_ipc_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
 				add_poll_fd (pss->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
 			}

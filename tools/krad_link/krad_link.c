@@ -787,6 +787,8 @@ void *stream_output_thread (void *arg) {
 																	  krad_link->mount + 1,
 																	  "application/ogg");
 
+			krad_link->port = krad_link->krad_linker->krad_transmitter->port;
+
 			krad_link->krad_container = krad_container_open_transmission (krad_transmission);
 	
 		} else {
