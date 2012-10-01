@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
+#include <sys/prctl.h>
 
 #include "krad_radio_version.h"
 #include "krad_system.h"
@@ -28,7 +29,7 @@
 #define KRAD_TRANSMITTER_SERVER APPVERSION
 
 #define KRAD_TRANSMITTER_MAXEVENTS 64
-#define DEFAULT_RING_SIZE 2000000
+#define DEFAULT_RING_SIZE 6000000
 #define DEFAULT_BURST_SIZE 64000
 
 typedef enum {
@@ -88,6 +89,8 @@ struct krad_transmission_St {
 
 
 	krad_ringbuffer_t *ringbuffer;
+	krad_ringbuffer_t *transmission_ringbuffer;
+	krad_ringbuffer_data_t tx_vec[2];
 	unsigned char *transmission_buffer;
 	
 	uint64_t new_data;
