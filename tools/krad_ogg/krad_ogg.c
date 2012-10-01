@@ -404,6 +404,10 @@ void krad_ogg_destroy(krad_ogg_t *krad_ogg) {
 		}
 	}
 	
+	//FIXME
+	// FORGooted ogg_stream_destroy
+	
+	
 	free (krad_ogg->tracks);
 	
 	free (krad_ogg->input_buffer);
@@ -782,10 +786,11 @@ void krad_ogg_add_video (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 			if (krad_ogg->krad_transmission) {		
 			
 				if (keyframe == 1) {
-					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
-				}			
+					krad_transmitter_transmission_add_data_sync (krad_ogg->krad_transmission, page.header, page.header_len);
+				} else {
+					krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				}
 			
-				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
 				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
 			
 			}
@@ -835,10 +840,11 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 			if (krad_ogg->krad_transmission) {		
 			
 				if (krad_ogg->track_count == 1) {
-					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
-				}			
-			
-				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+					krad_transmitter_transmission_add_data_sync (krad_ogg->krad_transmission, page.header, page.header_len);
+				} else {
+					krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
+				}		
+
 				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
 			
 			}
@@ -862,10 +868,10 @@ void krad_ogg_add_audio (krad_ogg_t *krad_ogg, int track, unsigned char *buffer,
 			if (krad_ogg->krad_transmission) {		
 			
 				if (krad_ogg->track_count == 1) {
-					krad_transmitter_transmission_sync_point (krad_ogg->krad_transmission);
+					krad_transmitter_transmission_add_data_sync (krad_ogg->krad_transmission, page.header, page.header_len);
+				} else {
+					krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
 				}
-			
-				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.header, page.header_len);
 				krad_transmitter_transmission_add_data (krad_ogg->krad_transmission, page.body, page.body_len);
 			
 			}

@@ -28,7 +28,7 @@
 #define KRAD_TRANSMITTER_SERVER APPVERSION
 
 #define KRAD_TRANSMITTER_MAXEVENTS 64
-#define DEFAULT_RING_SIZE 160000000
+#define DEFAULT_RING_SIZE 2000000
 #define DEFAULT_BURST_SIZE 64000
 
 typedef enum {
@@ -86,13 +86,22 @@ struct krad_transmission_St {
 	struct epoll_event *transmission_events;
 	struct epoll_event event;
 
-	krad_ringbuffer_t *ringbuffer;
-	
-	unsigned char *test_buffer;
-	
 
-	uint64_t position;	
+	krad_ringbuffer_t *ringbuffer;
+	unsigned char *transmission_buffer;
+	
+	uint64_t new_data;
+	unsigned char *new_data_buf;
+	uint64_t new_sync_point;
+	uint64_t new_data_size;
+
+	uint64_t position;
+	uint64_t local_position;
+	uint64_t local_offset;
+	uint64_t horizon;
 	uint64_t sync_point;
+
+	int receivers;
 	
 
 	krad_transmission_receiver_t *ready_receivers;
@@ -121,7 +130,7 @@ struct krad_transmission_receiver_St {
 	int wrote_http_header;
 	int wrote_header;
 
-
+	int noob;
 	int ready;
 	int active;
 	int destroy;
@@ -159,9 +168,9 @@ void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmissi
 
 void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 void krad_transmitter_transmission_add_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
-void krad_transmitter_transmission_sync_point (krad_transmission_t *krad_transmission);
 int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
-
+int krad_transmitter_transmission_add_data_sync (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
+int krad_transmitter_transmission_add_data_opt (krad_transmission_t *krad_transmission, unsigned char *buffer, int length, int sync);
 // convient for handlign the open/close of file?
 // krad_transmitter_transmission_add_file (krad_transmission_t *krad_transmission, char *filename)
 // krad_transmitter_transmission_remove_file (krad_transmission_t *krad_transmission, char *filename)
