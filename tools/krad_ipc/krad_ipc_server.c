@@ -651,7 +651,7 @@ void krad_ipc_server_mixer_broadcast ( krad_ipc_server_t *krad_ipc_server, uint3
 	}
 }
 
-void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *item, char *name, char *value) {
+void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *item, char *name, char *value, int internal) {
 
 	int c;
 
@@ -662,7 +662,8 @@ void krad_ipc_server_broadcast_tag ( krad_ipc_server_t *krad_ipc_server, char *i
 	subelement = 0;
 
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		if ((krad_ipc_server->clients[c].broadcasts == 1) && (krad_ipc_server->current_client != &krad_ipc_server->clients[c])) {
+		if ((krad_ipc_server->clients[c].broadcasts == 1) &&
+		    ((internal) || (krad_ipc_server->current_client != &krad_ipc_server->clients[c]))) {
 			if (krad_ipc_aquire_client (&krad_ipc_server->clients[c])) {
 				krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_MSG, &element);	
 				krad_ebml_start_element (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_RADIO_TAG, &subelement);	

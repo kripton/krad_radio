@@ -111,7 +111,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 	
 	krad_mixer_set_ipc (krad_radio->krad_mixer, krad_radio->krad_ipc);
 	krad_tags_set_set_tag_callback (krad_radio->krad_tags, krad_radio->krad_ipc, 
-									(void (*)(void *, char *, char *, char *))krad_ipc_server_broadcast_tag);
+									(void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
 		
 	return krad_radio;
 

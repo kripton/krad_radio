@@ -46,7 +46,7 @@ krad_tags_t *krad_tags_create (char *item) {
 }
 
 void krad_tags_set_set_tag_callback (krad_tags_t *krad_tags, void *callback_pointer, 
-									 void (*set_tag_callback)( void *, char *, char *, char *)) {
+									 void (*set_tag_callback)( void *, char *, char *, char *, int)) {
 
 
 	krad_tags->callback_pointer = callback_pointer;
@@ -72,6 +72,14 @@ char *krad_tags_get_tag (krad_tags_t *krad_tags, char *name) {
 }
 
 void krad_tags_set_tag (krad_tags_t *krad_tags, char *name, char *value) {
+	krad_tags_set_tag_opt (krad_tags, name, value, 0);
+}
+
+void krad_tags_set_tag_internal (krad_tags_t *krad_tags, char *name, char *value) {
+	krad_tags_set_tag_opt (krad_tags, name, value, 1);
+}
+
+void krad_tags_set_tag_opt (krad_tags_t *krad_tags, char *name, char *value, int internal) {
 
 	int t;
 
@@ -91,13 +99,13 @@ void krad_tags_set_tag (krad_tags_t *krad_tags, char *name, char *value) {
 					//UPDATED tag
 					if (krad_tags->set_tag_callback) {
 						krad_tags->set_tag_callback (krad_tags->callback_pointer, krad_tags->item, 
-													 krad_tags->tags[t].name, krad_tags->tags[t].value);
+													 krad_tags->tags[t].name, krad_tags->tags[t].value, internal);
 					}
 				} else {
 					//CLEARED tag
 					if (krad_tags->set_tag_callback) {
 						krad_tags->set_tag_callback (krad_tags->callback_pointer, krad_tags->item, 
-													 krad_tags->tags[t].name, "");
+													 krad_tags->tags[t].name, "", internal);
 					}					
 					free (krad_tags->tags[t].name);
 					krad_tags->tags[t].name = NULL;
@@ -121,7 +129,7 @@ void krad_tags_set_tag (krad_tags_t *krad_tags, char *name, char *value) {
 			krad_tags->tags[t].value = strdup (value);
 			if (krad_tags->set_tag_callback) {
 				krad_tags->set_tag_callback (krad_tags->callback_pointer, krad_tags->item, 
-											 krad_tags->tags[t].name, krad_tags->tags[t].value);
+											 krad_tags->tags[t].name, krad_tags->tags[t].value, internal);
 			}			
 			pthread_rwlock_unlock (&krad_tags->krad_tags_rwlock);
 			return;

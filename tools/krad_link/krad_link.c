@@ -3255,7 +3255,7 @@ void krad_linker_listen_promote_client (krad_linker_listen_client_t *client) {
 			krad_link->krad_linker = krad_linker;
 			
 			krad_tags_set_set_tag_callback (krad_link->krad_tags, krad_linker->krad_radio->krad_ipc, 
-											(void (*)(void *, char *, char *, char *))krad_ipc_server_broadcast_tag);
+											(void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
 	
 			
 			sprintf (krad_link->sysname, "link%d", k);

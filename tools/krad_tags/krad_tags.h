@@ -24,7 +24,7 @@ struct krad_tags_St {
 	pthread_rwlock_t krad_tags_rwlock;
 	
 	void *callback_pointer;
-	void (*set_tag_callback)( void *, char *, char *, char *);
+	void (*set_tag_callback)( void *, char *, char *, char *, int);
 	
 };
 
@@ -33,10 +33,13 @@ void krad_tags_destroy (krad_tags_t *krad_tags);
 krad_tags_t *krad_tags_create ();
 
 void krad_tags_set_set_tag_callback (krad_tags_t *krad_tags, void *calllback_pointer, 
-									 void (*set_tag_callback)( void *, char *, char *, char *));
+									 void (*set_tag_callback)( void *, char *, char *, char *, int));
 
 char *krad_tags_get_tag (krad_tags_t *krad_tags, char *name);
 void krad_tags_set_tag (krad_tags_t *krad_tags, char *name, char *value);
+
+void krad_tags_set_tag_internal (krad_tags_t *krad_tags, char *name, char *value);
+void krad_tags_set_tag_opt (krad_tags_t *krad_tags, char *name, char *value, int internal);
 
 int krad_tags_get_next_tag (krad_tags_t *krad_tags, int *tagnum, char **name, char **value);
 

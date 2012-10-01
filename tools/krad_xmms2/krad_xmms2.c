@@ -91,9 +91,9 @@ int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 	xmmsv_unref (info);
 	
 	if (krad_xmms->krad_tags != NULL) {
-		krad_tags_set_tag (krad_xmms->krad_tags, "artist", krad_xmms->artist);
-		krad_tags_set_tag (krad_xmms->krad_tags, "title", krad_xmms->title);
-		krad_tags_set_tag (krad_xmms->krad_tags, "now_playing", krad_xmms->now_playing);
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "artist", krad_xmms->artist);
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "title", krad_xmms->title);
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "now_playing", krad_xmms->now_playing);
 	}
 	
 	printk ("Got now playing: %s", krad_xmms->now_playing);	
@@ -144,7 +144,7 @@ int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
 		sprintf (krad_xmms->playtime_string, "%d:%02d", krad_xmms->playtime / 60, krad_xmms->playtime % 60);
 		//printk ("Got playtime: %s", krad_xmms->playtime_string);
 		if (krad_xmms->krad_tags != NULL) {
-			krad_tags_set_tag (krad_xmms->krad_tags, "playtime", krad_xmms->playtime_string);
+			krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", krad_xmms->playtime_string);
 		}			
 	}
 
