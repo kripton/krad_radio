@@ -1009,7 +1009,9 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 
 	int ret;
 	int r;
+	int on;
 	
+	on = 1;
 	r = 0;
 	ret = 0;
 	
@@ -1029,6 +1031,10 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 		krad_transmitter->listening = 0;
 		krad_transmitter->port = 0;		
 		return 1;
+	}
+	
+	if ((setsockopt (krad_transmitter->incoming_connections_sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on))) < 0) {
+		failfast ("Krad Transmitter: Could not setsockopt SO_REUSEADDR\n");
 	}
 
 	if (bind (krad_transmitter->incoming_connections_sd, (struct sockaddr *)&krad_transmitter->local_address,
