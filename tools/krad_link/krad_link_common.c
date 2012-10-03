@@ -120,19 +120,19 @@ krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mod
 
 	if ((av_mode == AUDIO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {
 
-		if ((strcmp(string, "Vorbis") == 0) || (strcmp(string, "vorbis") == 0)) {
+		if ((strstr(string, "Vorbis") != NULL) || (strstr(string, "vorbis") != NULL)) {
 			return VORBIS;
 		}
 
-		if ((strcmp(string, "FLAC") == 0) || (strcmp(string, "flac") == 0)) {
+		if ((strstr(string, "FLAC") != NULL) || (strstr(string, "flac") != NULL)) {
 			return FLAC;
 		}
 
-		if ((strcmp(string, "Opus") == 0) || (strcmp(string, "opus") == 0)) {
+		if ((strstr(string, "Opus") != NULL) || (strstr(string, "opus") != NULL)) {
 			return OPUS;
 		}
 		
-		if ((strcmp(string, "AAC") == 0) || (strcmp(string, "aac") == 0)) {
+		if ((strstr(string, "AAC") != NULL) || (strstr(string, "aac") != NULL)) {
 			return AAC;
 		}
 		
@@ -140,31 +140,31 @@ krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mod
 	
 	if ((av_mode == VIDEO_ONLY) || (av_mode == AUDIO_AND_VIDEO)) {	
 
-		if ((strcmp(string, "VP8") == 0) || (strcmp(string, "vp8") == 0)) {
+		if ((strstr(string, "VP8") != NULL) || (strstr(string, "vp8") != NULL)) {
 			return VP8;
 		}
 	
-		if ((strcmp(string, "Theora") == 0) || (strcmp(string, "theora") == 0)) {
+		if ((strstr(string, "Theora") != NULL) || (strstr(string, "theora") != NULL)) {
 			return THEORA;
 		}
 	
-		if ((strcmp(string, "MJPEG") == 0) || (strcmp(string, "Mjpeg") == 0) || (strcmp(string, "mjpeg") == 0)) {
+		if ((strstr(string, "MJPEG") != NULL) || (strstr(string, "Mjpeg") != NULL) || (strstr(string, "mjpeg") != NULL)) {
 			return MJPEG;
 		}
 	
-		if (strcmp(string, "PNG") == 0) {
+		if (strstr(string, "PNG") != NULL) {
 			return PNG;
 		}
 	
-		if (strcmp(string, "Hexon") == 0) {
+		if (strstr(string, "Hexon") != NULL) {
 			return HEXON;
 		}
 	
-		if (strcmp(string, "Daala") == 0) {
+		if (strstr(string, "Daala") != NULL) {
 			return DAALA;
 		}
 	
-		if ((strcmp(string, "H264") == 0) || (strcmp(string, "h264") == 0) || (strcmp(string, "x264") == 0)) {
+		if ((strstr(string, "H264") != NULL) || (strstr(string, "h264") != NULL) || (strstr(string, "x264") != NULL)) {
 			return H264;
 		}	
 	}

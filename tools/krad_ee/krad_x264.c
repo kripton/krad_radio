@@ -67,22 +67,16 @@ krad_x264_encoder_t *krad_x264_encoder_create (int width, int height,
 	krad_x264->encoder = x264_encoder_open ( krad_x264->params );
 	x264_encoder_parameters ( krad_x264->encoder, krad_x264->params );
 	x264_encoder_headers ( krad_x264->encoder, &krad_x264->headers, &krad_x264->header_count );
-	
 
 	krad_x264_encoder_process_headers (krad_x264);
 	
-	
-	
 	x264_picture_alloc ( krad_x264->picture, X264_CSP_I420, krad_x264->width, krad_x264->height );
-
-
 
 	return krad_x264;
 
 }
 
 void krad_x264_encoder_destroy(krad_x264_encoder_t *krad_x264) {
-
 
 	x264_encoder_close ( krad_x264->encoder );
 	x264_picture_clean ( krad_x264->picture );
