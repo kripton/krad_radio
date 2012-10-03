@@ -1,29 +1,12 @@
 #include <string.h>
-
 #include <opus_defines.h>
+
+#include "krad_codec_header.h"
 
 typedef struct krad_link_rep_St krad_link_rep_t;
 
 #ifndef KRAD_LINK_COMMON_H
 #define KRAD_LINK_COMMON_H
-
-#ifndef KRAD_CODEC_T
-typedef enum {
-	VORBIS = 6666,
-	OPUS,
-	FLAC,
-	VP8,
-	THEORA,
-	MJPEG,
-	PNG,
-	CODEC2,
-	SKELETON,
-	HEXON,
-	DAALA,
-	NOCODEC,
-} krad_codec_t;
-#define KRAD_CODEC_T 1
-#endif
 
 typedef enum {
 	AUDIO_ONLY = 150,
@@ -73,6 +56,9 @@ char *krad_link_av_mode_to_string (krad_link_av_mode_t av_mode);
 krad_link_av_mode_t krad_link_string_to_av_mode (char *string);
 char *krad_codec_to_string (krad_codec_t codec);
 krad_codec_t krad_string_to_codec (char *string);
+krad_codec_t krad_string_to_audio_codec (char *string);
+krad_codec_t krad_string_to_video_codec (char *string);
+krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mode);
 
 struct krad_link_rep_St {
 

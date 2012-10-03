@@ -15,12 +15,16 @@ char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec) {
 			return "A_FLAC";
 		case OPUS:
 			return "A_OPUS";
+		case AAC:
+			return "A_AAC";			
 		case VP8:
 			return "V_VP8";
 		case THEORA:
 			return "V_THEORA";
 		case MJPEG:
 			return "V_MJPEG";
+		case H264:
+			return "V_MPEG4/ISO/AVC";			
 		default:
 			return "No Codec";
 	}
@@ -575,8 +579,15 @@ int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int sa
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_AUDIOSETTINGS, &audio_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_AUDIOCHANNELS, channels);
-	krad_ebml_write_float (krad_ebml, EBML_ID_AUDIOSAMPLERATE, sample_rate);
-	krad_ebml_write_int8 (krad_ebml, EBML_ID_AUDIOBITDEPTH, 16);
+	
+	if (codec == AAC) {
+		krad_ebml_write_float (krad_ebml, EBML_ID_AUDIOSAMPLERATE, sample_rate / 2);
+		krad_ebml_write_float (krad_ebml, EBML_ID_AUDIOOUTPUTSAMPLERATE, sample_rate);
+	} else {
+		krad_ebml_write_float (krad_ebml, EBML_ID_AUDIOSAMPLERATE, sample_rate);
+		krad_ebml_write_int8 (krad_ebml, EBML_ID_AUDIOBITDEPTH, 16);
+	}
+
 	krad_ebml_finish_element (krad_ebml, audio_info);
 	
 	if (private_data_size > 0) {

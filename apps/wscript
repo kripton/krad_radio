@@ -23,6 +23,8 @@ depsources = """
 ../tools/krad_ticker/krad_timer.c
 ../tools/krad_ticker/krad_ticker.c
 ../tools/krad_xmms2/krad_xmms2.c
+../tools/krad_ee/krad_x264.c
+../tools/krad_ee/krad_aac.c
 ../tools/krad_ebml/krad_ebml.c
 ../tools/krad_compositor/krad_sprite.c
 ../tools/krad_compositor/krad_text.c
@@ -78,6 +80,7 @@ depsources2 = """
 """.split()
 
 includedirs = """
+../tools/krad_ee/
 ../tools/krad_compositor/
 ../tools/krad_ticker/
 ../tools/krad_xmms2/
@@ -122,8 +125,8 @@ includedirs = """
 /usr/include
 """.split()
 
-libs = ["samplerate", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
-		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", 
+libs = ["samplerate", "x264", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
+		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", "aacplus",
 		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "xmms2-client"]
 
 # "ncurses",

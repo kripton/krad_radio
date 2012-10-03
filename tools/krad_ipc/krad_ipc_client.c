@@ -1902,27 +1902,9 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	video_codec = VP8;
 	
 	if (codecs != NULL) {
-	
-		if (strstr(codecs, "flac") != NULL) {
-			audio_codec = FLAC;
-		}
-		if (strstr(codecs, "vorbis") != NULL) {
-			audio_codec = VORBIS;
-		}
-		if (strstr(codecs, "opus") != NULL) {
-			audio_codec = OPUS;
-		}			
-		if (strstr(codecs, "vp8") != NULL) {
-			video_codec = VP8;
-		}
-		if (strstr(codecs, "theora") != NULL) {
-			video_codec = THEORA;
-		}
-		if (strstr(codecs, "mjpeg") != NULL) {
-			video_codec = MJPEG;
-		}		
+		audio_codec = krad_string_to_audio_codec (codecs);
+		video_codec = krad_string_to_video_codec (codecs);
 	}
-	
 	
 	linker_command = 0;
 	//set_control = 0;
@@ -2066,27 +2048,9 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 	video_codec = VP8;
 	
 	if (codecs != NULL) {
-	
-		if (strstr(codecs, "flac") != NULL) {
-			audio_codec = FLAC;
-		}
-		if (strstr(codecs, "vorbis") != NULL) {
-			audio_codec = VORBIS;
-		}
-		if (strstr(codecs, "opus") != NULL) {
-			audio_codec = OPUS;
-		}			
-		if (strstr(codecs, "vp8") != NULL) {
-			video_codec = VP8;
-		}
-		if (strstr(codecs, "theora") != NULL) {
-			video_codec = THEORA;
-		}
-		if (strstr(codecs, "mjpeg") != NULL) {
-			video_codec = MJPEG;
-		}		
+		audio_codec = krad_string_to_audio_codec (codecs);
+		video_codec = krad_string_to_video_codec (codecs);
 	}
-	
 	
 	linker_command = 0;
 	//set_control = 0;

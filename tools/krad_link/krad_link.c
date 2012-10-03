@@ -403,6 +403,14 @@ void *video_encoding_thread (void *arg) {
 																	 krad_link->theora_quality);
 	}
 	
+	if (krad_link->video_codec == H264) {
+		krad_link->krad_x264_encoder = krad_x264_encoder_create (krad_link->encoding_width, 
+																	 krad_link->encoding_height,
+																	 krad_link->encoding_fps_numerator,
+																	 krad_link->encoding_fps_denominator,
+																	 krad_link->vp8_bitrate);
+	}	
+	
 	/* COMPOSITOR CONNECTION */
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
@@ -432,6 +440,15 @@ void *video_encoding_thread (void *arg) {
 			strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
 			strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;	
 		}
+		
+		if (krad_link->video_codec == H264) {			
+			planes[0] = krad_link->krad_x264_encoder->picture->img.plane[0];
+			planes[1] = krad_link->krad_x264_encoder->picture->img.plane[1];
+			planes[2] = krad_link->krad_x264_encoder->picture->img.plane[2];
+			strides[0] = krad_link->krad_x264_encoder->picture->img.i_stride[0];
+			strides[1] = krad_link->krad_x264_encoder->picture->img.i_stride[1];
+			strides[2] = krad_link->krad_x264_encoder->picture->img.i_stride[2];	
+		}		
 				
 		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides);
 
@@ -463,7 +480,13 @@ void *video_encoding_thread (void *arg) {
 				packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder,
 									   (unsigned char **)&video_packet,
 									   					 &keyframe);
-			}			
+			}
+			
+			if (krad_link->video_codec == H264) {
+				packet_size = krad_x264_encoder_write (krad_link->krad_x264_encoder,
+									   (unsigned char **)&video_packet,
+									   					 &keyframe);
+			}		
 		
 			if ((packet_size) || (krad_link->video_codec == THEORA)) {
 			
@@ -509,6 +532,10 @@ void *video_encoding_thread (void *arg) {
 	
 	if (krad_link->video_codec == THEORA) {
 		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
+	}
+	
+	if (krad_link->video_codec == H264) {
+		krad_x264_encoder_destroy (krad_link->krad_x264_encoder);	
 	}	
 	
 	// FIXME make shutdown sequence more pretty
@@ -615,6 +642,12 @@ void *audio_encoding_thread (void *arg) {
 															 OPUS_APPLICATION_AUDIO);
 			framecnt = KRAD_MIN_OPUS_FRAME_SIZE;
 			break;
+		case AAC:
+			krad_link->krad_aac = krad_aac_encoder_create (krad_link->channels,
+														   krad_link->krad_radio->krad_mixer->sample_rate,
+														   64000);
+			framecnt = krad_link->krad_aac->input_samples / krad_link->channels;
+			break;			
 		default:
 			failfast ("Krad Link Audio Encoder: Unknown Audio Codec");
 	}
@@ -650,7 +683,22 @@ void *audio_encoding_thread (void *arg) {
 				bytes = krad_flac_encode (krad_link->krad_flac, interleaved_samples, framecnt, buffer);
 			}
 			
-			if ((krad_link->audio_codec == FLAC) || (krad_link->audio_codec == OPUS)) {
+			if (krad_link->audio_codec == AAC) {
+				
+				for (c = 0; c < krad_link->channels; c++) {
+					krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)samples[c], (framecnt * 4) );
+				}
+			
+				for (s = 0; s < framecnt; s++) {
+					for (c = 0; c < krad_link->channels; c++) {
+						interleaved_samples[s * krad_link->channels + c] = samples[c][s];
+					}
+				}
+			
+				bytes = krad_aac_encode (krad_link->krad_aac, interleaved_samples, krad_link->krad_aac->input_samples, buffer);
+			}			
+			
+			if ((krad_link->audio_codec == FLAC) || (krad_link->audio_codec == OPUS) || (krad_link->audio_codec == AAC)) {
 	
 				while (bytes > 0) {
 					
@@ -724,6 +772,12 @@ void *audio_encoding_thread (void *arg) {
 		krad_opus_encoder_destroy (krad_link->krad_opus);
 		krad_link->krad_opus = NULL;
 	}
+	
+
+	if (krad_link->krad_aac != NULL) {
+		krad_aac_encoder_destroy (krad_link->krad_aac);
+		krad_link->krad_aac = NULL;
+	}	
 	
 	krad_link->encoding = 4;
 	
@@ -826,7 +880,7 @@ void *stream_output_thread (void *arg) {
 																				 OUTPUT);
 		}
 		
-		if (krad_link->video_codec != THEORA) {
+		if (krad_link->video_codec == VP8) {
 		
 			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container,
 																	 krad_link->video_codec,
@@ -834,7 +888,10 @@ void *stream_output_thread (void *arg) {
 																	 krad_link->encoding_fps_denominator,
 																	 krad_link->encoding_width,
 																	 krad_link->encoding_height);
-		} else {
+		}
+		
+		
+		if (krad_link->video_codec == THEORA) {
 		
 			usleep (50000);
 		
@@ -848,6 +905,22 @@ void *stream_output_thread (void *arg) {
 															  &krad_link->krad_theora_encoder->krad_codec_header);
 		
 		}
+		
+		if (krad_link->video_codec == H264) {
+		
+			usleep (50000);
+		
+			krad_link->video_track = 
+			krad_container_add_video_track_with_private_data (krad_link->krad_container, 
+														      krad_link->video_codec,
+														   	  krad_link->encoding_fps_numerator,
+															  krad_link->encoding_fps_denominator,
+															  krad_link->encoding_width,
+															  krad_link->encoding_height,
+															  &krad_link->krad_x264_encoder->krad_codec_header);
+		
+		}
+		
 	}
 	
 	if (krad_link->av_mode != VIDEO_ONLY) {
@@ -873,6 +946,13 @@ void *stream_output_thread (void *arg) {
 																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->channels, 
 																		 &krad_link->krad_opus->krad_codec_header);
+				break;
+			case AAC:
+				krad_link->audio_track = krad_container_add_audio_track (krad_link->krad_container,
+																		 krad_link->audio_codec,
+																		 krad_link->krad_radio->krad_mixer->sample_rate,
+																		 krad_link->channels, 
+																		 &krad_link->krad_aac->krad_codec_header);
 				break;
 			default:
 				failfast ("Unknown audio codec");
@@ -2730,6 +2810,12 @@ int krad_link_wait_codec_init (krad_link_t *krad_link) {
 				usleep (2000);
 			}
 		}
+		if (krad_link->audio_codec == AAC) {
+			while (krad_link->krad_aac == NULL) {
+				usleep (2000);
+			}
+		}		
+		
 	}
 
 	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {

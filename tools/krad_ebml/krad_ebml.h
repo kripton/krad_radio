@@ -27,6 +27,7 @@
 #include <limits.h>
 
 #include "krad_system.h"
+#include "krad_codec_header.h"
 
 #ifndef KRADEBML_VERSION
 #define KRADEBML_VERSION "2.1"
@@ -96,6 +97,7 @@
 
 #define EBML_ID_AUDIOCHANNELS			0x9F
 #define EBML_ID_AUDIOSAMPLERATE			0xB5
+#define EBML_ID_AUDIOOUTPUTSAMPLERATE	0x78B5
 #define EBML_ID_AUDIOBITDEPTH			0x6264
 
 #define EBML_ID_3D						0x53B8
@@ -124,24 +126,6 @@
 #define KRAD_EBML_MAX_TRACKS 10
 
 #define KRADEBML_WRITE_BUFFER_SIZE 8192 * 1024 * 2
-
-#ifndef KRAD_CODEC_T
-typedef enum {
-	VORBIS = 6666,
-	OPUS,
-	FLAC,
-	VP8,
-	THEORA,
-	MJPEG,
-	PNG,
-	CODEC2,
-	SKELETON,
-	HEXON,
-	DAALA,
-	NOCODEC,	
-} krad_codec_t;
-#define KRAD_CODEC_T 1
-#endif
 
 typedef struct kradx_base64_St kradx_base64_t;
 

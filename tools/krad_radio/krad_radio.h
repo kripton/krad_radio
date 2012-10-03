@@ -20,6 +20,9 @@ typedef struct krad_radio_St krad_radio_t;
 
 #include "krad_radio_version.h"
 #include "krad_system.h"
+#include "krad_codec_header.h"
+#include "krad_x264.h"
+#include "krad_aac.h"
 #include "krad_xmms2.h"
 #include "krad_timer.h"
 #include "krad_easing.h"

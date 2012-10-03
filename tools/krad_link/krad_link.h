@@ -95,6 +95,8 @@ struct krad_link_St {
 	krad_vpx_decoder_t *krad_vpx_decoder;
 	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
+	krad_x264_encoder_t *krad_x264_encoder;
+	krad_aac_t *krad_aac;	
 //	krad_codec2_t *krad_codec2_decoder;
 //	krad_codec2_t *krad_codec2_encoder;
 	krad_vorbis_t *krad_vorbis;
