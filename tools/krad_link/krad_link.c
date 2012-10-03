@@ -1101,6 +1101,8 @@ void *stream_output_thread (void *arg) {
 			}
 		}
 		
+		usleep (6000);		
+		
 		//krad_ebml_write_tag (krad_link->krad_ebml, "test tag 1", "monkey 123");
 	}
 

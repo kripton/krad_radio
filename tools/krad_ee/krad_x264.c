@@ -41,6 +41,17 @@ static void krad_x264_encoder_process_headers (krad_x264_encoder_t *krad_x264) {
 	printf("x264 sei length is %d\n", sei_size);
 }
 
+int krad_x264_is_keyframe (unsigned char *buffer) {
+
+	unsigned int nal_type = buffer[4] & 0x1F;
+
+	if ((nal_type == 5) || (nal_type == 7) || (nal_type == 8)) {
+		return 1;
+	}
+
+	return 0;
+}
+
 krad_x264_encoder_t *krad_x264_encoder_create (int width, int height,
 											   int fps_numerator, int fps_denominator, int bitrate) {
 
@@ -106,6 +117,12 @@ int krad_x264_encoder_write (krad_x264_encoder_t *krad_x264, unsigned char **pac
 	if (frame_size) {
 		*packet = nal[0].p_payload;
 		*keyframe = pic_out.b_keyframe;		
+	}
+	
+	if (*keyframe == 1) {
+		if (*keyframe != krad_x264_is_keyframe (nal[0].p_payload)) {
+			printke ("krad x264: uh oh keyframe not keyframe!");
+		}
 	}
 	
 	return frame_size;
