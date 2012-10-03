@@ -3643,7 +3643,58 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	}
 }
 
+void kr_shm_destroy (kr_shm_t *kr_shm) {
 
+	if (kr_shm != NULL) {
+		if (kr_shm->buffer != NULL) {
+			munmap (kr_shm->buffer, kr_shm->size);
+			kr_shm->buffer = NULL;
+		}
+		if (kr_shm->fd != 0) {
+			close (kr_shm->fd);
+		}
+		free(kr_shm);
+	}
+}
+
+kr_shm_t *kr_shm_create (krad_ipc_client_t *client) {
+
+	char filename[] = "/tmp/krad-shm-XXXXXX";
+	kr_shm_t *kr_shm;
+
+	kr_shm = calloc (1, sizeof(kr_shm_t));
+
+	if (kr_shm == NULL) {
+		return NULL;
+	}
+
+	kr_shm->size = 1000000;
+
+	kr_shm->fd = mkstemp (filename);
+	if (kr_shm->fd < 0) {
+		fprintf(stderr, "open %s failed: %m\n", filename);
+		kr_shm_destroy (kr_shm);
+		return NULL;
+	}
+
+	if (ftruncate (kr_shm->fd, kr_shm->size) < 0) {
+		fprintf (stderr, "ftruncate failed: %m\n");
+		kr_shm_destroy (kr_shm);
+		return NULL;
+	}
+
+	kr_shm->buffer = mmap (NULL, kr_shm->size, PROT_READ | PROT_WRITE, MAP_SHARED, kr_shm->fd, 0);
+	unlink (filename);
+
+	if (kr_shm->buffer == MAP_FAILED) {
+		fprintf (stderr, "mmap failed: %m\n");
+		kr_shm_destroy (kr_shm);
+		return NULL;
+	}
+
+	return kr_shm;
+
+}
 
 int krad_ipc_wait (krad_ipc_client_t *client, char *buffer, int size) {
 

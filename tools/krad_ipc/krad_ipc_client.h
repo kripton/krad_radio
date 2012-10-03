@@ -21,6 +21,7 @@
 #include <sys/wait.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <sys/mman.h>
 
 #include "krad_radio_ipc.h"
 #include "krad_system.h"
@@ -46,6 +47,18 @@ struct krad_radio_watchdog_St {
 	char *launch_scripts[1024];
 };
 
+
+typedef struct kr_shm_St kr_shm_t;
+
+struct kr_shm_St {
+
+	int fd;
+	void *buffer;
+	uint64_t size;
+
+};
+
+
 typedef struct krad_ipc_client_St krad_ipc_client_t;
 
 struct krad_ipc_client_St {
@@ -69,6 +82,10 @@ struct krad_ipc_client_St {
 	int nowait;
 
 };
+
+
+kr_shm_t *kr_shm_create (krad_ipc_client_t *client);
+void kr_shm_destroy (kr_shm_t *kr_shm);
 
 void krad_ipc_broadcast_subscribe (krad_ipc_client_t *client, uint32_t broadcast_id);
 

@@ -8,6 +8,7 @@ krad_radio_daemon.c
 
 programs2 = """
 krad_radio.c
+krad_radio_af.c
 """.split()
 
 #krad_radio_ncurses.c
