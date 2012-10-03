@@ -21,7 +21,9 @@ void *video_capture_thread (void *arg) {
 	
 	krad_link->krad_v4l2 = kradv4l2_create ();
 
-	krad_link->krad_v4l2->mjpeg_mode = krad_link->mjpeg_mode;
+	if (krad_link->mjpeg_mode == 1) {
+		krad_v4l2_mjpeg_mode (krad_link->krad_v4l2);
+	}
 
 	kradv4l2_open (krad_link->krad_v4l2, krad_link->device, krad_link->capture_width, 
 				   krad_link->capture_height, krad_link->capture_fps);

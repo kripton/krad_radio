@@ -5,11 +5,11 @@ static void krad_x264_encoder_process_headers (krad_x264_encoder_t *krad_x264) {
 	
     int sps_size = krad_x264->headers[0].i_payload - 4;
     int pps_size = krad_x264->headers[1].i_payload - 4;
-    int sei_size = krad_x264->headers[2].i_payload;
+//    int sei_size = krad_x264->headers[2].i_payload;
 
     uint8_t *sps = krad_x264->headers[0].p_payload + 4;
     uint8_t *pps = krad_x264->headers[1].p_payload + 4;
-    uint8_t *sei = krad_x264->headers[2].p_payload;
+//    uint8_t *sei = krad_x264->headers[2].p_payload;
 
     krad_x264->header_len[0] = 5 + 1 + 2 + sps_size + 1 + 2 + pps_size;
     krad_x264->header[0] = malloc ( krad_x264->header_len[0] );
@@ -38,7 +38,7 @@ static void krad_x264_encoder_process_headers (krad_x264_encoder_t *krad_x264) {
 	krad_x264->krad_codec_header.header_count = 3;	
 
 	printf("x264 header length is %d\n", krad_x264->header_len[0]);
-	printf("x264 sei length is %d\n", sei_size);
+//	printf("x264 sei length is %d\n", sei_size);
 }
 
 int krad_x264_is_keyframe (unsigned char *buffer) {

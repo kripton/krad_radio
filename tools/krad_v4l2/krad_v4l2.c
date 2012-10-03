@@ -11,6 +11,8 @@ krad_v4l2_t *kradv4l2_create() {
 
 	kradv4l2->jpeg_buffer = calloc(1, 4200000);
 
+	kradv4l2->mode = V4L2_PIX_FMT_YUYV;
+
 	return kradv4l2;
 
 }
@@ -554,11 +556,7 @@ void kradv4l2_init_device (krad_v4l2_t *kradv4l2) {
 	fmt.fmt.pix.width       = kradv4l2->width; 
 	fmt.fmt.pix.height      = kradv4l2->height;
 	
-	if (kradv4l2->mjpeg_mode) {
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-	} else {
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-	}
+	fmt.fmt.pix.pixelformat = kradv4l2->mode;
 		
 	//	fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 
@@ -698,6 +696,19 @@ void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height, 
 	
 	
 }
+
+void krad_v4l2_yuv_mode (krad_v4l2_t *kradv4l2) {
+	kradv4l2->mode = V4L2_PIX_FMT_YUYV;
+}
+
+void krad_v4l2_mjpeg_mode (krad_v4l2_t *kradv4l2) {
+	kradv4l2->mode = V4L2_PIX_FMT_MJPEG;
+}
+
+void krad_v4l2_h264_mode (krad_v4l2_t *kradv4l2) {
+	kradv4l2->mode = V4L2_PIX_FMT_H264;
+}
+
 
 static char jpeg_header[] =
 {
