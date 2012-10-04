@@ -47,8 +47,8 @@ char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2) {
 		//	printf("\n\ntimestamp %zu %zu \n\n", kradv4l2->timestamp.tv_sec, kradv4l2->timestamp.tv_usec);
 
 			
-			kradv4l2->jpeg_size = kradv4l2->buf.bytesused;
-			//kradv4l2->jpeg_size = kradv4l2->buffers[kradv4l2->buf.index].length;
+			kradv4l2->encoded_size = kradv4l2->buf.bytesused;
+			//kradv4l2->encoded_size = kradv4l2->buffers[kradv4l2->buf.index].length;
 			
 			//printf("jpeg size %zu or %u \n", kradv4l2->buffers[kradv4l2->buf.index].length, kradv4l2->buf.bytesused);
 

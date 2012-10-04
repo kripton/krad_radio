@@ -73,9 +73,7 @@ struct krad_v4l2_St {
 
 	tjhandle jpeg_dec;
 
-	unsigned int jpeg_size;
-
-
+	unsigned int encoded_size;
 	unsigned char *codec_buffer;
 
 };

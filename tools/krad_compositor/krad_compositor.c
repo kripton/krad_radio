@@ -1122,8 +1122,7 @@ krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_comp
 
 	krad_frame_t *krad_frame;
 
-	if (krad_compositor_port->direction == INPUT) {
-
+	if ((krad_compositor_port->direction == INPUT) && (krad_compositor_port->passthru == 0)) {
 
 		if (krad_compositor_port->last_frame != NULL) {
 
@@ -1325,13 +1324,16 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	
 	krad_compositor_port->active = 1;
 	
-	krad_compositor->active_ports++;
-	
-	if (krad_compositor_port->direction == INPUT) {
-		krad_compositor->active_input_ports++;
-	}
-	if (krad_compositor_port->direction == OUTPUT) {
-		krad_compositor->active_output_ports++;
+	if (strstr(krad_compositor_port->sysname, "passthru") != NULL) {
+		krad_compositor_port->passthru = 1;
+	} else {
+		krad_compositor->active_ports++;
+		if (krad_compositor_port->direction == INPUT) {
+			krad_compositor->active_input_ports++;
+		}
+		if (krad_compositor_port->direction == OUTPUT) {
+			krad_compositor->active_output_ports++;
+		}
 	}
 	pthread_mutex_unlock (&krad_compositor->settings_lock);		
 	
@@ -1343,14 +1345,9 @@ krad_compositor_port_t *krad_compositor_passthru_port_create (krad_compositor_t 
 														   char *sysname, int direction) {
 
 	krad_compositor_port_t *krad_compositor_port;
-	
 	krad_compositor_port = krad_compositor_port_create (krad_compositor, sysname, direction,
 														1,1);
-
-	krad_compositor_port->passthru = 1;		
-
 	return krad_compositor_port;	
-
 }
 
 
@@ -1359,12 +1356,16 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 	pthread_mutex_lock (&krad_compositor->settings_lock);	
 	krad_compositor_port->active = 3;
 
-	if (krad_compositor_port->direction == INPUT) {
-		krad_compositor->active_input_ports--;
-	}
-	if (krad_compositor_port->direction == OUTPUT) {
-		krad_compositor->active_output_ports--;
-	}
+	if (strstr(krad_compositor_port->sysname, "passthru") != NULL) {
+
+	} else {
+		if (krad_compositor_port->direction == INPUT) {
+			krad_compositor->active_input_ports--;
+		}
+		if (krad_compositor_port->direction == OUTPUT) {
+			krad_compositor->active_output_ports--;
+		}
+ 	}
 
 	krad_ringbuffer_free ( krad_compositor_port->frame_ring );
 	krad_compositor_port->start_timecode = 0;
@@ -1380,7 +1381,11 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 		krad_compositor_port->last_frame = NULL;
 	}
 
-	krad_compositor->active_ports--;
+	if (strstr(krad_compositor_port->sysname, "passthru") != NULL) { 
+		krad_compositor_port->passthru = 0;
+	} else {
+		krad_compositor->active_ports--;
+	}
 	pthread_mutex_unlock (&krad_compositor->settings_lock);	
 
 }

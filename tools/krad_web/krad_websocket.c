@@ -316,7 +316,7 @@ void krad_ipc_from_json (krad_ipc_session_data_t *pss, char *value, int len) {
 															  krad_link.video_source, krad_link.video_device,
 															  krad_link.width, krad_link.height,
 															  krad_link.fps_numerator, krad_link.fps_denominator,
-															  krad_link.av_mode, "");
+															  krad_link.av_mode, "", "");
 							}
 						}
 					}
