@@ -830,7 +830,7 @@ void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_fra
 }
 
 
-void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
+void krad_compositor_passthru_process (krad_compositor_t *krad_compositor) {
 
 	int p;
 	
@@ -840,7 +840,7 @@ void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == INPUT) &&
-			(krad_compositor->port[p].mjpeg == 1)) {
+			(krad_compositor->port[p].passthru == 1)) {
 				krad_frame = krad_compositor_port_pull_frame (&krad_compositor->port[p]);
 			break;
 		}
@@ -852,7 +852,7 @@ void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor) {
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if ((krad_compositor->port[p].active == 1) && (krad_compositor->port[p].direction == OUTPUT) &&
-			(krad_compositor->port[p].mjpeg == 1)) {
+			(krad_compositor->port[p].passthru == 1)) {
 
 			krad_compositor_port_push_frame (&krad_compositor->port[p], krad_frame);
 			break;
@@ -1339,7 +1339,7 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 
 }
 
-krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor,
+krad_compositor_port_t *krad_compositor_passthru_port_create (krad_compositor_t *krad_compositor,
 														   char *sysname, int direction) {
 
 	krad_compositor_port_t *krad_compositor_port;
@@ -1347,7 +1347,7 @@ krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *kr
 	krad_compositor_port = krad_compositor_port_create (krad_compositor, sysname, direction,
 														1,1);
 
-	krad_compositor_port->mjpeg = 1;		
+	krad_compositor_port->passthru = 1;		
 
 	return krad_compositor_port;	
 

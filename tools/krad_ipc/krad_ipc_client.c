@@ -1921,20 +1921,15 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC, krad_codec_to_string (video_codec));
 		
 		if (video_codec == VP8) {
-			if ((video_width == 0) || (video_height == 0)) {
-				video_width = 960;
-				video_height = 540;
-			}
-		
 			if (video_bitrate == 0) {
 				video_bitrate = 92 * 8;
 			}
 		}
 		
 		if (video_codec == THEORA) {
-			if ((video_width == 0) || (video_height == 0)) {
-				video_width = 1280;
-				video_height = 720;
+			if ((video_width % 16) || (video_height % 16)) {
+				video_width = 0;
+				video_height = 0;
 			}
 			if (video_bitrate == 0) {
 				video_bitrate = 31;
@@ -2067,23 +2062,18 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC, krad_codec_to_string (video_codec));
 		
 		if (video_codec == VP8) {
-			if ((video_width == 0) || (video_height == 0)) {
-				video_width = 960;
-				video_height = 540;
-			}
-		
 			if (video_bitrate == 0) {
-				video_bitrate = 92 * 8;
+				video_bitrate = 140 * 8;
 			}
 		}
 		
 		if (video_codec == THEORA) {
-			if ((video_width == 0) || (video_height == 0)) {
-				video_width = 1280;
-				video_height = 720;
+			if ((video_width % 16) || (video_height % 16)) {
+				video_width = 0;
+				video_height = 0;
 			}
 			if (video_bitrate == 0) {
-				video_bitrate = 31;
+				video_bitrate = 41;
 			}
 		}
 

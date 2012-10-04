@@ -68,7 +68,7 @@ struct krad_compositor_port_St {
 	
 	krad_ringbuffer_t *frame_ring;
 	
-	int mjpeg;
+	int passthru;
 
 	int source_width;
 	int source_height;
@@ -250,7 +250,7 @@ krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_
 
 int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_port);
 
-krad_compositor_port_t *krad_compositor_mjpeg_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
+krad_compositor_port_t *krad_compositor_passthru_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
 													 int width, int height);
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
@@ -261,7 +261,7 @@ void krad_compositor_get_frame_rate (krad_compositor_t *krad_compositor,
 									 int *frame_rate_numerator, int *frame_rate_denominator);
 
 void krad_compositor_get_resolution (krad_compositor_t *compositor, int *width, int *height);
-void krad_compositor_mjpeg_process (krad_compositor_t *krad_compositor);
+void krad_compositor_passthru_process (krad_compositor_t *krad_compositor);
 void krad_compositor_process (krad_compositor_t *compositor);
 void krad_compositor_destroy (krad_compositor_t *compositor);
 krad_compositor_t *krad_compositor_create (int width, int height,

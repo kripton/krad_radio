@@ -7,10 +7,6 @@ krad_v4l2_t *kradv4l2_create() {
 
 	kradv4l2 = calloc(1, sizeof(krad_v4l2_t));
 
-	kradv4l2->jpeg_dec = tjInitDecompress();
-
-	kradv4l2->jpeg_buffer = calloc(1, 4200000);
-
 	kradv4l2->mode = V4L2_PIX_FMT_YUYV;
 
 	return kradv4l2;
@@ -18,11 +14,8 @@ krad_v4l2_t *kradv4l2_create() {
 }
 
 void kradv4l2_destroy(krad_v4l2_t *kradv4l2) {
-
-	tjDestroy ( kradv4l2->jpeg_dec );
-	free ( kradv4l2->jpeg_buffer );
+	kradv4l2_free_codec_buffer (kradv4l2);
 	free ( kradv4l2 );
-
 }
 
 void kradv4l2_frame_done (krad_v4l2_t *kradv4l2) {
@@ -697,15 +690,42 @@ void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height, 
 	
 }
 
+void krad_v4l2_alloc_codec_buffer (krad_v4l2_t *kradv4l2) {
+	if (kradv4l2->codec_buffer == NULL) {
+		kradv4l2->codec_buffer = calloc(1, 4200000);
+	}
+}
+
+void kradv4l2_free_codec_buffer (krad_v4l2_t *kradv4l2) {
+	if (kradv4l2->jpeg_dec != NULL) {
+		tjDestroy ( kradv4l2->jpeg_dec );
+		kradv4l2->jpeg_dec = NULL;
+	}
+	if (kradv4l2->codec_buffer != NULL) {
+		free ( kradv4l2->codec_buffer );
+		kradv4l2->codec_buffer = NULL;
+	}
+}
+
 void krad_v4l2_yuv_mode (krad_v4l2_t *kradv4l2) {
 	kradv4l2->mode = V4L2_PIX_FMT_YUYV;
+	kradv4l2_free_codec_buffer (kradv4l2);	
 }
 
 void krad_v4l2_mjpeg_mode (krad_v4l2_t *kradv4l2) {
+	if (kradv4l2->jpeg_dec == NULL) {
+		kradv4l2->jpeg_dec = tjInitDecompress();
+	}
+	krad_v4l2_alloc_codec_buffer (kradv4l2);
 	kradv4l2->mode = V4L2_PIX_FMT_MJPEG;
 }
 
 void krad_v4l2_h264_mode (krad_v4l2_t *kradv4l2) {
+	if (kradv4l2->jpeg_dec != NULL) {
+		tjDestroy ( kradv4l2->jpeg_dec );
+		kradv4l2->jpeg_dec = NULL;
+	}
+	krad_v4l2_alloc_codec_buffer (kradv4l2);
 	kradv4l2->mode = V4L2_PIX_FMT_H264;
 }
 
@@ -773,7 +793,7 @@ void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, u
  	//printf("sizeof jpeghed %d \n", jpg_hedsize);
  	//printf("sizeof huf %d \n", hufsize);
  
-	memcpy (kradv4l2->jpeg_buffer, jpeg_header, jpg_hedsize);
+	memcpy (kradv4l2->codec_buffer, jpeg_header, jpg_hedsize);
 
 
  	jpeg_size_long += jpg_hedsize;
@@ -799,16 +819,16 @@ void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, u
  	
  	//printf("got %d for X!\n", x);
 
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize, mjpeg_buffer + tmp, x);
+	memcpy (kradv4l2->codec_buffer + jpg_hedsize, mjpeg_buffer + tmp, x);
 
 
  	
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x, mjpg_dht, hufsize);
-	memcpy (kradv4l2->jpeg_buffer + jpg_hedsize + x + hufsize, mjpeg_buffer + tmp + x, mjpeg_size - tmp - x);
+	memcpy (kradv4l2->codec_buffer + jpg_hedsize + x, mjpg_dht, hufsize);
+	memcpy (kradv4l2->codec_buffer + jpg_hedsize + x + hufsize, mjpeg_buffer + tmp + x, mjpeg_size - tmp - x);
  	
  	jpeg_size_long = jpg_hedsize + x + hufsize + (mjpeg_size - tmp - x);
  	
-	ret = tjDecompress2 ( kradv4l2->jpeg_dec, kradv4l2->jpeg_buffer, jpeg_size_long, argb_buffer, kradv4l2->width, 
+	ret = tjDecompress2 ( kradv4l2->jpeg_dec, kradv4l2->codec_buffer, jpeg_size_long, argb_buffer, kradv4l2->width, 
 						  stride, kradv4l2->height, TJPF_BGRA, 0 );
 
 	if (ret != 0) {
@@ -820,7 +840,7 @@ void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, u
 	sprintf(filename, "/home/oneman/kode/testfilex_%d.jpg", count++);
 
 	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-	write(fd, kradv4l2->jpeg_buffer, jpeg_size_long);
+	write(fd, kradv4l2->codec_buffer, jpeg_size_long);
 	close(fd);
 	
 	if (count > 30) {

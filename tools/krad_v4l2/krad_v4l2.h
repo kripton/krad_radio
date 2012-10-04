@@ -76,7 +76,7 @@ struct krad_v4l2_St {
 	unsigned int jpeg_size;
 
 
-	unsigned char *jpeg_buffer;
+	unsigned char *codec_buffer;
 
 };
 
@@ -88,6 +88,8 @@ void krad_v4l2_yuv_mode (krad_v4l2_t *kradv4l2);
 void krad_v4l2_mjpeg_mode (krad_v4l2_t *kradv4l2);
 void krad_v4l2_h264_mode (krad_v4l2_t *kradv4l2);
 
+void kradv4l2_free_codec_buffer (krad_v4l2_t *kradv4l2);
+void krad_v4l2_alloc_codec_buffer (krad_v4l2_t *kradv4l2);
 
 int kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
 

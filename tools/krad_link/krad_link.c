@@ -47,9 +47,9 @@ void *video_capture_thread (void *arg) {
 														krad_link->composite_width, krad_link->composite_height);
 
 
-	if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
+	if ((krad_link->mjpeg_mode == 1) && (krad_link->video_passthru == 1)) {
 		krad_link->krad_compositor_port = 
-		krad_compositor_mjpeg_port_create (krad_link->krad_radio->krad_compositor, "V4L2MJPEGIn", INPUT);
+		krad_compositor_passthru_port_create (krad_link->krad_radio->krad_compositor, "V4L2MJPEGIn", INPUT);
 	} else {
 		krad_link->krad_compositor_port = 
 		krad_compositor_port_create (krad_link->krad_radio->krad_compositor, "V4L2In", INPUT,
@@ -64,19 +64,19 @@ void *video_capture_thread (void *arg) {
 		
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 		
-		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 0)) {
+		if ((krad_link->mjpeg_mode == 1) && (krad_link->video_passthru == 0)) {
 			kradv4l2_mjpeg_to_rgb (krad_link->krad_v4l2, (unsigned char *)krad_frame->pixels,
 								   captured_frame, krad_link->krad_v4l2->jpeg_size);
 		}
 
-		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
+		if ((krad_link->mjpeg_mode == 1) && (krad_link->video_passthru == 1)) {
 			memcpy (krad_frame->pixels, captured_frame, krad_link->krad_v4l2->jpeg_size);
 			krad_frame->mjpeg_size = krad_link->krad_v4l2->jpeg_size;			
 			kradv4l2_frame_done (krad_link->krad_v4l2);
 			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);			
 			
 		} else {			
-			if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 0)) {
+			if ((krad_link->mjpeg_mode == 1) && (krad_link->video_passthru == 0)) {
 				kradv4l2_frame_done (krad_link->krad_v4l2);
 				krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 			} else {
@@ -102,8 +102,8 @@ void *video_capture_thread (void *arg) {
 
 		krad_framepool_unref_frame (krad_frame);
 		
-		if ((krad_link->mjpeg_mode == 1) && (krad_link->mjpeg_passthru == 1)) {
-			krad_compositor_mjpeg_process (krad_link->krad_radio->krad_compositor);
+		if ((krad_link->mjpeg_mode == 1) && (krad_link->video_passthru == 1)) {
+			krad_compositor_passthru_process (krad_link->krad_radio->krad_compositor);
 		} else {
 			//krad_compositor_process (krad_link->krad_radio->krad_compositor);
 		}
@@ -876,8 +876,8 @@ void *stream_output_thread (void *arg) {
 	}
 	
 	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-		if (krad_link->mjpeg_passthru == 1) {	
-			krad_link->krad_compositor_port = krad_compositor_mjpeg_port_create (krad_link->krad_radio->krad_compositor,
+		if (krad_link->video_passthru == 1) {	
+			krad_link->krad_compositor_port = krad_compositor_passthru_port_create (krad_link->krad_radio->krad_compositor,
 																				 "StreamOut",
 																				 OUTPUT);
 		}
@@ -970,7 +970,7 @@ void *stream_output_thread (void *arg) {
 			break;
 		}
 
-		if ((krad_link->av_mode != AUDIO_ONLY) && (krad_link->mjpeg_passthru == 0)) {
+		if ((krad_link->av_mode != AUDIO_ONLY) && (krad_link->video_passthru == 0)) {
 			if ((krad_ringbuffer_read_space (krad_link->encoded_video_ringbuffer) >= 4) && (krad_link->encoding < 3)) {
 
 				krad_ringbuffer_read (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
@@ -1002,7 +1002,7 @@ void *stream_output_thread (void *arg) {
 			}
 		}
 		
-		if (krad_link->mjpeg_passthru == 1) {
+		if (krad_link->video_passthru == 1) {
 
 			krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
 
@@ -1077,7 +1077,7 @@ void *stream_output_thread (void *arg) {
 			}
 		}
 		
-		if ((krad_link->av_mode == VIDEO_ONLY) && (krad_link->mjpeg_passthru == 0)) {
+		if ((krad_link->av_mode == VIDEO_ONLY) && (krad_link->video_passthru == 0)) {
 		
 			if (krad_ringbuffer_read_space (krad_link->encoded_video_ringbuffer) < 4) {
 		
@@ -1112,7 +1112,7 @@ void *stream_output_thread (void *arg) {
 	
 	free (packet);
 	
-	if (krad_link->mjpeg_passthru == 1) {
+	if (krad_link->video_passthru == 1) {
 		krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 	}
 
@@ -2195,12 +2195,12 @@ krad_link_t *krad_link_create (int linknum) {
 
 	krad_link->capture_buffer_frames = DEFAULT_CAPTURE_BUFFER_FRAMES;
 
-	krad_link->encoding_fps_numerator = -1;
-	krad_link->encoding_fps_denominator = -1;
-	krad_link->encoding_width = -1;
-	krad_link->encoding_height = -1;
-	krad_link->capture_width = -1;
-	krad_link->capture_height = -1;
+	krad_link->encoding_fps_numerator = 0;
+	krad_link->encoding_fps_denominator = 0;
+	krad_link->encoding_width = 0;
+	krad_link->encoding_height = 0;
+	krad_link->capture_width = 0;
+	krad_link->capture_height = 0;
 	
 	krad_link->vp8_bitrate = DEFAULT_VPX_BITRATE;
 	
@@ -2233,19 +2233,19 @@ void krad_link_activate (krad_link_t *krad_link) {
 							  &krad_link->composite_width,
 							  &krad_link->composite_height);
 
-	if ((krad_link->encoding_fps_numerator == -1) || (krad_link->encoding_fps_denominator == -1)) {
+	if ((krad_link->encoding_fps_numerator == 0) || (krad_link->encoding_fps_denominator == 0)) {
 		krad_compositor_get_frame_rate (krad_link->krad_radio->krad_compositor,
 										&krad_link->encoding_fps_numerator,
 										&krad_link->encoding_fps_denominator);
 	}
 	
-	if ((krad_link->fps_numerator == -1) || (krad_link->fps_denominator == -1)) {
+	if ((krad_link->fps_numerator == 0) || (krad_link->fps_denominator == 0)) {
 		krad_compositor_get_frame_rate (krad_link->krad_radio->krad_compositor,
 										&krad_link->fps_numerator,
 										&krad_link->fps_denominator);
 	}	
 
-	if ((krad_link->encoding_width == -1) || (krad_link->encoding_height == -1)) {
+	if ((krad_link->encoding_width == 0) || (krad_link->encoding_height == 0)) {
 		krad_link->encoding_width = krad_link->composite_width;
 		krad_link->encoding_height = krad_link->composite_height;
 	}
@@ -2339,7 +2339,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 		krad_link->encoding = 1;
 
-		if ((krad_link->mjpeg_passthru == 0) && ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO))) {
+		if ((krad_link->video_passthru == 0) && ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO))) {
 			pthread_create (&krad_link->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_link);
 		}
 	
@@ -2515,7 +2515,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			}
 			
 			krad_link->mjpeg_mode = 0;
-			krad_link->mjpeg_passthru = 0;
+			krad_link->video_passthru = 0;
 			
 		}
 		if (krad_link->video_source == DECKLINK) {
@@ -2597,7 +2597,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_link->video_codec = krad_string_to_codec (string);
 			
 			if (krad_link->video_codec == MJPEG) {
-				krad_link->mjpeg_passthru = 1;
+				krad_link->video_passthru = 1;
 			}
 			
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	

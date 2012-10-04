@@ -62,6 +62,7 @@ void krad_system_log_off () {
 
 	pthread_mutex_lock (&krad_system.log_lock);
 	if (krad_system.log_fd > 0) {
+		fsync (krad_system.log_fd);
 		close (krad_system.log_fd);
 		krad_system.log_fd = 0;
 	}

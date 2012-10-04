@@ -156,7 +156,7 @@ struct krad_link_St {
 	int fps_denominator;
 
 	int mjpeg_mode;
-	int mjpeg_passthru;	
+	int video_passthru;	
 
 	int capture_buffer_frames;
 	int decoding_buffer_frames;
