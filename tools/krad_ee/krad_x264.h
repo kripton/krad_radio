@@ -62,6 +62,8 @@ struct krad_x264_encoder_St {
 
 /* encoder */
 
+int krad_x264_is_keyframe (unsigned char *buffer);
+
 krad_x264_encoder_t *krad_x264_encoder_create (int width, int height,
 											   int fps_numerator,
 											   int fps_denominator,

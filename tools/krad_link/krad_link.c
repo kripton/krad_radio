@@ -828,6 +828,8 @@ void *stream_output_thread (void *arg) {
 	int video_frames_muxed;
 	int audio_frames_muxed;
 	int audio_frames_per_video_frame;
+	int seen_passthu_keyframe;
+	int initial_passthu_frames_skipped;
 	krad_frame_t *krad_frame;
 
 	krad_transmission = NULL;
@@ -835,6 +837,9 @@ void *stream_output_thread (void *arg) {
 	audio_frames_per_video_frame = 0;
 	audio_frames_muxed = 0;
 	video_frames_muxed = 0;
+
+	seen_passthu_keyframe = 0;
+	initial_passthu_frames_skipped = 0;
 
 	printk ("Output/Muxing thread starting");
 	
@@ -892,13 +897,18 @@ void *stream_output_thread (void *arg) {
 	}
 	
 	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-		if (krad_link->video_passthru == 1) {	
+		if (krad_link->video_passthru == 1) {
+		
+			if (krad_link->video_codec == MJPEG) {
+				seen_passthu_keyframe = 1;
+			}
+		
 			krad_link->krad_compositor_port = krad_compositor_passthru_port_create (krad_link->krad_radio->krad_compositor,
 																				 "passthruStreamOut",
 																				 OUTPUT);
 		}
 		
-		if (krad_link->video_codec == VP8) {
+		if ((krad_link->video_codec == VP8) || (krad_link->video_codec == MJPEG)) {
 		
 			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container,
 																	 krad_link->video_codec,
@@ -1035,20 +1045,37 @@ void *stream_output_thread (void *arg) {
 
 			if (krad_frame != NULL) {
 
-				if (video_frames_muxed % 4 == 0) {
-					keyframe = 1;
-				} else {
-					keyframe = 0;
+				if (krad_link->video_codec == H264) {
+					keyframe = krad_x264_is_keyframe ((unsigned char *)krad_frame->pixels);
+					if (seen_passthu_keyframe == 0) {
+						if (keyframe == 1) {
+							seen_passthu_keyframe = 1;
+							printk("Got first h264 passthru keyframe, skipped %d frames before it",
+								   initial_passthu_frames_skipped);
+						} else {
+							initial_passthu_frames_skipped++;
+						}
+					}
 				}
 				
-				krad_container_add_video (krad_link->krad_container,
-										  krad_link->video_track, 
-						 (unsigned char *)krad_frame->pixels,
-										  krad_frame->encoded_size,
-										  keyframe);
+				if (krad_link->video_codec == MJPEG) {
+					if (video_frames_muxed % 30 == 0) {
+						keyframe = 1;
+					} else {
+						keyframe = 0;
+					}				
+				}
+				
+				if (seen_passthu_keyframe == 1) {
+					krad_container_add_video (krad_link->krad_container,
+											  krad_link->video_track, 
+							 (unsigned char *)krad_frame->pixels,
+											  krad_frame->encoded_size,
+											  keyframe);
+					video_frames_muxed++;
+				}
 				
 				krad_framepool_unref_frame (krad_frame);
-				video_frames_muxed++;
 			}
 			
 			usleep(2000);
@@ -2640,14 +2667,23 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			
 			krad_link->video_codec = krad_string_to_codec (string);
 			
-			if (krad_link->video_codec == MJPEG) {
-				krad_link->video_passthru = 1;
-			}
-			
-			if (krad_link->video_codec == H264) {
-				if (strstr(string, "pass") != NULL) {
+			if ((krad_link->video_codec == H264) || (krad_link->video_codec == MJPEG)) {
+
+				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+				if (ebml_id != EBML_ID_KRAD_LINK_LINK_USE_PASSTHRU_CODEC) {
+					printk ("hrm wtf2v");
+				} else {
+					//printk ("tag name size %zu", ebml_data_size);
+				}
+
+				krad_link->video_passthru = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
+
+				if (krad_link->video_codec == MJPEG) {
+					//FIXME should be optional
 					krad_link->video_passthru = 1;
 				}
+
 			}			
 			
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	

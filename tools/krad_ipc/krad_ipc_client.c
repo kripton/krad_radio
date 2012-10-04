@@ -1895,6 +1895,7 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	uint64_t linker_command;
 	uint64_t create_link;
 	uint64_t link;
+	int passthru;	
 	
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
@@ -1904,10 +1905,14 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	
 	audio_codec = VORBIS;
 	video_codec = VP8;
-	
+	passthru = 0;
+
 	if (codecs != NULL) {
 		audio_codec = krad_string_to_audio_codec (codecs);
 		video_codec = krad_string_to_video_codec (codecs);
+		if (strstr(codecs, "pass") != NULL) {
+			passthru = 1;
+		}
 	}
 	
 	linker_command = 0;
@@ -1938,7 +1943,11 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 			if (video_bitrate == 0) {
 				video_bitrate = 31;
 			}
-		}		
+		}
+		
+		if ((video_codec == MJPEG) || (video_codec == H264)) {
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_USE_PASSTHRU_CODEC, passthru);
+		}
 		
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
@@ -2036,6 +2045,7 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 	uint64_t linker_command;
 	uint64_t create_link;
 	uint64_t link;
+	int passthru;
 	
 	krad_codec_t audio_codec;
 	krad_codec_t video_codec;
@@ -2045,10 +2055,14 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 	
 	audio_codec = VORBIS;
 	video_codec = VP8;
-	
+	passthru = 0;
+		
 	if (codecs != NULL) {
 		audio_codec = krad_string_to_audio_codec (codecs);
 		video_codec = krad_string_to_video_codec (codecs);
+		if (strstr(codecs, "pass") != NULL) {
+			passthru = 1;
+		}
 	}
 	
 	linker_command = 0;
@@ -2079,6 +2093,10 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 			if (video_bitrate == 0) {
 				video_bitrate = 41;
 			}
+		}
+		
+		if ((video_codec == MJPEG) || (video_codec == H264)) {
+			krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_USE_PASSTHRU_CODEC, passthru);
 		}
 
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
