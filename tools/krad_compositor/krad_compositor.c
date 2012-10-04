@@ -1319,14 +1319,17 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	
 	krad_compositor_port->start_timecode = 1;
 	
-	krad_compositor_port->frame_ring = 
-		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * sizeof(krad_frame_t *) );
-	
-	krad_compositor_port->active = 1;
-	
 	if (strstr(krad_compositor_port->sysname, "passthru") != NULL) {
 		krad_compositor_port->passthru = 1;
+		
+		krad_compositor_port->frame_ring = 
+		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * 5 * sizeof(krad_frame_t *) );
+		
 	} else {
+
+		krad_compositor_port->frame_ring = 
+		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * sizeof(krad_frame_t *) );
+
 		krad_compositor->active_ports++;
 		if (krad_compositor_port->direction == INPUT) {
 			krad_compositor->active_input_ports++;
@@ -1335,6 +1338,8 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 			krad_compositor->active_output_ports++;
 		}
 	}
+
+	krad_compositor_port->active = 1;
 	pthread_mutex_unlock (&krad_compositor->settings_lock);		
 	
 	return krad_compositor_port;

@@ -49,11 +49,16 @@ void *video_capture_thread (void *arg) {
 		krad_link->capture_height = krad_link->krad_v4l2->height;
 	}
 
-	krad_link->krad_framepool = krad_framepool_create_for_upscale ( krad_link->capture_width,
-														krad_link->capture_height,
-														DEFAULT_CAPTURE_BUFFER_FRAMES,
-														krad_link->composite_width, krad_link->composite_height);
 
+	if (krad_link->video_passthru == 1) {
+		krad_link->krad_framepool = krad_framepool_create_for_passthru (350000, DEFAULT_CAPTURE_BUFFER_FRAMES * 3);
+	} else {
+
+		krad_link->krad_framepool = krad_framepool_create_for_upscale ( krad_link->capture_width,
+															krad_link->capture_height,
+															DEFAULT_CAPTURE_BUFFER_FRAMES,
+															krad_link->composite_width, krad_link->composite_height);
+	}
 
 	if (krad_link->video_passthru == 1) {
 		if (krad_link->video_codec == MJPEG) {
