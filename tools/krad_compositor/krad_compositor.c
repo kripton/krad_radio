@@ -1126,18 +1126,49 @@ void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_po
 }
 
 
+krad_frame_t *krad_compositor_port_pull_frame_local (krad_compositor_port_t *krad_compositor_port) {
+
+	int ret;
+	int wrote;
+	char buf[1];
+	
+	static int frames = 0;
+	
+	ret = 0;
+	wrote = 0;
+	buf[0] = 0;
+
+	cairo_surface_flush (krad_compositor_port->local_frame->cst);
+
+	wrote = write (krad_compositor_port->msg_sd, buf, 1);
+
+	if (wrote == 1) {
+		ret = read (krad_compositor_port->msg_sd, buf, 1);
+		if (ret == 1) {
+			frames++;
+			
+			cairo_surface_mark_dirty (krad_compositor_port->local_frame->cst);
+			
+			if (frames == 5) {
+				cairo_surface_write_to_png (krad_compositor_port->local_frame->cst, "/home/oneman/kode/kaf2.png");
+			}
+		
+			return krad_compositor_port->local_frame;
+		}
+	}
+	
+	return NULL;
+}
+
+
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port) {
 
 	krad_frame_t *krad_frame;
 	
-	char buf[1];
-	
 	if (krad_compositor_port->local == 1) {
-		write (krad_compositor_port->msg_sd, buf, 1);
-		read (krad_compositor_port->msg_sd, buf, 1);
+		return krad_compositor_port_pull_frame_local (krad_compositor_port);
 	}
 	
-
 	if ((krad_compositor_port->direction == INPUT) && (krad_compositor_port->passthru == 0)) {
 
 		if (krad_compositor_port->last_frame != NULL) {
@@ -1271,9 +1302,16 @@ void krad_compositor_aspect_scale (int width, int height,
 	
 }
 
-
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
 													 int width, int height) {
+							
+	return krad_compositor_port_create_full (krad_compositor, sysname, direction,
+											 width, height, 0, 0);
+													 
+}
+
+krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *krad_compositor, char *sysname, int direction,
+													 int width, int height, int holdlock, int local) {
 
 	krad_compositor_port_t *krad_compositor_port;
 
@@ -1292,6 +1330,8 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	if (krad_compositor_port == NULL) {
 		return NULL;
 	}
+	
+	krad_compositor_port->local = local;
 	
 	krad_compositor_port->direction = direction;	
 
@@ -1333,13 +1373,25 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 	
 		krad_compositor_port->frame_ring = 
 		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * 5 * sizeof(krad_frame_t *) );
-		
+		if (krad_compositor_port->frame_ring == NULL) {
+			failfast ("oh dearringp im out of mem");
+		}
 	} else {
 
 		krad_compositor_alloc_resources (krad_compositor);
 
 		krad_compositor_port->frame_ring = 
 		krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * sizeof(krad_frame_t *) );
+
+		if (krad_compositor_port->local == 0) {
+			krad_compositor_port->frame_ring = 
+			krad_ringbuffer_create ( DEFAULT_COMPOSITOR_BUFFER_FRAMES * sizeof(krad_frame_t *) );
+			if (krad_compositor_port->frame_ring == NULL) {
+				failfast ("oh dearring im out of mem");
+			}
+		} else {
+			krad_compositor_port->frame_ring = NULL;
+		}
 
 		krad_compositor->active_ports++;
 		if (krad_compositor_port->direction == INPUT) {
@@ -1350,8 +1402,10 @@ krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_com
 		}
 	}
 
-	krad_compositor_port->active = 1;
-	pthread_mutex_unlock (&krad_compositor->settings_lock);		
+	if (holdlock == 0) {
+		krad_compositor_port->active = 1;
+		pthread_mutex_unlock (&krad_compositor->settings_lock);		
+	}
 	
 	return krad_compositor_port;
 
@@ -1371,36 +1425,63 @@ krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *kr
 														   char *sysname, int direction, int shm_sd, int msg_sd) {
 
 	krad_compositor_port_t *krad_compositor_port;
-	krad_compositor_port = krad_compositor_port_create (krad_compositor, sysname, direction,
-														krad_compositor->width, krad_compositor->height);
+	krad_compositor_port = krad_compositor_port_create_full (krad_compositor, sysname, direction,
+														krad_compositor->width, krad_compositor->height, 1, 1);
 
-	krad_compositor_port->local = 1;
+	krad_compositor_port->shm_sd = 0;
+	krad_compositor_port->msg_sd = 0;	
+	krad_compositor_port->local_buffer = NULL;
+	krad_compositor_port->local_buffer_size = 1280 * 720 * 4 * 2;
+	
 	krad_compositor_port->shm_sd = shm_sd;
 	krad_compositor_port->msg_sd = msg_sd;
-
-
-	char *buffer;
-	buffer = NULL;
 	
-	buffer = mmap (NULL, 1280 * 720 * 4 * 2, PROT_READ | PROT_WRITE, MAP_SHARED, krad_compositor_port->shm_sd, 0);
+	krad_compositor_port->local_buffer = mmap (NULL, krad_compositor_port->local_buffer_size,
+											   PROT_READ | PROT_WRITE, MAP_SHARED,
+											   krad_compositor_port->shm_sd, 0);
 
-	if (buffer != NULL) {
+	if ((krad_compositor_port->local_buffer != NULL) && (krad_compositor_port->shm_sd != 0) &&
+		(krad_compositor_port->msg_sd != 0)) {
+		
+		krad_compositor_port->local_frame = calloc (1, sizeof(krad_frame_t));
+		if (krad_compositor_port->local_frame == NULL) {
+			failfast ("oh dear im out of mem");
+		}
+		
+		krad_compositor_port->local_frame->pixels = (int *)krad_compositor_port->local_buffer;
+		
+		pthread_mutex_init (&krad_compositor_port->local_frame->ref_lock, NULL);
+		
+		krad_compositor_port->local_frame->cst =
+			cairo_image_surface_create_for_data ((unsigned char *)krad_compositor_port->local_buffer,
+												 CAIRO_FORMAT_ARGB32,
+												 1280,
+												 720,
+												 1280 * 4);
 	
-		printk ("got: %s", buffer);
-	
+		krad_compositor_port->local_frame->cr = cairo_create (krad_compositor_port->local_frame->cst);		
+		
+		
+		
+		krad_compositor_port->active = 1;
+		pthread_mutex_unlock (&krad_compositor->settings_lock);
 	} else {
-		printke ("ah frakin a");
+		printke ("krad compositor: failed to create local port");
+		krad_compositor_port_destroy_unlocked (krad_compositor, krad_compositor_port);
+		pthread_mutex_unlock (&krad_compositor->settings_lock);
+		return NULL;
 	}
-
 
 	return krad_compositor_port;	
 }
 
+void krad_compositor_port_destroy_unlocked (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port) {
 
-void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port) {
-
-	pthread_mutex_lock (&krad_compositor->settings_lock);	
 	krad_compositor_port->active = 3;
+	
+	//FIXME kludge to wait for nonuse
+	
+	usleep (45000);
 
 	if (strstr(krad_compositor_port->sysname, "passthru") != NULL) {
 		krad_compositor->active_passthru_ports--;
@@ -1412,8 +1493,35 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 			krad_compositor->active_output_ports--;
 		}
  	}
+ 	
+ 	if (krad_compositor_port->local == 1) {
+		if (krad_compositor_port->msg_sd != 0) {
+			close (krad_compositor_port->msg_sd);
+			krad_compositor_port->msg_sd = 0;	
+		}
+		if (krad_compositor_port->shm_sd != 0) {
+			close (krad_compositor_port->shm_sd);
+			krad_compositor_port->shm_sd = 0;
+		}
+		if (krad_compositor_port->local_buffer != NULL) {
+			munmap (krad_compositor_port->local_buffer, krad_compositor_port->local_buffer_size);
+			krad_compositor_port->local_buffer_size = 0;
+			krad_compositor_port->local_buffer = NULL;
+		}
+		
+		if (krad_compositor_port->local_frame != NULL) {
+			pthread_mutex_destroy (&krad_compositor_port->local_frame->ref_lock);
+			cairo_destroy (krad_compositor_port->local_frame->cr);
+			cairo_surface_destroy (krad_compositor_port->local_frame->cst);
+			free (krad_compositor_port->local_frame);
+		}
+		krad_compositor_port->local = 0;
+ 	}
 
-	krad_ringbuffer_free ( krad_compositor_port->frame_ring );
+	if (krad_compositor_port->frame_ring != NULL) {
+		krad_ringbuffer_free ( krad_compositor_port->frame_ring );
+		krad_compositor_port->frame_ring = NULL;
+	}
 	krad_compositor_port->start_timecode = 0;
 	krad_compositor_port->active = 0;
 
@@ -1432,8 +1540,17 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 	} else {
 		krad_compositor->active_ports--;
 	}
-	pthread_mutex_unlock (&krad_compositor->settings_lock);	
 
+
+}
+
+void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port) {
+
+	pthread_mutex_lock (&krad_compositor->settings_lock);
+	
+	krad_compositor_port_destroy_unlocked (krad_compositor, krad_compositor_port);
+	
+	pthread_mutex_unlock (&krad_compositor->settings_lock);
 }
 
 void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
@@ -2363,6 +2480,12 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			
 		case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_DESTROY:
 
+			for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
+				if (krad_compositor->port[p].local == 1) {
+					krad_compositor_port_destroy (krad_compositor, &krad_compositor->port[p]);
+					break;
+				}
+			}
 				
 			break;
 

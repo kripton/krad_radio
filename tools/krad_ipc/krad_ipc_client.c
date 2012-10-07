@@ -3712,7 +3712,7 @@ void *kr_videoport_process_thread (void *arg) {
 		// wait for socket to have a byte
 		read (kr_videoport->sd, buf, 1);
 	
-		kr_videoport->callback (NULL, NULL);
+		kr_videoport->callback (kr_videoport->kr_shm->buffer, kr_videoport->pointer);
 
 
 		// write a byte to socket

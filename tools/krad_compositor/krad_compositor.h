@@ -62,10 +62,7 @@ struct krad_compositor_port_St {
 	int direction;
 	int active;
 	
-	krad_frame_t *krad_frame;	
-	
-	krad_frame_t *last_frame;		
-	
+	krad_frame_t *last_frame;
 	krad_ringbuffer_t *frame_ring;
 	
 	int passthru;
@@ -102,6 +99,9 @@ struct krad_compositor_port_St {
 	int local;
 	int shm_sd;
 	int msg_sd;
+	char *local_buffer;
+	int local_buffer_size;
+	krad_frame_t *local_frame;	
 	
 	
 };
@@ -262,8 +262,10 @@ int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_p
 krad_compositor_port_t *krad_compositor_passthru_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction);
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
 													 int width, int height);
+krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *krad_compositor, char *sysname, int direction,
+													 int width, int height, int holdlock, int local);													 
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
-
+void krad_compositor_port_destroy_unlocked (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
 int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc );
 
 void krad_compositor_get_frame_rate (krad_compositor_t *krad_compositor,
