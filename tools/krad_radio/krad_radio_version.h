@@ -1,1 +1,1 @@
-#define APPVERSION "Krad Radio 3.30"
+#define APPVERSION "Krad Radio 10"

@@ -1,9 +1,9 @@
 #include "krad_ebml.h"
 
+int krad_ebml_streamio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
+
 char *krad_ebml_version() {
-
 	return KRADEBML_VERSION;
-
 }
 
 char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec) {
@@ -646,7 +646,10 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	krad_ebml_write (krad_ebml, &flags, 1);
 	krad_ebml_write (krad_ebml, buffer, buffer_len);
 	
-	//krad_ebml_write_sync (krad_ebml);	
+	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+		(krad_ebml->io_adapter.write == krad_ebml_streamio_write)) {		
+		krad_ebml_write_sync (krad_ebml);
+	}
 	
 }
 
@@ -698,6 +701,12 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	
 	krad_ebml_write(krad_ebml, &flags, 1);
 	krad_ebml_write(krad_ebml, buffer, buffer_len);
+	
+	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
+		(krad_ebml->io_adapter.write == krad_ebml_streamio_write)) {		
+		krad_ebml_write_sync (krad_ebml);
+	}
+	
 }
 
 void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode) {

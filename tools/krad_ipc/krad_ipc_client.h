@@ -35,8 +35,8 @@
 
 #define KRAD_IPC_CLIENT_DOCTYPE "krad_ipc_client"
 #define KRAD_IPC_SERVER_DOCTYPE "krad_ipc_server"
-#define KRAD_IPC_DOCTYPE_VERSION 6
-#define KRAD_IPC_DOCTYPE_READ_VERSION 6
+#define KRAD_IPC_DOCTYPE_VERSION 10
+#define KRAD_IPC_DOCTYPE_READ_VERSION 10
 #define EBML_ID_KRAD_IPC_CMD 0x4444
 
 typedef struct krad_radio_watchdog_St krad_radio_watchdog_t;

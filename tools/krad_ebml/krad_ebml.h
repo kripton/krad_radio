@@ -30,7 +30,7 @@
 #include "krad_codec_header.h"
 
 #ifndef KRADEBML_VERSION
-#define KRADEBML_VERSION "2.1"
+#define KRADEBML_VERSION "10"
 #endif
 
 #define VOID_START_SIZE 16382
