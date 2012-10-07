@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sys/prctl.h>
 
 typedef struct krad_system_St krad_system_t;
 typedef struct krad_system_cpu_monitor_St krad_system_cpu_monitor_t;
@@ -108,6 +109,8 @@ void printkd (char* format, ...);
 void printk (char* format, ...);
 void krad_system_daemonize ();
 void krad_system_init ();
+
+void krad_system_set_thread_name (char *name);
 
 int krad_valid_sysname (char *sysname);
 int krad_valid_host_and_port (char *string);

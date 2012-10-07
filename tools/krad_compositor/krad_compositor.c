@@ -47,7 +47,7 @@ static void *krad_compositor_display_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
 
-	prctl (PR_SET_NAME, (unsigned long) "krad_display", 0, 0, 0);
+	krad_system_set_thread_name ("kr_display");
 
 	krad_compositor_wayland_display_t *krad_compositor_wayland_display;
 	
@@ -97,7 +97,7 @@ static void *krad_compositor_display_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
 
-	prctl (PR_SET_NAME, (unsigned long) "krad_display", 0, 0, 0);
+	krad_system_set_thread_name ("kr_display");
 
 	krad_x11_t *krad_x11;
 	krad_frame_t *krad_frame;
@@ -1537,7 +1537,7 @@ void *krad_compositor_ticker_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
 
-	prctl (PR_SET_NAME, (unsigned long) "krad_compositor", 0, 0, 0);
+	krad_system_set_thread_name ("kr_compositor");
 
 	krad_compositor->krad_ticker = krad_ticker_create (krad_compositor->frame_rate_numerator,
 													   krad_compositor->frame_rate_denominator);

@@ -74,6 +74,8 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 	krad_system_cpu_monitor_t *kcm;
 	
+	krad_system_set_thread_name ("kr_cpu_mon");	
+	
 	printk ("Krad System CPU Monitor On");
 
 	kcm = &krad_system.kcm;
@@ -305,6 +307,13 @@ void krad_system_daemonize () {
 		exit(EXIT_FAILURE);
 	}
         
+}
+
+void krad_system_set_thread_name (char *name) {
+	if ((name == NULL || strlen (name) >= 15) ||
+	    (prctl (PR_SET_NAME, (unsigned long) name, 0, 0, 0) != 0)) {
+		printke ("Could not set thread name: %s", name);
+	}
 }
 
 int krad_valid_sysname (char *sysname) {

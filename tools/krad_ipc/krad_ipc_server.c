@@ -749,6 +749,8 @@ void *krad_ipc_server_run_thread (void *arg) {
 	krad_ipc_server_client_t *client;
 	int ret, s;
 	
+	krad_system_set_thread_name ("kr_ipc_server");
+	
 	krad_ipc_server->shutdown = KRAD_IPC_RUNNING;
 	
 	krad_ipc_server_update_pollfds (krad_ipc_server);

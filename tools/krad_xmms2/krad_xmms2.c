@@ -324,6 +324,8 @@ void *krad_xmms_handler_thread (void *arg) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *)arg;
 
+	krad_system_set_thread_name ("kr_xmms2");
+
 	while (krad_xmms->handler_running == 1) {
 	
 		krad_xmms_handle (krad_xmms);

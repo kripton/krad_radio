@@ -396,6 +396,8 @@ void *krad_http_server_run (void *arg) {
 	socklen_t length;
 	static struct sockaddr_in cli_addr;
 
+	krad_system_set_thread_name ("kr_http");
+
 	while (!krad_http->shutdown) {
 	
 	

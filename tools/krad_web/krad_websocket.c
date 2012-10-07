@@ -1221,6 +1221,8 @@ void *krad_websocket_server_run (void *arg) {
 	int n = 0;
 	char info[256] = "";
 
+	krad_system_set_thread_name ("kr_websocket");
+
 	krad_websocket->shutdown = KRAD_WEBSOCKET_RUNNING;
 
 	while (!krad_websocket->shutdown) {

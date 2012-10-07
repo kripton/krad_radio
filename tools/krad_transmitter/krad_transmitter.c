@@ -153,7 +153,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 	krad_transmission_t *krad_transmission = (krad_transmission_t *)arg;
 	
-	prctl (PR_SET_NAME, (unsigned long) "krad_tx_t", 0, 0, 0);	
+	krad_system_set_thread_name ("kr_tx_txmtr");	
 	
 	krad_transmission_receiver_t *krad_transmission_receiver;
 	int ret;
@@ -912,8 +912,8 @@ void *krad_transmitter_listening_thread (void *arg) {
 
 	krad_transmitter_t *krad_transmitter = (krad_transmitter_t *)arg;
 
-	prctl (PR_SET_NAME, (unsigned long) "krad_tx_lsn", 0, 0, 0);	
-
+	krad_system_set_thread_name ("kr_tx_listen");
+	
 	krad_transmission_receiver_t *krad_transmission_receiver;
 
 	int e;

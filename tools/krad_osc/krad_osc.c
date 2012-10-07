@@ -31,6 +31,8 @@ void *krad_osc_listening_thread (void *arg) {
 	struct sockaddr_in remote_address;
 	struct pollfd sockets[1];
 	
+	krad_system_set_thread_name ("kr_osc");	
+	
 	printk ("Krad OSC Listening thread starting\n");
 	
 	addr_size = 0;

@@ -7,7 +7,6 @@
 #include <inttypes.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <sys/prctl.h>
 
 typedef struct krad_radio_St krad_radio_t;
 

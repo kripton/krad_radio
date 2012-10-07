@@ -353,6 +353,18 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	krad_mixer_portgroup_t *portgroup = NULL;
 	krad_mixer_portgroup_t *mixbus = NULL;
 	
+	// only run if we have something going on
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		portgroup = krad_mixer->portgroup[p];
+		if ((portgroup != NULL) && (portgroup->active) &&
+			(portgroup != krad_mixer->tone_port) && (portgroup != krad_mixer->master_mix)) {
+			break;
+		}
+	}
+	if (p == KRAD_MIXER_MAX_PORTGROUPS) {
+		return 0;
+	}
+		
 	if (krad_mixer->push_tone != NULL) {
 		krad_tone_add_preset (krad_mixer->tone_port->io_ptr, krad_mixer->push_tone);
 		krad_mixer->push_tone = NULL;
@@ -789,6 +801,8 @@ void krad_mixer_unbind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgrou
 void *krad_mixer_ticker_thread (void *arg) {
 
 	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
+
+	krad_system_set_thread_name ("kr_mixer");
 
 	krad_mixer->krad_ticker = krad_ticker_create (krad_mixer->sample_rate, krad_mixer->ticker_period);
 

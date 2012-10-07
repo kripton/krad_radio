@@ -6,7 +6,7 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 #define KRAD_MIXER_MAX_PORTGROUPS 20
 #define KRAD_MIXER_MAX_CHANNELS 8
 #define KRAD_MIXER_DEFAULT_SAMPLE_RATE 48000
-#define KRAD_MIXER_DEFAULT_TICKER_PERIOD 512
+#define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1600
 
 #include "krad_radio.h"
 
