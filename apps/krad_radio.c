@@ -8,7 +8,7 @@ void krad_radio_command_help () {
 	
 	printf ("launch ls destroy uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate rate fps mix");
 	printf ("\n");
-	printf ("setdir lm ll lc tone input output unplug map mixmap xmms2 noxmms2 listen_on listen_off link");
+	printf ("setdir lm ll lc tone input output rmport plug unplug map mixmap xmms2 noxmms2 listen_on listen_off link");
 	printf ("\n");
 	printf ("transmitter_on transmitter_off closedisplay display lstext rmtext addtest lssprites addsprite rmsprite");
 	printf ("\n");
@@ -269,11 +269,26 @@ int main (int argc, char *argv[]) {
 				}				
 			}
 
-			if (strncmp(argv[2], "unplug", 6) == 0) {
+			if (strncmp(argv[2], "rmport", 6) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_remove_portgroup (client, argv[3]);
 				}
 			}
+			
+			if (strncmp(argv[2], "plug", 4) == 0) {
+				if (argc == 5) {
+					kr_mixer_plug_portgroup (client, argv[3], argv[4]);
+				}
+			}
+			
+			if (strncmp(argv[2], "unplug", 6) == 0) {
+				if (argc == 4) {
+					kr_mixer_unplug_portgroup (client, argv[3], "");
+				}
+				if (argc == 5) {
+					kr_mixer_unplug_portgroup (client, argv[3], argv[4]);
+				}				
+			}						
 
 			if (strncmp(argv[2], "map", 3) == 0) {
 				if (argc == 6) {

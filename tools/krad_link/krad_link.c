@@ -10,7 +10,7 @@ static void *krad_linker_listen_client_thread (void *arg);
 
 void *video_capture_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_capture_v4l2");
+	krad_system_set_thread_name ("kr_capture_v4l2");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -147,7 +147,7 @@ void *video_capture_thread (void *arg) {
 
 void *info_screen_generator_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_info_gen");
+	krad_system_set_thread_name ("kr_info_gen");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 	
@@ -264,7 +264,7 @@ void *info_screen_generator_thread (void *arg) {
 
 void *test_screen_generator_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_test_gen");
+	krad_system_set_thread_name ("kr_test_gen");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 	
@@ -329,7 +329,7 @@ void *test_screen_generator_thread (void *arg) {
 
 void *x11_capture_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_capture_x11");
+	krad_system_set_thread_name ("kr_capture_x11");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 	
@@ -375,7 +375,7 @@ void *x11_capture_thread (void *arg) {
 
 void *video_encoding_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_video_enc");
+	krad_system_set_thread_name ("kr_video_enc");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -613,7 +613,7 @@ void krad_link_audio_samples_callback (int frames, void *userdata, float **sampl
 
 void *audio_encoding_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_audio_encode");
+	krad_system_set_thread_name ("kr_audio_enc");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -820,7 +820,7 @@ void *audio_encoding_thread (void *arg) {
 
 void *stream_output_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_stream_out");
+	krad_system_set_thread_name ("kr_stream_out");
 	
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1188,7 +1188,7 @@ void *stream_output_thread (void *arg) {
 
 void *udp_output_thread(void *arg) {
 
-	krad_system_set_thread_name ("kl_udpout");
+	krad_system_set_thread_name ("kr_udpout");
 
 	printk ("UDP Output thread starting");
 
@@ -1274,7 +1274,7 @@ void krad_link_run (krad_link_t *krad_link) {
 
 void *stream_input_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_stream_in");
+	krad_system_set_thread_name ("kr_stream_in");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1422,7 +1422,7 @@ void *stream_input_thread (void *arg) {
 
 void *udp_input_thread(void *arg) {
 
-	krad_system_set_thread_name ("kl_udp_in");
+	krad_system_set_thread_name ("kr_udp_in");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1543,7 +1543,7 @@ void *udp_input_thread(void *arg) {
 
 void *video_decoding_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_video_dec");
+	krad_system_set_thread_name ("kr_video_dec");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1741,7 +1741,7 @@ void *video_decoding_thread (void *arg) {
 
 void *audio_decoding_thread(void *arg) {
 
-	krad_system_set_thread_name ("kl_audio_decode");
+	krad_system_set_thread_name ("kr_audio_dec");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -3478,7 +3478,7 @@ void *krad_linker_listen_client_thread (void *arg) {
 	char *string;
 	char byte;
 
-	krad_system_set_thread_name ("kl_listen_client");
+	krad_system_set_thread_name ("kr_lsn_client");
 
 	while (1) {
 		ret = read (client->sd, client->in_buffer + client->in_buffer_pos, 1);		
@@ -3596,7 +3596,7 @@ void *krad_linker_listening_thread (void *arg) {
 	struct sockaddr_in remote_address;
 	struct pollfd sockets[1];
 
-	krad_system_set_thread_name ("kl_listener");
+	krad_system_set_thread_name ("kr_listener");
 	
 	printk ("Krad Linker: Listening thread starting\n");
 	

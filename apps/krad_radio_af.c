@@ -10,29 +10,20 @@
 void render_hex (cairo_t *cr, int x, int y, int w) {
 
 	cairo_pattern_t *pat;
-	
 	static float hexrot = 0;
-	
-	cairo_save(cr);
+	int r1;
+	float scale;
 		
+	cairo_save(cr);
 	cairo_set_line_width(cr, 1);
 	cairo_set_source_rgb(cr, ORANGE);
 
-	int r1;
-	float scale;
-
 	scale = 2.5;
-		
 	r1 = ((w)/2 * sqrt(3));
 
 	cairo_translate (cr, x, y);
 	cairo_rotate (cr, hexrot * (M_PI/180.0));
 	cairo_translate (cr, -(w/2), -r1);
-	
-	// draw radius 
-	//cairo_move_to (cr, w/2, 0);
-	//cairo_line_to (cr, w/2, r1);
-	//cairo_stroke (cr);
 
 	cairo_move_to (cr, 0, 0);
 	cairo_rel_line_to (cr, w, 0);
@@ -46,17 +37,10 @@ void render_hex (cairo_t *cr, int x, int y, int w) {
 	cairo_rel_line_to (cr, w, 0);
 	cairo_rotate (cr, 60 * (M_PI/180.0));
 	cairo_rel_line_to (cr, w, 0);
-	//cairo_stroke_preserve (cr);
-
-
 	hexrot += 1.5;
 	cairo_fill (cr);
 	
 	cairo_restore(cr);
-
-
-//-----------------------
-
 	cairo_save(cr);
 		
 	cairo_set_line_width(cr, 1.5);
@@ -68,7 +52,6 @@ void render_hex (cairo_t *cr, int x, int y, int w) {
 	cairo_rotate (cr, hexrot * (M_PI/180.0));
 	cairo_translate (cr, -((w * scale)/2), -r1 * scale);
 	cairo_scale(cr, scale, scale);
-	//hexrot += 0.11;
 
 	cairo_move_to (cr, 0, 0);
 	cairo_rel_line_to (cr, w, 0);
@@ -82,30 +65,17 @@ void render_hex (cairo_t *cr, int x, int y, int w) {
 	cairo_rel_line_to (cr, w, 0);
 	cairo_rotate (cr, 60 * (M_PI/180.0));
 	cairo_rel_line_to (cr, w, 0);
-
-	//cairo_stroke_preserve (cr);
 	
 	cairo_rotate (cr, 60 * (M_PI/180.0));
-	
-	
-	// draw radius 
-	//cairo_move_to (cr, w/2, 0);
-	//cairo_line_to (cr, w/2, r1);
-	//cairo_stroke_preserve (cr);
-	
+
 	cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
 	pat = cairo_pattern_create_radial (w/2, r1, 3, w/2, r1, r1*scale);
 	cairo_pattern_add_color_stop_rgba (pat, 0, 0, 0, 1, 1);
-	//cairo_pattern_add_color_stop_rgba (pat, 0.6, 0, 0, 1, 0.3);
-	//cairo_pattern_add_color_stop_rgba (pat, 0.8, 0, 0, 1, 0.05);
 	cairo_pattern_add_color_stop_rgba (pat, 0.4, 0, 0, 0, 0);
 	cairo_set_source (cr, pat);
 	
 	cairo_fill (cr);
 	cairo_pattern_destroy (pat);
-
-
-	
 	cairo_restore(cr);
 
 }
@@ -115,7 +85,6 @@ int videoport_process (void *buffer, void *arg) {
 
 	cairo_surface_t *cst;
 	cairo_t *cr;
-	static unsigned int frames = 0;
 
 	cst = cairo_image_surface_create_for_data ((unsigned char *)buffer,
 												 CAIRO_FORMAT_ARGB32,
@@ -124,26 +93,13 @@ int videoport_process (void *buffer, void *arg) {
 												 1280 * 4);
 	
 	cr = cairo_create (cst);
-
-
 	cairo_save (cr);
 	cairo_set_source_rgba (cr, BGCOLOR_CLR);
 	cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);	
 	cairo_paint (cr);
 	cairo_restore (cr);
-
-
-	printf("I got a callback! %u\n", frames++);
-
-
 	render_hex (cr, 640, 360, 66);
 	cairo_surface_flush (cst);
-
-	if (frames == 5) {
-		cairo_surface_write_to_png (cst, "/home/oneman/kode/kaf.png");
-	}
-
-
 	cairo_destroy (cr);
 	cairo_surface_destroy (cst);
 

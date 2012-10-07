@@ -36,6 +36,10 @@ struct krad_jack_St {
 	
 	int sample_rate;
 	
+	char *stay_connected[256];
+	char *stay_connected_to[256];
+	
+	pthread_mutex_t connections_lock;	
     
 };
 
@@ -50,7 +54,8 @@ int krad_jack_detect ();
 int krad_jack_detect_for_jack_server_name (char *server_name);
 
 void krad_jack_portgroup_samples_callback (int frames, void *userdata, float **samples);
-
+void krad_jack_portgroup_plug (krad_jack_portgroup_t *portgroup, char *remote_name);
+void krad_jack_portgroup_unplug (krad_jack_portgroup_t *portgroup, char *remote_name);
 void krad_jack_portgroup_destroy (krad_jack_portgroup_t *portgroup);
 krad_jack_portgroup_t *krad_jack_portgroup_create (krad_jack_t *krad_jack, char *name, int direction, int channels);
 

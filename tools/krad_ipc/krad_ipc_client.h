@@ -165,6 +165,9 @@ void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path);
 void krad_ipc_create_remote_playback_link (krad_ipc_client_t *client, char *host, int port, char *mount);
 int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text);
 
+void kr_mixer_plug_portgroup (krad_ipc_client_t *client, char *name, char *remote_name);
+void kr_mixer_unplug_portgroup (krad_ipc_client_t *client, char *name, char *remote_name);
+
 void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string);
 void krad_ipc_mixer_update_portgroup_map_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel);
 void krad_ipc_mixer_update_portgroup_mixmap_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel);

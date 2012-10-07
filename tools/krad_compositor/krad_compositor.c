@@ -1431,7 +1431,7 @@ krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *kr
 	krad_compositor_port->shm_sd = 0;
 	krad_compositor_port->msg_sd = 0;	
 	krad_compositor_port->local_buffer = NULL;
-	krad_compositor_port->local_buffer_size = 640 * 480 * 4 * 2;
+	krad_compositor_port->local_buffer_size = 960 * 540 * 4 * 2;
 	
 	krad_compositor_port->shm_sd = shm_sd;
 	krad_compositor_port->msg_sd = msg_sd;
@@ -1455,9 +1455,9 @@ krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *kr
 		krad_compositor_port->local_frame->cst =
 			cairo_image_surface_create_for_data ((unsigned char *)krad_compositor_port->local_buffer,
 												 CAIRO_FORMAT_ARGB32,
-												 640,
-												 480,
-												 640 * 4);
+												 960,
+												 540,
+												 960 * 4);
 	
 		krad_compositor_port->local_frame->cr = cairo_create (krad_compositor_port->local_frame->cst);		
 		

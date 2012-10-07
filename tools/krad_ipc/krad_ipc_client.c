@@ -968,6 +968,46 @@ void krad_ipc_disable_osc (krad_ipc_client_t *client) {
 
 }
 
+void kr_mixer_plug_portgroup (krad_ipc_client_t *client, char *name, char *remote_name) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t plug;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_PLUG_PORTGROUP, &plug);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, remote_name);
+	krad_ebml_finish_element (client->krad_ebml, plug);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void kr_mixer_unplug_portgroup (krad_ipc_client_t *client, char *name, char *remote_name) {
+
+	//uint64_t ipc_command;
+	uint64_t command;
+	uint64_t unplug;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_UNPLUG_PORTGROUP, &unplug);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, remote_name);
+	krad_ebml_finish_element (client->krad_ebml, unplug);
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction, int channels) {
 
 	//uint64_t ipc_command;
@@ -3836,7 +3876,7 @@ kr_shm_t *kr_shm_create (krad_ipc_client_t *client) {
 		return NULL;
 	}
 
-	kr_shm->size = 640 * 480 * 4 * 2;
+	kr_shm->size = 960 * 540 * 4 * 2;
 
 	kr_shm->fd = mkstemp (filename);
 	if (kr_shm->fd < 0) {
