@@ -1,5 +1,14 @@
 #include "krad_ipc_client.h"
 
+int videoport_process (void *buffer, void *arg) {
+
+
+	printf("I got a callback!\n");
+
+	return 0;
+
+}
+
 int main (int argc, char *argv[]) {
 
 	kr_client_t *kr;
@@ -27,7 +36,13 @@ int main (int argc, char *argv[]) {
 		printf ("i worked real good\n");
 	}
 	
-
+	kr_videoport_set_callback (kr_videoport, videoport_process, NULL);
+	
+	kr_videoport_activate (kr_videoport);
+	
+	usleep (15000000);
+	
+	kr_videoport_deactivate (kr_videoport);
 	
 	kr_videoport_destroy (kr_videoport);
 

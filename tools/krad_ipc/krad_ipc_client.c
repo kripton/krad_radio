@@ -3692,6 +3692,56 @@ int krad_ipc_client_sendfd (kr_client_t *client, int fd) {
 	return 1;
 }
 
+void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void *, void *), void *pointer) {
+
+	kr_videoport->callback = callback;
+	kr_videoport->pointer = pointer;
+
+}
+
+void *kr_videoport_process_thread (void *arg) {
+
+	kr_videoport_t *kr_videoport = (kr_videoport_t *)arg;
+
+	krad_system_set_thread_name ("krc_videoport");
+
+	char buf[1];
+
+	while (kr_videoport->active == 1) {
+	
+		// wait for socket to have a byte
+		read (kr_videoport->sd, buf, 1);
+	
+		kr_videoport->callback (NULL, NULL);
+
+
+		// write a byte to socket
+		write (kr_videoport->sd, buf, 1);
+
+
+	}
+
+
+	return NULL;
+
+}
+
+void kr_videoport_activate (kr_videoport_t *kr_videoport) {
+	if ((kr_videoport->active == 0) && (kr_videoport->callback != NULL)) {
+		pthread_create (&kr_videoport->process_thread, NULL, kr_videoport_process_thread, (void *)kr_videoport);
+		kr_videoport->active = 1;
+	}
+}
+
+void kr_videoport_deactivate (kr_videoport_t *kr_videoport) {
+
+	if (kr_videoport->active == 1) {
+		kr_videoport->active = 2;
+		pthread_join (kr_videoport->process_thread, NULL);
+		kr_videoport->active = 0;
+	}
+}
+
 kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 
 	kr_videoport_t *kr_videoport;
@@ -3711,6 +3761,8 @@ kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 	kr_videoport->client = client;
 
 	kr_videoport->kr_shm = kr_shm_create (kr_videoport->client);
+
+	sprintf (kr_videoport->kr_shm->buffer, "waa hoo its yaytime");
 
 	if (kr_videoport->kr_shm == NULL) {
 		free (kr_videoport);
@@ -3739,6 +3791,10 @@ kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 }
 
 void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
+
+	if (kr_videoport->active == 1) {
+		kr_videoport_deactivate (kr_videoport);
+	}
 
 	kr_videoport_destroy_cmd (kr_videoport->client);
 
@@ -3780,7 +3836,7 @@ kr_shm_t *kr_shm_create (krad_ipc_client_t *client) {
 		return NULL;
 	}
 
-	kr_shm->size = 1000000;
+	kr_shm->size = 1280 * 720 * 4 * 2;
 
 	kr_shm->fd = mkstemp (filename);
 	if (kr_shm->fd < 0) {

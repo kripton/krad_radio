@@ -56,7 +56,7 @@ typedef struct kr_client_St krad_ipc_client_t;
 struct kr_shm_St {
 
 	int fd;
-	void *buffer;
+	char *buffer;
 	uint64_t size;
 
 };
@@ -68,6 +68,14 @@ struct kr_videoport_St {
 	kr_shm_t *kr_shm;
 	kr_client_t *client;
 	int sd;
+	
+	int (*callback)(void *, void *);
+	void *pointer;
+	
+	int active;
+	
+	pthread_t process_thread;	
+	
 };
 
 struct kr_client_St {
@@ -92,6 +100,10 @@ struct kr_client_St {
 
 };
 
+
+void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void *, void *), void *pointer);
+void kr_videoport_activate (kr_videoport_t *kr_videoport);
+void kr_videoport_deactivate (kr_videoport_t *kr_videoport);
 
 kr_videoport_t *kr_videoport_create (krad_ipc_client_t *client);
 void kr_videoport_destroy (kr_videoport_t *kr_videoport);

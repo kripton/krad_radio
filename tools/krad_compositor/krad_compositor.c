@@ -1129,6 +1129,14 @@ void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_po
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port) {
 
 	krad_frame_t *krad_frame;
+	
+	char buf[1];
+	
+	if (krad_compositor_port->local == 1) {
+		write (krad_compositor_port->msg_sd, buf, 1);
+		read (krad_compositor_port->msg_sd, buf, 1);
+	}
+	
 
 	if ((krad_compositor_port->direction == INPUT) && (krad_compositor_port->passthru == 0)) {
 
@@ -1355,6 +1363,36 @@ krad_compositor_port_t *krad_compositor_passthru_port_create (krad_compositor_t 
 	krad_compositor_port_t *krad_compositor_port;
 	krad_compositor_port = krad_compositor_port_create (krad_compositor, sysname, direction,
 														1,1);
+	return krad_compositor_port;	
+}
+
+
+krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *krad_compositor,
+														   char *sysname, int direction, int shm_sd, int msg_sd) {
+
+	krad_compositor_port_t *krad_compositor_port;
+	krad_compositor_port = krad_compositor_port_create (krad_compositor, sysname, direction,
+														krad_compositor->width, krad_compositor->height);
+
+	krad_compositor_port->local = 1;
+	krad_compositor_port->shm_sd = shm_sd;
+	krad_compositor_port->msg_sd = msg_sd;
+
+
+	char *buffer;
+	buffer = NULL;
+	
+	buffer = mmap (NULL, 1280 * 720 * 4 * 2, PROT_READ | PROT_WRITE, MAP_SHARED, krad_compositor_port->shm_sd, 0);
+
+	if (buffer != NULL) {
+	
+		printk ("got: %s", buffer);
+	
+	} else {
+		printke ("ah frakin a");
+	}
+
+
 	return krad_compositor_port;	
 }
 
@@ -2338,6 +2376,8 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			sd2 = krad_ipc_server_recvfd (krad_ipc->current_client);
 				
 			printk ("VIDEOPORT_CREATE Got FD's %d and %d\n", sd1, sd2);
+				
+			krad_compositor_local_port_create (krad_compositor, "localport", INPUT, sd1, sd2);
 				
 			break;
 			

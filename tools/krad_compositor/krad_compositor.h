@@ -98,6 +98,12 @@ struct krad_compositor_port_St {
 	
 	uint64_t start_timecode;
 	
+	
+	int local;
+	int shm_sd;
+	int msg_sd;
+	
+	
 };
 
 struct krad_compositor_St {
