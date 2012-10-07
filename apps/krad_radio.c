@@ -18,7 +18,7 @@ void krad_radio_command_help () {
 
 int main (int argc, char *argv[]) {
 
-	krad_ipc_client_t *client;
+	kr_client_t *client;
 	int ret;
 	int val;
 	
@@ -65,7 +65,7 @@ int main (int argc, char *argv[]) {
 			return 0;
 		}		
 
-		client = krad_ipc_connect (argv[1]);
+		client = kr_connect (argv[1]);
 	
 		if (client != NULL) {
 	
@@ -801,7 +801,7 @@ int main (int argc, char *argv[]) {
 			}			
 
 			
-			krad_ipc_disconnect (client);
+			kr_disconnect (client);
 		} else {
 			fprintf (stderr, "Could not connect to %s krad radio daemon\n", argv[1]);
 			return 1;

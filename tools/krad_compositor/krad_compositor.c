@@ -1740,6 +1740,12 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 	
 	int p;
 	
+	int sd1;
+	int sd2;
+			
+	sd1 = 0;
+	sd2 = 0;	
+	
 	p = 0;
 	string[0] = '\0';
 	string2[0] = '\0';
@@ -2316,6 +2322,25 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 			krad_ipc_server_response_finish ( krad_ipc, response );	
 			*/		
 			break;
+			
+		case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_DESTROY:
+
+				
+			break;
+
+		case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_CREATE:
+		
+	
+			sd1 = 0;
+			sd2 = 0;
+		
+			sd1 = krad_ipc_server_recvfd (krad_ipc->current_client);
+			sd2 = krad_ipc_server_recvfd (krad_ipc->current_client);
+				
+			printk ("VIDEOPORT_CREATE Got FD's %d and %d\n", sd1, sd2);
+				
+			break;
+			
 	}
 
 	return 0;

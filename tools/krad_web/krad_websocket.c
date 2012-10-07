@@ -1114,7 +1114,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 			pss->wsi = wsi;
 			pss->krad_websocket = krad_websocket_glob;
 
-			pss->krad_ipc_client = krad_ipc_connect (pss->krad_websocket->sysname);
+			pss->krad_ipc_client = kr_connect (pss->krad_websocket->sysname);
 			if (pss->krad_ipc_client != NULL) {
 				pss->krad_ipc_info = 0;
 				pss->hello_sent = 0;			
@@ -1133,7 +1133,7 @@ int callback_krad_ipc (struct libwebsocket_context *this, struct libwebsocket *w
 
 		case LWS_CALLBACK_CLOSED:
 
-			krad_ipc_disconnect (pss->krad_ipc_client);
+			kr_disconnect (pss->krad_ipc_client);
 			del_poll_fd(pss->krad_ipc_client->sd);
 			pss->hello_sent = 0;
 			pss->context = NULL;
@@ -1262,7 +1262,7 @@ void *krad_websocket_server_run (void *arg) {
 						
 							case KRAD_IPC:
 								//sprintf(info + strlen(info), " it was Krad Mixer", n);
-								//krad_ipc_disconnect(sessions[n]->krad_ipc);
+								//kr_disconnect(sessions[n]->krad_ipc);
 								//del_poll_fd(n);
 								//n++;
 								break;

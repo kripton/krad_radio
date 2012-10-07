@@ -117,6 +117,8 @@ struct krad_ipc_server_client_St {
 
 };
 
+int krad_ipc_server_recvfd (krad_ipc_server_client_t *client);
+
 void krad_ipc_release_client (krad_ipc_server_client_t *client);
 int krad_ipc_aquire_client (krad_ipc_server_client_t *client);
 

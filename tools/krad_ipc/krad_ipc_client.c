@@ -1,6 +1,6 @@
 #include "krad_ipc_client.h"
 
-krad_ipc_client_t *krad_ipc_connect (char *sysname) {
+kr_client_t *kr_connect (char *sysname) {
 	
 	krad_ipc_client_t *client = calloc (1, sizeof (krad_ipc_client_t));
 	
@@ -35,7 +35,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 	
 		if (!client->on_linux) {
 			if(stat(client->ipc_path, &client->info) != 0) {
-				krad_ipc_disconnect(client);
+				kr_disconnect(client);
 				failfast ("Krad IPC Client: IPC PATH Failure\n");
 				return NULL;
 			}
@@ -45,7 +45,7 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 	
 	if (krad_ipc_client_init (client) == 0) {
 		printke ("Krad IPC Client: Failed to init!");
-		krad_ipc_disconnect (client);
+		kr_disconnect (client);
 		return NULL;
 	}
 
@@ -469,10 +469,10 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 	if (fork() == 0) {
 		if (fork() == 0) {
 			client = NULL;
-			client = krad_ipc_connect (sysname);
+			client = kr_connect (sysname);
 	
 			if (client != NULL) {
-				krad_ipc_disconnect (client);
+				kr_disconnect (client);
 				client = NULL;
 			} else {
 				krad_radio_destroy_daemon (sysname);
@@ -3619,6 +3619,142 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	}
 }
 
+void kr_videoport_destroy_cmd (kr_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t destroy_videoport;
+	
+	compositor_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_DESTROY, &destroy_videoport);
+
+	//krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_finish_element (client->krad_ebml, destroy_videoport);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void kr_videoport_create_cmd (kr_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t create_videoport;
+	
+	compositor_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_CREATE, &create_videoport);
+
+	//krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_finish_element (client->krad_ebml, create_videoport);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+int krad_ipc_client_sendfd (kr_client_t *client, int fd) {
+	char buf[1];
+	struct iovec iov;
+	struct msghdr msg;
+	struct cmsghdr *cmsg;
+	int n;
+	char cms[CMSG_SPACE(sizeof(int))];
+
+	buf[0] = 0;
+	iov.iov_base = buf;
+	iov.iov_len = 1;
+
+	memset(&msg, 0, sizeof msg);
+	msg.msg_iov = &iov;
+	msg.msg_iovlen = 1;
+	msg.msg_control = (caddr_t)cms;
+	msg.msg_controllen = CMSG_LEN(sizeof(int));
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type = SCM_RIGHTS;
+	memmove(CMSG_DATA(cmsg), &fd, sizeof(int));
+
+	if((n=sendmsg(client->sd, &msg, 0)) != iov.iov_len)
+		    return 0;
+	return 1;
+}
+
+kr_videoport_t *kr_videoport_create (kr_client_t *client) {
+
+	kr_videoport_t *kr_videoport;
+	int sockets[2];
+
+	if (client->tcp_port != 0) {
+		// Local clients only
+		return NULL;
+	}
+
+	kr_videoport = calloc (1, sizeof(kr_videoport_t));
+
+	if (kr_videoport == NULL) {
+		return NULL;
+	}
+
+	kr_videoport->client = client;
+
+	kr_videoport->kr_shm = kr_shm_create (kr_videoport->client);
+
+	if (kr_videoport->kr_shm == NULL) {
+		free (kr_videoport);
+		return NULL;
+	}
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) < 0) {
+		kr_shm_destroy (kr_videoport->kr_shm);
+		free (kr_videoport);
+		return NULL;
+    }
+
+	kr_videoport->sd = sockets[0];
+	
+	printf ("sockets %d and %d\n", sockets[0], sockets[1]);
+	
+	kr_videoport_create_cmd (kr_videoport->client);
+	//FIXME use a return message from daemon to indicate ready to receive fds
+	usleep (33000);
+	krad_ipc_client_sendfd (kr_videoport->client, kr_videoport->kr_shm->fd);
+	usleep (33000);
+	krad_ipc_client_sendfd (kr_videoport->client, sockets[1]);
+	usleep (33000);
+	return kr_videoport;
+
+}
+
+void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
+
+	kr_videoport_destroy_cmd (kr_videoport->client);
+
+	if (kr_videoport != NULL) {
+		if (kr_videoport->sd != 0) {
+			close (kr_videoport->sd);
+			kr_videoport->sd = 0;
+		}
+		if (kr_videoport->kr_shm != NULL) {
+			kr_shm_destroy (kr_videoport->kr_shm);
+			kr_videoport->kr_shm = NULL;
+		}
+		free(kr_videoport);
+	}
+}
+
 void kr_shm_destroy (kr_shm_t *kr_shm) {
 
 	if (kr_shm != NULL) {
@@ -3724,7 +3860,7 @@ int krad_ipc_recv (krad_ipc_client_t *client, char *buffer, int size) {
 	return bytes;
 }
 
-void krad_ipc_disconnect(krad_ipc_client_t *client) {
+void kr_disconnect(krad_ipc_client_t *client) {
 
 	if (client != NULL) {
 		if (client->buffer != NULL) {

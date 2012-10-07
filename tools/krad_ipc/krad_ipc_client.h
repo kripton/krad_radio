@@ -49,6 +49,9 @@ struct krad_radio_watchdog_St {
 
 
 typedef struct kr_shm_St kr_shm_t;
+typedef struct kr_videoport_St kr_videoport_t;
+typedef struct kr_client_St kr_client_t;
+typedef struct kr_client_St krad_ipc_client_t;
 
 struct kr_shm_St {
 
@@ -58,10 +61,16 @@ struct kr_shm_St {
 
 };
 
+struct kr_videoport_St {
 
-typedef struct krad_ipc_client_St krad_ipc_client_t;
+	int width;
+	int height;
+	kr_shm_t *kr_shm;
+	kr_client_t *client;
+	int sd;
+};
 
-struct krad_ipc_client_St {
+struct kr_client_St {
 	char sysname[64];
 	int flags;
 	struct sockaddr_un saddr;
@@ -83,6 +92,9 @@ struct krad_ipc_client_St {
 
 };
 
+
+kr_videoport_t *kr_videoport_create (krad_ipc_client_t *client);
+void kr_videoport_destroy (kr_videoport_t *kr_videoport);
 
 kr_shm_t *kr_shm_create (krad_ipc_client_t *client);
 void kr_shm_destroy (kr_shm_t *kr_shm);
@@ -228,9 +240,9 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 
 char *krad_radio_get_running_daemons_list ();
 
-krad_ipc_client_t *krad_ipc_connect ();
+kr_client_t *kr_connect ();
 int krad_ipc_client_init (krad_ipc_client_t *client);
-void krad_ipc_disconnect (krad_ipc_client_t *client);
+void kr_disconnect (kr_client_t *client);
 int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd);
 void krad_ipc_send (krad_ipc_client_t *client, char *cmd);
 int krad_ipc_wait (krad_ipc_client_t *client, char *buffer, int size);
