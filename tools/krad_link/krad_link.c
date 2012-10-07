@@ -375,7 +375,7 @@ void *x11_capture_thread (void *arg) {
 
 void *video_encoding_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_video_encode");
+	krad_system_set_thread_name ("kl_video_enc");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -1543,7 +1543,7 @@ void *udp_input_thread(void *arg) {
 
 void *video_decoding_thread (void *arg) {
 
-	krad_system_set_thread_name ("kl_video_decode");
+	krad_system_set_thread_name ("kl_video_dec");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 

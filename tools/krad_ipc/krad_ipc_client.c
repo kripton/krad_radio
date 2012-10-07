@@ -3836,7 +3836,7 @@ kr_shm_t *kr_shm_create (krad_ipc_client_t *client) {
 		return NULL;
 	}
 
-	kr_shm->size = 1280 * 720 * 4 * 2;
+	kr_shm->size = 640 * 480 * 4 * 2;
 
 	kr_shm->fd = mkstemp (filename);
 	if (kr_shm->fd < 0) {
