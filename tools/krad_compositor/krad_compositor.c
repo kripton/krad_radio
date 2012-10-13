@@ -3,9 +3,10 @@
 static void krad_compositor_update_peaks (krad_compositor_t *krad_compositor);
 static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
-static void *krad_compositor_display_thread (void *arg);
 
 #ifdef WAYRAD
+
+static void *krad_compositor_display_thread (void *arg);
 
 typedef struct krad_compositor_wayland_display_St krad_compositor_wayland_display_t;
 
@@ -92,60 +93,11 @@ static void *krad_compositor_display_thread (void *arg) {
 
 }
 
-#else
-static void *krad_compositor_display_thread (void *arg) {
-
-	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
-
-	krad_system_set_thread_name ("kr_display");
-
-	krad_x11_t *krad_x11;
-	krad_frame_t *krad_frame;
-	krad_compositor_port_t *krad_compositor_port;
-
-	int w;
-	int h;
-	
-	krad_compositor_get_resolution (krad_compositor,
-							  &w,
-							  &h);
-	
-	krad_compositor_port = krad_compositor_port_create (krad_compositor, "X11Out", OUTPUT,
-														w, h);
-	
-	krad_x11 = krad_x11_create ();
-	
-	krad_x11_create_glx_window (krad_x11, "Krad Radio", w, h, NULL);
-	
-	while ((krad_x11->close_window == 0) && (krad_compositor->display_open == 1)) {
-	
-		krad_frame = krad_compositor_port_pull_frame (krad_compositor_port);
-
-		if (krad_frame != NULL) {
-			memcpy (krad_x11->pixels, krad_frame->pixels, w * h * 4);
-			krad_framepool_unref_frame (krad_frame);
-			krad_x11_glx_render (krad_x11);
-		} else {
-			krad_x11_glx_sync (krad_x11);
-			krad_x11_glx_check_for_input (krad_x11);
-		}
-	}
-	
-	krad_compositor_port_destroy (krad_compositor, krad_compositor_port);
-	
-	krad_x11_destroy_glx_window (krad_x11);
-
-	krad_x11_destroy (krad_x11);
-
-	krad_compositor->display_open = 0;
-
-	return NULL;
-
-}
 #endif
 
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor) {
 
+#ifdef WAYRAD
 	if (krad_compositor->display_open == 1) {
 		krad_compositor_close_display (krad_compositor);
 	}
@@ -153,17 +105,24 @@ static void krad_compositor_open_display (krad_compositor_t *krad_compositor) {
 	krad_compositor->display_open = 1;
 	pthread_create (&krad_compositor->display_thread, NULL, krad_compositor_display_thread, (void *)krad_compositor);
 
+#else
+	printk("Wayland disabled: not opening a display");
+#endif
 }
 
 
 static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
+#ifdef WAYRAD
 	if (krad_compositor->display_open == 1) {
 		krad_compositor->display_open = 2;
 		pthread_join (krad_compositor->display_thread, NULL);
 		krad_compositor->display_open = 0;
 	}
 
+#else
+	printk("Wayland disabled: no need to close display");
+#endif
 }
 
 void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, int x, int y, int tickrate, 
@@ -822,9 +781,9 @@ void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_fra
 	krad_compositor_snapshot->height = krad_compositor->height;	
 	
 	sprintf (krad_compositor_snapshot->filename,
-			 "%s/snapshot_%zu_%"PRIu64".%s",
+			 "%s/snapshot_%"PRIu64"_%"PRIu64".%s",
 			 krad_compositor->dir,
-			 time (NULL),
+			 ktime(),
 			 krad_compositor->frame_num,
 			 ext);
 	
@@ -1758,9 +1717,9 @@ void krad_compositor_set_pusher (krad_compositor_t *krad_compositor, krad_displa
 
 int krad_compositor_has_pusher (krad_compositor_t *krad_compositor) {
 	if (krad_compositor->pusher == 0) {
-		return FALSE;
+		return 0;
 	} else {
-		return TRUE;
+		return 1;
 	}
 }
 

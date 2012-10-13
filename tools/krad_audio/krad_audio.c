@@ -11,8 +11,6 @@ void krad_audio_portgroup_samples_callback (int frames, void *userdata, float **
 			break;
 		case ALSA:
 			break;
-		case PULSE:
-			break;
 		case TONE:		
 			break;
 		case NOAUDIO:
@@ -56,8 +54,6 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 																   portgroup->direction, portgroup->channels);
 			break;
 		case ALSA:
-			break;
-		case PULSE:
 			break;
 		case TONE:		
 			break;
@@ -103,8 +99,6 @@ void krad_audio_portgroup_destroy (krad_audio_portgroup_t *portgroup) {
 				
 			break;
 		case ALSA:
-			break;
-		case PULSE:
 			break;
 		case TONE:		
 			break;

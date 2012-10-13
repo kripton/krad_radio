@@ -227,7 +227,7 @@ static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir ) {
 		krad_compositor_set_dir (krad_radio_station->krad_compositor, krad_radio_station->dir);
 	}
 
-	sprintf (krad_radio_station->logname, "%s/%s_%zu.log", dir, krad_radio_station->sysname, time (NULL));
+	sprintf (krad_radio_station->logname, "%s/%s_%"PRIu64".log", dir, krad_radio_station->sysname, ktime ());
 	verbose = 1;
 	krad_system_log_on (krad_radio_station->logname);
 

@@ -44,7 +44,6 @@ depsources = """
 ../tools/krad_tone/krad_tone.c
 ../tools/krad_audio/krad_audio.c
 ../tools/krad_jack/krad_jack.c
-../tools/krad_pulse/krad_pulse.c
 ../tools/krad_alsa/krad_alsa.c
 ../tools/krad_alsa/krad_alsa_seq.c
 ../tools/krad_ring/krad_resample_ring.c
@@ -56,7 +55,6 @@ depsources = """
 ../tools/krad_opus/opus_header.c
 ../tools/krad_gui/krad_gui.c
 ../tools/krad_v4l2/krad_v4l2.c
-../tools/krad_gui/krad_gui_gtk.c
 ../tools/krad_ring/krad_ring.c
 ../tools/krad_link/krad_link.c
 ../tools/krad_transmitter/krad_transmitter.c
@@ -95,7 +93,6 @@ includedirs = """
 ../tools/krad_audio/
 ../tools/krad_theora/
 ../tools/krad_jack/
-../tools/krad_pulse/
 ../tools/krad_alsa/
 ../tools/krad_mixer/
 ../tools/krad_osc/
@@ -126,8 +123,8 @@ includedirs = """
 """.split()
 
 libs = ["samplerate", "x264", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
-		"x11-xcb", "xcb-atom", "xcb-image", "xcb", "x11", "gtk+-3.0", "gl", "glu", "aacplus",
-		"flac", "libpulse", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "xmms2-client"]
+		"cairo", "x11-xcb", "xcb-image", "xcb", "x11", "aacplus",
+		"flac", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "xmms2-client"]
 
 # "ncurses",
 
@@ -169,7 +166,6 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = ["m"],
 			uselib = libs)
 
 	for p in programs2:
@@ -178,6 +174,5 @@ def build(bld):
 			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			use = ["m"],
 			uselib = libs)
 

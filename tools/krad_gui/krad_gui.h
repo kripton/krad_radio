@@ -11,7 +11,7 @@
 #include <signal.h>
 
 #include <cairo/cairo.h>
-#include <gtk/gtk.h>
+
 
 #include "krad_system.h"
 

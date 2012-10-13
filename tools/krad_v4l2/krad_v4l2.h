@@ -18,9 +18,10 @@
 #include <asm/types.h>
 #include <dirent.h>
 #include <linux/videodev2.h>
-
+#include <linux/uvcvideo.h>
 #include <turbojpeg.h>
 
+#include "uvch264.h"
 #include "krad_system.h"
 
 #define DEFAULT_V4L2_DEVICE "/dev/video0"
@@ -40,13 +41,9 @@ typedef enum {
 struct krad_v4l2_buffer_St {
 	void *start;
 	size_t length;
+	size_t offset;
 };
 
-struct krad_v4l2_ret_buffer_St {
-	void *data;
-	size_t length;
-	struct timeval timestamp;
-};
 
 struct krad_v4l2_St {
 
@@ -61,7 +58,7 @@ struct krad_v4l2_St {
 	int fd;
 	
 	struct timeval timestamp;
-	krad_v4l2_ret_buffer_t ret_buffer;
+
 	
 	krad_v4l2_buffer_t *buffers;
 	unsigned int n_buffers;

@@ -34,10 +34,13 @@ static void krad_x264_encoder_process_headers (krad_x264_encoder_t *krad_x264) {
 
 	krad_x264->krad_codec_header.header[0] = krad_x264->header[0];
 	krad_x264->krad_codec_header.header_size[0] = krad_x264->header_len[0];
+
+//	krad_x264->krad_codec_header.header_combined = krad_x264->header[0];
+//	krad_x264->krad_codec_header.header_combined_size = krad_x264->header_len[0];
 	
 	krad_x264->krad_codec_header.header_count = 3;	
 
-	printf("x264 header length is %d\n", krad_x264->header_len[0]);
+	printk("x264 header length is %d\n", krad_x264->header_len[0]);
 //	printf("x264 sei length is %d\n", sei_size);
 }
 
@@ -68,7 +71,8 @@ krad_x264_encoder_t *krad_x264_encoder_create (int width, int height,
 	krad_x264->fps_numerator = fps_numerator;
 	krad_x264->fps_denominator = fps_denominator;
 
-	x264_param_default_preset ( krad_x264->params, "veryfast", "film,zerolatency" );
+	//x264_param_default_preset ( krad_x264->params, "veryfast", "film,zerolatency" );
+	x264_param_default_preset ( krad_x264->params, "fast", "" );
 	x264_param_apply_profile ( krad_x264->params, "high" );
 	
 	krad_x264->params->i_width = krad_x264->width;

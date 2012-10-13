@@ -20,8 +20,7 @@
 #define KRAD_COMPOSITOR_MAX_TEXTS 64
 
 typedef enum {
-	SYNTHETIC = 13999,	
-	X11GLX,
+	SYNTHETIC = 13999,
 	WAYLAND,
 } krad_display_api_t;
 

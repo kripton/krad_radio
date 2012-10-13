@@ -10,7 +10,7 @@ static void *krad_linker_listen_client_thread (void *arg);
 
 void *video_capture_thread (void *arg) {
 
-	krad_system_set_thread_name ("kr_capture_v4l2");
+	krad_system_set_thread_name ("kr_cap_v4l2");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
@@ -2268,7 +2268,7 @@ krad_link_t *krad_link_create (int linknum) {
 	strncpy(krad_link->device, DEFAULT_V4L2_DEVICE, sizeof(krad_link->device));
 	strncpy(krad_link->alsa_capture_device, DEFAULT_ALSA_CAPTURE_DEVICE, sizeof(krad_link->alsa_capture_device));
 	strncpy(krad_link->alsa_playback_device, DEFAULT_ALSA_PLAYBACK_DEVICE, sizeof(krad_link->alsa_playback_device));
-	sprintf(krad_link->output, "%s/Videos/krad_link_%"PRIuMAX".webm", getenv ("HOME"), (uintmax_t)time(NULL));
+	sprintf(krad_link->output, "%s/Videos/krad_link_%"PRIu64".webm", getenv ("HOME"), ktime());
 	krad_link->port = 0;
 	krad_link->operation_mode = CAPTURE;
 	krad_link->video_codec = KRAD_LINK_DEFAULT_VIDEO_CODEC;
@@ -2323,7 +2323,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 			krad_link->capture_height = krad_link->composite_height;
 		}
 
-		krad_link->capture_fps = DEFAULT_FPS;
+		krad_link->capture_fps = 5;
 
 		for (c = 0; c < krad_link->channels; c++) {
 			krad_link->audio_capture_ringbuffer[c] = krad_ringbuffer_create (2000000);		

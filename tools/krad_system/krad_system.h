@@ -103,6 +103,7 @@ char *krad_system_info();
 uint64_t krad_system_daemon_uptime ();
 void krad_system_info_collect ();
 
+uint64_t ktime();
 void failfast (char* format, ...);
 void printke (char* format, ...);
 void printkd (char* format, ...);

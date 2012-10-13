@@ -316,6 +316,18 @@ void krad_system_set_thread_name (char *name) {
 	}
 }
 
+uint64_t ktime() {
+
+	uint64_t seconds;
+	struct timespec ts;
+
+	clock_gettime (CLOCK_REALTIME, &ts);
+	seconds = ts.tv_sec;
+	
+	return seconds;
+
+}
+
 int krad_valid_sysname (char *sysname) {
 	
 	int i = 0;

@@ -933,9 +933,9 @@ void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher) {
 
 int krad_mixer_has_pusher (krad_mixer_t *krad_mixer) {
 	if (krad_mixer->pusher == 0) {
-		return FALSE;
+		return 0;
 	} else {
-		return TRUE;
+		return 1;
 	}
 }
 

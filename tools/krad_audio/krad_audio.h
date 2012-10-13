@@ -6,7 +6,6 @@ typedef struct krad_audio_portgroup_St krad_audio_portgroup_t;
 typedef enum {
 	NOAUDIO = 999,	
 	JACK,
-	PULSE,
 	ALSA,
 	DECKLINKAUDIO,
 	TONE,
@@ -22,7 +21,6 @@ typedef enum {
 
 #include "krad_alsa.h"
 #include "krad_jack.h"
-#include "krad_pulse.h"
 #include "krad_mixer.h"
 
 #include "krad_radio.h"
@@ -63,7 +61,6 @@ struct krad_audio_St {
 	krad_mixer_t *krad_mixer;
 	
 	krad_alsa_t *krad_alsa;
-	krad_pulse_t *krad_pulse;
 	krad_jack_t *krad_jack;
 	
 	krad_audio_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];	
