@@ -2322,8 +2322,8 @@ void krad_link_activate (krad_link_t *krad_link) {
 			krad_link->capture_width = krad_link->composite_width;
 			krad_link->capture_height = krad_link->composite_height;
 		}
-
-		krad_link->capture_fps = 5;
+		//FIXME
+		krad_link->capture_fps = DEFAULT_FPS;
 
 		for (c = 0; c < krad_link->channels; c++) {
 			krad_link->audio_capture_ringbuffer[c] = krad_ringbuffer_create (2000000);		
