@@ -26,39 +26,8 @@ libgtk-3-dev libswscale-dev libflac-dev libncurses5-dev libavutil-dev libjack-ja
 libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 \
 subversion yasm build-essential libxmmsclient-dev libtool libxml2-dev libxcb-image0-dev libtheora-dev
 
-*PITFALL*
-waf may fail to find ncurses. If so your system probably needs a tinfo.pc file. This is a known bug
-https://bugs.launchpad.net/ubuntu/+source/ncurses/+bug/900635 Put this pkg-config file in: /usr/lib/pkg-config/tinfo.pc
-
-# libncurses5-dev installed pkg-config file
-
-prefix=/usr
-exec_prefix=${prefix}
-libdir=/usr/lib
-includedir=${prefix}/include
-major_version=5
-version=5.9.20110404
-
-Name: tinfo
-Description: ncurses 5.9 terminal interface library
-Version: ${version}
-Requires:
-Libs: -L${libdir} -ltinfo
-Cflags:
-
 There are dependencies not found in the ubuntu universe, atleast up to date enough, so they must be built manually:
-opus, libvpx, libjpeg-turbo, codec2 and libwebsockets.
-
-
-******** opus ******** 
-
-git clone http://git.xiph.org/opus.git
-cd opus && ./autogen.sh && ./configure && make && sudo make install && sudo ldconfig
-
-******** libvpx ******** 
-
-git clone http://git.chromium.org/webm/libvpx.git
-cd libvpx && ./configure --enable-shared && make && sudo make install && sudo ldconfig
+libjpeg-turbo, and libwebsockets.
 
 ******** libjpeg-turbo ******** 
 
