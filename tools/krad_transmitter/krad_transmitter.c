@@ -310,7 +310,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 							
 								if (krad_transmission_receiver->bufpos == krad_transmission->position) {
 						
-									//printk ("Krad Transmitter: adding to ready list..");
+									printk ("Krad Transmitter: adding to ready list..");
 									krad_transmission_add_ready (krad_transmission, krad_transmission_receiver);
 									break;
 								}							
@@ -485,6 +485,11 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 
 void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
+
+	if (krad_transmission_receiver->ready == 1) {
+		return;
+	}
+
 	krad_transmission_receiver->ready = 1;
 
 	if (krad_transmission->ready_receivers_head == NULL) {
@@ -511,6 +516,9 @@ void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_t
 
 void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
 
+	if (krad_transmission_receiver->ready != 1) {
+		return;
+	}
 
 	//printk ("Krad Transmitter: removing ready...");
 
