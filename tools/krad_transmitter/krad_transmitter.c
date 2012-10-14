@@ -154,7 +154,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 	krad_transmission_t *krad_transmission = (krad_transmission_t *)arg;
 	
 	krad_system_set_thread_name ("kr_tx_txmtr");	
-	
+
 	krad_transmission_receiver_t *krad_transmission_receiver;
 	int ret;
 	int e;
@@ -231,6 +231,9 @@ void *krad_transmitter_transmission_thread (void *arg) {
 		ret = epoll_wait (krad_transmission->connections_efd, krad_transmission->transmission_events, KRAD_TRANSMITTER_MAXEVENTS, wait_time);
 
 		if (ret < 0) {
+			if ((ret < 0) && (errno == EINTR)) {
+				continue;
+			}		
 			printke ("Krad Transmitter: Failed on epoll wait %s", strerror(errno));
 			krad_transmission->active = 2;
 			break;
@@ -914,7 +917,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 	krad_transmitter_t *krad_transmitter = (krad_transmitter_t *)arg;
 
 	krad_system_set_thread_name ("kr_tx_listen");
-	
+
 	krad_transmission_receiver_t *krad_transmission_receiver;
 
 	int e;
@@ -947,6 +950,9 @@ void *krad_transmitter_listening_thread (void *arg) {
 		ret = epoll_wait (krad_transmitter->incoming_connections_efd, krad_transmitter->incoming_connection_events, KRAD_TRANSMITTER_MAXEVENTS, 1000);
 
 		if (ret < 0) {
+			if ((ret < 0) && (errno == EINTR)) {
+				continue;
+			}
 			printke ("Krad Transmitter: Failed on epoll wait %s", strerror(errno));
 			krad_transmitter->stop_listening = 1;
 			break;
