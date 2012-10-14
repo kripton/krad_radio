@@ -71,6 +71,8 @@ depsources = """
 depsources2 = """
 ../tools/krad_system/krad_system.c
 ../tools/krad_ebml/krad_ebml.c
+../tools/krad_ring/krad_ring.c
+../tools/krad_transmitter/krad_transmitter.c
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_ipc/krad_ipc_client.c
 ../tools/krad_osc/krad_osc.c

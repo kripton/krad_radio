@@ -1,6 +1,7 @@
 #include "krad_ebml.h"
 
 int krad_ebml_streamio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
+int krad_ebml_transmissionio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length);
 
 char *krad_ebml_version() {
 	return KRADEBML_VERSION;
@@ -727,6 +728,9 @@ void krad_ebml_cluster(krad_ebml_t *krad_ebml, int64_t timecode) {
 	if (krad_ebml->cluster != 0) {
 		krad_ebml_finish_element (krad_ebml, krad_ebml->cluster);
 		krad_ebml_write_sync (krad_ebml);
+		if (krad_ebml->io_adapter.write == krad_ebml_transmissionio_write) {
+			krad_transmitter_transmission_add_data_sync (krad_ebml->krad_transmission, (unsigned char *)"", 0);
+		}
 	}
 
 	krad_ebml->cluster_timecode = timecode;
@@ -2137,6 +2141,15 @@ int krad_ebml_io_buffer_push(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t 
 
 }
 
+int krad_ebml_transmissionio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length) {
+	if (krad_ebml_io->firstwritedone == 1) {
+		return krad_transmitter_transmission_add_data (krad_ebml_io->krad_transmission, (unsigned char *)buffer, length);
+	} else {
+		krad_ebml_io->firstwritedone = 1;
+		return krad_transmitter_transmission_set_header (krad_ebml_io->krad_transmission, (unsigned char *)buffer, length);
+	}
+}
+
 int krad_ebml_fileio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length) {
 	return write(krad_ebml_io->ptr, buffer, length);
 }
@@ -2422,6 +2435,25 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 	return krad_ebml;
 
 }
+
+
+krad_ebml_t *krad_ebml_open_transmission (krad_transmission_t *krad_transmission) {
+
+	krad_ebml_t *krad_ebml;
+	
+	krad_ebml = krad_ebml_create();
+	
+	krad_ebml->krad_transmission = krad_transmission;
+	
+	krad_ebml->record_cluster_info = 0;
+	krad_ebml->io_adapter.mode = KRAD_EBML_IO_WRITEONLY;
+	krad_ebml->io_adapter.write_buffer = malloc(KRADEBML_WRITE_BUFFER_SIZE);
+	krad_ebml->io_adapter.krad_transmission = krad_ebml->krad_transmission;
+	krad_ebml->io_adapter.write = krad_ebml_transmissionio_write;
+	
+	return krad_ebml;
+}
+
 
 krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode) {
 

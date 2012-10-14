@@ -548,7 +548,7 @@ void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, kra
 	//		krad_transmission->ready_receiver_count);
 }
 
-void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
+int krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {
 
 	int header_temp_len;
 	unsigned char *header_temp;
@@ -577,6 +577,7 @@ void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmi
 			krad_transmission->sysname,
 			krad_transmission->header_len);
 
+	return length;
 }
 
 void krad_transmitter_transmission_add_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length) {

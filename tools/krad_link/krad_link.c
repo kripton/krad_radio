@@ -867,7 +867,7 @@ void *stream_output_thread (void *arg) {
 			
 			krad_transmission = krad_transmitter_transmission_create (krad_link->krad_linker->krad_transmitter,
 																	  krad_link->mount + 1,
-																	  "application/ogg");
+																	  krad_link_select_mimetype(krad_link->mount + 1));
 
 			krad_link->port = krad_link->krad_linker->krad_transmitter->port;
 

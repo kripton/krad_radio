@@ -168,7 +168,7 @@ void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, kra
 krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *krad_transmitter, char *name, char *content_type);
 void krad_transmitter_transmission_destroy (krad_transmission_t *krad_transmission);
 
-void krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
+int krad_transmitter_transmission_set_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 void krad_transmitter_transmission_add_header (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 int krad_transmitter_transmission_add_data (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);
 int krad_transmitter_transmission_add_data_sync (krad_transmission_t *krad_transmission, unsigned char *buffer, int length);

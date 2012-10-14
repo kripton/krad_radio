@@ -19,6 +19,29 @@ krad_container_type_t krad_link_select_container (char *string) {
 	return EBML;
 }
 
+char *krad_link_select_mimetype (char *string) {
+
+	if ((strstr(string, ".ogg")) ||
+		(strstr(string, ".opus")) ||
+		(strstr(string, ".Opus")) ||
+		(strstr(string, ".OPUS")) ||
+		(strstr(string, ".OGG")) ||
+		(strstr(string, ".Ogg")) ||
+		(strstr(string, ".oga")) ||
+		(strstr(string, ".ogv")) ||
+		(strstr(string, ".Oga")) ||		
+		(strstr(string, ".OGV")))
+	{
+		return "application/ogg";
+	}
+
+	if (strstr(string, ".webm")) {
+		return "video/webm";
+	}
+	
+	return "video/x-matroska";
+}
+
 char *krad_container_get_container_string (krad_container_t *krad_container) {
 	if (krad_container->container_type == OGG) {
 		return "Ogg";
@@ -157,8 +180,7 @@ krad_container_t *krad_container_open_transmission (krad_transmission_t *krad_tr
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_transmission (krad_transmission);
 	} else {
-	
-		failfast ("not yet implemented");
+		krad_container->krad_ebml = krad_ebml_open_transmission (krad_transmission);
 	}
 
 	return krad_container;

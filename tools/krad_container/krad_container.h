@@ -29,7 +29,7 @@ int krad_container_track_header_size (krad_container_t *krad_container, int trac
 int krad_container_read_track_header (krad_container_t *krad_container, unsigned char *buffer, int track, int header);
 int krad_container_track_active (krad_container_t *krad_container, int track);
 int krad_container_track_changed (krad_container_t *krad_container, int track);
-
+char *krad_link_select_mimetype (char *string);
 
 int krad_container_read_packet (krad_container_t *krad_container, int *track, uint64_t *timecode, 
 								unsigned char *buffer);

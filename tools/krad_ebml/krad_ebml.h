@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <limits.h>
 
+#include "krad_transmitter.h"
 #include "krad_system.h"
 #include "krad_codec_header.h"
 
@@ -239,6 +240,8 @@ struct krad_ebml_io_St {
 	int port;
 	int sd;
 	
+	int firstwritedone;
+	krad_transmission_t *krad_transmission;	
 	
 	unsigned char *buffer_io_buffer;
 	int buffer_io_read_pos;
@@ -278,6 +281,8 @@ struct krad_ebml_St {
 	char bsbuffer[8192 * 8];
 	int stream;
 	
+	
+	krad_transmission_t *krad_transmission;	
 	
 	uint64_t current_timecode;
 	
@@ -400,6 +405,7 @@ krad_ebml_t *krad_ebml_open_active_socket (int socket, krad_ebml_io_mode_t mode)
 
 krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *password);
 krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode);
+krad_ebml_t *krad_ebml_open_transmission (krad_transmission_t *krad_transmission);
 
 void krad_ebml_destroy(krad_ebml_t *krad_ebml);
 char *krad_ebml_version();
