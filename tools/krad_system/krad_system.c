@@ -328,6 +328,31 @@ uint64_t ktime() {
 
 }
 
+int krad_system_set_socket_nonblocking (int sd) {
+
+	int ret;
+	int flags;
+	
+	flags = 0;
+	ret = 0;
+
+	flags = fcntl (sd, F_GETFL, 0);
+	if (flags == -1) {
+		failfast ("Krad System: error on syscall fcntl F_GETFL");
+		return -1;		
+	}
+
+	flags |= O_NONBLOCK;
+	
+	ret = fcntl (sd, F_SETFL, flags);
+	if (ret == -1) {
+		failfast ("Krad System: error on syscall fcntl F_SETFL");
+		return -1;
+	}
+	
+	return sd;
+}
+
 int krad_valid_sysname (char *sysname) {
 	
 	int i = 0;

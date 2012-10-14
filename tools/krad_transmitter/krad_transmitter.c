@@ -1,27 +1,7 @@
 #include "krad_transmitter.h"
 
-void set_socket_nonblocking (int sd) {
-
-	int ret;
-	int flags;
-	
-	flags = 0;
-	ret = 0;
-
-	flags = fcntl (sd, F_GETFL, 0);
-	if (flags == -1) {
-		failfast ("Krad Transmitter: fcntl on incoming connections sd F_GETFL");
-	}
-
-	flags |= O_NONBLOCK;
-	
-	ret = fcntl (sd, F_SETFL, flags);
-	if (ret == -1) {
-		failfast ("Krad Transmitter: fcntl on incoming connections sd F_SETFL");
-	}
-}
-
-int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmission, krad_transmission_receiver_t *krad_transmission_receiver) {
+int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmission,
+											krad_transmission_receiver_t *krad_transmission_receiver) {
 
 	int ret;
 	int cret;
@@ -134,7 +114,8 @@ int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmissi
 					
 					if (bytes_wrote < bytes_avail) {
 					
-						//printk ("Krad Transmitter: wanted to write %"PRIu64" bytes to fd %d but only wrote %"PRIu64" thus exhasting i/o space", 
+						//printk ("Krad Transmitter: wanted to write %"PRIu64" bytes to fd %d
+						// but only wrote %"PRIu64" thus exhasting i/o space", 
 						//		bytes_avail,
 						//		krad_transmission_receiver->fd,
 						//		bytes_wrote);
@@ -219,8 +200,14 @@ void *krad_transmitter_transmission_thread (void *arg) {
 				krad_ringbuffer_read_advance (krad_transmission->transmission_ringbuffer, drop_count);
 			}
 
-			krad_ringbuffer_read (krad_transmission->ringbuffer, (char *)krad_transmission->transmission_buffer, new_bytes_avail);
-			krad_ringbuffer_write (krad_transmission->transmission_ringbuffer, (char *)krad_transmission->transmission_buffer, new_bytes_avail);
+			krad_ringbuffer_read (krad_transmission->ringbuffer,
+						  (char *)krad_transmission->transmission_buffer,
+						          new_bytes_avail);
+
+			krad_ringbuffer_write (krad_transmission->transmission_ringbuffer,
+			               (char *)krad_transmission->transmission_buffer,
+			                       new_bytes_avail);
+
 			krad_transmission->position += new_bytes_avail;
 
 			krad_transmission->horizon = krad_transmission->position - DEFAULT_RING_SIZE;
@@ -233,7 +220,8 @@ void *krad_transmitter_transmission_thread (void *arg) {
 			krad_transmission->new_data = 0;
 		}
 
-		ret = epoll_wait (krad_transmission->connections_efd, krad_transmission->transmission_events, KRAD_TRANSMITTER_MAXEVENTS, wait_time);
+		ret = epoll_wait (krad_transmission->connections_efd, krad_transmission->transmission_events,
+		                  KRAD_TRANSMITTER_MAXEVENTS, wait_time);
 
 		if (ret < 0) {
 			if ((ret < 0) && (errno == EINTR)) {
@@ -248,7 +236,8 @@ void *krad_transmitter_transmission_thread (void *arg) {
 		
 			for (e = 0; e < ret; e++) {
 			
-				krad_transmission_receiver = (krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;			
+				krad_transmission_receiver =
+				(krad_transmission_receiver_t *)krad_transmission->transmission_events[e].data.ptr;			
 	
 				if (krad_transmission_receiver->noob == 1) {
 					krad_transmission_receiver->noob = 0;
@@ -285,7 +274,8 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 						//usleep (100000);
 
-						//printk ("Krad Transmitter: can and will write to socket %d", krad_transmission_receiver->fd);
+						// printk ("Krad Transmitter: can and will write to socket %d",
+						// krad_transmission_receiver->fd);
 
 						if (krad_transmission_receiver->wrote_http_header == 0) {
 						
@@ -652,21 +642,10 @@ int krad_transmitter_transmission_add_data_opt (krad_transmission_t *krad_transm
 
 	int ret;
 	ret = 0;
-	
-	//printk ("Krad Transmitter: transmission %s added data %d bytes",
-	//		krad_transmission->sysname,
-	//		length);
-
-
-	//if ((krad_transmission->ready == 1) && (krad_transmission->receivers == 0)) {
-	//	//return 0;
-	//	return length;
-	//}
 
 	while (krad_transmission->new_data == 1) {
 		usleep(5000);
 	}
-
 
 	if ((krad_transmission->ready == 0) && (krad_transmission->header_len > 0) && (length > 0)) {
 		ret = krad_ringbuffer_write (krad_transmission->ringbuffer, (char *)buffer, length);
@@ -676,17 +655,13 @@ int krad_transmitter_transmission_add_data_opt (krad_transmission_t *krad_transm
 
 		printk ("Krad Transmitter: transmission %s added now ready!",
 				krad_transmission->sysname);
-		
 		return ret;
 	} else {
-
 		ret = krad_ringbuffer_write (krad_transmission->ringbuffer, (char *)buffer, length);
 		krad_transmission->new_sync_point = sync;
 		krad_transmission->new_data = 1;
-
 		return ret;
 	}
-
 }
 
 krad_transmission_t *krad_transmitter_transmission_create (krad_transmitter_t *krad_transmitter, char *name, char *content_type) {
@@ -1015,7 +990,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 							printke ("Krad Transmitter: Accepted transmitter connection on descriptor %d ... but could not getnameinfo()?", client_fd, hbuf, sbuf);
 						}
 
-						set_socket_nonblocking (client_fd);
+						krad_system_set_socket_nonblocking (client_fd);
 
 						krad_transmission_receiver = krad_transmitter_receiver_create (krad_transmitter, client_fd);
 
@@ -1145,7 +1120,7 @@ int krad_transmitter_listen_on (krad_transmitter_t *krad_transmitter, int port) 
 		return 1;
 	}
 
-	set_socket_nonblocking (krad_transmitter->incoming_connections_sd);	
+	krad_system_set_socket_nonblocking (krad_transmitter->incoming_connections_sd);	
 
 	krad_transmitter->incoming_connections_efd = epoll_create1 (0);
 	
