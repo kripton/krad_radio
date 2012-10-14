@@ -648,7 +648,8 @@ void krad_ebml_add_video(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	krad_ebml_write (krad_ebml, buffer, buffer_len);
 	
 	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
-		(krad_ebml->io_adapter.write == krad_ebml_streamio_write)) {		
+		((krad_ebml->io_adapter.write == krad_ebml_streamio_write) ||
+		(krad_ebml->io_adapter.write == krad_ebml_transmissionio_write))) {		
 		krad_ebml_write_sync (krad_ebml);
 	}
 	
@@ -704,7 +705,8 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
 	krad_ebml_write(krad_ebml, buffer, buffer_len);
 	
 	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
-		(krad_ebml->io_adapter.write == krad_ebml_streamio_write)) {		
+		((krad_ebml->io_adapter.write == krad_ebml_streamio_write) ||
+		(krad_ebml->io_adapter.write == krad_ebml_transmissionio_write))) {		
 		krad_ebml_write_sync (krad_ebml);
 	}
 	
