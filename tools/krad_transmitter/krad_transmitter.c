@@ -38,6 +38,11 @@ int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmissi
 	bytes_avail = 0;
 	bytes_wrote = 0;
 	
+	if ((krad_transmission == NULL) || (krad_transmission_receiver == NULL)) {
+		return 0;
+	}
+	
+	
 	while (1) {
 	
 		if (krad_transmission_receiver->ready == 0) {
