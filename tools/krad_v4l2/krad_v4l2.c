@@ -168,7 +168,7 @@ char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2) {
 
 			kradv4l2->timestamp = kradv4l2->buf.timestamp;
 			
-			printk("timestamp %zu %zu", kradv4l2->timestamp.tv_sec, kradv4l2->timestamp.tv_usec);
+			//printk("timestamp %zu %zu", kradv4l2->timestamp.tv_sec, kradv4l2->timestamp.tv_usec);
 
 
 			elapsed_ms = ((elapsed.tv_sec * 1000) + (elapsed.tv_usec / 1000));
@@ -179,7 +179,7 @@ char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2) {
 				//kradv4l2_uvc_h264_keyframe_req (kradv4l2);
 			}
 			
-
+			/*
 			if (kradv4l2->buf.flags & V4L2_BUF_FLAG_TIMECODE) {
 				printk ("V4L2_BUF_FLAG_TIMECODE");
 			}
@@ -191,7 +191,8 @@ char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2) {
 			}
 			if (kradv4l2->buf.flags & V4L2_BUF_FLAG_KEYFRAME) {
 				printk ("V4L2_BUF_FLAG_KEYFRAME");
-			}			
+			}
+			*/			
 			
 			kradv4l2->encoded_size = kradv4l2->buf.bytesused;
 			//kradv4l2->encoded_size = kradv4l2->buffers[kradv4l2->buf.index].length;
@@ -439,7 +440,7 @@ void kradv4l2_start_capturing (krad_v4l2_t *kradv4l2) {
 	if (kradv4l2->mode == V4L2_PIX_FMT_H264) {
 		//kradv4l2_uvc_h264_reset (kradv4l2);
 		kradv4l2_uvc_h264_set_rc_mode (kradv4l2, RATECONTROL_VBR);
-		kradv4l2_uvc_h264_set_bitrate (kradv4l2, 200);
+		kradv4l2_uvc_h264_set_bitrate (kradv4l2, 300);
 		printk ("krad v4l2 set h264 mode to vbr");
 	}
 	

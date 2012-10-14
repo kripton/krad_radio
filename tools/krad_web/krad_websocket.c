@@ -543,7 +543,7 @@ void krad_websocket_add_portgroup ( krad_ipc_session_data_t *krad_ipc_session_da
 	//printkd ("add a portgroup called %s withe a volume of %f", portname, floatval);
 
 	cJSON *msg;
-	
+
 	cJSON_AddItemToArray(krad_ipc_session_data->msgs, msg = cJSON_CreateObject());
 	
 	cJSON_AddStringToObject (msg, "com", "kradmixer");

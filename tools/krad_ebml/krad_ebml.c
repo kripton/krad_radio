@@ -426,7 +426,6 @@ void krad_ebml_start_file_segment (krad_ebml_t *krad_ebml) {
 
 void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 
-	char *voiddata;
 	uint64_t segment_info;
 	char version_string[32];
 
@@ -440,10 +439,6 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 		krad_ebml->segment_info_position = krad_ebml_fileio_tell (&krad_ebml->io_adapter);	
 	} else {
 		krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT, &krad_ebml->segment);
-		voiddata = calloc (1, VOID_START_SIZE);
-		krad_ebml->void_space = krad_ebml_fileio_tell (&krad_ebml->io_adapter);	
-		krad_ebml_write_data (krad_ebml, EBML_ID_VOID, voiddata, VOID_START_SIZE);
-		free (voiddata);		
 	}
 	krad_ebml_start_element (krad_ebml, EBML_ID_SEGMENT_INFO, &segment_info);
 	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) &&
