@@ -488,7 +488,7 @@ void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_s
 
 				krad_ebml_write_string (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
 				krad_ebml_write_float (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, 0.0);	
-				krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, xmms2);
+				krad_ebml_write_int8 (krad_ipc_server->clients[c].krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, xmms2);
 				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, portgroup);
 			
 				krad_ebml_finish_element (krad_ipc_server->clients[c].krad_ebml2, subelement);

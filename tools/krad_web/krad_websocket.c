@@ -874,11 +874,12 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					}	
 					break;
 				case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
-					//printkd ("PORTGROUP_CREATED msg %zu bytes  \n", ebml_data_size );
+					//printk ("PORTGROUP_CREATED msg %"PRIu64" bytes", ebml_data_size );
 					
 					krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade, &has_xmms2 );
+
 					krad_websocket_add_portgroup (krad_ipc_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
-					
+
 					break;
 				
 				case EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED:

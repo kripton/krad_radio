@@ -257,7 +257,7 @@ int main (int argc, char *argv[]) {
 				}
 				if (argc == 5) {
 					krad_ipc_mixer_create_portgroup (client, argv[3], "input", atoi (argv[4]));
-				}				
+				}
 			}			
 
 			if (strncmp(argv[2], "output", 6) == 0) {
@@ -266,7 +266,7 @@ int main (int argc, char *argv[]) {
 				}
 				if (argc == 5) {
 					krad_ipc_mixer_create_portgroup (client, argv[3], "output", atoi (argv[4]));
-				}				
+				}
 			}
 
 			if (strncmp(argv[2], "rmport", 6) == 0) {
@@ -312,15 +312,15 @@ int main (int argc, char *argv[]) {
 			}			
 		
 			if (strncmp(argv[2], "xmms2", 5) == 0) {
-				if ((strncmp(argv[4], "play", 4) == 0) || (strncmp(argv[4], "pause", 5) == 0) ||
-					(strncmp(argv[4], "stop", 4) == 0) || (strncmp(argv[4], "next", 4) == 0) ||
-					(strncmp(argv[4], "prev", 4) == 0)) {
-					krad_ipc_mixer_portgroup_xmms2_cmd (client, argv[3], argv[4]);
-					return 0;
-				}
-
 				if (argc == 5) {
-					krad_ipc_mixer_bind_portgroup_xmms2 (client, argv[3], argv[4]);
+					if ((strncmp(argv[4], "play", 4) == 0) || (strncmp(argv[4], "pause", 5) == 0) ||
+						(strncmp(argv[4], "stop", 4) == 0) || (strncmp(argv[4], "next", 4) == 0) ||
+						(strncmp(argv[4], "prev", 4) == 0)) {
+						krad_ipc_mixer_portgroup_xmms2_cmd (client, argv[3], argv[4]);
+						return 0;
+					} else {
+						krad_ipc_mixer_bind_portgroup_xmms2 (client, argv[3], argv[4]);
+					}
 				}
 			}	
 		

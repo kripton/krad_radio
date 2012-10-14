@@ -1328,7 +1328,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 												  	   		  portgroup->io_type, portgroup->volume[0],
 												  	   		  portgroup->mixbus->sysname, 0 );
 			}
-		
+
 			break;
 		case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:	
 			
