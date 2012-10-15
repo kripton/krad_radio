@@ -180,6 +180,7 @@ void krad_xmms_disconnect (krad_xmms_t *krad_xmms) {
 		krad_xmms->connected = 0;
 		krad_xmms->fd = 0;
 		krad_xmms->connection = NULL;
+		krad_xmms->handler_running = 0;
 	}
 }
 
