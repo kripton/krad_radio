@@ -11,7 +11,7 @@ void krad_audio_portgroup_samples_callback (int frames, void *userdata, float **
 			break;
 		case ALSA:
 			break;
-		case TONE:		
+		case TONE:
 			break;
 		case NOAUDIO:
 			break;

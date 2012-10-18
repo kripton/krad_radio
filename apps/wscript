@@ -8,7 +8,8 @@ krad_radio_daemon.c
 
 programs2 = """
 krad_radio.c
-krad_radio_af.c
+krad_radio_ap.c
+krad_radio_vp.c
 """.split()
 
 #krad_radio_ncurses.c
@@ -76,6 +77,7 @@ depsources2 = """
 ../tools/krad_link/krad_link_common.c
 ../tools/krad_ipc/krad_ipc_client.c
 ../tools/krad_osc/krad_osc.c
+../tools/krad_tone/krad_tone.c
 ../tools/krad_alsa/krad_alsa_seq.c
 """.split()
 

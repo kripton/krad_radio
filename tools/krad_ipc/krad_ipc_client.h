@@ -50,6 +50,7 @@ struct krad_radio_watchdog_St {
 
 typedef struct kr_shm_St kr_shm_t;
 typedef struct kr_videoport_St kr_videoport_t;
+typedef struct kr_audioport_St kr_audioport_t;
 typedef struct kr_client_St kr_client_t;
 typedef struct kr_client_St krad_ipc_client_t;
 
@@ -70,6 +71,22 @@ struct kr_videoport_St {
 	int sd;
 	
 	int (*callback)(void *, void *);
+	void *pointer;
+	
+	int active;
+	
+	pthread_t process_thread;	
+	
+};
+
+struct kr_audioport_St {
+
+	int samplerate;
+	kr_shm_t *kr_shm;
+	kr_client_t *client;
+	int sd;
+	
+	int (*callback)(uint32_t, void *);
 	void *pointer;
 	
 	int active;
@@ -100,6 +117,14 @@ struct kr_client_St {
 
 };
 
+float *kr_audioport_get_buffer (kr_audioport_t *kr_audioport);
+
+void kr_audioport_set_callback (kr_audioport_t *kr_audioport, int callback (uint32_t, void *), void *pointer);
+void kr_audioport_activate (kr_audioport_t *kr_audioport);
+void kr_audioport_deactivate (kr_audioport_t *kr_audioport);
+
+kr_audioport_t *kr_audioport_create (krad_ipc_client_t *client);
+void kr_audioport_destroy (kr_audioport_t *kr_audioport);
 
 void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void *, void *), void *pointer);
 void kr_videoport_activate (kr_videoport_t *kr_videoport);

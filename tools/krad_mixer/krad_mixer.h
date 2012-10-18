@@ -1,5 +1,6 @@
 typedef struct krad_mixer_St krad_mixer_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_portgroup_t;
+typedef struct krad_mixer_local_portgroup_St krad_mixer_local_portgroup_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_mixbus_t;
 typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
@@ -25,6 +26,7 @@ typedef enum {
 
 typedef enum {
 	KRAD_TONE,
+	KLOCALSHM,
 	KRAD_AUDIO, /* i.e local audio i/o */
 	KRAD_LINK, /* i.e. remote audio i/o */
 	MIXBUS,	/* i.e. mixer internal i/o */
@@ -48,6 +50,16 @@ struct krad_mixer_crossfade_group_St {
 	float fade;
 
 };
+
+
+struct krad_mixer_local_portgroup_St {
+	int local;
+	int shm_sd;
+	int msg_sd;
+	char *local_buffer;
+	int local_buffer_size;
+};
+
 
 struct krad_mixer_portgroup_St {
 	
@@ -107,6 +119,11 @@ struct krad_mixer_St {
 	krad_ipc_server_t *krad_ipc;
 
 };
+
+
+void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_portgroup_t *krad_mixer_local_portgroup,
+											  float **samples);
+
 
 void krad_mixer_portgroup_xmms2_cmd (krad_mixer_t *krad_mixer, char *portgroupname, char *xmms2_cmd);
 void krad_mixer_bind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname, char *ipc_path);

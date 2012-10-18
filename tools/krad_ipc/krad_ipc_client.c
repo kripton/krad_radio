@@ -3252,7 +3252,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 
 	channels = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
 	
-	//printk  ("Channels: %d", channels);
+	printk  ("Channels: %d", channels);
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -3654,6 +3654,50 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 	}
 }
 
+void kr_audioport_destroy_cmd (kr_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t destroy_audioport;
+	
+	compositor_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_LOCAL_AUDIOPORT_DESTROY, &destroy_audioport);
+
+	//krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_finish_element (client->krad_ebml, destroy_audioport);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void kr_audioport_create_cmd (kr_client_t *client) {
+
+	//uint64_t ipc_command;
+	uint64_t compositor_command;
+	uint64_t create_audioport;
+	
+	compositor_command = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &compositor_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_LOCAL_AUDIOPORT_CREATE, &create_audioport);
+
+	//krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+
+	krad_ebml_finish_element (client->krad_ebml, create_audioport);
+	krad_ebml_finish_element (client->krad_ebml, compositor_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void kr_videoport_destroy_cmd (kr_client_t *client) {
 
 	//uint64_t ipc_command;
@@ -3725,6 +3769,130 @@ int krad_ipc_client_sendfd (kr_client_t *client, int fd) {
 	if((n=sendmsg(client->sd, &msg, 0)) != iov.iov_len)
 		    return 0;
 	return 1;
+}
+
+float *kr_audioport_get_buffer (kr_audioport_t *kr_audioport) {
+	return (float *)kr_audioport->kr_shm->buffer;
+}
+
+
+void kr_audioport_set_callback (kr_audioport_t *kr_audioport, int callback (uint32_t, void *), void *pointer) {
+
+	kr_audioport->callback = callback;
+	kr_audioport->pointer = pointer;
+
+}
+
+void *kr_audioport_process_thread (void *arg) {
+
+	kr_audioport_t *kr_audioport = (kr_audioport_t *)arg;
+
+	krad_system_set_thread_name ("krc_audioport");
+
+	char buf[1];
+
+	while (kr_audioport->active == 1) {
+	
+		// wait for socket to have a byte
+		read (kr_audioport->sd, buf, 1);
+	
+		//kr_audioport->callback (kr_audioport->kr_shm->buffer, kr_audioport->pointer);
+		kr_audioport->callback (1600, kr_audioport->pointer);
+
+		// write a byte to socket
+		write (kr_audioport->sd, buf, 1);
+
+
+	}
+
+
+	return NULL;
+
+}
+
+void kr_audioport_activate (kr_audioport_t *kr_audioport) {
+	if ((kr_audioport->active == 0) && (kr_audioport->callback != NULL)) {
+		pthread_create (&kr_audioport->process_thread, NULL, kr_audioport_process_thread, (void *)kr_audioport);
+		kr_audioport->active = 1;
+	}
+}
+
+void kr_audioport_deactivate (kr_audioport_t *kr_audioport) {
+
+	if (kr_audioport->active == 1) {
+		kr_audioport->active = 2;
+		pthread_join (kr_audioport->process_thread, NULL);
+		kr_audioport->active = 0;
+	}
+}
+
+kr_audioport_t *kr_audioport_create (kr_client_t *client) {
+
+	kr_audioport_t *kr_audioport;
+	int sockets[2];
+
+	if (client->tcp_port != 0) {
+		// Local clients only
+		return NULL;
+	}
+
+	kr_audioport = calloc (1, sizeof(kr_audioport_t));
+
+	if (kr_audioport == NULL) {
+		return NULL;
+	}
+
+	kr_audioport->client = client;
+
+	kr_audioport->kr_shm = kr_shm_create (kr_audioport->client);
+
+	//sprintf (kr_audioport->kr_shm->buffer, "waa hoo its yaytime");
+
+	if (kr_audioport->kr_shm == NULL) {
+		free (kr_audioport);
+		return NULL;
+	}
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) < 0) {
+		kr_shm_destroy (kr_audioport->kr_shm);
+		free (kr_audioport);
+		return NULL;
+    }
+
+	kr_audioport->sd = sockets[0];
+	
+	printf ("sockets %d and %d\n", sockets[0], sockets[1]);
+	
+	kr_audioport_create_cmd (kr_audioport->client);
+	//FIXME use a return message from daemon to indicate ready to receive fds
+	usleep (33000);
+	krad_ipc_client_sendfd (kr_audioport->client, kr_audioport->kr_shm->fd);
+	usleep (33000);
+	krad_ipc_client_sendfd (kr_audioport->client, sockets[1]);
+	usleep (33000);
+	return kr_audioport;
+
+}
+
+void kr_audioport_destroy (kr_audioport_t *kr_audioport) {
+
+	if (kr_audioport->active == 1) {
+		kr_audioport_deactivate (kr_audioport);
+	}
+
+	kr_audioport_destroy_cmd (kr_audioport->client);
+
+	if (kr_audioport != NULL) {
+		if (kr_audioport->sd != 0) {
+			close (kr_audioport->sd);
+			kr_audioport->sd = 0;
+		}
+		if (kr_audioport->kr_shm != NULL) {
+			kr_shm_destroy (kr_audioport->kr_shm);
+			kr_audioport->kr_shm = NULL;
+		}
+		free(kr_audioport);
+	}
 }
 
 void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void *, void *), void *pointer) {
