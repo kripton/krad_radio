@@ -3676,7 +3676,7 @@ void kr_audioport_destroy_cmd (kr_client_t *client) {
 
 }
 
-void kr_audioport_create_cmd (kr_client_t *client) {
+void kr_audioport_create_cmd (kr_client_t *client, krad_mixer_portgroup_direction_t direction) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -3688,8 +3688,12 @@ void kr_audioport_create_cmd (kr_client_t *client) {
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &compositor_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_LOCAL_AUDIOPORT_CREATE, &create_audioport);
 
-	//krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
-
+	if (direction == OUTPUT) {
+		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION, "output");
+	} else {
+		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION, "input");
+	}
+	
 	krad_ebml_finish_element (client->krad_ebml, create_audioport);
 	krad_ebml_finish_element (client->krad_ebml, compositor_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
@@ -3771,8 +3775,8 @@ int krad_ipc_client_sendfd (kr_client_t *client, int fd) {
 	return 1;
 }
 
-float *kr_audioport_get_buffer (kr_audioport_t *kr_audioport) {
-	return (float *)kr_audioport->kr_shm->buffer;
+float *kr_audioport_get_buffer (kr_audioport_t *kr_audioport, int channel) {
+	return (float *)kr_audioport->kr_shm->buffer + (channel * 1600);
 }
 
 
@@ -3826,7 +3830,7 @@ void kr_audioport_deactivate (kr_audioport_t *kr_audioport) {
 	}
 }
 
-kr_audioport_t *kr_audioport_create (kr_client_t *client) {
+kr_audioport_t *kr_audioport_create (kr_client_t *client, krad_mixer_portgroup_direction_t direction) {
 
 	kr_audioport_t *kr_audioport;
 	int sockets[2];
@@ -3843,6 +3847,7 @@ kr_audioport_t *kr_audioport_create (kr_client_t *client) {
 	}
 
 	kr_audioport->client = client;
+	kr_audioport->direction = direction;
 
 	kr_audioport->kr_shm = kr_shm_create (kr_audioport->client);
 
@@ -3863,7 +3868,7 @@ kr_audioport_t *kr_audioport_create (kr_client_t *client) {
 	
 	printf ("sockets %d and %d\n", sockets[0], sockets[1]);
 	
-	kr_audioport_create_cmd (kr_audioport->client);
+	kr_audioport_create_cmd (kr_audioport->client, kr_audioport->direction);
 	//FIXME use a return message from daemon to indicate ready to receive fds
 	usleep (33000);
 	krad_ipc_client_sendfd (kr_audioport->client, kr_audioport->kr_shm->fd);

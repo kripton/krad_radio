@@ -9,6 +9,7 @@
 #include <libwebsockets.h>
 
 #include "krad_system.h"
+#include "krad_mixer_common.h"
 #include "krad_ipc_client.h"
 #include "krad_radio_ipc.h"
 

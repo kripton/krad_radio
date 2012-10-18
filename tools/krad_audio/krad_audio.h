@@ -22,6 +22,7 @@ typedef enum {
 #include "krad_alsa.h"
 #include "krad_jack.h"
 #include "krad_mixer.h"
+#include "krad_mixer_common.h"
 
 #include "krad_radio.h"
 

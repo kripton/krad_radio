@@ -13,16 +13,8 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
 #ifndef KRAD_MIXER_H
 #define KRAD_MIXER_H
-
-#include "hardlimiter.h"
-
 #include "krad_mixer_common.h"
-
-typedef enum {
-	OUTPUT,
-	INPUT,
-	MIX,
-} krad_mixer_portgroup_direction_t;
+#include "hardlimiter.h"
 
 typedef enum {
 	KRAD_TONE,
@@ -58,6 +50,7 @@ struct krad_mixer_local_portgroup_St {
 	int msg_sd;
 	char *local_buffer;
 	int local_buffer_size;
+	krad_mixer_portgroup_direction_t direction;	
 };
 
 

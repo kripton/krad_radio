@@ -2,18 +2,30 @@
 #include "krad_tone.h"
 
 krad_tone_t *krad_tone;
+krad_tone_t *krad_tone2;
 
 int audioport_process (uint32_t nframes, void *arg) {
 
+	int s;
 	float *buffer;
 	kr_audioport_t *kr_audioport;
 	
 	kr_audioport = (kr_audioport_t *)arg;
 	
-	buffer = kr_audioport_get_buffer (kr_audioport);
+	buffer = kr_audioport_get_buffer (kr_audioport, 0);
+	if (kr_audioport->direction == INPUT) {
+		krad_tone_run (krad_tone, buffer, nframes);
+		buffer = kr_audioport_get_buffer (kr_audioport, 1);
+		krad_tone_run (krad_tone2, buffer, nframes);
+	} else {
+		for (s = 0; s < 1600; s++) {
+			if (buffer[s] > 0.3) {
+				printf("signal!\n");
+				break;
+			}
+		}
+	}
 	
-	krad_tone_run (krad_tone, buffer, nframes);
-
 	return 0;
 
 }
@@ -22,6 +34,9 @@ int main (int argc, char *argv[]) {
 
 	kr_client_t *kr;
 	kr_audioport_t *kr_audioport;
+	krad_mixer_portgroup_direction_t direction;
+
+	direction = INPUT;
 
 	if (argc != 2) {
 		if (argc > 2) {
@@ -39,10 +54,14 @@ int main (int argc, char *argv[]) {
 		return 1;
 	}	
 
-	krad_tone = krad_tone_create(48000);
-	krad_tone_add_preset (krad_tone, "3");
+	if (direction == INPUT) {
+		krad_tone = krad_tone_create(48000);
+		krad_tone_add_preset (krad_tone, "3");
+		krad_tone2 = krad_tone_create(48000);
+		krad_tone_add_preset (krad_tone2, "3");
+	}
 
-	kr_audioport = kr_audioport_create (kr);
+	kr_audioport = kr_audioport_create (kr, direction);
 
 	if (kr_audioport != NULL) {
 		printf ("i worked real good\n");
@@ -58,8 +77,11 @@ int main (int argc, char *argv[]) {
 	
 	kr_audioport_destroy (kr_audioport);
 
-	krad_tone_destroy (krad_tone);
-
+	if (direction == INPUT) {
+		krad_tone_destroy (krad_tone);
+		krad_tone_destroy (krad_tone2);
+	}
+	
 	kr_disconnect (kr);
 
 	return 0;

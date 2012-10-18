@@ -23,11 +23,12 @@
 #include <pthread.h>
 #include <sys/mman.h>
 
+#include "krad_mixer_common.h"
 #include "krad_radio_ipc.h"
 #include "krad_system.h"
 #include "krad_ebml.h"
 #include "krad_link_common.h"
-#include "krad_mixer_common.h"
+
 
 #define KRAD_IPC_BUFFER_SIZE 16384
 #ifndef KRAD_IPC_CLIENT
@@ -86,6 +87,8 @@ struct kr_audioport_St {
 	kr_client_t *client;
 	int sd;
 	
+	krad_mixer_portgroup_direction_t direction;
+	
 	int (*callback)(uint32_t, void *);
 	void *pointer;
 	
@@ -117,13 +120,13 @@ struct kr_client_St {
 
 };
 
-float *kr_audioport_get_buffer (kr_audioport_t *kr_audioport);
+float *kr_audioport_get_buffer (kr_audioport_t *kr_audioport, int channel);
 
 void kr_audioport_set_callback (kr_audioport_t *kr_audioport, int callback (uint32_t, void *), void *pointer);
 void kr_audioport_activate (kr_audioport_t *kr_audioport);
 void kr_audioport_deactivate (kr_audioport_t *kr_audioport);
 
-kr_audioport_t *kr_audioport_create (krad_ipc_client_t *client);
+kr_audioport_t *kr_audioport_create (krad_ipc_client_t *client, krad_mixer_portgroup_direction_t direction);
 void kr_audioport_destroy (kr_audioport_t *kr_audioport);
 
 void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void *, void *), void *pointer);

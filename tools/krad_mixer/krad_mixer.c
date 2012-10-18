@@ -341,6 +341,9 @@ void portgroup_copy_samples (krad_mixer_portgroup_t *dest_portgroup, krad_mixer_
 			}
 			break;
 		case KLOCALSHM:
+			if (dest_portgroup->direction == OUTPUT) {
+				krad_mixer_local_audio_samples_callback (nframes, dest_portgroup->io_ptr, src_portgroup->samples);
+			}
 			break;
 	}
 }
@@ -479,6 +482,10 @@ void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_port
 	ret = 0;
 	wrote = 0;
 	buf[0] = 0;
+	
+	if (krad_mixer_local_portgroup->direction == OUTPUT) {
+		memcpy (krad_mixer_local_portgroup->local_buffer, samples[0], 2 * 4 * 1600);
+	}
 
 	wrote = write (krad_mixer_local_portgroup->msg_sd, buf, 1);
 
@@ -511,10 +518,13 @@ krad_mixer_portgroup_t *krad_mixer_local_portgroup_create (krad_mixer_t *krad_mi
 											   krad_mixer_local_portgroup->shm_sd, 0);
 
 
-	krad_mixer_portgroup = krad_mixer_portgroup_create (krad_mixer, sysname, direction, 1,
+	krad_mixer_local_portgroup->direction = direction;
+
+	krad_mixer_portgroup = krad_mixer_portgroup_create (krad_mixer, sysname, krad_mixer_local_portgroup->direction, 2,
 										krad_mixer->master_mix, KLOCALSHM, krad_mixer_local_portgroup, NOAUDIO);	
 
 	krad_mixer_portgroup->samples[0] = (float *)krad_mixer_local_portgroup->local_buffer;
+	krad_mixer_portgroup->samples[1] = (float *)krad_mixer_local_portgroup->local_buffer + 1600;
 
 	krad_mixer_portgroup->active = 1;
 
@@ -1554,13 +1564,29 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 		
 			sd1 = 0;
 			sd2 = 0;
-		
+
+			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION ) {
+				printke ("hrm wtf3");
+			} else {
+				//printf("tag value size %zu\n", ebml_data_size);
+			}
+
+			krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+
+			if (strncmp(string, "output", 6) == 0) {
+				direction = OUTPUT;
+			} else {
+				direction = INPUT;
+			}
+
 			sd1 = krad_ipc_server_recvfd (krad_ipc->current_client);
 			sd2 = krad_ipc_server_recvfd (krad_ipc->current_client);
 				
 			printk ("AUDIOPORT_CREATE Got FD's %d and %d\n", sd1, sd2);
 				
-			krad_mixer_local_portgroup_create (krad_mixer, "localport", INPUT, sd1, sd2);
+			krad_mixer_local_portgroup_create (krad_mixer, "localport", direction, sd1, sd2);
 				
 			break;
 			

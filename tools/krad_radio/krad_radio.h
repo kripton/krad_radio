@@ -38,6 +38,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_jack.h"
 #include "krad_alsa.h"
 #include "krad_mixer.h"
+#include "krad_mixer_common.h"
 #include "krad_websocket.h"
 #include "krad_http.h"
 #include "krad_udp.h"
