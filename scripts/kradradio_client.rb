@@ -46,8 +46,11 @@ class KradStation
 		@comp_width = 0
 		@comp_height = 0
 		Kernel.srand
+    if (ARGV[0] == "restart")
+      self.cmd("destroy")
+    end
 		self.launch_daemon
-		sleep 0.1
+		sleep 0.666
 	end
 
 	def launch_daemon
@@ -197,7 +200,7 @@ class KradStation
 		thecmd = "krad_radio #{@name} #{action}"
 		puts "command: #{thecmd}"
 		ret = `#{thecmd}`.chomp
-		sleep 0.1
+		sleep 0.05
 		return ret
 	end
 
