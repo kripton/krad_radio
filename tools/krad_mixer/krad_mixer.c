@@ -90,24 +90,38 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
 
 void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
 
-  static kr_eq_t *kr_eq = NULL;
+  static kr_eq_t *kr_eq[2];
 	int c;
 
-  if (kr_eq == NULL) {
-    kr_eq = kr_eq_create (portgroup->krad_mixer->sample_rate);
-    kr_eq_band_add (kr_eq, 60);
-    kr_eq_band_set_db (kr_eq, 0, 17.0);
-    kr_eq_band_add (kr_eq, 1660);
-    kr_eq_band_set_db (kr_eq, 1, 7.0);
+  if (kr_eq[0] == NULL) {
+    kr_eq[0] = kr_eq_create (portgroup->krad_mixer->sample_rate);
+    kr_eq_band_add (kr_eq[0], 60);
+    kr_eq_band_set_db (kr_eq[0], 0, 17.0);
+    kr_eq_band_set_bandwidth (kr_eq[0], 0, 2.0);
+    kr_eq_band_add (kr_eq[0], 1660);
+    kr_eq_band_set_db (kr_eq[0], 1, 7.0);
   }
 
-  if (kr_eq->sample_rate != portgroup->krad_mixer->sample_rate) {
-    kr_eq_set_sample_rate (kr_eq, portgroup->krad_mixer->sample_rate);
+  if (kr_eq[1] == NULL) {
+    kr_eq[1] = kr_eq_create (portgroup->krad_mixer->sample_rate);
+    kr_eq_band_add (kr_eq[1], 60);
+    kr_eq_band_set_db (kr_eq[1], 0, 17.0);
+    kr_eq_band_set_bandwidth (kr_eq[1], 0, 2.0);
+    kr_eq_band_add (kr_eq[1], 1660);
+    kr_eq_band_set_db (kr_eq[1], 1, 7.0);
   }
-	
+
+  if (kr_eq[0]->sample_rate != portgroup->krad_mixer->sample_rate) {
+    kr_eq_set_sample_rate (kr_eq[0], portgroup->krad_mixer->sample_rate);
+  }
+
+  if (kr_eq[1]->sample_rate != portgroup->krad_mixer->sample_rate) {
+    kr_eq_set_sample_rate (kr_eq[1], portgroup->krad_mixer->sample_rate);
+  }	
+
   if (strcmp(portgroup->sysname, "Music") == 0) {
-	  for (c = 0; c < 1; c++) {
-     kr_eq_process (kr_eq, portgroup->samples[c], portgroup->samples[c], nframes);
+	  for (c = 0; c < 2; c++) {
+     kr_eq_process (kr_eq[c], portgroup->samples[c], portgroup->samples[c], nframes);
    }
   }
 }
