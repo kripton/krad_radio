@@ -46,9 +46,6 @@ typedef union {
         int32_t i;
 } ls_pcast32;
 
-// Sometimes it doesn't get defined, even though it eists and C99 is declared
-long int lrintf (float x);
-
 // 1.0 / ln(2)
 #define LN2R 1.442695041f
 
@@ -159,24 +156,11 @@ static inline float f_sin_sq(float angle)
 	return result * result;
 }
 
-#ifdef HAVE_LRINTF
+
 
 #define f_round(f) lrintf(f)
 
-#else
 
-// Round float to int using IEEE int* hack
-static inline int f_round(float f)
-{
-	ls_pcast32 p;
-
-	p.f = f;
-	p.f += (3<<22);
-
-	return p.i - 0x4b400000;
-}
-
-#endif
 
 // Truncate float to int
 static inline int f_trunc(float f)

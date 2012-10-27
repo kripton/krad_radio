@@ -1,6 +1,5 @@
 #include "krad_eq.h"
 
-
 /* OpControls */
 void kr_eq_band_add (kr_eq_t *kr_eq, float hz) {
 

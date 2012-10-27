@@ -88,6 +88,26 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
 	
 }
 
+void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
+
+  static kr_eq_t *kr_eq = NULL;
+
+  if (kr_eq == NULL) {
+    kr_eq = kr_eq_create (portgroup->krad_mixer->sample_rate);
+    kr_eq_band_add (kr_eq, 80);
+    kr_eq_band_set_db (kr_eq, 0, 7.0);
+    kr_eq_band_add (kr_eq, 2220);
+    kr_eq_band_set_db (kr_eq, 1, 4.0);
+  }
+
+
+	int c;
+	
+	for (c = 0; c < portgroup->channels; c++) {
+    kr_eq_process (kr_eq, portgroup->samples[c], portgroup->samples[c], nframes);
+  }
+}
+
 void portgroup_apply_volume (krad_mixer_portgroup_t *portgroup, int nframes) {
 
 	int c, s, sign;
@@ -389,11 +409,12 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 		}
 	}
 
-	// apply volume and calc peaks on inputs
+	// apply volume, effects and calc peaks on inputs
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
 			portgroup_apply_volume (portgroup, nframes);
+			portgroup_apply_effects (portgroup, nframes);
 			krad_mixer_portgroup_compute_peaks (portgroup, nframes);
 			//printf("%f\n", portgroup->samples[0][128]);
 		}

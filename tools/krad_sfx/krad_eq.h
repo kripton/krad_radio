@@ -5,12 +5,9 @@
 #include <unistd.h>
 #include <math.h>
 #include <inttypes.h>
+#include <time.h>
 
 #include "biquad.h"
-
-#define LOW_BW 1.0f
-#define MID_BW 3.0f
-#define HIGH_BW 3.0f
 
 #define MAX_BANDS 32
 
