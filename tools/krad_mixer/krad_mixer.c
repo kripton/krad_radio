@@ -91,7 +91,10 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
 void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
 
   static kr_eq_t *kr_eq[2];
+  static kr_pass_t *kr_pass[2];
 	int c;
+
+  // EQ demo
 
   if (kr_eq[0] == NULL) {
     kr_eq[0] = kr_eq_create (portgroup->krad_mixer->sample_rate);
@@ -124,6 +127,37 @@ void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
      kr_eq_process (kr_eq[c], portgroup->samples[c], portgroup->samples[c], nframes);
    }
   }
+
+  // High / Lowpass demo
+
+  if (kr_pass[0] == NULL) {
+    kr_pass[0] = kr_pass_create (portgroup->krad_mixer->sample_rate);
+    kr_pass_set_hz (kr_pass[0], 250);
+    kr_pass_set_type (kr_pass[0], 0);
+    kr_pass_set_bandwidth (kr_pass[0], 5.0);
+  }
+
+  if (kr_pass[1] == NULL) {
+    kr_pass[1] = kr_pass_create (portgroup->krad_mixer->sample_rate);
+    kr_pass_set_hz (kr_pass[1], 250);
+    kr_pass_set_type (kr_pass[1], 1);
+    kr_pass_set_bandwidth (kr_pass[1], 5.0);
+  }
+
+  if (kr_pass[0]->sample_rate != portgroup->krad_mixer->sample_rate) {
+    kr_pass_set_sample_rate (kr_pass[0], portgroup->krad_mixer->sample_rate);
+  }
+
+  if (kr_pass[1]->sample_rate != portgroup->krad_mixer->sample_rate) {
+    kr_pass_set_sample_rate (kr_pass[1], portgroup->krad_mixer->sample_rate);
+  }	
+
+  if (strcmp(portgroup->sysname, "Music") == 0) {
+	  for (c = 0; c < 2; c++) {
+     kr_pass_process (kr_pass[c], portgroup->samples[c], portgroup->samples[c], nframes);
+   }
+  }
+
 }
 
 void portgroup_apply_volume (krad_mixer_portgroup_t *portgroup, int nframes) {

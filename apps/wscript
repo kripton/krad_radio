@@ -38,6 +38,7 @@ depsources = """
 ../tools/krad_web/krad_websocket.c
 ../tools/krad_sfx/hardlimiter.c
 ../tools/krad_sfx/krad_eq.c
+../tools/krad_sfx/krad_pass.c
 ../tools/krad_ipc/krad_ipc_client.c
 ../tools/krad_ipc/krad_ipc_server.c
 ../tools/krad_tags/krad_tags.c

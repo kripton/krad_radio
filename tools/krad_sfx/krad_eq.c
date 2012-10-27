@@ -65,8 +65,8 @@ void kr_eq_process (kr_eq_t *kr_eq, float *input, float *output, int num_samples
   int recompute_default;
 
   if (kr_eq->new_sample_rate != kr_eq->sample_rate) {
-    recompute_default = 1;
     kr_eq->sample_rate = kr_eq->new_sample_rate;
+    recompute_default = 1;
   } else {
     recompute_default = 0;
   }
