@@ -1,56 +1,128 @@
 #include "krad_eq.h"
 
 
+/* OpControls */
+void kr_eq_band_add (kr_eq_t *kr_eq, float hz) {
 
-kr_eq_t *kr_eq_create (int sample_rate) {
+  int b;
 
-  int i;
+  for (b = 0; b < MAX_BANDS; b++) {
+    if (kr_eq->band[b].active == 0) {
+      biquad_init(&kr_eq->band[b].filter);
+      kr_eq->band[b].db = 0.0f;
+      kr_eq->band[b].hz = hz;
+      if (kr_eq->band[b].hz < 250.0f) {
+        kr_eq->band[b].bandwidth = 1.0f;
+      } else {
+        kr_eq->band[b].bandwidth = 3.0f;
+      }
 
-  kr_eq_t *kr_eq = calloc (1, sizeof(kr_eq_t));
-	
-  kr_eq->sample_rate = sample_rate;
+      kr_eq->band[b].new_db = kr_eq->band[b].db;
+      kr_eq->band[b].new_hz = kr_eq->band[b].hz;
+      kr_eq->band[b].new_bandwidth = kr_eq->band[b].bandwidth;
 
-/*  
-	for (i = 0; i < CHANNELS; i++) {
-		biquad_init(&kr_eq->filters[i*BANDS + 0]);
-		eq_set_params(&kr_eq->filters[i*BANDS + 0], 100.0f, 0.0f, LOW_BW, kr_eq->sample_rate);
-		biquad_init(&kr_eq->filters[i*BANDS + 1]);
-		eq_set_params(&kr_eq->filters[i*BANDS + 1], 1000.0f, 0.0f, MID_BW, kr_eq->sample_rate);
-		biquad_init(&kr_eq->filters[i*BANDS + 2]);
-		eq_set_params(&kr_eq->filters[i*BANDS + 2], 10000.0f, 0.0f, HIGH_BW, kr_eq->sample_rate);
-	}
-*/	
-	return kr_eq;
+      eq_set_params(&kr_eq->band[b].filter,
+                    kr_eq->band[b].hz,
+                    kr_eq->band[b].db,
+                    kr_eq->band[b].bandwidth,
+                    kr_eq->sample_rate);
 
+      kr_eq->band[b].active = 1;
+      break;
+    }
+  }
+}
+
+
+void kr_eq_band_remove (kr_eq_t *kr_eq, int band_num) {
+  if (kr_eq->band[band_num].active == 1) {
+    kr_eq->band[band_num].active = 2;
+  }
+}
+
+/* Controls */
+void kr_eq_band_set_db (kr_eq_t *kr_eq, int band_num, float db) {
+  if (kr_eq->band[band_num].active == 1) {
+    kr_eq->band[band_num].new_db = db;
+  }
+}
+
+void kr_eq_band_set_bandwidth (kr_eq_t *kr_eq, int band_num, float bandwidth) {
+  if (kr_eq->band[band_num].active == 1) {
+    kr_eq->band[band_num].new_bandwidth = bandwidth;
+  }
+}
+
+void kr_eq_band_set_hz (kr_eq_t *kr_eq, int band_num, float hz) {
+  if (kr_eq->band[band_num].active == 1) {
+    kr_eq->band[band_num].new_hz = hz;
+  }
 }
 
 void kr_eq_process (kr_eq_t *kr_eq, float *input, float *output, int num_samples) {
 
-  int i;
-  float sample;
-/*
-	for (i = 0; i < CHANNELS; i++) {
-		eq_set_params(&kr_eq->filters[i*BANDS + 0], 100.0f, kr_eq->low, LOW_BW, kr_eq->sample_rate);
-		eq_set_params(&kr_eq->filters[i*BANDS + 1], 1000.0f, kr_eq->mid, MID_BW, kr_eq->sample_rate);
-		eq_set_params(&kr_eq->filters[i*BANDS + 2], 10000.0f, kr_eq->high, HIGH_BW, kr_eq->sample_rate);
-	}
+  int b, s;
+  int recompute;
+  int recompute_default;
 
-	for (kr_eq->pos = 0; kr_eq->pos < sample_count; kr_eq->pos++) {
-		sample = biquad_run(&kr_eq->filters[0], left_input[kr_eq->pos]);
-		sample = biquad_run(&kr_eq->filters[1], sample);
-		sample = biquad_run(&kr_eq->filters[2], sample);
-		left_output[kr_eq->pos] = sample;
+  if (kr_eq->new_sample_rate != kr_eq->sample_rate) {
+    recompute_default = 1;
+    kr_eq->sample_rate = kr_eq->new_sample_rate;
+  } else {
+    recompute_default = 0;
+  }
 
-		sample = biquad_run(&kr_eq->filters[3], right_input[kr_eq->pos]);
-		sample = biquad_run(&kr_eq->filters[4], sample);
-		sample = biquad_run(&kr_eq->filters[5], sample);
-		right_output[kr_eq->pos] = sample;
-	}
-*/
+  for (b = 0; b < MAX_BANDS; b++) {
+    recompute = recompute_default;
+    if (kr_eq->band[b].active == 2) {
+      kr_eq->band[b].active = 0;
+    }
+    if (kr_eq->band[b].active != 1) {
+      continue;
+    }
+    if (kr_eq->band[b].new_hz != kr_eq->band[b].hz) {
+      kr_eq->band[b].hz = kr_eq->band[b].new_hz;
+      recompute = 1;
+    }
+    if (kr_eq->band[b].new_db != kr_eq->band[b].db) {
+      kr_eq->band[b].db = kr_eq->band[b].new_db;
+      recompute = 1;
+    }
+    if (kr_eq->band[b].new_bandwidth != kr_eq->band[b].bandwidth) {
+      kr_eq->band[b].bandwidth = kr_eq->band[b].new_bandwidth;
+      recompute = 1;
+    }
+
+    if (recompute == 1) {
+        eq_set_params(&kr_eq->band[b].filter,
+                      kr_eq->band[b].hz,
+                      kr_eq->band[b].db,
+                      kr_eq->band[b].bandwidth,
+                      kr_eq->sample_rate);
+    }
+    if (kr_eq->band[b].db != 0.0f) {
+      for (s = 0; s < num_samples; s++) {
+        output[s] = biquad_run(&kr_eq->band[b].filter, input[s]);
+      }
+    }
+  }
+}
+
+void kr_eq_set_sample_rate (kr_eq_t *kr_eq, int sample_rate) {
+  kr_eq->new_sample_rate = sample_rate;
+}
+
+kr_eq_t *kr_eq_create (int sample_rate) {
+
+  kr_eq_t *kr_eq = calloc (1, sizeof(kr_eq_t));
+
+  kr_eq->new_sample_rate = sample_rate;
+  kr_eq->sample_rate = kr_eq->new_sample_rate;
+
+  return kr_eq;
+
 }
 
 void kr_eq_destroy(kr_eq_t *kr_eq) {
-
   free (kr_eq);
-
 }

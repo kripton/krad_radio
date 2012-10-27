@@ -8,7 +8,6 @@
 
 #include "biquad.h"
 
-
 #define LOW_BW 1.0f
 #define MID_BW 3.0f
 #define HIGH_BW 3.0f
@@ -22,11 +21,18 @@ typedef struct {
   float db;
   float bandwidth;
   float hz;
-      
+
+  float new_db;
+  float new_bandwidth;
+  float new_hz;
+
+  int active;
+
 } kr_eq_band_t;
 
 typedef struct {
 
+  float new_sample_rate;
   float sample_rate;
   kr_eq_band_t band[MAX_BANDS];
       
@@ -40,10 +46,10 @@ void kr_eq_set_sample_rate (kr_eq_t *kr_eq, int sample_rate);
 void kr_eq_process (kr_eq_t *kr_eq, float *input, float *output, int num_samples);
 
 /* OpControls */
-void kr_eq_band_add (kr_eq_t *kr_eq, int hz);
-void kr_eq_band_remove (kr_eq_t *kr_eq, int hz);
+void kr_eq_band_add (kr_eq_t *kr_eq, float hz);
+void kr_eq_band_remove (kr_eq_t *kr_eq, int band_num);
 
 /* Controls */
-void kr_eq_band_set_db (kr_eq_t *kr_eq, float db);
-void kr_eq_band_set_bandwidth (kr_eq_t *kr_eq, float bandwidth);
-void kr_eq_band_set_hz (kr_eq_t *kr_eq, int hz);
+void kr_eq_band_set_db (kr_eq_t *kr_eq, int band_num, float db);
+void kr_eq_band_set_bandwidth (kr_eq_t *kr_eq, int band_num, float bandwidth);
+void kr_eq_band_set_hz (kr_eq_t *kr_eq, int band_num, float hz);
