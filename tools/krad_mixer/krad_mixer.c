@@ -91,20 +91,24 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
 void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
 
   static kr_eq_t *kr_eq = NULL;
+	int c;
 
   if (kr_eq == NULL) {
     kr_eq = kr_eq_create (portgroup->krad_mixer->sample_rate);
-    kr_eq_band_add (kr_eq, 80);
-    kr_eq_band_set_db (kr_eq, 0, 7.0);
-    kr_eq_band_add (kr_eq, 2220);
-    kr_eq_band_set_db (kr_eq, 1, 4.0);
+    kr_eq_band_add (kr_eq, 60);
+    kr_eq_band_set_db (kr_eq, 0, 17.0);
+    kr_eq_band_add (kr_eq, 1660);
+    kr_eq_band_set_db (kr_eq, 1, 7.0);
   }
 
-
-	int c;
+  if (kr_eq->sample_rate != portgroup->krad_mixer->sample_rate) {
+    kr_eq_set_sample_rate (kr_eq, portgroup->krad_mixer->sample_rate);
+  }
 	
-	for (c = 0; c < portgroup->channels; c++) {
-    kr_eq_process (kr_eq, portgroup->samples[c], portgroup->samples[c], nframes);
+  if (strcmp(portgroup->sysname, "Music") == 0) {
+	  for (c = 0; c < 1; c++) {
+     kr_eq_process (kr_eq, portgroup->samples[c], portgroup->samples[c], nframes);
+   }
   }
 }
 
