@@ -664,7 +664,7 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
   } else {
     if (strcmp(portgroup->sysname, "Music") == 0) {
       kr_effects_effect_add (portgroup->effects, KRAD_EQ);
-      kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_OPCONTROL_ADDBAND, 0, 45);
+      kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_OPCONTROL_ADDBAND, 0, 60);
       kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_CONTROL_BANDWIDTH, 0, 2);
       kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_CONTROL_DB, 0, 10.0);
     }
