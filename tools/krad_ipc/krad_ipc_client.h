@@ -296,6 +296,6 @@ int krad_ipc_recv (krad_ipc_client_t *client, char *buffer, int size);
 void kr_mixer_add_effect (krad_ipc_client_t *client, char *portgroup_name, char *effect_name);
 void kr_mixer_remove_effect (krad_ipc_client_t *client, char *portgroup_name, int effect_num);
 void krad_ipc_set_effect_control (krad_ipc_client_t *client, char *portgroup_name, int effect_num, 
-                                  char *control_name, float control_value);
+                                  char *control_name, int subunit, float control_value);
 
 #endif

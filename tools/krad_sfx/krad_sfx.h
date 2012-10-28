@@ -48,3 +48,8 @@ void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num);
 
 /* Controls */
 void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control, int subunit, float value);
+
+/* Utils */
+
+kr_effect_type_t kr_effects_string_to_effect (char *string);
+int kr_effects_string_to_effect_control (kr_effect_type_t effect_type, char *string);

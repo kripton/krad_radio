@@ -351,8 +351,8 @@ int main (int argc, char *argv[]) {
 			}
 
 			if (strncmp(argv[2], "setfx", 5) == 0) {
-				if (argc == 7) {
-					krad_ipc_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atof(argv[6]));
+				if (argc == 8) {
+					krad_ipc_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]));
 				}
 			}
 			

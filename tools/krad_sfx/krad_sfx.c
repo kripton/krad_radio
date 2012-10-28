@@ -167,3 +167,59 @@ void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, in
     }
   }
 }
+
+kr_effect_type_t kr_effects_string_to_effect (char *string) {
+
+	if ((strlen(string) == 4) && (strncmp(string, "pass", 4) == 0)) {
+		return KRAD_PASS;
+	}
+	
+	if ((strlen(string) == 2) && (strncmp(string, "eq", 2) == 0)) {
+		return KRAD_EQ;
+	}			
+
+	return KRAD_NOFX;
+}
+
+int kr_effects_string_to_effect_control (kr_effect_type_t effect_type, char *string) {
+
+  if (effect_type == KRAD_EQ) {
+
+	  if ((strlen(string) == 2) && (strncmp(string, "db", 2) == 0)) {
+		  return KRAD_EQ_CONTROL_DB;
+	  }
+
+	  if ((strlen(string) == 9) && (strncmp(string, "bandwidth", 9) == 0)) {
+		  return KRAD_EQ_CONTROL_BANDWIDTH;
+	  }
+	
+	  if ((strlen(string) == 2) && (strncmp(string, "hz", 2) == 0)) {
+		  return KRAD_EQ_CONTROL_HZ;
+	  }
+	
+	  if ((strlen(string) == 7) && (strncmp(string, "addband", 7) == 0)) {
+		  return KRAD_EQ_OPCONTROL_ADDBAND;
+	  }
+	
+	  if ((strlen(string) == 6) && (strncmp(string, "rmband", 6) == 0)) {
+		  return KRAD_EQ_OPCONTROL_RMBAND;
+	  }			
+
+  }
+
+  if (effect_type == KRAD_PASS) {
+	  if ((strlen(string) == 4) && (strncmp(string, "type", 4) == 0)) {
+		  return KRAD_PASS_CONTROL_TYPE;
+	  }
+	
+	  if ((strlen(string) == 9) && (strncmp(string, "bandwidth", 9) == 0)) {
+		  return KRAD_PASS_CONTROL_BANDWIDTH;
+	  }
+	
+	  if ((strlen(string) == 2) && (strncmp(string, "hz", 2) == 0)) {
+		  return KRAD_PASS_CONTROL_HZ;
+	  }
+  }
+
+	return 0;
+}
