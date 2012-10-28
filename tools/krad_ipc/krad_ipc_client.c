@@ -1181,6 +1181,80 @@ void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad
 
 }
 
+void kr_mixer_add_effect (krad_ipc_client_t *client, char *portgroup_name, char *effect_name) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t add_effect;
+	
+	mixer_command = 0;
+	add_effect = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_ADD_EFFECT, &add_effect);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_EFFECT_NAME, effect_name);
+
+	krad_ebml_finish_element (client->krad_ebml, add_effect);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void kr_mixer_remove_effect (krad_ipc_client_t *client, char *portgroup_name, int effect_num) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t remove_effect;
+	
+	mixer_command = 0;
+	remove_effect = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_REMOVE_EFFECT, &remove_effect);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_EFFECT_NUM, effect_num);
+
+	krad_ebml_finish_element (client->krad_ebml, remove_effect);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
+void krad_ipc_set_effect_control (krad_ipc_client_t *client, char *portgroup_name, int effect_num, 
+                                  char *control_name, float control_value) {
+
+	//uint64_t ipc_command;
+	uint64_t mixer_command;
+	uint64_t set_control;
+	
+	mixer_command = 0;
+	set_control = 0;
+
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_SET_EFFECT_CONTROL, &set_control);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_EFFECT_NUM, effect_num);
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
+	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
+
+	krad_ebml_finish_element (client->krad_ebml, set_control);
+	krad_ebml_finish_element (client->krad_ebml, mixer_command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
 
 void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value) {
 

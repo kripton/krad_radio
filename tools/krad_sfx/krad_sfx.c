@@ -39,6 +39,8 @@ void kr_effects_set_sample_rate (kr_effects_t *kr_effects, int sample_rate) {
     if (kr_effects->effect[x].active == 1) {
       for (c = 0; c < kr_effects->channels; c++) {
         switch (kr_effects->effect[x].effect_type) {
+          case KRAD_NOFX:
+            break;
           case KRAD_EQ:
             kr_eq_set_sample_rate (kr_effects->effect[x].effect[c], kr_effects->sample_rate);
             break;
@@ -59,6 +61,8 @@ void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output
     if (kr_effects->effect[x].active == 1) {
       for (c = 0; c < kr_effects->channels; c++) {
         switch (kr_effects->effect[x].effect_type) {
+          case KRAD_NOFX:
+            break;
           case KRAD_EQ:
             kr_eq_process (kr_effects->effect[x].effect[c], input[c], output[c], num_samples);
             break;
@@ -81,9 +85,11 @@ void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect) {
       kr_effects->effect[x].effect_type = effect;
       for (c = 0; c < kr_effects->channels; c++) {
         switch (kr_effects->effect[x].effect_type) {
+          case KRAD_NOFX:
+            break;
           case KRAD_EQ:
             kr_effects->effect[x].effect[c] = kr_eq_create (kr_effects->sample_rate);
-          break;
+            break;
          case KRAD_PASS:
            kr_effects->effect[x].effect[c] = kr_pass_create (kr_effects->sample_rate);
            break;
@@ -101,6 +107,8 @@ void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num) {
 
   for (c = 0; c < kr_effects->channels; c++) {
     switch (kr_effects->effect[effect_num].effect_type) {
+      case KRAD_NOFX:
+        break;
       case KRAD_EQ:
         kr_eq_destroy(kr_effects->effect[effect_num].effect[c]);
         break;
@@ -122,6 +130,8 @@ void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, in
 
   for (c = 0; c < kr_effects->channels; c++) {
     switch (kr_effects->effect[effect_num].effect_type) {
+      case KRAD_NOFX:
+        break;
       case KRAD_EQ:
         switch (control) {
           case KRAD_EQ_CONTROL_DB:

@@ -14,7 +14,7 @@ typedef enum {
   KRAD_NOFX,
   KRAD_EQ,
   KRAD_PASS,
-  KRAD_RUSHLIMIT,
+//  KRAD_RUSHLIMIT,
 } kr_effect_type_t;
 
 
