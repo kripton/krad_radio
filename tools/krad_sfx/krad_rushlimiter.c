@@ -39,8 +39,8 @@ static void kr_rushlimiter_limit (kr_rushlimiter_t *kr_rushlimiter, float *input
 
   if (peak < 1.0f) {
     kr_rushlimiter->hold = kr_rushlimiter->hold - num_samples;
-    if (kr_rushlimiter->hold < 48000) {
-      kr_rushlimiter->gain += (1.0f - kr_rushlimiter->gain) / (48000 / num_samples);
+    if (kr_rushlimiter->hold < 72000) {
+      kr_rushlimiter->gain += (1.0f - kr_rushlimiter->gain) / (72000 / num_samples);
     }
     if ((kr_rushlimiter->hold <= 0) || (kr_rushlimiter->gain >= 1.0f)) {
       kr_rushlimiter->hold = 0;
@@ -72,7 +72,7 @@ void kr_rushlimiter_process (kr_rushlimiter_t *kr_rushlimiter, float *input, flo
   }
 
   if (limit == 1) {
-    kr_rushlimiter->hold = 48000;
+    kr_rushlimiter->hold = 96000;
   }
 
   if ((limit == 1) || (kr_rushlimiter->hold > 0)) {
