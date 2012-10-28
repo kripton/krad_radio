@@ -14,6 +14,8 @@ void krad_radio_command_help () {
 	printf ("\n");
 	printf ("setsprite comp res snap jsnap setport update play receive record capture");
 	printf ("\n");
+	printf ("addfx rmfx setfx");
+	printf ("\n");
 }
 
 int main (int argc, char *argv[]) {
@@ -333,6 +335,24 @@ int main (int argc, char *argv[]) {
 			if (strncmp(argv[2], "set", 3) == 0) {
 				if (argc == 6) {
 					krad_ipc_set_control (client, argv[3], argv[4], atof(argv[5]));
+				}
+			}
+
+			if (strncmp(argv[2], "addfx", 5) == 0) {
+				if (argc == 5) {
+					kr_mixer_add_effect (client, argv[3], argv[4]);
+				}
+			}
+
+			if (strncmp(argv[2], "rmfx", 4) == 0) {
+				if (argc == 5) {
+					kr_mixer_remove_effect (client, argv[3], atoi(argv[4]));
+				}
+			}
+
+			if (strncmp(argv[2], "setfx", 5) == 0) {
+				if (argc == 7) {
+					krad_ipc_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atof(argv[6]));
 				}
 			}
 			
