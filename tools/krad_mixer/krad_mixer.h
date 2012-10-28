@@ -14,9 +14,7 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 #ifndef KRAD_MIXER_H
 #define KRAD_MIXER_H
 #include "krad_mixer_common.h"
-#include "hardlimiter.h"
-#include "krad_eq.h"
-#include "krad_pass.h"
+#include "krad_sfx.h"
 
 typedef enum {
 	KRAD_TONE,
@@ -85,6 +83,8 @@ struct krad_mixer_portgroup_St {
 	krad_tags_t *krad_tags;
 
 	krad_xmms_t *krad_xmms;
+
+  kr_effects_t *effects;
 
 };
 

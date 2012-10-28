@@ -7,7 +7,17 @@
 #include <inttypes.h>
 #include <time.h>
 
+#include "krad_system.h"
+
 #include "biquad.h"
+
+#define KRAD_EQ_CONTROL_DB 666
+#define KRAD_EQ_CONTROL_BANDWIDTH 667
+#define KRAD_EQ_CONTROL_HZ 668
+
+#define KRAD_EQ_OPCONTROL_ADDBAND 669
+#define KRAD_EQ_OPCONTROL_RMBAND 670
+
 
 #define MAX_BANDS 32
 

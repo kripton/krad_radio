@@ -9,6 +9,12 @@
 
 #include "biquad.h"
 
+#include "krad_system.h"
+
+
+#define KRAD_PASS_CONTROL_TYPE 788
+#define KRAD_PASS_CONTROL_BANDWIDTH 789
+#define KRAD_PASS_CONTROL_HZ 780
 
 typedef struct {
 

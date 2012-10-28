@@ -90,44 +90,11 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
 
 void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
 
-  static kr_eq_t *kr_eq[KRAD_MIXER_MAX_CHANNELS];
-  static kr_pass_t *kr_pass[KRAD_MIXER_MAX_CHANNELS];
-	int c;
-
-  if (strcmp(portgroup->sysname, "Music") != 0) {
-    return;
+  if (portgroup->effects->sample_rate != portgroup->krad_mixer->sample_rate) {
+    kr_effects_set_sample_rate (portgroup->effects, portgroup->krad_mixer->sample_rate);
   }
 
-  for (c = 0; c < portgroup->channels; c++) {
-
-    if (kr_eq[c] == NULL) {
-      kr_eq[c] = kr_eq_create (portgroup->krad_mixer->sample_rate);
-      kr_eq_band_add (kr_eq[c], 60);
-      kr_eq_band_set_db (kr_eq[c], 0, 17.0);
-      kr_eq_band_set_bandwidth (kr_eq[c], 0, 2.0);
-      kr_eq_band_add (kr_eq[c], 1660);
-      kr_eq_band_set_db (kr_eq[c], 1, 7.0);
-    }
-
-    if (kr_pass[c] == NULL) {
-      kr_pass[c] = kr_pass_create (portgroup->krad_mixer->sample_rate);
-      kr_pass_set_hz (kr_pass[c], 350);
-      //kr_pass_set_type (kr_pass[c], 0);
-      kr_pass_set_type (kr_pass[c], c);
-      kr_pass_set_bandwidth (kr_pass[c], 7.0);
-    }
-
-    if (kr_eq[c]->sample_rate != portgroup->krad_mixer->sample_rate) {
-      kr_eq_set_sample_rate (kr_eq[c], portgroup->krad_mixer->sample_rate);
-    }
-
-    if (kr_pass[c]->sample_rate != portgroup->krad_mixer->sample_rate) {
-      kr_pass_set_sample_rate (kr_pass[c], portgroup->krad_mixer->sample_rate);
-    }
-
-    kr_eq_process (kr_eq[c], portgroup->samples[c], portgroup->samples[c], nframes);
-    kr_pass_process (kr_pass[c], portgroup->samples[c], portgroup->samples[c], nframes);
-  }
+  kr_effects_process (portgroup->effects, portgroup->samples, portgroup->samples, nframes);
 
 }
 
@@ -674,8 +641,35 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 	}
 
 	if (portgroup->krad_tags == NULL) {
-		failfast ("Oh I couldn't find me tags\n");
+		failfast ("Oh I couldn't find me tags");
 	}
+
+  portgroup->effects = kr_effects_create (portgroup->channels, portgroup->krad_mixer->sample_rate);
+  
+	if (portgroup->effects == NULL) {
+		failfast ("Oh I couldn't make effects");
+	}
+
+  //FX DEMO START
+  if (strncmp(portgroup->sysname, "Music2", 6) == 0) {
+    kr_effects_effect_add (portgroup->effects, KRAD_EQ);
+    kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_OPCONTROL_ADDBAND, 0, 187);
+    kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_CONTROL_BANDWIDTH, 0, 2.5);
+    kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_CONTROL_DB, 0, 12.0);
+
+    kr_effects_effect_add (portgroup->effects, KRAD_PASS);
+    kr_effects_effect_set_control (portgroup->effects, 1, KRAD_PASS_CONTROL_BANDWIDTH, 0, 5.0f);
+    kr_effects_effect_set_control (portgroup->effects, 1, KRAD_PASS_CONTROL_TYPE, 0, 1);
+    kr_effects_effect_set_control (portgroup->effects, 1, KRAD_PASS_CONTROL_HZ, 0, 600);
+  } else {
+    if (strcmp(portgroup->sysname, "Music") == 0) {
+      kr_effects_effect_add (portgroup->effects, KRAD_EQ);
+      kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_OPCONTROL_ADDBAND, 0, 45);
+      kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_CONTROL_BANDWIDTH, 0, 2);
+      kr_effects_effect_set_control (portgroup->effects, 0, KRAD_EQ_CONTROL_DB, 0, 10.0);
+    }
+  }
+  //FX DEMO END
 
 	if (portgroup->io_type != KLOCALSHM) {
 		portgroup->active = 1;
@@ -757,6 +751,11 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 		krad_tags_destroy (portgroup->krad_tags);	
 	}	
 	
+	if (portgroup->effects != NULL) {
+		kr_effects_destroy (portgroup->effects);
+		portgroup->effects = NULL;
+	}
+
 }
 
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname) {

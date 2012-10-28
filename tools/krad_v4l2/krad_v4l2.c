@@ -58,7 +58,7 @@ static void kradv4l2_uvc_h264_set_bitrate (krad_v4l2_t *kradv4l2, int bmin) {
   printk("get after br %d %d", conf.dwPeakBitrate, conf.dwAverageBitrate);
 }
 
-
+/*
 static void kradv4l2_uvc_h264_reset (krad_v4l2_t *kradv4l2) {
 
 	int res;
@@ -74,6 +74,7 @@ static void kradv4l2_uvc_h264_reset (krad_v4l2_t *kradv4l2) {
 	if (res) { printke("uvc_h264_reset"); return;}
 
 }
+*/
 
 static void kradv4l2_uvc_h264_set_rc_mode (krad_v4l2_t *kradv4l2, int mode) {
 
