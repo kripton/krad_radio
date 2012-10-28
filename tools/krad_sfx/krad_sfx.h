@@ -1,6 +1,6 @@
-#include "hardlimiter.h"
 #include "krad_eq.h"
 #include "krad_pass.h"
+#include "krad_rushlimiter.h"
 
 #include "krad_system.h"
 
@@ -13,7 +13,8 @@ typedef struct kr_effects_St kr_effects_t;
 typedef enum {
   KRAD_NOFX,
   KRAD_EQ,
-  KRAD_PASS,  
+  KRAD_PASS,
+  KRAD_RUSHLIMIT,
 } kr_effect_type_t;
 
 

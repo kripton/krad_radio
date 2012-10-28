@@ -85,7 +85,7 @@ struct krad_mixer_portgroup_St {
 	krad_xmms_t *krad_xmms;
 
   kr_effects_t *effects;
-
+  kr_rushlimiter_t *kr_rushlimiter[KRAD_MIXER_MAX_CHANNELS];
 };
 
 

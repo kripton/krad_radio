@@ -358,12 +358,12 @@ void portgroup_copy_samples (krad_mixer_portgroup_t *dest_portgroup, krad_mixer_
 	}
 }
 
-void portgroup_hardlimit (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
+void portgroup_limit (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 
 	int c;
 
-	for (c = 0; c < portgroup->channels; c++) {	
-		hardlimit (portgroup->samples[c], nframes);
+	for (c = 0; c < portgroup->channels; c++) {
+		kr_rushlimiter_process (portgroup->kr_rushlimiter[c], portgroup->samples[c], portgroup->samples[c], nframes);
 	}
 }
 
@@ -432,11 +432,11 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 		}
 	}
 
-	// copy to outputs, hardlimit all outputs
+	// copy to outputs, limit all outputs
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == OUTPUT)) {
-			portgroup_hardlimit ( portgroup->mixbus, nframes );
+			portgroup_limit ( portgroup->mixbus, nframes );
 			portgroup_copy_samples ( portgroup, portgroup->mixbus, nframes );
 		}
 	}
@@ -671,6 +671,10 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
   }
   //FX DEMO END
 
+	for (c = 0; c < portgroup->channels; c++) {
+    portgroup->kr_rushlimiter[c] = kr_rushlimiter_create();
+  }
+
 	if (portgroup->io_type != KLOCALSHM) {
 		portgroup->active = 1;
 	}
@@ -755,6 +759,11 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 		kr_effects_destroy (portgroup->effects);
 		portgroup->effects = NULL;
 	}
+
+	for (c = 0; c < portgroup->channels; c++) {
+    kr_rushlimiter_destroy (portgroup->kr_rushlimiter[c]);
+    portgroup->kr_rushlimiter[c] = NULL;
+  }
 
 }
 
