@@ -1,23 +1,87 @@
 #include "krad_osc.h"
 
+inline void osc_dcopy(void *dst, void *src) {
+
+	unsigned char *a_dst;
+	unsigned char *a_src;
+	int count;
+	int len;
+
+	count = 0;
+	len = 3;
+	a_dst = dst;
+	a_src = src;
+
+	while (len > -1) {
+		a_dst[len--] = a_src[count++];
+	}
+}
+
 void krad_osc_parse_message (krad_osc_t *krad_osc, unsigned char *message, int size) {
 
+  int d;
+  int datalen;
+  int pos;
 	int len;
 	char *typetag;
+
+  int ints[4];
+  float floats[4];
+
+	char debugmsg[256];
+  int dpos;
 
 	if (message[0] == '#') {
 		printk ("Krad OSC message is a bundle %d bytes big\n", size);
 	} else {
-		printk ("Krad OSC message address pattern: %s\n", message);
+		//printk ("Krad OSC message address pattern: %s\n", message);
 		len = strlen ((char *)message) + 1;
 		while ((len % 4) != 0) {
 			len++;
 		}
+    len += 1;
 		typetag = (char *)message + len;
-		printk ("Krad OSC message typetag: %s\n", typetag);
-		
-		
-		
+		//printk ("Krad OSC message typetag: %s\n", typetag);
+    len += 1;
+    datalen = 0;
+
+    if ((strlen(typetag) == 0) || (strlen(typetag) > 4)) {
+      return;
+    }
+
+    for (pos = 0; typetag[pos] != '\0'; pos++) {
+      if ((typetag[pos] != 'f') && (typetag[pos] != 'i')) {
+        break;
+      } else {
+        datalen++;
+      }
+		}
+
+    len += pos;
+		while ((len % 4) != 0) {
+			len++;
+		}
+
+    //printk ("len %d datalen %d size %d", len, datalen, size);
+
+    debugmsg[0] = '\0';
+    dpos = 0;
+
+    for (d = 0; d < datalen; d++) {
+      pos = len + d * 4;
+      //printk ("pos %d", pos);
+      if (typetag[d] == 'f') {
+        osc_dcopy (&floats[d], message + pos);
+        dpos += sprintf(debugmsg + dpos, " - %f", floats[d]);
+      }
+      if (typetag[d] == 'i') {
+        memcpy (&ints[d], message + pos, 4);
+        dpos += sprintf(debugmsg + dpos, "%d", ints[d]);
+      }
+    }
+
+    printk ("Krad OSC: %s%s", message, debugmsg);
+
 	}
 
 }
