@@ -89,12 +89,23 @@ struct krad_alsa_St {
     int playback;
     int stream;
     
+
+  int card_num;
+  int control_enabled;
+  char control_name[16];
+
+  snd_ctl_t *control;
+  int controls_count;
+	snd_ctl_elem_list_t *control_list;
+	snd_ctl_elem_info_t *info;
+
 };
 
 
+void krad_alsa_list_cards ();
 
-void krad_alsa_destroy(krad_alsa_t *krad_alsa);
-krad_alsa_t *krad_alsa_create(krad_audio_t *krad_audio);
+void krad_alsa_destroy (krad_alsa_t *krad_alsa);
+krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio, int card_num);
 
 
 #endif

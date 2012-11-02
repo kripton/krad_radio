@@ -304,7 +304,7 @@ int main (int argc, char *argv[]) {
 				}
 			}			
 			
-			if (strncmp(argv[2], "xfade", 5) == 0) {
+			if (strncmp(argv[2], "crossfade", 9) == 0) {
 				if (argc == 4) {
 					krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
 				}

@@ -63,7 +63,7 @@ krad_radio [SYSNAME] [COMMAND] [OPTIONS ...]
 
   This will show the current mixer settings.
   
-  krad_radio quicktest xfade INPUTNAME1 INPUTNAME2
+  krad_radio quicktest crossfade INPUTNAME1 INPUTNAME2
 
   This will create a crossfader between two inputs.
   

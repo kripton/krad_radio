@@ -73,7 +73,7 @@ void sample_move_d16_sS (char *dst,  jack_default_audio_sample_t *src, unsigned 
 		src++;
 	}
 }
-
+/*
 //array of the available I/O methods defined for capture
 static struct io_method methods[] = {
     { METHOD_DIRECT_RW, SND_PCM_ACCESS_RW_INTERLEAVED, 0 },
@@ -86,7 +86,7 @@ static struct io_method methods[] = {
 };
 
 //recovery callback in case of error
-/*
+
 static int xrun_recovery(snd_pcm_t *handle, int error)
 {
     switch(error)
@@ -458,25 +458,168 @@ void async_mmap(snd_pcm_t *device, struct device_parameters cap_dev_params)
     }
 }
 */
+static char *krad_alsa_id_str (snd_ctl_elem_id_t *id) {
 
-void krad_alsa_destroy(krad_alsa_t *krad_alsa) {
+	static char str[128];
 
-	printf ("krad_alsa: BYE BYE\n");
+	sprintf(str, "%i,%i,%i,%s,%i", 
+		snd_ctl_elem_id_get_interface(id),
+		snd_ctl_elem_id_get_device(id),
+		snd_ctl_elem_id_get_subdevice(id),
+		snd_ctl_elem_id_get_name(id),
+		snd_ctl_elem_id_get_index(id));
+	return str;
 
-    snd_pcm_close (krad_alsa->device);
+}
+
+void krad_alsa_list_cards () {
+
+  int card_num;
+  char *card_name;
+
+  card_num = -1;
+  card_name = NULL;
+
+  while ((snd_card_next (&card_num) == 0) && (card_num != -1)) {
+    snd_card_get_name (card_num, &card_name);
+    printf ("ALSA Card %d: %s\n", card_num, card_name);
+  }
+}
+
+static int krad_alsa_control (krad_alsa_t *krad_alsa, snd_ctl_elem_id_t *id, int value) {
+
+	snd_ctl_elem_value_t *ctl;
+	int err;
+
+  printf("hix %d\n", value);
+	snd_ctl_elem_value_alloca (&ctl);
+	snd_ctl_elem_value_set_id (ctl, id);
+
+  snd_ctl_elem_value_set_integer (ctl, 0, value);
+	err = snd_ctl_elem_write (krad_alsa->control, ctl);
+	if (err < 0) {
+		printf ("Cannot write control '%s': %s", krad_alsa_id_str(id), snd_strerror(err));
+		return err;
+	}
+
+  return 0;
+
+}
+
+
+static void krad_alsa_control_funtime (krad_alsa_t *krad_alsa) {
+
+  int value;
+  int c;
+  int err;
+
+	snd_ctl_elem_id_t *elem_id;
+
+  printf("hi\n");
+
+	snd_ctl_elem_list_alloca (&krad_alsa->control_list);
+  snd_ctl_elem_id_alloca (&elem_id);
+
+	err = snd_ctl_elem_list (krad_alsa->control, krad_alsa->control_list);
+	if (err < 0) {
+		printf ("Cannot determine controls: %s\n", snd_strerror(err));
+    return err;
+	}
+	krad_alsa->controls_count = snd_ctl_elem_list_get_count (krad_alsa->control_list);
+	if (krad_alsa->controls_count == 0) {
+		err = 0;
+    return err;
+	} else {
+		printf ("ALSA Control Count: %d\n", krad_alsa->controls_count);
+  }
+
+
+	snd_ctl_elem_list_set_offset (krad_alsa->control_list, 0);
+	if (snd_ctl_elem_list_alloc_space (krad_alsa->control_list, krad_alsa->controls_count) < 0) {
+		printf ("No enough memory...");
+    return err;
+	}
+	if ((err = snd_ctl_elem_list (krad_alsa->control, krad_alsa->control_list)) < 0) {
+		printf ("Cannot determine controls (2): %s\n", snd_strerror(err));
+    return err;
+	}
+  printf("hid\n");
+
+  value = rand() % 31;
+  value = 0;
+
+	for (c = 0; c < krad_alsa->controls_count; c++) {
+		snd_ctl_elem_list_get_id (krad_alsa->control_list, c, elem_id);
+    err = krad_alsa_control (krad_alsa, elem_id, value);
+  	if (err < 0) {
+        return;
+    }
+	}
+}
+
+
+int krad_alsa_enable_control (krad_alsa_t *krad_alsa) {
+
+  int err;
+
+  krad_alsa->control_enabled = 1;
+
+  sprintf (krad_alsa->control_name, "hw:%d", krad_alsa->card_num);
+
+	err = snd_ctl_open (&krad_alsa->control, krad_alsa->control_name, 0);
+	if (err < 0) {
+    printf ("snd_ctl_open error: %s", snd_strerror(err));
+    return err;
+	}
+
+
+  return 0;
+
+}
+
+void krad_alsa_disable_control (krad_alsa_t *krad_alsa) {
+
+  if (krad_alsa->control_enabled == 1) {
+  	snd_ctl_elem_list_free_space (krad_alsa->control_list);
+    snd_ctl_close (krad_alsa->control);
+    krad_alsa->control_enabled = 0;
+  }
+
+}
+
+void krad_alsa_control_test (krad_alsa_t *krad_alsa) {
+
+  int t;
+
+  t = 20;
+  krad_alsa_list_cards ();
+  krad_alsa_enable_control (krad_alsa);
+  while (t) {
+    krad_alsa_control_funtime (krad_alsa);
+    t--;  
+  }
+  krad_alsa_disable_control (krad_alsa);
+
+}
+
+void krad_alsa_destroy (krad_alsa_t *krad_alsa) {
+
+	printk ("krad alsa: destroyed");
+
+  /*
+  snd_pcm_close (krad_alsa->device);
 
 	free(krad_alsa->samples[0]);
 	free(krad_alsa->samples[1]);
 
 	free(krad_alsa->interleaved_samples);
 	free(krad_alsa->integer_samples);
-	
-	free(krad_alsa);
+	*/
+	free (krad_alsa);
 
 }
 
-
-krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
+krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio, int card_num) {
 
 	krad_alsa_t *krad_alsa;
 
@@ -488,6 +631,12 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
 	krad_alsa->krad_audio = krad_audio;
 
 
+  krad_alsa->card_num = card_num;
+
+
+  krad_alsa_control_test (krad_alsa);
+
+  /*
 	krad_alsa->samples[0] = malloc(24 * 8192);
 	krad_alsa->samples[1] = malloc(24 * 8192);
 	krad_alsa->interleaved_samples = malloc(48 * 8192);
@@ -502,7 +651,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
 	krad_alsa->buffer_size = 1024;
 	krad_alsa->period_size = 512;
 
-	/*
+	
 	if ((krad_audio->direction == KINPUT) || (krad_audio->direction == KDUPLEX)) {
 		krad_alsa->capture = 1;
 	}
@@ -510,7 +659,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
 	if ((krad_audio->direction == KOUTPUT) || (krad_audio->direction == KDUPLEX)) {
 		krad_alsa->playback = 1;
 	}
-	*/
+	
 	if (krad_alsa->playback) {
 	
 		krad_alsa->stream = SND_PCM_STREAM_PLAYBACK;
@@ -526,7 +675,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
 		}
 	}
 	
-	/************************************** opens the device *****************************************/
+
 
     if ((krad_alsa->error = snd_pcm_open (&krad_alsa->device, krad_alsa->device_name, krad_alsa->stream, methods[krad_alsa->access].open_mode)) < 0) {
         fprintf (stderr, "speaker: Device cannot be opened %s (%s)\n", 
@@ -550,7 +699,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
         exit (1);
     }
 
-	/*********************************** shows the audio capture method ****************************/
+
     
     switch(methods[krad_alsa->access].method)
     {
@@ -574,7 +723,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
             break;
     }
     
-/*************************** configures access method *********************************************/  
+
     //sets the configuration method
     fprintf (stderr, "speaker: Access method: %d\n", methods[krad_alsa->access].access);
     if ((krad_alsa->error = snd_pcm_hw_params_set_access (krad_alsa->device, krad_alsa->hw_params, methods[krad_alsa->access].access)) < 0) {
@@ -608,7 +757,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
         fprintf (stderr, "speaker: PCM access method: SND_PCM_ACCESS_RW_NONINTERLEAVED \n");
         break;
     }   
-/****************************  configures the playback format ******************************/   
+
     //SND_PCM_FORMAT_S16_LE => 16 bit signed little endian
     if ((krad_alsa->error = snd_pcm_hw_params_set_format (krad_alsa->device, krad_alsa->hw_params, krad_alsa->sample_format)) < 0)
     {
@@ -641,7 +790,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
     default:
         fprintf (stderr, "speaker: Real_sample_format = %d\n", krad_alsa->real_sample_format);
     }    
-/*************************** configures the sample rate ***************************/    
+
 	//sets the sample rate
     if ((krad_alsa->error = snd_pcm_hw_params_set_rate (krad_alsa->device, krad_alsa->hw_params, krad_alsa->sample_rate, 0)) < 0) {
         fprintf (stderr, "speaker: Sample rate cannot be configured (%s)\n",
@@ -659,7 +808,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
     
     fprintf (stderr, "speaker: real_sample_rate = %d\n", krad_alsa->real_sample_rate);
     
-/**************************** configures the number of channels ********************************/    
+
     //sets the number of channels
     if ((krad_alsa->error = snd_pcm_hw_params_set_channels (krad_alsa->device, krad_alsa->hw_params, krad_alsa->n_channels)) < 0) {
         fprintf (stderr, "speaker: Number of channels cannot be configured (%s)\n",
@@ -674,7 +823,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
     }
     fprintf (stderr, "speaker: real_n_channels = %d\n", krad_alsa->real_n_channels);
     
-/***************************** configures the buffer size *************************************/
+
     //sets the buffer size
     if (snd_pcm_hw_params_set_buffer_size(krad_alsa->device, krad_alsa->hw_params, krad_alsa->buffer_size) < 0) {
         fprintf (stderr, "speaker: Buffer size cannot be configured (%s)\n",
@@ -688,7 +837,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
         exit (1);
     }
     fprintf (stderr, "speaker: Buffer size = %d [frames]\n", (int) krad_alsa->real_buffer_size);
-/***************************** configures period size *************************************/
+
     krad_alsa->dir=0;//dir=0  =>  period size must be equal to period_size
     //sets the period size
     if ((krad_alsa->error = snd_pcm_hw_params_set_period_size(krad_alsa->device, krad_alsa->hw_params, krad_alsa->period_size, krad_alsa->dir)) < 0) {
@@ -703,7 +852,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
         exit (1);
     }
     fprintf (stderr, "speaker:  Period size = %d [frames]\n", (int) krad_alsa->real_period_size);
-/************************* applies the hardware configuration ******************************/
+
     
     if ((krad_alsa->error = snd_pcm_hw_params (krad_alsa->device, krad_alsa->hw_params)) < 0) {
         fprintf (stderr, "speaker: Hardware parameters cannot be configured (%s)\n",
@@ -713,7 +862,7 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
     //frees the structure of hardware configuration
     snd_pcm_hw_params_free (krad_alsa->hw_params);
 
-/*********************** filling capture_device_param *************************************/
+
     
     krad_alsa->capture_device_params.access_type = krad_alsa->real_access;          //real access method
     krad_alsa->capture_device_params.buffer_size = krad_alsa->real_buffer_size;     //real buffer size
@@ -724,8 +873,8 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
     krad_alsa->capture_device_params.sample_rate = krad_alsa->real_sample_rate;     //real sample rate 
     krad_alsa->capture_device_params.n_channels = krad_alsa->n_channels;            //real number of channels
 
-/************************ selects the appropriate access method for audio capture *********************/
-    /*
+
+    
 	switch(methods[access].method)
 	{
 		case METHOD_DIRECT_RW:
@@ -748,9 +897,10 @@ krad_alsa_t *krad_alsa_create (krad_audio_t *krad_audio) {
 			rw_and_poll_loop(device, capture_device_params);
 		break;
 	}
+
+	async_rw (krad_alsa);
+
 	*/
-    
-	async_rw(krad_alsa);
 
 	return krad_alsa;
 }
