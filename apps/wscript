@@ -140,6 +140,7 @@ def check_system(systm):
 	global programs2
 
 	if systm.env['IS_LINUX']:
+		libs = libs + ["alsa"]    
 		depsources = ["../tools/krad_v4l2/krad_v4l2.c", "../tools/krad_alsa/krad_alsa.c",
 		"../tools/krad_alsa/krad_alsa_seq.c"] + depsources
 		depsources2 = ["../tools/krad_alsa/krad_alsa.c", "../tools/krad_alsa/krad_alsa_seq.c"] + depsources2
