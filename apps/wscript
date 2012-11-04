@@ -133,7 +133,7 @@ includedirs = """
 
 libs = ["samplerate", "x264", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
 		"cairo", "x11-xcb", "xcb-image", "xcb", "x11", "aacplus",
-		"flac", "jack", "alsa", "vpx", "libswscale", "libavutil", "websockets", "xmms2-client"]
+		"flac", "jack", "alsa", "vpx", "libswscale", "libavutil", "libwebsockets", "xmms2-client"]
 
 # "ncurses",
 

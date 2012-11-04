@@ -68,20 +68,3 @@ Cflags: -I${includedir}
 
 git clone git://git.warmcat.com/libwebsockets
 cd libwebsockets && ./configure && make && sudo make install && sudo ldconfig
-Put this pkg-config file in: /usr/local/lib/pkgconfig/websockets.pc
-
-# libwebsockets installed pkg-config file
-
-prefix=/usr/local
-exec_prefix=/usr/local
-libdir=/usr/local/lib
-includedir=/usr/local/include
-
-Name: websockets
-Description: libwebsockets
-Version: 0.0.3
-Conflicts:
-Libs: -L${libdir} -lwebsockets
-Cflags: -I${includedir}
-
-

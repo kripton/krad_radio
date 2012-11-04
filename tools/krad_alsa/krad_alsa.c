@@ -507,7 +507,7 @@ static int krad_alsa_control (krad_alsa_t *krad_alsa, snd_ctl_elem_id_t *id, int
 }
 
 
-static void krad_alsa_control_funtime (krad_alsa_t *krad_alsa) {
+static int krad_alsa_control_funtime (krad_alsa_t *krad_alsa) {
 
   int value;
   int c;
@@ -552,9 +552,11 @@ static void krad_alsa_control_funtime (krad_alsa_t *krad_alsa) {
 		snd_ctl_elem_list_get_id (krad_alsa->control_list, c, elem_id);
     err = krad_alsa_control (krad_alsa, elem_id, value);
   	if (err < 0) {
-        return;
+        return err;
     }
 	}
+
+  return 0;
 }
 
 

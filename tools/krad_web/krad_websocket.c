@@ -1201,7 +1201,7 @@ krad_websocket_t *krad_websocket_server_create (char *sysname, int port) {
 
 	krad_websocket->context = libwebsocket_create_context (krad_websocket->port, NULL, protocols,
 										   				   libwebsocket_internal_extensions, 
-										   				   NULL, NULL, -1, -1, 0);
+										   				   NULL, NULL, -1, -1, 0, NULL);
 	if (krad_websocket->context == NULL) {
 		printke ("libwebsocket init failed");
 		krad_websocket_server_destroy (krad_websocket);
