@@ -3616,7 +3616,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 					case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
 						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
 						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printf ("Krad Mixer Sample Rate: %"PRIu64"", number );
+						printf ("Krad Mixer Sample Rate: %"PRIu64"\n", number );
 						break;
 						
 					case EBML_ID_KRAD_MIXER_JACK_RUNNING:
