@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <malloc.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -15,17 +14,17 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
+#ifndef KRAD_THEORA_H
+#define KRAD_THEORA_H
+
 #include <theora/theoradec.h>
 #include <theora/theoraenc.h>
-
-#include "krad_radio.h"
-#include "krad_codec_header.h"
 
 typedef struct krad_theora_encoder_St krad_theora_encoder_t;
 typedef struct krad_theora_decoder_St krad_theora_decoder_t;
 
-#ifndef KRAD_THEORA_H
-#define KRAD_THEORA_H
+#include "krad_radio.h"
+#include "krad_codec_header.h"
 
 struct krad_theora_encoder_St {
 

@@ -1,3 +1,8 @@
+#ifndef KRAD_MIXER_H
+#define KRAD_MIXER_H
+#include "krad_mixer_common.h"
+#include "krad_sfx.h"
+
 typedef struct krad_mixer_St krad_mixer_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_portgroup_t;
 typedef struct krad_mixer_local_portgroup_St krad_mixer_local_portgroup_t;
@@ -10,11 +15,6 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 #define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1600
 
 #include "krad_radio.h"
-
-#ifndef KRAD_MIXER_H
-#define KRAD_MIXER_H
-#include "krad_mixer_common.h"
-#include "krad_sfx.h"
 
 typedef enum {
 	KRAD_TONE,

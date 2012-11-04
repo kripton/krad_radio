@@ -1,13 +1,14 @@
-
-
-#include "krad_radio.h"
-
 #ifndef KRAD_SPRITE_H
 #define KRAD_SPRITE_H
 
-#define KRAD_SPRITE_DEFAULT_TICKRATE 4
+#include <turbojpeg.h>
 
 typedef struct krad_sprite_St krad_sprite_t;
+
+#include "krad_radio.h"
+
+#define KRAD_SPRITE_DEFAULT_TICKRATE 4
+
 
 struct krad_sprite_St {
 

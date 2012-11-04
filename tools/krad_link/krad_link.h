@@ -1,12 +1,11 @@
+#ifndef KRAD_LINK_H
+#define KRAD_LINK_H
+
 typedef struct krad_link_St krad_link_t;
 typedef struct krad_linker_St krad_linker_t;
 typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 
 #include "krad_radio.h"
-
-
-#ifndef KRAD_LINK_H
-#define KRAD_LINK_H
 
 #define DEFAULT_VPX_BITRATE 92 * 8
 #define DEFAULT_THEORA_QUALITY 31
@@ -96,7 +95,6 @@ struct krad_link_St {
 	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
 	krad_x264_encoder_t *krad_x264_encoder;
-	krad_aac_t *krad_aac;	
 //	krad_codec2_t *krad_codec2_decoder;
 //	krad_codec2_t *krad_codec2_encoder;
 	krad_vorbis_t *krad_vorbis;

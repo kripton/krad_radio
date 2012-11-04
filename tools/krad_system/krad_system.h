@@ -22,13 +22,20 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
-#include <sys/prctl.h>
 
-typedef struct krad_system_St krad_system_t;
-typedef struct krad_system_cpu_monitor_St krad_system_cpu_monitor_t;
+#ifndef __MACH__
+#include <sys/prctl.h>
+#include <malloc.h>
+#else
+#include "krad_mach.h"
+#endif
 
 #ifndef KRAD_SYSTEM_H
 #define KRAD_SYSTEM_H
+
+
+typedef struct krad_system_St krad_system_t;
+typedef struct krad_system_cpu_monitor_St krad_system_cpu_monitor_t;
 
 #define KRAD_SYSNAME_MIN 4
 #define KRAD_SYSNAME_MAX 32

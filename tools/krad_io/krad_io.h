@@ -4,9 +4,10 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 #include <inttypes.h>
-#include <malloc.h>
 #include <math.h>
 #include <signal.h>
 #include <time.h>

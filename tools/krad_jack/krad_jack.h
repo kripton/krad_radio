@@ -1,8 +1,7 @@
-typedef struct krad_jack_St krad_jack_t;
-
 #ifndef KRAD_JACK_H
 #define KRAD_JACK_H
 
+typedef struct krad_jack_St krad_jack_t;
 
 #include "krad_audio.h"
 #include <jack/jack.h>

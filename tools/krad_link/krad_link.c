@@ -10,6 +10,7 @@ static void *krad_linker_listen_client_thread (void *arg);
 
 void *video_capture_thread (void *arg) {
 
+#ifndef __MACH__
 	krad_system_set_thread_name ("kr_cap_v4l2");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
@@ -141,6 +142,8 @@ void *video_capture_thread (void *arg) {
 
 	printk ("Video capture thread exited");
 	
+#endif
+
 	return NULL;
 	
 }
@@ -664,12 +667,6 @@ void *audio_encoding_thread (void *arg) {
 															 krad_link->opus_bitrate,
 															 OPUS_APPLICATION_AUDIO);
 			framecnt = KRAD_MIN_OPUS_FRAME_SIZE;
-			break;
-		case AAC:
-			krad_link->krad_aac = krad_aac_encoder_create (krad_link->channels,
-														   krad_link->krad_radio->krad_mixer->sample_rate,
-														   64000);
-			framecnt = krad_link->krad_aac->input_samples / krad_link->channels;
 			break;			
 		default:
 			failfast ("Krad Link Audio Encoder: Unknown Audio Codec");
@@ -704,24 +701,9 @@ void *audio_encoding_thread (void *arg) {
 				}
 			
 				bytes = krad_flac_encode (krad_link->krad_flac, interleaved_samples, framecnt, buffer);
-			}
-			
-			if (krad_link->audio_codec == AAC) {
-				
-				for (c = 0; c < krad_link->channels; c++) {
-					krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)samples[c], (framecnt * 4) );
-				}
-			
-				for (s = 0; s < framecnt; s++) {
-					for (c = 0; c < krad_link->channels; c++) {
-						interleaved_samples[s * krad_link->channels + c] = samples[c][s];
-					}
-				}
-			
-				bytes = krad_aac_encode (krad_link->krad_aac, interleaved_samples, krad_link->krad_aac->input_samples, buffer);
 			}			
 			
-			if ((krad_link->audio_codec == FLAC) || (krad_link->audio_codec == OPUS) || (krad_link->audio_codec == AAC)) {
+			if ((krad_link->audio_codec == FLAC) || (krad_link->audio_codec == OPUS)) {
 	
 				while (bytes > 0) {
 					
@@ -795,12 +777,6 @@ void *audio_encoding_thread (void *arg) {
 		krad_opus_encoder_destroy (krad_link->krad_opus);
 		krad_link->krad_opus = NULL;
 	}
-	
-
-	if (krad_link->krad_aac != NULL) {
-		krad_aac_encoder_destroy (krad_link->krad_aac);
-		krad_link->krad_aac = NULL;
-	}	
 	
 	krad_link->encoding = 4;
 	
@@ -990,13 +966,6 @@ void *stream_output_thread (void *arg) {
 																		 krad_link->krad_radio->krad_mixer->sample_rate,
 																		 krad_link->channels, 
 																		 &krad_link->krad_opus->krad_codec_header);
-				break;
-			case AAC:
-				krad_link->audio_track = krad_container_add_audio_track (krad_link->krad_container,
-																		 krad_link->audio_codec,
-																		 krad_link->krad_radio->krad_mixer->sample_rate,
-																		 krad_link->channels, 
-																		 &krad_link->krad_aac->krad_codec_header);
 				break;
 			default:
 				failfast ("Unknown audio codec");
@@ -2907,12 +2876,6 @@ int krad_link_wait_codec_init (krad_link_t *krad_link) {
 				usleep (2000);
 			}
 		}
-		if (krad_link->audio_codec == AAC) {
-			while (krad_link->krad_aac == NULL) {
-				usleep (2000);
-			}
-		}		
-		
 	}
 
 	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {

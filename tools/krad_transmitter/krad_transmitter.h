@@ -6,20 +6,23 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/epoll.h>
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
 
+#ifndef KRAD_TRANSMITTER_H
+#define KRAD_TRANSMITTER_H
+
+
+#ifndef __MACH__
+#include <sys/epoll.h>
+#endif
+
 #include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_ring.h"
-
-
-#ifndef KRAD_TRANSMITTER_H
-#define KRAD_TRANSMITTER_H
 
 #define DEFAULT_MAX_RECEIVERS_PER_TRANSMISSION 256
 #define DEFAULT_MAX_TRANSMISSIONS 48

@@ -10,7 +10,6 @@ programs2 = """
 krad_radio.c
 krad_radio_ap.c
 krad_radio_vp.c
-krad_radio_ev.c
 """.split()
 
 #krad_radio_ncurses.c
@@ -26,7 +25,6 @@ depsources = """
 ../tools/krad_ticker/krad_ticker.c
 ../tools/krad_xmms2/krad_xmms2.c
 ../tools/krad_ee/krad_x264.c
-../tools/krad_ee/krad_aac.c
 ../tools/krad_ebml/krad_ebml.c
 ../tools/krad_compositor/krad_sprite.c
 ../tools/krad_compositor/krad_text.c
@@ -49,8 +47,6 @@ depsources = """
 ../tools/krad_tone/krad_tone.c
 ../tools/krad_audio/krad_audio.c
 ../tools/krad_jack/krad_jack.c
-../tools/krad_alsa/krad_alsa.c
-../tools/krad_alsa/krad_alsa_seq.c
 ../tools/krad_ring/krad_resample_ring.c
 ../tools/krad_vpx/krad_vpx.c
 ../tools/krad_theora/krad_theora.c
@@ -59,7 +55,6 @@ depsources = """
 ../tools/krad_opus/krad_opus.c
 ../tools/krad_opus/opus_header.c
 ../tools/krad_gui/krad_gui.c
-../tools/krad_v4l2/krad_v4l2.c
 ../tools/krad_ring/krad_ring.c
 ../tools/krad_link/krad_link.c
 ../tools/krad_transmitter/krad_transmitter.c
@@ -82,8 +77,6 @@ depsources2 = """
 ../tools/krad_ipc/krad_ipc_client.c
 ../tools/krad_osc/krad_osc.c
 ../tools/krad_tone/krad_tone.c
-../tools/krad_alsa/krad_alsa.c
-../tools/krad_alsa/krad_alsa_seq.c
 """.split()
 
 includedirs = """
@@ -127,15 +120,36 @@ includedirs = """
 ../tools/krad_decklink/
 ../tools/krad_decklink/vendor
 ../tools/krad_ebml/
+../tools/krad_legacy/
 /usr/local/include
 /usr/include
 """.split()
 
 libs = ["samplerate", "x264", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
-		"cairo", "x11-xcb", "xcb-image", "xcb", "x11", "aacplus",
-		"flac", "jack", "alsa", "vpx", "libswscale", "libavutil", "libwebsockets", "xmms2-client"]
+		"cairo", "x11-xcb", "xcb-image", "xcb", "x11",
+		"flac", "jack", "vpx", "libswscale", "libavutil", "libwebsockets", "xmms2-client"]
 
 # "ncurses",
+
+def check_system(systm):
+
+	global includedirs
+	global depsources
+	global depsources2
+	global libs
+	global programs2
+
+	if systm.env['IS_LINUX']:
+		depsources = ["../tools/krad_v4l2/krad_v4l2.c", "../tools/krad_alsa/krad_alsa.c",
+		"../tools/krad_alsa/krad_alsa_seq.c"] + depsources
+		depsources2 = ["../tools/krad_alsa/krad_alsa.c", "../tools/krad_alsa/krad_alsa_seq.c"] + depsources2
+		programs2 = ["krad_radio_ev.c"] + programs2
+
+
+	if systm.env['IS_MACOSX']:
+		depsources = ["../tools/krad_legacy/krad_mach.c"] + depsources
+		depsources2 = ["../tools/krad_legacy/krad_mach.c"] + depsources2
+		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
 
 def check_way(way):
 
@@ -143,7 +157,6 @@ def check_way(way):
 	global libs
 
 	if way.env['WAYRAD']:
-		#print("WAYRAD DETECTED!")	
 		depsources += ["../tools/krad_wayland/krad_wayland.c"]
 		libs += ["wayland-client"]
 
@@ -159,7 +172,8 @@ def configure(conf):
 
 	remake_webres(conf)	
 	check_way(conf)
-	
+	check_system(conf)
+
 	for l in libs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
@@ -168,6 +182,7 @@ def build(bld):
 
 	remake_webres(bld)
 	check_way(bld)
+	check_system(bld)
 
 	for p in programs:
 

@@ -8,10 +8,10 @@
 #include <time.h>
 #include <sys/stat.h>
 
-typedef struct krad_radio_St krad_radio_t;
-
 #ifndef KRAD_RADIO_H
 #define KRAD_RADIO_H
+
+typedef struct krad_radio_St krad_radio_t;
 
 // FIXME option builds
 // #include "krad_wayland.h"
@@ -21,7 +21,6 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_system.h"
 #include "krad_codec_header.h"
 #include "krad_x264.h"
-#include "krad_aac.h"
 #include "krad_xmms2.h"
 #include "krad_timer.h"
 #include "krad_easing.h"
@@ -36,7 +35,10 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_tone.h"
 #include "krad_audio.h"
 #include "krad_jack.h"
+#ifndef __MACH__
+#include "krad_v4l2.h"
 #include "krad_alsa.h"
+#endif
 #include "krad_mixer.h"
 #include "krad_mixer_common.h"
 #include "krad_websocket.h"
@@ -48,7 +50,6 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_io.h"
 #include "krad_theora.h"
 #include "krad_vpx.h"
-#include "krad_v4l2.h"
 #include "krad_gui.h"
 #include "krad_opus.h"
 #include "krad_vorbis.h"

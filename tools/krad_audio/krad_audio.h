@@ -1,6 +1,3 @@
-typedef struct krad_audio_St krad_audio_t;
-typedef struct krad_audio_portgroup_St krad_audio_portgroup_t;
-
 #ifndef KRAD_AUDIO_API
 #define KRAD_AUDIO_API
 typedef enum {
@@ -15,11 +12,16 @@ typedef enum {
 #ifndef KRAD_AUDIO_H
 #define KRAD_AUDIO_H
 
+typedef struct krad_audio_St krad_audio_t;
+typedef struct krad_audio_portgroup_St krad_audio_portgroup_t;
+
 #ifndef RINGBUFFER_SIZE
 #define RINGBUFFER_SIZE 2000000
 #endif
 
+#ifndef __MACH__
 #include "krad_alsa.h"
+#endif
 #include "krad_jack.h"
 #include "krad_mixer.h"
 #include "krad_mixer_common.h"

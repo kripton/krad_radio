@@ -6,13 +6,23 @@
 #include <math.h>
 #include <inttypes.h>
 
+#ifndef KRAD_COMPOSITOR_H
+#define KRAD_COMPOSITOR_H
+
+
 #include <libswscale/swscale.h>
 
 #include "pixman.h"
-#include "krad_radio.h"
 
-#ifndef KRAD_COMPOSITOR_H
-#define KRAD_COMPOSITOR_H
+
+
+
+typedef struct krad_compositor_St krad_compositor_t;
+typedef struct krad_compositor_port_St krad_compositor_port_t;
+typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
+
+
+#include "krad_radio.h"
 
 #define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
 #define KRAD_COMPOSITOR_MAX_PORTS 32
@@ -28,10 +38,6 @@ typedef enum {
 	SNAPJPEG = 20000,	
 	SNAPPNG,
 } krad_snapshot_fmt_t;
-
-typedef struct krad_compositor_St krad_compositor_t;
-typedef struct krad_compositor_port_St krad_compositor_port_t;
-typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
 
 typedef struct krad_point_St krad_point_t;
 

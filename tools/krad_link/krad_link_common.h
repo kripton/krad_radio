@@ -1,12 +1,12 @@
+#ifndef KRAD_LINK_COMMON_H
+#define KRAD_LINK_COMMON_H
+
 #include <string.h>
 #include <opus_defines.h>
 
 #include "krad_codec_header.h"
 
 typedef struct krad_link_rep_St krad_link_rep_t;
-
-#ifndef KRAD_LINK_COMMON_H
-#define KRAD_LINK_COMMON_H
 
 typedef enum {
 	AUDIO_ONLY = 150,

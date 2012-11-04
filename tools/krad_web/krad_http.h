@@ -15,15 +15,15 @@
 #include <poll.h>
 #include <pthread.h>
 
-#include "krad_radio.h"
+#ifndef KRAD_HTTP_H
+#define KRAD_HTTP_H
 
 #define BUFSIZE 8192 * 8
 
 typedef struct krad_http_St krad_http_t;
 typedef struct krad_http_client_St krad_http_client_t;
 
-#ifndef KRAD_HTTP_H
-#define KRAD_HTTP_H
+#include "krad_radio.h"
 
 struct krad_http_St {
 

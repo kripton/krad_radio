@@ -15,7 +15,6 @@ typedef enum {
 	HEXON,
 	DAALA,
 	H264,
-	AAC,
 	NOCODEC,
 } krad_codec_t;
 #define KRAD_CODEC_T 1

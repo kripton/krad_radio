@@ -96,9 +96,7 @@ char *krad_codec_to_string (krad_codec_t codec) {
 		case DAALA:
 			return "Daala";
 		case H264:
-			return "H264";
-		case AAC:
-			return "AAC";						
+			return "H264";						
 		default:
 			return "No Codec";
 	}
@@ -130,10 +128,6 @@ krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mod
 
 		if ((strstr(string, "Opus") != NULL) || (strstr(string, "opus") != NULL)) {
 			return OPUS;
-		}
-		
-		if ((strstr(string, "AAC") != NULL) || (strstr(string, "aac") != NULL)) {
-			return AAC;
 		}
 		
 	}
