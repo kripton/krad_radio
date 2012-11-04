@@ -1,5 +1,63 @@
 #include "krad_transmitter.h"
 
+int krad_transmitter_transmission_transmit_header (krad_transmission_t *krad_transmission,
+											krad_transmission_receiver_t *krad_transmission_receiver) {
+
+  int wrote;
+
+  wrote = 0;
+
+  while (krad_transmission_receiver->wrote_http_header == 0) {
+	  wrote = write (krad_transmission_receiver->fd,
+				   krad_transmission->http_header + krad_transmission_receiver->http_header_position,
+				   krad_transmission->http_header_len - krad_transmission_receiver->http_header_position);
+
+    if (wrote > 0) {
+      krad_transmission_receiver->http_header_position += wrote;
+	    if (krad_transmission_receiver->http_header_position == krad_transmission->http_header_len) {
+		    krad_transmission_receiver->wrote_http_header = 1;
+	    } else {
+        return 0;
+      }
+    } else {
+		  if (wrote == -1) {
+			  if (errno != EAGAIN) {
+				  printke ("Krad Transmitter: transmission error writing to socket");
+				  krad_transmitter_receiver_destroy (krad_transmission_receiver);
+			  }
+      }
+      return 0;
+    }
+  }
+
+  while (krad_transmission_receiver->wrote_header == 0) {
+	  wrote = write (krad_transmission_receiver->fd,
+				   krad_transmission->header + krad_transmission_receiver->header_position,
+				   krad_transmission->header_len - krad_transmission_receiver->header_position);
+
+    if (wrote > 0) {
+      krad_transmission_receiver->header_position += wrote;
+	    if (krad_transmission_receiver->header_position == krad_transmission->header_len) {
+		    krad_transmission_receiver->wrote_header = 1;
+	    } else {
+        return 0;
+      }
+    } else {
+		  if (wrote == -1) {
+			  if (errno != EAGAIN) {
+				  printke ("Krad Transmitter: transmission error writing to socket");
+				  krad_transmitter_receiver_destroy (krad_transmission_receiver);
+			  }
+      }
+      return 0;
+    }
+  }
+
+  krad_transmission_receiver->position = krad_transmission->sync_point;
+  return 1;
+
+}
+
 int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmission,
 											krad_transmission_receiver_t *krad_transmission_receiver) {
 
@@ -19,6 +77,15 @@ int krad_transmitter_transmission_transmit (krad_transmission_t *krad_transmissi
 	}
 	
 	while (1) {
+
+    if ((krad_transmission_receiver->wrote_http_header != 1) || (krad_transmission_receiver->wrote_header != 1)) {
+      ret = krad_transmitter_transmission_transmit_header (krad_transmission, krad_transmission_receiver);
+      if (ret == 1) {
+        continue;
+      } else {
+        return 0;
+      }
+    }
 	
 		if (krad_transmission_receiver->position == krad_transmission->position) {
 			if (krad_transmission_receiver->ready == 0) {
@@ -94,7 +161,6 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 	int e;
 	int ret;
-	int wrote;
 	int wait_time;
 	uint64_t last_position;
 	uint32_t new_bytes_avail;
@@ -104,7 +170,6 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 	e = 0;
 	ret = 0;
-	wrote = 0;
 	wait_time = 8;	
 	last_position = 0;
 	new_bytes_avail = 0;
@@ -190,37 +255,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 				}
 				
 				if (krad_transmission->transmission_events[e].events & EPOLLOUT) {
-
-					if (krad_transmission_receiver->wrote_header == 1) {
-						krad_transmitter_transmission_transmit (krad_transmission, krad_transmission_receiver);
-					} else {
-						if (krad_transmission_receiver->wrote_http_header == 0) {
-							wrote = write (krad_transmission_receiver->fd,
-										 krad_transmission->http_header,
-										 krad_transmission->http_header_len);
-							if (wrote == krad_transmission->http_header_len) {
-								krad_transmission_receiver->wrote_http_header = 1;
-							} else {
-								printke ("Krad Transmitter: pathetic could not write http header");
-								krad_transmitter_receiver_destroy (krad_transmission_receiver);
-							}
-						}
-						if (krad_transmission_receiver->wrote_header == 0) {
-							usleep(50000);
-							wrote = write (krad_transmission_receiver->fd,
-										  krad_transmission->header,
-										  krad_transmission->header_len);
-							if (wrote == krad_transmission->header_len) {
-								krad_transmission_receiver->wrote_header = 1;
-								krad_transmission_receiver->position = krad_transmission->sync_point;
-								krad_transmitter_transmission_transmit (krad_transmission, krad_transmission_receiver);
-							} else {
-								printke ("Krad Transmitter: pathetic could not write stream header, %d/%d",
-										 wrote, krad_transmission->header_len);
-								krad_transmitter_receiver_destroy (krad_transmission_receiver);
-							}
-						}
-					}
+  				krad_transmitter_transmission_transmit (krad_transmission, krad_transmission_receiver);
 				}
 			}
 		}
@@ -524,6 +559,8 @@ krad_transmission_receiver_t *krad_transmitter_receiver_create (krad_transmitter
 		if (krad_transmitter->krad_transmission_receivers[r].active == 0) {
 			krad_transmitter->krad_transmission_receivers[r].active = 1;
 			krad_transmitter->krad_transmission_receivers[r].position = 0;
+			krad_transmitter->krad_transmission_receivers[r].http_header_position = 0;
+			krad_transmitter->krad_transmission_receivers[r].header_position = 0;
 			krad_transmitter->krad_transmission_receivers[r].fd = fd;
 			krad_transmitter->krad_transmission_receivers[r].event.data.ptr = &krad_transmitter->krad_transmission_receivers[r];
 			krad_transmitter->krad_transmission_receivers[r].event.events = EPOLLIN | EPOLLET;
@@ -555,6 +592,8 @@ void krad_transmitter_receiver_destroy (krad_transmission_receiver_t *krad_trans
 	krad_transmission_receiver->position = 0;
 	krad_transmission_receiver->wrote_http_header = 0;
 	krad_transmission_receiver->wrote_header = 0;
+	krad_transmission_receiver->http_header_position = 0;
+	krad_transmission_receiver->header_position = 0;
 	memset (krad_transmission_receiver->buffer, 0, sizeof(krad_transmission_receiver->buffer));
 	krad_transmission_receiver->active = 0;
 

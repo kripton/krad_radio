@@ -127,6 +127,9 @@ struct krad_transmission_receiver_St {
 	char buffer[256];
 	uint64_t position;
 
+	int http_header_position;
+	int header_position;
+
 	int wrote_http_header;
 	int wrote_header;
 
