@@ -40,9 +40,13 @@ def configure(conf):
 
 	if conf.env['IS_LINUX']:
 		print("Linux detected :D")
+		conf.env.append_unique('CFLAGS', ['-DIS_LINUX'])
+		conf.env.append_unique('CXXFLAGS', ['-DIS_LINUX'])
 
 	if conf.env['IS_MACOSX']:
 		print("MacOS X detected :(")
+		conf.env.append_unique('CFLAGS', ['-DIS_MACOSX'])
+		conf.env.append_unique('CXXFLAGS', ['-DIS_MACOSX'])
 
 	check_way(conf)
 

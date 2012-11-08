@@ -50,11 +50,17 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 	void *frame_data;
 	long int frame_data_size;
 	void *audio_data;
-	const char *timecodeString;
 	IDeckLinkTimecode *timecode;
 	BMDTimecodeFormat timecodeFormat;
 	int audio_frames;
 	
+#ifdef IS_LINUX
+	const char *timecodeString;
+#endif
+#ifdef IS_MACOSX
+  CFStringRef timecodeString;
+#endif
+
 	timecodeString = NULL;
 	timecodeFormat = 0;
 	frame_data_size = 0;
@@ -115,7 +121,12 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 			}
 
 			if (timecodeString) {
+#ifdef IS_LINUX
 				free ((void*)timecodeString);
+#endif
+#ifdef IS_MACOSX
+				CFRelease(timecodeString);
+#endif
 			}
 
 			video_frame->GetBytes(&frame_data);
@@ -401,7 +412,7 @@ void krad_decklink_capture_stop(krad_decklink_capture_t *krad_decklink_capture) 
 	free(krad_decklink_capture);
 
 }
-
+#ifdef IS_LINUX
 void krad_decklink_capture_info () {
 
 	IDeckLink *deckLink;
@@ -479,7 +490,7 @@ void krad_decklink_capture_info () {
 		deckLinkIterator->Release();
 	}
 }
-
+#endif
 
 int krad_decklink_cpp_detect_devices () {
 
@@ -517,8 +528,12 @@ void krad_decklink_cpp_get_device_name (int device_num, char *device_name) {
 	IDeckLink *deckLink;
 	int device_count;
 	HRESULT result;
+#ifdef IS_LINUX
 	char *device_name_temp;
-	
+#endif
+#ifdef IS_MACOSX
+  CFStringRef device_name_temp;
+#endif
 	device_name_temp = NULL;
 	device_count = 0;
 	
@@ -532,10 +547,19 @@ void krad_decklink_cpp_get_device_name (int device_num, char *device_name) {
 	while (deckLinkIterator->Next(&deckLink) == S_OK) {
 
 		if (device_count == device_num) {
+#ifdef IS_LINUX
 			result = deckLink->GetModelName((const char **) &device_name_temp);
 			if (result == S_OK) {
 				strcpy(device_name, device_name_temp);
 				free(device_name_temp);
+#endif
+#ifdef IS_MACOSX
+			result = deckLink->GetModelName(&device_name_temp);
+			if (result == S_OK) {
+        CFStringGetCString(device_name_temp, device_name, 64, kCFStringEncodingMacRoman);
+				CFRelease(device_name_temp);
+#endif
+
 			} else {
 				strcpy(device_name, "Unknown Error in GetModelName");
 			}
