@@ -71,8 +71,7 @@ krad_x264_encoder_t *krad_x264_encoder_create (int width, int height,
 	krad_x264->fps_numerator = fps_numerator;
 	krad_x264->fps_denominator = fps_denominator;
 
-  x264_param_default_preset ( krad_x264->params, "veryfast", "film,zerolatency" );
-	//x264_param_default_preset ( krad_x264->params, "fast", "" );
+  x264_param_default_preset ( krad_x264->params, "ultrafast", "film,zerolatency" );
 	x264_param_apply_profile ( krad_x264->params, "high" );
 	
 	krad_x264->params->i_width = krad_x264->width;
