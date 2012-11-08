@@ -77,6 +77,8 @@ krad_x264_encoder_t *krad_x264_encoder_create (int width, int height,
 	krad_x264->params->i_width = krad_x264->width;
 	krad_x264->params->i_height = krad_x264->height;
 	krad_x264->params->i_csp = X264_CSP_I420;
+	krad_x264->params->i_fps_num = krad_x264->fps_numerator;
+	krad_x264->params->i_fps_den = krad_x264->fps_denominator;
 	krad_x264->params->rc.i_bitrate = krad_x264->bitrate;
 	krad_x264->encoder = x264_encoder_open ( krad_x264->params );
 	x264_encoder_parameters ( krad_x264->encoder, krad_x264->params );
