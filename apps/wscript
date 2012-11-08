@@ -65,7 +65,6 @@ depsources = """
 ../tools/krad_udp/krad_udp.c
 ../tools/krad_decklink/krad_decklink.c
 ../tools/krad_decklink/krad_decklink_capture.cpp
-../tools/krad_decklink/vendor/DeckLinkAPIDispatch.cpp
 """.split()
 
 depsources2 = """
@@ -118,7 +117,6 @@ includedirs = """
 ../tools/krad_codec2/
 ../tools/krad_system/
 ../tools/krad_decklink/
-../tools/krad_decklink/vendor
 ../tools/krad_ebml/
 ../tools/krad_legacy/
 /usr/local/include
@@ -145,12 +143,16 @@ def check_system(systm):
 		"../tools/krad_alsa/krad_alsa_seq.c"] + depsources
 		depsources2 = ["../tools/krad_alsa/krad_alsa.c", "../tools/krad_alsa/krad_alsa_seq.c"] + depsources2
 		programs2 = ["krad_radio_ev.c"] + programs2
+		includedirs = ["../tools/krad_decklink/vendor/linux"] + includedirs
+		depsources = ["../tools/krad_decklink/vendor/linux/DeckLinkAPIDispatch.cpp"] + depsources
 
 
 	if systm.env['IS_MACOSX']:
 		depsources = ["../tools/krad_legacy/krad_mach.c"] + depsources
 		depsources2 = ["../tools/krad_legacy/krad_mach.c"] + depsources2
 		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
+		includedirs = ["../tools/krad_decklink/vendor/osx"] + includedirs
+		depsources = ["../tools/krad_decklink/vendor/osx/DeckLinkAPIDispatch.cpp"] + depsources
 
 def check_way(way):
 

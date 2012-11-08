@@ -13,6 +13,7 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 #define KRAD_MIXER_MAX_CHANNELS 8
 #define KRAD_MIXER_DEFAULT_SAMPLE_RATE 48000
 #define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1600
+#define KRAD_MIXER_RMS_WINDOW_SIZE_MS 125
 
 #include "krad_radio.h"
 
@@ -72,10 +73,14 @@ struct krad_mixer_portgroup_St {
 	float new_volume_actual[KRAD_MIXER_MAX_CHANNELS];
 	int last_sign[KRAD_MIXER_MAX_CHANNELS];
 
+	float rms[KRAD_MIXER_MAX_CHANNELS];
 	float peak[KRAD_MIXER_MAX_CHANNELS];
 	float *samples[KRAD_MIXER_MAX_CHANNELS];
 
 	float **mapped_samples[KRAD_MIXER_MAX_CHANNELS];
+
+  int delay;
+  int delay_actual;
 
 	int active;
 	
@@ -102,6 +107,8 @@ struct krad_mixer_St {
 	char *name;
 	int sample_rate;
     
+  int rms_window_size;
+
 	krad_mixer_mixbus_t *master_mix;
 
 	krad_mixer_portgroup_t *tone_port;

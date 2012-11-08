@@ -218,6 +218,33 @@ void krad_mixer_portgroup_compute_peaks (krad_mixer_portgroup_t *portgroup, uint
 		krad_mixer_portgroup_compute_channel_peak (portgroup, c, nframes);
 	}
 }
+/*
+void krad_mixer_portgroup_compute_channel_rms (krad_mixer_portgroup_t *portgroup, int channel, uint32_t nframes) {
+
+	int s;
+	float sample;
+	float total;
+
+  total = 0;
+
+	for (s = 0; s < nframes; s++) {
+    sample = fabs(portgroup->samples[channel][s]);
+		total += sample * sample;
+	}
+
+  portgroup->rms = (portgroup->rms + total) / portgroup->krad_mixer->rms_window_size;
+
+}
+*/
+void krad_mixer_compute_levels (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
+
+	int c;
+	
+	for (c = 0; c < portgroup->channels; c++) {
+		//krad_mixer_portgroup_compute_channel_rms (portgroup, c, nframes);
+		krad_mixer_portgroup_compute_channel_peak (portgroup, c, nframes);
+	}
+}
 
 void portgroup_clear_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 
@@ -245,7 +272,24 @@ void krad_mixer_portgroup_mixmap_channel (krad_mixer_portgroup_t *portgroup, int
 
 }
 
-void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
+int portgroup_handle_delay (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
+
+  int delay_frames;
+
+  if (portgroup->delay > portgroup->delay_actual) {
+    delay_frames = portgroup->delay - portgroup->delay_actual;
+    if (delay_frames > nframes) {
+      delay_frames = nframes;
+    }
+    portgroup_clear_samples (portgroup, delay_frames);
+    portgroup->delay += delay_frames;
+    return nframes - delay_frames;
+  }
+
+  return nframes;
+}
+
+void portgroup_get_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 
 	int c;
 	float *samples[KRAD_MIXER_MAX_CHANNELS];
@@ -262,9 +306,7 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 			krad_audio_portgroup_samples_callback (nframes, portgroup->io_ptr, samples);
 			
 			for (c = 0; c < KRAD_MIXER_MAX_CHANNELS; c++ ) {
-			
 				portgroup->samples[c] = samples[portgroup->map[c]];
-			
 			}
 			break;
 		case KRAD_LINK:
@@ -281,6 +323,14 @@ void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nfram
 			break;
 	}
 	
+}
+
+void portgroup_update_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
+
+  if (portgroup->delay != portgroup->delay_actual) {
+    nframes = portgroup_handle_delay (portgroup, nframes);
+  }
+  portgroup_get_samples (portgroup, nframes);
 }
 
 void portgroup_mix_samples (krad_mixer_portgroup_t *dest_portgroup, krad_mixer_portgroup_t *src_portgroup, uint32_t nframes) {
@@ -681,6 +731,9 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 		}
 		usleep(15000);
 	}
+
+  portgroup->delay = 0;
+  portgroup->delay_actual = 0;
 
 	printkd("Krad Mixer: Removing %d channel Portgroup %s", portgroup->channels, portgroup->sysname);
 
@@ -1086,6 +1139,7 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	
 	krad_mixer->name = strdup (name);
 	krad_mixer->sample_rate = KRAD_MIXER_DEFAULT_SAMPLE_RATE;
+	krad_mixer->rms_window_size = (krad_mixer->sample_rate / 1000) * KRAD_MIXER_RMS_WINDOW_SIZE_MS;
 	krad_mixer->ticker_period = KRAD_MIXER_DEFAULT_TICKER_PERIOD;
 	
 	krad_mixer->crossfade_group = calloc (KRAD_MIXER_MAX_PORTGROUPS / 2, sizeof (krad_mixer_crossfade_group_t));

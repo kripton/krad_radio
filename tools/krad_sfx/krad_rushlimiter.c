@@ -20,7 +20,9 @@ static void kr_rushlimiter_limit (kr_rushlimiter_t *kr_rushlimiter, float *input
 	float peak;
   float sample;
   float gain;
+  float bottom;
 
+  bottom = 1.0f;
   peak = 0.0f;
   sample = 0.0f;
 
@@ -32,6 +34,7 @@ static void kr_rushlimiter_limit (kr_rushlimiter_t *kr_rushlimiter, float *input
 	}
 
   gain = 1.0f / peak;
+  bottom = 1.0f - gain;
 
   if (gain < kr_rushlimiter->gain) {
     kr_rushlimiter->gain = gain;
@@ -49,7 +52,11 @@ static void kr_rushlimiter_limit (kr_rushlimiter_t *kr_rushlimiter, float *input
   }
 
   for (s = 0; s < num_samples; s++) {
-    output[s] = input[s] * kr_rushlimiter->gain;
+    if ((input[s] > bottom) || (input[s] < (bottom * -1.0f))) {
+      output[s] = input[s] * kr_rushlimiter->gain;
+    } else {
+      output[s] = input[s];
+    }
   }
   
 }
