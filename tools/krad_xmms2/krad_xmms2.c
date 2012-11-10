@@ -146,6 +146,10 @@ static int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 
 	printk ("Got Playback Status: %d", krad_xmms->playback_status);
 
+  if ((krad_xmms->krad_tags != NULL) && (krad_xmms->playback_status == 0)) {
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", "0:00");
+  }
+
 	return 1;
 
 }
