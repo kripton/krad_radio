@@ -2619,7 +2619,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);
 	
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_AV_MODE) {
-			printk ("hrm wtf");
+			printk ("hrm wtf0");
 		} else {
 			//printk ("tag size %zu", ebml_data_size);
 		}
@@ -2634,7 +2634,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_CODEC) {
-				printk ("hrm wtf2v");
+				printk ("hrm wtf2v1");
 			} else {
 				//printk ("tag name size %zu", ebml_data_size);
 			}
@@ -2648,7 +2648,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 				if (ebml_id != EBML_ID_KRAD_LINK_LINK_USE_PASSTHRU_CODEC) {
-					printk ("hrm wtf2v");
+					printk ("hrm wtf2v2");
 				} else {
 					//printk ("tag name size %zu", ebml_data_size);
 				}
@@ -2665,7 +2665,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH) {
-				printk ("hrm wtf2v");
+				printk ("hrm wtf2v3");
 			} else {
 				krad_link->encoding_width = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 			}
@@ -2673,7 +2673,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT) {
-				printk ("hrm wtf2v");
+				printk ("hrm wtf2v4");
 			} else {
 				krad_link->encoding_height = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 			}
@@ -2683,7 +2683,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 				if (ebml_id != EBML_ID_KRAD_LINK_LINK_VP8_BITRATE) {
-					printk ("hrm wtf2v");
+					printk ("hrm wtf2v5");
 				} else {
 					krad_link->vp8_bitrate = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 				}
@@ -2693,7 +2693,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 				krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 				if (ebml_id != EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY) {
-					printk ("hrm wtf2v");
+					printk ("hrm wtf2v6");
 				} else {
 					krad_link->theora_quality = krad_ebml_read_number (krad_ipc_server->current_client->krad_ebml, ebml_data_size);
 				}
@@ -2706,7 +2706,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 			if (ebml_id != EBML_ID_KRAD_LINK_LINK_AUDIO_CODEC) {
-				printk ("hrm wtf2a");
+				printk ("hrm wtf2a7");
 			} else {
 				//printk ("tag name size %zu", ebml_data_size);
 			}
@@ -2746,7 +2746,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE) {
-			printk ("hrm wtf2");
+			printk ("hrm wtf28");
 		} else {
 			//printk ("tag name size %zu", ebml_data_size);
 		}
@@ -2758,7 +2758,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_HOST) {
-			printk ("hrm wtf2");
+			printk ("hrm wtf29");
 		} else {
 			//printk ("tag name size %zu", ebml_data_size);
 		}
@@ -2768,7 +2768,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PORT) {
-			printk ("hrm wtf3");
+			printk ("hrm wtf310");
 		} else {
 			//printk ("tag value size %zu", ebml_data_size);
 		}
@@ -2778,7 +2778,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_MOUNT) {
-			printk ("hrm wtf2");
+			printk ("hrm wtf212");
 		} else {
 			//printk ("tag name size %zu", ebml_data_size);
 		}
@@ -2788,7 +2788,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_PASSWORD) {
-			printk ("hrm wtf2");
+			printk ("hrm wtf213");
 		} else {
 			//printk ("tag name size %zu", ebml_data_size);
 		}
@@ -2810,7 +2810,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 		krad_ebml_read_element (krad_ipc_server->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
 		if (ebml_id != EBML_ID_KRAD_LINK_LINK_FILENAME) {
-			printk ("hrm wtf2");
+			printk ("hrm wtf214");
 		} else {
 			//printk ("tag name size %zu", ebml_data_size);
 		}

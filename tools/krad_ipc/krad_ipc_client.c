@@ -2067,7 +2067,7 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, video_width);
 		krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_HEIGHT, video_height);
 		
-		if (video_codec == VP8) {
+		if ((video_codec == VP8) || (video_codec == H264)) {
 			if (video_bitrate < 100) {
 				video_bitrate = 100;
 			}
