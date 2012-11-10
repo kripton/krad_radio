@@ -158,7 +158,7 @@ static int krad_xmms_playlist_loaded (xmmsv_t *value, void *userdata) {
 	const char *active_playlist;
 
 	xmmsv_get_string (value, &active_playlist);
-	strncpy (krad_xmms->active_playlist, active_playlist, 256);
+	strncpy (krad_xmms->active_playlist, active_playlist, sizeof(krad_xmms->active_playlist));
 	printk ("The active playlist is: %s", krad_xmms->active_playlist);
 
 	return 1;
