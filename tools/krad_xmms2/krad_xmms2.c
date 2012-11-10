@@ -19,30 +19,6 @@ static void krad_xmms_error_state (krad_xmms_t *krad_xmms);
 static void krad_xmms_connect (krad_xmms_t *krad_xmms);
 static void krad_xmms_disconnect (krad_xmms_t *krad_xmms);
 
-void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd) {
-
-	switch (cmd) {
-		case PREV:
-			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, -1) );
-			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
-			break;
-		case NEXT:
-			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, 1) );
-			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
-			break;
-		case PAUSE:
-			xmmsc_result_unref ( xmmsc_playback_pause (krad_xmms->connection) );
-			break;
-		case PLAY:
-			xmmsc_result_unref ( xmmsc_playback_start (krad_xmms->connection) );
-			break;
-		case STOP:
-			xmmsc_result_unref ( xmmsc_playback_stop (krad_xmms->connection) );		
-			break;
-	}
-
-}
-
 static int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
@@ -247,6 +223,19 @@ static void krad_xmms_get_initial_state (krad_xmms_t *krad_xmms) {
 
 }
 
+static void krad_xmms_lock (void *arg) {
+
+  krad_xmms_t *krad_xmms = (krad_xmms_t *)arg;
+
+  pthread_mutex_lock (&krad_xmms->lock);	
+}
+
+static void krad_xmms_unlock (void *arg) {
+
+  krad_xmms_t *krad_xmms = (krad_xmms_t *)arg;
+
+  pthread_mutex_unlock (&krad_xmms->lock);	
+}
 
 static void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 
@@ -259,6 +248,8 @@ static void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 	if (!krad_xmms->connection) {
 		failfast ("Out of memory for new xmms connection");
 	}
+
+  xmmsc_lock_set ( krad_xmms->connection, krad_xmms, krad_xmms_lock, krad_xmms_unlock);
 
 	if (!xmmsc_connect (krad_xmms->connection, krad_xmms->ipc_path)) {
 		printke ("Connection failed: %s", xmmsc_get_last_error (krad_xmms->connection));
@@ -284,6 +275,7 @@ static void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 
 static void krad_xmms_handle (krad_xmms_t *krad_xmms) {
 
+  char in;
 	int n;
   int nfds;
   int ret;
@@ -320,6 +312,12 @@ static void krad_xmms_handle (krad_xmms_t *krad_xmms) {
 
 			if (pollfds[n].revents) {
         if (pollfds[n].fd == krad_xmms->handler_thread_socketpair[1]) {
+				  if (pollfds[n].revents & POLLIN) {
+            read (krad_xmms->handler_thread_socketpair[1], &in, 1);            
+            if (strncmp(&in, "1", 1) == 0) {
+                return;
+            }
+          }
           krad_xmms->handler_running = 2;
           return;
         } else {
@@ -396,6 +394,34 @@ static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
 }
 
 
+/* The following are called from Krad IPC */
+
+void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd) {
+
+	switch (cmd) {
+		case PREV:
+			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, -1) );
+			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
+			break;
+		case NEXT:
+			xmmsc_result_unref ( xmmsc_playlist_set_next_rel (krad_xmms->connection, 1) );
+			xmmsc_result_unref ( xmmsc_playback_tickle (krad_xmms->connection) );
+			break;
+		case PAUSE:
+			xmmsc_result_unref ( xmmsc_playback_pause (krad_xmms->connection) );
+			break;
+		case PLAY:
+			xmmsc_result_unref ( xmmsc_playback_start (krad_xmms->connection) );
+			break;
+		case STOP:
+			xmmsc_result_unref ( xmmsc_playback_stop (krad_xmms->connection) );		
+			break;
+	}
+
+  write (krad_xmms->handler_thread_socketpair[0], "1", 1);
+
+}
+
 void krad_xmms_destroy (krad_xmms_t *krad_xmms) {
   krad_xmms->destroying = 1;
   krad_xmms_stop_handler (krad_xmms);
@@ -406,7 +432,7 @@ void krad_xmms_destroy (krad_xmms_t *krad_xmms) {
 		krad_tags_set_tag_internal (krad_xmms->krad_tags, "title", "");
 		krad_tags_set_tag_internal (krad_xmms->krad_tags, "now_playing", "");
 	}
-
+	pthread_mutex_destroy (&krad_xmms->lock);
   free (krad_xmms);
 }
 
@@ -417,6 +443,7 @@ krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path, krad_tags_t *krad_
   strcpy (krad_xmms->sysname, sysname);
   strcpy (krad_xmms->ipc_path, ipc_path);
   krad_xmms->krad_tags = krad_tags;
+	pthread_mutex_init (&krad_xmms->lock, NULL);
   krad_xmms->playback_status = -1;
   krad_xmms_start_handler (krad_xmms);
 
