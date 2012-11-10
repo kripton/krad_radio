@@ -27,9 +27,3 @@ libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev l
 libx264-dev libjpeg-turbo8-dev libturbojpeg libxcb-image0-dev libtheora-dev libvpx-dev \
 yasm build-essential libxmmsclient-dev libtool libxml2-dev 
 
-There are dependencies not found in the ubuntu universe, so they must be built manually: libwebsockets
-
-******** libwebsockets ********
-
-git clone git://git.warmcat.com/libwebsockets
-cd libwebsockets && ./configure && make && sudo make install && sudo ldconfig

@@ -33,6 +33,15 @@ depsources = """
 ../tools/krad_framepool/krad_framepool.c
 ../tools/krad_osc/krad_osc.c
 ../tools/krad_web/ext/cJSON.c
+../tools/krad_web/ext/libwebsockets/base64-decode.c
+../tools/krad_web/ext/libwebsockets/client-handshake.c
+../tools/krad_web/ext/libwebsockets/extension.c
+../tools/krad_web/ext/libwebsockets/extension-deflate-stream.c
+../tools/krad_web/ext/libwebsockets/handshake.c
+../tools/krad_web/ext/libwebsockets/libwebsockets.c
+../tools/krad_web/ext/libwebsockets/md5.c
+../tools/krad_web/ext/libwebsockets/parsers.c
+../tools/krad_web/ext/libwebsockets/sha-1.c
 ../tools/krad_web/krad_http.c
 ../tools/krad_web/krad_websocket.c
 ../tools/krad_sfx/krad_eq.c
@@ -127,7 +136,8 @@ shlibs = ["x11-xcb", "xcb-image", "xcb", "x11", "jack", "cairo", "xmms2-client",
           "x264", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "flac",
           "vpx", "libswscale", "libavutil"]
 
-stlibs = ["libwebsockets"]
+#stlibs = ["libwebsockets"]
+stlibs = []
 
 # "ncurses",
 
