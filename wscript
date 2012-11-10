@@ -15,12 +15,15 @@ for s in subdirs:
 	subdirs[subdirs.index(s)] = os.getcwd() + "/" + toolsdir + "/" + s
 	
 subdirs += [os.getcwd() + "/" + appsdir]
-	
+
 def options(opt):
 
 	opt.load('compiler_c')
 	opt.load('compiler_cxx')
-	
+
+	opt.add_option('--optimize', action='store_true', default=False,
+		help='Compile with -O3 rather than -g')	
+
 def check_way(way):
 	try:  
 	   os.environ["WAYRAD"]
@@ -55,9 +58,13 @@ def configure(conf):
 
 	conf.check_tool('gcc')
 	conf.check_tool('gnu_dirs')
-#	conf.env.append_unique('CFLAGS', ['-g', '-Wall', '-Wno-unused-variable', '-Wno-unused-but-set-variable'])
-	conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
-	conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
+	if conf.options.optimize == False:
+		conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
+		conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
+	else:
+		conf.env.append_unique('CXXFLAGS', ['-O3', '-Wno-write-strings'])
+		conf.env.append_unique('CFLAGS', ['-O3'])
+
 #	conf.env.append_value("LINKFLAGS", ['-lrt','-ldl','-lm'])	
 	conf.recurse(subdirs, mandatory = False)
 	
