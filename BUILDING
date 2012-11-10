@@ -1,4 +1,4 @@
-Krad Radio Building Instructions - Last Updated: May 15, 2012 - http://kradradio.com
+Krad Radio Building Instructions - Last Updated: Nov 10, 2012 - http://kradradio.com
 
 #### GITTING
 
@@ -22,47 +22,11 @@ git pull && ./waf distclean && ./waf configure && ./waf && sudo ./waf install
 If on ubuntu do this (if not, you can probably figure it out):
 
 sudo apt-get install libasound2-dev libvorbis-dev freeglut3-dev build-essential autoconf git-core \
-libgtk-3-dev libswscale-dev libflac-dev libavutil-dev libjack-jackd2-dev git libopus-dev \
+libgtk-3-dev libswscale-dev libflac-dev libavutil-dev libjack-jackd2-dev git libopus-dev libx264-123 \
 libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 libx264-dev \
-subversion yasm build-essential libxmmsclient-dev libtool libxml2-dev libxcb-image0-dev libtheora-dev
+yasm build-essential libxmmsclient-dev libtool libxml2-dev libxcb-image0-dev libtheora-dev
 
-There are dependencies not found in the ubuntu universe, atleast up to date enough, so they must be built manually:
-libjpeg-turbo, and libwebsockets.
-
-******** libjpeg-turbo ******** 
-
-libjpeg-turbo and its confusingly differently named api turbojpeg seems to be missing a pkg-config (.pc) file
-on most linux distros. http://www.libjpeg-turbo.org/
-so install libjpeg-turbo:
-
-*PITFALL*
-be sure to set the prefix to /usr/local! it defaults to /opt (who know why?)
-
-svn co https://libjpeg-turbo.svn.sourceforge.net/svnroot/libjpeg-turbo/branches/1.2.x libjpeg-turbo
-cd libjpeg-turbo/
-mkdir build
-autoreconf -fiv
-cd build/
-sh ../configure --prefix=/usr/local
-make
-sudo make install && sudo ldconfig
-
-Put this pkg-config file in: /usr/local/lib/pkgconfig/turbojpeg.pc
-
-# turbojpeg installed pkg-config file
-
-prefix=/usr/local
-exec_prefix=/usr/local
-libdir=/usr/local/lib
-includedir=/usr/local/include
-
-Name: turbojpeg
-Description: turbojpeg
-Version: 1.2.0
-Conflicts:
-Libs: -L${libdir} -lturbojpeg
-Cflags: -I${includedir}
-
+There are dependencies not found in the ubuntu universe, so they must be built manually: libwebsockets
 
 ******** libwebsockets ********
 

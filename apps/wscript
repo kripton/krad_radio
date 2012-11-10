@@ -123,9 +123,11 @@ includedirs = """
 /usr/include
 """.split()
 
-libs = ["samplerate", "x264", "turbojpeg", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", 
-		"cairo", "x11-xcb", "xcb-image", "xcb", "x11",
-		"flac", "jack", "vpx", "libswscale", "libavutil", "libwebsockets", "xmms2-client"]
+shlibs = ["x11-xcb", "xcb-image", "xcb", "x11", "jack", "cairo", "xmms2-client", "samplerate",
+          "x264", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "flac",
+          "vpx", "libswscale", "libavutil"]
+
+stlibs = ["libwebsockets"]
 
 # "ncurses",
 
@@ -134,11 +136,11 @@ def check_system(systm):
 	global includedirs
 	global depsources
 	global depsources2
-	global libs
+	global shlibs
 	global programs2
 
 	if systm.env['IS_LINUX']:
-		libs = libs + ["alsa"]    
+		shlibs = shlibs + ["alsa"]    
 		depsources = ["../tools/krad_v4l2/krad_v4l2.c", "../tools/krad_alsa/krad_alsa.c",
 		"../tools/krad_alsa/krad_alsa_seq.c"] + depsources
 		depsources2 = ["../tools/krad_alsa/krad_alsa.c", "../tools/krad_alsa/krad_alsa_seq.c"] + depsources2
@@ -157,11 +159,11 @@ def check_system(systm):
 def check_way(way):
 
 	global depsources
-	global libs
+	global shlibs
 
 	if way.env['WAYRAD']:
 		depsources += ["../tools/krad_wayland/krad_wayland.c"]
-		libs += ["wayland-client"]
+		shlibs += ["wayland-client"]
 
 def remake_webres(web):
 	cmd = 'xxd -i tools/krad_web/res/krad_radio.html tools/krad_web/res/krad_radio.html.h'
@@ -173,13 +175,22 @@ def remake_webres(web):
 
 def configure(conf):
 
-	remake_webres(conf)	
+	global shlibs
+	remake_webres(conf)
 	check_way(conf)
 	check_system(conf)
 
-	for l in libs:
+	if conf.env['IS_LINUX']:
+		conf.check_cc(lib='turbojpeg', cflags='-Wall', uselib_store='turbojpeg')
+
+	if conf.env['IS_MACOSX']:
+		shlibs = shlibs + ['turbojpeg']
+
+	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
+	for l in stlibs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
 
 def build(bld):
 
@@ -193,7 +204,7 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = libs)
+			uselib = shlibs + stlibs + ['turbojpeg'])
 
 	for p in programs2:
 
@@ -201,5 +212,5 @@ def build(bld):
 			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = libs)
+			uselib = shlibs + stlibs + ['turbojpeg'])
 
