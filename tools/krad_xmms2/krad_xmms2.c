@@ -59,7 +59,7 @@ static int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
-	xmmsc_result_t *result;	
+	xmmsc_result_t *result;
 	int id;
 	
 	result = NULL;
@@ -130,6 +130,41 @@ static int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 
 }
 
+static int krad_xmms_playlist_current_pos (xmmsv_t *value, void *userdata ) {
+
+  krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+	const char *playlist_name;
+
+	xmmsv_dict_entry_get_string (value, "name", &playlist_name);
+
+	if ((strlen(krad_xmms->active_playlist) == strlen(playlist_name)) && 
+      (strncmp (krad_xmms->active_playlist, playlist_name, sizeof(krad_xmms->active_playlist)) == 0)) {
+
+		xmmsv_dict_entry_get_int (value, "position", &krad_xmms->active_playlist_position);
+
+    /* Need to use this to get the cued track when we are changing playlist pos
+        whilst stopped */
+    
+	}
+
+	return 1;
+
+}
+
+static int krad_xmms_playlist_loaded (xmmsv_t *value, void *userdata) {
+
+  krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+
+	const char *active_playlist;
+
+	xmmsv_get_string (value, &active_playlist);
+	strncpy (krad_xmms->active_playlist, active_playlist, 256);
+	printk ("The active playlist is: %s", krad_xmms->active_playlist);
+
+	return 1;
+
+}
+
 static void krad_xmms_error_state (krad_xmms_t *krad_xmms) {
     krad_xmms->playback_status = -1;
 		krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", "0:00");
@@ -178,6 +213,16 @@ static void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms) {
 	xmmsc_result_disconnect (result);
 	xmmsc_result_unref (result);
 	xmmsc_unref (krad_xmms->connection);
+
+	result = xmmsc_broadcast_playlist_loaded (krad_xmms->connection);
+	xmmsc_result_disconnect (result);
+	xmmsc_result_unref (result);
+	xmmsc_unref (krad_xmms->connection);
+
+	result = xmmsc_broadcast_playlist_current_pos (krad_xmms->connection);
+	xmmsc_result_disconnect (result);
+	xmmsc_result_unref (result);
+	xmmsc_unref (krad_xmms->connection);
 	
 	result = xmmsc_signal_playback_playtime (krad_xmms->connection);
 	xmmsc_result_disconnect (result);
@@ -200,6 +245,14 @@ static void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms) {
 	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
 	xmmsc_result_unref (result);	
 
+	result = xmmsc_broadcast_playlist_loaded (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playlist_loaded, krad_xmms);
+	xmmsc_result_unref (result);
+
+	result = xmmsc_broadcast_playlist_current_pos (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playlist_current_pos, krad_xmms);
+	xmmsc_result_unref (result);
+
 	result = xmmsc_signal_playback_playtime (krad_xmms->connection);
 	xmmsc_result_notifier_set (result, krad_xmms_playtime_callback, krad_xmms);
 	xmmsc_result_unref (result);
@@ -219,6 +272,18 @@ static void krad_xmms_get_initial_state (krad_xmms_t *krad_xmms) {
 
 	result = xmmsc_playback_current_id (krad_xmms->connection);
 	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
+	xmmsc_result_unref (result);
+
+	result = xmmsc_playlist_current_active (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playlist_loaded, krad_xmms);
+	xmmsc_result_unref (result);
+
+	result = xmmsc_playlist_current_pos (krad_xmms->connection, NULL);
+	xmmsc_result_notifier_set (result, krad_xmms_playlist_current_pos, krad_xmms);
+	xmmsc_result_unref (result);
+
+	result = xmmsc_playback_playtime (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playtime_callback, krad_xmms);
 	xmmsc_result_unref (result);
 
 }

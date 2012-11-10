@@ -45,6 +45,8 @@ struct krad_xmms_St {
 	int playback_status;
 	int playtime;
 	int playing_id;
+  int active_playlist_position;
+	char active_playlist[128];
 	char playtime_string[128];
 	char now_playing[1024];
 	char title[512];
