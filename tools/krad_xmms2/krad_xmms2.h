@@ -9,6 +9,7 @@
 #include <sys/mman.h>
 #include <signal.h>
 #include <poll.h>
+#include <errno.h>
 
 #include <xmmsclient/xmmsclient.h>
 
@@ -36,6 +37,7 @@ struct krad_xmms_St {
 
 	pthread_t handler_thread;
 	int handler_running;
+  int handler_thread_socketpair[2];
 
 	int playback_status;
 	int playtime;
@@ -49,25 +51,8 @@ struct krad_xmms_St {
 
 };
 
-int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata);
-int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata);
-int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata);
-void krad_xmms_disconnect_callback (void *userdata);
 
 void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd);
-
-void *krad_xmms_handler_thread (void *arg);
-void krad_xmms_start_handler (krad_xmms_t *krad_xmms);
-void krad_xmms_stop_handler (krad_xmms_t *krad_xmms);
-
-void krad_xmms_handle (krad_xmms_t *krad_xmms);
-
-void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms);
-void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms);
-
-void krad_xmms_connect (krad_xmms_t *krad_xmms);
-void krad_xmms_disconnect (krad_xmms_t *krad_xmms);
-
 void krad_xmms_destroy (krad_xmms_t *krad_xmms);
 krad_xmms_t *krad_xmms_create (char *name, char *ipc_path, krad_tags_t *krad_tags);
 

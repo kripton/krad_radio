@@ -1,5 +1,22 @@
 #include "krad_xmms2.h"
 
+static int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata);
+static int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata);
+static int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata);
+static void krad_xmms_disconnect_callback (void *userdata);
+
+static void *krad_xmms_handler_thread (void *arg);
+static void krad_xmms_start_handler (krad_xmms_t *krad_xmms);
+static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms);
+static void krad_xmms_handle (krad_xmms_t *krad_xmms);
+
+static void krad_xmms_get_initial_state (krad_xmms_t *krad_xmms);
+static void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms);
+static void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms);
+
+static void krad_xmms_connect (krad_xmms_t *krad_xmms);
+static void krad_xmms_disconnect (krad_xmms_t *krad_xmms);
+
 void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd) {
 
 	switch (cmd) {
@@ -24,15 +41,7 @@ void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cm
 
 }
 
-void krad_xmms_disconnect_callback (void *userdata) {
-
-	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
-
-	krad_xmms_disconnect (krad_xmms);
-	
-}
-
-int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
+static int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
@@ -55,25 +64,6 @@ int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 	sprintf (krad_xmms->title, "%s", val);
 	sprintf (krad_xmms->now_playing, "%s - %s", krad_xmms->artist, krad_xmms->title);	
 
-	/*
-	if (!xmmsv_dict_get (infos, "picture_front", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
-		if (!xmmsv_dict_get (infos, "kcoverhash", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
-			// Neither image source
-			strcpy(xmms->current_image, "");
-			strcpy(xmms->current_image_url, "");				
-		} else {
-			//found kcover
-			xmms->url_start = "http://kradradio.com/covers";
-			sprintf (xmms->current_image, "%s", val);
-			sprintf(xmms->current_image_url, "%s/%s", xmms->url_start, xmms->current_image);
-		}
-	} else {
-		// found embedded art
-		xmms->url_start = "http://kradradio.com/bindata";
-		sprintf (xmms->current_image, "%s", val);
-		sprintf(xmms->current_image_url, "%s/%s/%s", xmms->url_start, xmms->kradstation->station_shortname, xmms->current_image);
-	}
-	*/
 	xmmsv_unref (info);
 	
 	if (krad_xmms->krad_tags != NULL) {
@@ -87,7 +77,7 @@ int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 	return 1;
 }
 
-int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
+static int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
@@ -113,7 +103,7 @@ int krad_xmms_playing_id_callback (xmmsv_t *value, void *userdata) {
 	
 }
 
-int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
+static int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
@@ -138,7 +128,7 @@ int krad_xmms_playtime_callback (xmmsv_t *value, void *userdata) {
 
 }
 
-int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
+static int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 
@@ -158,7 +148,15 @@ int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 
 }
 
-void krad_xmms_disconnect (krad_xmms_t *krad_xmms) {
+static void krad_xmms_disconnect_callback (void *userdata) {
+
+	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
+
+	krad_xmms_disconnect (krad_xmms);
+	
+}
+
+static void krad_xmms_disconnect (krad_xmms_t *krad_xmms) {
 
 	if (krad_xmms->connected == 1) {
 		krad_xmms_unregister_for_broadcasts (krad_xmms);
@@ -166,11 +164,18 @@ void krad_xmms_disconnect (krad_xmms_t *krad_xmms) {
 		krad_xmms->connected = 0;
 		krad_xmms->fd = 0;
 		krad_xmms->connection = NULL;
-		krad_xmms->handler_running = 0;
 	}
+
+	if (krad_xmms->krad_tags != NULL) {
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", "");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "artist", "");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "title", "");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "now_playing", "");
+	}
+
 }
 
-void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms) {
+static void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms) {
 
 	xmmsc_result_t *result;
 	
@@ -193,7 +198,28 @@ void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms) {
 
 }
 
-void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms) {
+static void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms) {
+
+	xmmsc_result_t *result;
+	
+	result = NULL;
+
+	result = xmmsc_broadcast_playback_status (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playback_status_callback, krad_xmms);
+	xmmsc_result_unref (result);
+
+	result = xmmsc_broadcast_playback_current_id (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
+	xmmsc_result_unref (result);	
+
+	result = xmmsc_signal_playback_playtime (krad_xmms->connection);
+	xmmsc_result_notifier_set (result, krad_xmms_playtime_callback, krad_xmms);
+	xmmsc_result_unref (result);
+
+}
+
+
+static void krad_xmms_get_initial_state (krad_xmms_t *krad_xmms) {
 
 	xmmsc_result_t *result;
 	
@@ -207,24 +233,10 @@ void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms) {
 	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
 	xmmsc_result_unref (result);
 
-	result = xmmsc_broadcast_playback_status (krad_xmms->connection);
-	xmmsc_result_notifier_set (result, krad_xmms_playback_status_callback, krad_xmms);
-	xmmsc_result_unref (result);
-
-	result = xmmsc_signal_playback_playtime (krad_xmms->connection);
-	xmmsc_result_notifier_set (result, krad_xmms_playtime_callback, krad_xmms);
-	xmmsc_result_unref (result);
-	
-	result = xmmsc_broadcast_playback_current_id (krad_xmms->connection);
-	xmmsc_result_notifier_set (result, krad_xmms_playing_id_callback, krad_xmms);
-	xmmsc_result_unref (result);	
-
-	krad_xmms_handle (krad_xmms);
-
 }
 
 
-void krad_xmms_connect (krad_xmms_t *krad_xmms) {
+static void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 
 	char connection_name[256];
 
@@ -252,71 +264,91 @@ void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 	
 	krad_xmms_register_for_broadcasts (krad_xmms);
 	
-	krad_xmms_start_handler (krad_xmms);
-	
+	krad_xmms_get_initial_state (krad_xmms);
+
 }
 
 
-void krad_xmms_handle (krad_xmms_t *krad_xmms) {
+static void krad_xmms_handle (krad_xmms_t *krad_xmms) {
 
 	int n;
-	struct pollfd pollfds[1];
+  int nfds;
+  int ret;
+	struct pollfd pollfds[2];
 	
-	n = 0;	
-	pollfds[0].fd = krad_xmms->fd;
-	
-	if (xmmsc_io_want_out (krad_xmms->connection)) {
-		pollfds[0].events = POLLIN | POLLOUT;
-	} else {
-		pollfds[0].events = POLLIN;
-	}
-	
-	n = poll (pollfds, 1, 500);
+	n = 0;
 
-	if (n < 0) {
+  if (krad_xmms->fd > 0) {
+	  pollfds[n].fd = krad_xmms->fd;
+
+	  if (xmmsc_io_want_out (krad_xmms->connection)) {
+		  pollfds[n].events = POLLIN | POLLOUT;
+	  } else {
+		  pollfds[n].events = POLLIN;
+	  }
+    n++;
+  }
+
+  pollfds[n].fd = krad_xmms->handler_thread_socketpair[1];
+  pollfds[n].events = POLLIN;
+  n++;
+
+  nfds = n;
+
+	ret = poll (pollfds, nfds, 1000);
+	if (ret < 0) {
+    krad_xmms->handler_running = 2;
 		return;
 	}
 
-	if (n > 0) {
+	if (ret > 0) {
 
-		for (n = 0; n < 1; n++) {
+		for (n = 0; n < nfds; n++) {
 
 			if (pollfds[n].revents) {
+        if (pollfds[n].fd == krad_xmms->handler_thread_socketpair[1]) {
+          krad_xmms->handler_running = 2;
+          return;
+        } else {
+				  if ((pollfds[n].revents & POLLERR) || (pollfds[n].revents & POLLHUP)) {
+					  xmmsc_io_in_handle (krad_xmms->connection);
+				  } else {
 
-				if ((pollfds[n].revents & POLLERR) || (pollfds[n].revents & POLLHUP)) {
-					xmmsc_io_in_handle (krad_xmms->connection);
-					n++;
-				} else {
+					  if (pollfds[n].revents & POLLIN) {
+						  xmmsc_io_in_handle (krad_xmms->connection);
+						  if (xmmsc_io_want_out (krad_xmms->connection)) {
+							  pollfds[n].events = POLLIN | POLLOUT;
+						  }
+					  }
 
-					if (pollfds[n].revents & POLLIN) {
-						xmmsc_io_in_handle (krad_xmms->connection);
-						if (xmmsc_io_want_out (krad_xmms->connection)) {
-							pollfds[n].events = POLLIN | POLLOUT;
-						}
-					}
-
-					if (pollfds[n].revents & POLLOUT) {
-						if (xmmsc_io_want_out (krad_xmms->connection)) {
-							xmmsc_io_out_handle (krad_xmms->connection);
-						}
-						pollfds[n].events = POLLIN;
-					}
-				}
-			}
+					  if (pollfds[n].revents & POLLOUT) {
+						  if (xmmsc_io_want_out (krad_xmms->connection)) {
+							  xmmsc_io_out_handle (krad_xmms->connection);
+						  }
+						  pollfds[n].events = POLLIN;
+					  }
+				  }
+			  }
+      }
 		}
 	}
 }
 
-void *krad_xmms_handler_thread (void *arg) {
+static void *krad_xmms_handler_thread (void *arg) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *)arg;
 
 	krad_system_set_thread_name ("kr_xmms2");
 
 	while (krad_xmms->handler_running == 1) {
-	
+		if (krad_xmms->connected == 0) {
+			krad_xmms_connect (krad_xmms);
+		}
 		krad_xmms_handle (krad_xmms);
+	}
 
+	if (krad_xmms->connected == 1) {
+		krad_xmms_disconnect (krad_xmms);
 	}
 
 	return NULL;
@@ -324,10 +356,14 @@ void *krad_xmms_handler_thread (void *arg) {
 }
 
 
-void krad_xmms_start_handler (krad_xmms_t *krad_xmms) {
+static void krad_xmms_start_handler (krad_xmms_t *krad_xmms) {
 
-	if (krad_xmms->handler_running == 1) {
-		krad_xmms_stop_handler (krad_xmms);
+  char error_string[64];
+
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, krad_xmms->handler_thread_socketpair)) {
+    strerror_r (errno, error_string, sizeof(error_string));
+    printk("krad_xmms: could not create socketpair: %s", error_string);
+		return;
 	}
 
 	krad_xmms->handler_running = 1;
@@ -336,45 +372,32 @@ void krad_xmms_start_handler (krad_xmms_t *krad_xmms) {
 }
 
 
-void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
-
+static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
 	if (krad_xmms->handler_running == 1) {
-		krad_xmms->handler_running = 2;
+    write (krad_xmms->handler_thread_socketpair[0], "0", 1);
 		pthread_join (krad_xmms->handler_thread, NULL);
+		close (krad_xmms->handler_thread_socketpair[0]);
+    close (krad_xmms->handler_thread_socketpair[1]);
 		krad_xmms->handler_running = 0;
 	}
-
 }
 
 
 void krad_xmms_destroy (krad_xmms_t *krad_xmms) {
-
-	krad_xmms_stop_handler (krad_xmms);
-
-	if (krad_xmms->connected == 1) {
-		krad_xmms_disconnect (krad_xmms);
-	}
-
-	free (krad_xmms);
-
+  krad_xmms_stop_handler (krad_xmms);
+  free (krad_xmms);
 }
 
 krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path, krad_tags_t *krad_tags) {
 
-	krad_xmms_t *krad_xmms = calloc (1, sizeof(krad_xmms_t));
+  krad_xmms_t *krad_xmms = calloc (1, sizeof(krad_xmms_t));
 
-	strcpy (krad_xmms->sysname, sysname);
-	strcpy (krad_xmms->ipc_path, ipc_path);
+  strcpy (krad_xmms->sysname, sysname);
+  strcpy (krad_xmms->ipc_path, ipc_path);
+  krad_xmms->krad_tags = krad_tags;
 
-	krad_xmms_connect (krad_xmms);
-	
-	if (krad_xmms->connected == 0) {
-		krad_xmms_destroy (krad_xmms);
-		return NULL;
-	}
-	
-	krad_xmms->krad_tags = krad_tags;
-	
-	return krad_xmms;
+  krad_xmms_start_handler (krad_xmms);
+
+  return krad_xmms;
 
 }
