@@ -95,6 +95,7 @@ includedirs = """
 ../tools/krad_framepool/
 ../tools/krad_web/
 ../tools/krad_web/ext/
+../tools/krad_web/ext/libwebsockets/
 ../tools/krad_web/res/
 ../tools/krad_sfx/
 ../tools/krad_tone/
