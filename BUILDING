@@ -23,8 +23,9 @@ If on ubuntu do this (if not, you can probably figure it out):
 
 sudo apt-get install libasound2-dev libvorbis-dev freeglut3-dev build-essential autoconf git-core \
 libgtk-3-dev libswscale-dev libflac-dev libavutil-dev libjack-jackd2-dev git libopus-dev libx264-123 \
-libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 libx264-dev \
-yasm build-essential libxmmsclient-dev libtool libxml2-dev libxcb-image0-dev libtheora-dev
+libgl1-mesa-dev libxcb-util0-dev libx11-xcb-dev libxcb1-dev libsamplerate0-dev libsamplerate0 libxml2 \
+libx264-dev libjpeg-turbo8-dev libturbojpeg libxcb-image0-dev libtheora-dev libvpx-dev \
+yasm build-essential libxmmsclient-dev libtool libxml2-dev 
 
 There are dependencies not found in the ubuntu universe, so they must be built manually: libwebsockets
 
