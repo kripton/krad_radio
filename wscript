@@ -58,7 +58,7 @@ def configure(conf):
 #	conf.env.append_unique('CFLAGS', ['-g', '-Wall', '-Wno-unused-variable', '-Wno-unused-but-set-variable'])
 	conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
 	conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
-	conf.env.append_value("LDFLAGS", ['-lz'])	
+#	conf.env.append_value("LINKFLAGS", ['-lrt','-ldl','-lm'])	
 	conf.recurse(subdirs, mandatory = False)
 	
 def build(bld):

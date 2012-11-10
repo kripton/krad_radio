@@ -195,6 +195,7 @@ def configure(conf):
 
 	if conf.env['IS_MACOSX']:
 		shlibs = shlibs + ['turbojpeg']
+		conf.check_cc(lib='z', cflags='-Wall', uselib_store='z')
 
 	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
@@ -214,7 +215,7 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = shlibs + stlibs + ['turbojpeg'])
+			uselib = shlibs + stlibs + ['turbojpeg'] + ['z'])
 
 	for p in programs2:
 
@@ -222,5 +223,5 @@ def build(bld):
 			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = shlibs + stlibs + ['turbojpeg'])
+			uselib = shlibs + stlibs + ['turbojpeg'] + ['z'])
 
