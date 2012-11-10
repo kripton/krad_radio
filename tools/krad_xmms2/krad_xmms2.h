@@ -34,6 +34,7 @@ struct krad_xmms_St {
 	xmmsc_connection_t *connection;
 	int fd;
 	int connected;
+  int destroying;
 
 	pthread_t handler_thread;
 	int handler_running;

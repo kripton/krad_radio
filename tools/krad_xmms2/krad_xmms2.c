@@ -14,6 +14,8 @@ static void krad_xmms_get_initial_state (krad_xmms_t *krad_xmms);
 static void krad_xmms_register_for_broadcasts (krad_xmms_t *krad_xmms);
 static void krad_xmms_unregister_for_broadcasts (krad_xmms_t *krad_xmms);
 
+static void krad_xmms_error_state (krad_xmms_t *krad_xmms);
+
 static void krad_xmms_connect (krad_xmms_t *krad_xmms);
 static void krad_xmms_disconnect (krad_xmms_t *krad_xmms);
 
@@ -52,13 +54,13 @@ static int krad_xmms_media_info_callback (xmmsv_t *value, void *userdata) {
 	info = xmmsv_propdict_to_dict (value, NULL);
 
 	if (!xmmsv_dict_get (info, "artist", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
-		val = "No artist";
+		val = "Unknown Artist";
 	}
 
 	sprintf (krad_xmms->artist, "%s", val);
 
 	if (!xmmsv_dict_get (info, "title", &dict_entry) || !xmmsv_get_string (dict_entry, &val)) {
-		val = "No Title";
+		val = "Unknown Title";
 	}
 
 	sprintf (krad_xmms->title, "%s", val);
@@ -148,6 +150,14 @@ static int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 
 }
 
+static void krad_xmms_error_state (krad_xmms_t *krad_xmms) {
+    krad_xmms->playback_status = -1;
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", "0:00");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "artist", "Error");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "title", "Error");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "now_playing", "Error - Error");
+}
+
 static void krad_xmms_disconnect_callback (void *userdata) {
 
 	krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
@@ -164,13 +174,11 @@ static void krad_xmms_disconnect (krad_xmms_t *krad_xmms) {
 		krad_xmms->connected = 0;
 		krad_xmms->fd = 0;
 		krad_xmms->connection = NULL;
+    krad_xmms->playback_status = -1;
 	}
 
-	if (krad_xmms->krad_tags != NULL) {
-		krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", "");
-		krad_tags_set_tag_internal (krad_xmms->krad_tags, "artist", "");
-		krad_tags_set_tag_internal (krad_xmms->krad_tags, "title", "");
-		krad_tags_set_tag_internal (krad_xmms->krad_tags, "now_playing", "");
+	if ((krad_xmms->krad_tags != NULL) && (krad_xmms->destroying == 0)) {
+    krad_xmms_error_state (krad_xmms);
 	}
 
 }
@@ -250,6 +258,7 @@ static void krad_xmms_connect (krad_xmms_t *krad_xmms) {
 
 	if (!xmmsc_connect (krad_xmms->connection, krad_xmms->ipc_path)) {
 		printke ("Connection failed: %s", xmmsc_get_last_error (krad_xmms->connection));
+    krad_xmms_error_state (krad_xmms);
 		krad_xmms->connected = 0;
 		return;
 	}
@@ -384,7 +393,16 @@ static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
 
 
 void krad_xmms_destroy (krad_xmms_t *krad_xmms) {
+  krad_xmms->destroying = 1;
   krad_xmms_stop_handler (krad_xmms);
+
+	if (krad_xmms->krad_tags != NULL) {
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "playtime", "");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "artist", "");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "title", "");
+		krad_tags_set_tag_internal (krad_xmms->krad_tags, "now_playing", "");
+	}
+
   free (krad_xmms);
 }
 
@@ -395,7 +413,7 @@ krad_xmms_t *krad_xmms_create (char *sysname, char *ipc_path, krad_tags_t *krad_
   strcpy (krad_xmms->sysname, sysname);
   strcpy (krad_xmms->ipc_path, ipc_path);
   krad_xmms->krad_tags = krad_tags;
-
+  krad_xmms->playback_status = -1;
   krad_xmms_start_handler (krad_xmms);
 
   return krad_xmms;
