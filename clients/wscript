@@ -147,6 +147,8 @@ def check_system(systm):
 	global depsources
 	global depsources2
 	global shlibs
+	global syslibs
+	global syslibs2		
 	global programs2
 
 	if systm.env['IS_LINUX']:
@@ -157,6 +159,7 @@ def check_system(systm):
 		programs2 = ["krad_radio_ev.c"] + programs2
 		includedirs = ["../lib/krad_decklink/vendor/linux"] + includedirs
 		depsources = ["../lib/krad_decklink/vendor/linux/DeckLinkAPIDispatch.cpp"] + depsources
+		syslibs = syslibs + syslibs2
 
 
 	if systm.env['IS_MACOSX']:
@@ -165,6 +168,7 @@ def check_system(systm):
 		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
 		includedirs = ["../lib/krad_decklink/vendor/osx"] + includedirs
 		depsources = ["../lib/krad_decklink/vendor/osx/DeckLinkAPIDispatch.cpp"] + depsources
+		shlibs = shlibs + ['turbojpeg']
 
 def check_way(way):
 
@@ -191,12 +195,6 @@ def configure(conf):
 	check_way(conf)
 	check_system(conf)
 
-	if conf.env['IS_LINUX']:
-		syslibs = syslibs + syslibs2
-
-	if conf.env['IS_MACOSX']:
-		shlibs = shlibs + ['turbojpeg']
-
 	for l in syslibs:
 		conf.check(lib = l, cflags='-Wall', uselib_store = l)
 
@@ -208,14 +206,12 @@ def configure(conf):
 
 def build(bld):
 
+	global shlibs
 	global syslibs
 	global syslibs2	
 	remake_webres(bld)
 	check_way(bld)
 	check_system(bld)
-
-	if bld.env['IS_LINUX']:
-		syslibs = syslibs + syslibs2
 
 	for p in programs:
 
