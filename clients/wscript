@@ -198,6 +198,7 @@ def configure(conf):
 
 	for l in syslibs:
 		conf.check_cc(lib = l, cflags='-Wall', uselib_store = l)
+		conf.check_cxx(lib = l, cflags='-Wall', uselib_store = l)
 
 	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
