@@ -1632,10 +1632,6 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
 	krad_compositor->render_vu_meters = 0;
 	
-	//krad_compositor_alloc_resources (krad_compositor);
-	
-	//krad_compositor_start_ticker (krad_compositor);
-	
 	krad_compositor->enable_keystone = 0;
 
 	if (krad_compositor->enable_keystone) {
@@ -1656,7 +1652,7 @@ void *krad_compositor_ticker_thread (void *arg) {
 	krad_compositor->krad_ticker = krad_ticker_create (krad_compositor->frame_rate_numerator,
 													   krad_compositor->frame_rate_denominator);
 													   
-	krad_ticker_start (krad_compositor->krad_ticker);
+	krad_ticker_start_at (krad_compositor->krad_ticker, krad_compositor->start_time);
 
 	while (krad_compositor->ticker_running == 1) {
 	
@@ -1673,13 +1669,23 @@ void *krad_compositor_ticker_thread (void *arg) {
 
 }
 
-
 void krad_compositor_start_ticker (krad_compositor_t *krad_compositor) {
 
 	if (krad_compositor->ticker_running == 1) {
 		krad_compositor_stop_ticker (krad_compositor);
 	}
+  clock_gettime (CLOCK_MONOTONIC, &krad_compositor->start_time);
+	krad_compositor->ticker_running = 1;
+	pthread_create (&krad_compositor->ticker_thread, NULL, krad_compositor_ticker_thread, (void *)krad_compositor);
 
+}
+
+void krad_compositor_start_ticker_at (krad_compositor_t *krad_compositor, struct timespec start_time) {
+
+	if (krad_compositor->ticker_running == 1) {
+		krad_compositor_stop_ticker (krad_compositor);
+	}
+	memcpy (&krad_compositor->start_time, &start_time, sizeof(struct timespec));
 	krad_compositor->ticker_running = 1;
 	pthread_create (&krad_compositor->ticker_thread, NULL, krad_compositor_ticker_thread, (void *)krad_compositor);
 

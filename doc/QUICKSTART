@@ -8,10 +8,7 @@ Replace "quicktest" with the sysname* of your station.
  starts with a letter. Don't worry you can use fancy UTF8 strings for pretty
  much everything else.
 
-[Important Notice]
-This document is incomplete.
-
-krad_radio launch quicktest
+krad_radio quicktest launch
 
 Now that your krad radio station daemon is running, you can control it with
 krad radio clients.

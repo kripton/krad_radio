@@ -1082,7 +1082,7 @@ void *stream_output_thread (void *arg) {
 
 				audio_frames_muxed += frames;
 
-				//printk ("ebml muxed audio frames: %d", audio_frames_muxed);
+        printk ("ebml muxed audio frames: %d", audio_frames_muxed);
 			}
 
 			if (krad_link->encoding == 4) {

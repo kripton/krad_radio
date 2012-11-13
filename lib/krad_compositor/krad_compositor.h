@@ -189,6 +189,9 @@ struct krad_compositor_St {
 	int enable_keystone;
 	krad_point_t quad[4];
 	pixman_transform_t keystone;
+	
+	
+	struct timespec start_time;
 
 };
 void krad_compositor_unset_krad_mixer (krad_compositor_t *krad_compositor);
@@ -231,6 +234,7 @@ void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor);
 
 void *krad_compositor_ticker_thread (void *arg);
 void krad_compositor_start_ticker (krad_compositor_t *krad_compositor);
+void krad_compositor_start_ticker_at (krad_compositor_t *krad_compositor, struct timespec start_time);
 void krad_compositor_stop_ticker (krad_compositor_t *krad_compositor);
 
 krad_display_api_t krad_compositor_get_pusher (krad_compositor_t *krad_compositor);

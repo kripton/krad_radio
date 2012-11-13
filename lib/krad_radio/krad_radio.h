@@ -86,6 +86,8 @@ struct krad_radio_St {
 	krad_compositor_t *krad_compositor;
 	krad_tags_t *krad_tags;
 
+	struct timespec start_sync_time;
+
 };
 
 void krad_radio_daemon (char *sysname);

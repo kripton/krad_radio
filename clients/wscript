@@ -191,12 +191,13 @@ def configure(conf):
 	check_way(conf)
 	check_system(conf)
 
+	conf.check_cc(lib='z', cflags='-Wall', uselib_store='z')
+
 	if conf.env['IS_LINUX']:
 		conf.check_cc(lib='turbojpeg', cflags='-Wall', uselib_store='turbojpeg')
 
 	if conf.env['IS_MACOSX']:
 		shlibs = shlibs + ['turbojpeg']
-		conf.check_cc(lib='z', cflags='-Wall', uselib_store='z')
 
 	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')

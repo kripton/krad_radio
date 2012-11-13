@@ -172,8 +172,12 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 	krad_system_set_monitor_cpu_callback ((void *)krad_radio_station, 
 									 (void (*)(void *, uint32_t))krad_radio_cpu_monitor_callback);  	
   	
-	krad_compositor_start_ticker (krad_radio_station->krad_compositor);
-	krad_mixer_start_ticker (krad_radio_station->krad_mixer);  	
+  clock_gettime (CLOCK_MONOTONIC, &krad_radio_station->start_sync_time);
+  	
+  krad_radio_station->start_sync_time = timespec_add_ms (krad_radio_station->start_sync_time, 100);
+  	
+	krad_compositor_start_ticker_at (krad_radio_station->krad_compositor, krad_radio_station->start_sync_time);
+	krad_mixer_start_ticker_at (krad_radio_station->krad_mixer, krad_radio_station->start_sync_time);  	
 
 	krad_ipc_server_run (krad_radio_station->krad_ipc);
 	

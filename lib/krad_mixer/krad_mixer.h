@@ -118,6 +118,8 @@ struct krad_mixer_St {
 	krad_mixer_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];
 	krad_mixer_crossfade_group_t *crossfade_group;
 
+	struct timespec start_time;
+
 	krad_ipc_server_t *krad_ipc;
 
 };
@@ -133,6 +135,7 @@ void krad_mixer_unbind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgrou
 		
 
 void *krad_mixer_ticker_thread (void *arg);
+void krad_mixer_start_ticker_at (krad_mixer_t *krad_mixer, struct timespec start_time);
 void krad_mixer_start_ticker (krad_mixer_t *krad_mixer);
 void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer);
 

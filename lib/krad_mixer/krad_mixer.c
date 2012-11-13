@@ -1016,7 +1016,7 @@ void *krad_mixer_ticker_thread (void *arg) {
 
 	krad_mixer->krad_ticker = krad_ticker_create (krad_mixer->sample_rate, krad_mixer->ticker_period);
 
-	krad_ticker_start (krad_mixer->krad_ticker);
+	krad_ticker_start_at (krad_mixer->krad_ticker, krad_mixer->start_time);
 
 	while (krad_mixer->ticker_running == 1) {
 	
@@ -1039,12 +1039,22 @@ void krad_mixer_start_ticker (krad_mixer_t *krad_mixer) {
 	if (krad_mixer->ticker_running == 1) {
 		krad_mixer_stop_ticker (krad_mixer);
 	}
-
+  clock_gettime (CLOCK_MONOTONIC, &krad_mixer->start_time);
 	krad_mixer->ticker_running = 1;
 	pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
 
 }
 
+void krad_mixer_start_ticker_at (krad_mixer_t *krad_mixer, struct timespec start_time) {
+
+	if (krad_mixer->ticker_running == 1) {
+		krad_mixer_stop_ticker (krad_mixer);
+	}
+	memcpy (&krad_mixer->start_time, &start_time, sizeof(struct timespec));
+	krad_mixer->ticker_running = 1;
+	pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
+
+}
 
 void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer) {
 
@@ -1122,7 +1132,7 @@ void krad_mixer_set_sample_rate (krad_mixer_t *krad_mixer, int sample_rate) {
 	
 	if (krad_mixer->ticker_running == 1) {
 		krad_mixer_stop_ticker (krad_mixer);
-		krad_mixer_start_ticker (krad_mixer);
+    krad_mixer_start_ticker (krad_mixer);
 	}
 	
 }
@@ -1155,7 +1165,6 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	krad_mixer->tone_port = krad_mixer_portgroup_create (krad_mixer, "DTMF", INPUT, 1,
 										 				 krad_mixer->master_mix, KRAD_TONE, NULL, 0);
 	
-	//krad_mixer_start_ticker (krad_mixer);
 
 	return krad_mixer;
 	
