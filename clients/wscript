@@ -139,6 +139,7 @@ shlibs = ["x11-xcb", "xcb-image", "xcb", "x11", "jack", "cairo", "xmms2-client",
 
 stlibs = []
 syslibs = ['m', 'dl', 'z']
+syslibs2 = ['rt', 'turbojpeg']
 
 def check_system(systm):
 
@@ -191,8 +192,7 @@ def configure(conf):
 	check_system(conf)
 
 	if conf.env['IS_LINUX']:
-		print "\n\nHELLO\n\n"
-		syslibs = syslibs + ['rt', 'turbojpeg']
+		syslibs = syslibs + syslibs2
 
 	if conf.env['IS_MACOSX']:
 		shlibs = shlibs + ['turbojpeg']
@@ -208,9 +208,14 @@ def configure(conf):
 
 def build(bld):
 
+	global syslibs
+	global syslibs2	
 	remake_webres(bld)
 	check_way(bld)
 	check_system(bld)
+
+	if bld.env['IS_LINUX']:
+		syslibs = syslibs + syslibs2
 
 	for p in programs:
 
@@ -218,7 +223,7 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = shlibs + stlibs + ['turbojpeg'] + syslibs)
+			uselib = shlibs + stlibs + syslibs)
 
 	for p in programs2:
 
@@ -226,5 +231,5 @@ def build(bld):
 			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = shlibs + stlibs + ['turbojpeg'] + syslibs)
+			uselib = shlibs + stlibs + syslibs)
 
