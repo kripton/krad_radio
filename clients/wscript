@@ -137,10 +137,8 @@ shlibs = ["x11-xcb", "xcb-image", "xcb", "x11", "jack", "cairo", "xmms2-client",
           "x264", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "flac",
           "vpx", "libswscale", "libavutil"]
 
-#stlibs = ["libwebsockets"]
 stlibs = []
-
-# "ncurses",
+syslibs = ['m', 'dl', 'z']
 
 def check_system(systm):
 
@@ -187,20 +185,21 @@ def remake_webres(web):
 def configure(conf):
 
 	global shlibs
+	global syslibs
 	remake_webres(conf)
 	check_way(conf)
 	check_system(conf)
 
-	conf.check_cc(lib='m', cflags='-Wall', uselib_store='m')
-	conf.check_cc(lib='rt', cflags='-Wall', uselib_store='rt')
-	conf.check_cc(lib='dl', cflags='-Wall', uselib_store='dl')
-	conf.check_cc(lib='z', cflags='-Wall', uselib_store='z')
-
 	if conf.env['IS_LINUX']:
 		conf.check_cc(lib='turbojpeg', cflags='-Wall', uselib_store='turbojpeg')
+		conf.check_cc(lib='rt', cflags='-Wall', uselib_store='rt')
+		syslibs = syslibs + ['rt']
 
 	if conf.env['IS_MACOSX']:
 		shlibs = shlibs + ['turbojpeg']
+
+	for l in syslibs:
+		conf.check_cc(lib = l, cflags='-Wall', uselib_store = l)
 
 	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
@@ -220,7 +219,7 @@ def build(bld):
 			source = sources + depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = shlibs + stlibs + ['turbojpeg'] + ['z'])
+			uselib = shlibs + stlibs + ['turbojpeg'] + syslibs)
 
 	for p in programs2:
 
@@ -228,5 +227,5 @@ def build(bld):
 			source = sources + depsources2 + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
-			uselib = shlibs + stlibs + ['turbojpeg'] + ['z'])
+			uselib = shlibs + stlibs + ['turbojpeg'] + syslibs)
 

@@ -57,7 +57,7 @@ def configure(conf):
 	conf.load('compiler_c')	
 	conf.load('compiler_cxx')
 
-	#conf.env.append_unique("LDFLAGS", ['-lrt','-ldl','-lm'])
+	conf.link_add_flags
 
 	if conf.options.optimize == False:
 		conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
