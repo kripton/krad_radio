@@ -131,7 +131,7 @@ static int krad_xmms_playback_status_callback (xmmsv_t *value, void *userdata) {
 }
 
 static int krad_xmms_playlist_current_pos (xmmsv_t *value, void *userdata ) {
-
+/*
   krad_xmms_t *krad_xmms = (krad_xmms_t *) userdata;
 	const char *playlist_name;
 
@@ -142,11 +142,11 @@ static int krad_xmms_playlist_current_pos (xmmsv_t *value, void *userdata ) {
 
 		xmmsv_dict_entry_get_int (value, "position", &krad_xmms->active_playlist_position);
 
-    /* Need to use this to get the cued track when we are changing playlist pos
-        whilst stopped */
+    // Need to use this to get the cued track when we are changing playlist pos
+    // whilst stopped
     
 	}
-
+*/
 	return 1;
 
 }

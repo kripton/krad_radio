@@ -41,7 +41,7 @@ end
 
 class KradStation
 
-	def initialize(name_or_url)
+	def initialize(name_or_url, launch = "Yes")
 		@name = name_or_url
 		@comp_width = 0
 		@comp_height = 0
@@ -49,8 +49,10 @@ class KradStation
     if (ARGV[0] == "restart")
       self.cmd("destroy")
     end
-		self.launch_daemon
-		sleep 0.666
+    if launch == "Yes"
+		  self.launch_daemon
+      sleep 0.666
+		end
 	end
 
 	def launch_daemon
