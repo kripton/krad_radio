@@ -191,9 +191,7 @@ def configure(conf):
 	check_system(conf)
 
 	if conf.env['IS_LINUX']:
-		conf.check_cc(lib='turbojpeg', cflags='-Wall', uselib_store='turbojpeg')
-		conf.check_cc(lib='rt', cflags='-Wall', uselib_store='rt')
-		syslibs = syslibs + ['rt']
+		syslibs = syslibs + ['rt', 'turbojpeg']
 
 	if conf.env['IS_MACOSX']:
 		shlibs = shlibs + ['turbojpeg']
