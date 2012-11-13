@@ -498,12 +498,12 @@ static void krad_http_server_setup_html (krad_http_t *krad_http) {
 	memset (string, 0, sizeof(string));
 	snprintf (string, 7, "%d", krad_http->websocket_port);
 	total_len += strlen(string);
-	krad_http->js = (char *)tools_krad_web_res_krad_radio_js;
-	krad_http->js_len = tools_krad_web_res_krad_radio_js_len;
+	krad_http->js = (char *)lib_krad_web_res_krad_radio_js;
+	krad_http->js_len = lib_krad_web_res_krad_radio_js_len;
 	krad_http->js[krad_http->js_len] = '\0';
 	
-	html_template = (char *)tools_krad_web_res_krad_radio_html;
-	html_template_len = tools_krad_web_res_krad_radio_html_len - 1;
+	html_template = (char *)lib_krad_web_res_krad_radio_html;
+	html_template_len = lib_krad_web_res_krad_radio_html_len - 1;
 	total_len += html_template_len - 4;
 
 	krad_http->headcode = krad_http_server_load_file_or_string (krad_http->headcode_source);

@@ -230,6 +230,7 @@ static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir ) {
 	sprintf (krad_radio_station->logname, "%s/%s_%"PRIu64".log", dir, krad_radio_station->sysname, ktime ());
 	verbose = 1;
 	krad_system_log_on (krad_radio_station->logname);
+	printk (APPVERSION);
 
 }
 

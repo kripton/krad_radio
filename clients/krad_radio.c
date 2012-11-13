@@ -32,7 +32,19 @@ int main (int argc, char *argv[]) {
 	}
 	
 	if ((argc == 1) || (argc == 2)) {
+	
+	  if (argc == 2) {
+		  if ((strncmp(argv[1], "v", 1) == 0) ||
+		      (strncmp(argv[1], "-v", 2) == 0) ||
+		      (strncmp(argv[1], "--v", 3) == 0)) {
+		      
+        printf (KRAD_VERSION_STRING "\n");
+        return 0;
+		  }
+		}
+	
 		krad_radio_command_help ();
+		return 0;
 	}	
 	
 	if (argc > 2) {

@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <math.h>
 #include <inttypes.h>
+
 #include <x264.h>
 
 #include "krad_system.h"

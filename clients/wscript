@@ -1,0 +1,228 @@
+#!/usr/bin/env python
+
+import os
+
+programs = """
+../daemon/krad_radio_daemon.c
+""".split()
+
+programs2 = """
+krad_radio.c
+krad_radio_ap.c
+krad_radio_vp.c
+""".split()
+
+#krad_radio_ncurses.c
+#krad_radio_gtk.c
+
+sources = """
+""".split()
+
+depsources = """
+../lib/krad_link/krad_link_common.c
+../lib/krad_system/krad_system.c
+../lib/krad_ticker/krad_timer.c
+../lib/krad_ticker/krad_ticker.c
+../lib/krad_xmms2/krad_xmms2.c
+../lib/krad_x264/krad_x264.c
+../lib/krad_ebml/krad_ebml.c
+../lib/krad_compositor/krad_sprite.c
+../lib/krad_compositor/krad_text.c
+../lib/krad_compositor/krad_easing.c
+../lib/krad_compositor/krad_compositor.c
+../lib/krad_framepool/krad_framepool.c
+../lib/krad_osc/krad_osc.c
+../lib/krad_web/ext/cJSON.c
+../lib/krad_web/ext/libwebsockets/base64-decode.c
+../lib/krad_web/ext/libwebsockets/client-handshake.c
+../lib/krad_web/ext/libwebsockets/extension.c
+../lib/krad_web/ext/libwebsockets/extension-deflate-stream.c
+../lib/krad_web/ext/libwebsockets/handshake.c
+../lib/krad_web/ext/libwebsockets/libwebsockets.c
+../lib/krad_web/ext/libwebsockets/md5.c
+../lib/krad_web/ext/libwebsockets/parsers.c
+../lib/krad_web/ext/libwebsockets/sha-1.c
+../lib/krad_web/krad_http.c
+../lib/krad_web/krad_websocket.c
+../lib/krad_sfx/krad_eq.c
+../lib/krad_sfx/krad_pass.c
+../lib/krad_sfx/krad_rushlimiter.c
+../lib/krad_sfx/krad_sfx.c
+../lib/krad_ipc/krad_ipc_client.c
+../lib/krad_ipc/krad_ipc_server.c
+../lib/krad_tags/krad_tags.c
+../lib/krad_radio/krad_radio.c
+../lib/krad_mixer/krad_mixer.c
+../lib/krad_tone/krad_tone.c
+../lib/krad_audio/krad_audio.c
+../lib/krad_jack/krad_jack.c
+../lib/krad_ring/krad_resample_ring.c
+../lib/krad_vpx/krad_vpx.c
+../lib/krad_theora/krad_theora.c
+../lib/krad_vorbis/krad_vorbis.c
+../lib/krad_flac/krad_flac.c
+../lib/krad_opus/krad_opus.c
+../lib/krad_opus/opus_header.c
+../lib/krad_gui/krad_gui.c
+../lib/krad_ring/krad_ring.c
+../lib/krad_link/krad_link.c
+../lib/krad_transmitter/krad_transmitter.c
+../lib/krad_io/krad_io.c
+../lib/krad_ogg/krad_ogg.c
+../lib/krad_container/krad_container.c
+../lib/krad_x11/krad_x11.c
+../lib/krad_udp/krad_udp.c
+../lib/krad_decklink/krad_decklink.c
+../lib/krad_decklink/krad_decklink_capture.cpp
+""".split()
+
+depsources2 = """
+../lib/krad_system/krad_system.c
+../lib/krad_ebml/krad_ebml.c
+../lib/krad_ring/krad_ring.c
+../lib/krad_transmitter/krad_transmitter.c
+../lib/krad_link/krad_link_common.c
+../lib/krad_ipc/krad_ipc_client.c
+../lib/krad_osc/krad_osc.c
+../lib/krad_tone/krad_tone.c
+""".split()
+
+includedirs = """
+../lib/krad_x264/
+../lib/krad_compositor/
+../lib/krad_ticker/
+../lib/krad_xmms2/
+../lib/krad_framepool/
+../lib/krad_web/
+../lib/krad_web/ext/
+../lib/krad_web/ext/libwebsockets/
+../lib/krad_web/res/
+../lib/krad_sfx/
+../lib/krad_tone/
+../lib/krad_ipc/
+../lib/krad_tags/
+../lib/krad_audio/
+../lib/krad_theora/
+../lib/krad_jack/
+../lib/krad_alsa/
+../lib/krad_mixer/
+../lib/krad_osc/
+../lib/krad_xmms2/
+../lib/krad_wayland/
+../lib/krad_vpx/
+../lib/krad_v4l2/
+../lib/krad_flac/
+../lib/krad_vorbis/
+../lib/krad_gui/
+../lib/krad_opus/
+../lib/krad_radio/
+../lib/krad_ring/
+../lib/krad_ogg/
+../lib/krad_io/
+../lib/krad_link/
+../lib/krad_transmitter/
+../lib/krad_container/
+../lib/krad_x11/
+../lib/krad_udp/
+../lib/krad_codec2/
+../lib/krad_system/
+../lib/krad_decklink/
+../lib/krad_ebml/
+../lib/krad_legacy/
+/usr/local/include
+/usr/include
+""".split()
+
+shlibs = ["x11-xcb", "xcb-image", "xcb", "x11", "jack", "cairo", "xmms2-client", "samplerate",
+          "x264", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "flac",
+          "vpx", "libswscale", "libavutil"]
+
+#stlibs = ["libwebsockets"]
+stlibs = []
+
+# "ncurses",
+
+def check_system(systm):
+
+	global includedirs
+	global depsources
+	global depsources2
+	global shlibs
+	global programs2
+
+	if systm.env['IS_LINUX']:
+		shlibs = shlibs + ["alsa"]    
+		depsources = ["../lib/krad_v4l2/krad_v4l2.c", "../lib/krad_alsa/krad_alsa.c",
+		"../lib/krad_alsa/krad_alsa_seq.c"] + depsources
+		depsources2 = ["../lib/krad_alsa/krad_alsa.c", "../lib/krad_alsa/krad_alsa_seq.c"] + depsources2
+		programs2 = ["krad_radio_ev.c"] + programs2
+		includedirs = ["../lib/krad_decklink/vendor/linux"] + includedirs
+		depsources = ["../lib/krad_decklink/vendor/linux/DeckLinkAPIDispatch.cpp"] + depsources
+
+
+	if systm.env['IS_MACOSX']:
+		depsources = ["../lib/krad_legacy/krad_mach.c"] + depsources
+		depsources2 = ["../lib/krad_legacy/krad_mach.c"] + depsources2
+		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
+		includedirs = ["../lib/krad_decklink/vendor/osx"] + includedirs
+		depsources = ["../lib/krad_decklink/vendor/osx/DeckLinkAPIDispatch.cpp"] + depsources
+
+def check_way(way):
+
+	global depsources
+	global shlibs
+
+	if way.env['WAYRAD']:
+		depsources += ["../lib/krad_wayland/krad_wayland.c"]
+		shlibs += ["wayland-client"]
+
+def remake_webres(web):
+	cmd = 'xxd -i lib/krad_web/res/krad_radio.html lib/krad_web/res/krad_radio.html.h'
+	web.exec_command(cmd)
+
+	cmd = 'xxd -i lib/krad_web/res/krad_radio.js lib/krad_web/res/krad_radio.js.h'
+	web.exec_command(cmd)
+
+
+def configure(conf):
+
+	global shlibs
+	remake_webres(conf)
+	check_way(conf)
+	check_system(conf)
+
+	if conf.env['IS_LINUX']:
+		conf.check_cc(lib='turbojpeg', cflags='-Wall', uselib_store='turbojpeg')
+
+	if conf.env['IS_MACOSX']:
+		shlibs = shlibs + ['turbojpeg']
+		conf.check_cc(lib='z', cflags='-Wall', uselib_store='z')
+
+	for l in shlibs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+
+	for l in stlibs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
+
+def build(bld):
+
+	remake_webres(bld)
+	check_way(bld)
+	check_system(bld)
+
+	for p in programs:
+
+		bld(features = 'c cprogram cxx cxxprogram', 
+			source = sources + depsources + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			uselib = shlibs + stlibs + ['turbojpeg'] + ['z'])
+
+	for p in programs2:
+
+		bld(features = 'c cprogram', 
+			source = sources + depsources2 + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			uselib = shlibs + stlibs + ['turbojpeg'] + ['z'])
+

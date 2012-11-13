@@ -7,14 +7,16 @@ from waflib.Errors import ConfigurationError
 from waflib import Configure, Logs
 import os, sys
 
-toolsdir = "tools"
-appsdir = "apps"
-subdirs = os.listdir('./' + toolsdir)
+libdir = "lib"
+clientsdir = "clients"
+daemondir = "daemon"
+subdirs = os.listdir('./' + libdir)
 
 for s in subdirs:
-	subdirs[subdirs.index(s)] = os.getcwd() + "/" + toolsdir + "/" + s
+	subdirs[subdirs.index(s)] = os.getcwd() + "/" + libdir + "/" + s
 	
-subdirs += [os.getcwd() + "/" + appsdir]
+subdirs += [os.getcwd() + "/" + clientsdir]
+subdirs += [os.getcwd() + "/" + daemondir]
 
 def options(opt):
 
@@ -39,7 +41,6 @@ def configure(conf):
 	platform = sys.platform
 	conf.env['IS_MACOSX'] = platform == 'darwin'
 	conf.env['IS_LINUX'] = platform == 'linux' or platform == 'linux2'
-    
 
 	if conf.env['IS_LINUX']:
 		print("Linux detected :D")
@@ -56,8 +57,6 @@ def configure(conf):
 	conf.load('compiler_c')	
 	conf.load('compiler_cxx')
 
-	conf.check_tool('gcc')
-	conf.check_tool('gnu_dirs')
 	if conf.options.optimize == False:
 		conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
 		conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
@@ -65,7 +64,6 @@ def configure(conf):
 		conf.env.append_unique('CXXFLAGS', ['-O3', '-Wno-write-strings'])
 		conf.env.append_unique('CFLAGS', ['-O3'])
 
-#	conf.env.append_value("LINKFLAGS", ['-lrt','-ldl','-lm'])	
 	conf.recurse(subdirs, mandatory = False)
 	
 def build(bld):
