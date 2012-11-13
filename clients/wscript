@@ -191,6 +191,9 @@ def configure(conf):
 	check_way(conf)
 	check_system(conf)
 
+	conf.check_cc(lib='m', cflags='-Wall', uselib_store='m')
+	conf.check_cc(lib='rt', cflags='-Wall', uselib_store='rt')
+	conf.check_cc(lib='dl', cflags='-Wall', uselib_store='dl')
 	conf.check_cc(lib='z', cflags='-Wall', uselib_store='z')
 
 	if conf.env['IS_LINUX']:
