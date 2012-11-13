@@ -27,12 +27,13 @@
 #include <stdarg.h>
 #include <limits.h>
 
+#include "krad_radio_version.h"
 #include "krad_transmitter.h"
 #include "krad_system.h"
 #include "krad_codec_header.h"
 
 #ifndef KRADEBML_VERSION
-#define KRADEBML_VERSION "10"
+#define KRADEBML_VERSION VERSION
 #endif
 
 #define VOID_START_SIZE 16382

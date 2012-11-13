@@ -806,9 +806,9 @@ void *stream_output_thread (void *arg) {
 	int keyframe;
 	int frames;
 	char keyframe_char[1];
-	int video_frames_muxed;
-	int audio_frames_muxed;
-	int audio_frames_per_video_frame;
+	uint64_t video_frames_muxed;
+	uint64_t audio_frames_muxed;
+	float audio_frames_per_video_frame;
 	int seen_passthu_keyframe;
 	int initial_passthu_frames_skipped;
 	krad_frame_t *krad_frame;
@@ -825,14 +825,12 @@ void *stream_output_thread (void *arg) {
 	printk ("Output/Muxing thread starting");
 	
 	if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-
-		if (krad_link->audio_codec == OPUS) {
-			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / DEFAULT_FPS;
-		} else {
-			audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate / DEFAULT_FPS;
-			//audio_frames_per_video_frame = 1602;
-		}
+  	audio_frames_per_video_frame = krad_link->krad_radio->krad_mixer->sample_rate;
+  	audio_frames_per_video_frame = audio_frames_per_video_frame / krad_link->encoding_fps_numerator;
+  	audio_frames_per_video_frame = audio_frames_per_video_frame * krad_link->encoding_fps_denominator;
 	}
+
+  printk ("audio frames per video frame %f", audio_frames_per_video_frame);
 
 	packet = malloc (2000000);
 	
