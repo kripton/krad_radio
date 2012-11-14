@@ -12,7 +12,7 @@ typedef enum {
 	PNG,
 	CODEC2,
 	SKELETON,
-	HEXON,
+	Y4M,
 	DAALA,
 	H264,
 	NOCODEC,

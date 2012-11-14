@@ -5,7 +5,7 @@
 typedef enum {
 	EBML = 100,
 	OGG,
-	NAKED,
+	RAW,
 } krad_container_type_t;
 
 
@@ -16,7 +16,7 @@ struct krad_container_St {
 	krad_container_type_t container_type;
 	krad_ogg_t *krad_ogg;
 	krad_ebml_t *krad_ebml;
-	
+	krad_io_t *krad_io;
 };
 
 int krad_container_get_container (krad_container_t *krad_container);

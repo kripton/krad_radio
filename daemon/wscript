@@ -9,6 +9,7 @@ depsources = """
 ../lib/krad_system/krad_system.c
 ../lib/krad_ticker/krad_timer.c
 ../lib/krad_ticker/krad_ticker.c
+../lib/krad_y4m/krad_y4m.c
 ../lib/krad_xmms2/krad_xmms2.c
 ../lib/krad_x264/krad_x264.c
 ../lib/krad_ebml/krad_ebml.c
@@ -66,6 +67,7 @@ includedirs = """
 ../lib/krad_x264/
 ../lib/krad_compositor/
 ../lib/krad_ticker/
+../lib/krad_y4m/
 ../lib/krad_xmms2/
 ../lib/krad_framepool/
 ../lib/krad_web/

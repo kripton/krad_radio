@@ -24,6 +24,7 @@ includedirs = """
 ../lib/krad_compositor/
 ../lib/krad_ticker/
 ../lib/krad_xmms2/
+../lib/krad_y4m/
 ../lib/krad_framepool/
 ../lib/krad_web/
 ../lib/krad_web/ext/

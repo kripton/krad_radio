@@ -87,12 +87,12 @@ char *krad_codec_to_string (krad_codec_t codec) {
 			return "VP8";
 		case THEORA:
 			return "Theora";
+		case Y4M:
+			return "Y4M";			
 		case MJPEG:
 			return "Mjpeg";
 		case PNG:
 			return "PNG";
-		case HEXON:
-			return "Hexon";
 		case DAALA:
 			return "Daala";
 		case H264:
@@ -142,6 +142,10 @@ krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mod
 			return THEORA;
 		}
 	
+		if ((strstr(string, "Y4M") != NULL) || (strstr(string, "y4m") != NULL)) {
+			return Y4M;
+		}
+	
 		if ((strstr(string, "MJPEG") != NULL) || (strstr(string, "Mjpeg") != NULL) || (strstr(string, "mjpeg") != NULL)) {
 			return MJPEG;
 		}
@@ -149,11 +153,7 @@ krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mod
 		if (strstr(string, "PNG") != NULL) {
 			return PNG;
 		}
-	
-		if (strstr(string, "Hexon") != NULL) {
-			return HEXON;
-		}
-	
+
 		if (strstr(string, "Daala") != NULL) {
 			return DAALA;
 		}

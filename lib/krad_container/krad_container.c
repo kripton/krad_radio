@@ -16,6 +16,14 @@ krad_container_type_t krad_link_select_container (char *string) {
 		return OGG;
 	}
 	
+	if (strstr(string, ".y4m")) {
+		return RAW;
+	}		
+	
+	if (strstr(string, ".flac")) {
+		return RAW;
+	}	
+	
 	return EBML;
 }
 
@@ -39,15 +47,25 @@ char *krad_link_select_mimetype (char *string) {
 		return "video/webm";
 	}
 	
+	if (strstr(string, ".y4m")) {
+		return "video/y4m";
+	}
+	
+	if (strstr(string, ".flac")) {
+		return "audio/flac";
+	}	
+	
 	return "video/x-matroska";
 }
 
 char *krad_container_get_container_string (krad_container_t *krad_container) {
 	if (krad_container->container_type == OGG) {
 		return "Ogg";
-	} else {
-		return "MKV";		
 	}
+	if (krad_container->container_type == RAW) {
+		return "RAW";
+	}
+  return "MKV";
 }
 
 int krad_container_get_container (krad_container_t *krad_container) {
@@ -135,9 +153,15 @@ krad_container_t *krad_container_open_stream (char *host, int port, char *mount,
 
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_stream (host, port, mount, password);
-	} else {
+	}
+	
+	if (krad_container->container_type == EBML) {
 		krad_container->krad_ebml = krad_ebml_open_stream (host, port, mount, password);
 	}
+	
+	if (krad_container->container_type == RAW) {
+		krad_container->krad_io = krad_io_open_stream (host, port, mount, password);
+	}	
 
 	return krad_container;
 
@@ -154,8 +178,9 @@ krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode)
 
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_file (filename, mode);
-	} else {
+	}
 	
+	if (krad_container->container_type == EBML) {
 		if (mode == KRAD_IO_WRITEONLY) {
 			krad_container->krad_ebml = krad_ebml_open_file (filename, KRAD_EBML_IO_WRITEONLY);
 		}
@@ -164,6 +189,10 @@ krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode)
 			krad_container->krad_ebml = krad_ebml_open_file (filename, KRAD_EBML_IO_READONLY);
 		}
 	}
+	
+	if (krad_container->container_type == RAW) {
+		krad_container->krad_io = krad_io_open_file (filename, mode);
+	}	
 
 	return krad_container;
 
@@ -191,16 +220,31 @@ void krad_container_destroy (krad_container_t *krad_container) {
 						
 	if (krad_container->container_type == OGG) {
 		krad_ogg_destroy (krad_container->krad_ogg);
-	} else {
+	}
+	
+	if (krad_container->container_type == EBML) {
 		krad_ebml_destroy (krad_container->krad_ebml);
 	}
 
+	if (krad_container->container_type == RAW) {
+    if (krad_container->krad_io) {
+      krad_io_destroy (krad_container->krad_io);
+    }
+	}
+	
+	free (krad_container);
 }	
 
 
 int krad_container_add_video_track_with_private_data (krad_container_t *krad_container, krad_codec_t codec,
 													  int fps_numerator, int fps_denominator, int width, int height,
 													  krad_codec_header_t *krad_codec_header) {
+			
+	if (krad_container->container_type == RAW) {
+    krad_io_write (krad_container->krad_io, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
+    krad_io_write_sync (krad_container->krad_io);
+    return 1;
+	}
 									
 	if (krad_container->container_type == OGG) {
 		return krad_ogg_add_video_track_with_private_data (krad_container->krad_ogg, codec, fps_numerator, fps_denominator,
@@ -232,6 +276,13 @@ int krad_container_add_video_track (krad_container_t *krad_container, krad_codec
 int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec_t codec, int sample_rate, int channels, 
 									krad_codec_header_t *krad_codec_header) {
 
+
+	if (krad_container->container_type == RAW) {
+    krad_io_write (krad_container->krad_io, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
+    krad_io_write_sync (krad_container->krad_io);
+    return 1;
+	}
+
 	if (krad_container->container_type == OGG) {
 		return krad_ogg_add_audio_track (krad_container->krad_ogg, codec, sample_rate, channels, 
 										 krad_codec_header->header, krad_codec_header->header_size,
@@ -245,6 +296,12 @@ int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec
 void krad_container_add_video (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size,
 							   int keyframe) {
 
+	if (krad_container->container_type == RAW) {
+    krad_io_write (krad_container->krad_io, buffer, buffer_size);
+    krad_io_write_sync (krad_container->krad_io);
+    return;
+	}
+
 	if (krad_container->container_type == OGG) {
 		krad_ogg_add_video (krad_container->krad_ogg, track, buffer, buffer_size, keyframe);
 	} else {
@@ -256,6 +313,12 @@ void krad_container_add_video (krad_container_t *krad_container, int track, unsi
 
 void krad_container_add_audio (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size,
 							   int frames) {
+
+	if (krad_container->container_type == RAW) {
+    krad_io_write (krad_container->krad_io, buffer, buffer_size);
+    krad_io_write_sync (krad_container->krad_io);
+    return;
+	}
 
 	if (krad_container->container_type == OGG) {
 		krad_ogg_add_audio (krad_container->krad_ogg, track, buffer, buffer_size, frames);

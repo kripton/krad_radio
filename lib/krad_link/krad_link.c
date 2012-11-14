@@ -391,7 +391,9 @@ void *video_encoding_thread (void *arg) {
 	char keyframe_char[1];
 	unsigned char *planes[3];
 	int strides[3];
+  krad_y4m_t *krad_y4m;
 
+  krad_y4m = NULL;
 	keyframe = 0;
 	krad_frame = NULL;
 	
@@ -435,7 +437,11 @@ void *video_encoding_thread (void *arg) {
 																	 krad_link->encoding_fps_numerator,
 																	 krad_link->encoding_fps_denominator,
 																	 krad_link->vp8_bitrate);
-	}	
+	}
+	
+	if (krad_link->video_codec == Y4M) {
+		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, 420);
+	}
 	
 	/* COMPOSITOR CONNECTION */
 	
@@ -474,7 +480,16 @@ void *video_encoding_thread (void *arg) {
 			strides[0] = krad_link->krad_x264_encoder->picture->img.i_stride[0];
 			strides[1] = krad_link->krad_x264_encoder->picture->img.i_stride[1];
 			strides[2] = krad_link->krad_x264_encoder->picture->img.i_stride[2];	
-		}		
+		}
+		
+		if (krad_link->video_codec == Y4M) {
+			planes[0] = krad_y4m->planes[0];
+			planes[1] = krad_y4m->planes[1];
+			planes[2] = krad_y4m->planes[2];
+			strides[0] = krad_y4m->strides[0];
+			strides[1] = krad_y4m->strides[1];
+			strides[2] = krad_y4m->strides[2];
+		}
 				
 		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides);
 
@@ -512,18 +527,35 @@ void *video_encoding_thread (void *arg) {
 				packet_size = krad_x264_encoder_write (krad_link->krad_x264_encoder,
 									   (unsigned char **)&video_packet,
 									   					 &keyframe);
-			}		
+			}
+			
+			if (krad_link->video_codec == Y4M) {
+			
+			
+				  keyframe_char[0] = 1;
+				  
+				  packet_size = krad_y4m->frame_size + Y4M_FRAME_HEADER_SIZE;
+
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)Y4M_FRAME_HEADER, Y4M_FRAME_HEADER_SIZE);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_y4m->planes[0], krad_y4m->size[0]);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_y4m->planes[1], krad_y4m->size[1]);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_y4m->planes[2], krad_y4m->size[2]);
+				  				  			
+			} else {
 		
-			if ((packet_size) || (krad_link->video_codec == THEORA)) {
+			  if ((packet_size) || (krad_link->video_codec == THEORA)) {
 			
-				//FIXME un needed memcpy
+				  //FIXME un needed memcpy
 			
-				keyframe_char[0] = keyframe;
+				  keyframe_char[0] = keyframe;
 
-				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+				  krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
 
+			  }
 			}
 			
 			krad_framepool_unref_frame (krad_frame);
@@ -562,7 +594,11 @@ void *video_encoding_thread (void *arg) {
 	
 	if (krad_link->video_codec == H264) {
 		krad_x264_encoder_destroy (krad_link->krad_x264_encoder);	
-	}	
+	}
+	
+	if (krad_link->video_codec == Y4M) {
+		krad_y4m_destroy (krad_y4m);	
+	}
 	
 	// FIXME make shutdown sequence more pretty
 	krad_link->encoding = 3;
@@ -886,6 +922,34 @@ void *stream_output_thread (void *arg) {
 																				 "passthruStreamOut",
 																				 OUTPUT);
 		}
+		
+		if (krad_link->video_codec == Y4M) {
+		
+      packet_size = krad_y4m_generate_header (packet, krad_link->encoding_width, krad_link->encoding_height,
+                                              krad_link->encoding_fps_numerator, krad_link->encoding_fps_denominator, 420);		
+
+      krad_codec_header_t *krad_codec_header = calloc (1, sizeof(krad_codec_header_t));
+      
+      krad_codec_header->header_count = 1;
+      krad_codec_header->header_combined = packet;
+      krad_codec_header->header_combined_size = packet_size;
+	    krad_codec_header->header[0] = packet;
+      krad_codec_header->header_size[0] = packet_size;
+
+			krad_link->video_track = 
+			krad_container_add_video_track_with_private_data (krad_link->krad_container, 
+														      krad_link->video_codec,
+														   	  krad_link->encoding_fps_numerator,
+															  krad_link->encoding_fps_denominator,
+															  krad_link->encoding_width,
+															  krad_link->encoding_height,
+															  krad_codec_header);
+															  
+															  
+		  free (krad_codec_header);
+		
+		}
+		
 		
 		if ((krad_link->video_codec == VP8) || (krad_link->video_codec == MJPEG)) {
 		
