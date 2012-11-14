@@ -159,6 +159,7 @@ void *krad_transmitter_transmission_thread (void *arg) {
 	
 	krad_system_set_thread_name ("kr_tx_txmtr");	
 
+  int r;
 	int e;
 	int ret;
 	int wait_time;
@@ -168,9 +169,10 @@ void *krad_transmitter_transmission_thread (void *arg) {
 	uint32_t drop_count;
 	krad_transmission_receiver_t *krad_transmission_receiver;
 
+  r = 0;
 	e = 0;
 	ret = 0;
-	wait_time = 8;	
+	wait_time = 2;	
 	last_position = 0;
 	new_bytes_avail = 0;
 	space_avail = 0;
@@ -262,11 +264,12 @@ void *krad_transmitter_transmission_thread (void *arg) {
 
 		if ((last_position != krad_transmission->position) && (krad_transmission->ready_receiver_count > 0)) {
 			last_position = krad_transmission->position;
-			krad_transmission_receiver = krad_transmission->ready_receivers;
-			while (krad_transmission_receiver != NULL) {
-				krad_transmitter_transmission_transmit (krad_transmission, krad_transmission_receiver);
-				krad_transmission_receiver = krad_transmission_receiver->next;
-			}
+      for (r = 0; r < TOTAL_RECEIVERS; r++) {
+        if ((krad_transmission->krad_transmitter->krad_transmission_receivers[r].krad_transmission == krad_transmission) && (krad_transmission->krad_transmitter->krad_transmission_receivers[r].active == 1) && (krad_transmission->krad_transmitter->krad_transmission_receivers[r].ready == 1)) {
+          krad_transmission_receiver = &krad_transmission->krad_transmitter->krad_transmission_receivers[r];
+          krad_transmitter_transmission_transmit (krad_transmission, krad_transmission_receiver);
+        }
+      }
 		}
 	}
 
@@ -286,7 +289,7 @@ void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_t
 	}
 
 	krad_transmission_receiver->ready = 1;
-	
+	/*
 	if (krad_transmission->ready_receivers == NULL) {
 		krad_transmission_receiver->prev = NULL;
 		krad_transmission->ready_receivers = krad_transmission_receiver;
@@ -297,7 +300,7 @@ void krad_transmission_add_ready (krad_transmission_t *krad_transmission, krad_t
 		krad_transmission->ready_receivers = krad_transmission_receiver;
 		krad_transmission_receiver->prev = NULL;		
 	}
-
+  */
 	krad_transmission->ready_receiver_count++;
 }
 
@@ -310,7 +313,7 @@ void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, kra
 	}
 
 	krad_transmission_receiver->ready = 0;
-
+  /*
 	while (1) {
 		if ((krad_transmission_receiver->prev == NULL) && (krad_transmission_receiver->next == NULL)) {
 			krad_transmission->ready_receivers = NULL;
@@ -334,7 +337,7 @@ void krad_transmission_remove_ready (krad_transmission_t *krad_transmission, kra
 
 	krad_transmission_receiver->prev = NULL;
 	krad_transmission_receiver->next = NULL;
-
+  */
 	krad_transmission->ready_receiver_count--;
 }
 
@@ -428,7 +431,7 @@ int krad_transmitter_transmission_add_data_opt (krad_transmission_t *krad_transm
 	ret = 0;
 
 	while (krad_transmission->new_data == 1) {
-		usleep(5000);
+		usleep(1000);
 	}
 
 	if ((krad_transmission->ready == 0) && (krad_transmission->header_len > 0) && (length > 0)) {
