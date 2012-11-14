@@ -151,6 +151,8 @@ krad_container_t *krad_container_open_stream (char *host, int port, char *mount,
 
 	krad_container->container_type = krad_link_select_container (mount);
 
+  krad_container->krad_transmission = NULL;
+
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_stream (host, port, mount, password);
 	}
@@ -175,6 +177,8 @@ krad_container_t *krad_container_open_file (char *filename, krad_io_mode_t mode)
 	krad_container = calloc(1, sizeof(krad_container_t));
 
 	krad_container->container_type = krad_link_select_container (filename);
+
+  krad_container->krad_transmission = NULL;
 
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_file (filename, mode);
@@ -208,10 +212,15 @@ krad_container_t *krad_container_open_transmission (krad_transmission_t *krad_tr
 
 	if (krad_container->container_type == OGG) {
 		krad_container->krad_ogg = krad_ogg_open_transmission (krad_transmission);
-	} else {
+	}
+
+	if (krad_container->container_type == EBML) {
 		krad_container->krad_ebml = krad_ebml_open_transmission (krad_transmission);
 	}
 
+	if (krad_container->container_type == RAW) {
+	  krad_container->krad_transmission = krad_transmission;
+  }
 	return krad_container;
 
 }
@@ -241,8 +250,12 @@ int krad_container_add_video_track_with_private_data (krad_container_t *krad_con
 													  krad_codec_header_t *krad_codec_header) {
 			
 	if (krad_container->container_type == RAW) {
-    krad_io_write (krad_container->krad_io, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
-    krad_io_write_sync (krad_container->krad_io);
+	  if (krad_container->krad_transmission != NULL) {
+      krad_transmitter_transmission_add_header (krad_container->krad_transmission, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
+	  } else {
+      krad_io_write (krad_container->krad_io, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
+      krad_io_write_sync (krad_container->krad_io);
+    }
     return 1;
 	}
 									
@@ -276,10 +289,13 @@ int krad_container_add_video_track (krad_container_t *krad_container, krad_codec
 int krad_container_add_audio_track (krad_container_t *krad_container, krad_codec_t codec, int sample_rate, int channels, 
 									krad_codec_header_t *krad_codec_header) {
 
-
 	if (krad_container->container_type == RAW) {
-    krad_io_write (krad_container->krad_io, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
-    krad_io_write_sync (krad_container->krad_io);
+	  if (krad_container->krad_transmission != NULL) {
+      krad_transmitter_transmission_add_header (krad_container->krad_transmission, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
+	  } else {
+      krad_io_write (krad_container->krad_io, krad_codec_header->header_combined, krad_codec_header->header_combined_size);
+      krad_io_write_sync (krad_container->krad_io);
+    }
     return 1;
 	}
 
@@ -297,8 +313,12 @@ void krad_container_add_video (krad_container_t *krad_container, int track, unsi
 							   int keyframe) {
 
 	if (krad_container->container_type == RAW) {
-    krad_io_write (krad_container->krad_io, buffer, buffer_size);
-    krad_io_write_sync (krad_container->krad_io);
+	  if (krad_container->krad_transmission != NULL) {
+      krad_transmitter_transmission_add_data_sync (krad_container->krad_transmission, buffer, buffer_size);
+	  } else {
+      krad_io_write (krad_container->krad_io, buffer, buffer_size);
+      krad_io_write_sync (krad_container->krad_io);
+    }
     return;
 	}
 
@@ -315,8 +335,12 @@ void krad_container_add_audio (krad_container_t *krad_container, int track, unsi
 							   int frames) {
 
 	if (krad_container->container_type == RAW) {
-    krad_io_write (krad_container->krad_io, buffer, buffer_size);
-    krad_io_write_sync (krad_container->krad_io);
+	  if (krad_container->krad_transmission != NULL) {
+      krad_transmitter_transmission_add_data_sync (krad_container->krad_transmission, buffer, buffer_size);
+	  } else {
+      krad_io_write (krad_container->krad_io, buffer, buffer_size);
+      krad_io_write_sync (krad_container->krad_io);
+    }
     return;
 	}
 

@@ -17,6 +17,7 @@ struct krad_container_St {
 	krad_ogg_t *krad_ogg;
 	krad_ebml_t *krad_ebml;
 	krad_io_t *krad_io;
+	krad_transmission_t *krad_transmission;	
 };
 
 int krad_container_get_container (krad_container_t *krad_container);
