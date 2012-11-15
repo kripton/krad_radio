@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import binascii
 
 daemon = "krad_radio_daemon.c"
 
@@ -118,6 +119,31 @@ stlibs = []
 syslibs = ['m', 'dl', 'z']
 syslibs2 = ['rt', 'turbojpeg']
 
+def hexilate_file(filename):
+
+  varname = filename.replace("/","_").replace(".","_")
+  outname = filename + ".h"
+
+  with open(filename, 'rb') as f:
+      content = f.read()
+      
+  hexed = binascii.hexlify(content)
+  hexed_len = len(hexed)
+  hexed_txt = "unsigned char " + varname + "[] = {\n "
+
+  count = 0
+  while (count < (hexed_len)):
+     hexed_txt += " 0x" + hexed[count:count + 2] + ","
+     count = count + 2
+     if ((count % 24) == 0):
+        hexed_txt += "\n "
+
+  hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
+
+  filename = filename + ".h"
+  with open(filename, 'wb') as f:
+      content = f.write(hexed_txt)
+
 def check_system(systm):
 
 	global includedirs
@@ -152,12 +178,8 @@ def check_way(way):
 		shlibs += ["wayland-client"]
 
 def remake_webres(web):
-	cmd = 'xxd -i lib/krad_web/res/krad_radio.html lib/krad_web/res/krad_radio.html.h'
-	web.exec_command(cmd)
-
-	cmd = 'xxd -i lib/krad_web/res/krad_radio.js lib/krad_web/res/krad_radio.js.h'
-	web.exec_command(cmd)
-
+  hexilate_file("lib/krad_web/res/krad_radio.html")
+  hexilate_file("lib/krad_web/res/krad_radio.js")  
 
 def configure(conf):
 
