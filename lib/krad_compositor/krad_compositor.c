@@ -895,7 +895,15 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
-	int rgb_stride_arr[3] = {4*krad_compositor_port->krad_compositor->width, 0, 0};
+  int dststride;
+  
+  if (krad_compositor_port->krad_compositor->width > krad_compositor_port->width) {
+    dststride = krad_compositor_port->krad_compositor->width;
+  } else {
+    dststride = krad_compositor_port->width;
+  }
+
+	int rgb_stride_arr[3] = {4*dststride, 0, 0};
 	unsigned char *dst[4];
 	
 	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
@@ -921,7 +929,7 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 		krad_compositor_port->sws_converter =
 			sws_getContext ( krad_compositor_port->source_width,
 							 krad_compositor_port->source_height,
-							 krad_frame->format,
+							 krad_compositor_port->yuv_color_depth,
 							 krad_compositor_port->width,
 							 krad_compositor_port->height,
 							 PIX_FMT_RGB32, 

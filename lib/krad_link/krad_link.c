@@ -2073,7 +2073,7 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 	int stride;
 
-	stride = krad_link->capture_width + (krad_link->capture_width/2) * 2;
+	stride = krad_link->capture_width + ((krad_link->capture_width/2) * 2);
 
 	//printk ("krad link decklink frame received %d bytes", length);
 
