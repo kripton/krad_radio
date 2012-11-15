@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <libswscale/swscale.h>
+
 #include "krad_system.h"
 
 #ifndef KRAD_Y4M_H
@@ -34,5 +36,7 @@ krad_y4m_t *krad_y4m_create (int width, int height, int color_depth);
 
 
 int krad_y4m_generate_header (unsigned char *header, int width, int height, int frame_rate_numerator, int frame_rate_denominator, int color_depth);
+
+int krad_y4m_parse_header (unsigned char *header, int header_len, int *width, int *height, int *frame_rate_numerator, int *frame_rate_denominator, int *color_depth);
 
 #endif

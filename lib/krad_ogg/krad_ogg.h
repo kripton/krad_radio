@@ -85,6 +85,9 @@ struct krad_ogg_track_St {
 	ogg_int64_t frames;
 	ogg_int64_t frames_since_keyframe;
 	
+	
+  int writing;
+	
 };
 
 struct krad_ogg_St {

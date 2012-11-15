@@ -8,7 +8,7 @@ output = input.sub(".gif", "") + "_frames_" + frames + ".png"
 
 puts input + " -> " + output
 
-cmd = "montage #{input} -tile 10x -geometry '1x1+0+0<' -alpha On -background \"rgba(0, 0, 0, 0.0)\" -quality 100 #{output}"
+cmd = "montage #{input} -tile 10x -geometry '1x1+0+0<' -background \"rgba(0, 0, 0, 0.0)\" -quality 100 #{output}"
 
 puts cmd
 

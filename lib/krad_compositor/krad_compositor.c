@@ -955,7 +955,7 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 }
 
 krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_compositor_port,
-												   uint8_t *yuv_pixels[4], int yuv_strides[4]) {
+												   uint8_t *yuv_pixels[4], int yuv_strides[4], int color_depth) {
 
 	krad_frame_t *krad_frame;	
 	
@@ -976,6 +976,14 @@ krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_
 		krad_compositor_port->io_params_updated = 0;
 	}
 	
+	if (krad_compositor_port->yuv_color_depth != color_depth) {
+		if (krad_compositor_port->sws_converter != NULL) {
+			sws_freeContext ( krad_compositor_port->sws_converter );
+			krad_compositor_port->sws_converter = NULL;
+		}
+		krad_compositor_port->yuv_color_depth = color_depth;
+	}
+	
 	if (krad_compositor_port->sws_converter == NULL) {
 
 		krad_compositor_port->sws_converter =
@@ -984,7 +992,7 @@ krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_
 							 PIX_FMT_RGB32,
 							 krad_compositor_port->width,
 							 krad_compositor_port->height,
-							 PIX_FMT_YUV420P, 
+							 krad_compositor_port->yuv_color_depth, 
 							 SWS_BICUBIC,
 							 NULL, NULL, NULL);
 
@@ -1309,7 +1317,8 @@ krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *kra
 		krad_compositor_port->width = width;
 		krad_compositor_port->height = height;
 		krad_compositor_port->crop_width = krad_compositor->width;
-		krad_compositor_port->crop_height = krad_compositor->height;		
+		krad_compositor_port->crop_height = krad_compositor->height;
+		krad_compositor_port->yuv_color_depth = PIX_FMT_YUV420P;
 	}
 	
 	krad_compositor_port->x = 0;

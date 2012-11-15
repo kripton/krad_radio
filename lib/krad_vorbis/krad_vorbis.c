@@ -106,6 +106,11 @@ int krad_vorbis_encoder_wrote (krad_vorbis_t *krad_vorbis, int frames) {
 	return vorbis_analysis_wrote (&krad_vorbis->vdsp, frames);
 }
 
+int krad_vorbis_encoder_finish (krad_vorbis_t *krad_vorbis) {
+
+	return vorbis_analysis_wrote (&krad_vorbis->vdsp, 0);
+}
+
 int krad_vorbis_encoder_write (krad_vorbis_t *krad_vorbis, float **samples, int frames) {
 
 	int c;

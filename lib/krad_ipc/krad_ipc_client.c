@@ -2201,10 +2201,6 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 		}
 		
 		if (video_codec == THEORA) {
-			if ((video_width % 16) || (video_height % 16)) {
-				video_width = 0;
-				video_height = 0;
-			}
 			if (video_bitrate == 0) {
 				video_bitrate = 41;
 			}

@@ -160,7 +160,8 @@ krad_decklink_capture_t *krad_decklink_capture_create(int device) {
 	
 	krad_decklink_capture->device = device;
 	krad_decklink_capture->inputFlags = 0;
-	krad_decklink_capture->audio_input = bmdAudioConnectionEmbedded;	
+  krad_decklink_capture_set_audio_input (krad_decklink_capture, "");
+  krad_decklink_capture_set_video_input (krad_decklink_capture, "");  
 	krad_decklink_capture->audio_sample_rate = bmdAudioSampleRate48kHz;
 	krad_decklink_capture->audio_channels = 2;
 	krad_decklink_capture->audio_bit_depth = 16;
@@ -214,6 +215,47 @@ void krad_decklink_capture_set_audio_input(krad_decklink_capture_t *krad_decklin
 	}
 
 	printk ("Krad Decklink: Selected Embedded Audio Input");
+	
+}
+
+void krad_decklink_capture_set_video_input(krad_decklink_capture_t *krad_decklink_capture, char *video_input) {
+
+	krad_decklink_capture->video_input = bmdVideoConnectionSDI;
+
+	if (strlen(video_input)) {
+
+		if ((strstr(video_input, "HDMI") == 0) || (strstr(video_input, "hdmi") == 0)) {
+			printk ("Krad Decklink: Selected HDMI Video Input");
+			krad_decklink_capture->video_input = bmdVideoConnectionHDMI;
+			return;
+		}
+
+		if ((strstr(video_input, "OpticalSDI") == 0) || (strstr(video_input, "opticalsdi") == 0)) {
+			printk ("Krad Decklink: Selected OpticalSDI Video Input");
+			krad_decklink_capture->video_input = bmdVideoConnectionOpticalSDI;
+			return;
+		}
+		
+		if ((strstr(video_input, "Component") == 0) || (strstr(video_input, "component") == 0)) {
+			printk ("Krad Decklink: Selected Component Video Input");
+			krad_decklink_capture->video_input = bmdVideoConnectionComponent;
+			return;
+		}
+		
+		if ((strstr(video_input, "Composite") == 0) || (strstr(video_input, "composite") == 0)) {
+			printk ("Krad Decklink: Selected Composite Video Input");
+			krad_decklink_capture->video_input = bmdVideoConnectionComposite;
+			return;
+		}
+		
+		if ((strstr(video_input, "svideo") == 0) || (strstr(video_input, "Svideo") == 0)) {
+			printk ("Krad Decklink: Selected svideo Video Input");
+			krad_decklink_capture->video_input = bmdVideoConnectionSVideo;
+			return;
+		}
+	}
+
+	printk ("Krad Decklink: Selected SDI Video Input");
 	
 }
 
@@ -343,7 +385,12 @@ void krad_decklink_capture_start(krad_decklink_capture_t *krad_decklink_capture)
 
 		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, krad_decklink_capture->audio_input);
 		if (krad_decklink_capture->result != S_OK) {
-			printke ("Krad Decklink: Fail confguration to set bmdAudioConnectionEmbedded\n");
+			printke ("Krad Decklink: Failed to set audio input connection");
+		}
+		
+		krad_decklink_capture->result = krad_decklink_capture->deckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, krad_decklink_capture->video_input);
+		if (krad_decklink_capture->result != S_OK) {
+			printke ("Krad Decklink: Failed to set video input connection");
 		}
 	}
 

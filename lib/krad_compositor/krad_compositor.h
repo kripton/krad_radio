@@ -94,6 +94,7 @@ struct krad_compositor_port_St {
 	float opacity;	
 	
 	struct SwsContext *sws_converter;	
+	int yuv_color_depth;
 	
 	int io_params_updated;
 	int comp_params_updated;
@@ -264,7 +265,7 @@ void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_po
 krad_frame_t *krad_compositor_port_pull_frame (krad_compositor_port_t *krad_compositor_port);
 
 krad_frame_t *krad_compositor_port_pull_yuv_frame (krad_compositor_port_t *krad_compositor_port,
-												   uint8_t *yuv_pixels[4], int yuv_strides[4]);
+												   uint8_t *yuv_pixels[4], int yuv_strides[4], int color_depth);
 
 int krad_compositor_port_frames_avail (krad_compositor_port_t *krad_compositor_port);
 

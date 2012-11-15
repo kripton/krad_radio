@@ -22,20 +22,40 @@ krad_y4m_t *krad_y4m_create (int width, int height, int color_depth) {
 
   krad_y4m->width = width;
   krad_y4m->height = height;
-  krad_y4m->color_depth = color_depth;
 
 	krad_y4m->size[0] = krad_y4m->width * krad_y4m->height;
-	krad_y4m->size[1] = ((krad_y4m->width / 2) * (krad_y4m->height / 2));
-	krad_y4m->size[2] = ((krad_y4m->width / 2) * (krad_y4m->height / 2));
-	
+	krad_y4m->strides[0] = krad_y4m->width;
 
+  switch (color_depth) {
+    case PIX_FMT_YUV420P:
+    case 420:
+        krad_y4m->color_depth = PIX_FMT_YUV420P;
+        krad_y4m->size[1] = ((krad_y4m->width / 2) * (krad_y4m->height / 2));
+        krad_y4m->size[2] = ((krad_y4m->width / 2) * (krad_y4m->height / 2));
+        krad_y4m->strides[1] = krad_y4m->width / 2;
+        krad_y4m->strides[2] = krad_y4m->width / 2;
+        break;
+    case PIX_FMT_YUV422P:
+    case 422:    
+        krad_y4m->color_depth = PIX_FMT_YUV422P;
+        krad_y4m->size[1] = ((krad_y4m->width / 2) * krad_y4m->height);
+        krad_y4m->size[2] = ((krad_y4m->width / 2) * krad_y4m->height);
+        krad_y4m->strides[1] = krad_y4m->width / 2;
+        krad_y4m->strides[2] = krad_y4m->width / 2;        
+        break;
+    case PIX_FMT_YUV444P:
+    case 444:
+        krad_y4m->color_depth = PIX_FMT_YUV444P;
+        krad_y4m->size[1] = krad_y4m->width * krad_y4m->height;
+        krad_y4m->size[2] = krad_y4m->width * krad_y4m->height;
+        krad_y4m->strides[1] = krad_y4m->width;
+        krad_y4m->strides[2] = krad_y4m->width;        
+        break;
+  }
+	
 	krad_y4m->planes[0] = malloc(krad_y4m->size[0]);
 	krad_y4m->planes[1] = malloc(krad_y4m->size[1]);
 	krad_y4m->planes[2] = malloc(krad_y4m->size[2]);
-	
-	krad_y4m->strides[0] = krad_y4m->width;
-	krad_y4m->strides[1] = krad_y4m->width / 2;
-	krad_y4m->strides[2] = krad_y4m->width / 2;
 
   krad_y4m->frame_size = krad_y4m->size[0] + krad_y4m->size[1] + krad_y4m->size[2];
 
@@ -52,13 +72,16 @@ int krad_y4m_generate_header (unsigned char *header, int width, int height, int 
   n = 0;
 
   switch (color_depth) {
+    case PIX_FMT_YUV420P:
     case 420:
         colorspace = "";
         break;
-    case 422:
+    case PIX_FMT_YUV422P:
+    case 422:    
         colorspace = "C422";
         break;
-    case 444:
+    case PIX_FMT_YUV444P:
+    case 444:    
         colorspace = "C444";
         break;
   }
@@ -70,4 +93,13 @@ int krad_y4m_generate_header (unsigned char *header, int width, int height, int 
   return n;
 }
 
+int krad_y4m_parse_header (unsigned char *header, int header_len, int *width, int *height, int *frame_rate_numerator, int *frame_rate_denominator, int *color_depth) {
+
+  int n;
+
+  n = 0;
+
+
+  return n;
+}
 

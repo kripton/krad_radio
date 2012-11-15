@@ -391,11 +391,13 @@ void *video_encoding_thread (void *arg) {
 	char keyframe_char[1];
 	unsigned char *planes[3];
 	int strides[3];
+	int color_depth;
   krad_y4m_t *krad_y4m;
 
   krad_y4m = NULL;
 	keyframe = 0;
 	krad_frame = NULL;
+	color_depth = PIX_FMT_YUV420P;
 	
 	/* CODEC SETUP */
 
@@ -440,7 +442,7 @@ void *video_encoding_thread (void *arg) {
 	}
 	
 	if (krad_link->video_codec == Y4M) {
-		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, 420);
+		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, color_depth);
 	}
 	
 	/* COMPOSITOR CONNECTION */
@@ -491,7 +493,7 @@ void *video_encoding_thread (void *arg) {
 			strides[2] = krad_y4m->strides[2];
 		}
 				
-		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides);
+		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides, color_depth);
 
 		if (krad_frame != NULL) {
 
@@ -665,6 +667,9 @@ void *audio_encoding_thread (void *arg) {
 	unsigned char *buffer;
 	int framecnt;
 	krad_mixer_portgroup_t *mixer_portgroup;
+	
+  unsigned char *vorbis_buffer;
+  float **float_buffer;
 
 	printk ("Audio encoding thread starting");
 	
@@ -757,9 +762,6 @@ void *audio_encoding_thread (void *arg) {
 			
 			if (krad_link->audio_codec == VORBIS) {
 			
-				unsigned char *vorbis_buffer;
-				float **float_buffer;
-
 				krad_vorbis_encoder_prepare (krad_link->krad_vorbis, framecnt, &float_buffer);
 							
 				for (c = 0; c < krad_link->channels; c++) {
@@ -767,15 +769,12 @@ void *audio_encoding_thread (void *arg) {
 				}			
 			
 				krad_vorbis_encoder_wrote (krad_link->krad_vorbis, framecnt);
-
+        // DUPE BELOW
 				bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
-
 				while (bytes > 0) {
-				
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
 					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)vorbis_buffer, bytes);
-					
 					bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
 				}
 			}
@@ -800,6 +799,18 @@ void *audio_encoding_thread (void *arg) {
 	
 	
 	if (krad_link->krad_vorbis != NULL) {
+	
+    krad_vorbis_encoder_finish (krad_link->krad_vorbis);
+
+    // DUPEY
+		bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
+		while (bytes > 0) {
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)vorbis_buffer, bytes);
+			bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
+		}
+	
 		krad_vorbis_encoder_destroy (krad_link->krad_vorbis);
 		krad_link->krad_vorbis = NULL;
 	}
@@ -868,7 +879,7 @@ void *stream_output_thread (void *arg) {
 
   printk ("audio frames per video frame %f", audio_frames_per_video_frame);
 
-	packet = malloc (2000000);
+	packet = malloc (6300000);
 	
 	if (krad_link->host[0] != '\0') {
 	
@@ -926,7 +937,7 @@ void *stream_output_thread (void *arg) {
 		if (krad_link->video_codec == Y4M) {
 		
       packet_size = krad_y4m_generate_header (packet, krad_link->encoding_width, krad_link->encoding_height,
-                                              krad_link->encoding_fps_numerator, krad_link->encoding_fps_denominator, 420);		
+                                              krad_link->encoding_fps_numerator, krad_link->encoding_fps_denominator, PIX_FMT_YUV420P);		
 
       krad_codec_header_t *krad_codec_header = calloc (1, sizeof(krad_codec_header_t));
       
@@ -1146,7 +1157,7 @@ void *stream_output_thread (void *arg) {
 
 				audio_frames_muxed += frames;
 
-        printk ("ebml muxed audio frames: %d", audio_frames_muxed);
+        //printk ("ebml muxed audio frames: %d", audio_frames_muxed);
 			}
 
 			if (krad_link->encoding == 4) {
@@ -2142,6 +2153,8 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 								  krad_link->fps_numerator, krad_link->fps_denominator);
 	
 	krad_decklink_set_audio_input (krad_link->krad_decklink, krad_link->audio_input);
+	
+	krad_decklink_set_video_input (krad_link->krad_decklink, "hdmi");
 	
 	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->krad_decklink->simplename, INPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	

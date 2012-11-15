@@ -62,6 +62,7 @@ int krad_vorbis_encoder_read (krad_vorbis_t *krad_vorbis, int *out_frames, unsig
 void krad_vorbis_encoder_prepare (krad_vorbis_t *krad_vorbis, int frames, float ***buffer);
 int krad_vorbis_encoder_wrote (krad_vorbis_t *krad_vorbis, int frames);
 int krad_vorbis_encoder_write (krad_vorbis_t *krad_vorbis, float **samples, int frames);
+int krad_vorbis_encoder_finish (krad_vorbis_t *krad_vorbis);
 void krad_vorbis_encoder_destroy (krad_vorbis_t *krad_vorbis);
 krad_vorbis_t *krad_vorbis_encoder_create (int channels, int sample_rate, float quality);
 

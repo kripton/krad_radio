@@ -43,6 +43,7 @@ krad_decklink_t *krad_decklink_create(char *device);
 void krad_decklink_set_video_mode (krad_decklink_t *krad_decklink, int width, int height,
 								   int fps_numerator, int fps_denominator);
 void krad_decklink_set_audio_input (krad_decklink_t *krad_decklink, char *audio_input);
+void krad_decklink_set_video_input (krad_decklink_t *krad_decklink, char *video_input);
 void krad_decklink_info(krad_decklink_t *krad_decklink);
 void krad_decklink_start(krad_decklink_t *krad_decklink);
 void krad_decklink_stop(krad_decklink_t *krad_decklink);

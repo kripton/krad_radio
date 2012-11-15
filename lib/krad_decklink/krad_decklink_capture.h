@@ -56,6 +56,7 @@ struct krad_decklink_capture_St {
 	BMDPixelFormat pixel_format;
 	BMDAudioSampleRate audio_sample_rate;
 	BMDAudioConnection audio_input;
+	BMDVideoConnection video_input;	
 	int audio_channels;
 	int audio_bit_depth;
 	
@@ -82,6 +83,7 @@ struct krad_decklink_capture_St {
 extern "C" {
 #endif
 
+void krad_decklink_capture_set_video_input(krad_decklink_capture_t *krad_decklink_capture, char *video_input);
 void krad_decklink_capture_set_audio_input(krad_decklink_capture_t *krad_decklink_capture, char *audio_input);
 
 void krad_decklink_capture_set_video_mode(krad_decklink_capture_t *krad_decklink_capture, int width, int height,

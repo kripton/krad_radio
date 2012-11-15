@@ -60,6 +60,12 @@ void krad_decklink_set_audio_input (krad_decklink_t *krad_decklink, char *audio_
 
 }
 
+void krad_decklink_set_video_input (krad_decklink_t *krad_decklink, char *video_input) {
+
+	krad_decklink_capture_set_video_input (krad_decklink->krad_decklink_capture, video_input);
+
+}
+
 void krad_decklink_set_verbose (krad_decklink_t *krad_decklink, int verbose) {
 
 	krad_decklink->verbose = verbose;
