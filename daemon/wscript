@@ -140,8 +140,7 @@ def hexilate_file(filename):
 
   hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
 
-  filename = filename + ".h"
-  with open(filename, 'wb') as f:
+  with open(outname, 'wb') as f:
       content = f.write(hexed_txt)
 
 def check_system(systm):
