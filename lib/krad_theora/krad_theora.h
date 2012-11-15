@@ -32,6 +32,8 @@ struct krad_theora_encoder_St {
 	int height;
 	int quality;
 	
+  int color_depth;
+	
 	int update_config;	
 	
 	int frames;
@@ -68,6 +70,8 @@ struct krad_theora_decoder_St {
 	int width;
 	int height;
 
+  int color_depth;
+
     int flags;
 	int frames;
 	int quality;
@@ -97,7 +101,7 @@ int krad_theora_encoder_quality_get (krad_theora_encoder_t *krad_theora);
 void krad_theora_encoder_quality_set (krad_theora_encoder_t *krad_theora, int quality);
 
 krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
-												   int fps_numerator, int fps_denominator, int quality);
+												   int fps_numerator, int fps_denominator, int color_depth, int quality);
 
 void krad_theora_encoder_destroy(krad_theora_encoder_t *krad_theora);
 int krad_theora_encoder_write(krad_theora_encoder_t *krad_theora, unsigned char **packet, int *keyframe);

@@ -901,6 +901,14 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 		printkd ("I knew about the update");
 	}
 	
+	if (krad_compositor_port->yuv_color_depth != krad_frame->format) {
+		if (krad_compositor_port->sws_converter != NULL) {
+			sws_freeContext ( krad_compositor_port->sws_converter );
+			krad_compositor_port->sws_converter = NULL;
+		}
+		krad_compositor_port->yuv_color_depth = krad_frame->format;
+	}	
+	
 	if (krad_compositor_port->sws_converter == NULL) {
 
 		krad_compositor_port->sws_converter =

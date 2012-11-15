@@ -115,7 +115,8 @@ struct krad_link_St {
 	
 	krad_link_transport_mode_t transport_mode;
 	
-
+	int color_depth;
+	
 	char audio_input[128];	
 	
 	char device[512];

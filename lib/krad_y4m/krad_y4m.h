@@ -3,9 +3,10 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <libswscale/swscale.h>
+
 
 #include "krad_system.h"
+#include "krad_radio.h"
 
 #ifndef KRAD_Y4M_H
 #define KRAD_Y4M_H

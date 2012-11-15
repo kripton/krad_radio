@@ -2,7 +2,7 @@
 
 
 krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
-												   int fps_numerator, int fps_denominator, int quality) {
+												   int fps_numerator, int fps_denominator, int color_depth, int quality) {
 
 	krad_theora_encoder_t *krad_theora;
 	
@@ -11,7 +11,8 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 	krad_theora->width = width;
 	krad_theora->height = height;
 	krad_theora->quality = quality;
-	
+	krad_theora->color_depth = color_depth;
+
 	th_info_init (&krad_theora->info);
 	th_comment_init (&krad_theora->comment);
 
@@ -31,8 +32,15 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 	krad_theora->info.aspect_numerator = 1;
 	krad_theora->info.target_bitrate = 0;
 	krad_theora->info.quality = krad_theora->quality;
-	//FIXME add support for 422,444
-	krad_theora->info.pixel_fmt = TH_PF_420;
+  if (krad_theora->color_depth == PIX_FMT_YUV420P) {
+	  krad_theora->info.pixel_fmt = TH_PF_420;
+  }
+  if (krad_theora->color_depth == PIX_FMT_YUV422P) {
+	  krad_theora->info.pixel_fmt = TH_PF_422;
+  }
+  if (krad_theora->color_depth == PIX_FMT_YUV444P) {
+	  krad_theora->info.pixel_fmt = TH_PF_444;
+  }
 	krad_theora->keyframe_shift = krad_theora->info.keyframe_granule_shift;
 	
 	printk ("Loading Theora encoder version %s", th_version_string());
@@ -130,17 +138,42 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 	krad_theora->ycbcr[0].width =  krad_theora->info.frame_width;	
 	krad_theora->ycbcr[0].height =  krad_theora->info.frame_height;	
 	
-	krad_theora->ycbcr[1].stride =  krad_theora->info.frame_width / 2;
-	krad_theora->ycbcr[1].width =  krad_theora->info.frame_width / 2;
-	krad_theora->ycbcr[1].height =  krad_theora->info.frame_height / 2;
-		
-	krad_theora->ycbcr[2].stride =  krad_theora->info.frame_width / 2;
-	krad_theora->ycbcr[2].width =  krad_theora->info.frame_width / 2;
-	krad_theora->ycbcr[2].height =  krad_theora->info.frame_height / 2;
-
 	krad_theora->ycbcr[0].data = calloc(1, krad_theora->info.frame_width * krad_theora->info.frame_height);
-	krad_theora->ycbcr[1].data = calloc(1, krad_theora->info.frame_width * krad_theora->info.frame_height);
-	krad_theora->ycbcr[2].data = calloc(1, krad_theora->info.frame_width * krad_theora->info.frame_height);
+
+  if (krad_theora->color_depth == PIX_FMT_YUV420P) {
+	  krad_theora->ycbcr[1].stride = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[1].width = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[1].height = krad_theora->info.frame_height / 2;
+	  krad_theora->ycbcr[2].stride = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[2].width = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[2].height = krad_theora->info.frame_height / 2;
+
+	  krad_theora->ycbcr[1].data = calloc(1, ((krad_theora->info.frame_width / 2) * (krad_theora->info.frame_height / 2)));
+	  krad_theora->ycbcr[2].data = calloc(1, ((krad_theora->info.frame_width / 2) * (krad_theora->info.frame_height / 2)));
+  }
+  if (krad_theora->color_depth == PIX_FMT_YUV422P) {
+	  krad_theora->ycbcr[1].stride = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[1].width =  krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[1].height =  krad_theora->info.frame_height;
+	  krad_theora->ycbcr[2].stride = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[2].width = krad_theora->info.frame_width / 2;
+	  krad_theora->ycbcr[2].height =  krad_theora->info.frame_height;
+	  
+	  krad_theora->ycbcr[1].data = calloc(1, ((krad_theora->info.frame_width / 2) * krad_theora->info.frame_height));
+	  krad_theora->ycbcr[2].data = calloc(1, ((krad_theora->info.frame_width / 2) * krad_theora->info.frame_height));
+	  
+  }
+  if (krad_theora->color_depth == PIX_FMT_YUV444P) {
+	  krad_theora->ycbcr[1].stride = krad_theora->info.frame_width;
+	  krad_theora->ycbcr[1].width = krad_theora->info.frame_width;	
+	  krad_theora->ycbcr[1].height = krad_theora->info.frame_height;
+	  krad_theora->ycbcr[2].stride = krad_theora->info.frame_width;
+	  krad_theora->ycbcr[2].width = krad_theora->info.frame_width;	
+	  krad_theora->ycbcr[2].height = krad_theora->info.frame_height;
+	  
+	  krad_theora->ycbcr[1].data = calloc(1, krad_theora->info.frame_width * krad_theora->info.frame_height);
+	  krad_theora->ycbcr[2].data = calloc(1, krad_theora->info.frame_width * krad_theora->info.frame_height);	  
+  }
 
 	return krad_theora;
 
@@ -229,8 +262,6 @@ void krad_theora_decoder_decode(krad_theora_decoder_t *krad_theora, void *buffer
 
 	int ret;
 	
-	//printf("theora decode with %d\n", len);
-	
 	krad_theora->packet.packet = buffer;
 	krad_theora->packet.bytes = len;
 	krad_theora->packet.packetno++;
@@ -304,19 +335,27 @@ krad_theora_decoder_t *krad_theora_decoder_create(unsigned char *header1, int he
 	krad_theora->packet.b_o_s = 1;
 	krad_theora->packet.packetno = 1;
 	th_decode_headerin(&krad_theora->info, &krad_theora->comment, &krad_theora->setup_info, &krad_theora->packet);
-	//printf("x is %d len is %d\n", x, header1len);
 
 	krad_theora->packet.packet = header2;
 	krad_theora->packet.bytes = header2len;
 	krad_theora->packet.b_o_s = 0;
 	krad_theora->packet.packetno = 2;
 	th_decode_headerin(&krad_theora->info, &krad_theora->comment, &krad_theora->setup_info, &krad_theora->packet);
-	//printf("x is %d len is %d\n", x, header2len);
 
 	krad_theora->packet.packet = header3;
 	krad_theora->packet.bytes = header3len;
 	krad_theora->packet.packetno = 3;
 	th_decode_headerin(&krad_theora->info, &krad_theora->comment, &krad_theora->setup_info, &krad_theora->packet);
+
+	krad_theora->color_depth = PIX_FMT_YUV420P;
+  if (krad_theora->info.pixel_fmt == TH_PF_422) {
+	  krad_theora->color_depth = PIX_FMT_YUV422P;
+	  printk ("Theora color depth 422");
+  }
+  if (krad_theora->info.pixel_fmt == TH_PF_444) {
+	  krad_theora->color_depth = PIX_FMT_YUV444P;
+	  printk ("Theora color depth 444");	  
+  }
 
 	printk ("Theora %dx%d %.02f fps video\n Encoded frame content is %dx%d with %dx%d offset",
 		   krad_theora->info.frame_width, krad_theora->info.frame_height, 

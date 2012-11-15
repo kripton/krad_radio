@@ -392,13 +392,12 @@ void *video_encoding_thread (void *arg) {
 	char keyframe_char[1];
 	unsigned char *planes[3];
 	int strides[3];
-	int color_depth;
   krad_y4m_t *krad_y4m;
 
   krad_y4m = NULL;
 	keyframe = 0;
 	krad_frame = NULL;
-	color_depth = PIX_FMT_YUV420P;
+	krad_link->color_depth = PIX_FMT_YUV420P;
 	
 	/* CODEC SETUP */
 
@@ -431,6 +430,7 @@ void *video_encoding_thread (void *arg) {
 																	 krad_link->encoding_height,
 																	 krad_link->encoding_fps_numerator,
 																	 krad_link->encoding_fps_denominator,
+																	 krad_link->color_depth,
 																	 krad_link->theora_quality);
 	}
 	
@@ -443,7 +443,7 @@ void *video_encoding_thread (void *arg) {
 	}
 	
 	if (krad_link->video_codec == Y4M) {
-		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, color_depth);
+		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, krad_link->color_depth);
 	}
 	
 	/* COMPOSITOR CONNECTION */
@@ -494,7 +494,7 @@ void *video_encoding_thread (void *arg) {
 			strides[2] = krad_y4m->strides[2];
 		}
 				
-		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides, color_depth);
+		krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides, krad_link->color_depth);
 
 		if (krad_frame != NULL) {
 
@@ -1720,7 +1720,7 @@ void *video_decoding_thread (void *arg) {
 			//printk ("timecode1: %zu timecode2: %zu", timecode, timecode2);
 			timecode = timecode2;
 
-			krad_frame->format = PIX_FMT_YUV420P;
+			krad_frame->format = krad_link->krad_theora_decoder->color_depth;
 
 			krad_frame->yuv_pixels[0] = krad_link->krad_theora_decoder->ycbcr[0].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[0].stride);
 			krad_frame->yuv_pixels[1] = krad_link->krad_theora_decoder->ycbcr[1].data + (krad_link->krad_theora_decoder->offset_y * krad_link->krad_theora_decoder->ycbcr[1].stride);
