@@ -2,6 +2,7 @@
 
 import os
 import binascii
+import sys
 
 daemon = "krad_radio_daemon.c"
 
@@ -131,17 +132,31 @@ def hexilate_file(filename):
   hexed_len = len(hexed)
   hexed_txt = "unsigned char " + varname + "[] = {\n "
 
-  count = 0
-  while (count < (hexed_len)):
-     hexed_txt += " 0x" + hexed[count:count + 2] + ","
-     count = count + 2
-     if ((count % 24) == 0):
-        hexed_txt += "\n "
+  if sys.version_info < (3, 0):
+    count = 0
+    while (count < (hexed_len)):
+       hexed_txt += " 0x" + hexed[count:count + 2] + ","
+       count = count + 2
+       if ((count % 24) == 0):
+          hexed_txt += "\n "
 
-  hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
+    hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
 
-  with open(outname, 'wb') as f:
-      content = f.write(hexed_txt)
+    with open(outname, 'wb') as f:
+        content = f.write(hexed_txt)
+
+  if sys.version_info >= (3, 0):
+    count = 0
+    while (count < (hexed_len)):
+       hexed_txt += " 0x" + hexed[count:count + 2].decode("ascii") + ","
+       count = count + 2
+       if ((count % 24) == 0):
+          hexed_txt += "\n "
+
+    hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
+
+    with open(outname, 'wb') as f:
+        content = f.write(bytes(hexed_txt, 'ascii'))
 
 def check_system(systm):
 
