@@ -1729,7 +1729,7 @@ void *video_decoding_thread (void *arg) {
 			krad_frame->yuv_strides[0] = krad_link->krad_theora_decoder->ycbcr[0].stride;
 			krad_frame->yuv_strides[1] = krad_link->krad_theora_decoder->ycbcr[1].stride;
 			krad_frame->yuv_strides[2] = krad_link->krad_theora_decoder->ycbcr[2].stride;
-
+      krad_frame->timecode = timecode;
 			krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
 		}
@@ -1757,15 +1757,12 @@ void *video_decoding_thread (void *arg) {
 				krad_frame->yuv_strides[0] = krad_link->krad_vpx_decoder->img->stride[0];
 				krad_frame->yuv_strides[1] = krad_link->krad_vpx_decoder->img->stride[1];
 				krad_frame->yuv_strides[2] = krad_link->krad_vpx_decoder->img->stride[2];
-				
+		    krad_frame->timecode = timecode;
 				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
 			}
 		}
 		
-		krad_frame->timecode = timecode;
-		//printk ("frame timecode: %zu", krad_frame->timecode);
-
 		krad_framepool_unref_frame (krad_frame);		
 		
 	}
