@@ -562,7 +562,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 						pixman_image_unref (dest_img);
 */
 					} else {
-						/*
+						
 						cairo_set_source_surface (krad_compositor->krad_gui->cr,
 												  frame->cst,
 												  krad_compositor->port[p].x - krad_compositor->port[p].crop_x,
@@ -573,7 +573,8 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 										 krad_compositor->port[p].y,
 										 krad_compositor->port[p].crop_width,
 										 krad_compositor->port[p].crop_height);
-						*/
+						
+						/*
 						cairo_set_source_surface (krad_compositor->krad_gui->cr,
 												  frame->cst,
 												  0,
@@ -584,8 +585,10 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 										 0,
 										 krad_compositor->port[p].width,
 										 krad_compositor->port[p].height);						
+            */
+
 						cairo_clip (krad_compositor->krad_gui->cr);
-					
+
 						//if (krad_compositor->krad_text[1].active == 1) {
 						//
 						//	cairo_mask_surface (krad_compositor->krad_gui->cr, krad_compositor->mask_cst, 0, 0);
@@ -885,7 +888,7 @@ void krad_compositor_port_set_io_params (krad_compositor_port_t *krad_compositor
 
 void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
-	int rgb_stride_arr[3] = {4*krad_compositor_port->source_width, 0, 0};
+	int rgb_stride_arr[3] = {4*krad_compositor_port->krad_compositor->width, 0, 0};
 	unsigned char *dst[4];
 	
 	if ((krad_compositor_port->io_params_updated) || (krad_compositor_port->comp_params_updated)) {
@@ -901,33 +904,14 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 	if (krad_compositor_port->sws_converter == NULL) {
 
 		krad_compositor_port->sws_converter =
-			//sws_getContext ( krad_compositor_port->source_width,
-			//				 krad_compositor_port->source_height,
-			//				 krad_frame->format,
-			//				 krad_compositor_port->width,
-			//				 krad_compositor_port->height,
-			//				 PIX_FMT_RGB32, 
-			//				 SWS_BICUBIC,
-			//				 NULL, NULL, NULL);
-
-
-			sws_getContext ( krad_compositor_port->crop_width,
-							 krad_compositor_port->crop_height,
+			sws_getContext ( krad_compositor_port->source_width,
+							 krad_compositor_port->source_height,
 							 krad_frame->format,
 							 krad_compositor_port->width,
 							 krad_compositor_port->height,
 							 PIX_FMT_RGB32, 
 							 SWS_BICUBIC,
 							 NULL, NULL, NULL);
-							 
-			//krad_compositor_port->crop_start_pixel = (krad_frame->yuv_strides[0] * 134) + (240 * 2);
-
-			//krad_compositor_port->crop_start_pixel = (krad_frame->yuv_strides[0] * krad_compositor_port->crop_y) + (240 * 2); 
-			if (krad_compositor_port->crop_y > 0) {
-				krad_compositor_port->crop_start_pixel[0] = (krad_frame->yuv_strides[0] * krad_compositor_port->crop_y) + (krad_compositor_port->crop_x * 2); 
-			} else {
-				krad_compositor_port->crop_start_pixel[0] = 0;
-			}
 			
 		printk ("compositor port scaling now: %dx%d [%dx%d]-> %dx%d",
 				krad_compositor_port->source_width,
@@ -942,13 +926,9 @@ void krad_compositor_port_push_yuv_frame (krad_compositor_port_t *krad_composito
 
 	dst[0] = (unsigned char *)krad_frame->pixels;
 
-	krad_frame->yuv_pixels[0] = krad_frame->yuv_pixels[0] + krad_compositor_port->crop_start_pixel[0];
-	krad_frame->yuv_pixels[1] = krad_frame->yuv_pixels[1] + krad_compositor_port->crop_start_pixel[1];
-	krad_frame->yuv_pixels[2] = krad_frame->yuv_pixels[2] + krad_compositor_port->crop_start_pixel[2];
-	
 	sws_scale (krad_compositor_port->sws_converter,
 			  (const uint8_t * const*)krad_frame->yuv_pixels,
-			   krad_frame->yuv_strides, 0, krad_compositor_port->crop_height, dst, rgb_stride_arr);
+			   krad_frame->yuv_strides, 0, krad_compositor_port->source_height, dst, rgb_stride_arr);
 
 	krad_compositor_port_push_frame (krad_compositor_port, krad_frame);
 
