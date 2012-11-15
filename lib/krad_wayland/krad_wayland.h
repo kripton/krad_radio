@@ -74,7 +74,6 @@ struct krad_wayland_St {
 
 	int render_test_pattern;
 
-	int running;
 	int click;
 	int mousein;	
 
@@ -85,6 +84,8 @@ void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_ca
 void krad_wayland_set_window_title (krad_wayland_t *krad_wayland, char *title);
 int krad_wayland_prepare_window (krad_wayland_t *krad_wayland, int width, int height, void **buffer);
 int krad_wayland_open_window (krad_wayland_t *krad_wayland);
+void krad_wayland_iterate (krad_wayland_t *krad_wayland);
+void krad_wayland_close_window (krad_wayland_t *krad_wayland);
 
 void krad_wayland_destroy (krad_wayland_t *krad_wayland);
 krad_wayland_t *krad_wayland_create ();

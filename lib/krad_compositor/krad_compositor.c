@@ -75,11 +75,17 @@ static void *krad_compositor_display_thread (void *arg) {
 								 krad_compositor_wayland_display->h,
 								 &krad_compositor_wayland_display->buffer);
 
+	printk("Wayland display prepared");
+
 	krad_wayland_open_window (krad_compositor_wayland_display->krad_wayland);
 
+	printk("Wayland display running");
+
 	while (krad_compositor->display_open == 1) {
-		usleep (10000);
+		krad_wayland_iterate (krad_compositor_wayland_display->krad_wayland);
 	}
+
+  krad_wayland_close_window (krad_compositor_wayland_display->krad_wayland);
 
 	krad_wayland_destroy (krad_compositor_wayland_display->krad_wayland);
 	
@@ -115,11 +121,12 @@ static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
 #ifdef WAYRAD
 	if (krad_compositor->display_open == 1) {
+    printk("Wayland display closing");	
 		krad_compositor->display_open = 2;
 		pthread_join (krad_compositor->display_thread, NULL);
 		krad_compositor->display_open = 0;
 	}
-
+	printk("Wayland display closed");
 #else
 	printk("Wayland disabled: no need to close display");
 #endif

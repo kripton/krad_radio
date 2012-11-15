@@ -521,30 +521,24 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland) {
 
 	krad_wayland_create_window (krad_wayland);
 
-	int count;
-
-	count = 0;
-
 	if (!krad_wayland->window) {
 		return 1;
 	}
 
-	krad_wayland->running = 1;
-
 	krad_wayland_frame_listener (krad_wayland, NULL, 0);
 
-	while (krad_wayland->running) {
-		//printf ("iterate start %d\n", count);	
-		wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
-		count++;
-		//printf ("iterate happened %d\n", count);
-	}
-
-	printkd ("Krad Wayland: window closing..");
-	krad_wayland_destroy_window (krad_wayland);
-	krad_wayland_destroy_display (krad_wayland);
-
 	return 0;
+}
+
+void krad_wayland_iterate (krad_wayland_t *krad_wayland) {
+	wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
+}
+
+void krad_wayland_close_window (krad_wayland_t *krad_wayland) {
+	printkd ("Krad Wayland: destroy_window..");
+	krad_wayland_destroy_window (krad_wayland);
+	printkd ("Krad Wayland: destroy_display..");	
+	krad_wayland_destroy_display (krad_wayland);
 }
 
 void krad_wayland_set_frame_callback (krad_wayland_t *krad_wayland, int frame_callback (void *, uint32_t), void *pointer) {
