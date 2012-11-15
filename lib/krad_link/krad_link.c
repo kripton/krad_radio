@@ -341,7 +341,8 @@ void *x11_capture_thread (void *arg) {
 	krad_frame_t *krad_frame;
 	krad_ticker_t *krad_ticker;
 	
-	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);	
+	krad_ticker = krad_ticker_create (krad_link->krad_radio->krad_compositor->frame_rate_numerator,
+									  krad_link->krad_radio->krad_compositor->frame_rate_denominator);
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "X11In",

@@ -15,8 +15,14 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 	th_info_init (&krad_theora->info);
 	th_comment_init (&krad_theora->comment);
 
-	krad_theora->info.frame_width = krad_theora->width + (krad_theora->width % 16);
-	krad_theora->info.frame_height = krad_theora->height + (krad_theora->height % 16);
+	krad_theora->info.frame_width = krad_theora->width;
+	if (krad_theora->width % 16) {
+	  krad_theora->info.frame_width += 16 - (krad_theora->width % 16);
+	}
+	krad_theora->info.frame_height = krad_theora->height;
+	if (krad_theora->height % 16) {
+	  krad_theora->info.frame_height += 16 - (krad_theora->height % 16);
+	}
 	krad_theora->info.pic_width = krad_theora->width;
 	krad_theora->info.pic_height = krad_theora->height;
 	krad_theora->info.pic_x = 0;
@@ -49,7 +55,9 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 	} else {
 		//FOR x86 Realtime
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));
-		krad_theora->speed -= 1;
+		if ((krad_theora->width <= 1280) && (krad_theora->height <= 720)) {
+		  krad_theora->speed -= 1;
+		}
 		printk ("Theora encoder speed: %d quality: %d", krad_theora->speed, krad_theora->quality);
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_SPLEVEL, &krad_theora->speed, sizeof(int));
 	}

@@ -1278,18 +1278,36 @@ krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *kra
 		return NULL;
 	}
 	
+	krad_compositor_port->krad_compositor = krad_compositor;
 	krad_compositor_port->local = local;
-	
 	krad_compositor_port->direction = direction;	
+	strcpy (krad_compositor_port->sysname, sysname);	
+	krad_compositor_port->start_timecode = 1;
 
+	krad_compositor_port->x = 0;
+	krad_compositor_port->y = 0;	
+	krad_compositor_port->crop_x = 0;
+	krad_compositor_port->crop_y = 0;
+	krad_compositor_port->opacity = 1.0f;
+	krad_compositor_port->rotation = 0.0f;
+	
 	if (krad_compositor_port->direction == INPUT) {
 		krad_compositor_port->source_width = width;
 		krad_compositor_port->source_height = height;
-		krad_compositor_port->crop_width = krad_compositor_port->source_width;
-		krad_compositor_port->crop_height = krad_compositor_port->source_height;		
 		krad_compositor_aspect_scale (krad_compositor_port->source_width, krad_compositor_port->source_height,
 									  krad_compositor->width, krad_compositor->height,
 									  &krad_compositor_port->width, &krad_compositor_port->height);
+									  
+	  if (krad_compositor_port->width < krad_compositor_port->krad_compositor->width) {
+		  krad_compositor_port->x = (krad_compositor_port->krad_compositor->width - krad_compositor_port->width) / 2;
+	  }
+	
+	  if (krad_compositor_port->height < krad_compositor_port->krad_compositor->height) {
+		  krad_compositor_port->y = (krad_compositor_port->krad_compositor->height - krad_compositor_port->height) / 2;
+	  }
+
+		krad_compositor_port->crop_width = krad_compositor_port->width;
+		krad_compositor_port->crop_height = krad_compositor_port->height;
 			
 	} else {
 		krad_compositor_port->source_width = krad_compositor->width;
@@ -1300,20 +1318,6 @@ krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *kra
 		krad_compositor_port->crop_height = krad_compositor->height;
 		krad_compositor_port->yuv_color_depth = PIX_FMT_YUV420P;
 	}
-	
-	krad_compositor_port->x = 0;
-	krad_compositor_port->y = 0;	
-	krad_compositor_port->crop_x = 0;
-	krad_compositor_port->crop_y = 0;
-	
-	krad_compositor_port->opacity = 1.0f;
-	krad_compositor_port->rotation = 0.0f;
-	
-	krad_compositor_port->krad_compositor = krad_compositor;
-	
-	strcpy (krad_compositor_port->sysname, sysname);	
-	
-	krad_compositor_port->start_timecode = 1;
 	
 	if (strstr(krad_compositor_port->sysname, "passthru") != NULL) {
 		krad_compositor_port->passthru = 1;
