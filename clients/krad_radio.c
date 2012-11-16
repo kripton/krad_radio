@@ -42,13 +42,18 @@ int main (int argc, char *argv[]) {
         return 0;
 		  }
 		}
+
+    if (strncmp(argv[1], "threads", 7) == 0) {
+      kr_run_and_print_cmd ("ps -AL|grep kr_");
+      return 0;
+    }
 	
 		krad_radio_command_help ();
 		return 0;
 	}	
 	
 	if (argc > 2) {
-
+	
 		if ((strncmp(argv[1], "watchdog", 8) == 0) || (strncmp(argv[1], "dog", 3) == 0)) {
 			krad_radio_watchdog_launch (argv[2]);
 			return 0;

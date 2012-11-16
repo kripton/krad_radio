@@ -291,7 +291,7 @@ void krad_ipc_send (krad_ipc_client_t *client, char *cmd);
 int krad_ipc_wait (krad_ipc_client_t *client, char *buffer, int size);
 int krad_ipc_recv (krad_ipc_client_t *client, char *buffer, int size);
 
-
+void kr_run_and_print_cmd (char *cmd);
 
 void kr_mixer_add_effect (krad_ipc_client_t *client, char *portgroup_name, char *effect_name);
 void kr_mixer_remove_effect (krad_ipc_client_t *client, char *portgroup_name, int effect_num);

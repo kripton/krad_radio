@@ -47,7 +47,7 @@ void prun (char *cmd) {
   }
 
   while (fgets(buf, 64, fp) != NULL) {
-  //   printf("%s", path);
+  //   printf("%s", buf);
   }
 
   pclose (fp);

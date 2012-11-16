@@ -152,6 +152,24 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	return client->sd;
 }
 
+void kr_run_and_print_cmd (char *cmd) {
+
+  FILE *fp;
+  char buf[128];
+
+  fp = popen(cmd, "r");
+  if (fp == NULL) {
+    return;
+  }
+
+  while (fgets(buf, 128, fp) != NULL) {
+    printf ("%s", buf);
+  }
+
+  pclose (fp);
+
+}
+
 char *krad_radio_get_running_daemons_list () {
 
 	char *unix_sockets;

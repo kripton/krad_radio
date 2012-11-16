@@ -332,7 +332,7 @@ void *test_screen_generator_thread (void *arg) {
 
 void *x11_capture_thread (void *arg) {
 
-	krad_system_set_thread_name ("kr_capture_x11");
+	krad_system_set_thread_name ("kr_x11_cap");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 	
@@ -1297,7 +1297,7 @@ void *krad_link_run_thread (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	krad_system_set_thread_name ("kradlink");
+	krad_system_set_thread_name ("kr_link");
 
 	krad_link_activate ( krad_link );
 	
