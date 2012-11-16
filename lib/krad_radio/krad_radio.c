@@ -181,8 +181,6 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 
 	krad_ipc_server_run (krad_radio_station->krad_ipc);
 	
-	krad_system_set_thread_name ("kr_daemon");
-	
 	while (1) {
 
 		if (sigwait (&signal_mask, &signal_caught) != 0) {
