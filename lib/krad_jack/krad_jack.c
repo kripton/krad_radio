@@ -116,8 +116,8 @@ void krad_jack_port_connection_callback (jack_port_id_t a, jack_port_id_t b, int
 
 	krad_jack_t *krad_jack = (krad_jack_t *)arg;
 	
-	jack_port_t *ports[2];	
-
+	jack_port_t *ports[2];
+	
 	ports[0] = jack_port_by_id (krad_jack->client, a);
 	ports[1] = jack_port_by_id (krad_jack->client, b);	
 
@@ -254,6 +254,11 @@ int krad_jack_xrun (void *arg) {
 int krad_jack_process (jack_nframes_t nframes, void *arg) {
 
 	krad_jack_t *krad_jack = (krad_jack_t *)arg;
+	
+	if (krad_jack->set_thread_name_process == 0) {
+    krad_system_set_thread_name ("kr_jack_mix");
+    krad_jack->set_thread_name_process = 1;
+  }
 
 	return krad_mixer_process (nframes, krad_jack->krad_audio->krad_mixer);
 
@@ -340,6 +345,8 @@ krad_jack_t *krad_jack_create_for_jack_server_name (krad_audio_t *krad_audio, ch
 		return NULL;
 	}
 
+  krad_system_set_thread_name ("kr_jack");
+
 	krad_jack->name = krad_jack->krad_audio->krad_mixer->name;
 	
 	if (server_name != NULL) {
@@ -379,9 +386,9 @@ krad_jack_t *krad_jack_create_for_jack_server_name (krad_audio_t *krad_audio, ch
 
 	jack_set_process_callback (krad_jack->client, krad_jack_process, krad_jack);
 	jack_on_shutdown (krad_jack->client, krad_jack_shutdown, krad_jack);
-	jack_set_xrun_callback (krad_jack->client, krad_jack_xrun, krad_jack);
-	jack_set_port_registration_callback ( krad_jack->client, krad_jack_port_registration_callback, krad_jack );
-	jack_set_port_connect_callback ( krad_jack->client, krad_jack_port_connection_callback, krad_jack );
+	//jack_set_xrun_callback (krad_jack->client, krad_jack_xrun, krad_jack);
+	//jack_set_port_registration_callback ( krad_jack->client, krad_jack_port_registration_callback, krad_jack );
+	//jack_set_port_connect_callback ( krad_jack->client, krad_jack_port_connection_callback, krad_jack );
 
 	// Activate
 

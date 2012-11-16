@@ -25,6 +25,8 @@ struct krad_jack_St {
 	krad_audio_t *krad_audio;
 
 	int active;
+	
+	int set_thread_name_process;
 
 	int xruns;
 	char server_name[256];

@@ -49,6 +49,8 @@ krad_audio_portgroup_t *krad_audio_portgroup_create (krad_audio_t *krad_audio, c
 		case JACK:
 			if (krad_audio->krad_jack == NULL) {
 				krad_audio->krad_jack = krad_jack_create (krad_audio);
+        //restore thread name
+        krad_system_set_thread_name ("kr_ipc_server");				
 			}
 			portgroup->api_portgroup = krad_jack_portgroup_create (krad_audio->krad_jack, portgroup->name, 
 																   portgroup->direction, portgroup->channels);
