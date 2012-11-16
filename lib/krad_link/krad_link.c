@@ -2146,6 +2146,8 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 
+	krad_system_set_thread_name ("kr_decklink");
+
 	krad_link->krad_decklink = krad_decklink_create (krad_link->device);
 	krad_decklink_set_video_mode (krad_link->krad_decklink, krad_link->capture_width, krad_link->capture_height,
 								  krad_link->fps_numerator, krad_link->fps_denominator);

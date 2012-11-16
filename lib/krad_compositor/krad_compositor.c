@@ -48,7 +48,7 @@ static void *krad_compositor_display_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
 
-	krad_system_set_thread_name ("kr_display");
+	krad_system_set_thread_name ("kr_wayland");
 
 	krad_compositor_wayland_display_t *krad_compositor_wayland_display;
 	
