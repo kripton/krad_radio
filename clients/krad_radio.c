@@ -485,7 +485,7 @@ int main (int argc, char *argv[]) {
 												  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
 												  krad_link_string_to_av_mode (argv[9]), argv[10], argv[11]);
 				}
-				
+				usleep (100000);
 			}
 			
 			if (strncmp(argv[2], "record", 6) == 0) {
@@ -608,7 +608,7 @@ int main (int argc, char *argv[]) {
 					krad_ipc_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
 													   atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]),
 													   atoi(argv[10]), atoi(argv[11]), atof(argv[12]), atof(argv[13]));
-					krad_ipc_print_response (client);
+					//krad_ipc_print_response (client);
 				}
 			}
 			

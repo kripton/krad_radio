@@ -1292,9 +1292,9 @@ void *krad_link_run_thread (void *arg) {
 
 	krad_link_activate ( krad_link );
 	
-	while (!krad_link->destroy) {
-		usleep(50000);
-	}
+	//while (!krad_link->destroy) {
+	//	usleep(50000);
+	//}
 
 	return NULL;
 
@@ -2384,8 +2384,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 
 			krad_link->capturing = 1;
-			// delay slightly so audio encoder ringbuffer ready?
-			usleep (150000);
 			krad_link_start_decklink_capture(krad_link);
 		}
 		
