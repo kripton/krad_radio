@@ -374,6 +374,7 @@ void krad_ebml_start_element (krad_ebml_t *krad_ebml, uint32_t element, uint64_t
 void krad_ebml_finish_element (krad_ebml_t *krad_ebml, uint64_t element_position);
 
 
+void krad_ebml_bump_tracknumber (krad_ebml_t *krad_ebml);
 /* reading functions */
 
 int krad_ebml_check_doctype_header (struct ebml_header *ebml_head, char *doctype, int doctype_version, int doctype_read_version );

@@ -474,7 +474,7 @@ void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value) {
 
 }
 
-int krad_ebml_new_tracknumber(krad_ebml_t *krad_ebml) {
+int krad_ebml_new_tracknumber (krad_ebml_t *krad_ebml) {
 
 	int tracknumber;
 	
@@ -484,6 +484,13 @@ int krad_ebml_new_tracknumber(krad_ebml_t *krad_ebml) {
 	krad_ebml->current_track++;
 	
 	return tracknumber;
+
+}
+
+void krad_ebml_bump_tracknumber (krad_ebml_t *krad_ebml) {
+
+	krad_ebml_new_tracknumber (krad_ebml);
+	krad_ebml->track_count--;
 
 }
 
@@ -570,6 +577,8 @@ int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int sa
 	//	kradebml->audio_channels = channels;
 
 	track_number = krad_ebml_new_tracknumber(krad_ebml);
+
+  krad_ebml->tracks[track_number].codec = codec;
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKNUMBER, track_number);
@@ -667,10 +676,16 @@ void krad_ebml_add_audio(krad_ebml_t *krad_ebml, int track_num, unsigned char *b
     track_number = track_num;
     track_number |= 0x80;
 
-	timecode = round ((1000000000 * krad_ebml->total_audio_frames / krad_ebml->audio_sample_rate / 1000000));
-	
+  if (krad_ebml->tracks[track_num].codec != VORBIS) {
+  	timecode = round ((1000000000 * krad_ebml->total_audio_frames / krad_ebml->audio_sample_rate / 1000000));
+	}
+
 	krad_ebml->total_audio_frames += frames;
 	krad_ebml->audio_frames_since_cluster += frames;
+
+  if (krad_ebml->tracks[track_num].codec == VORBIS) {
+  	timecode = round ((1000000000 * krad_ebml->total_audio_frames / krad_ebml->audio_sample_rate / 1000000));
+	}
 
 	if ((timecode == 0) && (krad_ebml->track_count == 1)) {
 			krad_ebml_cluster(krad_ebml, timecode);
@@ -1803,6 +1818,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			if (ebml_data_size == 4) {
 				rmemcpy ( &srate, &temp, ebml_data_size );
 				//printf("Sample Rate %f", srate);
+				samplerate = srate;
 			} else {
 				rmemcpy ( &samplerate, &temp, ebml_data_size - adj);
 				//printf("Sample Rate %f", samplerate);
@@ -2541,13 +2557,13 @@ krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode) {
 	krad_ebml->io_adapter.close = krad_ebml_fileio_close;
 	krad_ebml->io_adapter.uri = filename;
 	krad_ebml->io_adapter.open(&krad_ebml->io_adapter);
-	
+
+  krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));	
 
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READONLY) {
 		krad_ebml->record_cluster_info = 1;
 		krad_ebml->cluster_recording_space = CLUSTER_RECORDING_START_SIZE;
 		krad_ebml->clusters = calloc(krad_ebml->cluster_recording_space, sizeof(krad_ebml_cluster_t));
-		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
 		krad_ebml_read_ebml_header (krad_ebml, krad_ebml->header);
 		krad_ebml_check_ebml_header (krad_ebml->header);
 		//krad_ebml_print_ebml_header (krad_ebml->header);
