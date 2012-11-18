@@ -2467,7 +2467,7 @@ krad_ebml_t *krad_ebml_create() {
 	krad_ebml->ebml_level = -1;
 	krad_ebml->io_adapter.mode = -1;
 	krad_ebml->smallest_cluster = 10000000;
-	
+  krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
 	krad_ebml->header = calloc(1, sizeof(struct ebml_header));
 	
 	return krad_ebml;
@@ -2511,7 +2511,6 @@ krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *pass
 	}
 	
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READONLY) {
-		krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));
 		krad_ebml_read_ebml_header (krad_ebml, krad_ebml->header);
 		krad_ebml_check_ebml_header (krad_ebml->header);
 		//krad_ebml_print_ebml_header (krad_ebml->header);		
@@ -2557,8 +2556,6 @@ krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode) {
 	krad_ebml->io_adapter.close = krad_ebml_fileio_close;
 	krad_ebml->io_adapter.uri = filename;
 	krad_ebml->io_adapter.open(&krad_ebml->io_adapter);
-
-  krad_ebml->tracks = calloc(10, sizeof(krad_ebml_track_t));	
 
 	if (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READONLY) {
 		krad_ebml->record_cluster_info = 1;
