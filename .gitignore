@@ -60,3 +60,4 @@ tools/krad_rc/krad_rc_sdl_joy_control
 tools/krad_rc/krad_rc_test
 tests/krad_dockpanel_test_wayland
 tests/krad_easing_test
+tests/krad_webm_dash_vod_test
