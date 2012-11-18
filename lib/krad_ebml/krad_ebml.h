@@ -274,6 +274,15 @@ struct krad_ebml_St {
 	uint32_t largest_cluster;
 	uint32_t smallest_cluster;
 	
+  uint64_t first_cluster_pos;
+  uint64_t first_cluster_pos_from_seekhead;  
+  uint64_t cues_pos;
+  uint64_t cues_file_pos;
+  uint64_t cues_size;
+  uint64_t cues_file_end_range;  
+  uint64_t segment_pos;
+  uint64_t segment_offset_pos;  
+	
 	int track_count;
 	int current_track;
 	krad_ebml_track_t *tracks;

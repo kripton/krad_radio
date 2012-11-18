@@ -1444,9 +1444,13 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 	int ret;
 	uint32_t ebml_id;
+	
+	uint32_t ebml_seek_id;	
 	//uint32_t ebml_id_length;
 	uint64_t ebml_data_size;
 	//uint32_t ebml_data_size_length;
+	
+	uint64_t position;
 	
 	//unsigned char byte;
 	unsigned char temp[7];
@@ -1459,6 +1463,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 	int number;
 	int known;
 
+  ebml_seek_id = 0;
 	known = 0;
 	number = 0;
 	
@@ -1485,7 +1490,11 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 		}
 	
 	
-		ret = krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);		
+    if ((krad_ebml->first_cluster_pos == 0) || (krad_ebml->segment_pos == 0)) {
+      position = krad_ebml_tell (krad_ebml);
+    }
+	
+		ret = krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
 
 		if (ret == 0) {
 			return 0;
@@ -1499,6 +1508,14 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 		}
 
 		if (ebml_id == EBML_ID_SEGMENT) {
+		
+			if (krad_ebml->segment_pos == 0) {
+		  	krad_ebml->segment_pos = position;
+		  	krad_ebml->segment_offset_pos = krad_ebml_tell (krad_ebml);
+		    printk ("Got SEGMENT position at: %"PRIu64"", krad_ebml->segment_pos);
+		    printk ("Got SEGMENT ofset position at: %"PRIu64"", krad_ebml->segment_offset_pos);		    
+			}
+
 			krad_ebml->ebml_level = 0;
 			skip = 0;
 		}
@@ -1513,6 +1530,11 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			
 			if (ebml_data_size < krad_ebml->smallest_cluster) {
 				krad_ebml->smallest_cluster = ebml_data_size;
+			}
+			
+			if (krad_ebml->first_cluster_pos == 0) {
+		  	krad_ebml->first_cluster_pos = position;
+		    printk ("Got first cluster position at: %"PRIu64"", krad_ebml->first_cluster_pos);
 			}
 			/*
 			if (krad_ebml->header_read == 0) {
@@ -1800,6 +1822,55 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 				//printf("\n");
 			}
 		}
+		
+		if (ebml_id == EBML_ID_SEEKHEAD) {
+      printk ("found seekhead");		
+			skip = 0;
+		}
+		
+		if (ebml_id == EBML_ID_SEEK) {
+      printk ("found seek");		
+			skip = 0;
+		}		
+		
+		if (ebml_id == EBML_ID_SEEK_ID) {
+		  ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
+		  rmemcpy ( &ebml_seek_id, &temp, ebml_data_size);
+      printk ("found seek id");		
+			skip = 0;
+		}
+		
+		if (ebml_id == EBML_ID_SEEK_POSITION) {
+      printk ("found seek POSITION");		
+		  position = krad_ebml_read_number (krad_ebml, ebml_data_size);
+      
+      if (ebml_seek_id == EBML_ID_CUES) {
+        krad_ebml->cues_pos = position;
+        krad_ebml->cues_file_pos = krad_ebml->cues_pos + krad_ebml->segment_offset_pos;
+		    printk ("Got CUES position from seekhead at: %"PRIu64"", krad_ebml->cues_pos);
+		    printk ("Got CUES file position at: %"PRIu64"", krad_ebml->cues_file_pos);
+		    
+		    if (krad_ebml->cues_file_pos != 0) {
+          position = krad_ebml_tell (krad_ebml);
+          
+          krad_ebml_seek (krad_ebml, krad_ebml->cues_file_pos, SEEK_SET);
+          krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
+          krad_ebml->cues_size = ebml_data_size + (krad_ebml_tell (krad_ebml) - krad_ebml->cues_file_pos);
+		      printk ("Got CUES size: %"PRIu64"", krad_ebml->cues_size);
+		      krad_ebml->cues_file_end_range = krad_ebml->cues_file_pos + krad_ebml->cues_size;
+		      printk ("Got CUES file range: %"PRIu64"-%"PRIu64"", krad_ebml->cues_file_pos, krad_ebml->cues_file_end_range);		      
+          krad_ebml_seek (krad_ebml, position, SEEK_SET);
+		    }
+		    	    
+      }
+   
+      if (ebml_seek_id == EBML_ID_CLUSTER) {
+        krad_ebml->first_cluster_pos_from_seekhead = position;
+		    printk ("Got first CLUSTER position from seekhead at: %"PRIu64"", krad_ebml->first_cluster_pos_from_seekhead);        
+      }   
+      		  		
+			skip = 0;
+		}		
 			
 		if (skip) {
 			if (krad_ebml->stream == 1) {
@@ -2062,8 +2133,11 @@ int64_t krad_ebml_tell(krad_ebml_t *krad_ebml) {
 	if ((krad_ebml->io_adapter.mode == KRAD_EBML_IO_WRITEONLY) || (krad_ebml->io_adapter.mode == KRAD_EBML_IO_READWRITE)) {
 		return krad_ebml->io_adapter.write_buffer_pos;
 	}
-
-	return krad_ebml->io_adapter.tell(&krad_ebml->io_adapter);
+  if (krad_ebml->io_adapter.tell != NULL) {
+	  return krad_ebml->io_adapter.tell(&krad_ebml->io_adapter);
+	} else {
+	  return 0;
+	}
 }
 
 int krad_ebml_fileio_open(krad_ebml_io_t *krad_ebml_io)

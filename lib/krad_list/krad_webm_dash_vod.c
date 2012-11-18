@@ -76,8 +76,9 @@ void krad_webm_dash_vod_handle_audio_id (krad_webm_dash_vod_t *krad_webm_dash_vo
   }
 }
 
-void krad_webm_dash_vod_add_video (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth, uint64_t range_start,
-                                   uint64_t range_end, uint64_t index_range_start, uint64_t index_range_end) {
+void krad_webm_dash_vod_add_video (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth,
+                                   uint64_t init_range_start, uint64_t init_range_end,
+                                   uint64_t index_range_start, uint64_t index_range_end) {
 
 	xmlNodePtr video_node;
 	xmlNodePtr video_segment_node;
@@ -101,14 +102,16 @@ void krad_webm_dash_vod_add_video (krad_webm_dash_vod_t *krad_webm_dash_vod, cha
   sprintf (string, "%"PRIu64"-%"PRIu64"", index_range_start, index_range_end);
   xmlNewProp (video_segment_node, BAD_CAST "indexRange", BAD_CAST string);
 
-  video_segment_init_range_node = xmlNewTextChild (video_segment_node, NULL, BAD_CAST "Initialization", NULL);
-  sprintf (string, "%"PRIu64"-%"PRIu64"", range_start, range_end);
-  xmlNewProp (video_segment_init_range_node, BAD_CAST "range", BAD_CAST string);
-  
+  if (init_range_end > 0) {
+    video_segment_init_range_node = xmlNewTextChild (video_segment_node, NULL, BAD_CAST "Initialization", NULL);
+    sprintf (string, "%"PRIu64"-%"PRIu64"", init_range_start, init_range_end);
+    xmlNewProp (video_segment_init_range_node, BAD_CAST "range", BAD_CAST string);
+  }
 }
 
-void krad_webm_dash_vod_add_audio (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth, uint64_t range_start,
-                                   uint64_t range_end, uint64_t index_range_start, uint64_t index_range_end) {
+void krad_webm_dash_vod_add_audio (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth,
+                                   uint64_t init_range_start, uint64_t init_range_end,
+                                   uint64_t index_range_start, uint64_t index_range_end) {
 
 	xmlNodePtr audio_segment_node;
 	xmlNodePtr audio_segment_init_range_node;
@@ -127,10 +130,11 @@ void krad_webm_dash_vod_add_audio (krad_webm_dash_vod_t *krad_webm_dash_vod, cha
   sprintf (string, "%"PRIu64"-%"PRIu64"", index_range_start, index_range_end);  
   xmlNewProp (audio_segment_node, BAD_CAST "indexRange", BAD_CAST string);
 
-  audio_segment_init_range_node = xmlNewTextChild (audio_segment_node, NULL, BAD_CAST "Initialization", NULL);
-  sprintf (string, "%"PRIu64"-%"PRIu64"", range_start, range_end);  
-  xmlNewProp (audio_segment_init_range_node, BAD_CAST "range", BAD_CAST string);
-
+  if (init_range_end > 0) {
+    audio_segment_init_range_node = xmlNewTextChild (audio_segment_node, NULL, BAD_CAST "Initialization", NULL);
+    sprintf (string, "%"PRIu64"-%"PRIu64"", init_range_start, init_range_end);  
+    xmlNewProp (audio_segment_init_range_node, BAD_CAST "range", BAD_CAST string);
+  }
 }
 
 

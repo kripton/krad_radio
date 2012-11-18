@@ -31,10 +31,13 @@ typedef struct {
 
 krad_webm_dash_vod_t *krad_webm_dash_vod_create (int width, int height, int sample_rate, float duration, char *lang);
 
-void krad_webm_dash_vod_add_video (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth, uint64_t range_start,
-                                   uint64_t range_end, uint64_t index_range_start, uint64_t index_range_end);
-void krad_webm_dash_vod_add_audio (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth, uint64_t range_start,
-                                   uint64_t range_end, uint64_t index_range_start, uint64_t index_range_end);
+void krad_webm_dash_vod_add_video (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth,
+                                   uint64_t init_range_start, uint64_t init_range_end,
+                                   uint64_t index_range_start, uint64_t index_range_end);
+
+void krad_webm_dash_vod_add_audio (krad_webm_dash_vod_t *krad_webm_dash_vod, char *url, int bandwidth,
+                                   uint64_t init_range_start, uint64_t init_range_end,
+                                   uint64_t index_range_start, uint64_t index_range_end);
 
 void krad_webm_dash_vod_save_file (krad_webm_dash_vod_t *krad_webm_dash_vod, char *filename);
 void krad_webm_dash_vod_destroy (krad_webm_dash_vod_t *krad_webm_dash_vod);
