@@ -361,16 +361,6 @@ void krad_ebml_write_seekhead (krad_ebml_t *krad_ebml) {
 	krad_ebml_write_sync (krad_ebml);
 	free (voiddata);
 
-	/*
-
-	Segment Info
-	Tracks Info
-	Chapters EBML_ID_CLUSTER
-	Attachments
-	Tags
-	Clusters
-	Cues
-	*/
 }
 
 void krad_ebml_finish_file_segment (krad_ebml_t *krad_ebml) {
@@ -497,6 +487,22 @@ int krad_ebml_new_tracknumber(krad_ebml_t *krad_ebml) {
 
 }
 
+int krad_ebml_generate_track_uid (int track_number) {
+
+  uint64_t t;
+  uint64_t r;
+  uint64_t rval;
+  
+  t = time(NULL) * track_number;
+  r = rand();
+  r = r << 32;
+  r +=  rand();
+  rval = t ^ r;
+
+  return rval;
+
+}
+
 int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, krad_codec_t codec, int fps_numerator, int fps_denominator, int width, int height, unsigned char *private_data, int private_data_size) {
 
 	int track_number;
@@ -511,7 +517,7 @@ int krad_ebml_add_video_track_with_private_data (krad_ebml_t *krad_ebml, krad_co
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKNUMBER, track_number);
-	// Track UID?
+	krad_ebml_write_int64 (krad_ebml, EBML_ID_TRACK_UID, krad_ebml_generate_track_uid (track_number));
 	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, krad_ebml_codec_to_ebml_codec_id (codec));
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKTYPE, 1);
 
@@ -543,7 +549,7 @@ int krad_ebml_add_subtitle_track(krad_ebml_t *krad_ebml, char *codec_id) {
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKNUMBER, track_number);
-	// Track UID?
+	krad_ebml_write_int64 (krad_ebml, EBML_ID_TRACK_UID, krad_ebml_generate_track_uid (track_number));
 	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, codec_id);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKTYPE, 0x11);
 	krad_ebml_finish_element (krad_ebml, track_info);
@@ -567,7 +573,7 @@ int krad_ebml_add_audio_track(krad_ebml_t *krad_ebml, krad_codec_t codec, int sa
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_TRACK, &track_info);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKNUMBER, track_number);
-	// Track UID?
+	krad_ebml_write_int64 (krad_ebml, EBML_ID_TRACK_UID, krad_ebml_generate_track_uid (track_number));
 	krad_ebml_write_string (krad_ebml, EBML_ID_CODECID, krad_ebml_codec_to_ebml_codec_id (codec));
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_TRACKTYPE, 2);
 
