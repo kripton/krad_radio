@@ -289,7 +289,7 @@ int krad_radio_destroy_daemon (char *sysname) {
 	
 	pid = 0;
 	wait_time_total = 0;
-	clean_shutdown_wait_time_limit = 1000000;
+	clean_shutdown_wait_time_limit = 3000000;
 	wait_time_interval = clean_shutdown_wait_time_limit / 40;
 		
 	pid = krad_radio_find_daemon_pid (sysname);
@@ -506,7 +506,7 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 	}
 	wait (NULL);
 
-	usleep (5000000);
+	usleep (4000000);
 
 }
 

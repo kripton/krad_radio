@@ -884,13 +884,14 @@ void *krad_ipc_server_run_thread (void *arg) {
 
 }
 
-
-void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
+void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
 
 	int c;
 	int patience;
 	
-	patience = KRAD_IPC_SERVER_TIMEOUT_US * 3;
+  printk ("Krad ipc_server_disable started");	
+	
+	patience = KRAD_IPC_SERVER_TIMEOUT_US * 2;
 	
 	if (krad_ipc_server->shutdown == KRAD_IPC_RUNNING) {
 		krad_ipc_server->shutdown = KRAD_IPC_DO_SHUTDOWN;
@@ -899,6 +900,20 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 			usleep (KRAD_IPC_SERVER_TIMEOUT_US / 4);
 			patience -= KRAD_IPC_SERVER_TIMEOUT_US / 4;
 		}
+		
+	  for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
+		  if (krad_ipc_server->clients[c].broadcasts == 1) {
+			  krad_ipc_server->clients[c].broadcasts = 0;
+		  }
+	  }
+  }
+	
+	if (krad_ipc_server->shutdown == KRAD_IPC_SHUTINGDOWN) {
+    pthread_join (krad_ipc_server->server_thread, NULL);
+	} else {
+    pthread_cancel (krad_ipc_server->server_thread);
+    krad_ipc_server->shutdown = KRAD_IPC_SHUTINGDOWN;
+	  printk ("Krad IPC Server thread canceled");
 	}
 	
 	if (krad_ipc_server->tcp_sd != 0) {
@@ -911,7 +926,21 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 			unlink (krad_ipc_server->saddr.sun_path);
 		}
 	}
+	
+  printk ("Krad ipc_server_disable complete");		
 
+}
+
+void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
+
+	int c;
+
+  printk ("Krad ipc_server_destroy started");
+
+	if (krad_ipc_server->shutdown != KRAD_IPC_SHUTINGDOWN) {
+    krad_ipc_server_disable (krad_ipc_server);
+	}
+	
 	for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
 		if (krad_ipc_server->clients[c].active == 1) {
 			krad_ipc_disconnect_client (&krad_ipc_server->clients[c]);
@@ -919,15 +948,15 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 		pthread_mutex_destroy (&krad_ipc_server->clients[c].client_lock);
 	}
 	
-	
 	free (krad_ipc_server->clients);
 	free (krad_ipc_server);
+	
+  printk ("Krad ipc_server_destroy completed");
 	
 }
 
 void krad_ipc_server_run (krad_ipc_server_t *krad_ipc_server) {
 	pthread_create (&krad_ipc_server->server_thread, NULL, krad_ipc_server_run_thread, (void *)krad_ipc_server);
-	pthread_detach (krad_ipc_server->server_thread);
 }
 
 krad_ipc_server_t *krad_ipc_server_create (char *sysname, int handler (void *, int *, void *), void *pointer) {

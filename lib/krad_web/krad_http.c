@@ -370,7 +370,7 @@ void *krad_http_client_thread (void *arg) {
 
 void krad_http_server_destroy (krad_http_t *krad_http) {
 
-	printkd ("krad_http Shutting Down");
+  printk ("Krad HTTP shutdown started");
 
 	if (krad_http != NULL) {
 	
@@ -385,6 +385,8 @@ void krad_http_server_destroy (krad_http_t *krad_http) {
 		free (krad_http);
 
 	}
+	
+  printk ("Krad HTTP shutdown complete");	
 
 }
 

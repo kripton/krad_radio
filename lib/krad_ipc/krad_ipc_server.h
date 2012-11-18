@@ -33,7 +33,7 @@
 #define KRAD_IPC_SERVER_H
 
 #define KRAD_IPC_SERVER_MAX_CLIENTS 64
-#define KRAD_IPC_SERVER_TIMEOUT_MS 250
+#define KRAD_IPC_SERVER_TIMEOUT_MS 100
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000
 
 #define KRAD_IPC_CLIENT_DOCTYPE "krad_ipc_client"
@@ -169,6 +169,7 @@ uint64_t krad_ipc_server_read_number (krad_ipc_server_t *krad_ipc_server, uint64
 //void krad_ipc_server_client_send (void *client, char *data);
 
 void *krad_ipc_server_run_thread (void *arg);
+void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server);
 void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server);
 void krad_ipc_server_run (krad_ipc_server_t *krad_ipc_server);
 int krad_ipc_server_tcp_socket_create (int port);

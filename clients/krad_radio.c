@@ -541,9 +541,8 @@ int main (int argc, char *argv[]) {
 				if (argc == 6) {
 					krad_ipc_create_remote_playback_link (client, argv[3], atoi(argv[4]), argv[5] );
 				}
-			}	
+			}
 
-			
 			if ((strncmp(argv[2], "rm", 2) == 0) && (strlen(argv[2]) == 2)) {
 				if (argc == 4) {
 					krad_ipc_destroy_link (client, atoi(argv[3]));

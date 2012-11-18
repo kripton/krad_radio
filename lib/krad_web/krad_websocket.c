@@ -1367,6 +1367,8 @@ void krad_websocket_server_destroy (krad_websocket_t *krad_websocket) {
 
 	int patience;
 	
+  printk ("Krad Websocket shutdown started");	
+	
 	if (krad_websocket != NULL) {
 	
 		patience = KRAD_WEBSOCKET_SERVER_TIMEOUT_US * 3;
@@ -1385,4 +1387,7 @@ void krad_websocket_server_destroy (krad_websocket_t *krad_websocket) {
 		free (krad_websocket);
 		krad_websocket_glob = NULL;
 	}
+	
+  printk ("Krad Websocket shutdown complete");	
+	
 }

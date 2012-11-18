@@ -1531,6 +1531,8 @@ void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_comp
 void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 	int p;
+	
+  printk ("Krad compositor destroy started");
 
 	for (p = 0; p < KRAD_COMPOSITOR_MAX_PORTS; p++) {
 		if (krad_compositor->port[p].active == 1) {
@@ -1547,6 +1549,8 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 	free (krad_compositor->krad_sprite);
 	free (krad_compositor->krad_text);	
 	free (krad_compositor);
+	
+  printk ("Krad compositor destroy complete");
 
 }
 

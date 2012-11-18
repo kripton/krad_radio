@@ -9,44 +9,63 @@ static int krad_radio_handler ( void *output, int *output_len, void *ptr );
 
 static void krad_radio_destroy (krad_radio_t *krad_radio) {
 
-  	krad_system_monitor_cpu_off ();
+  krad_system_monitor_cpu_off ();
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));
+	if (krad_radio->krad_ipc != NULL) {
+    krad_ipc_server_disable (krad_radio->krad_ipc);
+	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));
 	if (krad_radio->krad_osc != NULL) {
 		krad_osc_destroy (krad_radio->krad_osc);
 		krad_radio->krad_osc = NULL;
 	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_http != NULL) {
 		krad_http_server_destroy (krad_radio->krad_http);
 		krad_radio->krad_http = NULL;
 	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_websocket != NULL) {
 		krad_websocket_server_destroy (krad_radio->krad_websocket);
 		krad_radio->krad_websocket = NULL;
 	}
-	if (krad_radio->krad_ipc != NULL) {
-		krad_ipc_server_destroy (krad_radio->krad_ipc);
-		krad_radio->krad_ipc = NULL;
-	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_linker != NULL) {
 		krad_linker_destroy (krad_radio->krad_linker);
 		krad_radio->krad_linker = NULL;		
 	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_mixer != NULL) {
 		krad_mixer_destroy (krad_radio->krad_mixer);
 		krad_radio->krad_mixer = NULL;		
 	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_compositor != NULL) {
 		krad_compositor_destroy (krad_radio->krad_compositor);
 		krad_radio->krad_compositor = NULL;
 	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_tags != NULL) {
 		krad_tags_destroy (krad_radio->krad_tags);
 		krad_radio->krad_tags = NULL;
 	}	
-	
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
+	if (krad_radio->krad_ipc != NULL) {
+		krad_ipc_server_destroy (krad_radio->krad_ipc);
+		krad_radio->krad_ipc = NULL;
+	}
+  printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
+	if (krad_radio->shutdown_timer != NULL) {
+    krad_timer_finish (krad_radio->shutdown_timer);	
+	  printk ("Krad Radio took %"PRIu64"ms to shutdown", krad_timer_duration_ms (krad_radio->shutdown_timer));
+    krad_timer_destroy (krad_radio->shutdown_timer);
+    krad_radio->shutdown_timer = NULL;
+	}
+
 	free (krad_radio->sysname);
 	free (krad_radio);
 
-	printk ("Krad Radio Daemon exited cleanly");
+	printk ("Krad Radio exited cleanly");
 	krad_system_log_off ();
 
 }
@@ -180,7 +199,9 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 	krad_mixer_start_ticker_at (krad_radio_station->krad_mixer, krad_radio_station->start_sync_time);  	
 
 	krad_ipc_server_run (krad_radio_station->krad_ipc);
-	
+
+  krad_radio_station->shutdown_timer = krad_timer_create();
+			  	
 	while (1) {
 
 		if (sigwait (&signal_mask, &signal_caught) != 0) {
@@ -191,14 +212,14 @@ static void krad_radio_run (krad_radio_t *krad_radio_station) {
 				printkd ("Got HANGUP Signal!");
 				break;
 			case SIGINT:
-				printkd ("Got SIGINT Signal!");			
-				return;
+				printkd ("Got SIGINT Signal!");
 			case SIGTERM:
 				printkd ("Got SIGTERM Signal!");
-				krad_system_monitor_cpu_off_fast ();			
-				return;
 			default:
-				break;
+			  krad_timer_start (krad_radio_station->shutdown_timer);
+			  krad_system_monitor_cpu_off_fast ();			  
+				printk ("Krad Radio Shutting down!");
+				return;
 		}
 	}
 }

@@ -89,6 +89,8 @@ struct krad_radio_St {
 
 	struct timespec start_sync_time;
 
+	krad_timer_t *shutdown_timer;
+
 };
 
 void krad_radio_daemon (char *sysname);

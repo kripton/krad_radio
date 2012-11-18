@@ -2127,10 +2127,6 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 	krad_link->audio_frames_captured += frames;
 	
-	if (krad_mixer_get_pusher(krad_link->krad_radio->krad_mixer) == DECKLINKAUDIO) {
-		krad_mixer_process (frames, krad_link->krad_radio->krad_mixer);
-	}
-	
 	return 0;
 
 }
@@ -2160,10 +2156,6 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	
 	krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
 	
-	if (krad_mixer_has_pusher(krad_link->krad_radio->krad_mixer) == 0) {
-		//	krad_mixer_set_pusher (krad_link->krad_radio->krad_mixer, DECKLINKAUDIO);
-	}
-	
 	krad_decklink_start (krad_link->krad_decklink);
 }
 
@@ -2179,8 +2171,6 @@ void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
 	krad_mixer_portgroup_destroy (krad_link->krad_radio->krad_mixer, krad_link->krad_mixer_portgroup);
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
-
-	krad_mixer_unset_pusher (krad_link->krad_radio->krad_mixer);
 
 }
 
@@ -3773,8 +3763,8 @@ krad_linker_t *krad_linker_create (krad_radio_t *krad_radio) {
 void krad_linker_destroy (krad_linker_t *krad_linker) {
 
 	int l;
-
-	krad_transmitter_destroy (krad_linker->krad_transmitter);
+	
+  printk ("Krad linker destroy started");		
 
 	pthread_mutex_lock (&krad_linker->change_lock);	
 	for (l = 0; l < KRAD_LINKER_MAX_LINKS; l++) {
@@ -3783,9 +3773,14 @@ void krad_linker_destroy (krad_linker_t *krad_linker) {
 			krad_linker->krad_link[l] = NULL;
 		}
 	}
+
+	krad_transmitter_destroy (krad_linker->krad_transmitter);
+
 	pthread_mutex_unlock (&krad_linker->change_lock);		
 	pthread_mutex_destroy (&krad_linker->change_lock);
 	free (krad_linker);
+	
+  printk ("Krad linker destroy completed");	
 
 }
 

@@ -410,6 +410,25 @@ void portgroup_limit (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 	}
 }
 
+void krad_mixer_deactivate_portgroups (krad_mixer_t *krad_mixer) {
+
+	int p;
+	krad_mixer_portgroup_t *portgroup;
+	
+	p = 0;
+  portgroup = NULL;
+		
+	// deactivate ports that need to be deactivated
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		portgroup = krad_mixer->portgroup[p];
+		if ((portgroup != NULL) && (portgroup->active)) {
+			if (portgroup->active == 2) {
+				portgroup->active = 0;
+			}
+		}
+	}
+}
+
 int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	
 	int p, m;
@@ -426,6 +445,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 		}
 	}
 	if (p == KRAD_MIXER_MAX_PORTGROUPS) {
+    krad_mixer_deactivate_portgroups (krad_mixer);
 		return 0;
 	}
 		
@@ -484,17 +504,11 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 		}
 	}
 	
-	krad_mixer_portgroup_compute_peaks (krad_mixer->master_mix, nframes);
-	
-	// deactivate ports that need to be deactivated
-	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active)) {
-			if (portgroup->active == 2) {
-				portgroup->active = 0;
-			}
-		}
+	if (krad_mixer->master_mix != NULL) {
+	  krad_mixer_portgroup_compute_peaks (krad_mixer->master_mix, nframes);
 	}
+	
+  krad_mixer_deactivate_portgroups (krad_mixer);
 
 	return 0;      
 
@@ -725,11 +739,7 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 	portgroup->active = 2;
 
 	while (portgroup->active != 0) {
-		if (krad_mixer->pusher == 0) {
-			portgroup->active = 0;
-			break;
-		}
-		usleep(15000);
+		usleep(2000);
 	}
 
   portgroup->delay = 0;
@@ -1071,13 +1081,21 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 
 	int p;
 	
-	krad_mixer_stop_ticker (krad_mixer);
-
+  printk ("Krad Mixer shutdown started");
+	
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		if ((krad_mixer->portgroup[p]->active == 1) && (krad_mixer->portgroup[p]->io_type != MIXBUS)) {
+			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer->portgroup[p]);
+		}
+	}
+	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		if (krad_mixer->portgroup[p]->active == 1) {
 			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer->portgroup[p]);
 		}
 	}
+	
+  krad_mixer_stop_ticker (krad_mixer);
 	
 	free ( krad_mixer->crossfade_group );
 
@@ -1088,6 +1106,8 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	free ( krad_mixer->name );
 
 	free ( krad_mixer );
+	
+  printk ("Krad Mixer shutdown complete");
 	
 }
 
@@ -1100,14 +1120,10 @@ void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer) {
 }
 
 void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher) {
-	if (pusher == 0) {
-		krad_mixer_unset_pusher (krad_mixer);
-	} else {
-		if (krad_mixer->ticker_running == 1) {
-			krad_mixer_stop_ticker (krad_mixer);
-		}	
-		krad_mixer->pusher = pusher;
-	}
+	if (krad_mixer->ticker_running == 1) {
+		krad_mixer_stop_ticker (krad_mixer);
+	}	
+	krad_mixer->pusher = pusher;
 }
 
 int krad_mixer_has_pusher (krad_mixer_t *krad_mixer) {
