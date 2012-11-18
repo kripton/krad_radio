@@ -433,7 +433,7 @@ void krad_ebml_start_segment(krad_ebml_t *krad_ebml, char *appversion) {
 		(krad_ebml->io_adapter.write == krad_ebml_fileio_write)) {
 		krad_ebml_write_data (krad_ebml, EBML_ID_VOID, "000000000", 5);
 	}
-	krad_ebml_write_string (krad_ebml, EBML_ID_SEGMENT_TITLE, "A Krad Production");
+	krad_ebml_write_string (krad_ebml, EBML_ID_SEGMENT_TITLE, "Krad Radio Broadcast");
 	krad_ebml_write_int32 (krad_ebml, EBML_ID_TIMECODESCALE, 1000000);
 	krad_ebml_write_string (krad_ebml, EBML_ID_MUXINGAPP, version_string);
 	krad_ebml_write_string (krad_ebml, EBML_ID_WRITINGAPP, appversion);

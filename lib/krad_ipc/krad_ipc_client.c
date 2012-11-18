@@ -1885,7 +1885,7 @@ void krad_ipc_compositor_get_frame_size (krad_ipc_client_t *client) {
 
 void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
 								   int width, int height, int fps_numerator, int fps_denominator,
-								   krad_link_av_mode_t av_mode, char *audio_input, char *passthru_codec) {
+								   krad_link_av_mode_t av_mode, char *audio_input, char *codec) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -1910,7 +1910,7 @@ void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_so
 	}
 	
 	if (video_source == V4L2) {
-		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_CAPTURE_PASSTHRU_CODEC, passthru_codec);
+		krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_CAPTURE_CODEC, codec);
 	}	
 	
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_WIDTH, width);

@@ -61,10 +61,11 @@ void vod_test () {
 
 }
 
-void audio_extract ( char *infilename, char *outfilename ) {
+void audio_extract ( char *infilename, char *videooutfilename, char *audiooutfilename ) {
 
   krad_ebml_t *infile;
-  krad_ebml_t *outfile;
+  krad_ebml_t *videooutfile;
+  krad_ebml_t *audiooutfile;  
   int bytes;
   int outtrack;
   int track;
@@ -81,28 +82,26 @@ void audio_extract ( char *infilename, char *outfilename ) {
   bytes = 1;
 
   infile = krad_ebml_open_file (infilename, KRAD_EBML_IO_READONLY);  
-  outfile = krad_ebml_open_file (outfilename, KRAD_EBML_IO_WRITEONLY);
+  videooutfile = krad_ebml_open_file (videooutfilename, KRAD_EBML_IO_WRITEONLY);
+  audiooutfile = krad_ebml_open_file (audiooutfilename, KRAD_EBML_IO_WRITEONLY);
 
-  krad_ebml_header (outfile, "webm", APPVERSION);
+  krad_ebml_header (audiooutfile, "webm", APPVERSION);
 
-  krad_ebml_bump_tracknumber (outfile);
+  krad_ebml_bump_tracknumber (audiooutfile);
 
   //printf("vorbis header size is %d\n", infile->tracks[2].codec_data_size);
   
-  outtrack = krad_ebml_add_audio_track (outfile, VORBIS, infile->tracks[2].sample_rate, infile->tracks[2].channels, 
-										  infile->tracks[2].codec_data, infile->tracks[2].codec_data_size);
+  krad_ebml_add_audio_track (audiooutfile, VORBIS, infile->tracks[2].sample_rate, infile->tracks[2].channels, 
+                             infile->tracks[2].codec_data, infile->tracks[2].codec_data_size);
 
   while (bytes > 0) {
+
     bytes = krad_ebml_read_packet (infile, &track, &timecode, buffer);
   
     if ((bytes > 0) && (track == 2)) {
-
       total_frames = round ((timecode * infile->tracks[2].sample_rate) / 1000);            
       frames = total_frames - round ((last_timecode * infile->tracks[2].sample_rate) / 1000);
-
-      //printf("frames is %d\n", frames);
-      //printf("total_frames is %d\n", total_frames);      
-      krad_ebml_add_audio (outfile, outtrack, buffer, bytes, frames);
+      krad_ebml_add_audio (audiooutfile, outtrack, buffer, bytes, frames);
       last_timecode = timecode;
     }
   
@@ -120,9 +119,10 @@ int main (int argc, char *argv[]) {
   vod_test ();
   
   char *infilename = "/home/oneman/Videos/kradtoday_test_vpx.webm";
-  char *outfilename = "/home/oneman/Videos/kradtoday_test_vpx_audio.webm";
+  char *videooutfilename = "/home/oneman/Videos/kradtoday_test_vpx_audio.webm";
+  char *audiooutfilename = "/home/oneman/Videos/kradtoday_test_vpx_audio.webm";  
 
-  audio_extract (infilename, outfilename);
+  audio_extract (infilename, videooutfilename, audiooutfilename);
 
 	return 0;
 
