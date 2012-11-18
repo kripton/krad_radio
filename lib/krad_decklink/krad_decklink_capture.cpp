@@ -95,7 +95,7 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 			(krad_decklink_capture->display_mode == bmdModeHD1080p5994) ||
 			(krad_decklink_capture->display_mode == bmdModeHD1080p6000)) {
 	
-			krad_decklink_capture->skip_frame = 1;
+      krad_decklink_capture->skip_frame = 1;
 		}
 	}
 

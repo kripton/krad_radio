@@ -45,13 +45,13 @@ krad_vpx_encoder_t *krad_vpx_encoder_create (int width, int height, int fps_nume
 	kradvpx->min_quantizer = kradvpx->cfg.rc_min_quantizer;
 	kradvpx->max_quantizer = kradvpx->cfg.rc_max_quantizer;
 
-	krad_vpx_encoder_print_config (kradvpx);
+	//krad_vpx_encoder_print_config (kradvpx);
 
 	if (vpx_codec_enc_init(&kradvpx->encoder, vpx_codec_vp8_cx(), &kradvpx->cfg, 0)) {
 		 krad_vpx_fail (&kradvpx->encoder, "Failed to initialize encoder");
 	}
 
-	krad_vpx_encoder_print_config (kradvpx);
+	//krad_vpx_encoder_print_config (kradvpx);
 
 
 #ifdef BENCHMARK

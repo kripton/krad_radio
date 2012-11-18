@@ -128,7 +128,7 @@
 
 #define KRAD_EBML_MAX_TRACKS 10
 
-#define KRADEBML_WRITE_BUFFER_SIZE 8192 * 1024 * 2
+#define KRADEBML_WRITE_BUFFER_SIZE 8192 * 1024 * 2 * 5
 
 typedef struct kradx_base64_St kradx_base64_t;
 

@@ -12,6 +12,7 @@
 #define KRAD_Y4M_H
 
 #define Y4M_MAGIC "YUV4MPEG2"
+#define MAX_YUV4_HEADER_SIZE 80
 #define Y4M_FRAME_HEADER "FRAME\n"
 #define Y4M_FRAME_HEADER_SIZE 6
 
@@ -38,6 +39,7 @@ krad_y4m_t *krad_y4m_create (int width, int height, int color_depth);
 
 int krad_y4m_generate_header (unsigned char *header, int width, int height, int frame_rate_numerator, int frame_rate_denominator, int color_depth);
 
-int krad_y4m_parse_header (unsigned char *header, int header_len, int *width, int *height, int *frame_rate_numerator, int *frame_rate_denominator, int *color_depth);
+int krad_y4m_parse_header (unsigned char *buffer, int *width, int *height, int *frame_rate_numerator,
+                           int *frame_rate_denominator, int *color_depth);
 
 #endif

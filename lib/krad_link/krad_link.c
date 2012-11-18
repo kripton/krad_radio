@@ -414,15 +414,18 @@ void *video_encoding_thread (void *arg) {
 		}
 
 		if (krad_link->operation_mode == RECORD) {
-			krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 28;
+			krad_link->krad_vpx_encoder->cfg.rc_min_quantizer = 5;
+			krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 5;
+			krad_link->krad_vpx_encoder->cfg.kf_min_dist = 150;
+			krad_link->krad_vpx_encoder->cfg.kf_max_dist = 150;						
 		}
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
-		krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, (((1000 / ((krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 3) * 1000));
+		krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, 13333);
 
-		printk ("Video encoding deadline set to %ld", krad_link->krad_vpx_encoder->deadline);
-	
+		//printk ("Video encoding deadline set to %ld", krad_link->krad_vpx_encoder->deadline);
+    krad_vpx_encoder_print_config (krad_link->krad_vpx_encoder);
 	}
 	
 	if (krad_link->video_codec == THEORA) {
@@ -1349,7 +1352,7 @@ void *stream_input_thread (void *arg) {
 	current_track = -1;
 	
 	header_buffer = malloc (4096 * 512);
-	buffer = malloc (4096 * 512);
+	buffer = malloc (4096 * 2048);
 	
 	if (krad_link->host[0] != '\0') {
 		krad_link->krad_container = krad_container_open_stream (krad_link->host, krad_link->port, krad_link->mount, NULL);
