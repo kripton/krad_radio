@@ -1830,6 +1830,34 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			known = 1;
 		}
 		
+		if (ebml_id == EBML_ID_DURATION) {
+		
+			float dur;
+			double duration;
+			
+			ret = krad_ebml_read ( krad_ebml, &temp, ebml_data_size );
+			if (ret != ebml_data_size) {
+				failfast ("Krad EBML failure reading Sample Rate %d", ret);
+			}
+			if (krad_ebml->tracks_size > 0) {
+				krad_ebml->tracks_pos += ret;
+			}
+			int adj = 0;
+			if (ebml_data_size == 4) {
+				rmemcpy ( &dur, &temp, ebml_data_size );
+				//printf("Sample Rate %f", srate);
+				duration = dur;
+			} else {
+				rmemcpy ( &duration, &temp, ebml_data_size - adj);
+				//printf("Sample Rate %f", samplerate);
+			}
+	
+			krad_ebml->segment_duration = duration;
+	
+			skip = 0;
+			known = 1;
+		}
+		
 		if (krad_ebml->header_read == 0) {
 			if (known == 0) {
 				//printf("%s size %" PRIu64 " ", ebml_identify(ebml_id), ebml_data_size);
