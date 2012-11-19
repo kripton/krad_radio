@@ -344,6 +344,13 @@ void krad_ebml_write_seekhead (krad_ebml_t *krad_ebml) {
 
 	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK, &seekitem);
 	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK_ID, &seekid);
+	krad_ebml_write_element (krad_ebml, EBML_ID_CLUSTER);
+	krad_ebml_finish_element (krad_ebml, seekid);
+	krad_ebml_write_int64 (krad_ebml, EBML_ID_SEEK_POSITION, krad_ebml->cluster_start_position);
+	krad_ebml_finish_element (krad_ebml, seekitem);
+
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK, &seekitem);
+	krad_ebml_start_element (krad_ebml, EBML_ID_SEEK_ID, &seekid);
 	krad_ebml_write_element (krad_ebml, EBML_ID_CUES);
 	krad_ebml_finish_element (krad_ebml, seekid);
 	krad_ebml_write_int64 (krad_ebml, EBML_ID_SEEK_POSITION, krad_ebml->cues_position);

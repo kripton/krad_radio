@@ -80,7 +80,7 @@ void webm_extract ( char *infilename, char *videooutfilename, char *audiooutfile
   krad_ebml_header (videooutfile, "webm", APPVERSION);
   krad_ebml_header (audiooutfile, "webm", APPVERSION);
   
-  krad_ebml_bump_tracknumber (audiooutfile);
+  //krad_ebml_bump_tracknumber (audiooutfile);
 
   krad_ebml_add_video_track (videooutfile, VP8, 30000, 1001, 1280, 720);
   
@@ -106,7 +106,7 @@ void webm_extract ( char *infilename, char *videooutfilename, char *audiooutfile
     if ((bytes > 0) && (track == 2)) {
       total_frames = round ((timecode * infile->tracks[2].sample_rate) / 1000);            
       frames = total_frames - round ((last_timecode * infile->tracks[2].sample_rate) / 1000);
-      krad_ebml_add_audio (audiooutfile, track, buffer, bytes, frames);
+      krad_ebml_add_audio (audiooutfile, 1, buffer, bytes, frames);
       last_timecode = timecode;
     }
   

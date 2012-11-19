@@ -22,8 +22,8 @@ krad_webm_dash_vod_t *krad_webm_dash_vod_create (int width, int height, int samp
   xmlDocSetRootElement (krad_webm_dash_vod->doc, krad_webm_dash_vod->root_node);
 
   xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "xmlns:xsi", BAD_CAST "http://www.w3.org/2001/XMLSchema-instance");
-  xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "xmlns", BAD_CAST "urn:mpeg:DASH:schema:MPD:2011");
-  xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "xsi:schemaLocation", BAD_CAST "urn:mpeg:DASH:schema:MPD:2011");
+  xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "xmlns", BAD_CAST "urn:mpeg:mpd:schema:mpd:2011");
+  xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "xsi:schemaLocation", BAD_CAST "urn:mpeg:dash:schema:mpd:2011 http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd");
   xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "type", BAD_CAST "static");
   snprintf (string, (sizeof(string) - 1), "PT%0.2fS", krad_webm_dash_vod->duration);
   xmlNewProp (krad_webm_dash_vod->root_node, BAD_CAST "mediaPresentationDuration", BAD_CAST string);
