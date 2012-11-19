@@ -15,19 +15,30 @@ void dash_vod_create (char *filename, char *videofilename, char *audiofilename) 
   int bandwidth;
 
   lang = "eng";
-  bandwidth = 64000;
+  bandwidth = 12420109;
 
 
   audiofile = krad_ebml_open_file (audiofilename, KRAD_EBML_IO_READONLY);
   videofile = krad_ebml_open_file (videofilename, KRAD_EBML_IO_READONLY);
   
-  krad_webm_dash_vod = krad_webm_dash_vod_create (videofile->tracks[1].width, videofile->tracks[1].height,
-                                                  audiofile->tracks[2].sample_rate, audiofile->segment_duration / 1000.0, lang);
+  
+  int track;
+  uint64_t timecode;
+  unsigned char *buffer;
+  
+  buffer = malloc (1000000);  
+  krad_ebml_read_packet (audiofile, &track, &timecode, buffer);
+  krad_ebml_read_packet (videofile, &track, &timecode, buffer);
+  free (buffer);
 
-  krad_webm_dash_vod_add_audio (krad_webm_dash_vod, audiofilename, bandwidth, 0,
+
+  krad_webm_dash_vod = krad_webm_dash_vod_create (videofile->tracks[1].width, videofile->tracks[1].height,
+                                                  audiofile->tracks[1].sample_rate, audiofile->segment_duration / 1000.0, lang);
+
+  krad_webm_dash_vod_add_audio (krad_webm_dash_vod, strrchr(audiofilename, '/') + 1, bandwidth, 0,
                                 audiofile->first_cluster_pos, audiofile->cues_file_pos, audiofile->cues_file_end_range);
 
-  krad_webm_dash_vod_add_video (krad_webm_dash_vod, videofilename, bandwidth, 0,
+  krad_webm_dash_vod_add_video (krad_webm_dash_vod, strrchr(videofilename, '/') + 1, bandwidth, 0,
                                 videofile->first_cluster_pos, videofile->cues_file_pos, videofile->cues_file_end_range);
 
   krad_webm_dash_vod_save_file (krad_webm_dash_vod, filename);
@@ -112,9 +123,9 @@ void webm_extract ( char *infilename, char *videooutfilename, char *audiooutfile
 int main (int argc, char *argv[]) {
 
   char *infilename = "/home/oneman/Videos/kradtoday_faded2.webm";
-  char *videooutfilename = "/home/oneman/Videos/kradtoday_faded2_video.webm";
-  char *audiooutfilename = "/home/oneman/Videos/kradtoday_faded2_audio.webm";  
-  char *vodfile = "/home/oneman/Videos/webm_dash_vod_test.mpd";  
+  char *videooutfilename = "/home/oneman/Videos/webmdash/kradtoday_faded2_video.webm";
+  char *audiooutfilename = "/home/oneman/Videos/webmdash/kradtoday_faded2_audio.webm";  
+  char *vodfile = "/home/oneman/Videos/webmdash/webm_dash_vod_test.mpd";  
 
 
   webm_extract (infilename, videooutfilename, audiooutfilename);
