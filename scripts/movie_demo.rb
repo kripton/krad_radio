@@ -12,7 +12,7 @@ station = KradStation.new(station_name)
 puts station.info
 puts station.uptime
 
-station.cmd("record video \"#{File.expand_path('~')}/Videos/textdemo.webm\" null #{width} #{height} #{bitrate}")
+station.cmd("record video \"#{File.expand_path('~')}/Videos/textdemo.webm\"")
 
 station.text("KRAD RADIO", 25, -315, 5, 114)
 station.set_text(0, 25, 455, 15, 174, 1, 0)
@@ -58,3 +58,7 @@ sleep 1
 station.set_text(1, 135, 655, 25, 4, 0, 0, 255, 1, 1)
 sleep 1
 station.rm_text(1)
+sleep 1
+station.cmd("rm 0")
+sleep 1
+station.cmd("kill")
