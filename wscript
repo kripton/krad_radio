@@ -59,6 +59,8 @@ def configure(conf):
 
 	conf.link_add_flags
 
+	conf.env.append_unique('CFLAGS', ['-fPIC'])
+
 	if conf.options.optimize == False:
 		conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
 		conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
@@ -71,3 +73,9 @@ def configure(conf):
 def build(bld):
 	check_way(bld)
 	bld.recurse(subdirs, mandatory = False)
+	bld.add_post_fun(post)
+
+def post(pst):
+	if pst.cmd == 'install' and pst.env['IS_LINUX'] == True: 
+		pst.exec_command('/sbin/ldconfig')
+		print "Ran ldconfig"

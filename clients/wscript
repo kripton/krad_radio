@@ -8,7 +8,7 @@ krad_radio_ap.c
 krad_radio_vp.c
 """.split()
 
-depsources = """
+libsources = """
 ../lib/krad_system/krad_system.c
 ../lib/krad_ebml/krad_ebml.c
 ../lib/krad_ring/krad_ring.c
@@ -76,20 +76,20 @@ def check_system(systm):
 
 	global programs
 	global includedirs
-	global depsources
+	global libsources
 	global shlibs
 	global syslibs
 	global syslibs2
 
 	if systm.env['IS_LINUX']:
 		shlibs = shlibs + ["alsa"]    
-		depsources = ["../lib/krad_alsa/krad_alsa.c", "../lib/krad_alsa/krad_alsa_seq.c"] + depsources
+		libsources = ["../lib/krad_alsa/krad_alsa.c", "../lib/krad_alsa/krad_alsa_seq.c"] + libsources
 		programs = ["krad_radio_ev.c"] + programs
 		syslibs = syslibs + syslibs2
 
 
 	if systm.env['IS_MACOSX']:
-		depsources = ["../lib/krad_legacy/krad_mach.c"] + depsources
+		libsources = ["../lib/krad_legacy/krad_mach.c"] + libsources
 		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
 		shlibs = shlibs + ['turbojpeg']
 
@@ -117,11 +117,18 @@ def build(bld):
 	global syslibs2
 	check_system(bld)
 
+	bld.shlib(
+		source = libsources, 
+		includes = includedirs, 
+		target = "kradradio_client",
+		uselib = shlibs + stlibs + syslibs)
+
 	for p in programs:
 
 		bld(features = 'c cprogram', 
-			source = depsources + [p], 
+			source = [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
+			use = ["kradradio_client"],
 			uselib = shlibs + stlibs + syslibs)
 

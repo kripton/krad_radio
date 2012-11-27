@@ -37,7 +37,6 @@ depsources = """
 ../lib/krad_sfx/krad_pass.c
 ../lib/krad_sfx/krad_rushlimiter.c
 ../lib/krad_sfx/krad_sfx.c
-../lib/krad_ipc/krad_ipc_client.c
 ../lib/krad_ipc/krad_ipc_server.c
 ../lib/krad_tags/krad_tags.c
 ../lib/krad_radio/krad_radio.c
@@ -226,5 +225,6 @@ def build(bld):
 			source = depsources + [p], 
 			includes = includedirs, 
 			target = p.replace(".c", ""),
+			use = ["kradradio_client"],
 			uselib = shlibs + stlibs + syslibs)
 
