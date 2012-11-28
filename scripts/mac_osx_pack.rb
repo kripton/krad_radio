@@ -56,3 +56,12 @@ for file in krad_dep_deps
     `install_name_tool -change #{krad_dep_libs_path}/#{depfile} @executable_path/#{depfile} #{krad_appfolder_exec_path}#{file}`
   end
 end
+
+# install_name_tool -id @executable_path/../Frameworks/Jackmp.framework/Jackmp Jackmp
+
+`install_name_tool -change /Library/Frameworks/Jackmp.framework/Versions/A/Jackmp @executable_path/../Frameworks/Jackmp.framework/Versions/A/Jackmp #{krad_appfolder_exec_path}krad_radio_daemon`
+`install_name_tool -change /Library/Frameworks/Jackmp.framework/Versions/A/Jackmp @executable_path/../Frameworks/Jackmp.framework/Versions/A/Jackmp #{krad_appfolder_exec_path}libavutil.51.dylib`
+`install_name_tool -change /Library/Frameworks/Jackmp.framework/Versions/A/Jackmp @executable_path/../Frameworks/Jackmp.framework/Versions/A/Jackmp #{krad_appfolder_exec_path}libswscale.2.dylib`
+
+`rm /Users/oneman/kode/Krad\\ Radio\\ 12\\ Mac.tar.bz2`
+`tar cjvf /Users/oneman/kode/Krad\\ Radio\\ 12\\ Mac.tar.bz2 -C /Users/oneman/kode Krad\\ Radio.app`
