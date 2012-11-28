@@ -186,7 +186,7 @@ def check_way(way):
 	global depsources
 	global shlibs
 
-	if way.env['WAYRAD']:
+	if way.env['KRAD_USE_WAYLAND']:
 		depsources += ["../lib/krad_wayland/krad_wayland.c"]
 		shlibs += ["wayland-client"]
 		

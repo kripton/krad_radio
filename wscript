@@ -26,23 +26,21 @@ def options(opt):
 	opt.add_option('--optimize', action='store_true', default=False,
 		help='Compile with -O3 rather than -g')	
 
+	opt.add_option('--x11', action='store_true', default=False,
+		help='Compile with support for X11 capture')
+		
+	opt.add_option('--wayland', action='store_true', default=False,
+		help='Compile with support for Wayland output')		
+
 def check_way(way):
-	try:  
-	   os.environ["WAYRAD"]
-	except KeyError: 
-		return
-	if os.environ['WAYRAD']:
-		print("WAYRAD DETECTED!")
-		way.env['WAYRAD'] = "yes"
-		way.env.append_unique('CFLAGS', ['-DWAYRAD'])
+	if way.options.wayland != False:
+		print("Enabling Wayland!")
+		way.env['KRAD_USE_WAYLAND'] = "yes"
+		way.env.append_unique('CFLAGS', ['-DKRAD_USE_WAYLAND'])
 
 def check_x11(x11):
-	try:  
-	   os.environ["KRAD_USE_X11"]
-	except KeyError: 
-		return
-	if os.environ['KRAD_USE_X11']:
-		print("KRAD_USE_X11 DETECTED!")
+	if x11.options.x11 != False:
+		print("Enabling X11..")
 		x11.env['KRAD_USE_X11'] = "yes"
 		x11.env.append_unique('CFLAGS', ['-DKRAD_USE_X11'])
 

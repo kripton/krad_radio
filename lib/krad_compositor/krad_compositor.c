@@ -4,7 +4,7 @@ static void krad_compositor_update_peaks (krad_compositor_t *krad_compositor);
 static void krad_compositor_close_display (krad_compositor_t *krad_compositor);
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor);
 
-#ifdef WAYRAD
+#ifdef KRAD_USE_WAYLAND
 
 static void *krad_compositor_display_thread (void *arg);
 
@@ -103,7 +103,7 @@ static void *krad_compositor_display_thread (void *arg) {
 
 static void krad_compositor_open_display (krad_compositor_t *krad_compositor) {
 
-#ifdef WAYRAD
+#ifdef KRAD_USE_WAYLAND
 	if (krad_compositor->display_open == 1) {
 		krad_compositor_close_display (krad_compositor);
 	}
@@ -119,7 +119,7 @@ static void krad_compositor_open_display (krad_compositor_t *krad_compositor) {
 
 static void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 
-#ifdef WAYRAD
+#ifdef KRAD_USE_WAYLAND
 	if (krad_compositor->display_open == 1) {
     printk("Wayland display closing");	
 		krad_compositor->display_open = 2;

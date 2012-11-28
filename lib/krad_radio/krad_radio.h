@@ -64,7 +64,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_link_common.h"
 #include "krad_link.h"
 
-#ifdef WAYRAD
+#ifdef KRAD_USE_WAYLAND
 #include "krad_wayland.h"
 #endif
 
