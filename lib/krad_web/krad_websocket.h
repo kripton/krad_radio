@@ -10,7 +10,7 @@
 
 #include "krad_system.h"
 #include "krad_mixer_common.h"
-#include "krad_ipc_client.h"
+#include "krad_radio_client.h"
 #include "krad_radio_ipc.h"
 
 #include "cJSON.h"
@@ -33,18 +33,16 @@ enum krad_websocket_shutdown {
 };
 
 typedef struct krad_websocket_St krad_websocket_t;
-typedef struct krad_ipc_session_data_St krad_ipc_session_data_t;
+typedef struct kr_client_session_data_St kr_client_session_data_t;
 
-struct krad_ipc_session_data_St {
+struct kr_client_session_data_St {
 
 	krad_websocket_t *krad_websocket;
-	krad_ipc_client_t *krad_ipc_client;
+	kr_client_t *kr_client;
 	cJSON *msgs;
 	char *msgstext;
 	int msgstextlen;
-	int krad_ipc_info;
-//	int krad_ipc_data_len;
-//	char krad_ipc_data[4096 * 4];
+	int kr_client_info;
 	struct libwebsocket_context *context;
 	struct libwebsocket *wsi;
 	
@@ -53,7 +51,7 @@ struct krad_ipc_session_data_St {
 };
 
 struct krad_websocket_St {
-	krad_ipc_session_data_t *sessions[KRAD_WEBSOCKET_MAX_POLL_FDS];
+	kr_client_session_data_t *sessions[KRAD_WEBSOCKET_MAX_POLL_FDS];
 	struct pollfd pollfds[KRAD_WEBSOCKET_MAX_POLL_FDS];
 	int count_pollfds;
 	enum fdclass fdof[KRAD_WEBSOCKET_MAX_POLL_FDS];
@@ -70,7 +68,7 @@ int callback_http (struct libwebsocket_context *this, struct libwebsocket *wsi,
 				   enum libwebsocket_callback_reasons reason, void *user,
 				   void *in, size_t len);
 
-int callback_krad_ipc (struct libwebsocket_context * this,
+int callback_kr_client (struct libwebsocket_context * this,
 					   struct libwebsocket *wsi,
 					   enum libwebsocket_callback_reasons reason, void *user,
 					   void *in, size_t len);

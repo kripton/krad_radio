@@ -2,8 +2,8 @@
 
 
 #ifdef KLUDGE
-void krad_alsa_seq_set_ipc_client (krad_alsa_seq_t *krad_alsa_seq, krad_ipc_client_t *krad_ipc_client) {
-		krad_alsa_seq->krad_ipc_client = krad_ipc_client;
+void krad_alsa_seq_set_kr_client (krad_alsa_seq_t *krad_alsa_seq, kr_client_t *kr_client) {
+		krad_alsa_seq->kr_client = kr_client;
 }
 #endif
 
@@ -60,17 +60,17 @@ void *krad_alsa_seq_running_thread (void *arg) {
 									// 10 cross, 13, 14
 									if ((ev->data.control.param == 10) || (ev->data.control.param == 17)) {
 										value = ((ev->data.control.value / 127.0) * 200.0) - 100.0;
-										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music1", 
+										krad_ipc_set_control (krad_alsa_seq->kr_client, "Music1", 
 															  "crossfade", value);
 									}
 									if ((ev->data.control.param == 12) || (ev->data.control.param == 13)) {
 										value = (ev->data.control.value / 127.0) * 100.0;
-										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music1", 
+										krad_ipc_set_control (krad_alsa_seq->kr_client, "Music1", 
 															  "volume", value);
 									}
 									if (ev->data.control.param == 14) {
 										value = (ev->data.control.value / 127.0) * 100.0;
-										krad_ipc_set_control (krad_alsa_seq->krad_ipc_client, "Music2", 
+										krad_ipc_set_control (krad_alsa_seq->kr_client, "Music2", 
 															  "volume", value);
 									}
 								#endif

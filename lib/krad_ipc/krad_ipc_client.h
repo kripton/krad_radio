@@ -283,7 +283,7 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 
 char *krad_radio_get_running_daemons_list ();
 
-kr_client_t *kr_connect ();
+kr_client_t *kr_connect (char *sysname);
 int krad_ipc_client_init (krad_ipc_client_t *client);
 void kr_disconnect (kr_client_t *client);
 int krad_ipc_cmd (krad_ipc_client_t *client, char *cmd);

@@ -119,7 +119,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 		return NULL;
 	}	
 	
-	krad_radio->krad_ipc = krad_ipc_server_create ( sysname, krad_radio_handler, krad_radio );
+	krad_radio->krad_ipc = krad_ipc_server_create ( "krad_radio", sysname, krad_radio_handler, krad_radio );
 	
 	if (krad_radio->krad_ipc == NULL) {
 		krad_radio_destroy (krad_radio);

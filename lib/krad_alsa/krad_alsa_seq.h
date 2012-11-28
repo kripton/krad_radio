@@ -28,7 +28,7 @@
 #define KLUDGE 1
 
 #ifdef KLUDGE
-#include "krad_ipc_client.h"
+#include "krad_radio_client.h"
 #endif
 
 typedef struct krad_alsa_seq_St krad_alsa_seq_t;
@@ -36,7 +36,7 @@ typedef struct krad_alsa_seq_St krad_alsa_seq_t;
 struct krad_alsa_seq_St {
 
 	#ifdef KLUDGE
-	krad_ipc_client_t *krad_ipc_client;
+	kr_client_t *kr_client;
 	#endif
 	
 
@@ -52,7 +52,7 @@ struct krad_alsa_seq_St {
 };
 
 #ifdef KLUDGE
-void krad_alsa_seq_set_ipc_client (krad_alsa_seq_t *krad_alsa_seq, krad_ipc_client_t *krad_ipc_client);
+void krad_alsa_seq_set_kr_client (krad_alsa_seq_t *krad_alsa_seq, kr_client_t *kr_client);
 #endif
 
 //void krad_alsa_seq_parse_message (krad_alsa_seq_t *krad_alsa_seq, unsigned char *message, int size);

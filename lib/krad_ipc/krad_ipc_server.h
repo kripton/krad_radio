@@ -175,8 +175,8 @@ void krad_ipc_server_run (krad_ipc_server_t *krad_ipc_server);
 int krad_ipc_server_tcp_socket_create (int port);
 void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server);
 int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, int port);
-krad_ipc_server_t *krad_ipc_server_init (char *sysname);
-krad_ipc_server_t *krad_ipc_server_create (char *sysname, int handler (void *, int *, void *), void *pointer);
+krad_ipc_server_t *krad_ipc_server_init (char *appname, char *sysname);
+krad_ipc_server_t *krad_ipc_server_create (char *appname, char *sysname, int handler (void *, int *, void *), void *pointer);
 
 #endif
 
