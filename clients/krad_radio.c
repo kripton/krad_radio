@@ -41,13 +41,13 @@ int main (int argc, char *argv[]) {
         printf (KRAD_VERSION_STRING "\n");
         return 0;
 		  }
+
+      if (strncmp(argv[1], "threads", 7) == 0) {
+        kr_run_and_print_cmd ("ps -AL|grep kr_");
+        return 0;
+      }
 		}
 
-    if (strncmp(argv[1], "threads", 7) == 0) {
-      kr_run_and_print_cmd ("ps -AL|grep kr_");
-      return 0;
-    }
-	
 		krad_radio_command_help ();
 		return 0;
 	}	
