@@ -1,4 +1,4 @@
-#include "krad_ipc_client.h"
+#include "krad_radio_client.h"
 #include "krad_tone.h"
 
 krad_tone_t *krad_tone;

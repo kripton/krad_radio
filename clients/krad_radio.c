@@ -1,4 +1,4 @@
-#include "krad_ipc_client.h"
+#include "krad_radio_client.h"
 
 void krad_radio_command_help () {
 

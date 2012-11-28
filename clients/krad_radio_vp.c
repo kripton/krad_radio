@@ -1,6 +1,6 @@
 #include <cairo/cairo.h>
 
-#include "krad_ipc_client.h"
+#include "krad_radio_client.h"
 
 #define GREY  0.197 / 0.255 * 1.0, 0.203 / 0.255 * 1.0, 0.203 / 0.255   * 1.0
 #define BLUE 0.0, 0.152 / 0.255 * 1.0, 0.212 / 0.255 * 1.0

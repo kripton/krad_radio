@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "krad_ipc_client.h"
+#include "krad_radio_client.h"
 #include "krad_alsa.h"
 
 void kr_alsa_test () {
