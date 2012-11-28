@@ -46,7 +46,7 @@ krad_ipc_server_t *krad_ipc_server_init (char *sysname) {
 			return NULL;
 		}
 	} else {
-		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "%s/krad_radio_%s_ipc", getenv ("HOME"), sysname);	
+		snprintf (krad_ipc_server->saddr.sun_path, sizeof (krad_ipc_server->saddr.sun_path), "%s/krad_radio_%s_ipc", "/tmp", sysname);	
 		if (access (krad_ipc_server->saddr.sun_path, F_OK) == 0) {
 			if (connect (krad_ipc_server->sd, (struct sockaddr *) &krad_ipc_server->saddr, sizeof (krad_ipc_server->saddr)) != -1) {
 				/* active socket already exists! */

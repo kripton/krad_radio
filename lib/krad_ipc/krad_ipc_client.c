@@ -30,7 +30,7 @@ kr_client_t *kr_connect (char *sysname) {
 			client->on_linux = 1;
 			client->ipc_path_pos = sprintf(client->ipc_path, "@krad_radio_%s_ipc", sysname);
 		} else {
-			client->ipc_path_pos = sprintf(client->ipc_path, "%s/krad_radio_%s_ipc", getenv ("HOME"), sysname);
+			client->ipc_path_pos = sprintf(client->ipc_path, "%s/krad_radio_%s_ipc", "/tmp", sysname);
 		}
 	
 		if (!client->on_linux) {
