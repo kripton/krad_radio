@@ -1,5 +1,37 @@
 #include "krad_x11.h"
 
+#ifndef KRAD_USE_X11	
+
+void krad_x11_destroy (krad_x11_t *krad_x11) {
+  free (krad_x11);
+}
+
+krad_x11_t *krad_x11_create () {
+
+	krad_x11_t *krad_x11;
+	
+	if ((krad_x11 = calloc (1, sizeof (krad_x11_t))) == NULL) {
+		failfast ("krad_x11 mem alloc fail");
+	}
+	
+	return krad_x11;
+
+}
+
+void krad_x11_enable_capture(krad_x11_t *krad_x11, int width, int height) {
+
+}
+
+void krad_x11_disable_capture(krad_x11_t *krad_x11) {
+
+}
+
+int krad_x11_capture(krad_x11_t *krad_x11, unsigned char *buffer) {
+  return 0;
+}
+
+#else
+
 void krad_x11_destroy (krad_x11_t *krad_x11) {
 	
 	if (krad_x11->capture_enabled == 1) {
@@ -124,3 +156,4 @@ int krad_x11_capture(krad_x11_t *krad_x11, unsigned char *buffer) {
 	}
 }
 
+#endif

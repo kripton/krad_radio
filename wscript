@@ -36,6 +36,16 @@ def check_way(way):
 		way.env['WAYRAD'] = "yes"
 		way.env.append_unique('CFLAGS', ['-DWAYRAD'])
 
+def check_x11(x11):
+	try:  
+	   os.environ["KRAD_USE_X11"]
+	except KeyError: 
+		return
+	if os.environ['KRAD_USE_X11']:
+		print("KRAD_USE_X11 DETECTED!")
+		x11.env['KRAD_USE_X11'] = "yes"
+		x11.env.append_unique('CFLAGS', ['-DKRAD_USE_X11'])
+
 def configure(conf):
 
 	platform = sys.platform
@@ -52,6 +62,7 @@ def configure(conf):
 		conf.env.append_unique('CFLAGS', ['-DIS_MACOSX'])
 		conf.env.append_unique('CXXFLAGS', ['-DIS_MACOSX'])
 
+	check_x11(conf)
 	check_way(conf)
 
 	conf.load('compiler_c')	
@@ -71,6 +82,7 @@ def configure(conf):
 	conf.recurse(subdirs, mandatory = False)
 	
 def build(bld):
+	check_x11(bld)
 	check_way(bld)
 	bld.recurse(subdirs, mandatory = False)
 	bld.add_post_fun(post)

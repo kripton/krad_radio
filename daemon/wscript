@@ -111,7 +111,7 @@ includedirs = """
 /usr/include
 """.split()
 
-shlibs = ["x11-xcb", "xcb-image", "xcb", "x11", "jack", "cairo", "xmms2-client", "samplerate",
+shlibs = ["jack", "cairo", "xmms2-client", "samplerate",
           "x264", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "flac",
           "vpx", "libswscale", "libavutil"]
 
@@ -189,6 +189,15 @@ def check_way(way):
 	if way.env['WAYRAD']:
 		depsources += ["../lib/krad_wayland/krad_wayland.c"]
 		shlibs += ["wayland-client"]
+		
+def check_x11(x11):
+
+	global depsources
+	global shlibs
+
+	if x11.env['KRAD_USE_X11']:
+		#depsources += ["../lib/krad_x11/krad_x11.c"]
+		shlibs += ["x11-xcb", "xcb-image", "xcb", "x11"]
 
 def remake_webres(web):
   hexilate_file("lib/krad_web/res/krad_radio.html")
@@ -198,6 +207,7 @@ def configure(conf):
 
 	global shlibs
 	global syslibs
+	check_x11(conf)	
 	check_way(conf)
 	check_system(conf)
 
@@ -216,6 +226,7 @@ def build(bld):
 	global syslibs
 	global syslibs2	
 	remake_webres(bld)
+	check_x11(bld)
 	check_way(bld)
 	check_system(bld)
 

@@ -1,10 +1,9 @@
-typedef struct krad_alsa_St krad_alsa_t;
-
-
 #include "krad_audio.h"
 
 #ifndef KRAD_ALSA_H
 #define KRAD_ALSA_H
+
+typedef struct krad_alsa_St krad_alsa_t;
 
 #define DEFAULT_ALSA_CAPTURE_DEVICE "hw:1,0"
 #define DEFAULT_ALSA_PLAYBACK_DEVICE "hw:0,0"
