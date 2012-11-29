@@ -20,7 +20,7 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #define DEFAULT_COMPOSITOR_FPS_DENOMINATOR 1 * 1001
 #define DEFAULT_FPS 30
 #define DEFAULT_FPS_NUMERATOR DEFAULT_FPS * 1000
-#define DEFAULT_FPS_DENOMINATOR 1 * 1000
+#define DEFAULT_FPS_DENOMINATOR 1 * 1001
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 #define KRAD_LINK_DEFAULT_VIDEO_CODEC VP8
@@ -95,6 +95,10 @@ struct krad_link_St {
 	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
 	krad_x264_encoder_t *krad_x264_encoder;
+	
+	krad_vhs_t *krad_vhs;
+	krad_y4m_t *krad_y4m;	
+	
 //	krad_codec2_t *krad_codec2_decoder;
 //	krad_codec2_t *krad_codec2_encoder;
 	krad_vorbis_t *krad_vorbis;

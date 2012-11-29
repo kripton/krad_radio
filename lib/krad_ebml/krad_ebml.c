@@ -1692,6 +1692,10 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 				krad_ebml->tracks[krad_ebml->current_track].codec = VP8;
 			}
 			
+			if (strncmp(string, "V_KVHS", 9) == 0) {
+				krad_ebml->tracks[krad_ebml->current_track].codec = KVHS;
+			}
+			
 			// If we found one of our codecs
 			if (krad_ebml->tracks[krad_ebml->current_track].codec != NOCODEC) {
 				krad_ebml->tracks[krad_ebml->current_track].changed = 1;				

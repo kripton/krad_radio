@@ -65,12 +65,12 @@ void decode_iz (krad_vhs_t *krad_vhs, unsigned char *src, unsigned char *dst) {
 
     KrImage kimage;
 
-    kimage.setWidth(krad_vhs->width);
-    kimage.setHeight(krad_vhs->height);
-    kimage.setSamplesPerLine(krad_vhs->width * 3);
-    kimage.setData(dst);        
-    
     IZ::decodeImageSize(kimage, src);
+    krad_vhs->width = kimage.width();
+    krad_vhs->height = kimage.height();    
+    
+    kimage.setData(dst);
+    
     IZ::decodeImage(kimage, src);
 
 }
@@ -146,16 +146,27 @@ int krad_vhs_decode (krad_vhs_t *krad_vhs, unsigned char *buffer, unsigned char 
   input_rgb_stride_arr[3] = 0;
   output_rgb_stride_arr[3] = 0;	  	
 
-  srcy[0] = krad_vhs->buffer;
-  dsty[0] = pixels;
+  decode_iz (krad_vhs, buffer, krad_vhs->buffer);
+      
+  if (krad_vhs->converter == NULL) {
+      
+    krad_vhs->converter =
+				sws_getContext ( krad_vhs->width,
+								 krad_vhs->height,
+								 PIX_FMT_BGR24,
+								 krad_vhs->width,
+								 krad_vhs->height,
+								 PIX_FMT_RGB32, 
+								 SWS_BICUBIC,
+								 NULL, NULL, NULL);	 
+  }
       
   input_rgb_stride_arr[0] = 3*krad_vhs->width;
   output_rgb_stride_arr[0] = 4*krad_vhs->width;    
 
-        
-  decode_iz (krad_vhs, buffer, krad_vhs->buffer);
-
-                           
+  srcy[0] = krad_vhs->buffer;
+  dsty[0] = pixels;
+                          
   sws_scale (krad_vhs->converter, (const uint8_t * const*)srcy,
              input_rgb_stride_arr, 0, krad_vhs->height, dsty, output_rgb_stride_arr);          
 
@@ -194,16 +205,7 @@ krad_vhs_t *krad_vhs_create_decoder () {
 	
   krad_vhs->buffer = (unsigned char *)malloc (1920 * 1080 * 4);	
 	
-  krad_vhs->converter =
-				sws_getContext ( krad_vhs->width,
-								 krad_vhs->height,
-								 PIX_FMT_BGR24,
-								 krad_vhs->width,
-								 krad_vhs->height,
-								 PIX_FMT_RGB32, 
-								 SWS_BICUBIC,
-								 NULL, NULL, NULL);	
-	
+
 	return krad_vhs;
 
 }

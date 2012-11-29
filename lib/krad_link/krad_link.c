@@ -1407,7 +1407,7 @@ void *stream_input_thread (void *arg) {
 			
 		}
 		
-		if ((track_codecs[current_track] == VP8) || (track_codecs[current_track] == THEORA)) {
+		if ((track_codecs[current_track] == Y4M) || (track_codecs[current_track] == KVHS) || (track_codecs[current_track] == VP8) || (track_codecs[current_track] == THEORA)) {
 
 			video_packets++;
 
@@ -1658,6 +1658,10 @@ void *video_decoding_thread (void *arg) {
 					krad_vpx_decoder_destroy (krad_link->krad_vpx_decoder);
 					krad_link->krad_vpx_decoder = NULL;
 				}
+				if (krad_link->last_video_codec == KVHS) {
+					krad_vhs_destroy (krad_link->krad_vhs);
+					krad_link->krad_vhs = NULL;
+				}				
 				if (krad_link->last_video_codec == THEORA) {
 					krad_theora_decoder_destroy (krad_link->krad_theora_decoder);
 					krad_link->krad_theora_decoder = NULL;
@@ -1673,6 +1677,16 @@ void *video_decoding_thread (void *arg) {
 				krad_link->krad_vpx_decoder = krad_vpx_decoder_create();
 				port_updated = 0;
 			}
+			
+			if (krad_link->video_codec == Y4M) {
+				//krad_link->krad_vpx_decoder = krad_vpx_decoder_create();
+				port_updated = 0;
+			}
+			
+			if (krad_link->video_codec == KVHS) {
+				krad_link->krad_vhs = krad_vhs_create_decoder ();
+				port_updated = 0;
+			}						
 	
 			if (krad_link->video_codec == THEORA) {
 				
@@ -1780,6 +1794,41 @@ void *video_decoding_thread (void *arg) {
 
 			}
 		}
+		
+		if (krad_link->video_codec == KVHS) {
+
+      krad_vhs_decode (krad_link->krad_vhs, buffer, (unsigned char *)krad_frame->pixels);	
+				
+			if (krad_link->krad_vhs->width != 0) {
+				if (port_updated == 0) {
+          printk ("got vhs res: %dx%d", krad_link->krad_vhs->width, krad_link->krad_vhs->height);
+					krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
+														krad_link->krad_vhs->width,
+														krad_link->krad_vhs->height);
+																	
+					port_updated = 1;
+				}
+
+				krad_frame->format = PIX_FMT_RGB32;
+		    krad_frame->timecode = timecode;
+		    krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+			}
+		}
+		
+		if (krad_link->video_codec == Y4M) {
+		  //fixme
+		
+				//if (port_updated == 0) {
+				//	krad_compositor_port_set_io_params (krad_link->krad_compositor_port,
+				//										krad_link->krad_vhs->width,
+				//										krad_link->krad_vhs->height);
+				//													
+				//	port_updated = 1;
+				//}		
+		
+		    krad_frame->timecode = timecode;
+		    krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);		
+		}		
 		
 		krad_framepool_unref_frame (krad_frame);		
 		
@@ -2364,7 +2413,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
-	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (6000000);
+	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (100000000);
 
 	if (krad_link->operation_mode == CAPTURE) {
 
