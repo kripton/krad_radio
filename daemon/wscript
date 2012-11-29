@@ -62,6 +62,7 @@ depsources = """
 ../lib/krad_udp/krad_udp.c
 ../lib/krad_decklink/krad_decklink.c
 ../lib/krad_decklink/krad_decklink_capture.cpp
+../lib/krad_vhs/krad_vhs.cpp
 """.split()
 
 includedirs = """
@@ -76,6 +77,7 @@ includedirs = """
 ../lib/krad_web/ext/libwebsockets/
 ../lib/krad_web/res/
 ../lib/krad_sfx/
+../lib/krad_vhs/
 ../lib/krad_tone/
 ../lib/krad_ipc/
 ../lib/krad_tags/
@@ -113,7 +115,7 @@ includedirs = """
 
 shlibs = ["jack", "cairo", "xmms2-client", "samplerate",
           "x264", "theora", "theoraenc", "theoradec", "vorbis", "vorbisenc", "opus", "flac",
-          "vpx", "libswscale", "libavutil"]
+          "vpx", "libswscale", "libavutil", "iz"]
 
 stlibs = []
 syslibs = ['m', 'dl', 'z']

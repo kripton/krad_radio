@@ -30,6 +30,7 @@ includedirs = """
 ../lib/krad_web/ext/
 ../lib/krad_web/ext/libwebsockets/
 ../lib/krad_web/res/
+../lib/krad_vhs/
 ../lib/krad_sfx/
 ../lib/krad_tone/
 ../lib/krad_ipc/
