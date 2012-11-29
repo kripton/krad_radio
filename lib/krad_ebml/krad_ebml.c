@@ -18,6 +18,8 @@ char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec) {
 			return "A_OPUS";
 		case VP8:
 			return "V_VP8";
+		case KVHS:
+			return "V_KVHS";			
 		case THEORA:
 			return "V_THEORA";
 		case MJPEG:

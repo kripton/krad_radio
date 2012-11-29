@@ -24,6 +24,9 @@ KrImage::~KrImage()
 {
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int save_file (void *buffer, unsigned int size) {
 	
@@ -97,7 +100,7 @@ void init_iz () {
 
 
   
-int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *buffer) {
+int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *pixels) {
 
   int encoded_size;
 	int input_rgb_stride_arr[4];
@@ -112,7 +115,7 @@ int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *buffer) {
   input_rgb_stride_arr[3] = 0;
   output_rgb_stride_arr[3] = 0;	  	
 
-  srcy[0] = buffer;
+  srcy[0] = pixels;
   dsty[0] = krad_vhs->buffer;
           
   input_rgb_stride_arr[0] = 4*krad_vhs->width;
@@ -122,7 +125,7 @@ int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *buffer) {
   sws_scale (krad_vhs->converter, (const uint8_t * const*)srcy,
 				     input_rgb_stride_arr, 0, krad_vhs->height, dsty, output_rgb_stride_arr);
           
-  encoded_size = encode_iz (krad_vhs, krad_vhs->buffer, buffer);
+  encoded_size = encode_iz (krad_vhs, krad_vhs->buffer, krad_vhs->enc_buffer);
   
   return encoded_size;
 
@@ -172,6 +175,12 @@ void krad_vhs_destroy (krad_vhs_t *krad_vhs) {
 		free ( krad_vhs->buffer );
 		krad_vhs->buffer = NULL;
 	}
+	
+
+	if (krad_vhs->enc_buffer != NULL) {
+		free ( krad_vhs->enc_buffer );
+		krad_vhs->enc_buffer = NULL;
+	}
 
 	free (krad_vhs);
 
@@ -204,7 +213,8 @@ krad_vhs_t *krad_vhs_create_encoder (int width, int height) {
 	krad_vhs_t *krad_vhs = (krad_vhs_t *)calloc(1, sizeof(krad_vhs_t));
 	
   krad_vhs->buffer = (unsigned char *)malloc (1920 * 1080 * 4);
-	
+  krad_vhs->enc_buffer = (unsigned char *)malloc (1920 * 1080 * 4);
+
   init_iz ();//fixme
 	
 	krad_vhs->encoder = 1;
@@ -224,3 +234,7 @@ krad_vhs_t *krad_vhs_create_encoder (int width, int height) {
 	return krad_vhs;
 
 }
+
+#ifdef __cplusplus
+}
+#endif

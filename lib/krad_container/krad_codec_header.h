@@ -14,6 +14,7 @@ typedef enum {
 	SKELETON,
 	Y4M,
 	DAALA,
+	KVHS,
 	H264,
 	NOCODEC,
 } krad_codec_t;
