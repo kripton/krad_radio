@@ -1811,7 +1811,8 @@ void *video_decoding_thread (void *arg) {
 
 				krad_frame->format = PIX_FMT_RGB32;
 		    krad_frame->timecode = timecode;
-		    krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		    //krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+		    krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 			}
 		}
 		
