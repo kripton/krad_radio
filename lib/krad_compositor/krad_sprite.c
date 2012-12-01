@@ -110,8 +110,13 @@ void krad_sprite_open_file (krad_sprite_t *krad_sprite, char *filename) {
 		krad_sprite->sheet_width = cairo_image_surface_get_width ( krad_sprite->sprite );
 		krad_sprite->sheet_height = cairo_image_surface_get_height ( krad_sprite->sprite );
 		if (krad_sprite->frames > 1) {
-			krad_sprite->width = krad_sprite->sheet_width / 10;
-			krad_sprite->height = krad_sprite->sheet_height / ((krad_sprite->frames / 10) + MIN (1, (krad_sprite->frames % 10)));
+      if (krad_sprite->frames >= 10) {
+			  krad_sprite->width = krad_sprite->sheet_width / 10;
+        krad_sprite->height = krad_sprite->sheet_height / ((krad_sprite->frames / 10) + MIN (1, (krad_sprite->frames % 10)));			  
+			} else {
+			  krad_sprite->width = krad_sprite->sheet_width / krad_sprite->frames;
+			  krad_sprite->height = krad_sprite->sheet_height;
+			}
 		} else {
 			krad_sprite->width = krad_sprite->sheet_width;
 			krad_sprite->height = krad_sprite->sheet_height;			
