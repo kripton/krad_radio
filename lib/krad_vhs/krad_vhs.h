@@ -1,6 +1,7 @@
 #ifndef KRAD_VHS_H
 
 #ifdef __cplusplus
+#define __STDC_FORMAT_MACROS
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
