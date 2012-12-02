@@ -2,12 +2,12 @@
 
 static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_station, char *item );
 static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir );
-static void krad_radio_destroy (krad_radio_t *krad_radio);
+static void krad_radio_shutdown (krad_radio_t *krad_radio);
 static krad_radio_t *krad_radio_create (char *sysname);
 static void krad_radio_run (krad_radio_t *krad_radio);
 static int krad_radio_handler ( void *output, int *output_len, void *ptr );
 
-static void krad_radio_destroy (krad_radio_t *krad_radio) {
+static void krad_radio_shutdown (krad_radio_t *krad_radio) {
 
   krad_system_monitor_cpu_off ();
   printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));
@@ -82,14 +82,14 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 	krad_radio->krad_tags = krad_tags_create ("station");
 	
 	if (krad_radio->krad_tags == NULL) {
-		krad_radio_destroy (krad_radio);
+		krad_radio_shutdown (krad_radio);
 		return NULL;
 	}
 	
 	krad_radio->krad_mixer = krad_mixer_create (krad_radio->sysname);
 	
 	if (krad_radio->krad_mixer == NULL) {
-		krad_radio_destroy (krad_radio);
+		krad_radio_shutdown (krad_radio);
 		return NULL;
 	}
 	
@@ -99,7 +99,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 														  DEFAULT_COMPOSITOR_FPS_DENOMINATOR);
 	
 	if (krad_radio->krad_compositor == NULL) {
-		krad_radio_destroy (krad_radio);
+		krad_radio_shutdown (krad_radio);
 		return NULL;
 	}
 	
@@ -108,21 +108,21 @@ static krad_radio_t *krad_radio_create (char *sysname) {
 	krad_radio->krad_linker = krad_linker_create (krad_radio);
 	
 	if (krad_radio->krad_linker == NULL) {
-		krad_radio_destroy (krad_radio);
+		krad_radio_shutdown (krad_radio);
 		return NULL;
 	}
 	
 	krad_radio->krad_osc = krad_osc_create ();
 	
 	if (krad_radio->krad_osc == NULL) {
-		krad_radio_destroy (krad_radio);
+		krad_radio_shutdown (krad_radio);
 		return NULL;
 	}	
 	
 	krad_radio->krad_ipc = krad_ipc_server_create ( "krad_radio", sysname, krad_radio_handler, krad_radio );
 	
 	if (krad_radio->krad_ipc == NULL) {
-		krad_radio_destroy (krad_radio);
+		krad_radio_shutdown (krad_radio);
 		return NULL;
 	}
 	
@@ -157,7 +157,7 @@ void krad_radio_daemon (char *sysname) {
 
 	if (krad_radio_station != NULL) {
 		krad_radio_run ( krad_radio_station );
-		krad_radio_destroy (krad_radio_station);
+		krad_radio_shutdown (krad_radio_station);
 	}
 }
 

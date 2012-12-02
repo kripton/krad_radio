@@ -364,8 +364,7 @@ int krad_valid_sysname (char *sysname) {
 						    "begin with a letter, and no longer than %d characters.",
 						    KRAD_SYSNAME_MIN, KRAD_SYSNAME_MAX);
 	
-	
-	if (strlen(sysname) < KRAD_SYSNAME_MIN) {
+	if ((sysname == NULL) || (strlen(sysname) < KRAD_SYSNAME_MIN)) {
 		fprintf (stderr, "sysname %s is invalid, too short!\n", sysname);
 		fprintf (stderr, "%s\n", requirements);
 		return 0;

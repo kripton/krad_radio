@@ -135,19 +135,19 @@ int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 
 /*** Krad Radio Control ***/
 
-int krad_radio_destroy_daemon (char *sysname);
-int krad_radio_find_daemon_pid (char *sysname);
-void krad_radio_launch_daemon (char *sysname);
-void krad_radio_watchdog (char *config_file);
+void krad_radio_launch (char *sysname);
+int krad_radio_destroy (char *sysname);
 void krad_radio_watchdog_launch (char *config_file);
-char *krad_radio_get_running_daemons_list ();
+int krad_radio_running (char *sysname);
+int krad_radio_pid (char *sysname);
+char *krad_radio_threads (char *sysname);
+char *krad_radio_running_stations ();
 
 
 /*** Krad Radio Client API ***/
 
 kr_client_t *kr_connect (char *sysname);
 void kr_disconnect (kr_client_t *client);
-void kr_run_and_print_cmd (char *cmd);
 
 /** Station **/
 

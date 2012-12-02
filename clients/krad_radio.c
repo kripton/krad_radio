@@ -21,8 +21,16 @@ void krad_radio_command_help () {
 int main (int argc, char *argv[]) {
 
 	kr_client_t *client;
+	char *sysname;
+	char *string;
 	int ret;
 	int val;
+	
+	sysname = NULL;
+  client = NULL;
+  string = NULL;
+  ret = 0;
+  val = 0;
 	
 	if ((argc == 1) || (argc == 2)) {
 	
@@ -35,14 +43,14 @@ int main (int argc, char *argv[]) {
         return 0;
 		  }
 
-      if (strncmp(argv[1], "threads", 7) == 0) {
-        kr_run_and_print_cmd ("ps -AL|grep kr_");
+      if ((strlen(argv[1]) == 7) && (strncmp(argv[1], "threads", 7) == 0)) {
+        printf ("%s\n", krad_radio_threads (NULL));
         return 0;
       }
   
       if ((strlen(argv[1]) == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
 
-		    printf ("Running Stations: \n\n%s\n", krad_radio_get_running_daemons_list ());
+		    printf ("Running Stations: \n\n%s\n", krad_radio_running_stations ());
 	
 		    return 0;
 	    }
@@ -63,16 +71,18 @@ int main (int argc, char *argv[]) {
 		if (!krad_valid_sysname(argv[1])) {
 			fprintf (stderr, "Invalid station sysname!\n");
 		  return 1;
+		} else {
+		  sysname = argv[1];
 		}
 	}
 
 	if ((strncmp(argv[2], "launch", 6) == 0) || (strncmp(argv[2], "load", 4) == 0)) {
-		krad_radio_launch_daemon (argv[1]);
+		krad_radio_launch (sysname);
 		return 0;
 	}
 
 	if ((strncmp(argv[2], "destroy", 7) == 0) || (strncmp(argv[2], "kill", 4) == 0)) {
-		ret = krad_radio_destroy_daemon (argv[1]);
+		ret = krad_radio_destroy (sysname);
 		if (ret == 0) {
 			printf ("Daemon shutdown\n");
 		}
@@ -83,12 +93,17 @@ int main (int argc, char *argv[]) {
 			printf ("Daemon was not running\n");
 		}
 		return 0;
-	}		
+	}
+	
+  if ((strlen(argv[2]) == 7) && (strncmp(argv[2], "threads", 7) == 0)) {
+    printf ("%s\n", krad_radio_threads (sysname));
+    return 0;
+  }
 
-	client = kr_connect (argv[1]);
+	client = kr_connect (sysname);
 
 	if (client == NULL) {
-		fprintf (stderr, "Could not connect to %s krad radio daemon\n", argv[1]);
+		fprintf (stderr, "Could not connect to %s krad radio daemon\n", sysname);
 		return 1;
 	}
 

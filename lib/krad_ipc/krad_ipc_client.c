@@ -1,5 +1,8 @@
 #include "krad_ipc_client.h"
 
+static void krad_radio_watchdog (char *config_file);
+static char *krad_radio_run_cmd (char *cmd);
+
 kr_client_t *kr_connect (char *sysname) {
 	
 	krad_ipc_client_t *client = calloc (1, sizeof (krad_ipc_client_t));
@@ -152,25 +155,41 @@ int krad_ipc_client_init (krad_ipc_client_t *client) {
 	return client->sd;
 }
 
-void kr_run_and_print_cmd (char *cmd) {
+static char *krad_radio_run_cmd (char *cmd) {
 
   FILE *fp;
-  char buf[128];
+  int pos;
+  char buf[256];
+  static char buffer[8192];
+
+  pos = 0;
+
+  if (cmd == NULL) {
+    return NULL;
+  }
 
   fp = popen(cmd, "r");
   if (fp == NULL) {
-    return;
+    return NULL;
   }
+  
+  buffer[0] = '\0';
 
-  while (fgets(buf, 128, fp) != NULL) {
-    printf ("%s", buf);
+  while (fgets(buf, sizeof(buf), fp) != NULL) {
+    pos += snprintf (buffer + pos, pos - sizeof(buffer), "%s", buf);
+    if (pos + sizeof(buf) >= sizeof(buffer)) {
+      buffer[pos] = '\0';
+      break;
+    }
   }
 
   pclose (fp);
+  
+  return buffer;
 
 }
 
-char *krad_radio_get_running_daemons_list () {
+char *krad_radio_running_stations () {
 
 	char *unix_sockets;
 	int fd;
@@ -227,7 +246,36 @@ char *krad_radio_get_running_daemons_list () {
 	
 }
 
-int krad_radio_find_daemon_pid (char *sysname) {
+char *krad_radio_threads (char *sysname) {
+
+  int pid;
+  char cmd[64];
+  
+  pid = 0;
+
+  if ((sysname != NULL) && (krad_valid_sysname(sysname))) {
+    pid = krad_radio_pid (sysname);
+  }
+
+  if (pid > 0) {
+    snprintf (cmd, sizeof(cmd), "ps -AL|grep %d|grep kr_", pid);
+  } else {
+    snprintf (cmd, sizeof(cmd), "ps -AL|grep kr_");
+  }
+
+  return krad_radio_run_cmd (cmd);
+
+}
+
+int krad_radio_running (char *sysname) {
+  if ((krad_radio_pid (sysname)) > 0) {
+    return 1;
+  }
+  
+  return 0; 
+}
+
+int krad_radio_pid (char *sysname) {
 
 	DIR *dp;
 	struct dirent *ep;
@@ -238,6 +286,10 @@ int krad_radio_find_daemon_pid (char *sysname) {
 	int fd;
 	int bytes;
 	int pid;
+	
+  if (!(krad_valid_sysname(sysname))) {
+    return 0;
+  }
 	
 	pid = 0;
 	memset(search, '\0', sizeof(search));	
@@ -280,7 +332,7 @@ int krad_radio_find_daemon_pid (char *sysname) {
 
 }
 
-int krad_radio_destroy_daemon (char *sysname) {
+int krad_radio_destroy (char *sysname) {
 
 	int pid;
 	int wait_time_total;
@@ -292,16 +344,16 @@ int krad_radio_destroy_daemon (char *sysname) {
 	clean_shutdown_wait_time_limit = 3000000;
 	wait_time_interval = clean_shutdown_wait_time_limit / 40;
 		
-	pid = krad_radio_find_daemon_pid (sysname);
+	pid = krad_radio_pid (sysname);
 	
 	if (pid != 0) {
 		kill (pid, 15);
 		while ((pid != 0) && (wait_time_total < clean_shutdown_wait_time_limit)) {
 			usleep (wait_time_interval);
 			wait_time_total += wait_time_interval;
-			pid = krad_radio_find_daemon_pid (sysname);
+			pid = krad_radio_pid (sysname);
 		}
-		pid = krad_radio_find_daemon_pid (sysname);
+		pid = krad_radio_pid (sysname);
 		if (pid != 0) {
 			kill (pid, 9);
 			return 1;
@@ -313,7 +365,7 @@ int krad_radio_destroy_daemon (char *sysname) {
 	return -1;
 }
 
-void krad_radio_launch_daemon (char *sysname) {
+void krad_radio_launch (char *sysname) {
 
 	pid_t pid;
 
@@ -493,11 +545,11 @@ void krad_radio_watchdog_check_daemon (char *sysname, char *launch_script) {
 				kr_disconnect (client);
 				client = NULL;
 			} else {
-				krad_radio_destroy_daemon (sysname);
+				krad_radio_destroy (sysname);
 				if (launch_script != NULL) {
 					krad_radio_watchdog_run_program (launch_script);
 				} else {
-					krad_radio_launch_daemon (sysname);
+					krad_radio_launch (sysname);
 				}
 			}
 			exit (EXIT_SUCCESS);
