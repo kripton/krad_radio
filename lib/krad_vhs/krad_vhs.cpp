@@ -1,18 +1,4 @@
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <stdint.h>
-#include <inttypes.h>
-
-#include <libiz.h>
 #include "krad_vhs.h"
-
-#ifdef __cplusplus
-extern "C" {
-#include <libswscale/swscale.h>
-}
-#endif
 
 KrImage::KrImage()
 {

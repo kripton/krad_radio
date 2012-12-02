@@ -1,7 +1,13 @@
 #ifndef KRAD_VHS_H
 
 #ifdef __cplusplus
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 extern "C" {
+#include <stdint.h>
+#include <inttypes.h>
 #include <libswscale/swscale.h>
 }
 #endif
