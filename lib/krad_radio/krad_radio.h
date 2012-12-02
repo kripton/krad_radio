@@ -36,6 +36,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_tone.h"
 #include "krad_audio.h"
 #include "krad_jack.h"
+#include "krad_vhs.h"
 #ifndef __MACH__
 #include "krad_v4l2.h"
 #include "krad_alsa.h"

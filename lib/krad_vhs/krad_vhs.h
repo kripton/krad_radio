@@ -24,8 +24,9 @@ private:
     int m_maxVal;
 };
 
+#endif
 
-
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -40,18 +41,20 @@ struct krad_vhs_St {
 	struct SwsContext *converter;	
 
   unsigned char *buffer;
+  
+  unsigned char *enc_buffer;  
 
 };
 
 
 void krad_vhs_destroy (krad_vhs_t *krad_vhs);
 krad_vhs_t *krad_vhs_create_encoder (int width, int height);
-krad_vhs_t *krad_vhs_create ();
-
-int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *buffer);
+krad_vhs_t *krad_vhs_create_decoder ();
+int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *pixels);
 int krad_vhs_decode (krad_vhs_t *krad_vhs, unsigned char *buffer, unsigned char *pixels);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -18,6 +18,8 @@ char *krad_ebml_codec_to_ebml_codec_id (krad_codec_t codec) {
 			return "A_OPUS";
 		case VP8:
 			return "V_VP8";
+		case KVHS:
+			return "V_KVHS";			
 		case THEORA:
 			return "V_THEORA";
 		case MJPEG:
@@ -1688,6 +1690,10 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			
 			if (strncmp(string, "V_VP8", 8) == 0) {
 				krad_ebml->tracks[krad_ebml->current_track].codec = VP8;
+			}
+			
+			if (strncmp(string, "V_KVHS", 9) == 0) {
+				krad_ebml->tracks[krad_ebml->current_track].codec = KVHS;
 			}
 			
 			// If we found one of our codecs

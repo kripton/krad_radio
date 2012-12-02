@@ -93,6 +93,8 @@ char *krad_codec_to_string (krad_codec_t codec) {
 			return "Mjpeg";
 		case PNG:
 			return "PNG";
+		case KVHS:
+			return "KVHS";
 		case DAALA:
 			return "Daala";
 		case H264:
@@ -144,6 +146,10 @@ krad_codec_t krad_string_to_codec_full (char *string, krad_link_av_mode_t av_mod
 	
 		if ((strstr(string, "Y4M") != NULL) || (strstr(string, "y4m") != NULL)) {
 			return Y4M;
+		}
+		
+		if ((strstr(string, "KVHS") != NULL) || (strstr(string, "vhs") != NULL)) {
+			return KVHS;
 		}
 	
 		if ((strstr(string, "MJPEG") != NULL) || (strstr(string, "Mjpeg") != NULL) || (strstr(string, "mjpeg") != NULL)) {

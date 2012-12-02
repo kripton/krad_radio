@@ -1062,6 +1062,12 @@ void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_composit
 
 		}
 		
+
+    while (krad_ringbuffer_read_space (krad_compositor_port->frame_ring) >= (sizeof(krad_frame_t *) * 30)) {
+      usleep (18000);
+      //kludge to not buffer more than 1 handfull? of frames ahead for fast sources
+    }
+		
 		scaled_frame = krad_framepool_getframe (krad_compositor_port->krad_compositor->krad_framepool);					 
 
 		if (scaled_frame == NULL) {
