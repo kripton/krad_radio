@@ -1,7 +1,5 @@
 #ifndef KRAD_VHS_H
 
-#define __STDC_FORMAT_MACROS
-
 #ifdef __cplusplus
 #include <cstdio>
 #include <cstdlib>
@@ -12,6 +10,7 @@ extern "C" {
 
 #include <math.h>
 #include <stdint.h>
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <libswscale/swscale.h>
 
