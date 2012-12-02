@@ -7,8 +7,12 @@
 #include <ctime>
 extern "C" {
 #endif
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+#ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
+#endif
 #include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
