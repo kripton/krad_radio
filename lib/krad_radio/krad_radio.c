@@ -240,7 +240,39 @@ static krad_tags_t *krad_radio_find_tags_for_item ( krad_radio_t *krad_radio_sta
 
 }
 
+static int dir_exists (char *dir) {
+
+  int err;
+  struct stat s;
+
+  err = stat (dir, &s);
+
+  if (err == -1) {
+    if(ENOENT == errno) {
+      // does not exist
+      return 0;
+    } else {
+      // another error
+      return 0;
+    }
+  } else {
+    if(S_ISDIR(s.st_mode)) {
+      // it's a directory
+      return 1;
+    } else {
+      // exists but is no dir
+      return 0;
+    }
+  }
+
+  return 0;
+}
+
 static void krad_radio_set_dir ( krad_radio_t *krad_radio_station, char *dir ) {
+
+  if ((dir == NULL) || (!dir_exists (dir))) {
+    return;
+  }
 
 	if (krad_radio_station->dir != NULL) {
 		free (krad_radio_station->dir);
