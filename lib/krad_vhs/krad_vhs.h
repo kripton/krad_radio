@@ -11,17 +11,11 @@ extern "C" {
 #include <image.h>
 #include <libiz.h>
 
-
 class KrImage : public IZ::Image<>
 {
 public:
-    KrImage();
-    ~KrImage();
-
-
-private:
-    int m_components;
-    int m_maxVal;
+  KrImage();
+  ~KrImage();
 };
 
 #endif
@@ -41,11 +35,9 @@ struct krad_vhs_St {
 	struct SwsContext *converter;	
 
   unsigned char *buffer;
-  
   unsigned char *enc_buffer;  
 
 };
-
 
 void krad_vhs_destroy (krad_vhs_t *krad_vhs);
 krad_vhs_t *krad_vhs_create_encoder (int width, int height);

@@ -14,9 +14,7 @@ extern "C" {
 }
 #endif
 
-
 KrImage::KrImage()
-    : m_components(0)
 {
 }
 
@@ -28,38 +26,7 @@ KrImage::~KrImage()
 extern "C" {
 #endif
 
-int save_file (void *buffer, unsigned int size) {
-	
-	static int comped = 0;
-	char snapname[128];
-	FILE *fp;
-	
-	sprintf (snapname, "/home/oneman/kode/comped_%d.iz", comped++);
-
-  fp = fopen (snapname, "wb");
-  fwrite (buffer, 1, size, fp);
-  fclose (fp);
-
-	return 0;
-
-}
-
-int open_file (void *buffer) {
-	
-	static int comped = 0;
-	char snapname[128];
-	FILE *fp;
-	int ret;
-	
-	sprintf (snapname, "/home/oneman/kode/comped_%d.iz", comped++);
-
-  fp = fopen (snapname, "rb");
-  ret = fread (buffer, 1, 1280 * 720 * 3, fp);
-  fclose (fp);
-
-	return ret;
-
-}
+static int iz_initialized = 0;
 
 void decode_iz (krad_vhs_t *krad_vhs, unsigned char *src, unsigned char *dst) {
 
@@ -92,13 +59,14 @@ size_t encode_iz (krad_vhs_t *krad_vhs, unsigned char *src, unsigned char *dst) 
 }
 
 void init_iz () {
-  IZ::initEncodeTable();
-  IZ::initDecodeTable();
+
+  if (iz_initialized == 0) {
+    IZ::initEncodeTable();
+    IZ::initDecodeTable();
+    iz_initialized = 1;
+  }
+
 }
-
-
-
-
   
 int krad_vhs_encode (krad_vhs_t *krad_vhs, unsigned char *pixels) {
 
@@ -201,7 +169,7 @@ krad_vhs_t *krad_vhs_create_decoder () {
 
 	krad_vhs_t *krad_vhs = (krad_vhs_t *)calloc(1, sizeof(krad_vhs_t));
 	
-  init_iz (); //fixme
+  init_iz ();
 	
   krad_vhs->buffer = (unsigned char *)malloc (1920 * 1080 * 4);	
 	
@@ -217,7 +185,7 @@ krad_vhs_t *krad_vhs_create_encoder (int width, int height) {
   krad_vhs->buffer = (unsigned char *)malloc (1920 * 1080 * 4);
   krad_vhs->enc_buffer = (unsigned char *)malloc (1920 * 1080 * 4);
 
-  init_iz ();//fixme
+  init_iz ();
 	
 	krad_vhs->encoder = 1;
 	krad_vhs->width = width;
