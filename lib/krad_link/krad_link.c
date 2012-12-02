@@ -2280,14 +2280,19 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	}
 	
 	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
-		if (krad_link->video_source != NOVIDEO) {
-			pthread_join (krad_link->video_encoding_thread, NULL);
-		} else {
-			krad_link->encoding = 3;
+
+		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+		  if (krad_link->video_source != NOVIDEO) {
+			  pthread_join (krad_link->video_encoding_thread, NULL);
+		  } else {
+			  krad_link->encoding = 3;
+		  }
 		}
-	
-		if (krad_link->audio_codec != NOCODEC) {
-			pthread_join (krad_link->audio_encoding_thread, NULL);
+
+		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+		  if (krad_link->audio_codec != NOCODEC) {
+			  pthread_join (krad_link->audio_encoding_thread, NULL);
+		  }
 		}
 	}
 	
