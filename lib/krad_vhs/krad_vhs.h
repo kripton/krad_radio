@@ -6,13 +6,15 @@
 #include <cstring>
 #include <ctime>
 extern "C" {
+#endif
+
+#include <math.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <libswscale/swscale.h>
-}
-#endif
 
 #ifdef __cplusplus
+}
 
 #include <image.h>
 #include <libiz.h>
@@ -24,9 +26,6 @@ public:
   ~KrImage();
 };
 
-#endif
-
-#ifdef __cplusplus
 extern "C" {
 #endif
 
