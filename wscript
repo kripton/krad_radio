@@ -88,4 +88,3 @@ def build(bld):
 def post(pst):
 	if pst.cmd == 'install' and pst.env['IS_LINUX'] == True: 
 		pst.exec_command('/sbin/ldconfig')
-		print "Ran ldconfig"
