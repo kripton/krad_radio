@@ -62,3 +62,6 @@ tests/krad_dockpanel_test_wayland
 tests/krad_easing_test
 tests/krad_webm_dash_vod_test
 tests/krad_webm_extract
+
+## Files created by QtCreator
+krad_radio.*
