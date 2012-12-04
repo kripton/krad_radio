@@ -5,7 +5,7 @@ void krad_radio_command_help () {
 	printf ("krad_radio STATION_SYSNAME COMMAND OPTIONS...");
 	printf ("\n\n");
 	printf ("Commands:\n");
-	
+
 	printf ("launch ls destroy uptime info tag tags stag remoteon remoteoff webon weboff oscon oscoff setrate getrate mix");
 	printf ("\n");
 	printf ("setdir lm ll lc tone input output rmport plug unplug map mixmap xmms2 noxmms2 listen_on listen_off link");
@@ -22,23 +22,21 @@ int main (int argc, char *argv[]) {
 
 	kr_client_t *client;
 	char *sysname;
-	char *string;
 	int ret;
 	int val;
-	
+
 	sysname = NULL;
   client = NULL;
-  string = NULL;
   ret = 0;
   val = 0;
-	
+
 	if ((argc == 1) || (argc == 2)) {
-	
+
 	  if (argc == 2) {
 		  if ((strncmp(argv[1], "v", 1) == 0) ||
 		      (strncmp(argv[1], "-v", 2) == 0) ||
 		      (strncmp(argv[1], "--v", 3) == 0)) {
-		      
+
         printf (KRAD_VERSION_STRING "\n");
         return 0;
 		  }
@@ -51,17 +49,17 @@ int main (int argc, char *argv[]) {
       if ((strlen(argv[1]) == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
 
 		    printf ("Running Stations: \n\n%s\n", krad_radio_running_stations ());
-	
+
 		    return 0;
 	    }
 
 		}
-		
+
 		krad_radio_command_help ();
 		return 0;
 
 	}
-	
+
 	if ((strncmp(argv[1], "watchdog", 8) == 0) || (strncmp(argv[1], "dog", 3) == 0)) {
 		krad_radio_watchdog_launch (argv[2]);
 		return 0;
@@ -94,7 +92,7 @@ int main (int argc, char *argv[]) {
 		}
 		return 0;
 	}
-	
+
   if ((strlen(argv[2]) == 7) && (strncmp(argv[2], "threads", 7) == 0)) {
     printf ("%s\n", krad_radio_threads (sysname));
     return 0;
@@ -116,7 +114,7 @@ int main (int argc, char *argv[]) {
 
 	    krad_ipc_compositor_list_ports (client);
 	    krad_ipc_print_response (client);
-	
+
 	    krad_ipc_get_portgroups (client);
 	    krad_ipc_print_response (client);					
 
@@ -740,6 +738,7 @@ int main (int argc, char *argv[]) {
   if (strncmp(argv[2], "lssprite", 8) == 0) {
     if (argc == 3) {
 	    krad_ipc_compositor_list_sprites (client);
+	    krad_ipc_print_response (client);	    
     }
   }
 
@@ -835,6 +834,7 @@ int main (int argc, char *argv[]) {
   if (strncmp(argv[2], "lstext", 6) == 0) {
     if (argc == 3) {
 	    krad_ipc_compositor_list_texts (client);
+	    krad_ipc_print_response (client);	    
     }
   }													
 
@@ -871,7 +871,7 @@ int main (int argc, char *argv[]) {
   }			
 
   kr_disconnect (client);
-	
+
 	return 0;
-	
+
 }

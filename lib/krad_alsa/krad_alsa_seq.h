@@ -38,7 +38,7 @@ struct krad_alsa_seq_St {
 	#ifdef KLUDGE
 	kr_client_t *kr_client;
 	#endif
-	
+
 
 	unsigned char *buffer;
 	char name[128];
@@ -48,7 +48,7 @@ struct krad_alsa_seq_St {
 
 	int port_id;
 	snd_seq_t *seq_handle;
-	
+
 };
 
 #ifdef KLUDGE
@@ -64,4 +64,3 @@ int krad_alsa_seq_run (krad_alsa_seq_t *krad_alsa_seq, char *name);
 
 void krad_alsa_seq_destroy (krad_alsa_seq_t *krad_alsa_seq);
 krad_alsa_seq_t *krad_alsa_seq_create ();
-

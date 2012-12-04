@@ -28,6 +28,7 @@
 #include "krad_system.h"
 #include "krad_ebml.h"
 #include "krad_link_common.h"
+#include "krad_compositor_common.h"
 
 
 #define KRAD_IPC_BUFFER_SIZE 16384

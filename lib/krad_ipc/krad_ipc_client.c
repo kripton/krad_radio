@@ -1415,7 +1415,7 @@ void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x,
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_ADD_TEXT, &textcmd);
 
-	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT, text);
+	krad_ebml_write_string (client->krad_ebml,  EBML_ID_KRAD_COMPOSITOR_TEXT, text);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_X, x);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_Y, y);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_TEXT_TICKRATE, tickrate);
@@ -2951,6 +2951,204 @@ int krad_ipc_client_read_port ( krad_ipc_client_t *client, char *text) {
 
 }
 
+void krad_ipc_client_read_compositor_subunit_controls (krad_ipc_client_t *client, kr_compositor_subunit_controls_t *controls) {
+	
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->x = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->y = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->z = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->width = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->height = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->xscale = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->yscale = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->rotation = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	controls->opacity = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+}
+int krad_ipc_client_read_sprite ( krad_ipc_client_t *client, char *text, krad_sprite_rep_t **krad_sprite_rep) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int bytes_read;
+	
+	int sprite_number;
+	
+	krad_sprite_rep_t *krad_sprite;
+	
+	char string[1024];
+	memset (string, '\0', 1024);
+	
+	krad_sprite = calloc (1, sizeof (krad_sprite_rep_t));
+	krad_sprite->controls = calloc (1, sizeof (kr_compositor_subunit_controls_t));
+	bytes_read = 0;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST) {
+		//printk ("hrm wtf1\n");
+	} else {
+		bytes_read += ebml_data_size + 10;
+	}
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	sprite_number = krad_ebml_read_number( client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	krad_ebml_read_string( client->krad_ebml, krad_sprite->filename, ebml_data_size);
+	
+	krad_ipc_client_read_compositor_subunit_controls (client, krad_sprite->controls);
+	
+	sprintf (text, "Id: %d  Filename: \"%s\"  X: %d  Y: %d  Z: %d  Xscale: %f Yscale: %f  Rotation: %f  Opacity: %f", 
+	         sprite_number, krad_sprite->filename,
+	         krad_sprite->controls->x, krad_sprite->controls->y, krad_sprite->controls->z,
+	         krad_sprite->controls->xscale, krad_sprite->controls->yscale,
+	         krad_sprite->controls->rotation, krad_sprite->controls->opacity);
+         
+		
+	return bytes_read;
+}
+
+int krad_ipc_client_read_text ( krad_ipc_client_t *client, char *text, krad_text_rep_t **krad_text_rep) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int bytes_read;
+	
+	int text_number;
+	
+	krad_text_rep_t *krad_text;
+	
+	char string[1024];
+	memset (string, '\0', 1024);
+	
+	krad_text = calloc (1, sizeof (krad_text_rep_t));
+	krad_text->controls = calloc (1, sizeof (kr_compositor_subunit_controls_t));
+	bytes_read = 0;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	
+	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_TEXT) {
+		//printk ("hrm wtf1\n");
+	} else {
+		bytes_read += ebml_data_size + 9;
+	}
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	text_number = krad_ebml_read_number( client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	krad_ebml_read_string( client->krad_ebml, krad_text->text, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	krad_ebml_read_string( client->krad_ebml, krad_text->font, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_RED) {
+		//printk ("hrm wtf2\n");
+	} else {
+		//printk ("tag name size %zu\n", ebml_data_size);
+	}
+		
+	krad_text->red = 
+	        krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_GREEN) {
+		//printk ("hrm wtf2\n");
+	} else {
+		//printk ("tag name size %zu\n", ebml_data_size);
+	}
+		
+	krad_text->green = 
+	        krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_COMPOSITOR_BLUE) {
+		//printk ("hrm wtf2\n");
+	} else {
+		//printk ("tag name size %zu\n", ebml_data_size);
+	}
+		
+	krad_text->blue = 
+	        krad_ebml_read_float (client->krad_ebml, ebml_data_size);
+
+	krad_ipc_client_read_compositor_subunit_controls (client, krad_text->controls);
+
+	sprintf (text, "Id: %d  Text:\"%s\"  Font: \"%s\"  Red: %d  Green: %d  Blue: %d  X: %d  Y: %d  Z: %d  Xscale: %f Yscale: %f  Rotation: %f  Opacity: %f", 
+	         text_number, krad_text->text, krad_text->font,
+	         (int) (1000*krad_text->red), (int) (1000*krad_text->green), (int) (1000*krad_text->blue),
+	         krad_text->controls->x, krad_text->controls->y, krad_text->controls->z,
+	         krad_text->controls->xscale, krad_text->controls->yscale,
+	         krad_text->controls->rotation, krad_text->controls->opacity);
+		
+	return bytes_read;
+}
+int krad_ipc_client_read_frame_size ( krad_ipc_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int bytes_read;
+	
+	int width, height;
+	
+	char string[1024];
+	memset (string, '\0', 1024);
+	
+	bytes_read = 6;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	width = krad_ebml_read_number( client->krad_ebml, ebml_data_size);
+	bytes_read += ebml_data_size;
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	height = krad_ebml_read_number( client->krad_ebml, ebml_data_size);
+	bytes_read += ebml_data_size;
+
+	sprintf (text, "Width: %d  Height: %d", 
+	         width, height);
+		
+	return bytes_read;
+}
+
+int krad_ipc_client_read_frame_rate ( krad_ipc_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int bytes_read;
+	
+	int numerator, denominator;
+	
+	char string[1024];
+	memset (string, '\0', 1024);
+	
+	bytes_read = 6;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+	numerator = krad_ebml_read_number( client->krad_ebml, ebml_data_size);
+	bytes_read += ebml_data_size;
+	
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
+	denominator = krad_ebml_read_number( client->krad_ebml, ebml_data_size);
+	bytes_read += ebml_data_size;
+
+	sprintf (text, "Numerator: %d  Denominator: %d - %f", 
+	         numerator, denominator, (float) numerator / (float) denominator );
+		
+	return bytes_read;
+}
+
 int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep) {
 
 	uint32_t ebml_id;
@@ -3536,6 +3734,9 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 
 	char string[1024];	
 	krad_link_rep_t *krad_link;
+	krad_text_rep_t *krad_text;
+	krad_sprite_rep_t *krad_sprite;
+	krad_compositor_rep_t *krad_compositor;
 	
 	tag_item_actual[0] = '\0';	
 	tag_name_actual[0] = '\0';
@@ -3653,144 +3854,219 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 		
 		
 				break;
-			case EBML_ID_KRAD_MIXER_MSG:
-				//printf("Received KRAD_MIXER_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+		case EBML_ID_KRAD_MIXER_MSG:
+			//printf("Received KRAD_MIXER_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
 			
-				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-				switch ( ebml_id ) {
-					case EBML_ID_KRAD_MIXER_CONTROL:
-						printk ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
-
-
-	
-						break;	
-					case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
-						//printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
-						list_size = ebml_data_size;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
-							//printf("Tag %s - %s.\n", tag_name, tag_value);
-							if (bytes_read == list_size) {
-								break;
-							}
-						}	
-						break;
-					case EBML_ID_KRAD_MIXER_PORTGROUP:
-						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-						printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
-						break;
-						
-					case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
-						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						printf ("Krad Mixer Sample Rate: %"PRIu64"\n", number );
-						break;
-						
-					case EBML_ID_KRAD_MIXER_JACK_RUNNING:
-						//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
-						number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						if (number > 0) {
-							printf ("Yes\n");
-						} else {
-							printf ("Jack Server not running\n");
-						}
-						break;
-						
-										
-						
-				}
-		
-		
-				break;
-				
-			case EBML_ID_KRAD_COMPOSITOR_MSG:
-
-				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-				switch ( ebml_id ) {
-				
-					case EBML_ID_KRAD_COMPOSITOR_INFO:
-						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-						if (string[0] != '\0') {
-							printf ("%s\n", string);
-						}
-						break;
-						
-					case EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME:
-						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-						if (string[0] != '\0') {
-							printf ("%s\n", string);
-						}
-						break;
-				
-					case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
-						//printk ("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
-						printk ("");
-						list_size = ebml_data_size;
-						i = 0;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_port ( client, tag_value)) <= list_size)) {
-							printf ("%d: %s\n", i, tag_value);
-							i++;
-							if (bytes_read == list_size) {
-								break;
-							} else {
-								//printk ("%d: %d\n", list_size, bytes_read);
-							}
-						}	
-						break;		
-										
-				}
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			switch ( ebml_id ) {
+			case EBML_ID_KRAD_MIXER_CONTROL:
+				printk ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 				break;	
-
-			case EBML_ID_KRAD_LINK_MSG:
-
-				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-
-				switch ( ebml_id ) {
 				
-					case EBML_ID_KRAD_LINK_DECKLINK_LIST:
-
-						krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-						list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						for (i = 0; i < list_count; i++) {
-							krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
-							krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-							printf ("%d: %s\n", i, string);
-						}	
-						break;
-				
-				
-					case EBML_ID_KRAD_LINK_V4L2_LIST:
-
-						krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-						list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-						for (i = 0; i < list_count; i++) {
-							krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
-							krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-							printf ("%s\n", string);
-						}	
-						break;				
-				
-				
-					case EBML_ID_KRAD_LINK_LINK_LIST:
-						//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
-	
-						list_size = ebml_data_size;
-						i = 0;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, &krad_link)) <= list_size)) {
-							printf ("%d: %s\n", krad_link->link_num, tag_value);
-							free (krad_link);
-							i++;
-							if (bytes_read == list_size) {
-								break;
-							}
-						}	
-						break;
-
-					default:
-						printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
-						break;
+			case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+				//printf("Received PORTGROUP list %zu bytes of data.\n", ebml_data_size);
+				list_size = ebml_data_size;
+				if (list_size) {
+					printf ("\nAudio Inputs: \n");
 				}
-			
+				while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( client, tag_name, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
+					printf ("  %0.2f%%  %s", floatval, tag_name);
+					if (strlen(crossfadename)) {
+						printf (" < %0.2f > %s", crossfade, crossfadename);
+					}
+					if (has_xmms2) {
+						if (!(strlen(crossfadename))) {
+							printf ("\t\t");
+						}							
+						printf ("\t\t[XMMS2]");
+					}
+					printf ("\n");
+					if (bytes_read == list_size) {
+						break;
+					}
+				}	
 				break;
+				
+			case EBML_ID_KRAD_MIXER_PORTGROUP:
+				//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+				printf("PORTGROUP %"PRIu64" bytes  \n", ebml_data_size );
+				break;
+					
+			case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
+				//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+				number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				printf ("Krad Mixer Sample Rate: %"PRIu64"\n", number );
+				break;
+					
+			case EBML_ID_KRAD_MIXER_JACK_RUNNING:
+				//krad_ipc_client_read_portgroup_inner ( client, &tag_name, &tag_value );
+				number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				if (number > 0) {
+					printf ("Yes\n");
+				} else {
+					printf ("Jack Server not running\n");
+				}
+				break;
+			}
+			break;
+			
+		case EBML_ID_KRAD_COMPOSITOR_MSG:
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			switch ( ebml_id ) {
+			
+			case EBML_ID_KRAD_COMPOSITOR_INFO:
+				krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+				if (string[0] != '\0') {
+					printf ("%s\n", string);
+				}
+				break;
+			case EBML_ID_KRAD_COMPOSITOR_FRAME_SIZE:
+				list_size = ebml_data_size;
+				
+				i = 0;
+				while ((list_size) && ((bytes_read +=  krad_ipc_client_read_frame_size ( 
+				                            client, tag_value, &krad_compositor)) <= list_size)) {
+					printf ("  %s\n", tag_value);
+					i++;
+					if (bytes_read == list_size) {
+						break;
+					} else {
+						//printf ("%d: %d\n", list_size, bytes_read);
+					}
+				}	
+				break;
+			case EBML_ID_KRAD_COMPOSITOR_FRAME_RATE:
+				list_size = ebml_data_size;
+				
+				i = 0;
+				while ((list_size) && ((bytes_read += krad_ipc_client_read_frame_rate ( client, tag_value, &krad_compositor)) <= list_size)) {
+					printf ("  %s\n", tag_value);
+					i++;
+					if (bytes_read == list_size) {
+						break;
+					} else {
+						//printf ("%d: %d\n", list_size, bytes_read);
+					}
+				}	
+				break;
+			case EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME:
+				krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+				if (string[0] != '\0') {
+					printf ("%s\n", string);
+				}
+				break;
+			case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
+				//printk ("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
+				list_size = ebml_data_size;
+				if (list_size) {
+					printf ("\nVideo Ports:\n");
+				}
+				i = 0;
+				while ((list_size) && ((bytes_read += krad_ipc_client_read_port ( client, tag_value)) <= list_size)) {
+					printf ("  %d: %s\n", i, tag_value);
+					i++;
+					if (bytes_read == list_size) {
+						break;
+					} else {
+						//printk ("%d: %d\n", list_size, bytes_read);
+					}
+				}	
+				break;
+			
+			case EBML_ID_KRAD_COMPOSITOR_TEXT_LIST:
+				//printf ("Received TEXT list %"PRIu64" bytes of data, %d bytes read\n", ebml_data_size, bytes_read);
+
+				list_size = ebml_data_size;
+				if (list_size) {
+					printf ("\nTexts:\n");
+				}
+				i = 0;
+				while ((list_size) && ((bytes_read += krad_ipc_client_read_text ( client, tag_value, &krad_text)) <= list_size)) {
+					printf ("  %s\n", tag_value);
+					i++;
+					if (bytes_read == list_size) {
+						break;
+					} else {
+						//printf ("%d: %d\n", list_size, bytes_read);
+					}
+				}	
+				break;							
+			
+				
+			case EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST:
+				//printf ("Received SPRITE list %"PRIu64" bytes of data, %d bytes read\n", ebml_data_size, bytes_read);
+
+				list_size = ebml_data_size;
+				if (list_size) {
+					printf ("\nSprites:\n");
+				}
+				i = 0;
+				while ((list_size) && ((bytes_read += krad_ipc_client_read_sprite ( client, tag_value, &krad_sprite)) <= list_size)) {
+					printf ("  %s\n", tag_value);
+					i++;
+					if (bytes_read == list_size) {
+						break;
+					} else {
+						//printf ("%d: %d\n", list_size, bytes_read);
+					}
+				}	
+				break;							
+			}
+			break;
+		case EBML_ID_KRAD_LINK_MSG:
+			
+			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+			
+			switch ( ebml_id ) {
+			
+			case EBML_ID_KRAD_LINK_DECKLINK_LIST:
+				
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				for (i = 0; i < list_count; i++) {
+					krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
+					krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+					printf ("%d: %s\n", i, string);
+				}	
+				break;
+				
+				
+			case EBML_ID_KRAD_LINK_V4L2_LIST:
+				
+				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+				list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+				for (i = 0; i < list_count; i++) {
+					krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);						
+					krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+					printf ("%s\n", string);
+				}	
+				break;				
+				
+			case EBML_ID_KRAD_LINK_LINK_LIST:
+				//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
+				
+				list_size = ebml_data_size;
+				if (list_size) {
+					printf ("\nLinks:\n");
+				}
+				i = 0;
+				while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, &krad_link)) <= list_size)) {
+					printf ("  Id: %d  %s\n", krad_link->link_num, tag_value);
+					free (krad_link);
+					i++;
+					if (bytes_read == list_size) {
+						break;
+					}
+				}	
+				break;
+			
+			default:
+				printf("Received KRAD_LINK_MSG %"PRIu64" bytes of data.\n", ebml_data_size);
+				break;
+			}
+			
+			break;
 		}
 	}
 }

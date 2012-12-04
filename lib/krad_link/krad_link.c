@@ -230,7 +230,7 @@ void *info_screen_generator_thread (void *arg) {
 			}
 		}
 		
-		krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
+		//krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
 		krad_frame->format = PIX_FMT_RGB32;
 		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
 
@@ -405,9 +405,7 @@ void *video_encoding_thread (void *arg) {
 
 		if (krad_link->operation_mode == RECORD) {
 			krad_link->krad_vpx_encoder->cfg.rc_min_quantizer = 5;
-			krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 5;
-			krad_link->krad_vpx_encoder->cfg.kf_min_dist = 150;
-			krad_link->krad_vpx_encoder->cfg.kf_max_dist = 150;						
+			krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 35;					
 		}
 
 		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);

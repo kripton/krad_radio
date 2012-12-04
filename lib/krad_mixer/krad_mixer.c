@@ -739,11 +739,12 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 	portgroup->active = 2;
 
 	while (portgroup->active != 0) {
+
 		usleep(2000);
 	}
 
-  portgroup->delay = 0;
-  portgroup->delay_actual = 0;
+	portgroup->delay = 0;
+	portgroup->delay_actual = 0;
 
 	printkd("Krad Mixer: Removing %d channel Portgroup %s", portgroup->channels, portgroup->sysname);
 

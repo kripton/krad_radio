@@ -17,9 +17,9 @@ void *krad_alsa_seq_running_thread (void *arg) {
 	snd_seq_event_t *ev;
 	unsigned int c;
 	float value;
-	
+
 	usleep (100000);
-	
+
 	printk ("Krad alsa_seq running thread starting\n");
 
 	ret = 0;
@@ -28,7 +28,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 	snd_seq_poll_descriptors (krad_alsa_seq->seq_handle, sockets, sock_count, POLLIN);
 
 	//printk ("sock_count %d\n", sock_count);
-	
+
 	while (krad_alsa_seq->stop == 0) {
 
 		//sockets[0].fd = krad_alsa_seq->sd;
@@ -41,7 +41,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 			krad_alsa_seq->stop = 1;
 			break;
 		}
-	
+
 		if (ret > 0) {
 
 			while ((snd_seq_event_input (krad_alsa_seq->seq_handle, &ev)) && (krad_alsa_seq->stop == 0)) {
@@ -51,7 +51,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 					switch (ev->type) {
 
 						case SND_SEQ_EVENT_CONTROLLER:
-						
+
 							c = ev->data.control.channel;
 							printk ("Krad ALSA Seq Control event Channel %2d: %2d %5d\n",
 									c, ev->data.control.param, ev->data.control.value);
@@ -76,17 +76,17 @@ void *krad_alsa_seq_running_thread (void *arg) {
 								#endif
 
 							break;
-						
-                        case SND_SEQ_EVENT_PITCHBEND:
+
+            case SND_SEQ_EVENT_PITCHBEND:
 
 							c = ev->data.control.channel;
 
 							printk ("Pitchbender event on Channel %2d: %5d   \n",
 									c, ev->data.control.value);
 
-                        	break;
+              break;
 
-                        case SND_SEQ_EVENT_CHANPRESS:
+            case SND_SEQ_EVENT_CHANPRESS:
 
 							c = ev->data.control.channel;
 
@@ -95,25 +95,25 @@ void *krad_alsa_seq_running_thread (void *arg) {
 
 							break;
 
-						case SND_SEQ_EVENT_NOTEON:
-						
+            case SND_SEQ_EVENT_NOTEON:
+
 							c = ev->data.note.channel;
 
-                            printk ("Note On event on Channel %2d: %5d %5d      \n",
-                            		c, ev->data.note.note,ev->data.note.velocity);
+                printk ("Note On event on Channel %2d: %5d %5d      \n",
+                        c, ev->data.note.note,ev->data.note.velocity);
 							break;
-						
-                        case SND_SEQ_EVENT_NOTEOFF:
+
+            case SND_SEQ_EVENT_NOTEOFF:
 							c = ev->data.note.channel;
 							printk ("Note Off event on Channel %2d: %5d      \n",
 									c, ev->data.note.note);
 							break;
-                	}
-            	}
+            }
+          }
 			}
 		}
 	}
-	
+
 	ret = snd_seq_delete_port (krad_alsa_seq->seq_handle, krad_alsa_seq->port_id);
 	if (ret < 0) {
 		printke ("Krad ALSA Seq Error snd_seq_delete_port.\n");
@@ -122,7 +122,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 	if (ret < 0) {
 		printke ("Krad ALSA Seq Error snd_seq_close.\n");
 	}
-	
+
 	krad_alsa_seq->running = 0;	
 
 	printk ("Krad alsa_seq running thread exiting\n");
@@ -150,7 +150,7 @@ int krad_alsa_seq_run (krad_alsa_seq_t *krad_alsa_seq, char *name) {
 
 	strcpy (krad_alsa_seq->name, name);
 	krad_alsa_seq->running = 1;
-	
+
 	err = snd_seq_open (&krad_alsa_seq->seq_handle, "default", SND_SEQ_OPEN_INPUT, 0);
 	if (err < 0) {
 		printke ("Krad ALSA Seq Error snd_seq_open.\n");
@@ -169,9 +169,9 @@ int krad_alsa_seq_run (krad_alsa_seq_t *krad_alsa_seq, char *name) {
 		krad_alsa_seq->running = 0;
 		return 1;		
 	}
-	
+
 	pthread_create (&krad_alsa_seq->running_thread, NULL, krad_alsa_seq_running_thread, (void *)krad_alsa_seq);
-	
+
 	return 0;
 }
 
@@ -193,7 +193,7 @@ krad_alsa_seq_t *krad_alsa_seq_create () {
 
 	krad_alsa_seq->buffer = calloc (1, 4000);
 
-	
+
 	return krad_alsa_seq;
 
 }

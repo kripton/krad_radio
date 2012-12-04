@@ -15,6 +15,7 @@ depsources = """
 ../lib/krad_xmms2/krad_xmms2.c
 ../lib/krad_x264/krad_x264.c
 ../lib/krad_ebml/krad_ebml.c
+../lib/krad_compositor/krad_compositor_subunit.c
 ../lib/krad_compositor/krad_sprite.c
 ../lib/krad_compositor/krad_text.c
 ../lib/krad_compositor/krad_easing.c
