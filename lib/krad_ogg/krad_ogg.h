@@ -43,7 +43,7 @@ typedef struct krad_ogg_track_St krad_ogg_track_t;
 
 
 #define KRAD_OGG_DEFAULT_MAX_PACKETS_PER_PAGE 7
-#define KRAD_OGG_MAX_TRACKS 10
+#define KRAD_OGG_MAX_TRACKS 16
 
 #define KRAD_OGG_NO_SERIAL -420
 

@@ -956,8 +956,10 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 
 	krad_ebml_read ( krad_ebml, &byte, 1 );
 
-	tracknum = (byte - 0x80);	
-	*tracknumber = tracknum;
+	tracknum = (byte - 0x80);
+	if (tracknumber != NULL) {
+	  *tracknumber = tracknum;
+	}
 	//printf("tracknum is %d\n", tracknum);
 	
 	krad_ebml_read ( krad_ebml, &temp, 2 );
@@ -967,7 +969,9 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 	
 	krad_ebml->current_timecode = krad_ebml->current_cluster_timecode + (int64_t)krad_ebml->last_block_timecode;
 	//printf("timecode is %6.3f\n", ((krad_ebml->current_cluster_timecode + (int64_t)block_timecode)/1000.0));
-	*timecode = krad_ebml->current_timecode;
+	if (timecode != NULL) {	
+	  *timecode = krad_ebml->current_timecode;
+	}
 	
 	krad_ebml_read ( krad_ebml, &flags, 1 );
 	
@@ -1320,7 +1324,7 @@ int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint6
 		exit (1);
 	}
 
-	//printf("id length is %u\n", ebml_id_length);
+  //printk("id length is %u\n", ebml_id_length);
 	memcpy((unsigned char *)&ebml_id + (ebml_id_length - 1), &byte, 1);
 
 	// ID

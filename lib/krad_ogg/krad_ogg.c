@@ -211,7 +211,7 @@ int krad_ogg_read_packet (krad_ogg_t *krad_ogg, int *track, uint64_t *timecode, 
 				while (krad_ogg->tracks[t].ready == 0) {
 					ret = ogg_stream_packetout(&krad_ogg->tracks[t].stream_state, &packet);
 					
-					if (krad_ogg->tracks[t].codec == SKELETON) {
+					if ((krad_ogg->tracks[t].codec == SKELETON) || (krad_ogg->tracks[t].codec == NOCODEC)) {
 						// just toss the skeleton
 						while (ogg_stream_packetout(&krad_ogg->tracks[t].stream_state, &packet));
 						
