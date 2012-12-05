@@ -47,8 +47,8 @@ size_t encode_iz (krad_vhs_t *krad_vhs, unsigned char *src, unsigned char *dst) 
 void init_iz () {
 
   if (iz_initialized == 0) {
-    IZ::initEncodeTable();
-    IZ::initDecodeTable();
+    //IZ::initEncodeTable();
+    //IZ::initDecodeTable();
     iz_initialized = 1;
   }
 
@@ -157,6 +157,9 @@ krad_vhs_t *krad_vhs_create_decoder () {
 	
   init_iz ();
 	
+    //IZ::initEncodeTable();
+    IZ::initDecodeTable();	
+	
   krad_vhs->buffer = (unsigned char *)malloc (1920 * 1080 * 4);	
 	
 
@@ -172,6 +175,9 @@ krad_vhs_t *krad_vhs_create_encoder (int width, int height) {
   krad_vhs->enc_buffer = (unsigned char *)malloc (1920 * 1080 * 4);
 
   init_iz ();
+	
+    IZ::initEncodeTable();
+    //IZ::initDecodeTable();	
 	
 	krad_vhs->encoder = 1;
 	krad_vhs->width = width;

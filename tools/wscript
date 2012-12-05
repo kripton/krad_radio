@@ -1,0 +1,248 @@
+#!/usr/bin/env python
+
+import os
+import binascii
+import sys
+
+tool = "image_seq_to_vhs.c"
+
+depsources = """
+../lib/krad_link/krad_link_common.c
+../lib/krad_system/krad_system.c
+../lib/krad_ticker/krad_timer.c
+../lib/krad_ticker/krad_ticker.c
+../lib/krad_y4m/krad_y4m.c
+../lib/krad_xmms2/krad_xmms2.c
+../lib/krad_x264/krad_x264.c
+../lib/krad_ebml/krad_ebml.c
+../lib/krad_compositor/krad_compositor_subunit.c
+../lib/krad_compositor/krad_sprite.c
+../lib/krad_compositor/krad_text.c
+../lib/krad_compositor/krad_easing.c
+../lib/krad_compositor/krad_compositor.c
+../lib/krad_framepool/krad_framepool.c
+../lib/krad_osc/krad_osc.c
+../lib/krad_web/ext/cJSON.c
+../lib/krad_web/ext/libwebsockets/base64-decode.c
+../lib/krad_web/ext/libwebsockets/client-handshake.c
+../lib/krad_web/ext/libwebsockets/extension.c
+../lib/krad_web/ext/libwebsockets/extension-deflate-stream.c
+../lib/krad_web/ext/libwebsockets/handshake.c
+../lib/krad_web/ext/libwebsockets/libwebsockets.c
+../lib/krad_web/ext/libwebsockets/md5.c
+../lib/krad_web/ext/libwebsockets/parsers.c
+../lib/krad_web/ext/libwebsockets/sha-1.c
+../lib/krad_web/krad_http.c
+../lib/krad_web/krad_websocket.c
+../lib/krad_sfx/krad_eq.c
+../lib/krad_sfx/krad_pass.c
+../lib/krad_sfx/krad_rushlimiter.c
+../lib/krad_sfx/krad_sfx.c
+../lib/krad_ipc/krad_ipc_server.c
+../lib/krad_tags/krad_tags.c
+../lib/krad_radio/krad_radio.c
+../lib/krad_mixer/krad_mixer.c
+../lib/krad_tone/krad_tone.c
+../lib/krad_audio/krad_audio.c
+../lib/krad_jack/krad_jack.c
+../lib/krad_ring/krad_resample_ring.c
+../lib/krad_vpx/krad_vpx.c
+../lib/krad_theora/krad_theora.c
+../lib/krad_vorbis/krad_vorbis.c
+../lib/krad_flac/krad_flac.c
+../lib/krad_opus/krad_opus.c
+../lib/krad_opus/opus_header.c
+../lib/krad_gui/krad_gui.c
+../lib/krad_ring/krad_ring.c
+../lib/krad_link/krad_link.c
+../lib/krad_transmitter/krad_transmitter.c
+../lib/krad_io/krad_io.c
+../lib/krad_ogg/krad_ogg.c
+../lib/krad_container/krad_container.c
+../lib/krad_x11/krad_x11.c
+../lib/krad_udp/krad_udp.c
+../lib/krad_decklink/krad_decklink.c
+../lib/krad_decklink/krad_decklink_capture.cpp
+../lib/krad_vhs/ext/imagezero/libiz.cpp
+../lib/krad_vhs/ext/imagezero/table.cpp
+../lib/krad_vhs/krad_vhs.cpp
+""".split()
+
+includedirs = """
+../lib/krad_x264/
+../lib/krad_compositor/
+../lib/krad_ticker/
+../lib/krad_y4m/
+../lib/krad_xmms2/
+../lib/krad_framepool/
+../lib/krad_web/
+../lib/krad_web/ext/
+../lib/krad_web/ext/libwebsockets/
+../lib/krad_web/res/
+../lib/krad_sfx/
+../lib/krad_vhs/
+../lib/krad_tone/
+../lib/krad_ipc/
+../lib/krad_tags/
+../lib/krad_audio/
+../lib/krad_theora/
+../lib/krad_jack/
+../lib/krad_alsa/
+../lib/krad_mixer/
+../lib/krad_osc/
+../lib/krad_xmms2/
+../lib/krad_wayland/
+../lib/krad_vpx/
+../lib/krad_v4l2/
+../lib/krad_flac/
+../lib/krad_vorbis/
+../lib/krad_gui/
+../lib/krad_opus/
+../lib/krad_radio/
+../lib/krad_ring/
+../lib/krad_ogg/
+../lib/krad_io/
+../lib/krad_link/
+../lib/krad_transmitter/
+../lib/krad_container/
+../lib/krad_x11/
+../lib/krad_udp/
+../lib/krad_codec2/
+../lib/krad_system/
+../lib/krad_decklink/
+../lib/krad_vhs/ext/imagezero/
+../lib/krad_ebml/
+../lib/krad_legacy/
+/usr/local/include
+/usr/include
+""".split()
+
+shlibs = ["jack", "cairo", "xmms2-client", "samplerate",
+          "x264", "theora", "theoraenc", "theoradec",
+          "vorbis", "vorbisenc", "opus", "flac",
+          "vpx", "libswscale", "libavutil"]
+
+stlibs = []
+syslibs = ['m', 'dl', 'z']
+syslibs2 = ['rt', 'turbojpeg']
+
+def hexilate_file(filename):
+
+  varname = filename.replace("/","_").replace(".","_")
+  outname = filename + ".h"
+
+  with open(filename, 'rb') as f:
+      content = f.read()
+      
+  hexed = binascii.hexlify(content)
+  hexed_len = len(hexed)
+  hexed_txt = "unsigned char " + varname + "[] = {\n "
+
+  if sys.version_info < (3, 0):
+    count = 0
+    while (count < (hexed_len)):
+       hexed_txt += " 0x" + hexed[count:count + 2] + ","
+       count = count + 2
+       if ((count % 24) == 0):
+          hexed_txt += "\n "
+
+    hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
+
+    with open(outname, 'wb') as f:
+        content = f.write(hexed_txt)
+
+  if sys.version_info >= (3, 0):
+    count = 0
+    while (count < (hexed_len)):
+       hexed_txt += " 0x" + hexed[count:count + 2].decode("ascii") + ","
+       count = count + 2
+       if ((count % 24) == 0):
+          hexed_txt += "\n "
+
+    hexed_txt += "\n};\nunsigned int " + varname + "_len = " + str(hexed_len / 2) + ";\n"
+
+    with open(outname, 'wb') as f:
+        content = f.write(bytes(hexed_txt, 'ascii'))
+
+def check_system(systm):
+
+	global includedirs
+	global depsources
+	global shlibs
+	global syslibs
+	global syslibs2		
+
+	if systm.env['IS_LINUX']:
+		shlibs = shlibs + ["alsa"]    
+		depsources = ["../lib/krad_v4l2/krad_v4l2.c", "../lib/krad_alsa/krad_alsa.c",
+		"../lib/krad_alsa/krad_alsa_seq.c"] + depsources
+		includedirs = ["../lib/krad_decklink/vendor/linux"] + includedirs
+		depsources = ["../lib/krad_decklink/vendor/linux/DeckLinkAPIDispatch.cpp"] + depsources
+		syslibs = syslibs + syslibs2
+
+
+	if systm.env['IS_MACOSX']:
+		depsources = ["../lib/krad_legacy/krad_mach.c"] + depsources
+		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
+		includedirs = ["../lib/krad_decklink/vendor/osx"] + includedirs
+		depsources = ["../lib/krad_decklink/vendor/osx/DeckLinkAPIDispatch.cpp"] + depsources
+		shlibs = shlibs + ['turbojpeg']
+
+def check_way(way):
+
+	global depsources
+	global shlibs
+
+	if way.env['KRAD_USE_WAYLAND']:
+		depsources += ["../lib/krad_wayland/krad_wayland.c"]
+		shlibs += ["wayland-client"]
+		
+def check_x11(x11):
+
+	global depsources
+	global shlibs
+
+	if x11.env['KRAD_USE_X11']:
+		#depsources += ["../lib/krad_x11/krad_x11.c"]
+		shlibs += ["x11-xcb", "xcb-image", "xcb", "x11"]
+
+def remake_webres(web):
+  hexilate_file("lib/krad_web/res/krad_radio.html")
+  hexilate_file("lib/krad_web/res/krad_radio.js")  
+
+def configure(conf):
+
+	global shlibs
+	global syslibs
+	check_x11(conf)	
+	check_way(conf)
+	check_system(conf)
+
+	for l in syslibs:
+		conf.check(lib = l, cflags='-Wall', uselib_store = l)
+
+	for l in shlibs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+
+	for l in stlibs:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
+
+def build(bld):
+
+	global shlibs
+	global syslibs
+	global syslibs2	
+	remake_webres(bld)
+	check_x11(bld)
+	check_way(bld)
+	check_system(bld)
+
+	for p in [tool]:
+
+		bld(features = 'c cprogram cxx cxxprogram', 
+			source = depsources + [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			use = ["kradradio_client"],
+			uselib = shlibs + stlibs + syslibs)
+

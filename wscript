@@ -9,12 +9,14 @@ import os, sys
 
 libdir = "lib"
 clientsdir = "clients"
+toolsdir = "tools"
 daemondir = "daemon"
 subdirs = os.listdir('./' + libdir)
 
 for s in subdirs:
 	subdirs[subdirs.index(s)] = os.getcwd() + "/" + libdir + "/" + s
 	
+subdirs += [os.getcwd() + "/" + toolsdir]
 subdirs += [os.getcwd() + "/" + clientsdir]
 subdirs += [os.getcwd() + "/" + daemondir]
 
@@ -74,8 +76,8 @@ def configure(conf):
 		conf.env.append_unique('CXXFLAGS', ['-g', '-Wall', '-Wno-write-strings'])
 		conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
 	else:
-		conf.env.append_unique('CXXFLAGS', ['-O3', '-Wno-write-strings'])
-		conf.env.append_unique('CFLAGS', ['-O3'])
+		conf.env.append_unique('CXXFLAGS', ['-O3', '-Wno-write-strings', '-march=core-avx-i', '-ffast-math', '-ftree-vectorizer-verbose=5'])
+		conf.env.append_unique('CFLAGS', ['-O3', '-Wno-write-strings', '-march=core-avx-i', '-ffast-math', '-ftree-vectorizer-verbose=5'])
 
 	conf.recurse(subdirs, mandatory = False)
 	

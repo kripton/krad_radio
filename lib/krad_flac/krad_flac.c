@@ -389,9 +389,10 @@ FLAC__StreamDecoderReadStatus krad_flac_decoder_callback_read (const FLAC__Strea
 int krad_flac_decode (krad_flac_t *flac, unsigned char *encoded_buffer, int len, float **audio) {
 
 
-	flac->decode_buffer = encoded_buffer;
-	flac->decode_buffer_len = len;
-	flac->decode_buffer_pos = 0;
+	memcpy(flac->decode_buffer + flac->decode_buffer_len, encoded_buffer, len);
+	
+	flac->decode_buffer_len += len;
+	//flac->decode_buffer_pos = 0;
 	
 	flac->output_buffer = audio;
 
@@ -402,11 +403,15 @@ int krad_flac_decode (krad_flac_t *flac, unsigned char *encoded_buffer, int len,
 	}
 
 	if (flac->decode_buffer_len != flac->decode_buffer_pos) {
-		failfast ("Krad FLAC Decoder failure on decode");
-//		memove(flac->decode_buffer, flac->decode_buffer + flac->decode_buffer_pos, 
-//		flac->decode_buffer_len - flac->decode_buffer_pos);
+		printke ("Krad FLAC Decoder failure on decode len %d pos %d", flac->decode_buffer_len, flac->decode_buffer_pos);
+		memmove(flac->decode_buffer, flac->decode_buffer + flac->decode_buffer_pos, 
+		flac->decode_buffer_len - flac->decode_buffer_pos);
+		flac->decode_buffer_len = flac->decode_buffer_len - flac->decode_buffer_pos;
+		flac->decode_buffer_pos = 0;
+		
 	} else {
-//		flac->decode_buffer_pos = 0;
+		flac->decode_buffer_pos = 0;
+    flac->decode_buffer_len = 0;	
 	}
 
 	return flac->frames;
@@ -418,6 +423,8 @@ krad_flac_t *krad_flac_decoder_create () {
 	krad_flac_t *flac = calloc(1, sizeof(krad_flac_t));
 
 	flac->decoder = FLAC__stream_decoder_new();
+
+	flac->decode_buffer = malloc (8192 * 64);
 
 	FLAC__StreamDecoderInitStatus ret = 
 	FLAC__stream_decoder_init_stream (flac->decoder,
@@ -438,6 +445,8 @@ krad_flac_t *krad_flac_decoder_create () {
 
 
 void krad_flac_decoder_destroy(krad_flac_t *flac) {
+
+  free (flac->decode_buffer);
 
 	FLAC__stream_decoder_finish ( flac->decoder );
 	FLAC__stream_decoder_delete ( flac->decoder );

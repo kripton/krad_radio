@@ -3,7 +3,7 @@
 
 #ifndef KRAD_CODEC_T
 typedef enum {
-	VORBIS = 6666,
+	NOCODEC = 6666,
 	OPUS,
 	FLAC,
 	VP8,
@@ -16,7 +16,7 @@ typedef enum {
 	DAALA,
 	KVHS,
 	H264,
-	NOCODEC,
+	VORBIS,
 } krad_codec_t;
 #define KRAD_CODEC_T 1
 #endif

@@ -877,7 +877,7 @@ int krad_ebml_read_xiph_lace_value ( unsigned char *bytes, int *bytes_read ) {
 	unsigned char byte;
 	unsigned int value;
 	int maxlen;
-	int offset;
+	unsigned int offset;
 	
 	offset = 0;
 	value = 0;
@@ -885,12 +885,12 @@ int krad_ebml_read_xiph_lace_value ( unsigned char *bytes, int *bytes_read ) {
 	
 	while (maxlen--) {
 		*bytes_read += 1;
-		byte = bytes[0] + offset;
+		byte = bytes[offset];
 		if (byte != 255) {
 	
 			value += byte;
 		
-			//printf("xiph lace value is %d\n", value);
+			//printk("xiph lace value is %u\n", value);
 			return value;
 	
 		} else {
@@ -1105,21 +1105,21 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 			
 			if (lacing == 2) {
 			
-			
+        int bytes = 0;
+        
 				while (framecount != laced_frames - 1) {
 				
-					int bytes = 0;
-					
 					block_bytes_read += krad_ebml_read ( krad_ebml, &byte, 1 );
 					if (byte != 255) {
 					
 						bytes += byte;
 						
 						
-						//printf("frame size is %d\n", bytes);
+						//printk ("frame size is %d\n", bytes);
 						krad_ebml->frame_sizes[framecount] = bytes;
 						total_size_of_frames += bytes;
 						framecount++;
+            bytes = 0;
 					
 					} else {
 						bytes += 255;
@@ -1130,8 +1130,13 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 			
 			
 				frame_size = len - block_bytes_read - total_size_of_frames;
+				
+				//if (((block_bytes_read - 5) - (laced_frames - 1)) > 0) {
+				//  frame_size =- (((block_bytes_read - 5) - (laced_frames - 1)) * 255);
+				//}
+				
 				//frame_size = last_frame_size + frame_size;
-				//printf("last frame size is %u\n", frame_size);
+				//printk ("last frame size is %u\n", frame_size);
 				
 				krad_ebml->frame_sizes[framecount] = frame_size;
 				
@@ -1139,7 +1144,7 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 				
 				krad_ebml->current_laced_frame = 0;
 				
-				//printf("reading first xiph laced frame %u bytes\n", krad_ebml->frame_sizes[krad_ebml->current_laced_frame]);
+				//printk ("reading first xiph laced frame %u bytes\n", krad_ebml->frame_sizes[krad_ebml->current_laced_frame]);
 				
 				return krad_ebml_read ( krad_ebml, buffer, krad_ebml->frame_sizes[krad_ebml->current_laced_frame] );
 			
@@ -1499,7 +1504,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 	
 	skip = 1;
 	
-	if (timecode != NULL) {
+	if ((timecode != NULL) && (!(krad_ebml->read_laced_frames))) {
 		*timecode = 0;
 	}
 
@@ -1739,7 +1744,7 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 			
 				krad_ebml->tracks[krad_ebml->current_track].header_len[0] = krad_ebml_read_xiph_lace_value ( krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read, &bytes_read );
 				krad_ebml->tracks[krad_ebml->current_track].header_len[1] = krad_ebml_read_xiph_lace_value ( krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read, &bytes_read );
-				krad_ebml->tracks[krad_ebml->current_track].header_len[2] = krad_ebml->tracks[krad_ebml->current_track].codec_data_size - bytes_read - (krad_ebml->tracks[krad_ebml->current_track].header_len[0] + krad_ebml->tracks[krad_ebml->current_track].header_len[1]);
+				krad_ebml->tracks[krad_ebml->current_track].header_len[2] = krad_ebml->tracks[krad_ebml->current_track].codec_data_size - (bytes_read + (krad_ebml->tracks[krad_ebml->current_track].header_len[0] + krad_ebml->tracks[krad_ebml->current_track].header_len[1]));
 				
 				krad_ebml->tracks[krad_ebml->current_track].header[0] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read;
 				krad_ebml->tracks[krad_ebml->current_track].header[1] = krad_ebml->tracks[krad_ebml->current_track].codec_data + bytes_read + krad_ebml->tracks[krad_ebml->current_track].header_len[0];
@@ -1747,8 +1752,9 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 
 
 
-				//printf ("got xiph headers codec data size %"PRIu64" -- %d %d %d\n",
+				//printk ("got xiph headers codec data size %"PRIu64" -- bytes read %d -- %d %d %d\n",
 				//		ebml_data_size,
+				//    bytes_read,
 				//		krad_ebml->tracks[krad_ebml->current_track].header_len[0],
 				//		krad_ebml->tracks[krad_ebml->current_track].header_len[1],
 				//		krad_ebml->tracks[krad_ebml->current_track].header_len[2]);

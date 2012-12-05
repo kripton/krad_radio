@@ -172,12 +172,8 @@ krad_vorbis_t *krad_vorbis_decoder_create (unsigned char *header1, int header1le
 
 	krad_vorbis_t *vorbis = calloc(1, sizeof(krad_vorbis_t));
 
-	//int x;
+  int ret;
 	int c;
-
-	//char *ogg_in_buffer;
-
-	srand(time(NULL));
 
 	vorbis_info_init(&vorbis->vinfo);
 	vorbis_comment_init(&vorbis->vc);
@@ -185,24 +181,58 @@ krad_vorbis_t *krad_vorbis_decoder_create (unsigned char *header1, int header1le
 	vorbis->op.packet = header1;
 	vorbis->op.bytes = header1len;
 	vorbis->op.b_o_s = 1;
-	vorbis->op.packetno = 1;
-	vorbis_synthesis_headerin(&vorbis->vinfo, &vorbis->vc, &vorbis->op);
-	//printf("x is %d len is %d\n", x, header1len);
+	vorbis->op.packetno = 0;
+	ret = vorbis_synthesis_headerin(&vorbis->vinfo, &vorbis->vc, &vorbis->op);
+	if (ret != 0) {
+	  if (ret == OV_ENOTVORBIS) {
+	    printke("vorbis decoder says its not a vorbis on packet %llu", vorbis->op.packetno);
+	  }
+	  if (ret == OV_EBADHEADER) {
+	    printke("vorbis decoder says bad header on packet %llu", vorbis->op.packetno);
+	  }
+	  if (ret == OV_EFAULT) {
+	    printke("vorbis decoder fault on packet %llu", vorbis->op.packetno);
+	  }
+	}
 
 	vorbis->op.packet = header2;
 	vorbis->op.bytes = header2len;
 	vorbis->op.b_o_s = 0;
-	vorbis->op.packetno = 2;
-	vorbis_synthesis_headerin(&vorbis->vinfo, &vorbis->vc, &vorbis->op);
-	//printf("x is %d len is %d\n", x, header2len);
+	vorbis->op.packetno = 1;
+	ret = vorbis_synthesis_headerin(&vorbis->vinfo, &vorbis->vc, &vorbis->op);
+	if (ret != 0) {
+	  if (ret == OV_ENOTVORBIS) {
+	    printke("vorbis decoder says its not a vorbis on packet %llu", vorbis->op.packetno);
+	  }
+	  if (ret == OV_EBADHEADER) {
+	    printke("vorbis decoder says bad header on packet %llu", vorbis->op.packetno);
+	  }
+	  if (ret == OV_EFAULT) {
+	    printke("vorbis decoder fault on packet %llu", vorbis->op.packetno);
+	  }
+	}
 
 	vorbis->op.packet = header3;
 	vorbis->op.bytes = header3len;
-	vorbis->op.packetno = 3;
-	vorbis_synthesis_headerin(&vorbis->vinfo, &vorbis->vc, &vorbis->op);
-	//printf("x is %d len is %d\n", x, header3len);
+	vorbis->op.packetno = 2;
+	ret = vorbis_synthesis_headerin(&vorbis->vinfo, &vorbis->vc, &vorbis->op);
+	if (ret != 0) {
+	  if (ret == OV_ENOTVORBIS) {
+	    printke("vorbis decoder says its not a vorbis on packet %llu", vorbis->op.packetno);
+	  }
+	  if (ret == OV_EBADHEADER) {
+	    printke("vorbis decoder says bad header on packet %llu", vorbis->op.packetno);
+	  }
+	  if (ret == OV_EFAULT) {
+	    printke("vorbis decoder fault on packet %llu", vorbis->op.packetno);
+	  }
+	}
 
-	vorbis_synthesis_init(&vorbis->vdsp, &vorbis->vinfo);
+	ret = vorbis_synthesis_init(&vorbis->vdsp, &vorbis->vinfo);
+	if (ret != 0) {
+	  printke("vorbis synthesis init fails!");
+  }
+	
 	vorbis_block_init(&vorbis->vdsp, &vorbis->vblock);
 
 	printk ("Vorbis Info - Version: %d Channels: %d Sample Rate: %ld Bitrate: %ld %ld %ld\n",
@@ -235,13 +265,43 @@ void krad_vorbis_decoder_decode (krad_vorbis_t *vorbis, unsigned char *buffer, i
 
 	int sample_count;
 	float **pcm;
+	int ret;
 
 	vorbis->op.packet = buffer;
 	vorbis->op.bytes = bufferlen;
 	vorbis->op.packetno++;
 
-	vorbis_synthesis(&vorbis->vblock, &vorbis->op);
-	vorbis_synthesis_blockin(&vorbis->vdsp, &vorbis->vblock);
+  //if (vorbis->op.packetno == 4) {
+  //  vorbis->op.granulepos = 576;
+  //}
+  
+  //if (vorbis->op.packetno == 5) {
+  //  vorbis->op.granulepos = 1600;
+  //}
+  
+  //if (vorbis->op.packetno > 5) {
+  //  vorbis->op.granulepos = 1600 + ((vorbis->op.packetno - 5) * 1024);
+  //} 
+
+	ret = vorbis_synthesis (&vorbis->vblock, &vorbis->op);
+	
+	if (ret != 0) {
+	  if (ret == OV_ENOTAUDIO) {
+	    printke("vorbis decoder not audio packet %llu - %d", vorbis->op.packetno, bufferlen);
+	  }
+	  if (ret == OV_EBADPACKET) {
+	    printke("vorbis decoder bad packet %llu - %d", vorbis->op.packetno, bufferlen);
+	  }	  
+	}
+	
+	ret = vorbis_synthesis_blockin(&vorbis->vdsp, &vorbis->vblock);
+	
+	if (ret != 0) {
+	  if (ret == OV_EINVAL) {
+	    printke("vorbis decoder not ready for blockin!");
+	  }
+  }	
+	
 	sample_count = vorbis_synthesis_pcmout(&vorbis->vdsp, &pcm);
 	
 	if (sample_count) {
@@ -257,7 +317,13 @@ void krad_vorbis_decoder_decode (krad_vorbis_t *vorbis, unsigned char *buffer, i
 		if (vorbis->channels == 2) {
 			krad_ringbuffer_write (vorbis->ringbuf[1], (char *)pcm[1], sample_count * 4 );
 		}
-		vorbis_synthesis_read(&vorbis->vdsp, sample_count);
+		ret = vorbis_synthesis_read(&vorbis->vdsp, sample_count);
+	  if (ret != 0) {
+	    if (ret == OV_EINVAL) {
+	      printke("vorbis decoder synth read more than in buffer!");
+	    }
+    }		
+		
 	}
 
 }
