@@ -1,4 +1,8 @@
+#define KRAD_RADIO
 #include "krad_container.h"
+#include "krad_ebml.h"
+
+
 
 krad_container_type_t krad_link_select_container (char *string) {
 
@@ -215,7 +219,8 @@ krad_container_t *krad_container_open_transmission (krad_transmission_t *krad_tr
 	}
 
 	if (krad_container->container_type == EBML) {
-		krad_container->krad_ebml = krad_ebml_open_transmission (krad_transmission);
+	  failfast("oh fuck this bullshit");
+		//krad_container->krad_ebml = krad_ebml_open_transmission (krad_transmission);
 	}
 
 	if (krad_container->container_type == RAW) {

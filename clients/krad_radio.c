@@ -112,7 +112,7 @@ int main (int argc, char *argv[]) {
 	    krad_ipc_list_links (client);
 	    krad_ipc_print_response (client);
 
-	    krad_ipc_compositor_list_ports (client);
+	    kr_compositor_port_list (client);
 	    krad_ipc_print_response (client);
 
 	    krad_ipc_get_portgroups (client);
@@ -610,14 +610,14 @@ int main (int argc, char *argv[]) {
 
   if ((strncmp(argv[2], "lc", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
-	    krad_ipc_compositor_list_ports (client);
+	    kr_compositor_port_list (client);
 	    krad_ipc_print_response (client);
     }
   }
 
   if (strncmp(argv[2], "setport", 7) == 0) {
     if (argc == 14) {
-	    krad_ipc_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
+	    kr_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
 									       atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]),
 									       atoi(argv[10]), atoi(argv[11]), atof(argv[12]), atof(argv[13]));
     }
@@ -625,13 +625,13 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "snap", 4) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_snapshot (client);
+	    kr_compositor_snapshot (client);
     }
   }
 
   if (strncmp(argv[2], "jsnap", 5) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_snapshot_jpeg (client);
+	    kr_compositor_snapshot_jpeg (client);
     }
   }
   
@@ -642,187 +642,187 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "comp", 4) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_info (client);
+	    kr_compositor_info (client);
 	    krad_ipc_print_response (client);
     }
   }
 
   if (strncmp(argv[2], "res", 3) == 0) {
     if (argc == 5) {
-	    krad_ipc_compositor_set_resolution (client, atoi(argv[3]), atoi(argv[4]));
+	    kr_compositor_set_resolution (client, atoi(argv[3]), atoi(argv[4]));
     }
   }
 
   if (strncmp(argv[2], "fps", 3) == 0) {
     if (argc == 4) {
-	    krad_ipc_compositor_set_frame_rate (client, atoi(argv[3]) * 1000, 1000);
+	    kr_compositor_set_frame_rate (client, atoi(argv[3]) * 1000, 1000);
     }			
     if (argc == 5) {
-	    krad_ipc_compositor_set_frame_rate (client, atoi(argv[3]), atoi(argv[4]));
+	    kr_compositor_set_frame_rate (client, atoi(argv[3]), atoi(argv[4]));
     }
   }
 
   if (strncmp(argv[2], "addsprite", 9) == 0) {
     if (argc == 4) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], 0, 0, 0, 4,
+	    kr_compositor_add_sprite (client, argv[3], 0, 0, 0, 4,
 									    1.0f, 1.0f, 0.0f);
     }
     if (argc == 5) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), 0, 0, 4,
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), 0, 0, 4,
 									    1.0f, 1.0f, 0.0f);
     }				
     if (argc == 6) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), 0, 4,
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), 0, 4,
 									    1.0f, 1.0f, 0.0f);
     }
     if (argc == 7) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
 									    1.0f, 1.0f, 0.0f);
     }
     if (argc == 8) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
                                       1.0f, 1.0f, 0.0f);
     }
     if (argc == 9) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
                                       atof(argv[8]), 1.0f, 0.0f);
     }
     if (argc == 10) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
                                       atof(argv[8]), atof(argv[9]), 0.0f);
     }
     if (argc == 11) {
-	    krad_ipc_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
+	    kr_compositor_add_sprite (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), 
                                       atof(argv[8]), atof(argv[9]), atof(argv[10]));
     }
   }
 
   if (strncmp(argv[2], "setsprite", 9) == 0) {
     if (argc == 6) {
-	    krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),  0, 4,
+	    kr_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),  0, 4,
 									    1.0f, 1.0f, 0.0f);
     }
     if (argc == 7) {
-	    krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
+	    kr_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
 									    1.0f, 1.0f, 0.0f);
     }
     if (argc == 8) {
-	    krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    1.0f, 1.0f, 0.0f);
     }
     if (argc == 9) {
-	    krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), 1.0f, 0.0f);
     }
     if (argc == 10) {
-      krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+      kr_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), 0.0f);
     }
     if (argc == 11) {
-	    krad_ipc_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_sprite (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]));
     }
   }
 
   if (strncmp(argv[2], "rmsprite", 8) == 0) {
     if (argc == 4) {
-	    krad_ipc_compositor_remove_sprite (client, atoi(argv[3]));
+	    kr_compositor_remove_sprite (client, atoi(argv[3]));
     }
   }
 
   if (strncmp(argv[2], "lssprite", 8) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_list_sprites (client);
+	    kr_compositor_list_sprites (client);
 	    krad_ipc_print_response (client);	    
     }
   }
 
   if (strncmp(argv[2], "addtext", 7) == 0) {
     if (argc == 4) {
-	    krad_ipc_compositor_add_text (client, argv[3], 32, 32, 0, 4,
+	    kr_compositor_add_text (client, argv[3], 32, 32, 0, 4,
 									    20.0f, 1.0f, 0.0f, 244.0f, 16.0f, 16.0f, "sans");
     }
     if (argc == 5) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), 32, 0, 4,
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), 32, 0, 4,
 									    20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
     }				
     if (argc == 6) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), 0, 4,
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), 0, 4,
 									    20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
     }
     if (argc == 7) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
 									    20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
     }
     if (argc == 8) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    20.0f, 1.0f, 0.0f, 244, 16, 16, "sans");
     }
     if (argc == 9) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), 1.0f, 0.0f, 244, 16, 16, "sans");
     }
     if (argc == 10) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), 0.0f, 244, 16, 16, "sans");
     }
     if (argc == 11) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]), 244, 16, 16, "sans");
     }
     if (argc == 12) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]), atoi(argv[11]),16,  16, "sans");
     }
     if (argc == 13) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]), atoi(argv[11]), atoi(argv[12]), 16,  "sans");
     }
     if (argc == 14) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
                                     atof(argv[8]), atof(argv[9]), atof(argv[10]), atoi(argv[11]), atoi(argv[12]), atoi(argv[13]), "sans");
     }
     if (argc == 15) {
-	    krad_ipc_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_add_text (client, argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
                                     atof(argv[8]), atof(argv[9]), atof(argv[10]), atoi(argv[11]), atoi(argv[12]), atoi(argv[13]), argv[14]);
     }
   }
 
   if (strncmp(argv[2], "settext", 7) == 0) {
     if (argc == 6) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), 0, 4,
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), 0, 4,
 									    20.0f, 1.0f, 0.0f, 244.0f, 16.0f, 16.0f);
     }
     if (argc == 7) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 4,
 									    20.0f, 1.0f, 0.0f, 244.0f, 16.0f, 16.0f);
     }
     if (argc == 8) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    20.0f, 1.0f, 0.0f, 244.0f, 16.0f, 16.0f);
     }
     if (argc == 9) {
-      krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+      kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), 1.0f, 0.0f, 244.0f, 16.0f, 16.0f);
     }
     if (argc == 10) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[8]), 0.0f, 244.0f, 16.0f, 16.0f);
     }
     if (argc == 11) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]), 244.0f, 16.0f, 16.0f);
     }
     if (argc == 12) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]), atof(argv[11]), 16.0f, 16.0f);
     }
     if (argc == 13) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 									    atof(argv[8]), atof(argv[9]), atof(argv[10]), atof(argv[11]), atof(argv[12]), 16.0f);
     }
     if (argc == 14) {
-	    krad_ipc_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+	    kr_compositor_set_text (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
                                     atof(argv[8]), atof(argv[9]), atof(argv[10]), atof(argv[11]), atof(argv[12]), atof(argv[13]));
     }												
 
@@ -830,38 +830,38 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "rmtext", 6) == 0) {
     if (argc == 4) {
-	    krad_ipc_compositor_remove_text (client, atoi(argv[3]));
+	    kr_compositor_remove_text (client, atoi(argv[3]));
     }
   }
 
   if (strncmp(argv[2], "lstext", 6) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_list_texts (client);
+	    kr_compositor_list_texts (client);
 	    krad_ipc_print_response (client);	    
     }
   }													
 
   if (strncmp(argv[2], "background", 10) == 0) {
     if (argc == 4) {
-	    krad_ipc_compositor_background (client, argv[3]);
+	    kr_compositor_background (client, argv[3]);
     }
   }			
 
   if (strncmp(argv[2], "display", 7) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_open_display (client, 0, 0);
+	    kr_compositor_open_display (client, 0, 0);
     }
     if (argc == 4) {
-	    krad_ipc_compositor_open_display (client, 1, 1);
+	    kr_compositor_open_display (client, 1, 1);
     }					
     if (argc == 5) {
-	    krad_ipc_compositor_open_display (client, atoi(argv[3]), atoi(argv[4]));
+	    kr_compositor_open_display (client, atoi(argv[3]), atoi(argv[4]));
     }				
   }
 
   if (strncmp(argv[2], "closedisplay", 12) == 0) {
     if (argc == 3) {
-	    krad_ipc_compositor_close_display (client);
+	    kr_compositor_close_display (client);
     }
   }			
 

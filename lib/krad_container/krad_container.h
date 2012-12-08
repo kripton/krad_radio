@@ -1,6 +1,14 @@
-#include "krad_ebml.h"
+#ifndef KRAD_CONTAINER_H
+#define KRAD_CONTAINER_H
+
+typedef struct krad_container_St krad_container_t;
+
+
+
 #include "krad_ogg.h"
-#include "krad_codec_header.h"
+#include "krad_ebml.h"
+#include "krad_transmitter.h"
+
 
 typedef enum {
 	EBML = 100,
@@ -9,7 +17,7 @@ typedef enum {
 } krad_container_type_t;
 
 
-typedef struct krad_container_St krad_container_t;
+
 
 struct krad_container_St {
 
@@ -56,3 +64,4 @@ void krad_container_add_video (krad_container_t *krad_container, int track, unsi
 void krad_container_add_audio (krad_container_t *krad_container, int track, unsigned char *buffer, int buffer_size,
 							   int frames);
 
+#endif

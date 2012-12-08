@@ -13,8 +13,6 @@ typedef enum {
 
 #include "krad_radio.h"
 
-#define KRAD_COMPOSITOR_SUBUNIT_DEFAULT_TICKRATE 4
-
 struct krad_compositor_subunit_St {
 
   compositor_subunit_type_t type;

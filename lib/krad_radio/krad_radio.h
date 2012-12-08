@@ -8,6 +8,10 @@
 #include <time.h>
 #include <sys/stat.h>
 
+#ifndef KRAD_RADIO
+#define KRAD_RADIO 1
+#endif
+
 #ifndef KRAD_RADIO_H
 #define KRAD_RADIO_H
 
@@ -19,6 +23,9 @@ typedef struct krad_radio_St krad_radio_t;
 
 #include "krad_radio_version.h"
 #include "krad_system.h"
+#include "krad_ebml.h"
+#include "krad_ogg.h"
+#include "krad_io.h"
 #include "krad_codec_header.h"
 #include "krad_y4m.h"
 #include "krad_x264.h"
@@ -27,6 +34,8 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_easing.h"
 #include "krad_ticker.h"
 #include "krad_tags.h"
+#include "krad_container.h"
+#include "krad_ebml.h"
 #include "krad_ipc_server.h"
 #include "krad_radio_ipc.h"
 #include "krad_transmitter.h"
@@ -47,16 +56,12 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_http.h"
 #include "krad_udp.h"
 #include "krad_x11.h"
-#include "krad_ebml.h"
-#include "krad_ogg.h"
-#include "krad_io.h"
 #include "krad_theora.h"
 #include "krad_vpx.h"
 #include "krad_gui.h"
 #include "krad_opus.h"
 #include "krad_vorbis.h"
 #include "krad_flac.h"
-#include "krad_container.h"
 #include "krad_framepool.h"
 #include "krad_decklink.h"
 #include "krad_compositor_subunit.h"

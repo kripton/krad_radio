@@ -27,8 +27,12 @@
 #include <stdarg.h>
 #include <limits.h>
 
+typedef struct krad_ebml_St krad_ebml_t;
+
 #include "krad_radio_version.h"
+#ifdef KRAD_RADIO
 #include "krad_transmitter.h"
+#endif
 #include "krad_system.h"
 #include "krad_codec_header.h"
 
@@ -139,7 +143,6 @@ struct kradx_base64_St {
 	char *result;	
 };
 
-typedef struct krad_ebml_St krad_ebml_t;
 typedef struct krad_ebml_track_St krad_ebml_track_t;
 typedef struct krad_ebml_io_St krad_ebml_io_t;
 typedef struct krad_ebml_audiotrack_St krad_ebml_audiotrack_t;
@@ -243,7 +246,10 @@ struct krad_ebml_io_St {
 	int sd;
 	
 	int firstwritedone;
-	krad_transmission_t *krad_transmission;	
+	
+#ifdef KRAD_RADIO
+	krad_transmission_t *krad_transmission;
+#endif
 	
 	unsigned char *buffer_io_buffer;
 	int buffer_io_read_pos;
@@ -292,9 +298,10 @@ struct krad_ebml_St {
 	char bsbuffer[8192 * 8];
 	int stream;
 	
-	
+#ifdef KRAD_RADIO
 	krad_transmission_t *krad_transmission;	
-	
+#endif
+
 	uint64_t current_timecode;
 	
 	int width;
@@ -417,7 +424,10 @@ krad_ebml_t *krad_ebml_open_active_socket (int socket, krad_ebml_io_mode_t mode)
 
 krad_ebml_t *krad_ebml_open_stream(char *host, int port, char *mount, char *password);
 krad_ebml_t *krad_ebml_open_file(char *filename, krad_ebml_io_mode_t mode);
+
+#ifdef KRAD_RADIO
 krad_ebml_t *krad_ebml_open_transmission (krad_transmission_t *krad_transmission);
+#endif
 
 void krad_ebml_destroy(krad_ebml_t *krad_ebml);
 char *krad_ebml_version();

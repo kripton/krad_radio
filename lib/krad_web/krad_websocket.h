@@ -12,7 +12,7 @@
 #include "krad_mixer_common.h"
 #include "krad_radio_client.h"
 #include "krad_radio_ipc.h"
-
+#include "krad_compositor_client.h"
 #include "cJSON.h"
 
 #define KRAD_WEBSOCKET_MAX_POLL_FDS 200

@@ -28,8 +28,7 @@
 #include "krad_system.h"
 #include "krad_ebml.h"
 #include "krad_link_common.h"
-#include "krad_compositor_common.h"
-
+#include "krad_compositor_client.h"
 
 #define KRAD_IPC_BUFFER_SIZE 16384
 #ifndef KRAD_IPC_CLIENT
@@ -134,6 +133,9 @@ void krad_ipc_client_handle (krad_ipc_client_t *client);
 int krad_ipc_client_poll (krad_ipc_client_t *client);
 int krad_ipc_cmd2 (krad_ipc_client_t *client, int value);
 
+
+int krad_ipc_client_sendfd (kr_client_t *client, int fd);
+
 /*** Krad Radio Control ***/
 
 void krad_radio_launch (char *sysname);
@@ -220,53 +222,6 @@ void kr_audioport_deactivate (kr_audioport_t *kr_audioport);
 kr_audioport_t *kr_audioport_create (krad_ipc_client_t *client, krad_mixer_portgroup_direction_t direction);
 void kr_audioport_destroy (kr_audioport_t *kr_audioport);
 
-/** Compositor **/
-
-void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int z, int tickrate, 
-									float scale, float opacity, float rotation, float red, float green, float blue, char *font);
-
-void krad_ipc_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, int z, int tickrate, 
-									float scale, float opacity, float rotation, float red, float green, float blue);
-
-void krad_ipc_compositor_remove_text (krad_ipc_client_t *client, int num);
-void krad_ipc_compositor_list_texts (krad_ipc_client_t *client);
-
-void krad_ipc_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x, int y, int z, int tickrate, 
-									float scale, float opacity, float rotation);
-
-void krad_ipc_compositor_set_sprite (krad_ipc_client_t *client, int num, int x, int y, int z,  int tickrate, 
-									float scale, float opacity, float rotation);
-
-void krad_ipc_compositor_remove_sprite (krad_ipc_client_t *client, int num);
-void krad_ipc_compositor_list_sprites (krad_ipc_client_t *client);
-void krad_ipc_compositor_set_frame_rate (krad_ipc_client_t *client, int numerator, int denominator);
-void krad_ipc_compositor_set_resolution (krad_ipc_client_t *client, int width, int height);
-void krad_ipc_compositor_get_frame_size (krad_ipc_client_t *client);
-void krad_ipc_compositor_get_frame_rate (krad_ipc_client_t *client);
-
-void krad_ipc_compositor_close_display (krad_ipc_client_t *client);
-void krad_ipc_compositor_open_display (krad_ipc_client_t *client, int width, int height);
-void krad_ipc_compositor_background (krad_ipc_client_t *client, char *filename);
-void krad_ipc_compositor_bug (krad_ipc_client_t *client, int x, int y, char *filename);
-void krad_ipc_compositor_hex (krad_ipc_client_t *client, int x, int y, int size);
-void krad_ipc_compositor_vu (krad_ipc_client_t *client, int on_off);
-void krad_ipc_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
-										uint32_t width, uint32_t height, uint32_t crop_x, uint32_t crop_y,
-										uint32_t crop_width, uint32_t crop_height, float opacity, float rotation);
-
-void krad_ipc_compositor_list_ports (krad_ipc_client_t *client);
-void krad_ipc_compositor_info (krad_ipc_client_t *client);
-void krad_ipc_compositor_snapshot (krad_ipc_client_t *client);
-void krad_ipc_compositor_snapshot_jpeg (krad_ipc_client_t *client);
-void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client);
-
-/* Compositor Local Video Ports */
-
-void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void *, void *), void *pointer);
-void kr_videoport_activate (kr_videoport_t *kr_videoport);
-void kr_videoport_deactivate (kr_videoport_t *kr_videoport);
-kr_videoport_t *kr_videoport_create (krad_ipc_client_t *client);
-void kr_videoport_destroy (kr_videoport_t *kr_videoport);
 
 /** Transponder **/
 

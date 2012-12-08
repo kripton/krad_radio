@@ -76,10 +76,10 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 		if ((part != NULL) && (strcmp(part->valuestring, "kradcompositor") == 0)) {
 			part = cJSON_GetObjectItem (cmd, "cmd");		
 			if ((part != NULL) && (strcmp(part->valuestring, "jsnap") == 0)) {
-				krad_ipc_compositor_snapshot_jpeg (pss->kr_client);
+				kr_compositor_snapshot_jpeg (pss->kr_client);
 			}	
 			if ((part != NULL) && (strcmp(part->valuestring, "snap") == 0)) {
-				krad_ipc_compositor_snapshot (pss->kr_client);
+				kr_compositor_snapshot (pss->kr_client);
 			}
 		}		
 	
@@ -1121,8 +1121,8 @@ int callback_kr_client (struct libwebsocket_context *this, struct libwebsocket *
 				pss->hello_sent = 0;			
 				krad_ipc_set_handler_callback (pss->kr_client, krad_websocket_ipc_handler, pss);
 				krad_ipc_get_mixer_sample_rate (pss->kr_client);
-				krad_ipc_compositor_get_frame_rate (pss->kr_client);
-				krad_ipc_compositor_get_frame_size (pss->kr_client);			
+				kr_compositor_get_frame_rate (pss->kr_client);
+				kr_compositor_get_frame_size (pss->kr_client);			
 				krad_ipc_get_portgroups (pss->kr_client);
 				krad_ipc_list_decklink (pss->kr_client);
 				krad_ipc_list_links (pss->kr_client);

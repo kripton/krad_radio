@@ -1,9 +1,8 @@
-
 #ifndef KRAD_COMPOSITOR_COMMON_H
 #define KRAD_COMPOSITOR_COMMON_H
 
-
-#include <stdint.h>
+#define KRAD_COMPOSITOR_SUBUNIT_DEFAULT_TICKRATE 4
+#include "krad_radio_ipc.h"
 #include "krad_ebml.h"
 
 typedef struct krad_text_rep_St krad_text_rep_t;
@@ -104,7 +103,7 @@ void krad_compositor_sprite_rep_destroy (krad_sprite_rep_t *krad_sprite_rep);
 krad_sprite_rep_t *krad_compositor_ebml_to_new_krad_sprite_rep (krad_ebml_t *krad_ebml, uint64_t *bytes_read);
 krad_sprite_rep_t *krad_compositor_sprite_rep_create_and_init ( int number, char *filename, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
 void krad_compositor_sprite_rep_to_ebml (krad_sprite_rep_t *krad_sprite_rep, krad_ebml_t *krad_ebml);
-#endif // KRAD_COMPOSITOR_COMMON_H
+
 
 krad_vector_rep_t *krad_compositor_vector_rep_create ();
 krad_vector_rep_t *krad_compositor_vector_rep_create_and_init (int number, char *vector_type, float red, float green, float blue, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
@@ -115,3 +114,5 @@ void krad_compositor_vector_rep_to_ebml (krad_vector_rep_t *krad_vector_rep, kra
 void krad_compositor_vector_rep_reset (krad_vector_rep_t *krad_vector_rep);
 krad_vector_type_t krad_string_to_vector_type (char *string); 
 void krad_vector_type_to_string (krad_vector_type_t krad_vector_type, char *string);
+
+#endif // KRAD_COMPOSITOR_COMMON_H
