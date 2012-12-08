@@ -599,12 +599,10 @@ int main (int argc, char *argv[]) {
 
   /* Krad Compositor Commands */
 
-  /*
-
   if ((strncmp(argv[2], "lc", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
 	    kr_compositor_port_list (client);
-	    krad_ipc_print_response (client);
+	    //krad_ipc_print_response (client);
     }
   }
 
@@ -629,14 +627,14 @@ int main (int argc, char *argv[]) {
   }
   
   if (strncmp(argv[2], "lastsnap", 8) == 0) {
-    krad_ipc_radio_get_last_snap_name (client);
-    krad_ipc_print_response (client);				
+    kr_compositor_last_snap_name (client);
+    //krad_ipc_print_response (client);				
   }
 
   if (strncmp(argv[2], "comp", 4) == 0) {
     if (argc == 3) {
 	    kr_compositor_info (client);
-	    krad_ipc_print_response (client);
+	    //krad_ipc_print_response (client);
     }
   }
 
@@ -726,7 +724,7 @@ int main (int argc, char *argv[]) {
   if (strncmp(argv[2], "lssprite", 8) == 0) {
     if (argc == 3) {
 	    kr_compositor_list_sprites (client);
-	    krad_ipc_print_response (client);	    
+	    //krad_ipc_print_response (client);	    
     }
   }
 
@@ -830,7 +828,7 @@ int main (int argc, char *argv[]) {
   if (strncmp(argv[2], "lstext", 6) == 0) {
     if (argc == 3) {
 	    kr_compositor_list_texts (client);
-	    krad_ipc_print_response (client);	    
+	    //krad_ipc_print_response (client);	    
     }
   }													
 
@@ -858,8 +856,6 @@ int main (int argc, char *argv[]) {
     }
   }
   
-  */
-
   kr_disconnect (&client);
 
 	return 0;
