@@ -54,5 +54,5 @@ void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr);
 void krad_sprite_tick (krad_sprite_t *krad_sprite);
 void krad_sprite_render_xy (krad_sprite_t *krad_sprite, cairo_t *cr, int x, int y);
 
-
+krad_sprite_rep_t *krad_sprite_to_sprite_rep (krad_sprite_t *krad_sprite);
 #endif

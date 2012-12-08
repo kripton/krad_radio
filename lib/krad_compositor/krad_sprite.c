@@ -252,3 +252,28 @@ void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr) {
 	krad_sprite_tick (krad_sprite);
 	
 }
+
+
+krad_sprite_rep_t *krad_sprite_to_sprite_rep (krad_sprite_t *krad_sprite) {
+  
+  krad_sprite_rep_t *krad_sprite_rep = krad_compositor_sprite_rep_create();
+  
+  strcpy (krad_sprite_rep->filename, krad_sprite->filename);
+  
+  krad_sprite_rep->controls->x = krad_sprite->krad_compositor_subunit->x;
+  krad_sprite_rep->controls->y = krad_sprite->krad_compositor_subunit->y;
+  krad_sprite_rep->controls->z = krad_sprite->krad_compositor_subunit->z;
+  
+  krad_sprite_rep->controls->tickrate = krad_sprite->krad_compositor_subunit->tickrate;
+
+  krad_sprite_rep->controls->width = krad_sprite->krad_compositor_subunit->width;
+  krad_sprite_rep->controls->height = krad_sprite->krad_compositor_subunit->height;
+    
+  krad_sprite_rep->controls->xscale = krad_sprite->krad_compositor_subunit->xscale;
+  krad_sprite_rep->controls->yscale = krad_sprite->krad_compositor_subunit->yscale;
+    
+  krad_sprite_rep->controls->rotation = krad_sprite->krad_compositor_subunit->rotation;
+  krad_sprite_rep->controls->opacity = krad_sprite->krad_compositor_subunit->opacity;
+   
+  return krad_sprite_rep;
+}

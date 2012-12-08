@@ -222,19 +222,19 @@ void kr_audioport_destroy (kr_audioport_t *kr_audioport);
 
 /** Compositor **/
 
-void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int tickrate, 
-									float scale, float opacity, float rotation, int red, int green, int blue, char *font);
+void krad_ipc_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int z, int tickrate, 
+									float scale, float opacity, float rotation, float red, float green, float blue, char *font);
 
-void krad_ipc_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, int tickrate, 
-									float scale, float opacity, float rotation, int red, int green, int blue);
+void krad_ipc_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, int z, int tickrate, 
+									float scale, float opacity, float rotation, float red, float green, float blue);
 
 void krad_ipc_compositor_remove_text (krad_ipc_client_t *client, int num);
 void krad_ipc_compositor_list_texts (krad_ipc_client_t *client);
 
-void krad_ipc_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x, int y, int tickrate, 
+void krad_ipc_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x, int y, int z, int tickrate, 
 									float scale, float opacity, float rotation);
 
-void krad_ipc_compositor_set_sprite (krad_ipc_client_t *client, int num, int x, int y, int tickrate, 
+void krad_ipc_compositor_set_sprite (krad_ipc_client_t *client, int num, int x, int y, int z,  int tickrate, 
 									float scale, float opacity, float rotation);
 
 void krad_ipc_compositor_remove_sprite (krad_ipc_client_t *client, int num);

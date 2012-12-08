@@ -11,8 +11,7 @@
 
 #include <libswscale/swscale.h>
 
-#include "pixman.h"
-
+//#include "pixman.h"
 
 typedef struct krad_compositor_port_St krad_compositor_port_t;
 typedef struct krad_compositor_St krad_compositor_t;
@@ -22,9 +21,11 @@ typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
 #include "krad_compositor_port.h"
 
 #define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
-#define KRAD_COMPOSITOR_MAX_PORTS 32
-#define KRAD_COMPOSITOR_MAX_SPRITES 64
-#define KRAD_COMPOSITOR_MAX_TEXTS 64
+#define KC_MAX_PORTS 32
+#define KC_MAX_SPRITES 64
+#define KC_MAX_TEXTS 64
+#define KC_MAX_VECTORS 64
+#define KC_MAX_SUBUNITS KC_MAX_PORTS * KC_MAX_SPRITES * KC_MAX_TEXTS * KC_MAX_VECTORS
 
 typedef enum {
 	SYNTHETIC = 13999,
@@ -62,7 +63,8 @@ struct krad_compositor_St {
 	cairo_t *mask_cr;
 
 	krad_gui_t *krad_gui;
-
+  krad_text_rep_t *krad_text_rep_ipc;
+  
 	int width;
 	int height;
 
@@ -119,6 +121,8 @@ struct krad_compositor_St {
 	int active_texts;
 	
 	struct timespec start_time;
+	
+  krad_compositor_subunit_t *subunit_z_order[KC_MAX_SUBUNITS];
 
 };
 void krad_compositor_unset_krad_mixer (krad_compositor_t *krad_compositor);
@@ -126,21 +130,18 @@ void krad_compositor_set_krad_mixer (krad_compositor_t *krad_compositor, krad_mi
 
 void krad_compositor_get_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename);
 
-void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform);
+//void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform);
 
-void krad_compositor_add_text (krad_compositor_t *krad_compositor, char *text, int x, int y, int tickrate, 
-								 float scale, float opacity, float rotation, int red, int green, int blue, char *font);
+void krad_compositor_add_text (krad_compositor_t *krad_compositor, krad_text_rep_t *krad_text_rep);
 
-void krad_compositor_set_text (krad_compositor_t *krad_compositor, int num, int x, int y, int tickrate, 
-								 float scale, float opacity, float rotation, int red, int green, int blue);
+void krad_compositor_set_text (krad_compositor_t *krad_compositor, krad_text_rep_t *krad_text_rep);
 
 void krad_compositor_remove_text (krad_compositor_t *krad_compositor, int num);
 
-void krad_compositor_add_sprite (krad_compositor_t *krad_compositor, char *filename, int x, int y, int tickrate, 
-								 float scale, float opacity, float rotation);
+void krad_compositor_add_sprite (krad_compositor_t *krad_compositor, krad_sprite_rep_t *krad_sprite_rep);
 
-void krad_compositor_set_sprite (krad_compositor_t *krad_compositor, int num, int x, int y, int tickrate, 
-								 float scale, float opacity, float rotation);
+void krad_compositor_set_sprite (krad_compositor_t *krad_compositor,
+                                 krad_sprite_rep_t *krad_sprite_rep);
 
 void krad_compositor_remove_sprite (krad_compositor_t *krad_compositor, int num);
 

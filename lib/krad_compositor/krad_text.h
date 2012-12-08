@@ -1,7 +1,7 @@
 
 
 #include "krad_radio.h"
-
+#include <pango/pangocairo.h>
 #ifndef KRAD_TEXT_H
 #define KRAD_TEXT_H
 
@@ -12,11 +12,12 @@ typedef struct krad_text_St krad_text_t;
 
 struct krad_text_St {
 
+  
 	char font[128];
 	char text_actual[1024];
 
-	cairo_surface_t *text;
-	cairo_pattern_t *text_pattern;
+  PangoLayout *layout;
+  PangoFontDescription *font_description;
 		
 	float red;
 	float blue;
@@ -55,13 +56,14 @@ void krad_text_set_font (krad_text_t *krad_text, char *font);
 void krad_text_set_new_scale (krad_text_t *krad_text, float scale);
 void krad_text_set_new_opacity (krad_text_t *krad_text, float opacity);
 void krad_text_set_new_rotation (krad_text_t *krad_text, float rotation);
-void krad_text_set_rgb (krad_text_t *krad_text, int red, int green, int blue);
-void krad_text_set_new_rgb (krad_text_t *krad_text, int red, int green, int blue);
+void krad_text_set_rgb (krad_text_t *krad_text, float red, float green, float blue);
+void krad_text_set_new_rgb (krad_text_t *krad_text, float red, float green, float blue);
 
 void krad_text_set_tickrate (krad_text_t *krad_text, int tickrate);
 void krad_text_render (krad_text_t *krad_text, cairo_t *cr);
 void krad_text_tick (krad_text_t *krad_text);
 void krad_text_render_xy (krad_text_t *krad_text, cairo_t *cr, int x, int y);
 
+krad_text_rep_t *krad_text_to_text_rep (krad_text_t *krad_text, krad_text_rep_t *krad_text_rep);
 
 #endif

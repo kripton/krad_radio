@@ -21,6 +21,8 @@ void krad_compositor_subunit_reset (krad_compositor_subunit_t *krad_compositor_s
 	krad_compositor_subunit->height = 0;
 	krad_compositor_subunit->x = 0;
 	krad_compositor_subunit->y = 0;
+  krad_compositor_subunit->z = 0;
+  
 	krad_compositor_subunit->tickrate = KRAD_COMPOSITOR_SUBUNIT_DEFAULT_TICKRATE;
 	krad_compositor_subunit->tick = 0;
 
@@ -92,6 +94,12 @@ void krad_compositor_subunit_set_xy (krad_compositor_subunit_t *krad_compositor_
 	krad_compositor_subunit->new_x = krad_compositor_subunit->x;
 	krad_compositor_subunit->new_y = krad_compositor_subunit->y;
 	
+}
+
+void krad_compositor_subunit_set_z (krad_compositor_subunit_t *krad_compositor_subunit, int z) {
+
+  krad_compositor_subunit->z = z;
+
 }
 
 void krad_compositor_subunit_set_new_xy (krad_compositor_subunit_t *krad_compositor_subunit, int x, int y) {
@@ -196,28 +204,46 @@ void krad_compositor_subunit_update (krad_compositor_subunit_t *krad_compositor_
 
 	if (krad_compositor_subunit->x_time != krad_compositor_subunit->x_duration) {
 		krad_compositor_subunit->x = krad_ease (krad_compositor_subunit->krad_ease_x, krad_compositor_subunit->x_time++, krad_compositor_subunit->start_x, krad_compositor_subunit->change_x_amount, krad_compositor_subunit->x_duration);
-	}	
+
+    if (krad_compositor_subunit->x_time == krad_compositor_subunit->x_duration) {
+      krad_compositor_subunit->x = krad_compositor_subunit->new_x;
+    }
+  }	
 	
 	if (krad_compositor_subunit->y_time != krad_compositor_subunit->y_duration) {
 		krad_compositor_subunit->y = krad_ease (krad_compositor_subunit->krad_ease_y, krad_compositor_subunit->y_time++, krad_compositor_subunit->start_y, krad_compositor_subunit->change_y_amount, krad_compositor_subunit->y_duration);
-	}
+    if (krad_compositor_subunit->y_time == krad_compositor_subunit->y_duration) {
+      krad_compositor_subunit->y = krad_compositor_subunit->new_y;
+    }
+  }
 	
 	if (krad_compositor_subunit->rotation_time != krad_compositor_subunit->rotation_duration) {
 		krad_compositor_subunit->rotation = krad_ease (krad_compositor_subunit->krad_ease_rotation, krad_compositor_subunit->rotation_time++, krad_compositor_subunit->start_rotation, krad_compositor_subunit->rotation_change_amount, krad_compositor_subunit->rotation_duration);
-	}
+    if (krad_compositor_subunit->rotation_time == krad_compositor_subunit->rotation_duration) {
+      krad_compositor_subunit->rotation = krad_compositor_subunit->new_rotation;
+    }
+  }
 	
 	if (krad_compositor_subunit->opacity_time != krad_compositor_subunit->opacity_duration) {
 		krad_compositor_subunit->opacity = krad_ease (krad_compositor_subunit->krad_ease_opacity, krad_compositor_subunit->opacity_time++, krad_compositor_subunit->start_opacity, krad_compositor_subunit->opacity_change_amount, krad_compositor_subunit->opacity_duration);
-	}
+    if (krad_compositor_subunit->opacity_time == krad_compositor_subunit->opacity_duration) {
+      krad_compositor_subunit->opacity = krad_compositor_subunit->new_opacity;
+    }
+  }
 	
 	if (krad_compositor_subunit->xscale_time != krad_compositor_subunit->xscale_duration) {
 		krad_compositor_subunit->xscale = krad_ease (krad_compositor_subunit->krad_ease_xscale, krad_compositor_subunit->xscale_time++, krad_compositor_subunit->start_xscale, krad_compositor_subunit->xscale_change_amount, krad_compositor_subunit->xscale_duration);
-	}
+    if (krad_compositor_subunit->xscale_time == krad_compositor_subunit->xscale_duration) {
+      krad_compositor_subunit->xscale = krad_compositor_subunit->new_xscale;
+    }
+  }
 	
 	if (krad_compositor_subunit->yscale_time != krad_compositor_subunit->yscale_duration) {
 		krad_compositor_subunit->yscale = krad_ease (krad_compositor_subunit->krad_ease_yscale, krad_compositor_subunit->yscale_time++, krad_compositor_subunit->start_yscale, krad_compositor_subunit->yscale_change_amount, krad_compositor_subunit->yscale_duration);
-	}
-	
+    if (krad_compositor_subunit->yscale_time == krad_compositor_subunit->yscale_duration) {
+      krad_compositor_subunit->yscale = krad_compositor_subunit->new_yscale;
+    }
+  }
 }
 
 

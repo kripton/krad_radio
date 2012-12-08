@@ -11,8 +11,7 @@
 #include <signal.h>
 
 #include <cairo/cairo.h>
-
-
+#include <pango/pangocairo.h>
 #include "krad_system.h"
 
 #define PRO_REEL_SIZE 26.67
