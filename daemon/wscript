@@ -8,8 +8,9 @@ daemon = "krad_radio_daemon.c"
 
 depsources = """
 ../lib/krad_container/krad_container.c
+../lib/krad_radio/krad_radio_interface.c
 ../lib/krad_radio/krad_radio.c
-../lib/krad_link/krad_link_common.c
+../lib/krad_transponder/krad_transponder_common.c
 ../lib/krad_system/krad_system.c
 ../lib/krad_ticker/krad_timer.c
 ../lib/krad_ticker/krad_ticker.c
@@ -18,6 +19,7 @@ depsources = """
 ../lib/krad_ipc/krad_ipc_client.c
 ../lib/krad_compositor/krad_compositor_common.c
 ../lib/krad_compositor/krad_compositor_subunit.c
+../lib/krad_compositor/krad_compositor_interface.c
 ../lib/krad_compositor/krad_sprite.c
 ../lib/krad_compositor/krad_text.c
 ../lib/krad_compositor/krad_easing.c
@@ -36,13 +38,13 @@ depsources = """
 ../lib/krad_web/ext/libwebsockets/parsers.c
 ../lib/krad_web/ext/libwebsockets/sha-1.c
 ../lib/krad_web/krad_http.c
-../lib/krad_web/krad_websocket.c
 ../lib/krad_sfx/krad_eq.c
 ../lib/krad_sfx/krad_pass.c
 ../lib/krad_sfx/krad_rushlimiter.c
 ../lib/krad_sfx/krad_sfx.c
 ../lib/krad_ipc/krad_ipc_server.c
 ../lib/krad_tags/krad_tags.c
+../lib/krad_mixer/krad_mixer_interface.c
 ../lib/krad_mixer/krad_mixer.c
 ../lib/krad_tone/krad_tone.c
 ../lib/krad_audio/krad_audio.c
@@ -55,7 +57,8 @@ depsources = """
 ../lib/krad_opus/krad_opus.c
 ../lib/krad_opus/opus_header.c
 ../lib/krad_ring/krad_ring.c
-../lib/krad_link/krad_link.c
+../lib/krad_transponder/krad_transponder_interface.c
+../lib/krad_transponder/krad_transponder.c
 ../lib/krad_transmitter/krad_transmitter.c
 ../lib/krad_io/krad_io.c
 ../lib/krad_ogg/krad_ogg.c
@@ -68,6 +71,8 @@ depsources = """
 ../lib/krad_vhs/ext/imagezero/table.cpp
 ../lib/krad_vhs/krad_vhs.cpp
 """.split()
+
+#../lib/krad_web/krad_websocket.c
 
 includedirs = """
 ../lib/krad_compositor/
@@ -101,7 +106,7 @@ includedirs = """
 ../lib/krad_ring/
 ../lib/krad_ogg/
 ../lib/krad_io/
-../lib/krad_link/
+../lib/krad_transponder/
 ../lib/krad_transmitter/
 ../lib/krad_container/
 ../lib/krad_x11/

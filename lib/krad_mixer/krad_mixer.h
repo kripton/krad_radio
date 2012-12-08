@@ -1,7 +1,5 @@
 #ifndef KRAD_MIXER_H
 #define KRAD_MIXER_H
-#include "krad_mixer_common.h"
-#include "krad_sfx.h"
 
 typedef struct krad_mixer_St krad_mixer_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_portgroup_t;
@@ -16,6 +14,9 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 #define KRAD_MIXER_RMS_WINDOW_SIZE_MS 125
 
 #include "krad_radio.h"
+#include "krad_mixer_interface.h"
+#include "krad_mixer_common.h"
+#include "krad_sfx.h"
 
 typedef enum {
 	KRAD_TONE,
@@ -152,7 +153,7 @@ krad_mixer_t *krad_mixer_create (char *name);
 void krad_mixer_destroy (krad_mixer_t *krad_mixer);
 void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc);
 
-int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc );
+
 
 krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, 
 													 krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
@@ -176,4 +177,10 @@ float krad_mixer_portgroup_read_peak (krad_mixer_portgroup_t *portgroup);
 float krad_mixer_portgroup_read_channel_peak (krad_mixer_portgroup_t *portgroup, int channel);
 float krad_mixer_peak_scale (float value);
 
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value);
+void krad_mixer_portgroup_mixmap_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel);
+void krad_mixer_unplug_portgroup (krad_mixer_t *krad_mixer, char *name, char *remote_name);
+void krad_mixer_plug_portgroup (krad_mixer_t *krad_mixer, char *name, char *remote_name);
+krad_mixer_portgroup_t *krad_mixer_local_portgroup_create (krad_mixer_t *krad_mixer, char *sysname,
+														   int direction, int shm_sd, int msg_sd);
 #endif

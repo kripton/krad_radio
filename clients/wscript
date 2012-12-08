@@ -12,18 +12,18 @@ krad_radio_ap.c
 """.split()
 
 libsources = """
-../lib/krad_radio/krad_radio_client.c
 ../lib/krad_system/krad_system.c
 ../lib/krad_ebml/krad_ebml.c
 ../lib/krad_osc/krad_osc.c
 ../lib/krad_ipc/krad_ipc_client.c
-../lib/krad_link/krad_link_common.c
+../lib/krad_radio/krad_radio_client.c
+../lib/krad_radio/krad_radio_client_ctl.c
+../lib/krad_transponder/krad_transponder_common.c
 ../lib/krad_compositor/krad_compositor_client.c
 ../lib/krad_compositor/krad_compositor_common.c
 """.split()
 
 includedirs = """
-../lib/krad_x264/
 ../lib/krad_compositor/
 ../lib/krad_ticker/
 ../lib/krad_xmms2/
@@ -55,7 +55,7 @@ includedirs = """
 ../lib/krad_ring/
 ../lib/krad_ogg/
 ../lib/krad_io/
-../lib/krad_link/
+../lib/krad_transponder/
 ../lib/krad_transmitter/
 ../lib/krad_container/
 ../lib/krad_x11/

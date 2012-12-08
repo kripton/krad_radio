@@ -11,14 +11,13 @@
 
 #include <libswscale/swscale.h>
 
-//#include "pixman.h"
-
 typedef struct krad_compositor_port_St krad_compositor_port_t;
 typedef struct krad_compositor_St krad_compositor_t;
 typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
 
 #include "krad_radio.h"
 #include "krad_compositor_port.h"
+#include "krad_compositor_interface.h"
 
 #define DEFAULT_COMPOSITOR_BUFFER_FRAMES 120
 #define KC_MAX_PORTS 32
@@ -134,8 +133,6 @@ void krad_compositor_set_krad_mixer (krad_compositor_t *krad_compositor, krad_mi
 
 void krad_compositor_get_last_snapshot_name (krad_compositor_t *krad_compositor, char *filename);
 
-//void krad_compositor_create_keystone_matrix (krad_point_t q[4], double w, double h, pixman_transform_t *transform);
-
 void krad_compositor_add_text (krad_compositor_t *krad_compositor, krad_text_rep_t *krad_text_rep);
 
 void krad_compositor_set_text (krad_compositor_t *krad_compositor, krad_text_rep_t *krad_text_rep);
@@ -203,7 +200,8 @@ krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *kra
 													 int width, int height, int holdlock, int local);													 
 void krad_compositor_port_destroy (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
 void krad_compositor_port_destroy_unlocked (krad_compositor_t *krad_compositor, krad_compositor_port_t *krad_compositor_port);
-int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_server_t *krad_ipc );
+krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *krad_compositor,
+														   char *sysname, int direction, int shm_sd, int msg_sd);
 
 void krad_compositor_get_frame_rate (krad_compositor_t *krad_compositor,
 									 int *frame_rate_numerator, int *frame_rate_denominator);
@@ -219,7 +217,9 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 void krad_compositor_take_snapshot (krad_compositor_t *krad_compositor, krad_frame_t *krad_frame, krad_snapshot_fmt_t format);
 void *krad_compositor_snapshot_thread (void *arg);
 
-
 void krad_compositor_set_dir (krad_compositor_t *krad_compositor, char *dir);
+
+void krad_compositor_close_display (krad_compositor_t *krad_compositor);
+void krad_compositor_open_display (krad_compositor_t *krad_compositor);
 
 #endif

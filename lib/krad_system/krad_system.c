@@ -280,6 +280,7 @@ void krad_system_init () {
 void krad_system_daemonize () {
 
 	pid_t pid, sid;
+	FILE *refp;
 
 	pid = fork();
 
@@ -291,10 +292,19 @@ void krad_system_daemonize () {
 		exit (EXIT_SUCCESS);
 	}
 
-	freopen("/dev/null", "r", stdin);
-	freopen("/dev/null", "w", stdout);
-	freopen("/dev/null", "w", stderr);
-	
+	refp = freopen("/dev/null", "r", stdin);
+  if (refp == NULL) {
+	  exit(1);
+  }
+	refp = freopen("/dev/null", "w", stdout);
+  if (refp == NULL) {
+	  exit(1);
+  }
+	refp = freopen("/dev/null", "w", stderr);
+  if (refp == NULL) {
+	  exit(1);
+  }
+
 	umask(0);
  
 	sid = setsid();

@@ -20,6 +20,7 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_ebml.h"
+///#include "krad_radio_interface.h"
 #include "krad_ogg.h"
 #include "krad_io.h"
 #include "krad_codec_header.h"
@@ -62,8 +63,8 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_sprite.h"
 #include "krad_text.h"
 #include "krad_compositor.h"
-#include "krad_link_common.h"
-#include "krad_link.h"
+#include "krad_transponder_common.h"
+#include "krad_transponder.h"
 
 #ifdef KRAD_USE_WAYLAND
 #include "krad_wayland.h"
@@ -83,7 +84,7 @@ struct krad_radio_St {
 	krad_osc_t *krad_osc;	
 	krad_websocket_t *krad_websocket;
 	krad_http_t *krad_http;
-	krad_linker_t *krad_linker;	
+	krad_transponder_t *krad_transponder;	
 	krad_mixer_t *krad_mixer;
 	krad_compositor_t *krad_compositor;
 	krad_tags_t *krad_tags;

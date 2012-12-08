@@ -1,6 +1,24 @@
+#include "krad_radio_client_internal.h"
 #include "krad_compositor_client.h"
 
-int kr_compositor_read_port ( krad_ipc_client_t *client, char *text) {
+struct kr_videoport_St {
+
+	int width;
+	int height;
+	kr_shm_t *kr_shm;
+	kr_client_t *client;
+	int sd;
+	
+	int (*callback)(void *, void *);
+	void *pointer;
+	
+	int active;
+	
+	pthread_t process_thread;	
+	
+};
+
+int kr_compositor_read_port ( kr_client_t *client, char *text) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -40,7 +58,7 @@ int kr_compositor_read_port ( krad_ipc_client_t *client, char *text) {
 
 }
 
-int kr_compositor_read_sprite ( krad_ipc_client_t *client, char *text) {
+int kr_compositor_read_sprite ( kr_client_t *client, char *text) {
 
 	uint64_t ebml_data_size;
 	int bytes_read;
@@ -58,7 +76,7 @@ int kr_compositor_read_sprite ( krad_ipc_client_t *client, char *text) {
 	return bytes_read;
 }
 
-int kr_compositor_read_text ( krad_ipc_client_t *client, char *text) {
+int kr_compositor_read_text ( kr_client_t *client, char *text) {
 
 	uint64_t ebml_data_size;
 	int bytes_read;
@@ -76,7 +94,7 @@ int kr_compositor_read_text ( krad_ipc_client_t *client, char *text) {
  return bytes_read;
 }
   
-int kr_compositor_read_frame_size ( krad_ipc_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep) {
+int kr_compositor_read_frame_size ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -103,7 +121,7 @@ int kr_compositor_read_frame_size ( krad_ipc_client_t *client, char *text, krad_
 	return bytes_read;
 }
 
-int kr_compositor_read_frame_rate ( krad_ipc_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep) {
+int kr_compositor_read_frame_rate ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -131,7 +149,7 @@ int kr_compositor_read_frame_rate ( krad_ipc_client_t *client, char *text, krad_
 }
 
 
-void kr_compositor_port_list (krad_ipc_client_t *client) {
+void kr_compositor_port_list (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -163,7 +181,7 @@ void kr_compositor_port_list (krad_ipc_client_t *client) {
 
 
 
-void kr_compositor_background (krad_ipc_client_t *client, char *filename) {
+void kr_compositor_background (kr_client_t *client, char *filename) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -189,7 +207,7 @@ void kr_compositor_background (krad_ipc_client_t *client, char *filename) {
 
 
 
-void kr_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y, int z, int tickrate, 
+void kr_compositor_add_text (kr_client_t *client, char *text, int x, int y, int z, int tickrate, 
 									float scale, float opacity, float rotation, float red, float green, float blue, char *font) {
 
 	uint64_t compositor_command;
@@ -216,7 +234,7 @@ void kr_compositor_add_text (krad_ipc_client_t *client, char *text, int x, int y
 
 }
 
-void kr_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, int z, int tickrate, 
+void kr_compositor_set_text (kr_client_t *client, int num, int x, int y, int z, int tickrate, 
 									float scale, float opacity, float rotation, float red, float green, float blue) {
 
 	//uint64_t ipc_command;
@@ -241,7 +259,7 @@ void kr_compositor_set_text (krad_ipc_client_t *client, int num, int x, int y, i
 
 }
 
-void kr_compositor_remove_text (krad_ipc_client_t *client, int num) {
+void kr_compositor_remove_text (kr_client_t *client, int num) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -265,7 +283,7 @@ void kr_compositor_remove_text (krad_ipc_client_t *client, int num) {
 
 }
 
-void kr_compositor_list_texts (krad_ipc_client_t *client) {
+void kr_compositor_list_texts (kr_client_t *client) {
 
 	uint64_t compositor_command;
 	uint64_t text;
@@ -284,7 +302,7 @@ void kr_compositor_list_texts (krad_ipc_client_t *client) {
 
 
 
-void kr_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x, int y, int z, int tickrate, 
+void kr_compositor_add_sprite (kr_client_t *client, char *filename, int x, int y, int z, int tickrate, 
 									float scale, float opacity, float rotation) {
 
 	//uint64_t ipc_command;
@@ -312,7 +330,7 @@ void kr_compositor_add_sprite (krad_ipc_client_t *client, char *filename, int x,
 
 }
 
-void kr_compositor_set_sprite (krad_ipc_client_t *client, int num, 
+void kr_compositor_set_sprite (kr_client_t *client, int num, 
                                      int x, int y, int z, int tickrate, 
                                      float scale, float opacity, float rotation) {
 
@@ -341,7 +359,7 @@ void kr_compositor_set_sprite (krad_ipc_client_t *client, int num,
 
 }
 
-void kr_compositor_remove_sprite (krad_ipc_client_t *client, int num) {
+void kr_compositor_remove_sprite (kr_client_t *client, int num) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -365,7 +383,7 @@ void kr_compositor_remove_sprite (krad_ipc_client_t *client, int num) {
 
 }
 
-void kr_compositor_list_sprites (krad_ipc_client_t *client) {
+void kr_compositor_list_sprites (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -388,7 +406,7 @@ void kr_compositor_list_sprites (krad_ipc_client_t *client) {
 
 }
 
-void kr_compositor_close_display (krad_ipc_client_t *client) {
+void kr_compositor_close_display (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -409,7 +427,7 @@ void kr_compositor_close_display (krad_ipc_client_t *client) {
 
 }
 
-void kr_compositor_open_display (krad_ipc_client_t *client, int width, int height) {
+void kr_compositor_open_display (kr_client_t *client, int width, int height) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -430,7 +448,7 @@ void kr_compositor_open_display (krad_ipc_client_t *client, int width, int heigh
 
 }
 
-void kr_compositor_snapshot (krad_ipc_client_t *client) {
+void kr_compositor_snapshot (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t snap_command;
@@ -450,7 +468,7 @@ void kr_compositor_snapshot (krad_ipc_client_t *client) {
 	
 }
 
-void kr_compositor_snapshot_jpeg (krad_ipc_client_t *client) {
+void kr_compositor_snapshot_jpeg (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t snap_command;
@@ -462,7 +480,7 @@ void kr_compositor_snapshot_jpeg (krad_ipc_client_t *client) {
 	krad_ebml_write_sync (client->krad_ebml);
 }
 
-void kr_compositor_set_frame_rate (krad_ipc_client_t *client, int numerator, int denominator) {
+void kr_compositor_set_frame_rate (kr_client_t *client, int numerator, int denominator) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -486,7 +504,7 @@ void kr_compositor_set_frame_rate (krad_ipc_client_t *client, int numerator, int
 
 }
 
-void kr_compositor_set_resolution (krad_ipc_client_t *client, int width, int height) {
+void kr_compositor_set_resolution (kr_client_t *client, int width, int height) {
 
 	//uint64_t ipc_command;
 	uint64_t compositor_command;
@@ -510,7 +528,7 @@ void kr_compositor_set_resolution (krad_ipc_client_t *client, int width, int hei
 
 }
 
-void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client) {
+void krad_ipc_radio_get_last_snap_name (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t snap_command;
@@ -522,7 +540,7 @@ void krad_ipc_radio_get_last_snap_name (krad_ipc_client_t *client) {
 	krad_ebml_write_sync (client->krad_ebml);
 }
 
-void kr_compositor_info (krad_ipc_client_t *client) {
+void kr_compositor_info (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t info_command;
@@ -543,7 +561,7 @@ void kr_compositor_info (krad_ipc_client_t *client) {
 }
 
 
-void kr_compositor_get_frame_rate (krad_ipc_client_t *client) {
+void kr_compositor_get_frame_rate (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t info_command;
@@ -563,7 +581,7 @@ void kr_compositor_get_frame_rate (krad_ipc_client_t *client) {
 	
 }
 
-void kr_compositor_get_frame_size (krad_ipc_client_t *client) {
+void kr_compositor_get_frame_size (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t info_command;
@@ -584,7 +602,7 @@ void kr_compositor_get_frame_size (krad_ipc_client_t *client) {
 }
 
 
-void kr_compositor_set_port_mode (krad_ipc_client_t *client, int number, uint32_t x, uint32_t y,
+void kr_compositor_set_port_mode (kr_client_t *client, int number, uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height, uint32_t crop_x, uint32_t crop_y,
 										uint32_t crop_width, uint32_t crop_height, float opacity, float rotation) {
 
@@ -723,6 +741,8 @@ void kr_videoport_deactivate (kr_videoport_t *kr_videoport) {
 
 kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 
+  //FIXME 
+/*
 	kr_videoport_t *kr_videoport;
 	int sockets[2];
 
@@ -761,16 +781,23 @@ kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 	kr_videoport_create_cmd (kr_videoport->client);
 	//FIXME use a return message from daemon to indicate ready to receive fds
 	usleep (33000);
-	krad_ipc_client_sendfd (kr_videoport->client, kr_videoport->kr_shm->fd);
+	kr_client_sendfd (kr_videoport->client, kr_videoport->kr_shm->fd);
 	usleep (33000);
-	krad_ipc_client_sendfd (kr_videoport->client, sockets[1]);
+	kr_client_sendfd (kr_videoport->client, sockets[1]);
 	usleep (33000);
+	
+
 	return kr_videoport;
+	*/
+  //FIXME
+  return NULL;
+  //FIXME
 
 }
 
 void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
-
+// FIXME
+/*
 	if (kr_videoport->active == 1) {
 		kr_videoport_deactivate (kr_videoport);
 	}
@@ -788,6 +815,7 @@ void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
 		}
 		free(kr_videoport);
 	}
+	*/
 }
 
 

@@ -8,7 +8,8 @@ void krad_alsa_seq_set_kr_client (krad_alsa_seq_t *krad_alsa_seq, kr_client_t *k
 #endif
 
 void *krad_alsa_seq_running_thread (void *arg) {
-
+//FIXME
+/*
 	krad_alsa_seq_t *krad_alsa_seq = (krad_alsa_seq_t *)arg;
 
 	int ret;
@@ -126,7 +127,7 @@ void *krad_alsa_seq_running_thread (void *arg) {
 	krad_alsa_seq->running = 0;	
 
 	printk ("Krad alsa_seq running thread exiting\n");
-
+*/
 	return NULL;
 }
 

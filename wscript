@@ -9,7 +9,7 @@ import os, sys
 
 libdir = "lib"
 clientsdir = "clients"
-#toolsdir = "tools"
+toolsdir = "tools"
 daemondir = "daemon"
 subdirs = os.listdir('./' + libdir)
 

@@ -40,19 +40,11 @@ int main (int argc, char *argv[]) {
         printf (KRAD_VERSION_STRING "\n");
         return 0;
 		  }
-
-      if ((strlen(argv[1]) == 7) && (strncmp(argv[1], "threads", 7) == 0)) {
-        printf ("%s\n", krad_radio_threads (NULL));
-        return 0;
-      }
   
       if ((strlen(argv[1]) == 2) && (strncmp(argv[1], "ls", 2) == 0)) {
-
 		    printf ("Running Stations: \n\n%s\n", krad_radio_running_stations ());
-
 		    return 0;
 	    }
-
 		}
 
 		krad_radio_command_help ();
@@ -60,10 +52,7 @@ int main (int argc, char *argv[]) {
 
 	}
 
-	if ((strncmp(argv[1], "watchdog", 8) == 0) || (strncmp(argv[1], "dog", 3) == 0)) {
-		krad_radio_watchdog_launch (argv[2]);
-		return 0;
-	}
+  /*
 
 	if (!krad_valid_host_and_port (argv[1])) {
 		if (!krad_valid_sysname(argv[1])) {
@@ -93,10 +82,7 @@ int main (int argc, char *argv[]) {
 		return 0;
 	}
 
-  if ((strlen(argv[2]) == 7) && (strncmp(argv[2], "threads", 7) == 0)) {
-    printf ("%s\n", krad_radio_threads (sysname));
-    return 0;
-  }
+  */
 
 	client = kr_connect (sysname);
 
@@ -107,6 +93,8 @@ int main (int argc, char *argv[]) {
 
   /* Krad Radio Commands */
 
+  /*
+
   if ((strncmp(argv[2], "ls", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
 	    krad_ipc_list_links (client);
@@ -115,7 +103,7 @@ int main (int argc, char *argv[]) {
 	    kr_compositor_port_list (client);
 	    krad_ipc_print_response (client);
 
-	    krad_ipc_get_portgroups (client);
+	    kr_mixer_portgroups_list (client);
 	    krad_ipc_print_response (client);					
 
     }
@@ -252,12 +240,16 @@ int main (int argc, char *argv[]) {
     krad_ipc_radio_get_logname (client);
     krad_ipc_print_response (client);
   }
+  
+  */
 
   /* Krad Mixer Commands */
 
+  /*
+
   if (strncmp(argv[2], "lm", 2) == 0) {
     if (argc == 3) {
-	    krad_ipc_get_portgroups (client);
+	    kr_mixer_portgroups_list (client);
 	    krad_ipc_print_response (client);
     }
   }
@@ -385,7 +377,11 @@ int main (int argc, char *argv[]) {
     }
   }
 
+  */
+
   /* Krad Link Commands */			
+
+  /*
 
   if ((strncmp(argv[2], "ll", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
@@ -605,8 +601,12 @@ int main (int argc, char *argv[]) {
 	    }
     }				
   }
+  
+  */
 
   /* Krad Compositor Commands */
+
+  /*
 
   if ((strncmp(argv[2], "lc", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
@@ -863,9 +863,11 @@ int main (int argc, char *argv[]) {
     if (argc == 3) {
 	    kr_compositor_close_display (client);
     }
-  }			
+  }
+  
+  */
 
-  kr_disconnect (client);
+  kr_disconnect (&client);
 
 	return 0;
 

@@ -1,11 +1,12 @@
-#ifndef KRAD_LINK_H
-#define KRAD_LINK_H
+#ifndef KRAD_TRANSPONDER_H
+#define KRAD_TRANSPONDER_H
 
 typedef struct krad_link_St krad_link_t;
-typedef struct krad_linker_St krad_linker_t;
-typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
+typedef struct krad_transponder_St krad_transponder_t;
+typedef struct krad_transponder_listen_client_St krad_transponder_listen_client_t;
 
 #include "krad_radio.h"
+#include "krad_transponder_interface.h"
 
 #define DEFAULT_VPX_BITRATE 1200
 #define DEFAULT_THEORA_QUALITY 31
@@ -25,16 +26,16 @@ typedef struct krad_linker_listen_client_St krad_linker_listen_client_t;
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 #define KRAD_LINK_DEFAULT_VIDEO_CODEC VP8
 #define KRAD_LINK_DEFAULT_AUDIO_CODEC VORBIS
-#define KRAD_LINKER_MAX_LINKS 42
+#define KRAD_TRANSPONDER_MAX_LINKS 42
 #define HELP -1337
 
-struct krad_linker_St {
-	krad_link_t *krad_link[KRAD_LINKER_MAX_LINKS];
+struct krad_transponder_St {
+	krad_link_t *krad_link[KRAD_TRANSPONDER_MAX_LINKS];
 	krad_radio_t *krad_radio;
 
 	pthread_mutex_t change_lock;
 
-	/* linker listener */	
+	/* transponder listener */	
 	unsigned char *buffer;
 
 	int port;
@@ -44,14 +45,14 @@ struct krad_linker_St {
 	int stop_listening;
 	pthread_t listening_thread;
 	
-	/* linker transmitter */	
+	/* transponder transmitter */	
 	krad_transmitter_t *krad_transmitter;	
 	
 };
 
-struct krad_linker_listen_client_St {
+struct krad_transponder_listen_client_St {
 
-	krad_linker_t *krad_linker;
+	krad_transponder_t *krad_transponder;
 	pthread_t client_thread;
 
 	char in_buffer[1024];
@@ -74,7 +75,7 @@ struct krad_link_St {
 
 	krad_radio_t *krad_radio;
 
-	krad_linker_t *krad_linker;
+	krad_transponder_t *krad_transponder;
 
 	int link_num;
 
@@ -202,18 +203,20 @@ struct krad_link_St {
 
 };
 
-void krad_linker_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *krad_link);
+int krad_link_wait_codec_init (krad_link_t *krad_link);
 
-void krad_linker_stop_listening (krad_linker_t *krad_linker);
-int krad_linker_listen (krad_linker_t *krad_linker, int port);
+void krad_transponder_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *krad_link);
 
-krad_link_t *krad_linker_get_link_from_sysname (krad_linker_t *krad_linker, char *sysname);
-krad_tags_t *krad_linker_get_tags_for_link (krad_linker_t *krad_linker, char *sysname);
+void krad_transponder_stop_listening (krad_transponder_t *krad_linker);
+int krad_transponder_listen (krad_transponder_t *krad_transponder, int port);
+
+krad_link_t *krad_transponder_get_link_from_sysname (krad_transponder_t *krad_transponder, char *sysname);
+krad_tags_t *krad_transponder_get_tags_for_link (krad_transponder_t *krad_transponder, char *sysname);
 krad_tags_t *krad_link_get_tags (krad_link_t *krad_link);
 
-krad_linker_t *krad_linker_create ();
-void krad_linker_destroy (krad_linker_t *krad_linker);
-int krad_linker_handler ( krad_linker_t *krad_linker, krad_ipc_server_t *krad_ipc );
+krad_transponder_t *krad_transponder_create ();
+void krad_transponder_destroy (krad_transponder_t *krad_transponder);
+int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_server_t *krad_ipc );
 void krad_link_shutdown();
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
 void krad_link_destroy (krad_link_t *krad_link);
