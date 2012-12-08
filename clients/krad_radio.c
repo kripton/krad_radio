@@ -625,7 +625,6 @@ int main (int argc, char *argv[]) {
 	    krad_ipc_compositor_set_port_mode (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
 									       atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]),
 									       atoi(argv[10]), atoi(argv[11]), atof(argv[12]), atof(argv[13]));
-	    //krad_ipc_print_response (client);
     }
   }
 
@@ -660,18 +659,6 @@ int main (int argc, char *argv[]) {
     }			
     if (argc == 5) {
 	    krad_ipc_compositor_set_frame_rate (client, atoi(argv[3]), atoi(argv[4]));
-    }
-  }						
-
-  if (strncmp(argv[2], "hex", 3) == 0) {
-    if (argc == 6) {
-	    krad_ipc_compositor_hex (client, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
-    }
-  }
-
-  if (strncmp(argv[2], "bug", 3) == 0) {
-    if (argc == 6) {
-	    krad_ipc_compositor_bug (client, atoi(argv[3]), atoi(argv[4]), argv[5]);
     }
   }
 
@@ -876,14 +863,6 @@ int main (int argc, char *argv[]) {
     if (argc == 3) {
 	    krad_ipc_compositor_close_display (client);
     }
-  }			
-
-  if (strncmp(argv[2], "vuon", 4) == 0) {
-    krad_ipc_compositor_vu (client, 1);
-  }			
-
-  if (strncmp(argv[2], "vuoff", 5) == 0) {
-    krad_ipc_compositor_vu (client, 0);
   }			
 
   kr_disconnect (client);
