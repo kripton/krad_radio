@@ -1,9 +1,4 @@
-//#ifndef KRAD_RADIO_CLIENT_H
-//#define KRAD_RADIO_CLIENT_H
-//#define KRAD_RADIO_CLIENT 1
-
 #include <inttypes.h>
-
 
 typedef struct kr_client_St kr_client_t;
 typedef struct kr_shm_St kr_shm_t;
@@ -40,5 +35,3 @@ int kr_read_tag ( kr_client_t *client, char **tag_item, char **tag_name, char **
 void kr_tags (kr_client_t *client, char *item);
 void kr_tag (kr_client_t *client, char *item, char *tag_name);
 void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_value);
-
-//#endif

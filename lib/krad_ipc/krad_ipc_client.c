@@ -236,6 +236,3 @@ int krad_ipc_client_send_fd (krad_ipc_client_t *client, int fd) {
 		    return 0;
 	return 1;
 }
-
-
-

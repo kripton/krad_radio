@@ -63,15 +63,11 @@ struct krad_ipc_client_St {
 
 };
 
-/*** Krad IPC ***/
-
-
 krad_ipc_client_t *krad_ipc_connect (char *sysname);
 void krad_ipc_disconnect (krad_ipc_client_t *client);
 
 void krad_ipc_broadcast_subscribe (krad_ipc_client_t *client, uint32_t broadcast_id);
 void krad_ipc_set_handler_callback (krad_ipc_client_t *client, int handler (krad_ipc_client_t *, void *), void *ptr);
-
 
 void krad_ipc_send (krad_ipc_client_t *client, char *cmd);
 int krad_ipc_recv (krad_ipc_client_t *client, char *buffer, int size);
