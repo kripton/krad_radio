@@ -555,6 +555,7 @@ int main (int argc, char *argv[]) {
   if ((strncmp(argv[2], "rm", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 4) {
 	    kr_transponder_destroy (client, atoi(argv[3]));
+      kr_client_print_response (client);	    
     }
   }
 

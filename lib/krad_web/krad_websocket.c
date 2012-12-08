@@ -1134,8 +1134,8 @@ int callback_kr_client (struct libwebsocket_context *this, struct libwebsocket *
 
 		case LWS_CALLBACK_CLOSED:
 
-			kr_disconnect (&pss->kr_client);
 			del_poll_fd(pss->kr_client->krad_ipc_client->sd);
+			kr_disconnect (&pss->kr_client);
 			pss->hello_sent = 0;
 			pss->context = NULL;
 			pss->wsi = NULL;
