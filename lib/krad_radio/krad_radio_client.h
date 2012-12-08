@@ -31,11 +31,11 @@ kr_shm_t *kr_shm_create (kr_client_t *client);
 void kr_shm_destroy (kr_shm_t *kr_shm);
 
 /* Info */
-void kr_radio_uptime (kr_client_t *client);
-void kr_get_system_info (kr_client_t *client);
-void kr_get_system_cpu_usage (kr_client_t *client);
+void kr_uptime (kr_client_t *client);
+void kr_system_info (kr_client_t *client);
+void kr_system_cpu_usage (kr_client_t *client);
 void kr_set_dir (kr_client_t *client, char *dir);
-void kr_get_logname (kr_client_t *client);
+void kr_logname (kr_client_t *client);
 
 /* Remote Control */
 void kr_remote_enable (kr_client_t *client, int port);
@@ -46,10 +46,11 @@ void kr_osc_enable (kr_client_t *client, int port);
 void kr_osc_disable (kr_client_t *client);
 
 /* Tagging */
-void kr_get_tags (kr_client_t *client, char *item);
 void kr_read_tag_inner ( kr_client_t *client, char **tag_item, char **tag_name, char **tag_value );
 int kr_read_tag ( kr_client_t *client, char **tag_item, char **tag_name, char **tag_value );
-void kr_get_tag (kr_client_t *client, char *item, char *tag_name);
+
+void kr_tags (kr_client_t *client, char *item);
+void kr_tag (kr_client_t *client, char *item, char *tag_name);
 void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_value);
 
 #endif

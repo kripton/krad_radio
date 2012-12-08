@@ -49,7 +49,7 @@ void kr_compositor_set_port_mode (kr_client_t *client, int number, uint32_t x, u
 void kr_compositor_info (kr_client_t *client);
 void kr_compositor_snapshot (kr_client_t *client);
 void kr_compositor_snapshot_jpeg (kr_client_t *client);
-void krad_ipc_radio_get_last_snap_name (kr_client_t *client);
+void kr_compositor_last_snap_name (kr_client_t *client);
 
 /* Compositor Local Video Ports */
 

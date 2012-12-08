@@ -150,7 +150,7 @@ void kr_system_info (kr_client_t *client) {
 }
 
 
-void kr_get_logname (kr_client_t *client) {
+void kr_logname (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t log_command;
@@ -398,7 +398,7 @@ int kr_read_tag ( kr_client_t *client, char **tag_item, char **tag_name, char **
 	
 }
 
-void kr_get_tags (kr_client_t *client, char *item) {
+void kr_tags (kr_client_t *client, char *item) {
 
 	//uint64_t ipc_command;
 	uint64_t radio_command;
@@ -421,7 +421,7 @@ void kr_get_tags (kr_client_t *client, char *item) {
 
 }
 
-void kr_get_tag (kr_client_t *client, char *item, char *tag_name) {
+void kr_tag (kr_client_t *client, char *item, char *tag_name) {
 
 	//uint64_t ipc_command;
 	uint64_t radio_command;

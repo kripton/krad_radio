@@ -528,7 +528,7 @@ void kr_compositor_set_resolution (kr_client_t *client, int width, int height) {
 
 }
 
-void krad_ipc_radio_get_last_snap_name (kr_client_t *client) {
+void kr_compositor_last_snap_name (kr_client_t *client) {
 
 	uint64_t command;
 	uint64_t snap_command;

@@ -23,12 +23,12 @@ int main (int argc, char *argv[]) {
 	kr_client_t *client;
 	char *sysname;
 	int ret;
-	int val;
+	//int val;
 
 	sysname = NULL;
   client = NULL;
   ret = 0;
-  val = 0;
+  //val = 0;
 
 	if ((argc == 1) || (argc == 2)) {
 
@@ -51,8 +51,6 @@ int main (int argc, char *argv[]) {
 		return 0;
 
 	}
-
-  /*
 
 	if (!krad_valid_host_and_port (argv[1])) {
 		if (!krad_valid_sysname(argv[1])) {
@@ -82,8 +80,6 @@ int main (int argc, char *argv[]) {
 		return 0;
 	}
 
-  */
-
 	client = kr_connect (sysname);
 
 	if (client == NULL) {
@@ -92,9 +88,8 @@ int main (int argc, char *argv[]) {
 	}
 
   /* Krad Radio Commands */
-
+  //FIXME
   /*
-
   if ((strncmp(argv[2], "ls", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
 	    krad_ipc_list_links (client);
@@ -105,7 +100,6 @@ int main (int argc, char *argv[]) {
 
 	    kr_mixer_portgroups_list (client);
 	    krad_ipc_print_response (client);					
-
     }
   }			
 
@@ -131,32 +125,33 @@ int main (int argc, char *argv[]) {
 	    krad_ipc_print_response (client);					
 
     }
-  }						
+  }
+  */
 
   if (strncmp(argv[2], "uptime", 6) == 0) {
-    krad_ipc_radio_uptime (client);
-    krad_ipc_print_response (client);
+    kr_uptime (client);
+    //krad_ipc_print_response (client);
   }
 
   if (strncmp(argv[2], "info", 4) == 0) {
-    krad_ipc_radio_get_system_info (client);
-    krad_ipc_print_response (client);
+    kr_system_info (client);
+    //krad_ipc_print_response (client);
   }
 
   if (strncmp(argv[2], "cpu", 4) == 0) {
-    krad_ipc_radio_get_system_cpu_usage (client);
-    krad_ipc_print_response (client);
+    kr_system_cpu_usage (client);
+    //krad_ipc_print_response (client);
   }			
 
   if (strncmp(argv[2], "tags", 4) == 0) {
 
     if (argc == 3) {
-	    krad_ipc_get_tags (client, NULL);		
-	    krad_ipc_print_response (client);
+	    kr_tags (client, NULL);		
+	    //krad_ipc_print_response (client);
     }
     if (argc == 4) {
-	    krad_ipc_get_tags (client, argv[3]);		
-	    krad_ipc_print_response (client);
+	    kr_tags (client, argv[3]);		
+	    //krad_ipc_print_response (client);
     }					
 
   } else {
@@ -164,84 +159,82 @@ int main (int argc, char *argv[]) {
     if (strncmp(argv[2], "tag", 3) == 0) {
 
 	    if (argc == 4) {
-		    krad_ipc_get_tag (client, NULL, argv[3]);
-		    krad_ipc_print_response (client);
+		    kr_tag (client, NULL, argv[3]);
+		    //krad_ipc_print_response (client);
 	    }
 
 	    if (argc == 5) {
-		    krad_ipc_get_tag (client, argv[3], argv[4]);
-		    krad_ipc_print_response (client);						
+		    kr_tag (client, argv[3], argv[4]);
+		    //krad_ipc_print_response (client);						
 	    }				
     }
   }
 
   if (strncmp(argv[2], "stag", 4) == 0) {
     if (argc == 5) {
-	    krad_ipc_set_tag (client, NULL, argv[3], argv[4]);
+	    kr_set_tag (client, NULL, argv[3], argv[4]);
     }
     if (argc == 6) {
-	    krad_ipc_set_tag (client, argv[3], argv[4], argv[5]);
+	    kr_set_tag (client, argv[3], argv[4], argv[5]);
     }
   }
 
   if (strncmp(argv[2], "remoteon", 8) == 0) {
     if (argc == 4) {
-	    krad_ipc_enable_remote (client, atoi(argv[3]));
-	    krad_ipc_print_response (client);
+	    kr_remote_enable (client, atoi(argv[3]));
+	    //krad_ipc_print_response (client);
     }
   }			
 
   if (strncmp(argv[2], "remoteoff", 9) == 0) {
     if (argc == 3) {
-	    krad_ipc_disable_remote (client);
+	    kr_remote_disable (client);
     }
   }
 
   if (strncmp(argv[2], "webon", 5) == 0) {
     if (argc == 5) {
-	    krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), "", "", "");
+	    kr_web_enable (client, atoi(argv[3]), atoi(argv[4]), "", "", "");
     }
     if (argc == 6) {
-	    krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), argv[5], "", "");
+	    kr_web_enable (client, atoi(argv[3]), atoi(argv[4]), argv[5], "", "");
     }
     if (argc == 7) {
-	    krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), argv[5], argv[6], "");
+	    kr_web_enable (client, atoi(argv[3]), atoi(argv[4]), argv[5], argv[6], "");
     }
     if (argc == 8) {
-	    krad_ipc_webon (client, atoi(argv[3]), atoi(argv[4]), argv[5], argv[6], argv[7]);
+	    kr_web_enable (client, atoi(argv[3]), atoi(argv[4]), argv[5], argv[6], argv[7]);
     }
   }			
 
   if (strncmp(argv[2], "weboff", 6) == 0) {
     if (argc == 3) {
-	    krad_ipc_weboff (client);
+	    kr_web_disable (client);
     }
   }
 
   if (strncmp(argv[2], "oscon", 5) == 0) {
     if (argc == 4) {
-	    krad_ipc_enable_osc (client, atoi(argv[3]));
+	    kr_osc_enable (client, atoi(argv[3]));
     }
   }			
 
   if (strncmp(argv[2], "oscoff", 6) == 0) {
     if (argc == 3) {
-	    krad_ipc_disable_osc (client);
+	    kr_osc_disable (client);
     }
   }
 
   if (strncmp(argv[2], "setdir", 6) == 0) {
     if (argc == 4) {
-	    krad_ipc_radio_set_dir (client, argv[3]);
+	    kr_set_dir (client, argv[3]);
     }
   }
 
   if (strncmp(argv[2], "logname", 7) == 0) {
-    krad_ipc_radio_get_logname (client);
-    krad_ipc_print_response (client);
+    kr_logname (client);
+    //krad_ipc_print_response (client);
   }
-  
-  */
 
   /* Krad Mixer Commands */
 
