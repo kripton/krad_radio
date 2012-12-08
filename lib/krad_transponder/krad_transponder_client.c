@@ -1,12 +1,16 @@
-void krad_ipc_enable_linker_listen (krad_ipc_client_t *client, int port) {
+#include "krad_radio_client.h"
+#include "krad_radio_client_internal.h"
+#include "krad_transponder_common.h"
+
+void kr_transponder_listen_enable (kr_client_t *client, int port) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
 	uint64_t enable_linker;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINKER_CMD_LISTEN_ENABLE, &enable_linker);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_LISTEN_ENABLE, &enable_linker);	
 
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_TCP_PORT, port);
 
@@ -18,15 +22,15 @@ void krad_ipc_enable_linker_listen (krad_ipc_client_t *client, int port) {
 
 }
 
-void krad_ipc_disable_linker_listen (krad_ipc_client_t *client) {
+void kr_transponder_listen_disable (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
 	uint64_t disable_linker;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINKER_CMD_LISTEN_DISABLE, &disable_linker);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_LISTEN_DISABLE, &disable_linker);
 
 	krad_ebml_finish_element (client->krad_ebml, disable_linker);
 	krad_ebml_finish_element (client->krad_ebml, linker_command);
@@ -37,15 +41,15 @@ void krad_ipc_disable_linker_listen (krad_ipc_client_t *client) {
 }
 
 
-void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port) {
+void kr_transponder_transmitter_enable (kr_client_t *client, int port) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
 	uint64_t enable_transmitter;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINKER_CMD_TRANSMITTER_ENABLE, &enable_transmitter);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_TRANSMITTER_ENABLE, &enable_transmitter);	
 
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_TCP_PORT, port);
 
@@ -57,15 +61,15 @@ void krad_ipc_enable_linker_transmitter (krad_ipc_client_t *client, int port) {
 
 }
 
-void krad_ipc_disable_linker_transmitter (krad_ipc_client_t *client) {
+void kr_transponder_transmitter_disable (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
 	uint64_t disable_transmitter;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINKER_CMD_TRANSMITTER_DISABLE, &disable_transmitter);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_TRANSMITTER_DISABLE, &disable_transmitter);
 
 	krad_ebml_finish_element (client->krad_ebml, disable_transmitter);
 	krad_ebml_finish_element (client->krad_ebml, linker_command);
@@ -78,7 +82,7 @@ void krad_ipc_disable_linker_transmitter (krad_ipc_client_t *client) {
 
 
 
-void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_source_t video_source, char *device,
+void kr_transponder_capture (kr_client_t *client, krad_link_video_source_t video_source, char *device,
 								   int width, int height, int fps_numerator, int fps_denominator,
 								   krad_link_av_mode_t av_mode, char *audio_input, char *codec) {
 
@@ -91,10 +95,10 @@ void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_so
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (CAPTURE));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_VIDEO_SOURCE, krad_link_video_source_to_string (video_source));
 
@@ -123,7 +127,7 @@ void krad_ipc_create_capture_link (krad_ipc_client_t *client, krad_link_video_so
 
 }
 
-void krad_ipc_create_receive_link (krad_ipc_client_t *client, int port) {
+void kr_transponder_receive (kr_client_t *client, int port) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -134,10 +138,10 @@ void krad_ipc_create_receive_link (krad_ipc_client_t *client, int port) {
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (RECEIVE));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, "udp");
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_PORT, port);
@@ -152,7 +156,7 @@ void krad_ipc_create_receive_link (krad_ipc_client_t *client, int port) {
 
 }
 
-void krad_ipc_create_remote_playback_link (krad_ipc_client_t *client, char *host, int port, char *mount) {
+void kr_transponder_play_remote (kr_client_t *client, char *host, int port, char *mount) {
 
 
 
@@ -165,10 +169,10 @@ void krad_ipc_create_remote_playback_link (krad_ipc_client_t *client, char *host
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (PLAYBACK));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, "tcp");
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_HOST, host);
@@ -186,7 +190,7 @@ void krad_ipc_create_remote_playback_link (krad_ipc_client_t *client, char *host
 
 }
 
-void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
+void kr_transponder_play (kr_client_t *client, char *path) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -197,10 +201,10 @@ void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (PLAYBACK));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, "filesystem");
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_FILENAME, path);
@@ -215,7 +219,7 @@ void krad_ipc_create_playback_link (krad_ipc_client_t *client, char *path) {
 
 }
 
-void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode,
+void kr_transponder_transmit (kr_client_t *client, krad_link_av_mode_t av_mode,
 									char *host, int port, char *mount, char *password, char *codecs,
 									int video_width, int video_height, int video_bitrate, char *audio_bitrate) {
 
@@ -247,10 +251,10 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (TRANSMIT));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AV_MODE, krad_link_av_mode_to_string (av_mode));
 
@@ -366,7 +370,7 @@ void krad_ipc_create_transmit_link (krad_ipc_client_t *client, krad_link_av_mode
 
 }
 
-void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs,
+void kr_transponder_record (kr_client_t *client, krad_link_av_mode_t av_mode, char *filename, char *codecs,
 									int video_width, int video_height, int video_bitrate, char *audio_bitrate) {
 
 	//uint64_t ipc_command;
@@ -397,10 +401,10 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_CREATE_LINK, &create_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
 
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_LINK, &link);	
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (RECORD));
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_AV_MODE, krad_link_av_mode_to_string (av_mode));
 
@@ -503,7 +507,7 @@ void krad_ipc_create_record_link (krad_ipc_client_t *client, krad_link_av_mode_t
 
 }
 
-void krad_ipc_list_v4l2 (krad_ipc_client_t *client) {
+void kr_transponder_v4l2_list (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -513,8 +517,8 @@ void krad_ipc_list_v4l2 (krad_ipc_client_t *client) {
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_LIST_V4L2, &list_v4l2);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_LIST_V4L2, &list_v4l2);
 
 	krad_ebml_finish_element (client->krad_ebml, list_v4l2);
 	krad_ebml_finish_element (client->krad_ebml, linker_command);
@@ -526,7 +530,7 @@ void krad_ipc_list_v4l2 (krad_ipc_client_t *client) {
 
 
 
-void krad_ipc_list_decklink (krad_ipc_client_t *client) {
+void kr_transponder_decklink_list (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -536,8 +540,8 @@ void krad_ipc_list_decklink (krad_ipc_client_t *client) {
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_LIST_DECKLINK, &list_decklink);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_LIST_DECKLINK, &list_decklink);
 
 
 	krad_ebml_finish_element (client->krad_ebml, list_decklink);
@@ -548,7 +552,7 @@ void krad_ipc_list_decklink (krad_ipc_client_t *client) {
 
 }
 
-void krad_ipc_list_links (krad_ipc_client_t *client) {
+void kr_transponder_list (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -558,8 +562,8 @@ void krad_ipc_list_links (krad_ipc_client_t *client) {
 	//set_control = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_LIST_LINKS, &list_links);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_LIST_LINKS, &list_links);
 
 
 
@@ -571,7 +575,7 @@ void krad_ipc_list_links (krad_ipc_client_t *client) {
 
 }
 
-void krad_ipc_destroy_link (krad_ipc_client_t *client, int number) {
+void kr_transponder_destroy (kr_client_t *client, int number) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -580,10 +584,10 @@ void krad_ipc_destroy_link (krad_ipc_client_t *client, int number) {
 	linker_command = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_DESTROY_LINK, &destroy_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_DESTROY_LINK, &destroy_link);
 
-	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK_NUMBER, number);
 
 	krad_ebml_finish_element (client->krad_ebml, destroy_link);
 	krad_ebml_finish_element (client->krad_ebml, linker_command);
@@ -593,7 +597,7 @@ void krad_ipc_destroy_link (krad_ipc_client_t *client, int number) {
 
 }
 
-void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32_t ebml_id, int newval) {
+void kr_transponder_update (kr_client_t *client, int number, uint32_t ebml_id, int newval) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -602,10 +606,10 @@ void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32
 	linker_command = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_UPDATE_LINK, &update_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_UPDATE_LINK, &update_link);
 
-	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK_NUMBER, number);
 
 	krad_ebml_write_int32 (client->krad_ebml, ebml_id, newval);
 
@@ -617,7 +621,7 @@ void krad_ipc_update_link_adv_num (krad_ipc_client_t *client, int number, uint32
 
 }
 
-void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t ebml_id, char *newval) {
+void kr_transponder_update_str (kr_client_t *client, int number, uint32_t ebml_id, char *newval) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -626,10 +630,10 @@ void krad_ipc_update_link_adv (krad_ipc_client_t *client, int number, uint32_t e
 	linker_command = 0;
 
 	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_LINK_CMD_UPDATE_LINK, &update_link);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_UPDATE_LINK, &update_link);
 
-	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
+	krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK_NUMBER, number);
 
 	krad_ebml_write_string (client->krad_ebml, ebml_id, newval);
 
@@ -755,7 +759,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 
 
 
-int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link_rep_t **krad_link_rep) {
+int krad_ipc_client_read_link ( kr_client_t *client, char *text, krad_link_rep_t **krad_link_rep) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -772,7 +776,7 @@ int krad_ipc_client_read_link ( krad_ipc_client_t *client, char *text, krad_link
 
 	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 	
-	if (ebml_id != EBML_ID_KRAD_LINK_LINK) {
+	if (ebml_id != EBML_ID_KRAD_TRANSPONDER_LINK) {
 		//printk ("hrm wtf1\n");
 	} else {
 		bytes_read += ebml_data_size + 9;

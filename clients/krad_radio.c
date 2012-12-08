@@ -23,12 +23,12 @@ int main (int argc, char *argv[]) {
 	kr_client_t *client;
 	char *sysname;
 	int ret;
-	//int val;
+	int val;
 
 	sysname = NULL;
   client = NULL;
   ret = 0;
-  //val = 0;
+  val = 0;
 
 	if ((argc == 1) || (argc == 2)) {
 
@@ -92,38 +92,35 @@ int main (int argc, char *argv[]) {
   /*
   if ((strncmp(argv[2], "ls", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
-	    krad_ipc_list_links (client);
-	    krad_ipc_print_response (client);
+	    kr_transponder_list (client);
+	    //krad_ipc_print_response (client);
 
 	    kr_compositor_port_list (client);
-	    krad_ipc_print_response (client);
+	    //krad_ipc_print_response (client);
 
 	    kr_mixer_portgroups_list (client);
-	    krad_ipc_print_response (client);					
+	    //krad_ipc_print_response (client);					
     }
   }			
 
   if (((strncmp(argv[2], "jacked", 6) == 0) || (strncmp(argv[2], "jackup", 6) == 0)) && (strlen(argv[2]) == 6)) {
     if (argc == 3) {
-	    krad_ipc_mixer_jack_running (client);
-	    krad_ipc_print_response (client);					
-
+	    kr_mixer_jack_running (client);
+	    //krad_ipc_print_response (client);
     }
   }
 
   if ((strncmp(argv[2], "lsd", 3) == 0) && (strlen(argv[2]) == 3)) {
     if (argc == 3) {
-	    krad_ipc_list_decklink (client);
-	    krad_ipc_print_response (client);					
-
+	    kr_transponder_decklink_list (client);
+	    //krad_ipc_print_response (client);
     }
   }
 
   if ((strncmp(argv[2], "lsv", 3) == 0) && (strlen(argv[2]) == 3)) {
     if (argc == 3) {
-	    krad_ipc_list_v4l2 (client);
-	    krad_ipc_print_response (client);					
-
+	    kr_transponder_v4l2_list (client);
+      //krad_ipc_print_response (client);
     }
   }
   */
@@ -368,76 +365,74 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  /* Krad Link Commands */			
-
-  /*
+  /* Krad Transponder Commands */			
 
   if ((strncmp(argv[2], "ll", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 3) {
-	    krad_ipc_list_links (client);
-	    krad_ipc_print_response (client);
+	    kr_transponder_list (client);
+	    //krad_ipc_print_response (client);
     }
   }
 
   if (strncmp(argv[2], "listen_on", 9) == 0) {
     if (argc == 4) {
-	    krad_ipc_enable_linker_listen (client, atoi(argv[3]));
+	    kr_transponder_listen_enable (client, atoi(argv[3]));
     }
   }
 
   if (strncmp(argv[2], "listen_off", 10) == 0) {
     if (argc == 3) {
-	    krad_ipc_disable_linker_listen (client);
+	    kr_transponder_listen_disable (client);
     }
   }
 
   if (strncmp(argv[2], "transmitter_on", 14) == 0) {
     if (argc == 4) {
-	    krad_ipc_enable_linker_transmitter (client, atoi(argv[3]));
+	    kr_transponder_transmitter_enable (client, atoi(argv[3]));
     }
   }
 
   if (strncmp(argv[2], "transmitter_off", 15) == 0) {
     if (argc == 3) {
-	    krad_ipc_disable_linker_transmitter (client);
+	    kr_transponder_transmitter_disable (client);
     }
   }		
 
   if ((strncmp(argv[2], "link", 4) == 0) || (strncmp(argv[2], "transmit", 8) == 0)) {
     if (argc == 7) {
 	    if (strncmp(argv[2], "transmitav", 10) == 0) {
-		    krad_ipc_create_transmit_link (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
+		    kr_transponder_transmit (client, AUDIO_AND_VIDEO, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
 	    } else {
-		    krad_ipc_create_transmit_link (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
+		    kr_transponder_transmit (client, AUDIO_ONLY, argv[3], atoi(argv[4]), argv[5], argv[6], NULL, 0, 0, 0, "");
 	    }
     }
     if (argc == 8) {
-	    krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], NULL,
+	    kr_transponder_transmit (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], NULL,
 								       0, 0, 0, "");
     }
 
     if (argc == 9) {
-	    krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
+	    kr_transponder_transmit (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
 								       0, 0, 0, "");
     }
 
     if (argc == 10) {
-	    krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
+	    kr_transponder_transmit (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
 								       atoi(argv[9]), 0, 0, "");
     }
 
     if (argc == 11) {
-	    krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
+	    kr_transponder_transmit (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
 								       atoi(argv[9]), atoi(argv[10]), 0, "");
     }
 
     if (argc == 12) {
-	    krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
+	    kr_transponder_transmit (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
 								       atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), "");
     }
 
     if (argc == 13) {
-	    krad_ipc_create_transmit_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
+	    kr_transponder_transmit (client, krad_link_string_to_av_mode (argv[3]), argv[4], atoi(argv[5]), argv[6], argv[7], argv[8],
 								       atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), argv[12]);
     }																
 
@@ -452,33 +447,33 @@ int main (int argc, char *argv[]) {
     }
 
     if (argc == 4) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), "",
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), "",
 								      0, 0, 0, 0, val, "", "");
     }
     if (argc == 5) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), argv[4],
 								      0, 0, 0, 0, val, "", "");
     }
     if (argc == 7) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), argv[4],
 								      atoi(argv[5]), atoi(argv[6]), 0, 0, val, "", "");
     }
     if (argc == 9) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), argv[4],
 								      atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), val, "", "");
     }
     if (argc == 10) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), argv[4],
 								      atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
 								      krad_link_string_to_av_mode (argv[9]), "", "");
     }
     if (argc == 11) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), argv[4],
 								      atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
 								      krad_link_string_to_av_mode (argv[9]), argv[10], "");
     }
     if (argc == 12) {
-	    krad_ipc_create_capture_link (client, krad_link_string_to_video_source (argv[3]), argv[4],
+	    kr_transponder_capture (client, krad_link_string_to_video_source (argv[3]), argv[4],
 								      atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
 								      krad_link_string_to_av_mode (argv[9]), argv[10], argv[11]);
     }
@@ -488,38 +483,38 @@ int main (int argc, char *argv[]) {
   if (strncmp(argv[2], "record", 6) == 0) {
     if (argc == 4) {
 	    if (strncmp(argv[2], "recordav", 8) == 0) {
-		    krad_ipc_create_record_link (client, AUDIO_AND_VIDEO, argv[3], NULL, 0, 0, 0, "");
+		    kr_transponder_record (client, AUDIO_AND_VIDEO, argv[3], NULL, 0, 0, 0, "");
 	    } else {
-		    krad_ipc_create_record_link (client, AUDIO_ONLY, argv[3], NULL, 0, 0, 0, "");
+		    kr_transponder_record (client, AUDIO_ONLY, argv[3], NULL, 0, 0, 0, "");
 	    }
     }
     if (argc == 5) {
-	    krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], NULL,
+	    kr_transponder_record (client, krad_link_string_to_av_mode (argv[3]), argv[4], NULL,
 								     0, 0, 0, "");
     }
 
     if (argc == 6) {
-	    krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
+	    kr_transponder_record (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
 								     0, 0, 0, "");
     }
 
     if (argc == 7) {
-	    krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
+	    kr_transponder_record (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
 								     atoi(argv[6]), 0, 0, "");
     }
 
     if (argc == 8) {
-	    krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
+	    kr_transponder_record (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
 								     atoi(argv[6]), atoi(argv[7]), 0, "");
     }
 
     if (argc == 9) {
-	    krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
+	    kr_transponder_record (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
 								     atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), "");
     }
 
     if (argc == 10) {
-	    krad_ipc_create_record_link (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
+	    kr_transponder_record (client, krad_link_string_to_av_mode (argv[3]), argv[4], argv[5],
 								     atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), argv[9]);					
     }																
 
@@ -527,22 +522,22 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "receive", 7) == 0) {
     if (argc == 4) {
-	    krad_ipc_create_receive_link (client, atoi(argv[3]));
+	    kr_transponder_receive (client, atoi(argv[3]));
     }
   }				
 
   if (strncmp(argv[2], "play", 4) == 0) {
     if (argc == 4) {
-	    krad_ipc_create_playback_link (client, argv[3]);
+	    kr_transponder_play (client, argv[3]);
     }
     if (argc == 6) {
-	    krad_ipc_create_remote_playback_link (client, argv[3], atoi(argv[4]), argv[5] );
+	    kr_transponder_play_remote (client, argv[3], atoi(argv[4]), argv[5] );
     }
   }
 
   if ((strncmp(argv[2], "rm", 2) == 0) && (strlen(argv[2]) == 2)) {
     if (argc == 4) {
-	    krad_ipc_destroy_link (client, atoi(argv[3]));
+	    kr_transponder_destroy (client, atoi(argv[3]));
     }
   }
 
@@ -550,49 +545,47 @@ int main (int argc, char *argv[]) {
 
     if (argc == 5) {
 	    if (strcmp(argv[4], "vp8_keyframe") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_FORCE_KEYFRAME, 1);
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_FORCE_KEYFRAME, 1);
 	    }
     }
 
     if (argc == 6) {
 	    if (strcmp(argv[4], "vp8_bitrate") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, atoi(argv[5]));
 	    }
 	    if (strcmp(argv[4], "vp8_min_quantizer") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, atoi(argv[5]));
 	    }
 	    if (strcmp(argv[4], "vp8_max_quantizer") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, atoi(argv[5]));
 	    }
 	    if (strcmp(argv[4], "vp8_deadline") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, atoi(argv[5]));
 	    }
 	    if (strcmp(argv[4], "theora_quality") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, atoi(argv[5]));
 	    }																			
 	    if (strcmp(argv[4], "opus_bitrate") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, atoi(argv[5]));
 	    }				
 	    if (strcmp(argv[4], "opus_bandwidth") == 0) {
-		    krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, argv[5]);
+		    kr_transponder_update_str (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, argv[5]);
 	    }
 	    if (strcmp(argv[4], "opus_signal") == 0) {
-		    krad_ipc_update_link_adv (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
+		    kr_transponder_update_str (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, argv[5]);
 	    }
 	    if (strcmp(argv[4], "opus_complexity") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, atoi(argv[5]));
 	    }
 	    if (strcmp(argv[4], "opus_framesize") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, atoi(argv[5]));
 	    }										
 	    if (strcmp(argv[4], "ogg_maxpackets") == 0) {
-		    krad_ipc_update_link_adv_num (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
+		    kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
 	    }
     }				
   }
   
-  */
-
   /* Krad Compositor Commands */
 
   if ((strncmp(argv[2], "lc", 2) == 0) && (strlen(argv[2]) == 2)) {

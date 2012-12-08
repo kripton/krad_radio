@@ -20,6 +20,7 @@ libsources = """
 ../lib/krad_ipc/krad_ipc_client.c
 ../lib/krad_mixer/krad_mixer_client.c
 ../lib/krad_radio/krad_radio_client_ctl.c
+../lib/krad_transponder/krad_transponder_client.c
 ../lib/krad_transponder/krad_transponder_common.c
 ../lib/krad_compositor/krad_compositor_common.c
 """.split()
