@@ -12,6 +12,8 @@ kr_client_t *kr_connect (char *sysname);
 void kr_disconnect (kr_client_t **kr_client);
 int kr_client_local (kr_client_t *kr_client);
 
+void kr_client_print_response (kr_client_t *kr_client);
+
 /** SHM for local A/V ports **/
 kr_shm_t *kr_shm_create (kr_client_t *client);
 void kr_shm_destroy (kr_shm_t *kr_shm);
