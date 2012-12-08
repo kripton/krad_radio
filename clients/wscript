@@ -61,7 +61,6 @@ includedirs = """
 ../lib/krad_container/
 ../lib/krad_x11/
 ../lib/krad_udp/
-../lib/krad_codec2/
 ../lib/krad_system/
 ../lib/krad_decklink/
 ../lib/krad_ebml/

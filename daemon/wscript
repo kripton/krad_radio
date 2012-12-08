@@ -15,7 +15,6 @@ depsources = """
 ../lib/krad_ticker/krad_ticker.c
 ../lib/krad_y4m/krad_y4m.c
 ../lib/krad_xmms2/krad_xmms2.c
-../lib/krad_x264/krad_x264.c
 ../lib/krad_ipc/krad_ipc_client.c
 ../lib/krad_compositor/krad_compositor_common.c
 ../lib/krad_compositor/krad_compositor_subunit.c
@@ -72,7 +71,6 @@ depsources = """
 """.split()
 
 includedirs = """
-../lib/krad_x264/
 ../lib/krad_compositor/
 ../lib/krad_ticker/
 ../lib/krad_y4m/
@@ -110,7 +108,6 @@ includedirs = """
 ../lib/krad_container/
 ../lib/krad_x11/
 ../lib/krad_udp/
-../lib/krad_codec2/
 ../lib/krad_system/
 ../lib/krad_decklink/
 ../lib/krad_vhs/ext/imagezero/
@@ -121,7 +118,7 @@ includedirs = """
 """.split()
 
 shlibs = ["jack", "cairo", "pangocairo", "xmms2-client", "samplerate",
-          "x264", "theora", "theoraenc", "theoradec",
+          "theora", "theoraenc", "theoradec",
           "vorbis", "vorbisenc", "opus", "flac",
           "vpx", "libswscale", "libavutil"]
 

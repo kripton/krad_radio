@@ -425,14 +425,6 @@ void *video_encoding_thread (void *arg) {
 																	 krad_link->theora_quality);
 	}
 	
-	if (krad_link->video_codec == H264) {
-		krad_link->krad_x264_encoder = krad_x264_encoder_create (krad_link->encoding_width, 
-																	 krad_link->encoding_height,
-																	 krad_link->encoding_fps_numerator,
-																	 krad_link->encoding_fps_denominator,
-																	 krad_link->vp8_bitrate);
-	}
-	
 	if (krad_link->video_codec == Y4M) {
 		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, krad_link->color_depth);
 	}
@@ -469,15 +461,6 @@ void *video_encoding_thread (void *arg) {
 			strides[0] = krad_link->krad_theora_encoder->ycbcr[0].stride;
 			strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
 			strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;	
-		}
-		
-		if (krad_link->video_codec == H264) {			
-			planes[0] = krad_link->krad_x264_encoder->picture->img.plane[0];
-			planes[1] = krad_link->krad_x264_encoder->picture->img.plane[1];
-			planes[2] = krad_link->krad_x264_encoder->picture->img.plane[2];
-			strides[0] = krad_link->krad_x264_encoder->picture->img.i_stride[0];
-			strides[1] = krad_link->krad_x264_encoder->picture->img.i_stride[1];
-			strides[2] = krad_link->krad_x264_encoder->picture->img.i_stride[2];	
 		}
 		
 		if (krad_link->video_codec == Y4M) {
@@ -521,12 +504,6 @@ void *video_encoding_thread (void *arg) {
 		
 			if (krad_link->video_codec == THEORA) {
 				packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder,
-									   (unsigned char **)&video_packet,
-									   					 &keyframe);
-			}
-			
-			if (krad_link->video_codec == H264) {
-				packet_size = krad_x264_encoder_write (krad_link->krad_x264_encoder,
 									   (unsigned char **)&video_packet,
 									   					 &keyframe);
 			}
@@ -605,10 +582,6 @@ void *video_encoding_thread (void *arg) {
 	
 	if (krad_link->video_codec == THEORA) {
 		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
-	}
-	
-	if (krad_link->video_codec == H264) {
-		krad_x264_encoder_destroy (krad_link->krad_x264_encoder);	
 	}
 	
 	if (krad_link->video_codec == Y4M) {
@@ -979,7 +952,7 @@ void *stream_output_thread (void *arg) {
 		}
 		
 		
-		if ((krad_link->video_codec == VP8) || (krad_link->video_codec == MJPEG) || (krad_link->video_codec == KVHS)) {
+		if ((krad_link->video_codec == VP8) || (krad_link->video_codec == MJPEG) || (krad_link->video_codec == KVHS) || (krad_link->video_codec == H264)) {
 		
 			krad_link->video_track = krad_container_add_video_track (krad_link->krad_container,
 																	 krad_link->video_codec,
@@ -1004,33 +977,6 @@ void *stream_output_thread (void *arg) {
 															  &krad_link->krad_theora_encoder->krad_codec_header);
 		
 		}
-		
-		if (krad_link->video_codec == H264) {
-		
-			if (krad_link->video_passthru == 1) {
-				krad_link->krad_x264_encoder = krad_x264_encoder_create (krad_link->encoding_width, 
-																			 krad_link->encoding_height,
-																			 krad_link->encoding_fps_numerator,
-																			 krad_link->encoding_fps_denominator,
-																			 krad_link->vp8_bitrate);
-			} else {
-				usleep (50000);
-			}
-			krad_link->video_track = 
-			krad_container_add_video_track_with_private_data (krad_link->krad_container, 
-														      krad_link->video_codec,
-														   	  krad_link->encoding_fps_numerator,
-															  krad_link->encoding_fps_denominator,
-															  krad_link->encoding_width,
-															  krad_link->encoding_height,
-															  &krad_link->krad_x264_encoder->krad_codec_header);
-		
-			if (krad_link->video_passthru == 1) {
-				krad_x264_encoder_destroy (krad_link->krad_x264_encoder);	
-			}
-
-		}
-		
 	}
 	
 	if (krad_link->av_mode != VIDEO_ONLY) {
@@ -1110,7 +1056,7 @@ void *stream_output_thread (void *arg) {
 			if (krad_frame != NULL) {
 
 				if (krad_link->video_codec == H264) {
-					keyframe = krad_x264_is_keyframe ((unsigned char *)krad_frame->pixels);
+					keyframe = krad_v4l2_is_h264_keyframe ((unsigned char *)krad_frame->pixels);
 					if (seen_passthu_keyframe == 0) {
 						if (keyframe == 1) {
 							seen_passthu_keyframe = 1;

@@ -78,7 +78,7 @@ struct krad_v4l2_St {
 
 
 /* public */
-
+int krad_v4l2_is_h264_keyframe (unsigned char *buffer);
 void krad_v4l2_yuv_mode (krad_v4l2_t *kradv4l2);
 void krad_v4l2_mjpeg_mode (krad_v4l2_t *kradv4l2);
 void krad_v4l2_h264_mode (krad_v4l2_t *kradv4l2);

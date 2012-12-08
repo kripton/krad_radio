@@ -18,6 +18,17 @@ void kradv4l2_destroy(krad_v4l2_t *kradv4l2) {
 	free ( kradv4l2 );
 }
 
+int krad_v4l2_is_h264_keyframe (unsigned char *buffer) {
+
+	unsigned int nal_type = buffer[4] & 0x1F;
+
+	if ((nal_type == 5) || (nal_type == 7) || (nal_type == 8)) {
+		return 1;
+	}
+
+	return 0;
+}
+
 static void kradv4l2_uvc_h264_set_bitrate (krad_v4l2_t *kradv4l2, int bmin) {
 
   int bmax = bmin;
