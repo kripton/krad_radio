@@ -344,6 +344,7 @@ static void krad_xmms_handle (krad_xmms_t *krad_xmms) {
 	int n;
   int nfds;
   int ret;
+  int wot;
 	struct pollfd pollfds[2];
 	
 	n = 0;
@@ -378,7 +379,7 @@ static void krad_xmms_handle (krad_xmms_t *krad_xmms) {
 			if (pollfds[n].revents) {
         if (pollfds[n].fd == krad_xmms->handler_thread_socketpair[1]) {
 				  if (pollfds[n].revents & POLLIN) {
-            read (krad_xmms->handler_thread_socketpair[1], &in, 1);            
+            wot = read (krad_xmms->handler_thread_socketpair[1], &in, 1);            
             if (strncmp(&in, "1", 1) == 0) {
                 return;
             }
@@ -449,8 +450,11 @@ static void krad_xmms_start_handler (krad_xmms_t *krad_xmms) {
 
 
 static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
+
+  int wot;
+
 	if (krad_xmms->handler_running == 1) {
-    write (krad_xmms->handler_thread_socketpair[0], "0", 1);
+    wot = write (krad_xmms->handler_thread_socketpair[0], "0", 1);
 		pthread_join (krad_xmms->handler_thread, NULL);
 		close (krad_xmms->handler_thread_socketpair[0]);
     close (krad_xmms->handler_thread_socketpair[1]);
@@ -462,6 +466,8 @@ static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
 /* The following are called from Krad IPC */
 
 void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cmd) {
+
+  int wot;
 
 	switch (cmd) {
 		case PREV:
@@ -483,7 +489,7 @@ void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cm
 			break;
 	}
 
-  write (krad_xmms->handler_thread_socketpair[0], "1", 1);
+  wot = write (krad_xmms->handler_thread_socketpair[0], "1", 1);
 
 }
 

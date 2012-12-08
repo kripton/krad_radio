@@ -37,7 +37,6 @@ depsources = """
 ../lib/krad_web/ext/libwebsockets/parsers.c
 ../lib/krad_web/ext/libwebsockets/sha-1.c
 ../lib/krad_web/krad_http.c
-../lib/krad_web/krad_websocket.c
 ../lib/krad_sfx/krad_eq.c
 ../lib/krad_sfx/krad_pass.c
 ../lib/krad_sfx/krad_rushlimiter.c

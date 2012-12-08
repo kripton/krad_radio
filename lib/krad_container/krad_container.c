@@ -219,8 +219,7 @@ krad_container_t *krad_container_open_transmission (krad_transmission_t *krad_tr
 	}
 
 	if (krad_container->container_type == EBML) {
-	  failfast("oh fuck this bullshit");
-		//krad_container->krad_ebml = krad_ebml_open_transmission (krad_transmission);
+    krad_container->krad_ebml = krad_ebml_open_transmission (krad_transmission);
 	}
 
 	if (krad_container->container_type == RAW) {

@@ -2367,6 +2367,7 @@ void *krad_transponder_listen_client_thread (void *arg) {
 	krad_transponder_listen_client_t *client = (krad_transponder_listen_client_t *)arg;
 	
 	int ret;
+	int wot;
 	char *string;
 	char byte;
 
@@ -2428,7 +2429,7 @@ void *krad_transponder_listen_client_thread (void *arg) {
 							
 							char *goodresp = "HTTP/1.0 200 OK\r\n\r\n";
 							
-							write (client->sd, goodresp, strlen(goodresp));
+							wot = write (client->sd, goodresp, strlen(goodresp));
 							
 							krad_transponder_listen_promote_client (client);
 						}

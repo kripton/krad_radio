@@ -11,6 +11,9 @@ krad_radio_vp.c
 krad_radio_ap.c
 """.split()
 
+# FIXME we should not be having krad_transmitter and krad_ring in the below
+# but right now ebml and mkv/webm muxing is mangled together
+
 libsources = """
 ../lib/krad_compositor/krad_compositor_client.c
 ../lib/krad_radio/krad_radio_client.c
@@ -20,6 +23,8 @@ libsources = """
 ../lib/krad_ipc/krad_ipc_client.c
 ../lib/krad_mixer/krad_mixer_client.c
 ../lib/krad_radio/krad_radio_client_ctl.c
+../lib/krad_transmitter/krad_transmitter.c
+../lib/krad_ring/krad_ring.c
 ../lib/krad_transponder/krad_transponder_client.c
 ../lib/krad_transponder/krad_transponder_common.c
 ../lib/krad_compositor/krad_compositor_common.c

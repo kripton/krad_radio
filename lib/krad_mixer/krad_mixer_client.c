@@ -113,21 +113,22 @@ void kr_audioport_set_callback (kr_audioport_t *kr_audioport, int callback (uint
 void *kr_audioport_process_thread (void *arg) {
 
 	kr_audioport_t *kr_audioport = (kr_audioport_t *)arg;
-
-	krad_system_set_thread_name ("krc_audioport");
-
+  //FIXME check ret value
+  int ret;
 	char buf[1];
+	
+	krad_system_set_thread_name ("krc_audioport");
 
 	while (kr_audioport->active == 1) {
 	
 		// wait for socket to have a byte
-		read (kr_audioport->sd, buf, 1);
+		ret = read (kr_audioport->sd, buf, 1);
 	
 		//kr_audioport->callback (kr_audioport->kr_shm->buffer, kr_audioport->pointer);
 		kr_audioport->callback (1600, kr_audioport->pointer);
 
 		// write a byte to socket
-		write (kr_audioport->sd, buf, 1);
+		ret = write (kr_audioport->sd, buf, 1);
 
 
 	}
