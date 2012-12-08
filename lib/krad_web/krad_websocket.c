@@ -57,10 +57,10 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 				part3 = cJSON_GetObjectItem (cmd, "value");
 				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
 					if (strcmp(part2->valuestring, "xmms2") == 0) {
-						krad_ipc_mixer_portgroup_xmms2_cmd (pss->kr_client, part->valuestring, part3->valuestring);
+						kr_mixer_portgroup_xmms2_cmd (pss->kr_client, part->valuestring, part3->valuestring);
 					} else {
 						floatval = part3->valuedouble;
-						krad_ipc_set_control (pss->kr_client, part->valuestring, part2->valuestring, floatval);
+						kr_mixer_set_control (pss->kr_client, part->valuestring, part2->valuestring, floatval);
 					}
 				}
 			}
@@ -68,7 +68,7 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 			if ((part != NULL) && (strcmp(part->valuestring, "push_dtmf") == 0)) {
 				part = cJSON_GetObjectItem (cmd, "dtmf");
 				if (part != NULL) {
-					krad_ipc_mixer_push_tone (pss->kr_client, part->valuestring);
+					kr_mixer_push_tone (pss->kr_client, part->valuestring);
 				}
 			}
 		}
@@ -89,7 +89,7 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 				part2 = cJSON_GetObjectItem (cmd, "tag_name");
 				part3 = cJSON_GetObjectItem (cmd, "tag_value");
 				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {			
-					krad_ipc_set_tag (pss->kr_client, NULL, part2->valuestring, part3->valuestring);
+					kr_set_tag (pss->kr_client, NULL, part2->valuestring, part3->valuestring);
 					//printk("aye got %s %s", part2->valuestring, part3->valuestring);
 				}
 			}	
@@ -103,41 +103,41 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 				part3 = cJSON_GetObjectItem (cmd, "value");
 				if ((part != NULL) && (part2 != NULL) && (part3 != NULL)) {
 					if (strcmp(part2->valuestring, "opus_signal") == 0) {
-						krad_ipc_update_link_adv (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, part3->valuestring);
+						kr_transponder_update_str (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL, part3->valuestring);
 					}
 					if (strcmp(part2->valuestring, "opus_bandwidth") == 0) {
-						krad_ipc_update_link_adv (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, part3->valuestring);
+						kr_transponder_update_str (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH, part3->valuestring);
 					}
 					if (strcmp(part2->valuestring, "opus_bitrate") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, part3->valueint);						
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_BITRATE, part3->valueint);						
 					}
 					if (strcmp(part2->valuestring, "opus_complexity") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_COMPLEXITY, part3->valueint);
 					}
 					if (strcmp(part2->valuestring, "opus_frame_size") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_OPUS_FRAME_SIZE, part3->valueint);
 					}
 					if (strcmp(part2->valuestring, "theora_quality") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_THEORA_QUALITY, part3->valueint);
 					}
 					if (strcmp(part2->valuestring, "vp8_bitrate") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_BITRATE, part3->valueint);
 					}
 					if (strcmp(part2->valuestring, "vp8_min_quantizer") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_MIN_QUANTIZER, part3->valueint);
 					}
 					if (strcmp(part2->valuestring, "vp8_max_quantizer") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_MAX_QUANTIZER, part3->valueint);
 					}
 					if (strcmp(part2->valuestring, "vp8_deadline") == 0) {
-						krad_ipc_update_link_adv_num (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, part3->valueint);
+						kr_transponder_update (pss->kr_client, part->valueint, EBML_ID_KRAD_LINK_LINK_VP8_DEADLINE, part3->valueint);
 					}															
 				}
 			} else {
 			
 				if ((part != NULL) && (strcmp(part->valuestring, "remove_link") == 0)) {
 					part = cJSON_GetObjectItem (cmd, "link_num");
-					krad_ipc_destroy_link (pss->kr_client, part->valueint);
+					kr_transponder_destroy (pss->kr_client, part->valueint);
 				} else {
 					if ((part != NULL) && (strcmp(part->valuestring, "add_link") == 0)) {
 
@@ -299,20 +299,20 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 							free(string);
 
 							if (krad_link.operation_mode == TRANSMIT) {
-								krad_ipc_create_transmit_link (pss->kr_client, krad_link.av_mode,
+								kr_transponder_transmit (pss->kr_client, krad_link.av_mode,
 															   krad_link.host, krad_link.port, krad_link.mount, krad_link.password, codecs,
 														  	   krad_link.width, krad_link.height, video_bitrate, audio_bitrate);
 							}
 							
 							if (krad_link.operation_mode == RECORD) {
-								krad_ipc_create_record_link (pss->kr_client, krad_link.av_mode,
+								kr_transponder_record (pss->kr_client, krad_link.av_mode,
 															 krad_link.filename, codecs,
 															 krad_link.width, krad_link.height,
 															 video_bitrate, audio_bitrate);							
 							}
 							
 							if (krad_link.operation_mode == CAPTURE) {
-								krad_ipc_create_capture_link (pss->kr_client,
+								kr_transponder_capture (pss->kr_client,
 															  krad_link.video_source, krad_link.video_device,
 															  krad_link.width, krad_link.height,
 															  krad_link.fps_numerator, krad_link.fps_denominator,
@@ -533,7 +533,7 @@ void krad_websocket_update_portgroup ( kr_client_session_data_t *kr_client_sessi
 	cJSON_AddStringToObject (msg, "crossfade_name", crossfade_name);
 	cJSON_AddNumberToObject (msg, "crossfade", crossfade_val);
 	
-	krad_ipc_get_tags (kr_client_session_data->kr_client, portname);
+	kr_tags (kr_client_session_data->kr_client, portname);
 
 }
 
@@ -557,7 +557,7 @@ void krad_websocket_add_portgroup ( kr_client_session_data_t *kr_client_session_
 	
 	cJSON_AddNumberToObject (msg, "xmms2", xmms2);	
 	
-	krad_ipc_get_tags (kr_client_session_data->kr_client, portname);
+	kr_tags (kr_client_session_data->kr_client, portname);
 
 }
 
@@ -641,7 +641,7 @@ void krad_websocket_set_frame_size ( kr_client_session_data_t *kr_client_session
 
 /* IPC Handler */
 
-int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
+int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 	kr_client_session_data_t *kr_client_session_data = (kr_client_session_data_t *)ptr;
 
@@ -721,7 +721,7 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 				case EBML_ID_KRAD_RADIO_TAG_LIST:
 					//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( krad_ipc, &tag_item, &tag_name, &tag_value )) <= list_size)) {
+					while ((list_size) && ((bytes_read += kr_read_tag ( kr_client_session_data->kr_client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
 						//printk ("%s: %s - %s", tag_item, tag_name, tag_value);
 						krad_websocket_set_tag (kr_client_session_data, tag_item, tag_name, tag_value);
 						if (bytes_read == list_size) {
@@ -730,7 +730,7 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 					}
 					break;
 				case EBML_ID_KRAD_RADIO_TAG:
-					krad_ipc_client_read_tag_inner ( krad_ipc, &tag_item, &tag_name, &tag_value );
+					kr_read_tag_inner ( kr_client_session_data->kr_client, &tag_item, &tag_name, &tag_value );
 					//printk ("%s: %s - %s", tag_item, tag_name, tag_value);
 					krad_websocket_set_tag (kr_client_session_data, tag_item, tag_name, tag_value);
 					break;
@@ -749,12 +749,12 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 	
 			break;
 	
-		case EBML_ID_KRAD_LINK_MSG:
+		case EBML_ID_KRAD_TRANSPONDER_MSG:
 			krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 
 			switch ( ebml_id ) {
 			
-				case EBML_ID_KRAD_LINK_DECKLINK_LIST:
+				case EBML_ID_KRAD_TRANSPONDER_DECKLINK_LIST:
 
 					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);
 					list_count = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
@@ -767,12 +767,12 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 					break;
 							
 			
-				case EBML_ID_KRAD_LINK_LINK_LIST:
+				case EBML_ID_KRAD_TRANSPONDER_LINK_LIST:
 					//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
 					list_size = ebml_data_size;
 					i = 0;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep)) <= list_size)) {
+					while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( kr_client_session_data->kr_client, string, &krad_link_rep)) <= list_size)) {
 						//printkd ("%d: %s\n", i, string);						
 						krad_websocket_add_link (kr_client_session_data, krad_link_rep);
 						i++;
@@ -785,15 +785,15 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 					break;
 					
 					
-				case EBML_ID_KRAD_LINK_LINK_CREATED:
+				case EBML_ID_KRAD_TRANSPONDER_LINK_CREATED:
 				
-					krad_ipc_client_read_link ( krad_ipc, string, &krad_link_rep);
+					krad_ipc_client_read_link ( kr_client_session_data->kr_client, string, &krad_link_rep);
 					krad_websocket_add_link (kr_client_session_data, krad_link_rep);
 					free (krad_link_rep);
 					
 					break;
 
-				case EBML_ID_KRAD_LINK_LINK_UPDATED:
+				case EBML_ID_KRAD_TRANSPONDER_LINK_UPDATED:
 			
 					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
 					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
@@ -809,7 +809,7 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 
 					break;
 
-				case EBML_ID_KRAD_LINK_LINK_DESTROYED:
+				case EBML_ID_KRAD_TRANSPONDER_LINK_DESTROYED:
 					
 					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);				
 					numbers[0] = krad_ebml_read_number (krad_ipc->krad_ebml, ebml_data_size);
@@ -858,14 +858,14 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 				case EBML_ID_KRAD_MIXER_CONTROL:
 					//printkd ("Received mixer control list %"PRIu64" bytes of data.\n", ebml_data_size);
 
-					krad_ipc_client_read_mixer_control ( krad_ipc, &portname, &controlname, &floatval );
+					kr_mixer_read_control ( kr_client_session_data->kr_client, &portname, &controlname, &floatval );
 					krad_websocket_set_control ( kr_client_session_data, portname, controlname, floatval);
 					
 					break;	
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
 					//printkd ("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
 					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
+					while ((list_size) && ((bytes_read += kr_mixer_read_portgroup ( kr_client_session_data->kr_client, portname, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
 						krad_websocket_add_portgroup (kr_client_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
 						
 						if (bytes_read == list_size) {
@@ -876,7 +876,7 @@ int krad_websocket_ipc_handler ( kr_client_t *krad_ipc, void *ptr ) {
 				case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
 					//printk ("PORTGROUP_CREATED msg %"PRIu64" bytes", ebml_data_size );
 					
-					krad_ipc_client_read_portgroup ( krad_ipc, portname, &floatval, crossfadename, &crossfade, &has_xmms2 );
+					kr_mixer_read_portgroup ( kr_client_session_data->kr_client, portname, &floatval, crossfadename, &crossfade, &has_xmms2 );
 
 					krad_websocket_add_portgroup (kr_client_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
 
@@ -1119,23 +1119,23 @@ int callback_kr_client (struct libwebsocket_context *this, struct libwebsocket *
 			if (pss->kr_client != NULL) {
 				pss->kr_client_info = 0;
 				pss->hello_sent = 0;			
-				krad_ipc_set_handler_callback (pss->kr_client, krad_websocket_ipc_handler, pss);
-				krad_ipc_get_mixer_sample_rate (pss->kr_client);
+				krad_ipc_set_handler_callback (pss->kr_client->krad_ipc_client, krad_websocket_ipc_handler, pss);
+				kr_mixer_sample_rate (pss->kr_client);
 				kr_compositor_get_frame_rate (pss->kr_client);
 				kr_compositor_get_frame_size (pss->kr_client);			
-				krad_ipc_get_portgroups (pss->kr_client);
-				krad_ipc_list_decklink (pss->kr_client);
-				krad_ipc_list_links (pss->kr_client);
-				krad_ipc_get_tags (pss->kr_client, NULL);
-				krad_ipc_broadcast_subscribe (pss->kr_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
-				add_poll_fd (pss->kr_client->sd, POLLIN, KRAD_IPC, pss, NULL);
+				kr_mixer_portgroups_list (pss->kr_client);
+				kr_transponder_decklink_list (pss->kr_client);
+				kr_transponder_list (pss->kr_client);
+				kr_tags (pss->kr_client, NULL);
+				krad_ipc_broadcast_subscribe (pss->kr_client->krad_ipc_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
+				add_poll_fd (pss->kr_client->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
 			}
 			break;
 
 		case LWS_CALLBACK_CLOSED:
 
-			kr_disconnect (pss->kr_client);
-			del_poll_fd(pss->kr_client->sd);
+			kr_disconnect (&pss->kr_client);
+			del_poll_fd(pss->kr_client->krad_ipc_client->sd);
 			pss->hello_sent = 0;
 			pss->context = NULL;
 			pss->wsi = NULL;
@@ -1309,7 +1309,7 @@ void *krad_websocket_server_run (void *arg) {
 									
 									}
 									
-									krad_ipc_client_handle (krad_websocket->sessions[n]->kr_client);
+									krad_ipc_client_handle (krad_websocket->sessions[n]->kr_client->krad_ipc_client);
 									
 									krad_websocket->sessions[n]->msgstext = cJSON_Print (krad_websocket->sessions[n]->msgs);
 									krad_websocket->sessions[n]->msgstextlen = strlen (krad_websocket->sessions[n]->msgstext);

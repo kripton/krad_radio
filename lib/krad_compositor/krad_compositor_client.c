@@ -702,7 +702,6 @@ void kr_videoport_set_callback (kr_videoport_t *kr_videoport, int callback (void
 void *kr_videoport_process_thread (void *arg) {
 
 	kr_videoport_t *kr_videoport = (kr_videoport_t *)arg;
-  //FIXME check ret value
   int ret;
 	char buf[1];
 
@@ -712,12 +711,16 @@ void *kr_videoport_process_thread (void *arg) {
 	
 		// wait for socket to have a byte
 		ret = read (kr_videoport->sd, buf, 1);
-	
+    if (ret != 1) {
+      printke ("krad compositor client: unexpected read return value %d in kr_videoport_process_thread", ret);
+    }
 		kr_videoport->callback (kr_videoport->kr_shm->buffer, kr_videoport->pointer);
 
 		// write a byte to socket
 		ret = write (kr_videoport->sd, buf, 1);
-
+    if (ret != 1) {
+      printke ("krad compositor client: unexpected write return value %d in kr_videoport_process_thread", ret);
+    }
 
 	}
 

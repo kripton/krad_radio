@@ -660,7 +660,7 @@ void kr_osc_disable (kr_client_t *client) {
 
 /* Tagging */
 
-void krad_ipc_client_read_tag_inner ( kr_client_t *client, char **tag_item, char **tag_name, char **tag_value ) {
+void kr_read_tag_inner ( kr_client_t *client, char **tag_item, char **tag_name, char **tag_value ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;

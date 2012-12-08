@@ -2315,6 +2315,9 @@ int64_t krad_ebml_fileio_seek(krad_ebml_io_t *krad_ebml_io, int64_t offset, int 
 	if (krad_ebml_io->ptr == 0) {
 		while (offset--) {
 			ret = fread(&c, 1, 1, stdin);
+      if (ret != 1) {
+        printke ("krad ebml client: unexpected fread return value %d in krad_ebml_fileio_seek", ret);
+      }			
 		}
 		return 0;
 	} else {

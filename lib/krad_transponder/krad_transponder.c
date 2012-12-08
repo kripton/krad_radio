@@ -2375,7 +2375,7 @@ void *krad_transponder_listen_client_thread (void *arg) {
 
 	while (1) {
 		ret = read (client->sd, client->in_buffer + client->in_buffer_pos, 1);		
-	
+
 		if (ret == 0 || ret == -1) {
 			printk ("done with transponder listen client");
 			krad_transponder_listen_destroy_client (client);
@@ -2430,6 +2430,9 @@ void *krad_transponder_listen_client_thread (void *arg) {
 							char *goodresp = "HTTP/1.0 200 OK\r\n\r\n";
 							
 							wot = write (client->sd, goodresp, strlen(goodresp));
+              if (wot != strlen(goodresp)) {
+                printke ("krad transponder: unexpected write return value %d in transponder_listen_client_thread", wot);
+              }							
 							
 							krad_transponder_listen_promote_client (client);
 						}

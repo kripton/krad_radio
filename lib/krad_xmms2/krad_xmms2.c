@@ -379,7 +379,10 @@ static void krad_xmms_handle (krad_xmms_t *krad_xmms) {
 			if (pollfds[n].revents) {
         if (pollfds[n].fd == krad_xmms->handler_thread_socketpair[1]) {
 				  if (pollfds[n].revents & POLLIN) {
-            wot = read (krad_xmms->handler_thread_socketpair[1], &in, 1);            
+            wot = read (krad_xmms->handler_thread_socketpair[1], &in, 1);
+            if (wot != 1) {
+              printke ("krad xmms2: unexpected read return value %d in handle thread", wot);
+            }
             if (strncmp(&in, "1", 1) == 0) {
                 return;
             }
@@ -455,6 +458,9 @@ static void krad_xmms_stop_handler (krad_xmms_t *krad_xmms) {
 
 	if (krad_xmms->handler_running == 1) {
     wot = write (krad_xmms->handler_thread_socketpair[0], "0", 1);
+    if (wot != 1) {
+      printke ("krad xmms2: unexpected write return value %d", wot);
+    }    
 		pthread_join (krad_xmms->handler_thread, NULL);
 		close (krad_xmms->handler_thread_socketpair[0]);
     close (krad_xmms->handler_thread_socketpair[1]);
@@ -490,6 +496,9 @@ void krad_xmms_playback_cmd (krad_xmms_t *krad_xmms, krad_xmms_playback_cmd_t cm
 	}
 
   wot = write (krad_xmms->handler_thread_socketpair[0], "1", 1);
+  if (wot != 1) {
+    printke ("krad xmms2: unexpected write return value %d", wot);
+  }
 
 }
 

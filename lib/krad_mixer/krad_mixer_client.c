@@ -113,7 +113,6 @@ void kr_audioport_set_callback (kr_audioport_t *kr_audioport, int callback (uint
 void *kr_audioport_process_thread (void *arg) {
 
 	kr_audioport_t *kr_audioport = (kr_audioport_t *)arg;
-  //FIXME check ret value
   int ret;
 	char buf[1];
 	
@@ -123,13 +122,17 @@ void *kr_audioport_process_thread (void *arg) {
 	
 		// wait for socket to have a byte
 		ret = read (kr_audioport->sd, buf, 1);
-	
+    if (ret != 1) {
+      printke ("krad mixer client: unexpected read return value %d in kr_audioport_process_thread", ret);
+    }
 		//kr_audioport->callback (kr_audioport->kr_shm->buffer, kr_audioport->pointer);
 		kr_audioport->callback (1600, kr_audioport->pointer);
 
 		// write a byte to socket
 		ret = write (kr_audioport->sd, buf, 1);
-
+    if (ret != 1) {
+      printke ("krad mixer client: unexpected write return value %d in kr_audioport_process_thread", ret);
+    }
 
 	}
 
