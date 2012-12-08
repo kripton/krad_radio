@@ -3,7 +3,6 @@
 
 typedef struct kr_audioport_St kr_audioport_t;
 
-#include "krad_radio_client.h"
 #include "krad_mixer_common.h"
 
 /** Mixer **/
@@ -12,8 +11,8 @@ int kr_mixer_read_portgroup ( kr_client_t *client, char *portname, float *volume
 int kr_mixer_read_control ( kr_client_t *client, char **portgroup_name, char **control_name, float *value );
 
 void kr_mixer_portgroup_xmms2_cmd (kr_client_t *client, char *portgroupname, char *xmms2_cmd);
-void kr_mixer_set_mixer_sample_rate (kr_client_t *client, int sample_rate);
-void kr_mixer_mixer_sample_rate (kr_client_t *client);
+void kr_mixer_set_sample_rate (kr_client_t *client, int sample_rate);
+void kr_mixer_sample_rate (kr_client_t *client);
 void kr_mixer_plug_portgroup (kr_client_t *client, char *name, char *remote_name);
 void kr_mixer_unplug_portgroup (kr_client_t *client, char *name, char *remote_name);
 void kr_mixer_update_portgroup (kr_client_t *client, char *portgroupname, uint64_t update_command, char *string);

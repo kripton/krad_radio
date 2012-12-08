@@ -1,5 +1,8 @@
+#include "krad_radio_client.h"
 #include "krad_radio_client_internal.h"
-#include "krad_compositor_client.h"
+#include "krad_compositor_common.h"
+
+typedef struct kr_videoport_St kr_videoport_t;
 
 struct kr_videoport_St {
 
@@ -723,6 +726,8 @@ void *kr_videoport_process_thread (void *arg) {
 
 }
 
+
+
 void kr_videoport_activate (kr_videoport_t *kr_videoport) {
 	if ((kr_videoport->active == 0) && (kr_videoport->callback != NULL)) {
 		pthread_create (&kr_videoport->process_thread, NULL, kr_videoport_process_thread, (void *)kr_videoport);
@@ -741,12 +746,10 @@ void kr_videoport_deactivate (kr_videoport_t *kr_videoport) {
 
 kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 
-  //FIXME 
-/*
 	kr_videoport_t *kr_videoport;
 	int sockets[2];
 
-	if (client->tcp_port != 0) {
+	if (!kr_client_local (client)) {
 		// Local clients only
 		return NULL;
 	}
@@ -781,23 +784,18 @@ kr_videoport_t *kr_videoport_create (kr_client_t *client) {
 	kr_videoport_create_cmd (kr_videoport->client);
 	//FIXME use a return message from daemon to indicate ready to receive fds
 	usleep (33000);
-	kr_client_sendfd (kr_videoport->client, kr_videoport->kr_shm->fd);
+	kr_send_fd (kr_videoport->client, kr_videoport->kr_shm->fd);
 	usleep (33000);
-	kr_client_sendfd (kr_videoport->client, sockets[1]);
+	kr_send_fd (kr_videoport->client, sockets[1]);
 	usleep (33000);
 	
 
 	return kr_videoport;
-	*/
-  //FIXME
-  return NULL;
-  //FIXME
 
 }
 
 void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
-// FIXME
-/*
+
 	if (kr_videoport->active == 1) {
 		kr_videoport_deactivate (kr_videoport);
 	}
@@ -815,7 +813,7 @@ void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
 		}
 		free(kr_videoport);
 	}
-	*/
+
 }
 
 

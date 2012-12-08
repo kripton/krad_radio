@@ -1,5 +1,8 @@
-#include "krad_mixer_client.h"
+#include "krad_radio_client.h"
+#include "krad_radio_client_internal.h"
+#include "krad_mixer_common.h"
 
+typedef struct kr_audioport_St kr_audioport_t;
 
 struct kr_audioport_St {
 
@@ -155,7 +158,7 @@ kr_audioport_t *kr_audioport_create (kr_client_t *client, krad_mixer_portgroup_d
 	kr_audioport_t *kr_audioport;
 	int sockets[2];
 
-	if (client->tcp_port != 0) {
+	if (!kr_client_local (client)) {
 		// Local clients only
 		return NULL;
 	}
@@ -191,9 +194,9 @@ kr_audioport_t *kr_audioport_create (kr_client_t *client, krad_mixer_portgroup_d
 	kr_audioport_create_cmd (kr_audioport->client, kr_audioport->direction);
 	//FIXME use a return message from daemon to indicate ready to receive fds
 	usleep (33000);
-	kr_client_sendfd (kr_audioport->client, kr_audioport->kr_shm->fd);
+	kr_send_fd (kr_audioport->client, kr_audioport->kr_shm->fd);
 	usleep (33000);
-	kr_client_sendfd (kr_audioport->client, sockets[1]);
+	kr_send_fd (kr_audioport->client, sockets[1]);
 	usleep (33000);
 	return kr_audioport;
 
@@ -308,7 +311,7 @@ void kr_mixer_unbind_portgroup_xmms2 (kr_client_t *client, char *portgroupname) 
 
 }
 
-void kr_mixer_set_mixer_sample_rate (kr_client_t *client, int sample_rate) {
+void kr_mixer_set_sample_rate (kr_client_t *client, int sample_rate) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;

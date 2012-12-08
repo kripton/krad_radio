@@ -3,7 +3,6 @@
 
 typedef struct kr_videoport_St kr_videoport_t;
 
-#include "krad_radio_client.h"
 #include "krad_compositor_common.h"
 
 int kr_compositor_read_frame_rate ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep);

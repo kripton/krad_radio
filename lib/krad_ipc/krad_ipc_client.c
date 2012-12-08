@@ -563,7 +563,7 @@ void krad_ipc_print_response (krad_ipc_client_t *client) {
 */
 
 
-int krad_ipc_client_sendfd (krad_ipc_client_t *client, int fd) {
+int krad_ipc_client_send_fd (krad_ipc_client_t *client, int fd) {
 	char buf[1];
 	struct iovec iov;
 	struct msghdr msg;

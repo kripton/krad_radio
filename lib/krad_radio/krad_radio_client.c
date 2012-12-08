@@ -1,11 +1,5 @@
-#include "krad_radio_client.h"
 #include "krad_radio_client_internal.h"
-
-#include "krad_mixer_common.h"
-#include "krad_transponder_common.h"
-#include "krad_compositor_client.h"
-
-
+#include "krad_radio_client.h"
 
 kr_client_t *kr_connect (char *sysname) {
 
@@ -33,6 +27,13 @@ void kr_disconnect (kr_client_t **kr_client) {
 
 krad_ebml_t *kr_client_get_ebml (kr_client_t *kr_client) {
   return kr_client->krad_ipc_client->krad_ebml;
+}
+
+int kr_client_local (kr_client_t *client) {
+  if (client->krad_ipc_client->tcp_port == 0) {
+    return 1;
+  }
+  return 0;
 }
 
 void kr_shm_destroy (kr_shm_t *kr_shm) {
@@ -86,6 +87,10 @@ kr_shm_t *kr_shm_create (kr_client_t *client) {
 
 	return kr_shm;
 
+}
+
+int kr_send_fd (kr_client_t *client, int fd) {
+  return krad_ipc_client_send_fd (client->krad_ipc_client, fd);
 }
 
 void kr_set_dir (kr_client_t *client, char *dir) {

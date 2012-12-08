@@ -77,6 +77,6 @@ void krad_ipc_send (krad_ipc_client_t *client, char *cmd);
 int krad_ipc_recv (krad_ipc_client_t *client, char *buffer, int size);
 void krad_ipc_client_handle (krad_ipc_client_t *client);
 
-int krad_ipc_client_sendfd (krad_ipc_client_t *client, int fd);
+int krad_ipc_client_send_fd (krad_ipc_client_t *client, int fd);
 
 #endif

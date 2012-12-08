@@ -1,4 +1,4 @@
-#include "krad_radio_client.h"
+#include "kr_client.h"
 
 void krad_radio_command_help () {
 
@@ -238,56 +238,54 @@ int main (int argc, char *argv[]) {
 
   /* Krad Mixer Commands */
 
-  /*
-
   if (strncmp(argv[2], "lm", 2) == 0) {
     if (argc == 3) {
 	    kr_mixer_portgroups_list (client);
-	    krad_ipc_print_response (client);
+	    //krad_ipc_print_response (client);
     }
   }
 
   if (strncmp(argv[2], "rate", 4) == 0) {
     if (argc == 3) {
-	    krad_ipc_get_mixer_sample_rate (client);
-	    krad_ipc_print_response (client);
+	    kr_mixer_sample_rate (client);
+	    //krad_ipc_print_response (client);
     }
   }			
 
   if (strncmp(argv[2], "setrate", 7) == 0) {
     if (argc == 4) {
-	    krad_ipc_set_mixer_sample_rate (client, atoi(argv[3]));
-	    krad_ipc_print_response (client);
+	    kr_mixer_set_sample_rate (client, atoi(argv[3]));
+	    //krad_ipc_print_response (client);
     }
   }				
 
   if (strncmp(argv[2], "tone", 4) == 0) {
     if (argc == 4) {
-	    krad_ipc_mixer_push_tone (client, argv[3]);
+	    kr_mixer_push_tone (client, argv[3]);
     }
   }			
 
   if (strncmp(argv[2], "input", 5) == 0) {
     if (argc == 4) {
-	    krad_ipc_mixer_create_portgroup (client, argv[3], "input", 2);
+	    kr_mixer_create_portgroup (client, argv[3], "input", 2);
     }
     if (argc == 5) {
-	    krad_ipc_mixer_create_portgroup (client, argv[3], "input", atoi (argv[4]));
+	    kr_mixer_create_portgroup (client, argv[3], "input", atoi (argv[4]));
     }
   }			
 
   if (strncmp(argv[2], "output", 6) == 0) {
     if (argc == 4) {
-	    krad_ipc_mixer_create_portgroup (client, argv[3], "output", 2);
+	    kr_mixer_create_portgroup (client, argv[3], "output", 2);
     }
     if (argc == 5) {
-	    krad_ipc_mixer_create_portgroup (client, argv[3], "output", atoi (argv[4]));
+	    kr_mixer_create_portgroup (client, argv[3], "output", atoi (argv[4]));
     }
   }
 
   if (strncmp(argv[2], "rmport", 6) == 0) {
     if (argc == 4) {
-	    krad_ipc_mixer_remove_portgroup (client, argv[3]);
+	    kr_mixer_remove_portgroup (client, argv[3]);
     }
   }
 
@@ -308,22 +306,22 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "map", 3) == 0) {
     if (argc == 6) {
-	    krad_ipc_mixer_update_portgroup_map_channel (client, argv[3], atoi(argv[4]), atoi(argv[5]));
+	    kr_mixer_update_portgroup_map_channel (client, argv[3], atoi(argv[4]), atoi(argv[5]));
     }
   }
 
   if (strncmp(argv[2], "mixmap", 3) == 0) {
     if (argc == 6) {
-	    krad_ipc_mixer_update_portgroup_mixmap_channel (client, argv[3], atoi(argv[4]), atoi(argv[5]));
+	    kr_mixer_update_portgroup_mixmap_channel (client, argv[3], atoi(argv[4]), atoi(argv[5]));
     }
   }			
 
   if (strncmp(argv[2], "crossfade", 9) == 0) {
     if (argc == 4) {
-	    krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
+	    kr_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, "");
     }
     if (argc == 5) {
-	    krad_ipc_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, argv[4]);
+	    kr_mixer_update_portgroup (client, argv[3], EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, argv[4]);
     }
   }			
 
@@ -332,23 +330,23 @@ int main (int argc, char *argv[]) {
 	    if ((strncmp(argv[4], "play", 4) == 0) || (strncmp(argv[4], "pause", 5) == 0) ||
 		    (strncmp(argv[4], "stop", 4) == 0) || (strncmp(argv[4], "next", 4) == 0) ||
 		    (strncmp(argv[4], "prev", 4) == 0)) {
-		    krad_ipc_mixer_portgroup_xmms2_cmd (client, argv[3], argv[4]);
+		    kr_mixer_portgroup_xmms2_cmd (client, argv[3], argv[4]);
 		    return 0;
 	    } else {
-		    krad_ipc_mixer_bind_portgroup_xmms2 (client, argv[3], argv[4]);
+		    kr_mixer_bind_portgroup_xmms2 (client, argv[3], argv[4]);
 	    }
     }
   }	
 
   if (strncmp(argv[2], "noxmms2", 7) == 0) {
     if (argc == 4) {
-	    krad_ipc_mixer_unbind_portgroup_xmms2 (client, argv[3]);
+	    kr_mixer_unbind_portgroup_xmms2 (client, argv[3]);
     }
   }
 
   if (strncmp(argv[2], "set", 3) == 0) {
     if (argc == 6) {
-	    krad_ipc_set_control (client, argv[3], argv[4], atof(argv[5]));
+	    kr_mixer_set_control (client, argv[3], argv[4], atof(argv[5]));
     }
   }
 
@@ -366,11 +364,9 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "setfx", 5) == 0) {
     if (argc == 8) {
-	    krad_ipc_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]));
+	    kr_mixer_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]));
     }
   }
-
-  */
 
   /* Krad Link Commands */			
 

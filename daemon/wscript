@@ -24,7 +24,6 @@ depsources = """
 ../lib/krad_compositor/krad_text.c
 ../lib/krad_compositor/krad_easing.c
 ../lib/krad_compositor/krad_compositor.c
-../lib/krad_compositor/krad_compositor_client.c
 ../lib/krad_framepool/krad_framepool.c
 ../lib/krad_osc/krad_osc.c
 ../lib/krad_web/ext/cJSON.c
