@@ -6,6 +6,7 @@ out = '.waf_build_directory'
 from waflib.Errors import ConfigurationError
 from waflib import Configure, Logs
 import os, sys
+from subprocess import check_output
 
 libdir = "lib"
 clientsdir = "clients"
@@ -45,6 +46,15 @@ def check_x11(x11):
 		print("Enabling X11..")
 		x11.env['KRAD_USE_X11'] = "yes"
 		x11.env.append_unique('CFLAGS', ['-DKRAD_USE_X11'])
+		
+def get_git_ver(conf):
+	try:
+		gitver = check_output(["git", "describe", "--tags"])
+		flag = '-DGIT_VERSION="' + gitver.decode('utf8').strip() + '"'
+		conf.env.append_unique('CFLAGS', [flag])
+		conf.env.append_unique('CXXLAGS', [flag])
+	except OSError as e:
+		print("Unable to get git tag/commit hash")
 
 def configure(conf):
 
@@ -64,6 +74,7 @@ def configure(conf):
 
 	check_x11(conf)
 	check_way(conf)
+	get_git_ver(conf)
 
 	conf.load('compiler_c')	
 	conf.load('compiler_cxx')
