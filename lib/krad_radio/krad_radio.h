@@ -53,7 +53,6 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_x11.h"
 #include "krad_theora.h"
 #include "krad_vpx.h"
-#include "krad_gui.h"
 #include "krad_opus.h"
 #include "krad_vorbis.h"
 #include "krad_flac.h"

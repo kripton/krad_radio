@@ -251,14 +251,6 @@ krad_link_operation_mode_t krad_link_string_to_operation_mode (char *string) {
 
 krad_link_video_source_t krad_link_string_to_video_source (char *string) {
 
-	if (strcmp(string, "test") == 0) {
-		return TEST;
-	}
-	
-	if (strcmp(string, "info") == 0) {
-		return INFO;
-	}	
-
 	if ((strcmp(string, "x11") == 0) || (strcmp(string, "X11") == 0)) {
 		return X11;
 	}
@@ -278,10 +270,6 @@ krad_link_video_source_t krad_link_string_to_video_source (char *string) {
 char *krad_link_video_source_to_string (krad_link_video_source_t video_source) {
 
 	switch (video_source) {
-		case TEST:
-			return "test";
-		case INFO:
-			return "info";
 		case V4L2:
 			return "V4L2";
 		case DECKLINK:

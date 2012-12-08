@@ -27,6 +27,9 @@ typedef struct krad_compositor_snapshot_St krad_compositor_snapshot_t;
 #define KC_MAX_VECTORS 64
 #define KC_MAX_SUBUNITS KC_MAX_PORTS * KC_MAX_SPRITES * KC_MAX_TEXTS * KC_MAX_VECTORS
 
+#define GREY  0.197 / 0.255 * 1.0, 0.203 / 0.255 * 1.0, 0.203 / 0.255   * 1.0
+#define BGCOLOR_CLR  0.0 / 0.255 * 1.0, 0.0 / 0.255 * 1.0, 0.0 / 0.255   * 1.0, 0.255 / 0.255   * 1.0
+
 typedef enum {
 	SYNTHETIC = 13999,
 	WAYLAND,
@@ -59,10 +62,11 @@ struct krad_compositor_snapshot_St {
 
 struct krad_compositor_St {
 
+	cairo_t *cr;
+
 	cairo_surface_t *mask_cst;
 	cairo_t *mask_cr;
 
-	krad_gui_t *krad_gui;
   krad_text_rep_t *krad_text_rep_ipc;
   
 	int width;

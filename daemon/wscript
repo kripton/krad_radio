@@ -54,7 +54,6 @@ depsources = """
 ../lib/krad_flac/krad_flac.c
 ../lib/krad_opus/krad_opus.c
 ../lib/krad_opus/opus_header.c
-../lib/krad_gui/krad_gui.c
 ../lib/krad_ring/krad_ring.c
 ../lib/krad_link/krad_link.c
 ../lib/krad_transmitter/krad_transmitter.c
@@ -97,7 +96,6 @@ includedirs = """
 ../lib/krad_v4l2/
 ../lib/krad_flac/
 ../lib/krad_vorbis/
-../lib/krad_gui/
 ../lib/krad_opus/
 ../lib/krad_radio/
 ../lib/krad_ring/

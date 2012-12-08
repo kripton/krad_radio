@@ -136,188 +136,6 @@ void *video_capture_thread (void *arg) {
 	
 }
 
-void *info_screen_generator_thread (void *arg) {
-
-	krad_system_set_thread_name ("kr_info_gen");
-
-	krad_link_t *krad_link = (krad_link_t *)arg;
-	
-	printk ("info screen generator thread begins");
-	
-	krad_frame_t *krad_frame;
-	krad_ticker_t *krad_ticker;
-	krad_gui_t *krad_gui;
-	
-	int width;
-	int height;
-	
-	width = 480;
-	height = 270;
-	
-	width = 1280;
-	height = 720;	
-
-	krad_link->krad_framepool = krad_framepool_create ( width,
-														height,
-														DEFAULT_CAPTURE_BUFFER_FRAMES);
-
-	krad_gui = krad_gui_create (width, height);
-	
-	krad_ticker = krad_ticker_create (DEFAULT_FPS_NUMERATOR, DEFAULT_FPS_DENOMINATOR);
-
-	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
-																   "NFOIn",
-																   INPUT,
-																   width, height);
-
-	krad_ticker_start (krad_ticker);
-
-	while (krad_link->capturing == 1) {
-	
-		
-		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-		krad_gui_set_surface (krad_gui, krad_frame->cst);
-		krad_gui_render (krad_gui);
-		
-		krad_gui_render_text (krad_gui, 400, 200, 80, "KRAD RADIO");
-		
-		krad_gui_render_text (krad_gui, 400, 300, 40, krad_link->krad_radio->sysname);		
-		
-		krad_gui_render_hex (krad_gui, width - 48, 40, 18);
-		
-		
-		
-		int p;
-		char *artist;
-		char *title;
-		char *playtime;
-		krad_mixer_portgroup_t *portgroup;
-
-		for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-			portgroup = krad_link->krad_radio->krad_mixer->portgroup[p];
-			if ((portgroup != NULL) && (portgroup->active)) {
-				artist = krad_tags_get_tag (portgroup->krad_tags, "artist");
-				if ((artist != NULL) && strlen (artist)) {
-					krad_gui_render_text (krad_gui, 120, 500, 22, artist);
-					//printk ("now playing %s", now_playing);
-					break;
-				}
-			}
-		}
-	
-		for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-			portgroup = krad_link->krad_radio->krad_mixer->portgroup[p];
-			if ((portgroup != NULL) && (portgroup->active)) {
-				title = krad_tags_get_tag (portgroup->krad_tags, "title");
-				if ((title != NULL) && strlen (title)) {
-					krad_gui_render_text (krad_gui, 120, 550, 22, title);
-					//printk ("now playing %s", now_playing);
-					break;
-				}
-			}
-		}
-		
-	
-		for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-			portgroup = krad_link->krad_radio->krad_mixer->portgroup[p];
-			if ((portgroup != NULL) && (portgroup->active)) {
-				playtime = krad_tags_get_tag (portgroup->krad_tags, "playtime");
-				if ((playtime != NULL) && strlen (playtime)) {
-					krad_gui_render_text (krad_gui, 120, 420, 32, playtime);
-					//printk ("now playing %s", now_playing);
-					break;
-				}
-			}
-		}
-		
-		//krad_link->krad_radio->krad_compositor->render_vu_meters = 1;
-		krad_frame->format = PIX_FMT_RGB32;
-		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
-
-		krad_framepool_unref_frame (krad_frame);
-
-		krad_ticker_wait (krad_ticker);
-
-	}
-
-	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
-
-	krad_ticker_destroy (krad_ticker);
-
-	krad_gui_destroy (krad_gui);
-
-	printk ("info_screen_generator thread exited");
-	
-	return NULL;
-	
-}
-
-
-void *test_screen_generator_thread (void *arg) {
-
-	krad_system_set_thread_name ("kr_test_gen");
-
-	krad_link_t *krad_link = (krad_link_t *)arg;
-	
-	printk ("test screen generator thread begins");
-	
-	krad_frame_t *krad_frame;
-	krad_ticker_t *krad_ticker;
-	krad_gui_t *krad_gui;
-	
-	int width;
-	int height;
-	
-	width = 480;
-	height = 270;
-	
-	width = 1280;
-	height = 720;
-	
-	krad_link->krad_framepool = krad_framepool_create ( width,
-														height,
-														DEFAULT_CAPTURE_BUFFER_FRAMES);
-
-	krad_gui = krad_gui_create (width, height);
-	
-	krad_gui_test_screen (krad_gui, krad_link->krad_linker->krad_radio->sysname);
-	
-	krad_ticker = krad_ticker_create (krad_link->krad_radio->krad_compositor->frame_rate_numerator,
-									  krad_link->krad_radio->krad_compositor->frame_rate_denominator);	
-	
-	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
-																   "TSTIn",
-																   INPUT,
-																   width, height);
-
-	krad_ticker_start (krad_ticker);
-
-	while (krad_link->capturing == 1) {
-	
-		
-		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-		krad_gui_set_surface (krad_gui, krad_frame->cst);
-		krad_gui_render (krad_gui);
-		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
-
-		krad_framepool_unref_frame (krad_frame);
-
-		krad_ticker_wait (krad_ticker);
-
-	}
-
-	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
-
-	krad_ticker_destroy (krad_ticker);
-
-	krad_gui_destroy (krad_gui);
-
-	printk ("test_screen_generator thread exited");
-	
-	return NULL;
-	
-}
-
 void *x11_capture_thread (void *arg) {
 
 	krad_system_set_thread_name ("kr_x11_cap");
@@ -2412,19 +2230,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 			krad_link->capturing = 1;
 			krad_link_start_decklink_capture(krad_link);
 		}
-		
-		if (krad_link->video_source == TEST) {
-
-			krad_link->capturing = 1;
-			pthread_create(&krad_link->video_capture_thread, NULL, test_screen_generator_thread, (void *)krad_link);
-		}
-		
-		if (krad_link->video_source == INFO) {
-
-			krad_link->capturing = 1;
-			pthread_create(&krad_link->video_capture_thread, NULL, info_screen_generator_thread, (void *)krad_link);
-		}			
-
 	}
 	
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
@@ -2604,8 +2409,7 @@ void krad_linker_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t 
 			krad_link->av_mode = AUDIO_AND_VIDEO;
 		}
 		
-		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11) || 
-			(krad_link->video_source == TEST) || (krad_link->video_source == INFO)) {
+		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11)) {
 			krad_link->av_mode = VIDEO_ONLY;
 		}
 

@@ -50,7 +50,6 @@ includedirs = """
 ../lib/krad_v4l2/
 ../lib/krad_flac/
 ../lib/krad_vorbis/
-../lib/krad_gui/
 ../lib/krad_opus/
 ../lib/krad_radio/
 ../lib/krad_ring/

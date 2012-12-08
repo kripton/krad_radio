@@ -313,14 +313,14 @@ void krad_compositor_render_background (krad_compositor_t *krad_compositor) {
 	if (krad_compositor->background->krad_compositor_subunit->active != 1) {
 		return;
 	}
-  cairo_save (krad_compositor->krad_gui->cr);
+  cairo_save (krad_compositor->cr);
   if ((krad_compositor->background->krad_compositor_subunit->width != krad_compositor->width) || (krad_compositor->background->krad_compositor_subunit->height != krad_compositor->height)) {
-		cairo_set_source (krad_compositor->krad_gui->cr, krad_compositor->background->sprite_pattern);
+		cairo_set_source (krad_compositor->cr, krad_compositor->background->sprite_pattern);
   } else {
-		cairo_set_source_surface ( krad_compositor->krad_gui->cr, krad_compositor->background->sprite, 0, 0 );
+		cairo_set_source_surface ( krad_compositor->cr, krad_compositor->background->sprite, 0, 0 );
   }
-	cairo_paint ( krad_compositor->krad_gui->cr );
-  cairo_restore (krad_compositor->krad_gui->cr);
+	cairo_paint ( krad_compositor->cr );
+  cairo_restore (krad_compositor->cr);
 }
 
 int krad_compositor_has_background (krad_compositor_t *krad_compositor) {
@@ -331,15 +331,23 @@ int krad_compositor_has_background (krad_compositor_t *krad_compositor) {
 }
 
 void krad_compositor_render_no_input_text (krad_compositor_t *krad_compositor) {
-  cairo_save (krad_compositor->krad_gui->cr);
-  cairo_set_source_rgb (krad_compositor->krad_gui->cr, GREY);
-  cairo_select_font_face (krad_compositor->krad_gui->cr, "monospace",
+  cairo_save (krad_compositor->cr);
+  cairo_set_source_rgb (krad_compositor->cr, GREY);
+  cairo_select_font_face (krad_compositor->cr, "monospace",
 					    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-  cairo_set_font_size (krad_compositor->krad_gui->cr, 96.0);
-  cairo_move_to (krad_compositor->krad_gui->cr, krad_compositor->krad_gui->width/3.0,
-		       krad_compositor->krad_gui->height/2);
-  cairo_show_text (krad_compositor->krad_gui->cr, "NO INPUT");
-  cairo_restore (krad_compositor->krad_gui->cr);
+  cairo_set_font_size (krad_compositor->cr, 96.0);
+  cairo_move_to (krad_compositor->cr, krad_compositor->width/3.0,
+		       krad_compositor->height/2);
+  cairo_show_text (krad_compositor->cr, "NO INPUT");
+  cairo_restore (krad_compositor->cr);
+}
+
+void krad_compositor_clear_frame (krad_compositor_t *krad_compositor) {
+	cairo_save (krad_compositor->cr);
+	cairo_set_source_rgba (krad_compositor->cr, BGCOLOR_CLR);
+	cairo_set_operator (krad_compositor->cr, CAIRO_OPERATOR_SOURCE);	
+	cairo_paint (krad_compositor->cr);
+	cairo_restore (krad_compositor->cr);
 }
 
 void krad_compositor_videoport_render_frame (krad_compositor_t *krad_compositor, krad_compositor_port_t *port, krad_frame_t *frame) {
@@ -350,29 +358,29 @@ void krad_compositor_videoport_render_frame (krad_compositor_t *krad_compositor,
 
 	  return;
   }
-  cairo_save (krad_compositor->krad_gui->cr);
+  cairo_save (krad_compositor->cr);
 
   if (port->krad_compositor_subunit->rotation != 0.0f) {
-	  cairo_translate (krad_compositor->krad_gui->cr, port->crop_width / 2, port->crop_height / 2);
-	  cairo_rotate (krad_compositor->krad_gui->cr, port->krad_compositor_subunit->rotation * (M_PI/180.0));
-	  cairo_translate (krad_compositor->krad_gui->cr, port->crop_width / -2, port->crop_height / -2);
+	  cairo_translate (krad_compositor->cr, port->crop_width / 2, port->crop_height / 2);
+	  cairo_rotate (krad_compositor->cr, port->krad_compositor_subunit->rotation * (M_PI/180.0));
+	  cairo_translate (krad_compositor->cr, port->crop_width / -2, port->crop_height / -2);
   }
 
-  cairo_set_source_surface (krad_compositor->krad_gui->cr, frame->cst,
+  cairo_set_source_surface (krad_compositor->cr, frame->cst,
                             port->krad_compositor_subunit->x - port->crop_x, port->krad_compositor_subunit->y - port->crop_y);
 
-  cairo_rectangle (krad_compositor->krad_gui->cr,
+  cairo_rectangle (krad_compositor->cr,
                    port->krad_compositor_subunit->x, port->krad_compositor_subunit->y,
                    port->crop_width, port->crop_height);
 
-  cairo_clip (krad_compositor->krad_gui->cr);
+  cairo_clip (krad_compositor->cr);
 
   if (port->krad_compositor_subunit->opacity == 1.0f) {
-	  cairo_paint (krad_compositor->krad_gui->cr);
+	  cairo_paint (krad_compositor->cr);
   } else {
-	  cairo_paint_with_alpha (krad_compositor->krad_gui->cr, port->krad_compositor_subunit->opacity);
+	  cairo_paint_with_alpha (krad_compositor->cr, port->krad_compositor_subunit->opacity);
   }
-  cairo_restore (krad_compositor->krad_gui->cr);
+  cairo_restore (krad_compositor->cr);
   
   krad_compositor_subunit_update (port->krad_compositor_subunit);
   
@@ -412,7 +420,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 		}
 	} while (composite_frame == NULL);	
 	
-	krad_gui_set_surface (krad_compositor->krad_gui, composite_frame->cst);
+  krad_compositor->cr = cairo_create (composite_frame->cst);
 
   /* Render background if exists */
 	
@@ -422,7 +430,7 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
   } else {
 
     /* No background, so clear frame */
-  	krad_gui_clear (krad_compositor->krad_gui);
+  	krad_compositor_clear_frame (krad_compositor);
 
     /* Handle situation of maybe having absolutly no input */  
 	  if ((krad_compositor->active_input_ports == 0) &&
@@ -455,18 +463,16 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 
 	for (p = 0; p < KC_MAX_SPRITES; p++) {
 		if (krad_compositor->krad_sprite[p].krad_compositor_subunit->active == 1) {
-			krad_sprite_render (&krad_compositor->krad_sprite[p], krad_compositor->krad_gui->cr);
+			krad_sprite_render (&krad_compositor->krad_sprite[p], krad_compositor->cr);
 		}
 	}
 	
 
 	for (p = 0; p < KC_MAX_TEXTS; p++) {
 		if (krad_compositor->krad_text[p].krad_compositor_subunit->active == 1) {
-			krad_text_render (&krad_compositor->krad_text[p], krad_compositor->krad_gui->cr);
+			krad_text_render (&krad_compositor->krad_text[p], krad_compositor->cr);
 		}
 	}	
-	
-	krad_gui_render (krad_compositor->krad_gui);
 	
 	/* Push out the composited frame */
 
@@ -485,6 +491,10 @@ void krad_compositor_process (krad_compositor_t *krad_compositor) {
 	}	
 	
 	krad_framepool_unref_frame (composite_frame);
+
+	if (krad_compositor->cr != NULL) {
+    cairo_destroy (krad_compositor->cr);
+	}
 
 }
 
@@ -1048,11 +1058,6 @@ void krad_compositor_free_resources (krad_compositor_t *krad_compositor) {
 		krad_framepool_destroy ( krad_compositor->krad_framepool );
 		krad_compositor->krad_framepool = NULL;
 	}
-
-	if (krad_compositor->krad_gui != NULL) {
-		krad_gui_destroy (krad_compositor->krad_gui);
-		krad_compositor->krad_gui = NULL;
-	}
 }
 
 void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
@@ -1069,15 +1074,6 @@ void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
 			krad_framepool_create ( krad_compositor->width, krad_compositor->height, DEFAULT_COMPOSITOR_BUFFER_FRAMES);
 	}
 	
-	if (krad_compositor->krad_gui == NULL) {
-		krad_compositor->krad_gui = krad_gui_create (krad_compositor->width, krad_compositor->height);
-		//krad_compositor->krad_gui = krad_gui_create_with_internal_surface (krad_compositor->width, krad_compositor->height);
-		//krad_compositor->krad_gui = krad_gui_create_with_external_surface (krad_compositor->width,
-		//																  krad_compositor->height,
-		//																  NULL);
-		krad_compositor->krad_gui->clear = 0;
-	}
-  
   krad_compositor->krad_text_rep_ipc = krad_compositor_text_rep_create();
   
 }
@@ -1604,44 +1600,6 @@ void krad_compositor_set_krad_mixer (krad_compositor_t *krad_compositor, krad_mi
 void krad_compositor_unset_krad_mixer (krad_compositor_t *krad_compositor) {
 	krad_compositor->krad_mixer = NULL;
 }
-
-void krad_compositor_set_peak (krad_compositor_t *krad_compositor, int channel, float value) {
-	
-	int c;
-	int fps;
-	float kick;
-	
-	kick = 0.0;
-	
-	c = channel;
-	fps = 30;
-
-	if (value >= krad_compositor->krad_gui->output_peak[c]) {
-		if (value > 2.7f) {
-			krad_compositor->krad_gui->output_peak[c] = value;
-			kick = 
-			((krad_compositor->krad_gui->output_peak[channel] - krad_compositor->krad_gui->output_current[c]) / 300.0);
-		}
-	} else {
-		if (krad_compositor->krad_gui->output_peak[c] == krad_compositor->krad_gui->output_current[c]) {
-			krad_compositor->krad_gui->output_peak[c] -= (0.9 * (60/fps));
-			if (krad_compositor->krad_gui->output_peak[c] < 0.0f) {
-				krad_compositor->krad_gui->output_peak[c] = 0.0f;
-			}
-			krad_compositor->krad_gui->output_current[c] = krad_compositor->krad_gui->output_peak[c];
-		}
-	}
-
-	if (krad_compositor->krad_gui->output_peak[c] > krad_compositor->krad_gui->output_current[c]) {
-		krad_compositor->krad_gui->output_current[c] = 
-		(krad_compositor->krad_gui->output_current[c] + 1.4) * (1.3 + kick);
-	}
-
-	if (krad_compositor->krad_gui->output_peak[c] < krad_compositor->krad_gui->output_current[c]) {
-		krad_compositor->krad_gui->output_current[c] = krad_compositor->krad_gui->output_peak[c];
-	}
-}
-
 
 void krad_compositor_subunit_to_ebml (krad_ipc_server_t *krad_ipc, krad_compositor_subunit_t *krad_compositor_subunit) {
 	

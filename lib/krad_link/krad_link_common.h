@@ -32,9 +32,7 @@ typedef enum {
 } krad_link_transport_mode_t;
 
 typedef enum {
-	TEST = 500,
-	INFO,
-	V4L2,
+	V4L2 = 500,
 	DECKLINK,
 	X11,
 	NOVIDEO,
