@@ -1,5 +1,5 @@
 /* hrm? */
-void krad_ipc_mixer_jack_running (kr_client_t *client);
+
 void krad_ipc_list_v4l2 (kr_client_t *client);
 void krad_ipc_list_decklink (kr_client_t *client);
 

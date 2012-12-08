@@ -223,12 +223,7 @@ void kr_audioport_destroy (kr_audioport_t *kr_audioport) {
 
 
 
-
-
-
-
-
-int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portgroup_name, char **control_name, float *value ) {
+int kr_mixer_read_control ( kr_client_t *client, char **portgroup_name, char **control_name, float *value ) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -257,7 +252,7 @@ int krad_ipc_client_read_mixer_control ( krad_ipc_client_t *client, char **portg
 }
 
 
-void krad_ipc_mixer_portgroup_xmms2_cmd (krad_ipc_client_t *client, char *portgroupname, char *xmms2_cmd) {
+void kr_mixer_portgroup_xmms2_cmd (kr_client_t *client, char *portgroupname, char *xmms2_cmd) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -276,7 +271,7 @@ void krad_ipc_mixer_portgroup_xmms2_cmd (krad_ipc_client_t *client, char *portgr
 
 }
 
-void krad_ipc_mixer_bind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname, char *ipc_path) {
+void kr_mixer_bind_portgroup_xmms2 (kr_client_t *client, char *portgroupname, char *ipc_path) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -295,7 +290,7 @@ void krad_ipc_mixer_bind_portgroup_xmms2 (krad_ipc_client_t *client, char *portg
 
 }
 
-void krad_ipc_mixer_unbind_portgroup_xmms2 (krad_ipc_client_t *client, char *portgroupname) {
+void kr_mixer_unbind_portgroup_xmms2 (kr_client_t *client, char *portgroupname) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -313,7 +308,7 @@ void krad_ipc_mixer_unbind_portgroup_xmms2 (krad_ipc_client_t *client, char *por
 
 }
 
-void krad_ipc_set_mixer_sample_rate (krad_ipc_client_t *client, int sample_rate) {
+void kr_mixer_set_mixer_sample_rate (kr_client_t *client, int sample_rate) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -333,7 +328,7 @@ void krad_ipc_set_mixer_sample_rate (krad_ipc_client_t *client, int sample_rate)
 
 }
 
-void krad_ipc_get_mixer_sample_rate (krad_ipc_client_t *client) {
+void kr_mixer_sample_rate (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -350,7 +345,7 @@ void krad_ipc_get_mixer_sample_rate (krad_ipc_client_t *client) {
 
 }
 
-void kr_mixer_plug_portgroup (krad_ipc_client_t *client, char *name, char *remote_name) {
+void kr_mixer_plug_portgroup (kr_client_t *client, char *name, char *remote_name) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -370,7 +365,7 @@ void kr_mixer_plug_portgroup (krad_ipc_client_t *client, char *name, char *remot
 
 }
 
-void kr_mixer_unplug_portgroup (krad_ipc_client_t *client, char *name, char *remote_name) {
+void kr_mixer_unplug_portgroup (kr_client_t *client, char *name, char *remote_name) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -390,7 +385,7 @@ void kr_mixer_unplug_portgroup (krad_ipc_client_t *client, char *name, char *rem
 
 }
 
-void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, char *direction, int channels) {
+void kr_mixer_create_portgroup (kr_client_t *client, char *name, char *direction, int channels) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -412,7 +407,7 @@ void krad_ipc_mixer_create_portgroup (krad_ipc_client_t *client, char *name, cha
 }
 
 
-void krad_ipc_mixer_push_tone (krad_ipc_client_t *client, char *tone) {
+void kr_mixer_push_tone (kr_client_t *client, char *tone) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -432,7 +427,7 @@ void krad_ipc_mixer_push_tone (krad_ipc_client_t *client, char *tone) {
 
 }
 
-void krad_ipc_mixer_update_portgroup_map_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel) {
+void kr_mixer_update_portgroup_map_channel (kr_client_t *client, char *portgroupname, int in_channel, int out_channel) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -461,7 +456,7 @@ void krad_ipc_mixer_update_portgroup_map_channel (krad_ipc_client_t *client, cha
 
 }
 
-void krad_ipc_mixer_update_portgroup_mixmap_channel (krad_ipc_client_t *client, char *portgroupname, int in_channel, int out_channel) {
+void kr_mixer_update_portgroup_mixmap_channel (kr_client_t *client, char *portgroupname, int in_channel, int out_channel) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -491,7 +486,7 @@ void krad_ipc_mixer_update_portgroup_mixmap_channel (krad_ipc_client_t *client, 
 }
 
 
-void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroupname, uint64_t update_command, char *string) {
+void kr_mixer_update_portgroup (kr_client_t *client, char *portgroupname, uint64_t update_command, char *string) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -515,7 +510,7 @@ void krad_ipc_mixer_update_portgroup (krad_ipc_client_t *client, char *portgroup
 
 }
 
-void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *name) {
+void kr_mixer_remove_portgroup (kr_client_t *client, char *name) {
 
 	//uint64_t ipc_command;
 	uint64_t command;
@@ -535,7 +530,7 @@ void krad_ipc_mixer_remove_portgroup (krad_ipc_client_t *client, char *name) {
 
 }
 
-int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade, int *has_xmms2) {
+int kr_mixer_read_portgroup ( kr_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade, int *has_xmms2) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -667,7 +662,7 @@ int krad_ipc_client_read_portgroup ( krad_ipc_client_t *client, char *portname, 
 }
 
 
-void krad_ipc_mixer_jack_running (krad_ipc_client_t *client) {
+void kr_mixer_jack_running (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -694,7 +689,7 @@ void krad_ipc_mixer_jack_running (krad_ipc_client_t *client) {
 }
 
 
-void kr_mixer_add_effect (krad_ipc_client_t *client, char *portgroup_name, char *effect_name) {
+void kr_mixer_add_effect (kr_client_t *client, char *portgroup_name, char *effect_name) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -718,7 +713,7 @@ void kr_mixer_add_effect (krad_ipc_client_t *client, char *portgroup_name, char 
 
 }
 
-void kr_mixer_remove_effect (krad_ipc_client_t *client, char *portgroup_name, int effect_num) {
+void kr_mixer_remove_effect (kr_client_t *client, char *portgroup_name, int effect_num) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -742,7 +737,7 @@ void kr_mixer_remove_effect (krad_ipc_client_t *client, char *portgroup_name, in
 
 }
 
-void krad_ipc_set_effect_control (krad_ipc_client_t *client, char *portgroup_name, int effect_num, 
+void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int effect_num, 
                                   char *control_name, int subunit, float control_value) {
 
 	//uint64_t ipc_command;
@@ -770,7 +765,7 @@ void krad_ipc_set_effect_control (krad_ipc_client_t *client, char *portgroup_nam
 
 }
 
-void krad_ipc_set_control (krad_ipc_client_t *client, char *portgroup_name, char *control_name, float control_value) {
+void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *control_name, float control_value) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
