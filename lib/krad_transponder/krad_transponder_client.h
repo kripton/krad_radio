@@ -1,3 +1,20 @@
+/**
+ * @file krad_transponder_client.h
+ * @brief Krad Radio Transponder Controller API
+ */
+
+/**
+ * @mainpage Krad Radio Transponder Controller
+ *
+ * Krad Radio Transponder Controller (Kripton this is where you might want to hold back beacause it will change a bit)
+ *
+ */
+ 
+ 
+/** @defgroup krad_transponder_client Krad Radio Transponder Control
+  @{
+  */
+
 #ifndef KRAD_TRANSPONDER_CLIENT_H
 #define KRAD_TRANSPONDER_CLIENT_H
 
@@ -41,5 +58,8 @@ void kr_transponder_update (kr_client_t *client, int number, uint32_t ebml_id, i
 void kr_transponder_update_str (kr_client_t *client, int number, uint32_t ebml_id, char *newval);
 
 int kr_transponder_link_read ( kr_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
+
+
+/**@}*/
 
 #endif

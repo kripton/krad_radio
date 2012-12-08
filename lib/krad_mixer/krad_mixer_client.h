@@ -1,5 +1,21 @@
+/**
+ * @file krad_mixer_client.h
+ * @brief Krad Radio Mixer Controller API
+ */
+
+/**
+ * @mainpage Krad Radio Mixer Controller
+ *
+ * Krad Radio Mixer Controller (Kripton this is where you come in agin really need ya here)
+ *
+ */
+
 #ifndef KRAD_MIXER_CLIENT_H
 #define KRAD_MIXER_CLIENT_H
+
+/** @defgroup krad_mixer_client Krad Radio Mixer Control
+  @{
+  */
 
 typedef struct kr_audioport_St kr_audioport_t;
 
@@ -42,4 +58,5 @@ void kr_audioport_deactivate (kr_audioport_t *kr_audioport);
 kr_audioport_t *kr_audioport_create (kr_client_t *client, krad_mixer_portgroup_direction_t direction);
 void kr_audioport_destroy (kr_audioport_t *kr_audioport);
 
+/**@}*/
 #endif

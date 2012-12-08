@@ -1,10 +1,69 @@
+/**
+ * @file krad_radio_client.h
+ * @brief Krad Radio Client API
+ */
+
+/**
+ * @mainpage Krad Radio Client
+ *
+ * Krad Radio Client (Kripton this is where you come in)
+ *
+ *
+ * Documentation sections:
+ * @li @ref krad_radio_client_ctl
+ * @li @ref krad_radio_client
+ * @li @ref krad_mixer_client
+ * @li @ref krad_compositor_client
+ * @li @ref krad_transponder_client
+ *
+ * 
+ */
+
+
 #include <inttypes.h>
 
+
+/** @defgroup krad_radio_client Krad Radio Client
+  @{
+  */
+
+/** Krad Radio Client connection handle.
+  * This is ...
+  * @see kr_connect,kr_disconnect
+  */
 typedef struct kr_client_St kr_client_t;
+
 typedef struct kr_shm_St kr_shm_t;
 
+/**
+ * Connect to a Krad Radio Daemon
+ *
+ * It can do this.
+ * I've tried it.
+ *
+ * @param  sysname of local station or ip:port remote station
+ * @return KR Client connection handle or NULL on fail
+ */
 kr_client_t *kr_connect (char *sysname);
+
+/**
+ * Disconnect from a Krad Radio Daemon
+ *
+ * Also frees a lil memory
+ *
+ * @param  KR Client connection handle pointer pointer
+ * @return void
+ */
 void kr_disconnect (kr_client_t **kr_client);
+
+/**
+ * Is this connection local?
+ *
+ * Incase you forgot.
+ *
+ * @param  KR Client connection handle pointer
+ * @return 1 if local 0 if not
+ */
 int kr_client_local (kr_client_t *kr_client);
 
 void kr_client_print_response (kr_client_t *kr_client);
@@ -35,3 +94,5 @@ int kr_read_tag ( kr_client_t *client, char **tag_item, char **tag_name, char **
 void kr_tags (kr_client_t *client, char *item);
 void kr_tag (kr_client_t *client, char *item, char *tag_name);
 void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_value);
+
+/**@}*/

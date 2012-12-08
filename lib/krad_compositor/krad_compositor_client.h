@@ -1,5 +1,25 @@
+/**
+ * @file krad_compositor_client.h
+ * @brief Krad Radio Compositor Controller API
+ */
+
+/**
+ * @mainpage Krad Radio Compositor Controller
+ *
+ * Krad Radio Compositor Controller (Kripton this is where you come in agin)
+ *
+ */
+
+
 #ifndef KRAD_COMPOSITOR_CLIENT_H
 #define KRAD_COMPOSITOR_CLIENT_H
+
+
+/** @defgroup krad_compositor_client Krad Radio Compositor Control
+  @{
+  */
+
+
 
 typedef struct kr_videoport_St kr_videoport_t;
 
@@ -58,5 +78,5 @@ void kr_videoport_deactivate (kr_videoport_t *kr_videoport);
 kr_videoport_t *kr_videoport_create (kr_client_t *client);
 void kr_videoport_destroy (kr_videoport_t *kr_videoport);
 
-
+/**@}*/
 #endif

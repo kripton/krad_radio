@@ -63,5 +63,8 @@ tests/krad_easing_test
 tests/krad_webm_dash_vod_test
 tests/krad_webm_extract
 
+doc/html
+doc/latex
+
 ## Files created by QtCreator
 krad_radio.*
