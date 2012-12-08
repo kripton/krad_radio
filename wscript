@@ -77,9 +77,9 @@ def configure(conf):
 		conf.env.append_unique('CFLAGS', ['-g', '-Wall'])
 	else:
 		#conf.env.append_unique('CXXFLAGS', ['-O3', '-Wno-write-strings', '-march=core-avx-i', '-ffast-math', '-ftree-vectorizer-verbose=5'])
-		#conf.env.append_unique('CFLAGS', ['-O3', '-Wno-write-strings', '-march=core-avx-i', '-ffast-math', '-ftree-vectorizer-verbose=5'])
+		#conf.env.append_unique('CFLAGS', ['-O3', '-march=core-avx-i', '-ffast-math', '-ftree-vectorizer-verbose=5'])
 		conf.env.append_unique('CXXFLAGS', ['-O3', '-Wno-write-strings'])
-		conf.env.append_unique('CFLAGS', ['-O3', '-Wno-write-strings'])
+		conf.env.append_unique('CFLAGS', ['-O3'])
 
 	conf.recurse(subdirs, mandatory = False)
 	
