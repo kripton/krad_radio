@@ -207,7 +207,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		case EBML_ID_KRAD_RADIO_CMD_WEB_DISABLE:
 			
 			krad_http_server_destroy (krad_radio_station->krad_http);
-			//krad_websocket_server_destroy (krad_radio_station->krad_websocket);			
+      krad_websocket_server_destroy (krad_radio_station->krad_websocket);			
 			
 			krad_radio_station->krad_http = NULL;
 			krad_radio_station->krad_websocket = NULL;
