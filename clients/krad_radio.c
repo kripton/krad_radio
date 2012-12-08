@@ -253,11 +253,6 @@ int main (int argc, char *argv[]) {
     krad_ipc_print_response (client);
   }
 
-  if (strncmp(argv[2], "lastsnap", 8) == 0) {
-    krad_ipc_radio_get_last_snap_name (client);
-    krad_ipc_print_response (client);				
-  }			
-
   /* Krad Mixer Commands */
 
   if (strncmp(argv[2], "lm", 2) == 0) {
@@ -638,7 +633,12 @@ int main (int argc, char *argv[]) {
     if (argc == 3) {
 	    krad_ipc_compositor_snapshot_jpeg (client);
     }
-  }				
+  }
+  
+  if (strncmp(argv[2], "lastsnap", 8) == 0) {
+    krad_ipc_radio_get_last_snap_name (client);
+    krad_ipc_print_response (client);				
+  }
 
   if (strncmp(argv[2], "comp", 4) == 0) {
     if (argc == 3) {
