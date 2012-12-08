@@ -39,6 +39,7 @@ void kr_transponder_update (kr_client_t *client, int number, uint32_t ebml_id, i
 
 
 void kr_transponder_update_str (kr_client_t *client, int number, uint32_t ebml_id, char *newval);
-int krad_ipc_client_read_link ( kr_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
+
+int kr_transponder_link_read ( kr_client_t *client, char *text, krad_link_rep_t **krad_link_rep);
 
 #endif

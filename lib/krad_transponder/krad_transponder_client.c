@@ -759,7 +759,7 @@ int krad_link_rep_to_string (krad_link_rep_t *krad_link, char *text) {
 
 
 
-int krad_ipc_client_read_link ( kr_client_t *client, char *text, krad_link_rep_t **krad_link_rep) {
+int kr_transponder_link_read ( kr_client_t *client, char *text, krad_link_rep_t **krad_link_rep) {
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;

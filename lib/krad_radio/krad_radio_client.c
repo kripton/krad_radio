@@ -1,6 +1,17 @@
 #include "krad_radio_client_internal.h"
 #include "krad_radio_client.h"
 
+// the following are for the print response temp thingie
+#include "krad_radio_common.h"
+#include "krad_compositor_common.h"
+#include "krad_transponder_common.h"
+#include "krad_mixer_common.h"
+#include "krad_radio_client.h"
+#include "krad_compositor_client.h"
+#include "krad_transponder_client.h"
+#include "krad_mixer_client.h"
+// remove them when things are right
+
 kr_client_t *kr_connect (char *sysname) {
 
   kr_client_t *kr_client;
@@ -95,11 +106,9 @@ int kr_send_fd (kr_client_t *client, int fd) {
 
 void kr_client_print_response (kr_client_t *kr_client) {
 
-  usleep (100000);
-
-  printf("its a kludge!\n");
-
-  /*
+  krad_ipc_client_t *client;
+  
+  client = kr_client->krad_ipc_client;
 
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
@@ -178,7 +187,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 					case EBML_ID_KRAD_RADIO_TAG_LIST:
 						//printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
 						list_size = ebml_data_size;
-						while ((list_size) && ((bytes_read += krad_ipc_client_read_tag ( client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
+						while ((list_size) && ((bytes_read += kr_read_tag ( kr_client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
 							printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
 							if (bytes_read == list_size) {
 								break;
@@ -186,7 +195,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 						}
 						break;
 					case EBML_ID_KRAD_RADIO_TAG:
-						krad_ipc_client_read_tag_inner ( client, &tag_item, &tag_name, &tag_value );
+						kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
 						printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
 						break;
 
@@ -244,7 +253,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				if (list_size) {
 					printf ("\nAudio Inputs: \n");
 				}
-				while ((list_size) && ((bytes_read += kr_client_read_portgroup ( client, tag_name, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
+				while ((list_size) && ((bytes_read += kr_mixer_read_portgroup ( kr_client, tag_name, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
 					printf ("  %0.2f%%  %s", floatval, tag_name);
 					if (strlen(crossfadename)) {
 						printf (" < %0.2f > %s", crossfade, crossfadename);
@@ -301,7 +310,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				
 				
 				while ((list_size) && ((bytes_read +=  kr_compositor_read_frame_size ( 
-				                            client, tag_value, &krad_compositor)) <= list_size)) {
+				                            kr_client, tag_value, &krad_compositor)) <= list_size)) {
 					printf ("  %s\n", tag_value);
 					
 					if (bytes_read == list_size) {
@@ -315,7 +324,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				list_size = ebml_data_size;
 				
 				i = 0;
-				while ((list_size) && ((bytes_read += kr_compositor_read_frame_rate ( client, tag_value, &krad_compositor)) <= list_size)) {
+				while ((list_size) && ((bytes_read += kr_compositor_read_frame_rate ( kr_client, tag_value, &krad_compositor)) <= list_size)) {
 					printf ("  %s\n", tag_value);
 					i++;
 					if (bytes_read == list_size) {
@@ -332,32 +341,32 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				}
 				break;
 			case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
-				//printk ("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
+				//printf ("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
 				list_size = ebml_data_size;
 				if (list_size) {
 					printf ("\nVideo Ports:\n");
 				}
 				i = 0;
-				while ((list_size) && ((bytes_read += kr_compositor_read_port ( client, tag_value)) <= list_size)) {
+				while ((list_size) && ((bytes_read += kr_compositor_read_port ( kr_client, tag_value)) <= list_size)) {
 					printf ("  %d: %s\n", i, tag_value);
 					i++;
 					if (bytes_read == list_size) {
 						break;
 					} else {
-						//printk ("%d: %d\n", list_size, bytes_read);
+						//printf ("%d: %d\n", list_size, bytes_read);
 					}
 				}	
 				break;
 			
 			case EBML_ID_KRAD_COMPOSITOR_TEXT_LIST:
-				printf ("Received TEXT list %"PRIu64" bytes of data, %d bytes read\n", ebml_data_size, bytes_read);
+				//printf ("Received TEXT list %"PRIu64" bytes of data, %d bytes read\n", ebml_data_size, bytes_read);
 
 				list_size = ebml_data_size;
 				if (list_size) {
 					printf ("\nTexts:\n");
 				}
 		
-				while ((list_size) && ((bytes_read += kr_compositor_read_text ( client, tag_value)) <= list_size)) {
+				while ((list_size) && ((bytes_read += kr_compositor_read_text ( kr_client, tag_value)) <= list_size)) {
 					printf ("  %s\n", tag_value);
 					if (bytes_read == list_size) {
 						break;
@@ -365,7 +374,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
             printf ("%d: %d\n", list_size, bytes_read);
           }
         }	
-        printf ("here\n");
+        //printf ("here\n");
 				break;							
 			
 				
@@ -377,7 +386,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 					printf ("\nSprites:\n");
 				}
 		
-				while ((list_size) && ((bytes_read += kr_compositor_read_sprite ( client, tag_value)) <= list_size)) {
+				while ((list_size) && ((bytes_read += kr_compositor_read_sprite ( kr_client, tag_value)) <= list_size)) {
 					printf ("  %s\n", tag_value);
 				
 					if (bytes_read == list_size) {
@@ -389,13 +398,13 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				break;							
 			}
 			break;
-		case EBML_ID_KRAD_LINK_MSG:
+		case EBML_ID_KRAD_TRANSPONDER_MSG:
 			
 			krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 			
 			switch ( ebml_id ) {
 			
-			case EBML_ID_KRAD_LINK_DECKLINK_LIST:
+			case EBML_ID_KRAD_TRANSPONDER_DECKLINK_LIST:
 				
 				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 				list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
@@ -407,7 +416,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				break;
 				
 				
-			case EBML_ID_KRAD_LINK_V4L2_LIST:
+			case EBML_ID_KRAD_TRANSPONDER_V4L2_LIST:
 				
 				krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
 				list_count = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
@@ -418,7 +427,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 				}	
 				break;				
 				
-			case EBML_ID_KRAD_LINK_LINK_LIST:
+			case EBML_ID_KRAD_TRANSPONDER_LINK_LIST:
 				//printf("Received LINK control list %"PRIu64" bytes of data.\n", ebml_data_size);
 				
 				list_size = ebml_data_size;
@@ -426,7 +435,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 					printf ("\nLinks:\n");
 				}
 				i = 0;
-				while ((list_size) && ((bytes_read += krad_ipc_client_read_link ( client, tag_value, &krad_link)) <= list_size)) {
+				while ((list_size) && ((bytes_read += kr_transponder_link_read ( kr_client, tag_value, &krad_link)) <= list_size)) {
 					printf ("  Id: %d  %s\n", krad_link->link_num, tag_value);
 					free (krad_link);
 					i++;
@@ -445,7 +454,6 @@ void kr_client_print_response (kr_client_t *kr_client) {
 		}
 	}
 	
-	*/
 
 }
 
