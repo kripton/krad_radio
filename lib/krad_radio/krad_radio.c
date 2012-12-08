@@ -25,7 +25,7 @@ static void krad_radio_shutdown (krad_radio_t *krad_radio) {
 	}
   printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	
 	if (krad_radio->krad_websocket != NULL) {
-		//krad_websocket_server_destroy (krad_radio->krad_websocket);
+    krad_websocket_server_destroy (krad_radio->krad_websocket);
 		krad_radio->krad_websocket = NULL;
 	}
   printk ("Krad Radio shutdown timer at %"PRIu64"ms", krad_timer_sample_duration_ms (krad_radio->shutdown_timer));	

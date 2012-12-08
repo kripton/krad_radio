@@ -195,12 +195,12 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				krad_http_server_destroy (krad_radio_station->krad_http);
 			}
 			if (krad_radio_station->krad_websocket != NULL) {
-				//krad_websocket_server_destroy (krad_radio_station->krad_websocket);
+				krad_websocket_server_destroy (krad_radio_station->krad_websocket);
 			}
 		
 			krad_radio_station->krad_http = krad_http_server_create ( krad_radio_station, numbers[0], numbers[1],
 																	  string1, string2, string3 );
-			//krad_radio_station->krad_websocket = krad_websocket_server_create ( krad_radio_station->sysname, numbers[1] );
+      krad_radio_station->krad_websocket = krad_websocket_server_create ( krad_radio_station->sysname, numbers[1] );
 		
 			return 0;
 		
