@@ -53,7 +53,7 @@ int main (int argc, char *argv[]) {
 	  
 		  if (((strlen(argv[1]) == 1) && (strncmp(argv[1], "v", 1) == 0)) ||
 		      ((strlen(argv[1]) == 2) && (strncmp(argv[1], "-v", 2) == 0)) ||
-		      ((strlen(argv[1]) == 3) && (strncmp(argv[1], "--v", 3) == 0))) {
+		      ((strlen(argv[1]) >= 3) && (strncmp(argv[1], "--v", 3) == 0))) {
 
         printf (KRAD_VERSION_STRING "\n");
         return 0;
