@@ -23,4 +23,6 @@ int krad_radio_destroy (char *sysname);
 int krad_radio_running (char *sysname);
 char *krad_radio_running_stations ();
 
+char *kr_station_uptime (char *sysname);
+
 /**@}*/

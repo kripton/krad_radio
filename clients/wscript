@@ -9,6 +9,10 @@ krad_radio_watcher.c
 """.split()
 
 programs2 = """
+krad_radio_manager.c
+""".split()
+
+programs3 = """
 krad_radio_vp.c
 krad_radio_ap.c
 """.split()
@@ -80,6 +84,8 @@ includedirs = """
 #shlibs = ["cairo", "pangocairo", "opus", "xmms2-client", "vpx"]
 shlibs = ["opus"]
 
+shlibs2 = ["cairo", "pangocairo", "gtk+-3.0"]
+
 stlibs = []
 syslibs = ['m', 'dl', 'z']
 syslibs2 = ['rt']
@@ -90,6 +96,7 @@ def check_system(systm):
 	global includedirs
 	global libsources
 	global shlibs
+	global shlibs2	
 	global syslibs
 	global syslibs2
 
@@ -109,6 +116,7 @@ def configure(conf):
 
 	global programs
 	global shlibs
+	global shlibs2	
 	global syslibs
 	check_system(conf)
 
@@ -118,6 +126,9 @@ def configure(conf):
 	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
+	for l in shlibs2:
+		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+
 	for l in stlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
 
@@ -125,6 +136,7 @@ def build(bld):
 
 	global programs
 	global shlibs
+	global shlibs2	
 	global syslibs
 	global syslibs2
 	check_system(bld)
@@ -143,4 +155,13 @@ def build(bld):
 			target = p.replace(".c", ""),
 			use = ["kradradio_client"],
 			uselib = shlibs + stlibs + syslibs)
+			
+	for p in programs2:
+
+		bld(features = 'c cprogram', 
+			source = [p], 
+			includes = includedirs, 
+			target = p.replace(".c", ""),
+			use = ["kradradio_client"],
+			uselib = shlibs + shlibs2 + stlibs + syslibs)
 
