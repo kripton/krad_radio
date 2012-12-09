@@ -23,6 +23,9 @@
 #include <inttypes.h>
 
 
+#define ALL_BROADCASTS 1
+
+
 /** @defgroup krad_radio_client Krad Radio Client
   @{
   */
@@ -65,6 +68,11 @@ void kr_disconnect (kr_client_t **kr_client);
  * @return 1 if local 0 if not
  */
 int kr_client_local (kr_client_t *kr_client);
+
+void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
+int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
+
+void kr_print_message_type (kr_client_t *kr_client);
 
 void kr_client_print_response (kr_client_t *kr_client);
 

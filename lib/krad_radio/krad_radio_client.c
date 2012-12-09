@@ -47,6 +47,10 @@ int kr_client_local (kr_client_t *client) {
   return 0;
 }
 
+void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id) {
+  krad_ipc_broadcast_subscribe (kr_client->krad_ipc_client, broadcast_id);
+}
+
 void kr_shm_destroy (kr_shm_t *kr_shm) {
 
 	if (kr_shm != NULL) {
@@ -456,6 +460,67 @@ void kr_client_print_response (kr_client_t *kr_client) {
 	
 
 }
+
+int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms) {
+
+  krad_ipc_client_t *client;
+  
+  client = kr_client->krad_ipc_client;
+
+	fd_set set;
+	struct timeval tv;
+	
+  if (client->tcp_port) {
+    tv.tv_sec = 1;
+	} else {
+	    tv.tv_sec = 0;
+	}
+  tv.tv_usec = timeout_ms * 1000;
+	
+	FD_ZERO (&set);
+	FD_SET (client->sd, &set);	
+
+	return select (client->sd+1, &set, NULL, NULL, &tv);
+
+}
+
+
+
+void kr_print_message_type (kr_client_t *kr_client) {
+
+  krad_ipc_client_t *client;
+  
+  client = kr_client->krad_ipc_client;
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	char string[1024];
+
+	ebml_id = 0;
+	ebml_data_size = 0;
+
+	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_RADIO_MSG:
+      printf("Received KRAD_RADIO_MSG ");		
+    break;
+    case EBML_ID_KRAD_MIXER_MSG:
+      printf("Received KRAD MIXER MSG ");
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_MSG:
+      printf("Received KRAD COMPOSITOR MSG ");
+      break;
+    case EBML_ID_KRAD_TRANSPONDER_MSG:
+      printf("Received KRAD TRANSPONDER MSG ");
+      break;
+  }
+
+  printf("with a %zu byte payload.\n", ebml_data_size);		
+  krad_ebml_read (client->krad_ebml, string, ebml_data_size);	
+
+}
+
 
 void kr_set_dir (kr_client_t *client, char *dir) {
 
