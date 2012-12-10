@@ -291,6 +291,15 @@ int main (int argc, char *argv[]) {
       kr_mixer_create_portgroup (client, argv[3], "output", atoi (argv[4]));
     }
   }
+  
+  if (strncmp(argv[2], "auxout", 6) == 0) {
+    if (argc == 4) {
+      kr_mixer_create_portgroup (client, argv[3], "auxout", 2);
+    }
+    if (argc == 5) {
+      kr_mixer_create_portgroup (client, argv[3], "auxout", atoi (argv[4]));
+    }
+  }  
 
   if (strncmp(argv[2], "rmport", 6) == 0) {
     if (argc == 4) {

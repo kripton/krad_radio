@@ -1,7 +1,7 @@
 #include "krad_eq.h"
 #include "krad_pass.h"
 #include "krad_rushlimiter.h"
-
+#include "krad_hardlimiter.h"
 #include "krad_system.h"
 
 #define KRAD_EFFECTS_MAX 8

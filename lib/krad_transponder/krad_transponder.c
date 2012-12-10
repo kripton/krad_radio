@@ -493,7 +493,7 @@ void *audio_encoding_thread (void *arg) {
 	}
 	
 	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, 
-												   OUTPUT, krad_link->channels,
+												   OUTPUT, DIRECT, krad_link->channels,
 												   krad_link->krad_radio->krad_mixer->master_mix,
 												   KRAD_LINK, krad_link, 0);		
 		
@@ -1658,7 +1658,7 @@ void *audio_decoding_thread(void *arg) {
 	krad_link->audio_codec = NOCODEC;
 	
 	
-	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, INPUT, 2, 
+	mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, INPUT, NOTOUTPUT, 2, 
 												   krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);
 	
 	while (!krad_link->destroy) {
@@ -1982,7 +1982,7 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	
 	krad_decklink_set_video_input (krad_link->krad_decklink, "hdmi");
 	
-	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->krad_decklink->simplename, INPUT, 2, 
+	krad_link->krad_mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->krad_decklink->simplename, INPUT, NOTOUTPUT, 2, 
 														  krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);	
 	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor, krad_link->krad_decklink->simplename, INPUT,

@@ -27,6 +27,12 @@ typedef enum {
 } krad_mixer_portgroup_io_t;
 
 typedef enum {
+  NOTOUTPUT,
+	DIRECT,
+	AUX,
+} krad_mixer_output_t;
+
+typedef enum {
 	NIL,
 	MONO,
 	STEREO,
@@ -61,6 +67,7 @@ struct krad_mixer_portgroup_St {
 	char sysname[256];
 	krad_mixer_portgroup_direction_t direction;
 	krad_mixer_portgroup_io_t io_type;
+	krad_mixer_output_t output_type;
 	void *io_ptr;
 	channels_t channels;
 	krad_mixer_mixbus_t *mixbus;
@@ -155,8 +162,8 @@ void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc);
 
 
 
-krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, int channels, 
-													 krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
+krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, krad_mixer_output_t output_type,
+                                                     int channels, krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup);
 void krad_mixer_portgroup_map_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel);
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname);

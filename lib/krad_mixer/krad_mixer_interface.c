@@ -12,7 +12,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	
 	uint64_t response;
 //	uint64_t broadcast;
-	
+	krad_mixer_output_t output_type;
 	char *crossfade_name;
 	float crossfade_value;
 	int p;
@@ -148,7 +148,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 	    portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
 
-      kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect (string));
+      if (portgroup->direction == INPUT) {
+        kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect (string));
+      }
 
       break;
 		case EBML_ID_KRAD_MIXER_CMD_REMOVE_EFFECT:
@@ -398,8 +400,15 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
 			if (strncmp(string, "output", 6) == 0) {
 				direction = OUTPUT;
+        output_type = DIRECT;
 			} else {
-				direction = INPUT;
+			  if (strncmp(string, "auxout", 6) == 0) {
+				  direction = OUTPUT;
+				  output_type = AUX;
+			  } else {
+				  direction = INPUT;
+				  output_type = NOTOUTPUT;
+        }
 			}
 			
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
@@ -409,7 +418,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			
 			numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
 
-			portgroup = krad_mixer_portgroup_create (krad_mixer, portgroupname, direction, numbers[0],
+			portgroup = krad_mixer_portgroup_create (krad_mixer, portgroupname, direction, output_type, numbers[0],
 										 krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);			
 
 			if (portgroup != NULL) {
