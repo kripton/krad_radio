@@ -422,11 +422,13 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 										 krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);			
 
 			if (portgroup != NULL) {
-
-				krad_ipc_server_broadcast_portgroup_created ( krad_ipc, portgroup->sysname, portgroup->channels,
-												  	   		  portgroup->io_type, portgroup->volume[0],
-												  	   		  portgroup->mixbus->sysname, 0 );
-			}
+			  /* since we dont handle non inputs in api right yet */
+			  if (portgroup->direction == INPUT) {
+				  krad_ipc_server_broadcast_portgroup_created ( krad_ipc, portgroup->sysname, portgroup->channels,
+												  	   		    portgroup->io_type, portgroup->volume[0],
+												  	   		    portgroup->mixbus->sysname, 0 );
+			  }
+      }
 
 			break;
 		case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:	

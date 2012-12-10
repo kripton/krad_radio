@@ -649,7 +649,7 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 		  if (krad_mixer->portgroup[p]->active == 1) {
         if ((krad_mixer_portgroup_is_jack(krad_mixer->portgroup[p])) &&
             (krad_mixer->portgroup[p]->direction == OUTPUT) &&
-            (krad_mixer->portgroup[p]->output_type == DIRECT)) {	    
+            (krad_mixer->portgroup[p]->output_type == DIRECT)) {
 				  return NULL;
 				}
 		  }
@@ -661,6 +661,7 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
 	strcpy (portgroup->sysname, sysname);
 	portgroup->channels = channels;
 	portgroup->io_type = io_type;
+	portgroup->output_type = output_type;
 	portgroup->mixbus = mixbus;
 	portgroup->direction = direction;
 
