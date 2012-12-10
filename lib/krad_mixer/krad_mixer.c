@@ -482,11 +482,11 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
 		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == OUTPUT)) {
+			portgroup_copy_samples ( portgroup, portgroup->mixbus, nframes );
 		  if (portgroup->output_type == AUX) {
 			  portgroup_apply_volume (portgroup, nframes);
 		  }
-			portgroup_limit ( portgroup->mixbus, nframes );
-			portgroup_copy_samples ( portgroup, portgroup->mixbus, nframes );
+			portgroup_limit ( portgroup, nframes );
 		}
 	}
 	
