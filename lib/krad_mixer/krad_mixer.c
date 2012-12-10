@@ -885,7 +885,7 @@ void portgroup_set_volume (krad_mixer_portgroup_t *portgroup, float value) {
 	for (c = 0; c < portgroup->channels; c++) {
 		portgroup->volume[c] = value;
     if (portgroup->direction == MIX) {
-      portgroup->mixbus->volume_actual[0] = volume_temp;
+      portgroup->volume_actual[0] = volume_temp;
       break;
     } else {
 		  portgroup->new_volume_actual[c] = volume_temp;
