@@ -58,7 +58,7 @@ kr_client_t *kr_connect (char *sysname);
 
 /**
  * @brief disconnect an open IPC-connection
- * @param kr_client handle of the connection to be closed
+ * @param kr_client pointer to handle of the connection to be closed
  */
 void kr_disconnect (kr_client_t **kr_client);
 
@@ -107,7 +107,7 @@ void kr_client_print_response (kr_client_t *kr_client);
 
 /**
  * @brief creates and allocates a shared memory buffer
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  * @return handle for the shared memory buffer, NULL on error
  * @todo currently, this size is fixed for resolution 960x540. this needs to be changed!
  */
@@ -128,20 +128,20 @@ void kr_shm_destroy (kr_shm_t *kr_shm);
 
 /**
  * @brief Prints out the uptime of the station
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_uptime (kr_client_t *client);
 
 /**
  * @brief Prints out system information (hostname, architecture and kernel 
  * version) from where the station is running on
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_system_info (kr_client_t *client);
 
 /**
  * @brief Prints out the current CPU usage of the station
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_system_cpu_usage (kr_client_t *client);
 
@@ -149,14 +149,14 @@ void kr_system_cpu_usage (kr_client_t *client);
  * @brief Sets the "working directory" for the station where logfiles and 
  * snaphots are stored. The directory must exist, it will not be created 
  * for you!
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  * @param dir
  */
 void kr_set_dir (kr_client_t *client, char *dir);
 
 /**
  * @brief Prints out the currently used logfile of the station
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_logname (kr_client_t *client);
 
@@ -171,21 +171,21 @@ void kr_logname (kr_client_t *client);
  * @brief Enable IPC remote control on a specifed port. You can use 
  * "hostname:port" as sysname to specify this station from another machine. 
  * This can only be enabled once per station.
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  * @param port TCP-port on which to listen for incoming connections
  */
 void kr_remote_enable (kr_client_t *client, int port);
 
 /**
  * @brief Disable the previously enabled IPC remote control
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_remote_disable (kr_client_t *client);
 
 /**
  * @brief Enable web UI remote control on a specifed port. This can only be 
  * enabled once per station.
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  * @param http_port port on which to listen for incoming HTTP-connections
  * @param websocket_port port used for communication between the web-page
  * and the station. Must not be the same as http_port!
@@ -197,21 +197,21 @@ void kr_web_enable (kr_client_t *client, int http_port, int websocket_port, char
 
 /**
  * @brief Disable the previously enabled web UI remote control
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_web_disable (kr_client_t *client);
 
 /**
  * @brief Enable Open Sound Control (OSC) remote control on a specifed port.
  * This can only be enabled once per station.
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  * @param port port on which to listen for incoming connections
  */
 void kr_osc_enable (kr_client_t *client, int port);
 
 /**
  * @brief Disable the previously enabled OSC remote control
- * @param kr_client handle of the IPC-connection to the station
+ * @param client handle of the IPC-connection to the station
  */
 void kr_osc_disable (kr_client_t *client);
 
@@ -223,7 +223,7 @@ void kr_osc_disable (kr_client_t *client);
  */
 
 /**
- * @todo document this!
+ * @todo oneman document this! kripton has no clue here!
  * @brief kr_read_tag_inner
  * @param client
  * @param tag_item
@@ -233,7 +233,7 @@ void kr_osc_disable (kr_client_t *client);
 void kr_read_tag_inner ( kr_client_t *client, char **tag_item, char **tag_name, char **tag_value );
 
 /**
- * @todo document this!
+ * @todo oneman document this! kripton has no clue here!
  * @brief kr_read_tag
  * @param client
  * @param tag_item
@@ -244,29 +244,26 @@ void kr_read_tag_inner ( kr_client_t *client, char **tag_item, char **tag_name, 
 int kr_read_tag ( kr_client_t *client, char **tag_item, char **tag_name, char **tag_value );
 
 /**
- * @todo document this!
- * @brief kr_tags
- * @param client
- * @param item
+ * @brief prints out a list of all tags in a group
+ * @param client handle of the IPC-connection to the station
+ * @param item item to print the tags of
  */
 void kr_tags (kr_client_t *client, char *item);
 
 /**
- * @todo document this!
- * @brief kr_tag
- * @param client
- * @param item
- * @param tag_name
+ * @brief prints out the value of one specified tag
+ * @param client handle of the IPC-connection to the station
+ * @param item item the tag is grouped under
+ * @param tag_name name of the tag to be printed
  */
 void kr_tag (kr_client_t *client, char *item, char *tag_name);
 
 /**
- * @todo document this!
- * @brief kr_set_tag
- * @param client
- * @param item
- * @param tag_name
- * @param tag_value
+ * @brief sets the value for a specified tag
+ * @param client handle of the IPC-connection to the station
+ * @param item item the tag is grouped under
+ * @param tag_name name of the tag to be set
+ * @param tag_value value to set the tag to
  */
 void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_value);
 
