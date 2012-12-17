@@ -1,7 +1,7 @@
 #include "krad_radio.h"
 
-#define KRAD_TRANSPONDER_SUBUNITS 32
-#define KRAD_TRANSPONDER_PORT_CONNECTIONS 24
+#define KRAD_TRANSPONDER_SUBUNITS 99
+#define KRAD_TRANSPONDER_PORT_CONNECTIONS 200
 
 typedef struct kradx_transponder_St kradx_transponder_t;
 typedef struct krad_transponder_subunit_St krad_transponder_subunit_t;
