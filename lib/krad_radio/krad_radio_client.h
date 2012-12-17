@@ -1,3 +1,7 @@
+#ifndef KRAD_CLIENT_H
+#define KRAD_CLIENT_H
+
+
 /**
  * @file krad_radio_client.h
  * @brief Krad Radio Client API
@@ -270,3 +274,5 @@ void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_valu
 /** @} */
 
 /** @} */
+
+#endif
