@@ -1243,8 +1243,8 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	
 	krad_mixer_portgroup_mixmap_channel (krad_mixer->tone_port, 0, 1);
 
-  krad_mixer_set_portgroup_control (krad_mixer, "MasterBUS", "volume", 80.0f);
-  krad_mixer_set_portgroup_control (krad_mixer, "DTMF", "volume", 70.0f);
+  krad_mixer_set_portgroup_control (krad_mixer, "MasterBUS", "volume", DEFAULT_MASTERBUS_LEVEL);
+  krad_mixer_set_portgroup_control (krad_mixer, "DTMF", "volume", 50.0f);
   
 
 	return krad_mixer;

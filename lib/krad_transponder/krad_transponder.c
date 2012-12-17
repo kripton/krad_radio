@@ -1137,6 +1137,12 @@ void *stream_input_thread (void *arg) {
 		krad_link->krad_container = krad_container_open_file (krad_link->input, KRAD_IO_READONLY);
 	}
 	
+	// create video codec output port
+	// create audio codec output port
+	
+	
+	// poll on container fd and control fd
+	
 	while (!krad_link->destroy) {
 		
 		writeheaders = 0;
@@ -1926,6 +1932,12 @@ int krad_link_decklink_video_callback (void *arg, void *buffer, int length) {
 
 		krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
 
+/*
+    krad_frame->format = PIX_FMT_RGB32;
+		krad_frame->pixels = buffer;    
+
+		krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
+*/
 		krad_framepool_unref_frame (krad_frame);
 
 		//krad_compositor_process (krad_link->krad_transponder->krad_radio->krad_compositor);

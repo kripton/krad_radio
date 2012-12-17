@@ -54,7 +54,7 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 
 	//th_encode_ctl (krad_theora->encoder, TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE, &krad_theora->keyframe_distance, sizeof(int));
 	//printk ("Theora keyframe max distance %u\n", krad_theora->keyframe_distance);
-		
+
 	if (strstr(krad_system.unix_info.machine, "x86") == NULL) {
 		//FOR ARM Realtime
 		th_encode_ctl (krad_theora->encoder, TH_ENCCTL_GET_SPLEVEL_MAX, &krad_theora->speed, sizeof(int));

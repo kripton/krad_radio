@@ -17,7 +17,7 @@ subdirs = os.listdir('./' + libdir)
 for s in subdirs:
 	subdirs[subdirs.index(s)] = os.getcwd() + "/" + libdir + "/" + s
 	
-#subdirs += [os.getcwd() + "/" + toolsdir]
+subdirs += [os.getcwd() + "/" + toolsdir]
 subdirs += [os.getcwd() + "/" + clientsdir]
 subdirs += [os.getcwd() + "/" + daemondir]
 

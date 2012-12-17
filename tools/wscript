@@ -4,7 +4,7 @@ import os
 import binascii
 import sys
 
-tool = "image_seq_to_vhs.c"
+tool = "coconutfunworld.c"
 
 depsources = """
 ../lib/krad_transponder/krad_transponder_common.c
