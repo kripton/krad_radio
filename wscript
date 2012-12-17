@@ -34,6 +34,9 @@ def options(opt):
 		
 	opt.add_option('--without-wayland', action='store_true', default=False, dest='nowayland', 
 		help='Don\'t build anything depending on Wayland')
+		
+	opt.add_option('--without-gtk', action='store_true', default=False, dest='nogtk',
+		help='Don\'t build anything depending on gtk+ (GUI)')
 
 def check_way(way):
 	if way.options.nowayland == False:

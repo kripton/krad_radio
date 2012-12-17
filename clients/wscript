@@ -126,8 +126,9 @@ def configure(conf):
 	for l in shlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
-	for l in shlibs2:
-		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
+	if conf.options.nogtk == False:
+		for l in shlibs2:
+			conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
 	for l in stlibs:
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
@@ -156,12 +157,12 @@ def build(bld):
 			use = ["kradradio_client"],
 			uselib = shlibs + stlibs + syslibs)
 			
-	for p in programs2:
-
-		bld(features = 'c cprogram', 
-			source = [p], 
-			includes = includedirs, 
-			target = p.replace(".c", ""),
-			use = ["kradradio_client"],
-			uselib = shlibs + shlibs2 + stlibs + syslibs)
+	if conf.options.nogtk == False:
+		for p in programs2:
+			bld(features = 'c cprogram', 
+				source = [p], 
+				includes = includedirs, 
+				target = p.replace(".c", ""),
+				use = ["kradradio_client"],
+				uselib = shlibs + shlibs2 + stlibs + syslibs)
 
