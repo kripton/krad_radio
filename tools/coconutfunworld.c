@@ -105,6 +105,10 @@ void krad_transponder_port_read (krad_transponder_input_port_t *inport, void *ms
 
   ret = read (inport->socketpair[1], buffer, 1);
   if (ret != 1) {
+    if (ret == 0) {
+      printf ("Krad Transponder: port read got EOF\n");
+      return;
+    }
     printf ("Krad Transponder: port read unexpected read return value %d\n", ret);
   }
 
@@ -340,7 +344,7 @@ int krad_transponder_subunit_poll (krad_transponder_subunit_t *krad_transponder_
 
   nfds = n;
 
-	ret = poll (pollfds, nfds, 1000);
+	ret = poll (pollfds, nfds, 10);
 	if (ret < 0) {
     // error
 		return 0;
@@ -727,23 +731,24 @@ int main (int argc, char *argv[]) {
 
   //freopen("/dev/null", "w", stdout);
 
-  for (t = 0; t < 1; t++) {
-    kradx_transponder = kradx_transponder_create (krad_radio);  
+  kradx_transponder = kradx_transponder_create (krad_radio);  
+
+  for (t = 0; t < 10000; t++) {
     kradx_transponder_add_encoder (kradx_transponder, FLAC);
     s = kradx_transponder_add_muxer (kradx_transponder, -1, 0);
-    usleep (500000);
+    //usleep (2000);
     kradx_transponder_list (kradx_transponder);  
-    usleep (500000);
+    //usleep (600000);
     kradx_transponder_add_muxer (kradx_transponder, -1, 0);
-    usleep (500000);
+    //usleep (100000);
     kradx_transponder_list (kradx_transponder);  
-    usleep (500000);    
+    //usleep (400000);    
     kradx_transponder_subunit_remove (kradx_transponder, s);
-    usleep (500000);
+    //usleep (330000);
     kradx_transponder_list (kradx_transponder);  
-    usleep (500000);    
-    kradx_transponder_destroy (&kradx_transponder);
   }
+
+  kradx_transponder_destroy (&kradx_transponder);
 
   return 0;
 
