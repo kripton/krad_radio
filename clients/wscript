@@ -127,6 +127,7 @@ def configure(conf):
 		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
 	if conf.options.nogtk == False:
+		conf.env['KRAD_GTK'] = "yes"
 		for l in shlibs2:
 			conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
@@ -157,7 +158,7 @@ def build(bld):
 			use = ["kradradio_client"],
 			uselib = shlibs + stlibs + syslibs)
 			
-	if conf.options.nogtk == False:
+	if bld.env['KRAD_GTK'] == "yes":
 		for p in programs2:
 			bld(features = 'c cprogram', 
 				source = [p], 
