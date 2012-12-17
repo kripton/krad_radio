@@ -4,7 +4,7 @@
  */
 
 /**
- * @mainpage Krad Radio IPC API
+ * @mainpage Krad Radio Client API
  *
  * These documents contain all types and functions needed to to 
  * IPC conmmunication to manage, control and modify krad radio stations.

@@ -3,14 +3,6 @@
  * @brief Krad Radio Compositor Controller API
  */
 
-/**
- * @mainpage Krad Radio Compositor Controller
- *
- * Krad Radio Compositor Controller (Kripton this is where you come in agin)
- *
- */
-
-
 #ifndef KRAD_COMPOSITOR_CLIENT_H
 #define KRAD_COMPOSITOR_CLIENT_H
 
