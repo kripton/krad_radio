@@ -3,9 +3,7 @@
 
 #include "krad_ebml.h"
 #include "krad_ipc_client.h"
-
-typedef struct kr_client_St kr_client_t;
-typedef struct kr_shm_St kr_shm_t;
+#include "krad_radio_client.h"
 
 struct kr_client_St {
   krad_ipc_client_t *krad_ipc_client;
