@@ -8,17 +8,17 @@ static void krad_transponder_listen_destroy_client (krad_transponder_listen_clie
 static void krad_transponder_listen_create_client (krad_transponder_t *krad_transponder, int sd);
 static void *krad_transponder_listen_client_thread (void *arg);
 
-void *video_capture_thread (void *arg) {
-
 #ifndef __MACH__
-	krad_system_set_thread_name ("kr_cap_v4l2");
+
+//void *video_capture_thread (void *arg) {
+
+
+void v4l2_capture_unit_create (void *arg) {
+	//krad_system_set_thread_name ("kr_cap_v4l2");
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
-
-	void *captured_frame = NULL;
-	krad_frame_t *krad_frame;
 	
-	printk ("Video capture thread started");
+	printk ("Video capture creating..");
 	
 	krad_link->krad_v4l2 = kradv4l2_create ();
 
@@ -32,7 +32,7 @@ void *video_capture_thread (void *arg) {
 	}
 
 	kradv4l2_open (krad_link->krad_v4l2, krad_link->device, krad_link->capture_width, 
-				   krad_link->capture_height, krad_link->capture_fps);
+				   krad_link->capture_height, 30);
 
 	if ((krad_link->capture_width != krad_link->krad_v4l2->width) ||
 		(krad_link->capture_height != krad_link->krad_v4l2->height)) {
@@ -75,9 +75,21 @@ void *video_capture_thread (void *arg) {
 	
 	kradv4l2_start_capturing (krad_link->krad_v4l2);
 
-	while (krad_link->capturing == 1) {
+	printk ("Video capture started..");
 
-		captured_frame = kradv4l2_read_frame_wait_adv (krad_link->krad_v4l2);
+}
+
+int v4l2_capture_unit_process (void *arg) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
+
+	void *captured_frame = NULL;
+	krad_frame_t *krad_frame;
+
+	//while (krad_link->capturing == 1) {
+
+		//captured_frame = kradv4l2_read_frame_wait_adv (krad_link->krad_v4l2);
+		captured_frame = kradv4l2_read_frame_adv (krad_link->krad_v4l2);		
 		
 		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 		
@@ -87,7 +99,7 @@ void *video_capture_thread (void *arg) {
 			kradv4l2_frame_done (krad_link->krad_v4l2);
 			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);			
 			
-		} else {		
+		} else {
 			if ((krad_link->video_codec == MJPEG) && (krad_link->video_passthru == 0)) {
 			  kradv4l2_mjpeg_to_rgb (krad_link->krad_v4l2, (unsigned char *)krad_frame->pixels,
                                captured_frame, krad_link->krad_v4l2->encoded_size);			
@@ -118,7 +130,15 @@ void *video_capture_thread (void *arg) {
 		if (krad_link->video_passthru == 1) {
 			krad_compositor_passthru_process (krad_link->krad_radio->krad_compositor);
 		}
-	}
+	//}
+
+  return 0;
+	
+}
+
+void v4l2_capture_unit_destroy (void *arg) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	kradv4l2_stop_capturing (krad_link->krad_v4l2);
 	kradv4l2_close(krad_link->krad_v4l2);
@@ -128,13 +148,11 @@ void *video_capture_thread (void *arg) {
 
 	krad_link->encoding = 2;
 
-	printk ("Video capture thread exited");
-	
-#endif
-
-	return NULL;
+	printk ("v4l2 capture unit destroy");
 	
 }
+
+#endif
 
 void *x11_capture_thread (void *arg) {
 
@@ -2042,7 +2060,9 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	if (krad_link->capturing) {
 		krad_link->capturing = 0;
 		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11)) {
-			pthread_join (krad_link->video_capture_thread, NULL);
+			//pthread_join (krad_link->video_capture_thread, NULL);
+      krad_Xtransponder_subunit_remove (krad_link->krad_transponder->krad_Xtransponder, 0);
+      v4l2_capture_unit_destroy ((void *)krad_link);
 		}
 		if (krad_link->video_source == DECKLINK) {
 			if (krad_link->krad_decklink != NULL) {
@@ -2193,7 +2213,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 
 	krad_link->encoded_audio_ringbuffer = krad_ringbuffer_create (2000000);
-	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (100000000);
+	krad_link->encoded_video_ringbuffer = krad_ringbuffer_create (10000000);
 
 	if (krad_link->operation_mode == CAPTURE) {
 
@@ -2203,8 +2223,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 			krad_link->capture_width = krad_link->composite_width;
 			krad_link->capture_height = krad_link->composite_height;
 		}
-		//FIXME
-		krad_link->capture_fps = DEFAULT_FPS;
 
 		for (c = 0; c < krad_link->channels; c++) {
 			krad_link->audio_capture_ringbuffer[c] = krad_ringbuffer_create (2000000);		
@@ -2229,7 +2247,15 @@ void krad_link_activate (krad_link_t *krad_link) {
 		if (krad_link->video_source == V4L2) {
 
 			krad_link->capturing = 1;
-			pthread_create(&krad_link->video_capture_thread, NULL, video_capture_thread, (void *)krad_link);
+			//pthread_create(&krad_link->video_capture_thread, NULL, video_capture_thread, (void *)krad_link);
+      v4l2_capture_unit_create ((void *)krad_link);
+      krad_transponder_watch_t *watch;
+      watch = malloc (sizeof(krad_transponder_watch_t));
+      watch->fd = krad_link->krad_v4l2->fd;
+      watch->callback_pointer = (void *)krad_link;
+      watch->readable_callback = v4l2_capture_unit_process;
+      krad_Xtransponder_add_capture (krad_link->krad_transponder->krad_Xtransponder, watch);
+      free (watch);
 		}
 		
 		if (krad_link->video_source == DECKLINK) {
@@ -2641,6 +2667,8 @@ krad_transponder_t *krad_transponder_create (krad_radio_t *krad_radio) {
 
 	krad_transponder->krad_transmitter = krad_transmitter_create ();
 
+	krad_transponder->krad_Xtransponder = krad_Xtransponder_create (krad_transponder->krad_radio);
+
 	return krad_transponder;
 
 }
@@ -2651,7 +2679,10 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder) {
 	
   printk ("Krad transponder destroy started");		
 
-	pthread_mutex_lock (&krad_transponder->change_lock);	
+	pthread_mutex_lock (&krad_transponder->change_lock);
+	
+	krad_Xtransponder_destroy (&krad_transponder->krad_Xtransponder);
+	
 	for (l = 0; l < KRAD_TRANSPONDER_MAX_LINKS; l++) {
 		if (krad_transponder->krad_link[l] != NULL) {
 			krad_link_destroy (krad_transponder->krad_link[l]);

@@ -11,6 +11,7 @@ depsources = """
 ../lib/krad_radio/krad_radio_interface.c
 ../lib/krad_radio/krad_radio.c
 ../lib/krad_transponder/krad_transponder_common.c
+../lib/krad_transponder/krad_transponder_graph.c
 ../lib/krad_system/krad_system.c
 ../lib/krad_ticker/krad_timer.c
 ../lib/krad_ticker/krad_ticker.c

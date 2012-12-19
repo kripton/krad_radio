@@ -1949,6 +1949,11 @@ int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecod
 		if (skip) {
 			if (krad_ebml->stream == 1) {
 				if (ebml_data_size != EBML_DATA_SIZE_UNKNOWN) {
+
+          if (ebml_data_size > sizeof(krad_ebml->bsbuffer)) {
+            failfast ("I needed to skip more than 1024 bytes in a stream..");
+          }
+
 					krad_ebml_read ( krad_ebml, krad_ebml->bsbuffer, ebml_data_size);
 				}
 			} else {

@@ -291,7 +291,7 @@ struct krad_ebml_St {
 	
 	int header_read;
 	
-	char bsbuffer[8192 * 8];
+  char bsbuffer[1024];
 	int stream;
 
 	krad_transmission_t *krad_transmission;

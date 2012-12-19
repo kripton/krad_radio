@@ -19,7 +19,6 @@ typedef struct krad_transponder_listen_client_St krad_transponder_listen_client_
 #define DEFAULT_COMPOSITOR_FPS 30
 #define DEFAULT_COMPOSITOR_FPS_NUMERATOR DEFAULT_COMPOSITOR_FPS * 1000
 #define DEFAULT_COMPOSITOR_FPS_DENOMINATOR 1 * 1000
-#define DEFAULT_FPS 30
 #define DEFAULT_FPS_NUMERATOR DEFAULT_FPS * 1000
 #define DEFAULT_FPS_DENOMINATOR 1 * 1000
 #define KRAD_LINK_DEFAULT_TCP_PORT 80
@@ -47,6 +46,9 @@ struct krad_transponder_St {
 	
 	/* transponder transmitter */	
 	krad_transmitter_t *krad_transmitter;	
+	
+	
+	krad_Xtransponder_t *krad_Xtransponder;
 	
 };
 

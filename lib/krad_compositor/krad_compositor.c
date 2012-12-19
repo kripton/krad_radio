@@ -1258,8 +1258,6 @@ krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *kr
 		
 		krad_compositor_port->local_frame->pixels = (int *)krad_compositor_port->local_buffer;
 		
-		pthread_mutex_init (&krad_compositor_port->local_frame->ref_lock, NULL);
-		
 		krad_compositor_port->local_frame->cst =
 			cairo_image_surface_create_for_data ((unsigned char *)krad_compositor_port->local_buffer,
 												 CAIRO_FORMAT_ARGB32,
@@ -1318,7 +1316,6 @@ void krad_compositor_port_destroy_unlocked (krad_compositor_t *krad_compositor, 
 		}
 		
 		if (krad_compositor_port->local_frame != NULL) {
-			pthread_mutex_destroy (&krad_compositor_port->local_frame->ref_lock);
 			cairo_destroy (krad_compositor_port->local_frame->cr);
 			cairo_surface_destroy (krad_compositor_port->local_frame->cst);
 			free (krad_compositor_port->local_frame);

@@ -5,34 +5,22 @@ krad_frame_t *krad_framepool_getframe (krad_framepool_t *krad_framepool) {
 	int f;
 
 	for (f = 0; f < krad_framepool->count; f++ ) {
-		pthread_mutex_lock (&krad_framepool->frames[f].ref_lock);
-		if (krad_framepool->frames[f].refs == 0) {
-			krad_framepool->frames[f].refs++;
-			pthread_mutex_unlock (&krad_framepool->frames[f].ref_lock);
+		if (__sync_bool_compare_and_swap( &krad_framepool->frames[f].refs, 0, 1 )) {
 			return &krad_framepool->frames[f];
 		}
-		pthread_mutex_unlock (&krad_framepool->frames[f].ref_lock);
 	}
-	
+
 	return NULL;
 
 }
 
-void krad_framepool_ref_frame (krad_frame_t *frame) {
-
-	pthread_mutex_lock (&frame->ref_lock);
-	frame->refs++;
-	pthread_mutex_unlock (&frame->ref_lock);
-	//printf("refs = %d\n", frame->refs);
+void krad_framepool_ref_frame (krad_frame_t *krad_frame) {
+  __sync_fetch_and_add( &krad_frame->refs, 1 );
 }
 
 
-void krad_framepool_unref_frame (krad_frame_t *frame) {
-
-	pthread_mutex_lock (&frame->ref_lock);
-	frame->refs--;
-	pthread_mutex_unlock (&frame->ref_lock);
-	//printf("refs = %d\n", frame->refs);
+void krad_framepool_unref_frame (krad_frame_t *krad_frame) {
+  __sync_fetch_and_sub( &krad_frame->refs, 1 );
 }
 
 void krad_framepool_destroy (krad_framepool_t *krad_framepool) {
@@ -42,7 +30,6 @@ void krad_framepool_destroy (krad_framepool_t *krad_framepool) {
 	for (f = 0; f < krad_framepool->count; f++ ) {
 		munlock (krad_framepool->frames[f].pixels, krad_framepool->frame_byte_size);
 		free (krad_framepool->frames[f].pixels);
-		pthread_mutex_destroy (&krad_framepool->frames[f].ref_lock);
 		if (krad_framepool->passthru == 0) {
 			cairo_destroy (krad_framepool->frames[f].cr);
 			cairo_surface_destroy (krad_framepool->frames[f].cst);
@@ -92,8 +79,7 @@ krad_framepool_t *krad_framepool_create_for_upscale (int width, int height, int 
 			failfast ("Krad Framepool: Out of memory");
 		}
 		mlock (krad_framepool->frames[f].pixels, krad_framepool->frame_byte_size);
-		pthread_mutex_init (&krad_framepool->frames[f].ref_lock, NULL);
-		
+
 		krad_framepool->frames[f].cst =
 			cairo_image_surface_create_for_data ((unsigned char *)krad_framepool->frames[f].pixels,
 												 CAIRO_FORMAT_ARGB32,
@@ -126,7 +112,6 @@ krad_framepool_t *krad_framepool_create_for_passthru (int size, int count) {
 			failfast ("Krad Framepool: Out of memory");
 		}
 		mlock (krad_framepool->frames[f].pixels, krad_framepool->frame_byte_size);
-		pthread_mutex_init (&krad_framepool->frames[f].ref_lock, NULL);
 	}
 	
 	return krad_framepool;

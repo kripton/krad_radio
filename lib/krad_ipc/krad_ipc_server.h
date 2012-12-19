@@ -32,7 +32,7 @@
 #ifndef KRAD_IPC_SERVER_H
 #define KRAD_IPC_SERVER_H
 
-#define KRAD_IPC_SERVER_MAX_CLIENTS 64
+#define KRAD_IPC_SERVER_MAX_CLIENTS 16
 #define KRAD_IPC_SERVER_TIMEOUT_MS 100
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000
 
@@ -102,7 +102,7 @@ struct krad_ipc_server_client_St {
 
 	char input_buffer[4096 * 4];
 	char output_buffer[4096 * 4];
-	char command_buffer[4096 * 4];
+	//char command_buffer[4096 * 4];
 	int command_response_len;
 	
 	int input_buffer_pos;
