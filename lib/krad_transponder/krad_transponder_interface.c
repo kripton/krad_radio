@@ -898,14 +898,14 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 			
 			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_TRANSPONDER_MSG, &response);
 			
-			devices = kradv4l2_detect_devices ();
+			devices = krad_v4l2_detect_devices ();
 
 			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_TRANSPONDER_V4L2_LIST, &element);
 			krad_ebml_write_int32 (krad_ipc->current_client->krad_ebml2, EBML_ID_KRAD_LIST_COUNT, devices);
 			
 			for (k = 0; k < devices; k++) {
 
-				if (kradv4l2_get_device_filename (k, string) > 0) {
+				if (krad_v4l2_get_device_filename (k, string) > 0) {
 					krad_ebml_write_string (krad_ipc->current_client->krad_ebml2, EBML_ID_KRAD_TRANSPONDER_V4L2_DEVICE_FILENAME, string);
 				}
 			}

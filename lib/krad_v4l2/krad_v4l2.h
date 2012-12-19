@@ -52,70 +52,55 @@ struct krad_v4l2_St {
 	int fps;
 
 	int mode;
-
 	int frames;
-	
 	int fd;
-	
-	struct timeval timestamp;
 
-	
+	struct timeval timestamp;
 	krad_v4l2_buffer_t *buffers;
 	unsigned int n_buffers;
 	struct v4l2_buffer buf;
-	
-	char device[512];
-
+  char device[512];
 	krad_v4l2_io_method io;
-
 	tjhandle jpeg_dec;
-
 	unsigned int encoded_size;
 	unsigned char *codec_buffer;
-
 };
-
-
 
 /* public */
 int krad_v4l2_is_h264_keyframe (unsigned char *buffer);
-void krad_v4l2_yuv_mode (krad_v4l2_t *kradv4l2);
-void krad_v4l2_mjpeg_mode (krad_v4l2_t *kradv4l2);
-void krad_v4l2_h264_mode (krad_v4l2_t *kradv4l2);
+void krad_v4l2_yuv_mode (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_mjpeg_mode (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_h264_mode (krad_v4l2_t *krad_v4l2);
 
-void kradv4l2_free_codec_buffer (krad_v4l2_t *kradv4l2);
-void krad_v4l2_alloc_codec_buffer (krad_v4l2_t *kradv4l2);
+int krad_v4l2_mjpeg_to_jpeg (krad_v4l2_t *krad_v4l2, unsigned char *jpeg_buffer,
+                             unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
 
-int kradv4l2_mjpeg_to_jpeg (krad_v4l2_t *kradv4l2, unsigned char *jpeg_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
+void krad_v4l2_mjpeg_to_rgb (krad_v4l2_t *krad_v4l2, unsigned char *argb_buffer,
+                             unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
 
-void kradv4l2_mjpeg_to_rgb (krad_v4l2_t *kradv4l2, unsigned char *argb_buffer, unsigned char *mjpeg_buffer, unsigned int mjpeg_size);
+krad_v4l2_t *krad_v4l2_create();
+void krad_v4l2_destroy(krad_v4l2_t *krad_v4l2);
 
-krad_v4l2_t *kradv4l2_create();
-void kradv4l2_destroy(krad_v4l2_t *kradv4l2);
+void krad_v4l2_close (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_open (krad_v4l2_t *krad_v4l2, char *device, int width, int height, int fps);
 
-void kradv4l2_close (krad_v4l2_t *kradv4l2);
-void kradv4l2_open (krad_v4l2_t *kradv4l2, char *device, int width, int height, int fps);
+void krad_v4l2_stop_capturing (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_start_capturing (krad_v4l2_t *krad_v4l2);
 
-void kradv4l2_stop_capturing (krad_v4l2_t *kradv4l2);
-void kradv4l2_start_capturing (krad_v4l2_t *kradv4l2);
+char *krad_v4l2_read (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_frame_done (krad_v4l2_t *krad_v4l2);
 
-char *kradv4l2_read_frame_wait (krad_v4l2_t *kradv4l2);
-char *kradv4l2_read_frame (krad_v4l2_t *kradv4l2);
-void kradv4l2_read_frames (krad_v4l2_t *kradv4l2);
-char *kradv4l2_read_frame_adv (krad_v4l2_t *kradv4l2);
-char *kradv4l2_read_frame_wait_adv (krad_v4l2_t *kradv4l2);
-void kradv4l2_frame_done (krad_v4l2_t *kradv4l2);
+int krad_v4l2_detect_devices ();
+int krad_v4l2_get_device_filename (int device_num, char *device_name);
 
-int kradv4l2_detect_devices ();
-int kradv4l2_get_device_filename (int device_num, char *device_name);
 /* private */
 
-void kradv4l2_init_device (krad_v4l2_t *kradv4l2);
-void kradv4l2_uninit_device (krad_v4l2_t *kradv4l2);
+void krad_v4l2_free_codec_buffer (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_alloc_codec_buffer (krad_v4l2_t *krad_v4l2);
 
-void kradv4l2_init_userp (krad_v4l2_t *kradv4l2, unsigned int buffer_size);
-void kradv4l2_init_mmap (krad_v4l2_t *kradv4l2);
-void kradv4l2_init_read (krad_v4l2_t *kradv4l2, unsigned int buffer_size);
+void krad_v4l2_init_device (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_uninit_device (krad_v4l2_t *krad_v4l2);
+void krad_v4l2_init_mmap (krad_v4l2_t *krad_v4l2);
 
 void errno_exit (const char *s);
 int xioctl (int fd, int request, void *arg);

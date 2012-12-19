@@ -20,7 +20,7 @@ void v4l2_capture_unit_create (void *arg) {
 	
 	printk ("Video capture creating..");
 	
-	krad_link->krad_v4l2 = kradv4l2_create ();
+	krad_link->krad_v4l2 = krad_v4l2_create ();
 
 	if (krad_link->video_codec != NOCODEC) {
 		if (krad_link->video_codec == MJPEG) {
@@ -31,7 +31,7 @@ void v4l2_capture_unit_create (void *arg) {
 		}
 	}
 
-	kradv4l2_open (krad_link->krad_v4l2, krad_link->device, krad_link->capture_width, 
+	krad_v4l2_open (krad_link->krad_v4l2, krad_link->device, krad_link->capture_width, 
 				   krad_link->capture_height, 30);
 
 	if ((krad_link->capture_width != krad_link->krad_v4l2->width) ||
@@ -73,7 +73,7 @@ void v4l2_capture_unit_create (void *arg) {
 									 krad_link->capture_width, krad_link->capture_height);
 	}
 	
-	kradv4l2_start_capturing (krad_link->krad_v4l2);
+	krad_v4l2_start_capturing (krad_link->krad_v4l2);
 
 	printk ("Video capture started..");
 
@@ -81,68 +81,54 @@ void v4l2_capture_unit_create (void *arg) {
 
 int v4l2_capture_unit_process (void *arg) {
 
-	krad_link_t *krad_link = (krad_link_t *)arg;
+  krad_link_t *krad_link = (krad_link_t *)arg;
 
-	void *captured_frame = NULL;
-	krad_frame_t *krad_frame;
+  void *captured_frame = NULL;
+  krad_frame_t *krad_frame;
 
-	//while (krad_link->capturing == 1) {
+  captured_frame = krad_v4l2_read (krad_link->krad_v4l2);		
 
-		//captured_frame = kradv4l2_read_frame_wait_adv (krad_link->krad_v4l2);
-		captured_frame = kradv4l2_read_frame_adv (krad_link->krad_v4l2);		
-		
-		krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
-		
-		if (krad_link->video_passthru == 1) {
-			memcpy (krad_frame->pixels, captured_frame, krad_link->krad_v4l2->encoded_size);
-			krad_frame->encoded_size = krad_link->krad_v4l2->encoded_size;			
-			kradv4l2_frame_done (krad_link->krad_v4l2);
-			krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);			
-			
-		} else {
-			if ((krad_link->video_codec == MJPEG) && (krad_link->video_passthru == 0)) {
-			  kradv4l2_mjpeg_to_rgb (krad_link->krad_v4l2, (unsigned char *)krad_frame->pixels,
-                               captured_frame, krad_link->krad_v4l2->encoded_size);			
-				kradv4l2_frame_done (krad_link->krad_v4l2);
-				krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
-			} else {
-			
-				krad_frame->format = PIX_FMT_YUYV422;
+  krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 
-				krad_frame->yuv_pixels[0] = captured_frame;
-				krad_frame->yuv_pixels[1] = NULL;
-				krad_frame->yuv_pixels[2] = NULL;
+  if (krad_link->video_passthru == 1) {
+    memcpy (krad_frame->pixels, captured_frame, krad_link->krad_v4l2->encoded_size);
+    krad_frame->encoded_size = krad_link->krad_v4l2->encoded_size;
+    krad_compositor_port_push_frame (krad_link->krad_compositor_port, krad_frame);
+  } else {
+    if (krad_link->video_codec == MJPEG) {
+      krad_v4l2_mjpeg_to_rgb (krad_link->krad_v4l2, (unsigned char *)krad_frame->pixels,
+                             captured_frame, krad_link->krad_v4l2->encoded_size);			
+      krad_compositor_port_push_rgba_frame (krad_link->krad_compositor_port, krad_frame);
+    } else {
+      krad_frame->format = PIX_FMT_YUYV422;
+      krad_frame->yuv_pixels[0] = captured_frame;
+      krad_frame->yuv_pixels[1] = NULL;
+      krad_frame->yuv_pixels[2] = NULL;
+      krad_frame->yuv_strides[0] = krad_link->capture_width + (krad_link->capture_width/2) * 2;
+      krad_frame->yuv_strides[1] = 0;
+      krad_frame->yuv_strides[2] = 0;
+      krad_frame->yuv_strides[3] = 0;
+      krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
+    }
+  }
 
-				krad_frame->yuv_strides[0] = krad_link->capture_width + (krad_link->capture_width/2) * 2;
-				krad_frame->yuv_strides[1] = 0;
-				krad_frame->yuv_strides[2] = 0;
-				krad_frame->yuv_strides[3] = 0;
+  krad_v4l2_frame_done (krad_link->krad_v4l2);
+  krad_framepool_unref_frame (krad_frame);
 
-				krad_compositor_port_push_yuv_frame (krad_link->krad_compositor_port, krad_frame);
-				
-				kradv4l2_frame_done (krad_link->krad_v4l2);				
-				
-			}
-		}
-
-		krad_framepool_unref_frame (krad_frame);
-		
-		if (krad_link->video_passthru == 1) {
-			krad_compositor_passthru_process (krad_link->krad_radio->krad_compositor);
-		}
-	//}
+  if (krad_link->video_passthru == 1) {
+    krad_compositor_passthru_process (krad_link->krad_radio->krad_compositor);
+  }
 
   return 0;
-	
 }
 
 void v4l2_capture_unit_destroy (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
 
-	kradv4l2_stop_capturing (krad_link->krad_v4l2);
-	kradv4l2_close(krad_link->krad_v4l2);
-	kradv4l2_destroy(krad_link->krad_v4l2);
+	krad_v4l2_stop_capturing (krad_link->krad_v4l2);
+	krad_v4l2_close(krad_link->krad_v4l2);
+	krad_v4l2_destroy(krad_link->krad_v4l2);
 
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
