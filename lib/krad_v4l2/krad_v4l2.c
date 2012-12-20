@@ -109,6 +109,24 @@ static void krad_v4l2_uvc_h264_set_rc_mode (krad_v4l2_t *krad_v4l2, int mode) {
 	printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
 }
 
+/*
+#define LIGHT_ON 0x010100000a;
+#define LIGHT_OFF 0x010000000a
+
+void krad_v4l2_uvc_bluelight (krad_v4l2_t *krad_v4l2) {
+
+	struct uvc_xu_control_query ctrl;
+  char *code = LIGHT_ON;
+
+	ctrl.selector = UVCX_PICTURE_TYPE_CONTROL;
+	ctrl.size = 5;
+	ctrl.unit = 11;
+	ctrl.data = (unsigned char*)&code;
+	ctrl.query = UVC_SET_CUR;
+	//xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+}
+*/
+
 void krad_v4l2_uvc_h264_keyframe_req (krad_v4l2_t *krad_v4l2) {
 
 	struct uvc_xu_control_query ctrl;
@@ -151,6 +169,33 @@ char *krad_v4l2_read (krad_v4l2_t *krad_v4l2) {
   return krad_v4l2->buffers[krad_v4l2->buf.index].start;
 }
 
+/*
+int video_set_quality(krad_v4l2_t *krad_v4l2, unsigned int quality) {
+
+	struct v4l2_jpegcompression jpeg;
+	int ret;
+
+	if (quality == (unsigned int)-1)
+		return 0;
+
+	memset(&jpeg, 0, sizeof jpeg);
+	jpeg.quality = quality;
+
+	ret = ioctl(krad_v4l2->fd, VIDIOC_S_JPEGCOMP, &jpeg);
+	if (ret < 0) {
+		printk ("Unable to set quality to %u: %s (%d).\n", quality,
+			strerror(errno), errno);
+		return ret;
+	}
+
+	ret = ioctl(krad_v4l2->fd, VIDIOC_G_JPEGCOMP, &jpeg);
+	if (ret >= 0)
+		printk ("Quality set to %u\n", jpeg.quality);
+
+	return 0;
+}
+*/
+
 void krad_v4l2_start_capturing (krad_v4l2_t *krad_v4l2) {
         
   unsigned int i;
@@ -177,6 +222,11 @@ void krad_v4l2_start_capturing (krad_v4l2_t *krad_v4l2) {
     errno_exit ("Krad V4L2: VIDIOC_STREAMON");
   }
 		
+  //if (krad_v4l2->mode == V4L2_PIX_FMT_MJPEG) {
+  //  video_set_quality(krad_v4l2, 55);
+  //}
+  
+  //krad_v4l2_uvc_bluelight (krad_v4l2);
 
 	if (krad_v4l2->mode == V4L2_PIX_FMT_H264) {
 		krad_v4l2_uvc_h264_reset (krad_v4l2);

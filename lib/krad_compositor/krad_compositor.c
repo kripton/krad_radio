@@ -35,7 +35,7 @@ int krad_compositor_wayland_display_render_callback (void *pointer, uint32_t tim
     if (ret != 1) {
       if (ret == 0) {
         printk ("Krad OTransponder: port read got EOF");
-        return;
+        return updated;
       }
       printk ("Krad OTransponder: port read unexpected read return value %d", ret);
     }
