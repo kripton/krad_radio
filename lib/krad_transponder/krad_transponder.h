@@ -205,6 +205,18 @@ struct krad_link_St {
 	krad_rebuilder_t *krad_rebuilder;
 	krad_slicer_t *krad_slicer;
 
+	krad_mixer_portgroup_t *mixer_portgroup;
+	int au_framecnt;
+	float *au_samples[KRAD_MIXER_MAX_CHANNELS];
+	float *au_interleaved_samples;
+	unsigned char *au_buffer;
+  int socketpair[2];
+
+  int au_graph_id;
+  int vu_graph_id;
+  int cap_graph_id;
+  int demux_graph_id;
+  int mux_graph_id;  
 };
 
 int krad_link_wait_codec_init (krad_link_t *krad_link);

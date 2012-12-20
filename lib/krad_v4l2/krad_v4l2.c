@@ -31,6 +31,7 @@ static void krad_v4l2_uvc_h264_set_bitrate (krad_v4l2_t *krad_v4l2, int bmin) {
   int res;
   struct uvc_xu_control_query ctrl;
   uvcx_bitrate_layers_t  conf;
+
   ctrl.unit = 12;
   ctrl.size = 10;
   ctrl.selector = UVCX_BITRATE_LAYERS;
@@ -39,107 +40,106 @@ static void krad_v4l2_uvc_h264_set_bitrate (krad_v4l2_t *krad_v4l2, int bmin) {
   conf.wLayerID = 0;
   conf.dwPeakBitrate = conf.dwAverageBitrate = 0;
   res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-  if (res)
-    {
-      printke("ctrl_query");
-      return;
-    }
+  if (res) {
+    printke("ctrl_query");
+    return;
+  }
   printk("Krad V4L2: get before br %u %u", conf.dwPeakBitrate, conf.dwAverageBitrate);
   conf.dwPeakBitrate = bmax;
   conf.dwAverageBitrate = bmin;
   ctrl.query = UVC_SET_CUR;
   res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-  if (res)
-    {
+  if (res) {
       printke("ctrl_query");
       return;
-    }
+  }
   printk("Krad V4L2: set br %u %u", conf.dwPeakBitrate, conf.dwAverageBitrate);
   ctrl.query = UVC_GET_CUR;
   res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-  if (res)
-    {
-      printke("ctrl_query");
-      return;
-    }
+  if (res) {
+    printke("ctrl_query");
+    return;
+  }
   printk("Krad V4L2: get after br %u %u", conf.dwPeakBitrate, conf.dwAverageBitrate);
 }
 
 
 static void krad_v4l2_uvc_h264_reset (krad_v4l2_t *krad_v4l2) {
 
-	int res;
-	struct uvc_xu_control_query ctrl;
-	uvcx_encoder_reset conf;
-	ctrl.selector = UVCX_ENCODER_RESET;
-	ctrl.size = 2;
-	ctrl.unit = 12;
-	ctrl.data = (unsigned char*)&conf;
-	ctrl.query = UVC_SET_CUR;
-	conf.wLayerID = 0;
-	res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-	if (res) { printke("uvc_h264_reset"); return;}
+  int res;
+  struct uvc_xu_control_query ctrl;
+  uvcx_encoder_reset conf;
+
+  ctrl.selector = UVCX_ENCODER_RESET;
+  ctrl.size = 2;
+  ctrl.unit = 12;
+  ctrl.data = (unsigned char*)&conf;
+  ctrl.query = UVC_SET_CUR;
+  conf.wLayerID = 0;
+  res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+  if (res) { printke("uvc_h264_reset"); return;}
 
 }
 
 
 static void krad_v4l2_uvc_h264_set_rc_mode (krad_v4l2_t *krad_v4l2, int mode) {
 
-	int res;
-	struct uvc_xu_control_query ctrl;
+  int res;
+  struct uvc_xu_control_query ctrl;
 
-	uvcx_rate_control_mode_t conf;
-	ctrl.selector = UVCX_RATE_CONTROL_MODE;
-	ctrl.size = 3;
-	ctrl.unit = 12;
-	ctrl.data = (unsigned char*)&conf;
-	ctrl.query = UVC_GET_CUR;
-	conf.wLayerID = 0;
-	res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-	if (res) { printke("query"); return;}
-	printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
-	conf.bRateControlMode = mode;
-	ctrl.query = UVC_SET_CUR;
-	res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-	if (res) { printke("query"); return;}
-	printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
-	ctrl.query = UVC_GET_CUR;
-	res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
-	if (res) { printke("query"); return;}
-	printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
+  uvcx_rate_control_mode_t conf;
+  ctrl.selector = UVCX_RATE_CONTROL_MODE;
+  ctrl.size = 3;
+  ctrl.unit = 12;
+  ctrl.data = (unsigned char*)&conf;
+  ctrl.query = UVC_GET_CUR;
+  conf.wLayerID = 0;
+  res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+  if (res) { printke("query"); return;}
+  printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
+  conf.bRateControlMode = mode;
+  ctrl.query = UVC_SET_CUR;
+  res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+  if (res) { printke("query"); return;}
+  printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
+  ctrl.query = UVC_GET_CUR;
+  res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+  if (res) { printke("query"); return;}
+  printk("Krad V4L2: mode %d\n", (int)conf.bRateControlMode);
 }
 
 /*
-#define LIGHT_ON 0x010100000a;
-#define LIGHT_OFF 0x010000000a
 
 void krad_v4l2_uvc_bluelight (krad_v4l2_t *krad_v4l2) {
 
-	struct uvc_xu_control_query ctrl;
-  char *code = LIGHT_ON;
+  struct uvc_xu_control_query ctrl;
 
-	ctrl.selector = UVCX_PICTURE_TYPE_CONTROL;
-	ctrl.size = 5;
-	ctrl.unit = 11;
-	ctrl.data = (unsigned char*)&code;
-	ctrl.query = UVC_SET_CUR;
-	//xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+  unsigned char lighton[] = { 0x01, 0x01, 0x00, 0x00, 0x0a };
+  unsigned char lightoff[] = { 0x01, 0x00, 0x00, 0x00, 0x0a };
+
+  ctrl.selector = UVCX_PICTURE_TYPE_CONTROL;
+  ctrl.size = 5;
+  ctrl.unit = 11;
+  ctrl.data = &lighton;
+  ctrl.query = UVC_SET_CUR;
+  xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
 }
+
 */
 
 void krad_v4l2_uvc_h264_keyframe_req (krad_v4l2_t *krad_v4l2) {
 
-	struct uvc_xu_control_query ctrl;
+  struct uvc_xu_control_query ctrl;
 
-	uvcx_picture_type_control_t conf;
-	ctrl.selector = UVCX_PICTURE_TYPE_CONTROL;
-	ctrl.size = 4;
-	ctrl.unit = 12;
-	ctrl.data = (unsigned char*)&conf;
-	conf.wLayerID = 0;
-	conf.wPicType = 0x01;
-	ctrl.query = UVC_SET_CUR;
-	xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
+  uvcx_picture_type_control_t conf;
+  ctrl.selector = UVCX_PICTURE_TYPE_CONTROL;
+  ctrl.size = 4;
+  ctrl.unit = 12;
+  ctrl.data = (unsigned char*)&conf;
+  conf.wLayerID = 0;
+  conf.wPicType = 0x01;
+  ctrl.query = UVC_SET_CUR;
+  xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
 }
 
 void krad_v4l2_frame_done (krad_v4l2_t *krad_v4l2) {
