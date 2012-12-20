@@ -19,6 +19,8 @@ int krad_compositor_wayland_display_render_callback (void *pointer, uint32_t tim
 
 	krad_compositor_wayland_display_t *krad_compositor_wayland_display = (krad_compositor_wayland_display_t *)pointer;
 
+  int ret;
+  char buffer[1];
 	int updated;
 	krad_frame_t *krad_frame;
 	
@@ -27,6 +29,18 @@ int krad_compositor_wayland_display_render_callback (void *pointer, uint32_t tim
 	krad_frame = krad_compositor_port_pull_frame (krad_compositor_wayland_display->krad_compositor_port);
 
 	if (krad_frame != NULL) {
+	
+	  //FIXME do this first etc
+    ret = read (krad_compositor_wayland_display->krad_compositor_port->socketpair[1], buffer, 1);
+    if (ret != 1) {
+      if (ret == 0) {
+        printk ("Krad OTransponder: port read got EOF");
+        return;
+      }
+      printk ("Krad OTransponder: port read unexpected read return value %d", ret);
+    }
+	
+	
 		memcpy (krad_compositor_wayland_display->buffer,
 				krad_frame->pixels,
 				krad_compositor_wayland_display->w * krad_compositor_wayland_display->h * 4);
@@ -121,8 +135,10 @@ void krad_compositor_close_display (krad_compositor_t *krad_compositor) {
 		krad_compositor->display_open = 2;
 		pthread_join (krad_compositor->display_thread, NULL);
 		krad_compositor->display_open = 0;
+	  printk("Wayland display closed");
+	} else {
+	  printk("Wayland display wasn't open");
 	}
-	printk("Wayland display closed");
 #else
 	printk("Wayland disabled: no need to close display");
 #endif
@@ -924,9 +940,18 @@ void krad_compositor_port_push_rgba_frame (krad_compositor_port_t *krad_composit
 
 void krad_compositor_port_push_frame (krad_compositor_port_t *krad_compositor_port, krad_frame_t *krad_frame) {
 
+  int wrote;
+
 	krad_framepool_ref_frame (krad_frame);
 	
 	krad_ringbuffer_write (krad_compositor_port->frame_ring, (char *)&krad_frame, sizeof(krad_frame_t *));
+
+  if (krad_compositor_port->direction == OUTPUT) {
+    wrote = write (krad_compositor_port->socketpair[0], "0", 1);
+    if (wrote != 1) {
+      printk ("Krad Compositor: port write unexpected write return value %d", wrote);
+    }
+  }
 
 }
 
@@ -1095,6 +1120,10 @@ void krad_compositor_aspect_scale (int width, int height,
 	
 }
 
+int krad_compositor_port_get_fd (krad_compositor_port_t *krad_compositor_port) {
+  return krad_compositor_port->socketpair[1];
+}
+
 krad_compositor_port_t *krad_compositor_port_create (krad_compositor_t *krad_compositor, char *sysname, int direction,
 													 int width, int height) {
 							
@@ -1166,6 +1195,13 @@ krad_compositor_port_t *krad_compositor_port_create_full (krad_compositor_t *kra
 		krad_compositor_port->crop_height = krad_compositor_port->krad_compositor_subunit->height;
 			
 	} else {
+	
+	  //OUTPUT
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, krad_compositor_port->socketpair)) {
+      printk ("Krad Compositor: subunit could not create socketpair errno: %d", errno);
+      return NULL;
+    }
+	
 		krad_compositor_port->source_width = krad_compositor->width;
 		krad_compositor_port->source_height = krad_compositor->height;
 		krad_compositor_port->krad_compositor_subunit->width = width;
@@ -1297,6 +1333,8 @@ void krad_compositor_port_destroy_unlocked (krad_compositor_t *krad_compositor, 
 		}
 		if (krad_compositor_port->direction == OUTPUT) {
 			krad_compositor->active_output_ports--;
+      close (krad_compositor_port->socketpair[0]);
+      close (krad_compositor_port->socketpair[1]);			
 		}
  	}
  	
@@ -1364,6 +1402,11 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 	
   printk ("Krad compositor destroy started");
 
+#ifdef KRAD_USE_WAYLAND
+  if (krad_compositor->display_open == 1) {
+    krad_compositor_close_display (krad_compositor);
+  }
+#endif
 
 	for (i = 0; i < KC_MAX_PORTS; i++) {
 		if (krad_compositor->port[i].krad_compositor_subunit->active == 1) {

@@ -410,16 +410,16 @@ void *krad_Xtransponder_subunit_thread (void *arg) {
 	    break;
 	  }
 	
-    if (krad_Xtransponder_subunit->type == ENCODER) {
-      krad_Xcodec_slice_t *codec_slice;
-      codec_slice = calloc (1, sizeof(krad_Xcodec_slice_t));
-      krad_Xtransponder_port_broadcast (krad_Xtransponder_subunit->outputs[0], &codec_slice);
-    }
-    if (krad_Xtransponder_subunit->type == DEMUXER) {
-      krad_Xcodec_slice_t *codec_slice;
-      codec_slice = calloc (1, sizeof(krad_Xcodec_slice_t));    
-      krad_Xtransponder_port_broadcast (krad_Xtransponder_subunit->outputs[0], &codec_slice);
-    }    
+    //if (krad_Xtransponder_subunit->type == ENCODER) {
+    //  krad_Xcodec_slice_t *codec_slice;
+    //  codec_slice = calloc (1, sizeof(krad_Xcodec_slice_t));
+    //  krad_Xtransponder_port_broadcast (krad_Xtransponder_subunit->outputs[0], &codec_slice);
+    //}
+    //if (krad_Xtransponder_subunit->type == DEMUXER) {
+    //  krad_Xcodec_slice_t *codec_slice;
+    //  codec_slice = calloc (1, sizeof(krad_Xcodec_slice_t));    
+    //  krad_Xtransponder_port_broadcast (krad_Xtransponder_subunit->outputs[0], &codec_slice);
+    //}    
 	}
 
 	return NULL;
@@ -578,12 +578,14 @@ void krad_Xtransponder_subunit_remove (krad_Xtransponder_t *krad_Xtransponder, i
     if (krad_Xtransponder->subunits[s] != NULL) {
       printk ("Krad Transponder: removing subunit %d", s);
       krad_Xtransponder_subunit_destroy (&krad_Xtransponder->subunits[s]);    
+    } else {
+      printke ("Krad Transponder: can't remove subunit %d, not found", s);
     }
   }
 }
 
-int krad_Xtransponder_add_encoder (krad_Xtransponder_t *krad_Xtransponder, krad_codec_t codec) {
-  return krad_Xtransponder_subunit_add (krad_Xtransponder, ENCODER, NULL);
+int krad_Xtransponder_add_encoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {
+  return krad_Xtransponder_subunit_add (krad_Xtransponder, ENCODER, watch);
 }
 
 int krad_Xtransponder_add_capture (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {

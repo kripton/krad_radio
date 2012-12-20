@@ -32,12 +32,6 @@ typedef struct krad_v4l2_ret_buffer_St krad_v4l2_ret_buffer_t;
 typedef struct krad_v4l2_buffer_St krad_v4l2_buffer_t;
 typedef struct krad_v4l2_St krad_v4l2_t;
 
-typedef enum {
-	IO_METHOD_READ,
-	IO_METHOD_MMAP,
-	IO_METHOD_USERPTR,
-} krad_v4l2_io_method;
-
 struct krad_v4l2_buffer_St {
 	void *start;
 	size_t length;
@@ -60,7 +54,6 @@ struct krad_v4l2_St {
 	unsigned int n_buffers;
 	struct v4l2_buffer buf;
   char device[512];
-	krad_v4l2_io_method io;
 	tjhandle jpeg_dec;
 	unsigned int encoded_size;
 	unsigned char *codec_buffer;

@@ -10,9 +10,6 @@ static void *krad_transponder_listen_client_thread (void *arg);
 
 #ifndef __MACH__
 
-//void *video_capture_thread (void *arg) {
-
-
 void v4l2_capture_unit_create (void *arg) {
 	//krad_system_set_thread_name ("kr_cap_v4l2");
 
@@ -186,244 +183,254 @@ void *x11_capture_thread (void *arg) {
 	
 }
 
+void video_encoding_unit_create (void *arg) {
+	//krad_system_set_thread_name ("kr_video_enc");
 
-void *video_encoding_thread (void *arg) {
+  krad_link_t *krad_link = (krad_link_t *)arg;
 
-	krad_system_set_thread_name ("kr_video_enc");
+  //printk ("Video encoding thread started");
 
-	krad_link_t *krad_link = (krad_link_t *)arg;
+  krad_link->color_depth = PIX_FMT_YUV420P;
 
-	printk ("Video encoding thread started");
-	
-	krad_frame_t *krad_frame;
-	void *video_packet;
-	int keyframe;
-	int packet_size;
-	char keyframe_char[1];
-	unsigned char *planes[3];
-	int strides[3];
-  krad_y4m_t *krad_y4m;
-  krad_vhs_t *krad_vhs;  
+  /* CODEC SETUP */
 
-  krad_vhs = NULL;
-  krad_y4m = NULL;
-	keyframe = 0;
-	krad_frame = NULL;
-	krad_link->color_depth = PIX_FMT_YUV420P;
-	
-	/* CODEC SETUP */
+  if (krad_link->video_codec == VP8) {
 
-	if (krad_link->video_codec == VP8) {
+  krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width,
+                                                         krad_link->encoding_height,
+                                                         krad_link->encoding_fps_numerator,
+                                                         krad_link->encoding_fps_denominator,															   
+                                                         krad_link->vp8_bitrate);
 
-		krad_link->krad_vpx_encoder = krad_vpx_encoder_create (krad_link->encoding_width,
-															   krad_link->encoding_height,
-															   krad_link->encoding_fps_numerator,
-															   krad_link->encoding_fps_denominator,															   
-															   krad_link->vp8_bitrate);
+    if (krad_link->operation_mode == TRANSMIT) {
+      krad_link->krad_vpx_encoder->cfg.kf_max_dist = 90;
+    }
 
-		if (krad_link->operation_mode == TRANSMIT) {
-			krad_link->krad_vpx_encoder->cfg.kf_max_dist = 90;
-		}
+    if (krad_link->operation_mode == RECORD) {
+      krad_link->krad_vpx_encoder->cfg.rc_min_quantizer = 5;
+      krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 35;					
+    }
 
-		if (krad_link->operation_mode == RECORD) {
-			krad_link->krad_vpx_encoder->cfg.rc_min_quantizer = 5;
-			krad_link->krad_vpx_encoder->cfg.rc_max_quantizer = 35;					
-		}
+    krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
 
-		krad_vpx_encoder_config_set (krad_link->krad_vpx_encoder, &krad_link->krad_vpx_encoder->cfg);
+    krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, 13333);
 
-		krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, 13333);
-
-		//printk ("Video encoding deadline set to %ld", krad_link->krad_vpx_encoder->deadline);
     krad_vpx_encoder_print_config (krad_link->krad_vpx_encoder);
-	}
-	
-	if (krad_link->video_codec == THEORA) {
-		krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, 
-																	 krad_link->encoding_height,
-																	 krad_link->encoding_fps_numerator,
-																	 krad_link->encoding_fps_denominator,
-																	 krad_link->color_depth,
-																	 krad_link->theora_quality);
-	}
-	
-	if (krad_link->video_codec == Y4M) {
-		krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, krad_link->color_depth);
-	}
-	
-	if (krad_link->video_codec == KVHS) {
-		krad_vhs = krad_vhs_create_encoder (krad_link->encoding_width, krad_link->encoding_height);
-	}
-	
-	/* COMPOSITOR CONNECTION */
-	
-	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
-																   "VIDEnc",
-																   OUTPUT,
-																   krad_link->encoding_width, 
-																   krad_link->encoding_height);
-	
-	printk ("Encoding loop start");
-	
-	while (krad_link->encoding == 1) {
+  }
 
-		if (krad_link->video_codec == VP8) {
-			planes[0] = krad_link->krad_vpx_encoder->image->planes[0];
-			planes[1] = krad_link->krad_vpx_encoder->image->planes[1];
-			planes[2] = krad_link->krad_vpx_encoder->image->planes[2];
-			strides[0] = krad_link->krad_vpx_encoder->image->stride[0];
-			strides[1] = krad_link->krad_vpx_encoder->image->stride[1];
-			strides[2] = krad_link->krad_vpx_encoder->image->stride[2];
-		}
-		
-		if (krad_link->video_codec == THEORA) {			
-			planes[0] = krad_link->krad_theora_encoder->ycbcr[0].data;
-			planes[1] = krad_link->krad_theora_encoder->ycbcr[1].data;
-			planes[2] = krad_link->krad_theora_encoder->ycbcr[2].data;
-			strides[0] = krad_link->krad_theora_encoder->ycbcr[0].stride;
-			strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
-			strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;	
-		}
-		
-		if (krad_link->video_codec == Y4M) {
-			planes[0] = krad_y4m->planes[0];
-			planes[1] = krad_y4m->planes[1];
-			planes[2] = krad_y4m->planes[2];
-			strides[0] = krad_y4m->strides[0];
-			strides[1] = krad_y4m->strides[1];
-			strides[2] = krad_y4m->strides[2];
-		}
-				
-    if (krad_link->video_codec == KVHS) {
-      krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
-		} else {
-		  krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides, krad_link->color_depth);
+  if (krad_link->video_codec == THEORA) {
+    krad_link->krad_theora_encoder = krad_theora_encoder_create (krad_link->encoding_width, 
+                                                                 krad_link->encoding_height,
+                                                                 krad_link->encoding_fps_numerator,
+                                                                 krad_link->encoding_fps_denominator,
+                                                                 krad_link->color_depth,
+                                                                 krad_link->theora_quality);
+  }
+
+  if (krad_link->video_codec == Y4M) {
+    krad_link->krad_y4m = krad_y4m_create (krad_link->encoding_width, krad_link->encoding_height, krad_link->color_depth);
+  }
+
+  if (krad_link->video_codec == KVHS) {
+    krad_link->krad_vhs = krad_vhs_create_encoder (krad_link->encoding_width, krad_link->encoding_height);
+  }
+
+  /* COMPOSITOR CONNECTION */
+
+  krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
+                                                                 "VIDEnc",
+                                                                 OUTPUT,
+                                                                 krad_link->encoding_width, 
+                                                                 krad_link->encoding_height);
+
+  krad_link->krad_compositor_port_fd = krad_compositor_port_get_fd (krad_link->krad_compositor_port);
+
+}
+
+int video_encoding_unit_process (void *arg) {
+
+  krad_link_t *krad_link = (krad_link_t *)arg;
+
+  int ret;
+  char buffer[1];
+  krad_frame_t *krad_frame;
+  void *video_packet;
+  int keyframe;
+  int packet_size;
+  char keyframe_char[1];
+  unsigned char *planes[3];
+  int strides[3];
+
+  if (krad_link->video_codec == VP8) {
+    planes[0] = krad_link->krad_vpx_encoder->image->planes[0];
+    planes[1] = krad_link->krad_vpx_encoder->image->planes[1];
+    planes[2] = krad_link->krad_vpx_encoder->image->planes[2];
+    strides[0] = krad_link->krad_vpx_encoder->image->stride[0];
+    strides[1] = krad_link->krad_vpx_encoder->image->stride[1];
+    strides[2] = krad_link->krad_vpx_encoder->image->stride[2];
+  }
+
+  if (krad_link->video_codec == THEORA) {			
+    planes[0] = krad_link->krad_theora_encoder->ycbcr[0].data;
+    planes[1] = krad_link->krad_theora_encoder->ycbcr[1].data;
+    planes[2] = krad_link->krad_theora_encoder->ycbcr[2].data;
+    strides[0] = krad_link->krad_theora_encoder->ycbcr[0].stride;
+    strides[1] = krad_link->krad_theora_encoder->ycbcr[1].stride;
+    strides[2] = krad_link->krad_theora_encoder->ycbcr[2].stride;	
+  }
+
+  if (krad_link->video_codec == Y4M) {
+    planes[0] = krad_link->krad_y4m->planes[0];
+    planes[1] = krad_link->krad_y4m->planes[1];
+    planes[2] = krad_link->krad_y4m->planes[2];
+    strides[0] = krad_link->krad_y4m->strides[0];
+    strides[1] = krad_link->krad_y4m->strides[1];
+    strides[2] = krad_link->krad_y4m->strides[2];
+  }
+  
+  ret = read (krad_link->krad_compositor_port->socketpair[1], buffer, 1);
+  if (ret != 1) {
+    if (ret == 0) {
+      printk ("Krad OTransponder: port read got EOF");
+      return;
+    }
+    printk ("Krad OTransponder: port read unexpected read return value %d", ret);
+  }
+
+  if (krad_link->video_codec == KVHS) {
+    krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
+  } else {
+    krad_frame = krad_compositor_port_pull_yuv_frame (krad_link->krad_compositor_port, planes, strides, krad_link->color_depth);
+  }
+
+  if (krad_frame != NULL) {
+
+    /* ENCODE FRAME */
+
+    if (krad_link->video_codec == VP8) {
+
+    if (krad_vpx_encoder_deadline_get(krad_link->krad_vpx_encoder) > 1) {	
+      if (krad_compositor_port_frames_avail (krad_link->krad_compositor_port) > 25) {
+        krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, 1);
+        printk ("Alert! Reduced VP8 deadline due to frames avail > 25");
+      }
     }
     
-		if (krad_frame != NULL) {
+    if (krad_vpx_encoder_deadline_get(krad_link->krad_vpx_encoder) == 1) {
+      if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < 1) {
+        krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder,
+        ((((1000 / (krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 2) * 1000));
+          printk ("Alert! Increased VP8 deadline");
+      }				
+    }			
+    
+      packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
+                                            (unsigned char **)&video_packet,
+                                            &keyframe);
+    }
 
-			/* ENCODE FRAME */
+    if (krad_link->video_codec == THEORA) {
+      packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder,
+                                               (unsigned char **)&video_packet,
+                                               &keyframe);
+    }
+
+    if (krad_link->video_codec == KVHS) {
+
+      keyframe_char[0] = 1;
+
+      packet_size = krad_vhs_encode (krad_link->krad_vhs, (unsigned char *)krad_frame->pixels);
+
+      krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+      krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+      krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_link->krad_vhs->enc_buffer, packet_size);
+
+
+    } else {
+
+      if (krad_link->video_codec == Y4M) {
+
+        keyframe_char[0] = 1;
+
+        packet_size = krad_link->krad_y4m->frame_size + Y4M_FRAME_HEADER_SIZE;
+
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)Y4M_FRAME_HEADER, Y4M_FRAME_HEADER_SIZE);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_link->krad_y4m->planes[0], krad_link->krad_y4m->size[0]);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_link->krad_y4m->planes[1], krad_link->krad_y4m->size[1]);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_link->krad_y4m->planes[2], krad_link->krad_y4m->size[2]);
 		
-			if (krad_link->video_codec == VP8) {
-		
-				if (krad_vpx_encoder_deadline_get(krad_link->krad_vpx_encoder) > 1) {	
-					if (krad_compositor_port_frames_avail (krad_link->krad_compositor_port) > 25) {
-						krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder, 1);
-						printk ("Alert! Reduced VP8 deadline due to frames avail > 25");
-					}
-				}
-				if (krad_vpx_encoder_deadline_get(krad_link->krad_vpx_encoder) == 1) {
-					if (krad_compositor_port_frames_avail(krad_link->krad_compositor_port) < 1) {
-						krad_vpx_encoder_deadline_set (krad_link->krad_vpx_encoder,
-												  ((((1000 / (krad_link->encoding_fps_numerator / krad_link->encoding_fps_denominator)) / 3) * 2) * 1000));
-						printk ("Alert! Increased VP8 deadline");
-					}				
-				}			
-				packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
-									(unsigned char **)&video_packet,
-													  &keyframe);
-			}
-		
-			if (krad_link->video_codec == THEORA) {
-				packet_size = krad_theora_encoder_write (krad_link->krad_theora_encoder,
-									   (unsigned char **)&video_packet,
-									   					 &keyframe);
-			}
-			
-      if (krad_link->video_codec == KVHS) {
-			
-				    keyframe_char[0] = 1;
-				    
-				    packet_size = krad_vhs_encode (krad_vhs, (unsigned char *)krad_frame->pixels);
+      } else {
 
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_vhs->enc_buffer, packet_size);
+        if ((packet_size) || (krad_link->video_codec == THEORA)) {
 
-			
-			} else {
-			
-			  if (krad_link->video_codec == Y4M) {
-			
-				    keyframe_char[0] = 1;
-				    
-				    packet_size = krad_y4m->frame_size + Y4M_FRAME_HEADER_SIZE;
+          //FIXME un needed memcpy
 
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)Y4M_FRAME_HEADER, Y4M_FRAME_HEADER_SIZE);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_y4m->planes[0], krad_y4m->size[0]);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_y4m->planes[1], krad_y4m->size[1]);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)krad_y4m->planes[2], krad_y4m->size[2]);
-				    				  			
-			  } else {
-		
-			    if ((packet_size) || (krad_link->video_codec == THEORA)) {
-			
-				    //FIXME un needed memcpy
-			
-				    keyframe_char[0] = keyframe;
+          keyframe_char[0] = keyframe;
 
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				    krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
-
-			    }
-			  }
-			}
-			
-			krad_framepool_unref_frame (krad_frame);
-	
-		} else {
-			// FIXME signal
-			usleep (3000);
-		}
+          krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+          krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+          krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
+        }
+      }
+    }
+    krad_framepool_unref_frame (krad_frame);
 	}
 	
-	printk ("Encoding loop done");	
+  return 0;
+	
+}
+	
+void video_encoding_unit_destroy (void *arg) {
+	
+  krad_link_t *krad_link = (krad_link_t *)arg;	
+	
+  void *video_packet;
+  int keyframe;
+  int packet_size;
+  char keyframe_char[1];
+	
+  printk ("Video encoding unit destroying");	
 
-	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
-		
-	if (krad_link->video_codec == VP8) {
-		krad_vpx_encoder_finish (krad_link->krad_vpx_encoder);
-		do {
-			packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
-							    (unsigned char **)&video_packet,
-							   					  &keyframe);
-			if (packet_size) {
-				//FIXME goes with un needed memcpy above
-				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
-				krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
-			}
-							   					  
-		} while (packet_size);
+  krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
-		krad_vpx_encoder_destroy (krad_link->krad_vpx_encoder);
-	}
-	
-	if (krad_link->video_codec == THEORA) {
-		krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
-	}
-	
-	if (krad_link->video_codec == Y4M) {
-		krad_y4m_destroy (krad_y4m);	
-	}
-	
-	if (krad_link->video_codec == KVHS) {
-		krad_vhs_destroy (krad_vhs);	
-	}	
-	
-	// FIXME make shutdown sequence more pretty
-	krad_link->encoding = 3;
-	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->audio_codec == NOCODEC)) {
-		krad_link->encoding = 4;
-	}
-	
-	printk ("Video encoding thread exited");
-	
-	return NULL;
-	
+  if (krad_link->video_codec == VP8) {
+    krad_vpx_encoder_finish (krad_link->krad_vpx_encoder);
+    do {
+      packet_size = krad_vpx_encoder_write (krad_link->krad_vpx_encoder,
+                                            (unsigned char **)&video_packet,
+                                            &keyframe);
+      if (packet_size) {
+        //FIXME goes with un needed memcpy above
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, keyframe_char, 1);
+        krad_ringbuffer_write (krad_link->encoded_video_ringbuffer, (char *)video_packet, packet_size);
+      }
+    } while (packet_size);
+    krad_vpx_encoder_destroy (krad_link->krad_vpx_encoder);
+  }
+
+  if (krad_link->video_codec == THEORA) {
+    krad_theora_encoder_destroy (krad_link->krad_theora_encoder);	
+  }
+
+  if (krad_link->video_codec == Y4M) {
+    krad_y4m_destroy (krad_link->krad_y4m);	
+  }
+
+  if (krad_link->video_codec == KVHS) {
+    krad_vhs_destroy (krad_link->krad_vhs);	
+  }	
+
+  // FIXME make shutdown sequence more pretty
+  krad_link->encoding = 3;
+  if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->audio_codec == NOCODEC)) {
+    krad_link->encoding = 4;
+  }
+
+  printk ("Video encoding unit exited");
+  
 }
 
 
@@ -2062,11 +2069,9 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
 
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-		  if (krad_link->video_source != NOVIDEO) {
-			  pthread_join (krad_link->video_encoding_thread, NULL);
-		  } else {
-			  krad_link->encoding = 3;
-		  }
+			  //pthread_join (krad_link->video_encoding_thread, NULL);
+        krad_Xtransponder_subunit_remove (krad_link->krad_transponder->krad_Xtransponder, 1);
+        video_encoding_unit_destroy ((void *)krad_link);
 		}
 
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
@@ -2279,7 +2284,15 @@ void krad_link_activate (krad_link_t *krad_link) {
 		krad_link->encoding = 1;
 
 		if ((krad_link->video_passthru == 0) && ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO))) {
-			pthread_create (&krad_link->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_link);
+			//pthread_create (&krad_link->video_encoding_thread, NULL, video_encoding_thread, (void *)krad_link);
+      video_encoding_unit_create ((void *)krad_link);
+      krad_transponder_watch_t *watch;
+      watch = malloc (sizeof(krad_transponder_watch_t));
+      watch->fd = krad_link->krad_compositor_port_fd;
+      watch->callback_pointer = (void *)krad_link;
+      watch->readable_callback = video_encoding_unit_process;
+      krad_Xtransponder_add_encoder (krad_link->krad_transponder->krad_Xtransponder, watch);
+      free (watch);
 		}
 	
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
@@ -2667,8 +2680,6 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder) {
 
 	pthread_mutex_lock (&krad_transponder->change_lock);
 	
-	krad_Xtransponder_destroy (&krad_transponder->krad_Xtransponder);
-	
 	for (l = 0; l < KRAD_TRANSPONDER_MAX_LINKS; l++) {
 		if (krad_transponder->krad_link[l] != NULL) {
 			krad_link_destroy (krad_transponder->krad_link[l]);
@@ -2677,6 +2688,8 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder) {
 	}
 
 	krad_transmitter_destroy (krad_transponder->krad_transmitter);
+
+	krad_Xtransponder_destroy (&krad_transponder->krad_Xtransponder);
 
 	pthread_mutex_unlock (&krad_transponder->change_lock);		
 	pthread_mutex_destroy (&krad_transponder->change_lock);

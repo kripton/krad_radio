@@ -44,7 +44,7 @@ static void krad_v4l2_uvc_h264_set_bitrate (krad_v4l2_t *krad_v4l2, int bmin) {
       printke("ctrl_query");
       return;
     }
-  printk("Krad V4L2: get before br %d %d", conf.dwPeakBitrate, conf.dwAverageBitrate);
+  printk("Krad V4L2: get before br %u %u", conf.dwPeakBitrate, conf.dwAverageBitrate);
   conf.dwPeakBitrate = bmax;
   conf.dwAverageBitrate = bmin;
   ctrl.query = UVC_SET_CUR;
@@ -54,7 +54,7 @@ static void krad_v4l2_uvc_h264_set_bitrate (krad_v4l2_t *krad_v4l2, int bmin) {
       printke("ctrl_query");
       return;
     }
-  printk("Krad V4L2: set br %d %d", conf.dwPeakBitrate, conf.dwAverageBitrate);
+  printk("Krad V4L2: set br %u %u", conf.dwPeakBitrate, conf.dwAverageBitrate);
   ctrl.query = UVC_GET_CUR;
   res = xioctl(krad_v4l2->fd, UVCIOC_CTRL_QUERY, &ctrl);
   if (res)
@@ -62,10 +62,10 @@ static void krad_v4l2_uvc_h264_set_bitrate (krad_v4l2_t *krad_v4l2, int bmin) {
       printke("ctrl_query");
       return;
     }
-  printk("Krad V4L2: get after br %d %d", conf.dwPeakBitrate, conf.dwAverageBitrate);
+  printk("Krad V4L2: get after br %u %u", conf.dwPeakBitrate, conf.dwAverageBitrate);
 }
 
-/*
+
 static void krad_v4l2_uvc_h264_reset (krad_v4l2_t *krad_v4l2) {
 
 	int res;
@@ -81,7 +81,7 @@ static void krad_v4l2_uvc_h264_reset (krad_v4l2_t *krad_v4l2) {
 	if (res) { printke("uvc_h264_reset"); return;}
 
 }
-*/
+
 
 static void krad_v4l2_uvc_h264_set_rc_mode (krad_v4l2_t *krad_v4l2, int mode) {
 
@@ -179,7 +179,7 @@ void krad_v4l2_start_capturing (krad_v4l2_t *krad_v4l2) {
 		
 
 	if (krad_v4l2->mode == V4L2_PIX_FMT_H264) {
-		//krad_v4l2_uvc_h264_reset (krad_v4l2);
+		krad_v4l2_uvc_h264_reset (krad_v4l2);
 		krad_v4l2_uvc_h264_set_rc_mode (krad_v4l2, RATECONTROL_VBR);
 		krad_v4l2_uvc_h264_set_bitrate (krad_v4l2, 300);
 		printk ("Krad V4L2: Set H264 mode to VBR");

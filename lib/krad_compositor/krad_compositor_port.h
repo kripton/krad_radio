@@ -44,6 +44,8 @@ struct krad_compositor_port_St {
 	
   krad_compositor_subunit_t *krad_compositor_subunit;
 	
+  int socketpair[2];	
+	
 };
 
 #endif // KRAD_COMPOSITOR_PORT_H
