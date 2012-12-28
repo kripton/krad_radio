@@ -148,11 +148,34 @@ cairo_surface_t **gif2surface (char *filename, int *frames) {
       surfaces[frame_num] = surface;
       cr = cairo_create (surface);
       if (frame_num == 0) {
-      cairo_set_source_rgba (cr, gif->SBackGroundColor, gif->SBackGroundColor, gif->SBackGroundColor, 1.0);
+        //if ((gcb.TransparentColor > -1) && (gcb.TransparentColor != gif->SBackGroundColor)) {
+          //cairo_set_source_rgba (cr, gif->SBackGroundColor, gif->SBackGroundColor, gif->SBackGroundColor, 1);
+          //cairo_set_source_rgba (cr, gif->SBackGroundColor, gif->SBackGroundColor, gif->SBackGroundColor, 1);
+          //cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+          //cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
+          //cairo_paint (cr);
+        //}
+        
+	      //cairo_set_source_rgba (cr, GREY, 0.5);
+	      //cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);	
+	      //cairo_paint (cr);
+        
       } else {
-	      cairo_set_source_surface (cr, surfaces[frame_num - 1], 0, 0);
+      
+        if (gcb.DisposalMode == DISPOSE_BACKGROUND) {
+          //cairo_set_source_rgba (cr, gif->SBackGroundColor, gif->SBackGroundColor, gif->SBackGroundColor, 1);
+          //cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+          cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
+          cairo_paint (cr);
+        } else {
+          if ((gcb.DisposalMode == DISPOSE_PREVIOUS) || (gcb.DisposalMode == DISPOSE_DO_NOT) || (gcb.DisposalMode == DISPOSAL_UNSPECIFIED)) {
+          //if (!(DISPOSAL_UNSPECIFIED)) {
+	          cairo_set_source_surface (cr, surfaces[frame_num - 1], 0, 0);
+	          cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+            cairo_paint (cr);
+          }
+        }
       }
-      cairo_paint (cr);
       cairo_destroy (cr);
       image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, gif->SWidth);
       image_data = cairo_image_surface_get_data (surface);
@@ -195,9 +218,12 @@ cairo_surface_t **gif2surface (char *filename, int *frames) {
           for (j = 0; j < gif->SWidth; j++) {
             if (ScreenBuffer[i][j] != gcb.TransparentColor) {
               ColorMapEntry = &ColorMap->Colors[GifRow[j]];
+              image_data[((i * (image_stride)) + (j * 4)) + 3] = 255;
               image_data[((i * (image_stride)) + (j * 4)) + 2] = ColorMapEntry->Red;
               image_data[((i * (image_stride)) + (j * 4)) + 1] = ColorMapEntry->Green;
               image_data[((i * (image_stride)) + (j * 4)) + 0] = ColorMapEntry->Blue;
+            } else {
+              //image_data[((i * (image_stride)) + (j * 4)) + 3] = 0;
             }
           }
         }
@@ -206,6 +232,7 @@ cairo_surface_t **gif2surface (char *filename, int *frames) {
           GifRow = ScreenBuffer[i];
           for (j = 0; j < gif->SWidth; j++) {
             ColorMapEntry = &ColorMap->Colors[GifRow[j]];
+            image_data[((i * (image_stride)) + (j * 4)) + 3] = 255;
             image_data[((i * (image_stride)) + (j * 4)) + 2] = ColorMapEntry->Red;
             image_data[((i * (image_stride)) + (j * 4)) + 1] = ColorMapEntry->Green;
             image_data[((i * (image_stride)) + (j * 4)) + 0] = ColorMapEntry->Blue;
@@ -438,35 +465,22 @@ void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr) {
 	
 	cairo_save (cr);
 
-  if ((krad_sprite->krad_compositor_subunit->xscale != krad_sprite->krad_compositor_subunit->last_xscale) ||
-      (krad_sprite->krad_compositor_subunit->yscale != krad_sprite->krad_compositor_subunit->last_yscale) ||
-      (krad_sprite->krad_compositor_subunit->rotation != krad_sprite->krad_compositor_subunit->last_rotation)) {
+  if ((krad_sprite->krad_compositor_subunit->xscale != 1.0f) || (krad_sprite->krad_compositor_subunit->yscale != 1.0f)) {
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);
+	  cairo_translate (cr, ((krad_sprite->krad_compositor_subunit->width / 2) * krad_sprite->krad_compositor_subunit->xscale),
+					  ((krad_sprite->krad_compositor_subunit->height / 2) * krad_sprite->krad_compositor_subunit->yscale));
+	  cairo_scale (cr, krad_sprite->krad_compositor_subunit->xscale, krad_sprite->krad_compositor_subunit->yscale);
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);		
+  }
 
-	  if ((krad_sprite->krad_compositor_subunit->xscale != 1.0f) || (krad_sprite->krad_compositor_subunit->yscale != 1.0f)) {
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);
-		  cairo_translate (cr, ((krad_sprite->krad_compositor_subunit->width / 2) * krad_sprite->krad_compositor_subunit->xscale),
-						  ((krad_sprite->krad_compositor_subunit->height / 2) * krad_sprite->krad_compositor_subunit->yscale));
-		  cairo_scale (cr, krad_sprite->krad_compositor_subunit->xscale, krad_sprite->krad_compositor_subunit->yscale);
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);		
-	  }
-	
-	  if (krad_sprite->krad_compositor_subunit->rotation != 0.0f) {
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);	
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / 2, krad_sprite->krad_compositor_subunit->height / 2);
-		  cairo_rotate (cr, krad_sprite->krad_compositor_subunit->rotation * (M_PI/180.0));
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
-		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);
-	  }
-
-    cairo_get_matrix (cr, &krad_sprite->krad_compositor_subunit->transform_matrix);
-    krad_sprite->krad_compositor_subunit->last_xscale = krad_sprite->krad_compositor_subunit->xscale;
-    krad_sprite->krad_compositor_subunit->last_yscale = krad_sprite->krad_compositor_subunit->yscale;
-    krad_sprite->krad_compositor_subunit->last_rotation = krad_sprite->krad_compositor_subunit->rotation;
-
-	} else {
-    cairo_set_matrix (cr, &krad_sprite->krad_compositor_subunit->transform_matrix);
-	}
+  if (krad_sprite->krad_compositor_subunit->rotation != 0.0f) {
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);	
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / 2, krad_sprite->krad_compositor_subunit->height / 2);
+	  cairo_rotate (cr, krad_sprite->krad_compositor_subunit->rotation * (M_PI/180.0));
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
+	  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);
+  }
 
   if (krad_sprite->multisurface == 0) {
 

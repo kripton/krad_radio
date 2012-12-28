@@ -77,11 +77,6 @@ struct krad_compositor_subunit_St {
 	krad_ease_t krad_ease_rotation;
 	krad_ease_t krad_ease_opacity;
 	
-	float last_rotation;
-	float last_xscale;
-	float last_yscale;
-  cairo_matrix_t transform_matrix;
-	
 };
 
 krad_compositor_subunit_t *krad_compositor_subunit_create ();

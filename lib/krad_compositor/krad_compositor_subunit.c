@@ -26,10 +26,6 @@ void krad_compositor_subunit_reset (krad_compositor_subunit_t *krad_compositor_s
 	krad_compositor_subunit->tickrate = KRAD_COMPOSITOR_SUBUNIT_DEFAULT_TICKRATE;
 	krad_compositor_subunit->tick = 0;
 
-	krad_compositor_subunit->last_xscale = -1.0f;
-	krad_compositor_subunit->last_yscale = -1.0f;
-	krad_compositor_subunit->last_rotation = -1.0f;
-
 	krad_compositor_subunit->xscale = 1.0f;
 	krad_compositor_subunit->yscale = 1.0f;
 	krad_compositor_subunit->opacity = 1.0f;
