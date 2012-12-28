@@ -125,7 +125,7 @@ shlibs = ["jack", "cairo", "pangocairo", "xmms2-client", "samplerate",
 
 stlibs = []
 syslibs = ['m', 'dl', 'z']
-syslibs2 = ['rt', 'turbojpeg']
+syslibs2 = ['rt', 'turbojpeg', 'gif']
 
 def hexilate_file(filename):
 

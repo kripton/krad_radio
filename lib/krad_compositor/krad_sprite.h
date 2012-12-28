@@ -1,7 +1,12 @@
 #ifndef KRAD_SPRITE_H
 #define KRAD_SPRITE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <turbojpeg.h>
+#include <gif_lib.h>
 
 typedef struct krad_sprite_St krad_sprite_t;
 
@@ -16,6 +21,8 @@ struct krad_sprite_St {
   int frames;
   int frame;
   cairo_surface_t *sprite;
+  cairo_surface_t **sprite_frames;
+  int multisurface;
   cairo_pattern_t *sprite_pattern;
   int sheet_width;
 	int sheet_height;
