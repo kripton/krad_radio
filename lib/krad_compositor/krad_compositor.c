@@ -1080,9 +1080,15 @@ void krad_compositor_free_resources (krad_compositor_t *krad_compositor) {
 		krad_framepool_destroy ( krad_compositor->krad_framepool );
 		krad_compositor->krad_framepool = NULL;
 	}
+	
+  printk ("Krad Compositor: Free'd Resources");
+	
 }
 
 void krad_compositor_alloc_resources (krad_compositor_t *krad_compositor) {
+
+  printk ("Krad Compositor: Allocing Resources");
+  printk ("Krad Compositor: Cairo Version: %s", cairo_version_string());
 
 	if (krad_compositor->mask_cst == NULL) {
 		krad_compositor->mask_cst = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,

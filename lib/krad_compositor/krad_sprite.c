@@ -438,23 +438,35 @@ void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr) {
 	
 	cairo_save (cr);
 
-	if ((krad_sprite->krad_compositor_subunit->xscale != 1.0f) || (krad_sprite->krad_compositor_subunit->yscale != 1.0f)) {
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);
-		cairo_translate (cr, ((krad_sprite->krad_compositor_subunit->width / 2) * krad_sprite->krad_compositor_subunit->xscale),
-						((krad_sprite->krad_compositor_subunit->height / 2) * krad_sprite->krad_compositor_subunit->yscale));
-		cairo_scale (cr, krad_sprite->krad_compositor_subunit->xscale, krad_sprite->krad_compositor_subunit->yscale);
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);		
-	}
-	
-	if (krad_sprite->krad_compositor_subunit->rotation != 0.0f) {
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);	
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / 2, krad_sprite->krad_compositor_subunit->height / 2);
-		cairo_rotate (cr, krad_sprite->krad_compositor_subunit->rotation * (M_PI/180.0));
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
-		cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);
-	}
+  if ((krad_sprite->krad_compositor_subunit->xscale != krad_sprite->krad_compositor_subunit->last_xscale) ||
+      (krad_sprite->krad_compositor_subunit->yscale != krad_sprite->krad_compositor_subunit->last_yscale) ||
+      (krad_sprite->krad_compositor_subunit->rotation != krad_sprite->krad_compositor_subunit->last_rotation)) {
 
+	  if ((krad_sprite->krad_compositor_subunit->xscale != 1.0f) || (krad_sprite->krad_compositor_subunit->yscale != 1.0f)) {
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);
+		  cairo_translate (cr, ((krad_sprite->krad_compositor_subunit->width / 2) * krad_sprite->krad_compositor_subunit->xscale),
+						  ((krad_sprite->krad_compositor_subunit->height / 2) * krad_sprite->krad_compositor_subunit->yscale));
+		  cairo_scale (cr, krad_sprite->krad_compositor_subunit->xscale, krad_sprite->krad_compositor_subunit->yscale);
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);		
+	  }
+	
+	  if (krad_sprite->krad_compositor_subunit->rotation != 0.0f) {
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x, krad_sprite->krad_compositor_subunit->y);	
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / 2, krad_sprite->krad_compositor_subunit->height / 2);
+		  cairo_rotate (cr, krad_sprite->krad_compositor_subunit->rotation * (M_PI/180.0));
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->width / -2, krad_sprite->krad_compositor_subunit->height / -2);		
+		  cairo_translate (cr, krad_sprite->krad_compositor_subunit->x * -1, krad_sprite->krad_compositor_subunit->y * -1);
+	  }
+
+    cairo_get_matrix (cr, &krad_sprite->krad_compositor_subunit->transform_matrix);
+    krad_sprite->krad_compositor_subunit->last_xscale = krad_sprite->krad_compositor_subunit->xscale;
+    krad_sprite->krad_compositor_subunit->last_yscale = krad_sprite->krad_compositor_subunit->yscale;
+    krad_sprite->krad_compositor_subunit->last_rotation = krad_sprite->krad_compositor_subunit->rotation;
+
+	} else {
+    cairo_set_matrix (cr, &krad_sprite->krad_compositor_subunit->transform_matrix);
+	}
 
   if (krad_sprite->multisurface == 0) {
 
@@ -476,6 +488,8 @@ void krad_sprite_render (krad_sprite_t *krad_sprite, cairo_t *cr) {
 					 krad_sprite->krad_compositor_subunit->height);
 
 	cairo_clip (cr);
+
+  cairo_pattern_set_filter (cairo_get_source (cr), CAIRO_FILTER_FAST);
 
 	if (krad_sprite->krad_compositor_subunit->opacity == 1.0f) {
 		cairo_paint ( cr );
