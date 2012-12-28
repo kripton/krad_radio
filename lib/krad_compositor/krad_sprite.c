@@ -168,7 +168,8 @@ cairo_surface_t **gif2surface (char *filename, int *frames) {
           cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
           cairo_paint (cr);
         } else {
-          if ((gcb.DisposalMode == DISPOSE_PREVIOUS) || (gcb.DisposalMode == DISPOSE_DO_NOT) || (gcb.DisposalMode == DISPOSAL_UNSPECIFIED)) {
+          //if ((gcb.DisposalMode == DISPOSE_PREVIOUS) || (gcb.DisposalMode == DISPOSE_DO_NOT) || (gcb.DisposalMode == DISPOSAL_UNSPECIFIED)) {
+          if ((gcb.DisposalMode == DISPOSE_PREVIOUS) || (gcb.DisposalMode == DISPOSE_DO_NOT)) {
           //if (!(DISPOSAL_UNSPECIFIED)) {
 	          cairo_set_source_surface (cr, surfaces[frame_num - 1], 0, 0);
 	          cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
