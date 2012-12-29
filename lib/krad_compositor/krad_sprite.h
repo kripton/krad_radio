@@ -6,7 +6,10 @@
 #include <string.h>
 
 #include <turbojpeg.h>
+
+#ifdef KRAD_GIF
 #include <gif_lib.h>
+#endif
 
 typedef struct krad_sprite_St krad_sprite_t;
 

@@ -225,6 +225,10 @@ def configure(conf):
 	check_way(conf)
 	check_system(conf)
 
+	if conf.options.nogif == False:
+		conf.env['KRAD_GIF'] = "yes"
+		syslibs2.append('gif')
+
 	for l in syslibs:
 		conf.check(lib = l, cflags='-Wall', uselib_store = l)
 
