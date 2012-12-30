@@ -29,7 +29,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	
 	int i;
 	
-	char string1[512];	
+	char string1[2048];
 	char string2[512];
 	char string3[512];	
 	
@@ -268,30 +268,30 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 		case EBML_ID_KRAD_RADIO_CMD_GET_OPTIONALS_INFO:
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-            i = sprintf (string1, "Optional features:\n");
+			i = sprintf (string1, "Optional features the server has been built with:\n");
 
 #ifdef KRAD_GIF
-            i += sprintf (string1 + i, "\tGIF support: yes\n");
+			i += sprintf (string1 + i, "\tGIF support: yes\n");
 #else
-            i += sprintf (string1 + i, "\tGIF support: no\n");
+			i += sprintf (string1 + i, "\tGIF support: no\n");
 #endif
 
 #ifdef KRAD_GTK
-            i += sprintf (string1 + i, "\tGTK client: yes\n");
+			i += sprintf (string1 + i, "\tGTK client: yes\n");
 #else
-            i += sprintf (string1 + i, "\tGTK client: no\n");
+			i += sprintf (string1 + i, "\tGTK client: no\n");
 #endif
-            
+
 #ifdef KRAD_USE_WAYLAND
-            i += sprintf (string1 + i, "\twayland support: yes\n");
+			i += sprintf (string1 + i, "\tWayland support: yes\n");
 #else
-            i += sprintf (string1 + i, "\twayland support: no\n");
+			i += sprintf (string1 + i, "\tWayland support: no\n");
 #endif
-            
+
 #ifdef KRAD_USE_X11
-            i += sprintf (string1 + i, "\tX11 capture support: yes\n");
+			i += sprintf (string1 + i, "\tX11 capture support: yes\n");
 #else
-            i += sprintf (string1 + i, "\tX11 capture support: no\n");
+			i += sprintf (string1 + i, "\tX11 capture support: no\n");
 #endif
 			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_OPTIONALS_INFO, string1);
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);

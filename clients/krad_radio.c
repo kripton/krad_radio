@@ -153,6 +153,32 @@ int main (int argc, char *argv[]) {
   if (strncmp(argv[2], "optionals", 9) == 0) {
     kr_optionals_info (client);
     kr_client_print_response (client);
+    
+    printf ("\nOptional features the client has been built with:\n");
+
+#ifdef KRAD_GIF
+    printf ("\tGIF support: yes\n");
+#else
+    printf ("\tGIF support: no\n");
+#endif
+
+#ifdef KRAD_GTK
+    printf ("\tGTK client: yes\n");
+#else
+    printf ("\tGTK client: no\n");
+#endif
+
+#ifdef KRAD_USE_WAYLAND
+    printf ("\tWayland support: yes\n");
+#else
+    printf ("\tWayland support: no\n");
+#endif
+
+#ifdef KRAD_USE_X11
+    printf ("\tX11 capture support: yes\n");
+#else
+    printf ("\tX11 capture support: no\n");
+#endif
   }
 
   if (strncmp(argv[2], "cpu", 4) == 0) {
