@@ -121,7 +121,7 @@ void kr_client_print_response (kr_client_t *kr_client) {
 	char tag_item_actual[256];
 	char tag_value_actual[1024];
 
-	char string[1024];	
+	char string[2049];	
 	krad_link_rep_t *krad_link;
 
   krad_compositor_rep_t *krad_compositor;
