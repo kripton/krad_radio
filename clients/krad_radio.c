@@ -149,6 +149,11 @@ int main (int argc, char *argv[]) {
     kr_system_info (client);
     kr_client_print_response (client);
   }
+  
+  if (strncmp(argv[2], "optionals", 9) == 0) {
+    kr_optionals_info (client);
+    kr_client_print_response (client);
+  }
 
   if (strncmp(argv[2], "cpu", 4) == 0) {
     kr_system_cpu_usage (client);

@@ -266,6 +266,37 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
 			return 1;
 			
+		case EBML_ID_KRAD_RADIO_CMD_GET_OPTIONALS_INFO:
+			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+            i = sprintf (string1, "Optional features:\n");
+
+#ifdef KRAD_GIF
+            i += sprintf (string1 + i, "\tGIF support: yes\n");
+#else
+            i += sprintf (string1 + i, "\tGIF support: no\n");
+#endif
+
+#ifdef KRAD_GTK
+            i += sprintf (string1 + i, "\tGTK client: yes\n");
+#else
+            i += sprintf (string1 + i, "\tGTK client: no\n");
+#endif
+            
+#ifdef KRAD_USE_WAYLAND
+            i += sprintf (string1 + i, "\twayland support: yes\n");
+#else
+            i += sprintf (string1 + i, "\twayland support: no\n");
+#endif
+            
+#ifdef KRAD_USE_X11
+            i += sprintf (string1 + i, "\tX11 capture support: yes\n");
+#else
+            i += sprintf (string1 + i, "\tX11 capture support: no\n");
+#endif
+			krad_ipc_server_respond_string ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_OPTIONALS_INFO, string1);
+			krad_ipc_server_response_finish ( krad_radio_station->krad_ipc, response);
+			return 1;
+			
 		case EBML_ID_KRAD_RADIO_CMD_SET_DIR:
 
 			krad_ebml_read_element ( krad_radio_station->krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	

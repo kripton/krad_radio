@@ -144,6 +144,12 @@ void kr_uptime (kr_client_t *client);
 void kr_system_info (kr_client_t *client);
 
 /**
+ * @brief Prints out supported optional fetures suported by the server
+ * @param client handle of the IPC-connection to the station
+ */
+void kr_system_info (kr_client_t *client);
+
+/**
  * @brief Prints out the current CPU usage of the station
  * @param client handle of the IPC-connection to the station
  */

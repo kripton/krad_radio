@@ -227,6 +227,12 @@ void kr_client_print_response (kr_client_t *kr_client) {
 							printf ("%s\n", string);
 						}
 						break;
+					case EBML_ID_KRAD_RADIO_OPTIONALS_INFO:
+						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
+						if (string[0] != '\0') {
+							printf ("%s\n", string);
+						}
+						break;
 					case EBML_ID_KRAD_RADIO_LOGNAME:
 						krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
 						if (string[0] != '\0') {
@@ -574,6 +580,26 @@ void kr_system_info (kr_client_t *client) {
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
 
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO, &info_command);
+	krad_ebml_finish_element (client->krad_ebml, info_command);
+
+	krad_ebml_finish_element (client->krad_ebml, command);
+	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
+		
+	krad_ebml_write_sync (client->krad_ebml);	
+	
+}
+
+void kr_optionals_info (kr_client_t *client) {
+
+	uint64_t command;
+	uint64_t info_command;
+	command = 0;
+	info_command = 0;
+	
+	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_OPTIONALS_INFO, &info_command);
 	krad_ebml_finish_element (client->krad_ebml, info_command);
 
 	krad_ebml_finish_element (client->krad_ebml, command);
