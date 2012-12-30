@@ -1,10 +1,14 @@
 
 def get_image_dim(filename)
 
-	if (filename.downcase.include? ".png")
-		splitter = "PNG"
+	if (filename.downcase.include? ".gif")
+		splitter = "GIF"
 	else
-		splitter = "JPEG"
+	  if (filename.downcase.include? ".png")
+		  splitter = "PNG"
+	  else
+		  splitter = "JPEG"
+	  end
 	end
 
 	dims = `identify \"#{filename}\"`.chomp.split(splitter)[1].split(" ")[0].split("x")
@@ -59,12 +63,14 @@ class KradStation
 		self.cmd("launch")
 	end
 
-	def sprite(filename, x=0, y=0, rate=5, scale=1, opacity=1.0, rotation=0.0)
-		self.cmd("addsprite \"#{filename}\" #{x} #{y} #{rate} #{scale} #{opacity} #{rotation}")
+	def sprite(filename, x=0, y=0, rate=2, z=1, scale=1, opacity=1.0, rotation=0.0)
+		self.cmd("addsprite \"#{filename}\" #{x} #{y} #{z} #{rate} #{scale} #{opacity} #{rotation}")
+		sleep 0.2
 	end
 	
-	def set_sprite(num=0, x=0, y=0, rate=5, scale=1, opacity=1.0, rotation=0.0)
-		self.cmd("setsprite #{num} #{x} #{y} #{rate} #{scale} #{opacity} #{rotation}")
+	def set_sprite(num=0, x=0, y=0, rate=2, z=1, scale=1, opacity=1.0, rotation=0.0)
+		self.cmd("setsprite #{num} #{x} #{y} #{rate} #{z} #{scale} #{opacity} #{rotation}")
+		sleep 0.2
 	end
 	
 	def rm_sprite(num=0)
@@ -75,29 +81,29 @@ class KradStation
 		if (rand(100) % 100 > 50)
 			if (rand(100) % 100 > 50)
 				if (rand(100) % 100 > 50)
-					self.set_sprite(num, 0, 2333, 5, 0.3, 0, 545)
+					self.set_sprite(num, 0, 2333, 5,  5, 0.3, 0, 545)
 				else
-					self.set_sprite(num, 0, -1333, 5, 3.3, 0, -545)
+					self.set_sprite(num, 0, -1333, 5,  5, 3.3, 0, -545)
 				end
 			else
 				if (rand(100) % 100 > 50)
-					self.set_sprite(num, 1333, 0, 5, 2.3, 0, 45)
+					self.set_sprite(num, 1333, 0, 5, 5,  2.3, 0, 45)
 				else
-					self.set_sprite(num, -1333, 0, 5, 0.1, 0, -45)
+					self.set_sprite(num, -1333, 0, 5,  5, 0.1, 0, -45)
 				end
 			end
 		else
 			if (rand(100) % 100 > 50)
 				if (rand(100) % 100 > 50)
-					self.set_sprite(num, 1333, 1333, 5, 0.3, 0, 45)
+					self.set_sprite(num, 1333, 1333, 5,  5, 0.3, 0, 45)
 				else
-					self.set_sprite(num, -1333, -1333, 5, 0.8, 0, -45)
+					self.set_sprite(num, -1333, -1333, 5,  5, 0.8, 0, -45)
 				end
 			else
 				if (rand(100) % 100 > 50)
-					self.set_sprite(num, -1333, 0, 45, 0.5, 0, 15)
+					self.set_sprite(num, -1333, 0, 45,  5, 0.5, 0, 15)
 				else
-					self.set_sprite(num, 0, -1333, 15, 0.5, 0, -45)
+					self.set_sprite(num, 0, -1333, 15,  5, 0.5, 0, -45)
 				end
 			end
 		end
@@ -265,7 +271,7 @@ class KradStation
 			count = 0
 			Dir.foreach(pictures_dir) do |item|
 				next if item == '.' or item == '..'	
-				if (item.include? ".png" or item.include? ".PNG" or item.include? ".jpg" or item.include? ".JPG")
+				if (item.include? ".png" or item.include? ".PNG" or item.include? ".jpg" or item.include? ".JPG" or item.include? ".gif" or item.include? ".GIF")
 					playlist.push item					
 				end
 			end
@@ -282,10 +288,10 @@ class KradStation
 				self.sprite(filename, x, y)
 				if item.include? "_frames_"
 					if (count == 0) or (count == 1)
-						self.set_sprite(1, 955, 255, 4, 3.3, 0.85, 25)
+						self.set_sprite(1, 955, 255, 4,  4, 3.3, 0.85, 25)
 					end
 					if (count == 2)
-						self.set_sprite(0, 450, 335, 4, 3.3, 1, -25)
+						self.set_sprite(0, 450, 335, 4, 4, 3.3, 1, -25)
 					end	
 				end
 				if (count == 1)
