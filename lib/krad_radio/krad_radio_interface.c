@@ -268,7 +268,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 		case EBML_ID_KRAD_RADIO_CMD_GET_OPTIONALS_INFO:
 			krad_ipc_server_response_start ( krad_radio_station->krad_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			i = sprintf (string1, "Optional features the server has been built with:\n");
+			i = sprintf (string1, "Optional features (server side):\n");
 
 #ifdef KRAD_GIF
 			i += sprintf (string1 + i, "\tGIF support: yes\n");
