@@ -98,6 +98,8 @@ struct krad_link_St {
 	krad_theora_encoder_t *krad_theora_encoder;
 	krad_theora_decoder_t *krad_theora_decoder;
 	
+	krad_ticker_t *krad_ticker;
+	
 	krad_vhs_t *krad_vhs;
 	krad_y4m_t *krad_y4m;	
 
@@ -211,6 +213,21 @@ struct krad_link_St {
 	float *au_interleaved_samples;
 	unsigned char *au_buffer;
   int socketpair[2];
+
+	unsigned char *au_header[3];
+	int au_header_len[3];
+	
+	unsigned char *vu_header[3];
+	int vu_header_len[3];
+	float *au_audio;
+
+	krad_resample_ring_t *krad_resample_ring[KRAD_MIXER_MAX_CHANNELS];
+
+
+	unsigned char *vu_buffer;
+
+  int aud_graph_id;
+  int vud_graph_id;
 
   int au_graph_id;
   int vu_graph_id;

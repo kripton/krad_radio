@@ -88,6 +88,7 @@ struct krad_Xtransponder_St {
 
 int krad_Xtransponder_add_capture (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 int krad_Xtransponder_add_encoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
+int krad_Xtransponder_add_decoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 
 void krad_Xtransponder_subunit_remove (krad_Xtransponder_t *krad_Xtransponder, int s);
 

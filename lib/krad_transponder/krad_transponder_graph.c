@@ -325,11 +325,13 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
 				                                            krad_Xtransponder_subunit->inputs[0]->connected_to_subunit->outputs[0],
 				                                            krad_Xtransponder_subunit->inputs[0]);
                 }
-                if (krad_Xtransponder_subunit->inputs[1]->connected_to_subunit != NULL) {
-                  krad_Xtransponder_subunit->destroy++;
-				          krad_Xtransponder_port_disconnect (krad_Xtransponder_subunit->inputs[1]->connected_to_subunit,
-				                                            krad_Xtransponder_subunit->inputs[1]->connected_to_subunit->outputs[1],
-				                                            krad_Xtransponder_subunit->inputs[1]);
+                if (krad_Xtransponder_subunit->type == MUXER) {
+                  if (krad_Xtransponder_subunit->inputs[1]->connected_to_subunit != NULL) {
+                    krad_Xtransponder_subunit->destroy++;
+				            krad_Xtransponder_port_disconnect (krad_Xtransponder_subunit->inputs[1]->connected_to_subunit,
+				                                              krad_Xtransponder_subunit->inputs[1]->connected_to_subunit->outputs[1],
+				                                              krad_Xtransponder_subunit->inputs[1]);
+                  }
                 }
 				      }
               if ((krad_Xtransponder_subunit->type == ENCODER) ||
@@ -582,6 +584,10 @@ void krad_Xtransponder_subunit_remove (krad_Xtransponder_t *krad_Xtransponder, i
       printke ("Krad Transponder: can't remove subunit %d, not found", s);
     }
   }
+}
+
+int krad_Xtransponder_add_decoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {
+  return krad_Xtransponder_subunit_add (krad_Xtransponder, DECODER, watch);
 }
 
 int krad_Xtransponder_add_encoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {
