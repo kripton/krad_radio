@@ -221,7 +221,8 @@ def configure(conf):
 
 	if conf.options.nogif == False:
 		conf.env['KRAD_GIF'] = "yes"
-		syslibs2.append('gif')
+		conf.env.append_unique('CFLAGS', ['-DKRAD_GIF'])
+		syslibs.append('gif')
 
 	for l in syslibs:
 		conf.check(lib = l, cflags='-Wall', uselib_store = l)
