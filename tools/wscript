@@ -125,7 +125,7 @@ shlibs = ["jack", "cairo", "pangocairo", "xmms2-client", "samplerate",
 
 stlibs = []
 syslibs = ['m', 'dl', 'z']
-syslibs2 = ['rt', 'turbojpeg', 'gif']
+syslibs2 = ['rt', 'turbojpeg']
 
 def hexilate_file(filename):
 
@@ -218,6 +218,11 @@ def configure(conf):
 	check_x11(conf)	
 	check_way(conf)
 	check_system(conf)
+
+	if conf.options.nogif == False:
+		conf.env['KRAD_GIF'] = "yes"
+		conf.env.append_unique('CFLAGS', ['-DKRAD_GIF'])
+		syslibs.append('gif')
 
 	for l in syslibs:
 		conf.check(lib = l, cflags='-Wall', uselib_store = l)
