@@ -143,10 +143,19 @@ def build(bld):
 	global syslibs2
 	check_system(bld)
 
+	# read version number to be used for the shared library
+	f = open("lib/krad_radio/krad_radio_version.h", "r")
+	for line in f:
+		if "#define VERSION_NUMBER" in line:
+			krad_version = line.split(' ')[2].strip()
+			break
+	f.close()
+
 	bld.shlib(
 		source = libsources, 
 		includes = includedirs, 
 		target = "kradradio_client",
+		vnum = krad_version + ".0.0",
 		uselib = shlibs + stlibs + syslibs)
 
 	for p in programs:
