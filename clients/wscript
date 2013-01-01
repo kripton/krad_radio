@@ -151,6 +151,11 @@ def build(bld):
 			break
 	f.close()
 
+	# we use "KRAD_VERSION.0.0" for now as vnum. this basically means 
+	# that we advise to rebuild clients every new version due to 
+	# possible API-breakages. closest to reality currently.
+	# plan for later: "API_VERSION.KRAD_VERSION.0" so rebuild is only 
+	# needed when we _really_ break the API
 	bld.shlib(
 		source = libsources, 
 		includes = includedirs, 
