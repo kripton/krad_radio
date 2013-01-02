@@ -2290,9 +2290,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 			krad_link->capturing = 1;
       x11_capture_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
-      //FIXME
-      //watch->fd = krad_link->krad_v4l2->fd;
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = x11_capture_unit_process;
       krad_link->cap_graph_id = krad_Xtransponder_add_capture (krad_link->krad_transponder->krad_Xtransponder, watch);
@@ -2303,7 +2301,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 			krad_link->capturing = 1;
       v4l2_capture_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->fd = krad_link->krad_v4l2->fd;
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = v4l2_capture_unit_process;
@@ -2319,13 +2317,9 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 
 			krad_link->capturing = 1;
-			//krad_link_start_decklink_capture(krad_link);
-			
       decklink_capture_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
-      //FIXME
-      //watch->fd =
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = NULL;
       krad_link->cap_graph_id = krad_Xtransponder_add_capture (krad_link->krad_transponder->krad_Xtransponder, watch);
@@ -2345,9 +2339,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
       video_decoding_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
-      //FIXME
-      //watch->fd = krad_link->krad_compositor_port_fd;
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = video_decoding_unit_process;
       krad_link->vud_graph_id = krad_Xtransponder_add_decoder (krad_link->krad_transponder->krad_Xtransponder, watch);
@@ -2357,9 +2349,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
       audio_decoding_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
-      //FIXME
-      //watch->fd = krad_link->krad_compositor_port_fd;
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = audio_decoding_unit_process;
       krad_link->aud_graph_id = krad_Xtransponder_add_decoder (krad_link->krad_transponder->krad_Xtransponder, watch);
@@ -2375,7 +2365,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 		if ((krad_link->video_passthru == 0) && ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO))) {
       video_encoding_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->fd = krad_link->krad_compositor_port_fd;
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = video_encoding_unit_process;
@@ -2387,7 +2377,7 @@ void krad_link_activate (krad_link_t *krad_link) {
 			//pthread_create (&krad_link->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_link);
       audio_encoding_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
-      watch = malloc (sizeof(krad_transponder_watch_t));
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->fd = krad_link->socketpair[1];
       watch->callback_pointer = (void *)krad_link;
       watch->readable_callback = audio_encoding_unit_process;

@@ -308,7 +308,9 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
 
 			  if (pollfds[n].revents & POLLIN) {
 			  
-			    if ((krad_Xtransponder_subunit->watch != NULL) && (pollfds[n].fd == krad_Xtransponder_subunit->watch->fd)) {
+			    if ((krad_Xtransponder_subunit->watch != NULL) && 
+			        (krad_Xtransponder_subunit->watch->fd > 0) &&
+			        (pollfds[n].fd == krad_Xtransponder_subunit->watch->fd)) {
             krad_Xtransponder_subunit->watch->readable_callback (krad_Xtransponder_subunit->watch->callback_pointer);			    
 			    }
 
