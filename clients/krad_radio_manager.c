@@ -41,6 +41,8 @@ struct kr_manager_St {
   
   GtkWidget *list;
 
+  GtkStatusIcon *status_icon;
+
   char *running_stations;
 
   char *last_running_stations;
@@ -177,7 +179,9 @@ static gboolean krad_radio_manager_check_running_stations (gpointer data) {
   check_uptime (kr_manager);
 
   kr_manager->last_running_stations = strdup (kr_manager->running_stations);
-
+  if (kr_manager->status_icon != NULL) {
+    gtk_status_icon_set_tooltip_text(GTK_STATUS_ICON(kr_manager->status_icon), kr_manager->running_stations);
+  }
   //markup = g_markup_printf_escaped ("<span size=\"26000\">%s</span>", kr_manager->running_stations);
   //gtk_label_set_markup (GTK_LABEL (kr_manager->stations_label), markup);
 
@@ -252,13 +256,20 @@ int main (int argc, char *argv[]) {
   kr_manager->statusbar = gtk_statusbar_new();
   gtk_box_pack_start(GTK_BOX(kr_manager->vbox), kr_manager->statusbar, FALSE, TRUE, 1);
 
-  gdk_threads_add_timeout (1000, krad_radio_manager_check_running_stations, kr_manager);
-
   gtk_container_add (GTK_CONTAINER (kr_manager->window), kr_manager->vbox);
 
   gtk_container_set_border_width (GTK_CONTAINER (kr_manager->window), 10);
 
+  kr_manager->status_icon = gtk_status_icon_new_from_stock(GTK_STOCK_MEDIA_RECORD);
+  gtk_status_icon_set_tooltip_text(GTK_STATUS_ICON(kr_manager->status_icon), "Krad Radio Manager");
+  gtk_status_icon_set_visible(kr_manager->status_icon, TRUE);
+
+//printf("embedded: %s", gtk_status_icon_is_embedded(kr_manager->status_icon) ? "yes" : "no");
+
+
   gtk_widget_show_all (kr_manager->window);
+
+  gdk_threads_add_timeout (1000, krad_radio_manager_check_running_stations, kr_manager);
 
   gtk_main ();
 

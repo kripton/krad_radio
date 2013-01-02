@@ -236,9 +236,8 @@ struct krad_link_St {
   int mux_graph_id;  
 };
 
-int krad_link_wait_codec_init (krad_link_t *krad_link);
 
-void krad_transponder_link_to_ebml ( krad_ipc_server_client_t *client, krad_link_t *krad_link);
+int krad_link_wait_codec_init (krad_link_t *krad_link);
 
 void krad_transponder_stop_listening (krad_transponder_t *krad_linker);
 int krad_transponder_listen (krad_transponder_t *krad_transponder, int port);
@@ -249,8 +248,7 @@ krad_tags_t *krad_link_get_tags (krad_link_t *krad_link);
 
 krad_transponder_t *krad_transponder_create ();
 void krad_transponder_destroy (krad_transponder_t *krad_transponder);
-int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_server_t *krad_ipc );
-void krad_link_shutdown();
+
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create (int linknum);

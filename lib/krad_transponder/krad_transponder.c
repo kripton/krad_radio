@@ -1171,12 +1171,6 @@ void *stream_input_thread (void *arg) {
 		krad_link->krad_container = krad_container_open_file (krad_link->input, KRAD_IO_READONLY);
 	}
 	
-	// create video codec output port
-	// create audio codec output port
-	
-	
-	// poll on container fd and control fd
-	
 	while (!krad_link->destroy) {
 		
 		writeheaders = 0;
@@ -1191,25 +1185,26 @@ void *stream_input_thread (void *arg) {
 		}
 		
 		if (krad_container_track_changed (krad_link->krad_container, current_track)) {
-			printk ("track %d changed! status is %d header count is %d", current_track, krad_container_track_active(krad_link->krad_container, current_track), krad_container_track_header_count(krad_link->krad_container, current_track));
+			printk ("track %d changed! status is %d header count is %d",
+			        current_track, krad_container_track_active(krad_link->krad_container, current_track),
+			        krad_container_track_header_count(krad_link->krad_container, current_track));
 			
 			track_codecs[current_track] = krad_container_track_codec (krad_link->krad_container, current_track);
 			
 			if (track_codecs[current_track] == NOCODEC) {
 				continue;
 			}
-			
 			writeheaders = 1;
-			
 			for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, current_track); h++) {
 				printk ("header %d is %d bytes", h, krad_container_track_header_size (krad_link->krad_container, current_track, h));
 				total_header_size += krad_container_track_header_size (krad_link->krad_container, current_track, h);
 			}
-
-			
 		}
 		
-		if ((track_codecs[current_track] == Y4M) || (track_codecs[current_track] == KVHS) || (track_codecs[current_track] == VP8) || (track_codecs[current_track] == THEORA)) {
+		if ((track_codecs[current_track] == Y4M) ||
+		    (track_codecs[current_track] == KVHS) ||
+		    (track_codecs[current_track] == VP8) ||
+		    (track_codecs[current_track] == THEORA)) {
 
 			video_packets++;
 
@@ -1236,51 +1231,44 @@ void *stream_input_thread (void *arg) {
 			codec_bytes += packet_size;
 		}
 		
-		if ((track_codecs[current_track] == VORBIS) || (track_codecs[current_track] == OPUS) || (track_codecs[current_track] == FLAC)) {
+		if ((track_codecs[current_track] == VORBIS) ||
+		    (track_codecs[current_track] == OPUS) ||
+		    (track_codecs[current_track] == FLAC)) {
 
 			audio_packets++;
-
-			if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
 			
-				while ((krad_ringbuffer_write_space (krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!krad_link->destroy)) {
-					usleep(10000);
-				}
-				
-				if (writeheaders == 1) {
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
-					for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, current_track); h++) {
-						header_size = krad_container_track_header_size (krad_link->krad_container, current_track, h);
-						krad_container_read_track_header (krad_link->krad_container, header_buffer, current_track, h);
-						krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
-						krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)header_buffer, header_size);
-						codec_bytes += packet_size;
-					}
-				} else {
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
-				}
-				
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
-				codec_bytes += packet_size;
+			while ((krad_ringbuffer_write_space (krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!krad_link->destroy)) {
+				usleep(10000);
 			}
 			
+			if (writeheaders == 1) {
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
+				for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, current_track); h++) {
+					header_size = krad_container_track_header_size (krad_link->krad_container, current_track, h);
+					krad_container_read_track_header (krad_link->krad_container, header_buffer, current_track, h);
+					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
+					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)header_buffer, header_size);
+					codec_bytes += packet_size;
+				}
+			} else {
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
+			}
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
+			codec_bytes += packet_size;
 		}
 	}
-	
-	
-	krad_link->playing = 3;
-	
-	
-	printk ("");
-	printk ("Input/Demuxing thread exiting");
-	
-	krad_container_destroy (krad_link->krad_container);
-	
-	free (buffer);
-	free (header_buffer);
-	return NULL;
 
+  krad_link->playing = 3;
+
+  printk ("Input/Demuxing thread exiting");
+
+  krad_container_destroy (krad_link->krad_container);
+
+  free (buffer);
+  free (header_buffer);
+  return NULL;
 }
 
 void *udp_input_thread(void *arg) {
