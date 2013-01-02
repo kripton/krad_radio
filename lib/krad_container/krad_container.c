@@ -19,15 +19,15 @@ krad_container_type_t krad_link_select_container (char *string) {
 	{
 		return OGG;
 	}
-	
+
 	if (strstr(string, ".y4m")) {
 		return RAW;
-	}		
-	
+	}
+
 	if (strstr(string, ".flac")) {
 		return RAW;
-	}	
-	
+	}
+
 	return EBML;
 }
 

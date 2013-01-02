@@ -53,6 +53,129 @@ typedef struct kr_client_St kr_client_t;
  */
 typedef struct kr_shm_St kr_shm_t;
 
+
+
+
+typedef enum {
+  KR_FLOAT,
+	KR_INT32,
+	KR_STRING,
+} kr_subunit_control_data_t;
+
+typedef union {
+  int integer;
+  char *string;
+  float real;
+} kr_subunit_control_value_t;
+
+typedef enum {
+//  KR_STATION,
+	KR_MIXER,
+	KR_COMPOSITOR,
+	KR_TRANSPONDER,
+} kr_unit_t;
+
+typedef enum {
+	KR_PORTGROUP,
+//	PORTGROUP_EFFECT,
+} kr_mixer_subunit_t;
+
+typedef enum {
+	KR_VOLUME,
+	KR_CROSSFADE,
+} kr_mixer_portgroup_control_t;
+
+/*
+typedef enum {
+	EQ_DB,
+	EQ_BANDWIDTH,
+	EQ_HZ,	
+	PASS_TYPE,
+	PASS_BANDWIDTH,
+	PASS_HZ,
+} kr_mixer_portgroup_effect_control_t;
+*/
+
+typedef enum {
+	KR_VIDEOPORT,
+	KR_SPRITE,
+	KR_TEXT,
+	KR_VECTOR,
+} kr_compositor_subunit_t;
+
+typedef enum {
+	KR_X,
+	KR_Y,
+	KR_Z,
+	KR_WIDTH,
+	KR_HEIGHT,
+	KR_ROTATION,
+	KR_OPACITY,
+	KR_XSCALE,
+	KR_YSCALE,
+	KR_RED,
+	KR_GREEN,
+	KR_BLUE,
+	KR_ALPHA,
+} kr_compositor_control_t;
+
+typedef enum {
+	KR_TRANSMITTER,
+	KR_RECEIVER,
+	KR_DEMUXER,
+	KR_MUXER,
+	KR_ENCODER,
+	KR_DECODER,
+} kr_transponder_subunit_t;
+
+typedef enum {
+	KR_BUFFER,
+	KR_BITRATE,
+} kr_transponder_control_t;
+
+typedef struct kr_unit_control_St kr_unit_control_t;
+typedef struct kr_subunit_control_path_St kr_subunit_control_path_t;
+
+typedef union {
+  kr_mixer_subunit_t mixer_subunit;
+  kr_compositor_subunit_t compositor_subunit;
+  kr_transponder_subunit_t transponder_subunit;
+} kr_subunit_t;
+
+typedef union {
+  kr_mixer_portgroup_control_t portgroup_control;
+//  kr_mixer_portgroup_effect_control_t portgroup_effect_control;
+  kr_compositor_control_t compositor_control;
+  kr_transponder_control_t transponder_control;
+} kr_subunit_control_t;
+
+struct kr_subunit_control_path_St {
+  kr_unit_t unit;
+  kr_subunit_t subunit;
+  kr_subunit_control_t control;
+};
+
+typedef union {
+  int subunit_number;
+  char subunit_name[64];
+} kr_subunit_address_t;
+
+struct kr_unit_control_St {
+  kr_subunit_control_path_t path;
+  kr_subunit_address_t address;
+  kr_subunit_control_data_t data_type;
+  kr_subunit_control_value_t value;
+  int duration;
+  //krad_ease_t easing;
+};
+
+int kr_subunit_control_set (kr_client_t *kr_client,
+                            kr_unit_t unit,
+                            kr_subunit_t subunit,
+                            kr_subunit_address_t address,
+                            kr_subunit_control_t control,
+                            kr_subunit_control_value_t value);
+
 /**
  * @brief connect to a krad radio daemon identified by sysname
  * @param sysname of local station or ip:port remote station

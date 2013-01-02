@@ -913,3 +913,56 @@ void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_valu
 	krad_ebml_write_sync (client->krad_ebml);
 
 }
+
+
+
+int kr_subunit_control_set (kr_client_t *client,
+                            kr_unit_t unit,
+                            kr_subunit_t subunit,
+                            kr_subunit_address_t address,
+                            kr_subunit_control_t control,
+                            kr_subunit_control_value_t value) {
+
+
+  uint64_t command;
+  uint64_t control_set;
+
+  switch (unit) {
+    case KR_MIXER:
+      krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+      break;
+    case KR_COMPOSITOR:
+      krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &command);
+      break;
+    case KR_TRANSPONDER:
+      krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &command);
+      break;
+  }
+  
+  krad_ebml_start_element (client->krad_ebml, EBML_ID_CONTROL_SET, &control_set);
+  
+  switch (unit) {
+    case KR_MIXER:
+      // portgroup name
+      // control vol/fade
+      // value
+      break;
+    case KR_COMPOSITOR:
+      // subunit type
+      // subunit number
+      // control type
+      // value
+      break;
+    case KR_TRANSPONDER:
+      return -1;
+      break;
+  }
+  
+  krad_ebml_finish_element (client->krad_ebml, control_set);
+  krad_ebml_finish_element (client->krad_ebml, command);
+  krad_ebml_write_sync (client->krad_ebml);
+
+  return 0;
+
+}
+

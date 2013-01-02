@@ -173,45 +173,52 @@ def hexilate_file(filename):
 
 def check_system(systm):
 
-	global includedirs
-	global depsources
-	global shlibs
-	global syslibs
-	global syslibs2		
+  global includedirs
+  global depsources
+  global shlibs
+  global syslibs
+  global syslibs2    
 
-	if systm.env['IS_LINUX']:
-		shlibs = shlibs + ["alsa"]    
-		depsources = ["../lib/krad_v4l2/krad_v4l2.c", "../lib/krad_alsa/krad_alsa.c",
-		"../lib/krad_alsa/krad_alsa_seq.c"] + depsources
-		includedirs = ["../lib/krad_decklink/vendor/linux"] + includedirs
-		depsources = ["../lib/krad_decklink/vendor/linux/DeckLinkAPIDispatch.cpp"] + depsources
-		syslibs = syslibs + syslibs2
+  if systm.env['IS_LINUX']:
+    shlibs = shlibs + ["alsa"]    
+    depsources = ["../lib/krad_v4l2/krad_v4l2.c", "../lib/krad_alsa/krad_alsa.c",
+    "../lib/krad_alsa/krad_alsa_seq.c"] + depsources
+    includedirs = ["../lib/krad_decklink/vendor/linux"] + includedirs
+    depsources = ["../lib/krad_decklink/vendor/linux/DeckLinkAPIDispatch.cpp"] + depsources
+    syslibs = syslibs + syslibs2
 
 
-	if systm.env['IS_MACOSX']:
-		depsources = ["../lib/krad_legacy/krad_mach.c"] + depsources
-		includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
-		includedirs = ["../lib/krad_decklink/vendor/osx"] + includedirs
-		depsources = ["../lib/krad_decklink/vendor/osx/DeckLinkAPIDispatch.cpp"] + depsources
-		shlibs = shlibs + ['turbojpeg']
+  if systm.env['IS_MACOSX']:
+    depsources = ["../lib/krad_legacy/krad_mach.c"] + depsources
+    includedirs = ["/opt/libjpeg-turbo/include"] + includedirs
+    includedirs = ["../lib/krad_decklink/vendor/osx"] + includedirs
+    depsources = ["../lib/krad_decklink/vendor/osx/DeckLinkAPIDispatch.cpp"] + depsources
+    shlibs = shlibs + ['turbojpeg']
 
 def check_way(way):
 
-	global depsources
-	global shlibs
+  global depsources
+  global shlibs
 
-	if way.env['KRAD_USE_WAYLAND']:
-		depsources += ["../lib/krad_wayland/krad_wayland.c"]
-		shlibs += ["wayland-client"]
-		
+  if way.env['KRAD_USE_WAYLAND']:
+    depsources += ["../lib/krad_wayland/krad_wayland.c"]
+    shlibs += ["wayland-client"]
+    
 def check_x11(x11):
 
-	global depsources
-	global shlibs
+  global depsources
+  global shlibs
 
-	if x11.env['KRAD_USE_X11']:
-		#depsources += ["../lib/krad_x11/krad_x11.c"]
-		shlibs += ["x11-xcb", "xcb-image", "xcb", "x11"]
+  if x11.env['KRAD_USE_X11']:
+    #depsources += ["../lib/krad_x11/krad_x11.c"]
+    shlibs += ["x11-xcb", "xcb-image", "xcb", "x11"]
+
+def check_gif(conf):
+  global syslibs
+  if conf.options.nogif == False:
+    conf.env['KRAD_GIF'] = "yes"
+    conf.env.append_unique('CFLAGS', ['-DKRAD_GIF'])
+    syslibs += ["gif"]
 
 def remake_webres(web):
   hexilate_file("lib/krad_web/res/krad_radio.html")
@@ -219,46 +226,40 @@ def remake_webres(web):
 
 def configure(conf):
 
-	global shlibs
-	global syslibs
-	check_x11(conf)	
-	check_way(conf)
-	check_system(conf)
+  global shlibs
+  global syslibs
+  global syslibs2
+  check_x11(conf)  
+  check_way(conf)
+  check_system(conf)
+  check_gif(conf)
 
-	if conf.options.nogif == False:
-		conf.env['KRAD_GIF'] = "yes"
-		conf.env.append_unique('CFLAGS', ['-DKRAD_GIF'])
-		syslibs.append('gif')
+  for l in syslibs:
+    conf.check(lib = l, cflags='-Wall', uselib_store = l)
 
-	for l in syslibs:
-		conf.check(lib = l, cflags='-Wall', uselib_store = l)
+  for l in shlibs:
+    conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
 
-	## We need at least version 5 of giflib:
-	if conf.options.nogif == False:
-		conf.check_cfg(package = 'gif', atleast_version='5.0.0')
-
-	for l in shlibs:
-		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs')
-
-	for l in stlibs:
-		conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
+  for l in stlibs:
+    conf.check_cfg(package = l, uselib_store = l, args='--cflags --libs --static')
 
 def build(bld):
 
-	global shlibs
-	global syslibs
-	global syslibs2	
-	remake_webres(bld)
-	check_x11(bld)
-	check_way(bld)
-	check_system(bld)
+  global shlibs
+  global syslibs
+  global syslibs2  
+  remake_webres(bld)
+  check_gif(bld)
+  check_x11(bld)
+  check_way(bld)
+  check_system(bld)
 
-	for p in [daemon]:
+  for p in [daemon]:
 
-		bld(features = 'c cprogram cxx cxxprogram', 
-			source = depsources + [p], 
-			includes = includedirs, 
-			target = p.replace(".c", ""),
-			#use = ["kradradio_client"],
-			uselib = shlibs + stlibs + syslibs)
+    bld(features = 'c cprogram cxx cxxprogram', 
+      source = depsources + [p], 
+      includes = includedirs, 
+      target = p.replace(".c", ""),
+      #use = ["kradradio_client"],
+      uselib = shlibs + stlibs + syslibs)
 
