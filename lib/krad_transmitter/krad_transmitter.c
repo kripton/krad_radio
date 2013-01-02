@@ -716,7 +716,7 @@ void *krad_transmitter_listening_thread (void *arg) {
 	
 	while (krad_transmitter->stop_listening == 0) {
 
-		ret = epoll_wait (krad_transmitter->incoming_connections_efd, krad_transmitter->incoming_connection_events, KRAD_TRANSMITTER_MAXEVENTS, 1000);
+		ret = epoll_wait (krad_transmitter->incoming_connections_efd, krad_transmitter->incoming_connection_events, KRAD_TRANSMITTER_MAXEVENTS, 50);
 
 		if (ret < 0) {
 			if ((ret < 0) && (errno == EINTR)) {

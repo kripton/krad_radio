@@ -156,15 +156,10 @@ void x11_capture_unit_create (void *arg) {
 	krad_x11_enable_capture (krad_link->krad_x11, krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
 	krad_link->capturing = 1;
 	
-	krad_link->krad_ticker = krad_ticker_create (krad_link->krad_radio->krad_compositor->frame_rate_numerator,
-									  krad_link->krad_radio->krad_compositor->frame_rate_denominator);
-	
 	krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
 																   "X11In",
 																   INPUT,
 																   krad_link->krad_x11->screen_width, krad_link->krad_x11->screen_height);
-
-	krad_ticker_start (krad_link->krad_ticker);	
 
 }
 
@@ -173,6 +168,14 @@ int x11_capture_unit_process (void *arg) {
   krad_link_t *krad_link = (krad_link_t *)arg;
   
 	krad_frame_t *krad_frame;
+
+  if (krad_link->krad_ticker == NULL) {
+	  krad_link->krad_ticker = krad_ticker_create (krad_link->krad_radio->krad_compositor->frame_rate_numerator,
+									    krad_link->krad_radio->krad_compositor->frame_rate_denominator);
+	  krad_ticker_start (krad_link->krad_ticker);
+  } else {
+	  krad_ticker_wait (krad_link->krad_ticker);
+  }
   
 	krad_frame = krad_framepool_getframe (krad_link->krad_framepool);
 
@@ -182,7 +185,7 @@ int x11_capture_unit_process (void *arg) {
 
 	krad_framepool_unref_frame (krad_frame);
 
-	krad_ticker_wait (krad_link->krad_ticker);
+  printk ("captured!");
 
   return 0;
 }
@@ -194,6 +197,7 @@ void x11_capture_unit_destroy (void *arg) {
 	krad_compositor_port_destroy (krad_link->krad_radio->krad_compositor, krad_link->krad_compositor_port);
 
 	krad_ticker_destroy (krad_link->krad_ticker);
+	krad_link->krad_ticker = NULL;
 
   krad_x11_destroy (krad_link->krad_x11);
 
@@ -2292,6 +2296,7 @@ void krad_link_activate (krad_link_t *krad_link) {
       krad_transponder_watch_t *watch;
       watch = calloc (1, sizeof(krad_transponder_watch_t));
       watch->callback_pointer = (void *)krad_link;
+      watch->idle_callback_interval = 5;
       watch->readable_callback = x11_capture_unit_process;
       krad_link->cap_graph_id = krad_Xtransponder_add_capture (krad_link->krad_transponder->krad_Xtransponder, watch);
       free (watch);

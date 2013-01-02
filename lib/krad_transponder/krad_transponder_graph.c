@@ -244,8 +244,10 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
 	int n;
   int nfds;
   int ret;
+  int timeout;
 	struct pollfd pollfds[4];
 	
+	timeout = -1;
 	n = 0;
 
   pollfds[n].fd = krad_Xtransponder_subunit->control->socketpair[1];
@@ -278,20 +280,26 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
       pollfds[n].fd = krad_Xtransponder_subunit->watch->fd;
       pollfds[n].events = POLLIN;
       n++;
+    } else {
+      if (krad_Xtransponder_subunit->watch->idle_callback_interval > 0) {
+        timeout = krad_Xtransponder_subunit->watch->idle_callback_interval;
+      }
     }
   }
   
 
   nfds = n;
 
-	ret = poll (pollfds, nfds, 10);
+	ret = poll (pollfds, nfds, timeout);
 	if (ret < 0) {
     // error
 		return 0;
 	}
 	
 	if (ret == 0) {
-    // yawn
+    if (krad_Xtransponder_subunit->watch->idle_callback_interval > 0) {
+      krad_Xtransponder_subunit->watch->readable_callback (krad_Xtransponder_subunit->watch->callback_pointer);
+    }
 		return 1;
 	}	
 
@@ -321,8 +329,8 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
 				    if (msg->type == DESTROY) {
 				    	printk("Krad Transponder: Subunit Got Destroy MSG!");
 				      free (msg);
+              krad_Xtransponder_subunit->destroy = 1;
               if ((krad_Xtransponder_subunit->type == MUXER) || (krad_Xtransponder_subunit->type == DECODER)) {
-                krad_Xtransponder_subunit->destroy = 1;
                 if (krad_Xtransponder_subunit->inputs[0]->connected_to_subunit != NULL) {
                   krad_Xtransponder_subunit->destroy++;
 				          krad_Xtransponder_port_disconnect (krad_Xtransponder_subunit->inputs[0]->connected_to_subunit,
@@ -549,10 +557,8 @@ krad_Xtransponder_subunit_t *krad_Xtransponder_subunit_create (krad_Xtransponder
   }
   
   if (watch != NULL) {
-    krad_Xtransponder_subunit->watch = malloc(sizeof(krad_transponder_watch_t));
-    krad_Xtransponder_subunit->watch->fd = watch->fd;
-    krad_Xtransponder_subunit->watch->callback_pointer = watch->callback_pointer;
-    krad_Xtransponder_subunit->watch->readable_callback = watch->readable_callback;        
+    krad_Xtransponder_subunit->watch = calloc(1, sizeof(krad_transponder_watch_t));
+    memcpy (krad_Xtransponder_subunit->watch, watch, sizeof(krad_transponder_watch_t));        
   }
 
   krad_Xtransponder_subunit_start (krad_Xtransponder_subunit);
