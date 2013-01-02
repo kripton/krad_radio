@@ -44,7 +44,9 @@ int main (int argc, char *argv[]) {
     return 1;
   }
 
-  if (!krad_valid_host_and_port (argv[1])) {
+  if (krad_valid_host_and_port (argv[1])) {
+    sysname = argv[1];
+  } else {
     if (!krad_valid_sysname(argv[1])) {
       fprintf (stderr, "Invalid station sysname!\n");
       return 1;

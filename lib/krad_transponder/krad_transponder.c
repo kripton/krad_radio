@@ -2037,7 +2037,9 @@ int krad_link_decklink_audio_callback (void *arg, void *buffer, int frames) {
 
 }
 
-void krad_link_start_decklink_capture (krad_link_t *krad_link) {
+void decklink_capture_unit_create (void *arg) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	krad_system_set_thread_name ("kr_decklink");
 
@@ -2065,7 +2067,9 @@ void krad_link_start_decklink_capture (krad_link_t *krad_link) {
 	krad_decklink_start (krad_link->krad_decklink);
 }
 
-void krad_link_stop_decklink_capture (krad_link_t *krad_link) {
+void decklink_capture_unit_destroy (void *arg) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	if (krad_link->krad_decklink != NULL) {
 		krad_decklink_destroy ( krad_link->krad_decklink );
@@ -2119,20 +2123,15 @@ void krad_link_destroy (krad_link_t *krad_link) {
 	
 	if (krad_link->capturing) {
 		krad_link->capturing = 0;
-		if ((krad_link->video_source == V4L2) || (krad_link->video_source == X11)) {
-      krad_Xtransponder_subunit_remove (krad_link->krad_transponder->krad_Xtransponder, krad_link->cap_graph_id);
-		}
+    krad_Xtransponder_subunit_remove (krad_link->krad_transponder->krad_Xtransponder, krad_link->cap_graph_id);
 		if (krad_link->video_source == X11) {
       x11_capture_unit_destroy ((void *)krad_link);
 		}
 		if (krad_link->video_source == V4L2) {
       v4l2_capture_unit_destroy ((void *)krad_link);
 		}
-		
 		if (krad_link->video_source == DECKLINK) {
-			if (krad_link->krad_decklink != NULL) {
-				krad_link_stop_decklink_capture (krad_link);
-			}
+      decklink_capture_unit_destroy ((void *)krad_link);
 		}		
 	} else {
 		krad_link->encoding = 2;
@@ -2320,7 +2319,18 @@ void krad_link_activate (krad_link_t *krad_link) {
 
 
 			krad_link->capturing = 1;
-			krad_link_start_decklink_capture(krad_link);
+			//krad_link_start_decklink_capture(krad_link);
+			
+      decklink_capture_unit_create ((void *)krad_link);
+      krad_transponder_watch_t *watch;
+      watch = malloc (sizeof(krad_transponder_watch_t));
+      //FIXME
+      //watch->fd =
+      watch->callback_pointer = (void *)krad_link;
+      watch->readable_callback = NULL;
+      krad_link->cap_graph_id = krad_Xtransponder_add_capture (krad_link->krad_transponder->krad_Xtransponder, watch);
+      free (watch);
+			
 		}
 	}
 	

@@ -274,9 +274,11 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
   }
   
   if (krad_Xtransponder_subunit->watch != NULL) {
+    if (krad_Xtransponder_subunit->watch->fd > 0) {
       pollfds[n].fd = krad_Xtransponder_subunit->watch->fd;
       pollfds[n].events = POLLIN;
       n++;
+    }
   }
   
 
