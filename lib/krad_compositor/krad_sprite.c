@@ -58,6 +58,7 @@ krad_sprite_t *krad_sprite_create_from_file (char *filename) {
 
 }
 
+#ifdef KRAD_GIF
 cairo_surface_t **gif2surface (char *filename, int *frames) {
 
   int	i, j, Size, Row, Col, Width, Height, ExtCode, Count;
@@ -295,6 +296,7 @@ cairo_surface_t **gif2surface (char *filename, int *frames) {
 
   return surfaces;
 }
+#endif
 
 int krad_sprite_open_file (krad_sprite_t *krad_sprite, char *filename) {
 
@@ -314,11 +316,13 @@ int krad_sprite_open_file (krad_sprite_t *krad_sprite, char *filename) {
 	  krad_sprite->sprite = cairo_image_surface_create_from_png ( filename );
   }
   
+#ifdef KRAD_GIF
   if ((strstr (filename, ".gif") != NULL) || (strstr (filename, ".GIF") != NULL)) {
     krad_sprite->sprite_frames = gif2surface ( filename, &krad_sprite->frames);
     krad_sprite->sprite = krad_sprite->sprite_frames[0];
     krad_sprite->multisurface = 1;
   }
+#endif
 
 	if ((strstr (filename, ".jpg") != NULL) || (strstr (filename, ".JPG") != NULL)) {
 	

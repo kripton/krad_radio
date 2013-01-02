@@ -37,6 +37,9 @@ def options(opt):
 		
 	opt.add_option('--without-gtk', action='store_true', default=False, dest='nogtk',
 		help='Don\'t build anything depending on gtk+ (GUI)')
+		
+	opt.add_option('--without-gif', action='store_true', default=False, dest='nogif',
+		help='Don\'t build anything depending on giflib-5.x')
 
 def check_way(way):
 	if way.options.nowayland == False:
