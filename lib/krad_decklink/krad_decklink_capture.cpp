@@ -66,8 +66,16 @@ HRESULT DeckLinkCaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame
 	frame_data_size = 0;
 	
 	if (!((audio_frame) && ((video_frame) && (!(video_frame->GetFlags() & bmdFrameHasNoInputSource))))) {
-    printk ("Decklink A/V Capture skipped a frame!");
+    if (krad_decklink_capture->skipped_frames == 0) {
+      printke ("Decklink A/V Capture skipped a frame!");
+    }
+    krad_decklink_capture->skipped_frames++;
     return S_OK;
+  }
+  
+  if (krad_decklink_capture->skipped_frames > 0) {
+    printke ("Decklink A/V Capture got a frame after skipping %d", krad_decklink_capture->skipped_frames);
+    krad_decklink_capture->skipped_frames = 0;
   }
 
 	if (audio_frame) {

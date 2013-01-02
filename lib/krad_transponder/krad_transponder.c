@@ -2315,7 +2315,6 @@ void krad_link_activate (krad_link_t *krad_link) {
       													krad_link->capture_height,
       													DEFAULT_CAPTURE_BUFFER_FRAMES);
 
-
 			krad_link->capturing = 1;
       decklink_capture_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
@@ -2329,7 +2328,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 	
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
-		
 		if (krad_link->transport_mode == UDP) {
 			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	
 		} else {
@@ -2374,7 +2372,6 @@ void krad_link_activate (krad_link_t *krad_link) {
 		}
 	
 		if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			//pthread_create (&krad_link->audio_encoding_thread, NULL, audio_encoding_thread, (void *)krad_link);
       audio_encoding_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
       watch = calloc (1, sizeof(krad_transponder_watch_t));
