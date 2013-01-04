@@ -15,31 +15,53 @@ void krad_system_set_monitor_cpu_interval (int ms) {
 void krad_system_monitor_cpu_on () {
 
 	if (krad_system.kcm.on == 0) {
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, krad_system.kcm.socketpair)) {
+      printke ("Krad System: can't socketpair errno: %d", errno);
+      return;
+    }
 		krad_system.kcm.on = 1;
 		pthread_create (&krad_system.kcm.monitor_thread, NULL, krad_system_monitor_cpu_thread, NULL);
 	}
 }
 
-void krad_system_monitor_cpu_off_slow () {
-
-	if (krad_system.kcm.on == 1) {
-		krad_system.kcm.on = 2;	
-		pthread_join (krad_system.kcm.monitor_thread, NULL);
-		krad_system.kcm.on = 0;
-	}
-}
-
 void krad_system_monitor_cpu_off () {
 
+	struct pollfd pollfds[1];
+  int ret;
+
 	if (krad_system.kcm.on == 1) {
-		pthread_cancel (krad_system.kcm.monitor_thread);
-		krad_system.kcm.on = 0;
-		if (krad_system.kcm.fd != 0) {
-			close (krad_system.kcm.fd);
-			krad_system.kcm.fd = 0;
-		}
+		krad_system.kcm.on = 2;
+    pollfds[0].fd = krad_system.kcm.socketpair[0];
+    pollfds[0].events = POLLOUT;
+    if (poll (pollfds, 1, 1) == 1) {
+      ret = write (krad_system.kcm.socketpair[0], "0", 1);
+      if (ret == 1) {
+        pollfds[0].fd = krad_system.kcm.socketpair[0];
+        pollfds[0].events = POLLIN;
+        if (poll (pollfds, 1, 1) == 1) {
+		      pthread_join (krad_system.kcm.monitor_thread, NULL);
+          printk ("Krad System: CPU Monitor exited clean and quick");
+        }
+      }
+    }
+		
+		if (krad_system.kcm.on != 0) {
+      pthread_cancel (krad_system.kcm.monitor_thread);
+      krad_system.kcm.on = 0;
+		  if (krad_system.kcm.fd != 0) {
+			  close (krad_system.kcm.fd);
+			  krad_system.kcm.fd = 0;
+		  }
+      if (krad_system.kcm.socketpair[1] != 0) {
+        close (krad_system.kcm.socketpair[1]);
+        krad_system.kcm.socketpair[1] = 0;
+      }
+    }
+    close (krad_system.kcm.socketpair[0]);
+    krad_system.kcm.socketpair[0] = 0;
 	}
 }
+
 
 void krad_system_log_on (char *filename) {
 
@@ -72,7 +94,8 @@ void krad_system_log_off () {
 void *krad_system_monitor_cpu_thread (void *arg) {
 
 	krad_system_cpu_monitor_t *kcm;
-	
+	struct pollfd pollfds[1];
+  
 	krad_system_set_thread_name ("kr_cpu_mon");	
 	
 	printk ("Krad System CPU Monitor On");
@@ -81,8 +104,13 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 	kcm->fd = open ( "/proc/stat", O_RDONLY );
 
-	while (kcm->on == 1) {
-	
+  if (kcm->fd < 1) {
+		kcm->on = 0;  
+    return NULL;
+  }
+
+	while (1) {
+
 		kcm->ret = lseek (kcm->fd, 0, SEEK_SET);
 
 		if (kcm->ret != 0) {
@@ -134,17 +162,21 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 
 		}
 
-		usleep (kcm->interval * 1000);
+    pollfds[0].fd = kcm->socketpair[1];
+    pollfds[0].events = POLLIN;
+    if (poll (pollfds, 1, kcm->interval) != 0) {
+      break;
+    }
 	}
 	
 	close (kcm->fd);
-	
 	kcm->fd = 0;
-	
+	close (kcm->socketpair[1]);
+	kcm->socketpair[1] = 0;
+  krad_system.kcm.on = 0;
 	printk ("Krad System CPU Monitor Off");
 	
 	return NULL;
-
 }
 
 void krad_system_unset_monitor_cpu_callback () {

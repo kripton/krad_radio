@@ -75,7 +75,6 @@ static void krad_radio_shutdown (krad_radio_t *krad_radio) {
     shutdown_timer = NULL;
   }
 
-  free (krad_radio->sysname);
   free (krad_radio);
 
   printk ("Krad Radio exited cleanly");
@@ -265,6 +264,6 @@ void krad_radio_set_dir ( krad_radio_t *krad_radio, char *dir ) {
   krad_system_log_on (krad_radio->log.filename);
   printk (APPVERSION);
   printk ("Station: %s", krad_radio->sysname);
-  printk ("Time: %s", ktime ());
+  printk ("Time: %"PRIu64"", ktime ());
 }
 
