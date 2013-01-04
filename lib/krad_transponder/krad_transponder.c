@@ -2248,7 +2248,7 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder) {
 
 	int l;
 	
-  printk ("Krad transponder destroy started");		
+  printk ("Krad Transponder: Destroy Started");
 
 	pthread_mutex_lock (&krad_transponder->change_lock);
 	
@@ -2266,7 +2266,7 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder) {
 	pthread_mutex_destroy (&krad_transponder->change_lock);
 	free (krad_transponder);
 	
-  printk ("Krad transponder destroy completed");
+  printk ("Krad Transponder: Destroy Completed");
 
 }
 

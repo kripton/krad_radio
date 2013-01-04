@@ -1314,7 +1314,7 @@ krad_compositor_port_t *krad_compositor_local_port_create (krad_compositor_t *kr
 		krad_compositor_port->krad_compositor_subunit->active = 1;
 		pthread_mutex_unlock (&krad_compositor->settings_lock);
 	} else {
-		printke ("krad compositor: failed to create local port");
+		printke ("Krad Compositor: failed to create local port");
 		krad_compositor_port_destroy_unlocked (krad_compositor, krad_compositor_port);
 		pthread_mutex_unlock (&krad_compositor->settings_lock);
 		return NULL;
@@ -1406,7 +1406,7 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 	int i;
 	
-  printk ("Krad compositor destroy started");
+  printk ("Krad Compositor: Destroy Started");
 
 #ifdef KRAD_USE_WAYLAND
   if (krad_compositor->display_open == 1) {
@@ -1438,7 +1438,7 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 
 	free (krad_compositor);
 	
-  printk ("Krad compositor destroy complete");
+  printk ("Krad Compositor: Destroy Complete");
 
 }
 

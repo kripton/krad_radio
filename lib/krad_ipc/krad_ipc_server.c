@@ -902,11 +902,8 @@ void *krad_ipc_server_run_thread (void *arg) {
 }
 
 void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
-
-	//int c;
-	//int patience;
 	
-  printk ("Krad ipc_server_disable started");	
+  printk ("Krad IPC Server: Disable Started");	
 
   if (!krad_controller_shutdown (&krad_ipc_server->krad_control, &krad_ipc_server->server_thread, 30)) {
     krad_controller_destroy (&krad_ipc_server->krad_control, &krad_ipc_server->server_thread);
@@ -923,7 +920,7 @@ void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
 		}
 	}
 	
-  printk ("Krad ipc_server_disable complete");		
+  printk ("Krad IPC Server: Disable Complete");		
 
 }
 
@@ -931,7 +928,7 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 
 	int c;
 
-  printk ("Krad ipc_server_destroy started");
+  printk ("Krad IPC Server: Destroy Started");
 
 	if (krad_ipc_server->shutdown != KRAD_IPC_SHUTINGDOWN) {
     krad_ipc_server_disable (krad_ipc_server);
@@ -947,7 +944,7 @@ void krad_ipc_server_destroy (krad_ipc_server_t *krad_ipc_server) {
 	free (krad_ipc_server->clients);
 	free (krad_ipc_server);
 	
-  printk ("Krad ipc_server_destroy completed");
+  printk ("Krad IPC Server: Destroy Completed");
 	
 }
 
