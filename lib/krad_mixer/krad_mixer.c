@@ -405,10 +405,8 @@ void krad_mixer_deactivate_portgroups (krad_mixer_t *krad_mixer) {
 	// deactivate ports that need to be deactivated
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active)) {
-			if (portgroup->active == 2) {
-				portgroup->active = 0;
-			}
+		if ((portgroup != NULL) && (portgroup->active == 2)) {
+		  portgroup->active = 3;
 		}
 	}
 }
@@ -423,7 +421,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	// only run if we have something going on
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active) &&
+		if ((portgroup != NULL) && (portgroup->active == 1) &&
 			(portgroup != krad_mixer->tone_port) && (portgroup != krad_mixer->master_mix)) {
 			break;
 		}
@@ -441,7 +439,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	// Gets input/output port buffers
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active) && ((portgroup->direction == INPUT) || (portgroup->direction == OUTPUT))) {
+		if ((portgroup != NULL) && (portgroup->active == 1) && ((portgroup->direction == INPUT) || (portgroup->direction == OUTPUT))) {
 			portgroup_update_samples (portgroup, nframes);
 		}
 	}
@@ -449,7 +447,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	// apply volume, effects and calc peaks on inputs
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
+		if ((portgroup != NULL) && (portgroup->active == 1) && (portgroup->direction == INPUT)) {
 			portgroup_apply_volume (portgroup, nframes);
 			portgroup_apply_effects (portgroup, nframes);
 			krad_mixer_portgroup_compute_peaks (portgroup, nframes);
@@ -459,7 +457,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	// Clear Mixes	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active) && (portgroup->io_type == MIXBUS)) {
+		if ((portgroup != NULL) && (portgroup->active == 1) && (portgroup->io_type == MIXBUS)) {
 			portgroup_clear_samples (portgroup, nframes);
 		}
 	}
@@ -470,7 +468,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 		if ((mixbus != NULL) && (mixbus->active) && (mixbus->io_type == MIXBUS)) {
 			for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 				portgroup = krad_mixer->portgroup[p];
-				if ((portgroup != NULL) && (portgroup->active) && (portgroup->mixbus == mixbus) && (portgroup->direction == INPUT)) {
+				if ((portgroup != NULL) && (portgroup->active == 1) && (portgroup->mixbus == mixbus) && (portgroup->direction == INPUT)) {
 					portgroup_mix_samples ( mixbus, portgroup, nframes );
 				}
 			}
@@ -481,7 +479,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 	// copy to outputs, limit all outputs
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == OUTPUT)) {
+		if ((portgroup != NULL) && (portgroup->active == 1) && (portgroup->direction == OUTPUT)) {
 			portgroup_copy_samples ( portgroup, portgroup->mixbus, nframes );
 		  if (portgroup->output_type == AUX) {
 			  portgroup_apply_volume (portgroup, nframes);
@@ -753,6 +751,16 @@ void krad_mixer_local_portgroup_destroy (krad_mixer_local_portgroup_t *krad_mixe
 
 }
 
+void krad_mixer_portgroup_mark_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup) {
+  if (krad_mixer->destroying == 2) {
+    portgroup->active = 3;
+  } else {
+    if (portgroup->destroy_mark != 1) {
+      portgroup->destroy_mark = 1;
+	    portgroup->active = 2;
+	  }
+	}
+}
 
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup) {
 
@@ -762,11 +770,10 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
 		return;
 	}
 
-	portgroup->active = 2;
+  krad_mixer_portgroup_mark_destroy (krad_mixer, portgroup);
 
-	while (portgroup->active != 0) {
-
-		usleep(2000);
+	while (portgroup->active != 3) {
+		usleep (1000);
 	}
 
 	portgroup->delay = 0;
@@ -827,6 +834,9 @@ void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgrou
     portgroup->kr_rushlimiter[c] = NULL;
   }
 
+	portgroup->destroy_mark = 0;
+  portgroup->active = 0;
+
 }
 
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname) {
@@ -836,7 +846,7 @@ krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *kra
 
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
-		if ((portgroup != NULL) && (portgroup->active)) {
+		if ((portgroup != NULL) && (portgroup->active == 1)) {
 			if (strcmp(sysname, portgroup->sysname) == 0) {
 				return portgroup;
 			}
@@ -900,7 +910,7 @@ void portgroup_set_volume (krad_mixer_portgroup_t *portgroup, float value) {
 
 	  for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		  pg = portgroup->krad_mixer->portgroup[p];
-		  if ((pg != NULL) && (pg->active) && (pg->direction == INPUT)) {
+		  if ((pg != NULL) && (pg->active == 1) && (pg->direction == INPUT)) {
 			  if (pg->mixbus == portgroup) {
 				  portgroup_update_volume (pg);
 			  }
@@ -1109,10 +1119,11 @@ void krad_mixer_start_ticker (krad_mixer_t *krad_mixer) {
 	if (krad_mixer->ticker_running == 1) {
 		krad_mixer_stop_ticker (krad_mixer);
 	}
-  clock_gettime (CLOCK_MONOTONIC, &krad_mixer->start_time);
-	krad_mixer->ticker_running = 1;
-	pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
-
+	if (krad_mixer->destroying == 0) {	
+    clock_gettime (CLOCK_MONOTONIC, &krad_mixer->start_time);
+	  krad_mixer->ticker_running = 1;
+	  pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
+  }
 }
 
 void krad_mixer_start_ticker_at (krad_mixer_t *krad_mixer, struct timespec start_time) {
@@ -1120,10 +1131,11 @@ void krad_mixer_start_ticker_at (krad_mixer_t *krad_mixer, struct timespec start
 	if (krad_mixer->ticker_running == 1) {
 		krad_mixer_stop_ticker (krad_mixer);
 	}
-	memcpy (&krad_mixer->start_time, &start_time, sizeof(struct timespec));
-	krad_mixer->ticker_running = 1;
-	pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
-
+	if (krad_mixer->destroying == 0) {
+	  memcpy (&krad_mixer->start_time, &start_time, sizeof(struct timespec));
+	  krad_mixer->ticker_running = 1;
+	  pthread_create (&krad_mixer->ticker_thread, NULL, krad_mixer_ticker_thread, (void *)krad_mixer);
+  }
 }
 
 void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer) {
@@ -1143,19 +1155,32 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	
   printk ("Krad Mixer shutdown started");
 	
+  krad_mixer->destroying = 1;
+	
+  if (krad_mixer->pusher != JACK) {
+    krad_mixer_stop_ticker (krad_mixer);
+    krad_mixer->destroying = 2;
+  }
+	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		if ((krad_mixer->portgroup[p]->active == 1) && (krad_mixer->portgroup[p]->io_type != MIXBUS)) {
-			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer->portgroup[p]);
+			krad_mixer_portgroup_mark_destroy (krad_mixer, krad_mixer->portgroup[p]);
 		}
 	}
 	
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-		if (krad_mixer->portgroup[p]->active == 1) {
+		if ((krad_mixer->portgroup[p]->active != 0) && (krad_mixer->portgroup[p]->io_type != MIXBUS)) {
 			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer->portgroup[p]);
 		}
 	}
 	
-  krad_mixer_stop_ticker (krad_mixer);
+  krad_mixer->destroying = 2;
+	
+	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+		if (krad_mixer->portgroup[p]->active != 0) {
+			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer->portgroup[p]);
+		}
+	}
 	
 	free ( krad_mixer->crossfade_group );
 
@@ -1164,7 +1189,6 @@ void krad_mixer_destroy (krad_mixer_t *krad_mixer) {
 	}
 	
 	free ( krad_mixer->name );
-
 	free ( krad_mixer );
 	
   printk ("Krad Mixer shutdown complete");
@@ -1175,7 +1199,7 @@ void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer) {
 	if (krad_mixer->ticker_running == 1) {
 		krad_mixer_stop_ticker (krad_mixer);
 	}
-	krad_mixer_start_ticker (krad_mixer);
+  krad_mixer_start_ticker (krad_mixer);
 	krad_mixer->pusher = 0;
 }
 

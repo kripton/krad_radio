@@ -370,24 +370,17 @@ void *krad_http_client_thread (void *arg) {
 
 void krad_http_server_destroy (krad_http_t *krad_http) {
 
-  printk ("Krad HTTP shutdown started");
-
 	if (krad_http != NULL) {
-	
+    printk ("Krad HTTP shutdown started");	
 		krad_http->shutdown = 1;
-
-		usleep (25000);
-	
-		pthread_cancel (krad_http->server_thread);
-
+    if (!krad_controller_shutdown (&krad_http->krad_control, &krad_http->server_thread, 3000)) {
+      krad_controller_destroy (&krad_http->krad_control, &krad_http->server_thread);
+    }
+        printk ("Krad HTTP hhhhe");
 		close (krad_http->listenfd);
-
 		free (krad_http);
-
+    printk ("Krad HTTP shutdown complete");
 	}
-	
-  printk ("Krad HTTP shutdown complete");	
-
 }
 
 void *krad_http_server_run (void *arg) {
@@ -397,28 +390,46 @@ void *krad_http_server_run (void *arg) {
 	krad_http_client_t *newclient;
 	socklen_t length;
 	static struct sockaddr_in cli_addr;
-
+	struct pollfd pollfds[2];
 	krad_system_set_thread_name ("kr_http");
+  int n;
+
+  memset (pollfds, 0, sizeof(pollfds));
 
 	while (!krad_http->shutdown) {
-	
-	
-		newclient = krad_http_create_client(krad_http);
-	
-		length = sizeof(cli_addr);
-		
-		if ((krad_http->socketfd = accept(krad_http->listenfd, (struct sockaddr *)&cli_addr, &length)) < 0) {
-			close (krad_http->listenfd);
-			failfast ("krad_http socket error on accept mayb a signal or such\n");
-		}
 
-		newclient->sd = krad_http->socketfd;
+    pollfds[0].fd = krad_controller_get_client_fd (&krad_http->krad_control);
+    pollfds[0].events = POLLIN;
+    pollfds[1].fd = krad_http->listenfd;
+    pollfds[1].events = POLLIN;
+  
+    n = poll (pollfds, 2, 5000);
 
-		pthread_create (&newclient->client_thread, NULL, krad_http_client_thread, (void *)newclient);
-		pthread_detach (newclient->client_thread);
+    if (n < 0) {
+      break;
+    }
+    if (n > 0) {
+      if (pollfds[0].revents) {
+        break;
+      }
+  
+      if (pollfds[1].revents == POLLIN) {
+        length = sizeof(cli_addr);
 
+        if ((krad_http->socketfd = accept(krad_http->listenfd, (struct sockaddr *)&cli_addr, &length)) < 0) {
+	        close (krad_http->listenfd);
+	        failfast ("krad_http socket error on accept mayb a signal or such\n");
+        }
+        newclient = krad_http_create_client(krad_http);
+        newclient->sd = krad_http->socketfd;
+
+        pthread_create (&newclient->client_thread, NULL, krad_http_client_thread, (void *)newclient);
+        pthread_detach (newclient->client_thread);
+      }
+    }
 	}
 	
+  krad_controller_client_close (&krad_http->krad_control);
 	return NULL;
 	
 }
@@ -609,6 +620,11 @@ krad_http_t *krad_http_server_create (krad_radio_t *krad_radio, int port, int we
 	if (krad_http->port < 0 || krad_http->port > 65535) {
 		failfast ("krad_http port number error\n");
 	}
+	
+  if (krad_control_init (&krad_http->krad_control)) {
+    free (krad_http);
+		return NULL;
+  }
 
 	printk ("Krad Web Starting Up on port %d", krad_http->port);
 
@@ -641,7 +657,6 @@ krad_http_t *krad_http_server_create (krad_radio_t *krad_radio, int port, int we
 	}
 
 	pthread_create (&krad_http->server_thread, NULL, krad_http_server_run, (void *)krad_http);
-	pthread_detach (krad_http->server_thread);
 
 	return krad_http;
 

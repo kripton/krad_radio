@@ -72,6 +72,8 @@ struct krad_ipc_server_St {
 
 	int socket_count;
 	
+  krad_control_t krad_control;
+	
 	krad_ipc_server_client_t *clients;
 	krad_ipc_server_client_t *current_client;
 

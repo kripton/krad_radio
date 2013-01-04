@@ -24,6 +24,7 @@
 enum fdclass {
 	MYSTERY = 0,
 	KRAD_IPC = 1,
+	KRAD_CONTROLLER,
 };
 
 enum krad_websocket_shutdown {
@@ -64,6 +65,7 @@ struct krad_websocket_St {
 	char sysname[64];
 	pthread_t server_thread;
 	int shutdown;
+  krad_control_t krad_control;
 };
 
 int callback_http (struct libwebsocket_context *this, struct libwebsocket *wsi,

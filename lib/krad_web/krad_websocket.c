@@ -969,16 +969,21 @@ void add_poll_fd (int fd, short events, int fd_is, kr_client_session_data_t *pss
 
 	krad_websocket_t *krad_websocket = krad_websocket_glob;
 	// incase its not one of the 4 krad types, and it was left set as something when deleted
-	krad_websocket->fdof[krad_websocket->count_pollfds] = MYSTERY;
+	//krad_websocket->fdof[krad_websocket->count_pollfds] = MYSTERY;
 
-	char fd_text[128];
+	//char fd_text[128];
 
-	strcpy(fd_text, "Mystery");
+	//strcpy(fd_text, "Mystery");
 	
+	krad_websocket->fdof[krad_websocket->count_pollfds] = fd_is;
+		
 	if (fd_is == KRAD_IPC) {
-		krad_websocket->fdof[krad_websocket->count_pollfds] = KRAD_IPC;
 		krad_websocket->sessions[krad_websocket->count_pollfds] = pss;
-		strcpy(fd_text, "Krad IPC");
+		//strcpy(fd_text, "Krad IPC");
+	}
+	
+	if (fd_is == KRAD_CONTROLLER) {
+		//strcpy(fd_text, "Krad IPC");
 	}
 
 	krad_websocket->pollfds[krad_websocket->count_pollfds].fd = fd;
@@ -1194,6 +1199,13 @@ krad_websocket_t *krad_websocket_server_create (char *sysname, int port) {
 
 	krad_websocket->shutdown = KRAD_WEBSOCKET_STARTING;
 
+  if (krad_control_init (&krad_websocket->krad_control)) {
+    free (krad_websocket);
+		return NULL;
+  }
+
+  add_poll_fd (krad_controller_get_client_fd (&krad_websocket->krad_control), POLLIN, KRAD_CONTROLLER, NULL, NULL);
+
 	krad_websocket->port = port;
 	strcpy (krad_websocket->sysname, sysname);
 
@@ -1209,7 +1221,6 @@ krad_websocket_t *krad_websocket_server_create (char *sysname, int port) {
 	}
 	
 	pthread_create (&krad_websocket->server_thread, NULL, krad_websocket_server_run, (void *)krad_websocket);
-	pthread_detach (krad_websocket->server_thread);	
 
 	return krad_websocket;
 
@@ -1240,7 +1251,11 @@ void *krad_websocket_server_run (void *arg) {
 
 		if (n) {
 		
-			for (n = 0; n < krad_websocket->count_pollfds; n++) {
+		  if (krad_websocket->pollfds[0].revents) {
+			  break;
+		  }
+		
+			for (n = 1; n < krad_websocket->count_pollfds; n++) {
 				
 				if (krad_websocket->pollfds[n].revents) {
 				
@@ -1269,6 +1284,7 @@ void *krad_websocket_server_run (void *arg) {
 								//del_poll_fd(n);
 								//n++;
 								break;
+							case KRAD_CONTROLLER:
 							case MYSTERY:
 								//sprintf(info + strlen(info), " it was a MSYSTERY!", n);
 								//libwebsocket_service_fd(context, &pollfds[n]);
@@ -1318,7 +1334,7 @@ void *krad_websocket_server_run (void *arg) {
 									krad_websocket->sessions[n]->kr_client_info = 1;
 									libwebsocket_callback_on_writable(krad_websocket->sessions[n]->context, krad_websocket->sessions[n]->wsi);
 									break;
-		
+								case KRAD_CONTROLLER:
 								case MYSTERY:
 									//sprintf(info + strlen(info), " it was a MSYSTERY!", n);
 									//libwebsocket_service_fd(context, &pollfds[n]);
@@ -1334,7 +1350,7 @@ void *krad_websocket_server_run (void *arg) {
 								case KRAD_IPC:
 									sprintf(info + strlen(info), " it was Krad IPC %d", n);
 									break;
-							
+								case KRAD_CONTROLLER:
 								case MYSTERY:
 									//sprintf(info + strlen(info), " it was a MSYSTERY!", n);
 									//libwebsocket_service_fd(context, &pollfds[n]);
@@ -1358,6 +1374,8 @@ void *krad_websocket_server_run (void *arg) {
 	
 	krad_websocket->shutdown = KRAD_WEBSOCKET_SHUTINGDOWN;
 	
+  krad_controller_client_close (&krad_websocket->krad_control);
+	
 	return NULL;
 
 }
@@ -1365,29 +1383,16 @@ void *krad_websocket_server_run (void *arg) {
 
 void krad_websocket_server_destroy (krad_websocket_t *krad_websocket) {
 
-	int patience;
-	
-  printk ("Krad Websocket shutdown started");	
-	
 	if (krad_websocket != NULL) {
-	
-		patience = KRAD_WEBSOCKET_SERVER_TIMEOUT_US * 3;
-	
-		if (krad_websocket->shutdown == KRAD_WEBSOCKET_RUNNING) {
-			krad_websocket->shutdown = KRAD_WEBSOCKET_DO_SHUTDOWN;
-	
-			while ((krad_websocket->shutdown != KRAD_WEBSOCKET_SHUTINGDOWN) && (patience > 0)) {
-				usleep (KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4);
-				patience -= KRAD_WEBSOCKET_SERVER_TIMEOUT_US / 4;
-			}
-		}
-
+    printk ("Krad Websocket shutdown started");	
+    krad_websocket->shutdown = KRAD_WEBSOCKET_DO_SHUTDOWN;
+    if (!krad_controller_shutdown (&krad_websocket->krad_control, &krad_websocket->server_thread, 30)) {
+      krad_controller_destroy (&krad_websocket->krad_control, &krad_websocket->server_thread);
+    }
 		free (krad_websocket->buffer);
 		libwebsocket_context_destroy (krad_websocket->context);
 		free (krad_websocket);
 		krad_websocket_glob = NULL;
+    printk ("Krad Websocket shutdown complete");
 	}
-	
-  printk ("Krad Websocket shutdown complete");	
-	
 }

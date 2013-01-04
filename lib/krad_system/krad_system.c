@@ -4,6 +4,92 @@ int verbose;
 int krad_system_initialized;
 krad_system_t krad_system;
 
+int krad_control_init (krad_control_t *krad_control) {
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, krad_control->sockets)) {
+    printke ("Krad System: can't socketpair errno: %d", errno);
+    krad_control->sockets[0] = 0;
+    krad_control->sockets[1] = 0;
+    return -1;
+  }
+  return 0;
+}
+
+int krad_controller_get_client_fd (krad_control_t *krad_control) {
+  if ((krad_control->sockets[0] != 0) && (krad_control->sockets[1] != 0)) {
+    return krad_control->sockets[1];
+  }
+  return -1;
+}
+
+int krad_controller_get_controller_fd (krad_control_t *krad_control) {
+  if ((krad_control->sockets[0] != 0) && (krad_control->sockets[1] != 0)) {
+    return krad_control->sockets[1];
+  }
+  return -1;
+}
+
+int krad_controller_client_close (krad_control_t *krad_control) {
+  if ((krad_control->sockets[0] != 0) && (krad_control->sockets[1] != 0)) {
+    close (krad_control->sockets[1]);
+    krad_control->sockets[1] = 0;
+    return 0;
+  }
+  return -1;
+}
+
+
+int krad_controller_client_wait (krad_control_t *krad_control, int timeout) {
+
+	struct pollfd pollfds[1];
+  
+  pollfds[0].fd = krad_control->sockets[1];
+  pollfds[0].events = POLLIN;
+  if (poll (pollfds, 1, timeout) != 0) {
+    return 1;
+  }
+    
+  return 0;
+}
+
+int krad_controller_shutdown (krad_control_t *krad_control, pthread_t *thread, int timeout) {
+
+  struct pollfd pollfds[1];
+  int ret;
+  
+  timeout = (timeout / 2) + 2;
+
+  pollfds[0].fd = krad_control->sockets[0];
+  pollfds[0].events = POLLOUT;
+  if (poll (pollfds, 1, timeout) == 1) {
+    ret = write (krad_control->sockets[0], "0", 1);
+    if (ret == 1) {
+      pollfds[0].fd = krad_control->sockets[0];
+      pollfds[0].events = POLLIN;
+      if (poll (pollfds, 1, timeout) == 1) {
+        pthread_join (*thread, NULL);
+        close (krad_control->sockets[0]);
+        krad_control->sockets[0] = 1;
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+void krad_controller_destroy (krad_control_t *krad_control, pthread_t *thread) {
+
+  if (krad_control->sockets[1] != 0) {
+    close (krad_control->sockets[1]);
+    krad_control->sockets[1] = 0;
+  }
+  pthread_cancel (*thread);
+  if (krad_control->sockets[1] != 0) {
+    close (krad_control->sockets[1]);
+    krad_control->sockets[1] = 0;
+  }
+}
+
 int krad_system_get_cpu_usage () {
 	return krad_system.system_cpu_usage;
 }
@@ -15,7 +101,7 @@ void krad_system_set_monitor_cpu_interval (int ms) {
 void krad_system_monitor_cpu_on () {
 
 	if (krad_system.kcm.on == 0) {
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, krad_system.kcm.socketpair)) {
+    if (krad_control_init (&krad_system.kcm.control)) {
       printke ("Krad System: can't socketpair errno: %d", errno);
       return;
     }
@@ -26,39 +112,19 @@ void krad_system_monitor_cpu_on () {
 
 void krad_system_monitor_cpu_off () {
 
-	struct pollfd pollfds[1];
-  int ret;
-
 	if (krad_system.kcm.on == 1) {
 		krad_system.kcm.on = 2;
-    pollfds[0].fd = krad_system.kcm.socketpair[0];
-    pollfds[0].events = POLLOUT;
-    if (poll (pollfds, 1, 1) == 1) {
-      ret = write (krad_system.kcm.socketpair[0], "0", 1);
-      if (ret == 1) {
-        pollfds[0].fd = krad_system.kcm.socketpair[0];
-        pollfds[0].events = POLLIN;
-        if (poll (pollfds, 1, 1) == 1) {
-		      pthread_join (krad_system.kcm.monitor_thread, NULL);
-          printk ("Krad System: CPU Monitor exited clean and quick");
-        }
-      }
-    }
-		
+		if (krad_controller_shutdown (&krad_system.kcm.control, &krad_system.kcm.monitor_thread, 2)) {
+      printk ("Krad System: CPU Monitor exited clean and quick");
+		}
 		if (krad_system.kcm.on != 0) {
-      pthread_cancel (krad_system.kcm.monitor_thread);
+      krad_controller_destroy (&krad_system.kcm.control, &krad_system.kcm.monitor_thread);
       krad_system.kcm.on = 0;
-		  if (krad_system.kcm.fd != 0) {
-			  close (krad_system.kcm.fd);
-			  krad_system.kcm.fd = 0;
-		  }
-      if (krad_system.kcm.socketpair[1] != 0) {
-        close (krad_system.kcm.socketpair[1]);
-        krad_system.kcm.socketpair[1] = 0;
+      if (krad_system.kcm.fd != 0) {
+        close (krad_system.kcm.fd);
+        krad_system.kcm.fd = 0;
       }
     }
-    close (krad_system.kcm.socketpair[0]);
-    krad_system.kcm.socketpair[0] = 0;
 	}
 }
 
@@ -94,8 +160,7 @@ void krad_system_log_off () {
 void *krad_system_monitor_cpu_thread (void *arg) {
 
 	krad_system_cpu_monitor_t *kcm;
-	struct pollfd pollfds[1];
-  
+
 	krad_system_set_thread_name ("kr_cpu_mon");	
 	
 	printk ("Krad System CPU Monitor On");
@@ -159,20 +224,16 @@ void *krad_system_monitor_cpu_thread (void *arg) {
 			if (kcm->cpu_monitor_callback) {
 				kcm->cpu_monitor_callback (kcm->callback_pointer, krad_system.system_cpu_usage);
 			}
-
 		}
 
-    pollfds[0].fd = kcm->socketpair[1];
-    pollfds[0].events = POLLIN;
-    if (poll (pollfds, 1, kcm->interval) != 0) {
+    if (krad_controller_client_wait (&kcm->control, kcm->interval)) {
       break;
     }
 	}
 	
 	close (kcm->fd);
 	kcm->fd = 0;
-	close (kcm->socketpair[1]);
-	kcm->socketpair[1] = 0;
+  krad_controller_client_close (&kcm->control);
   krad_system.kcm.on = 0;
 	printk ("Krad System CPU Monitor Off");
 	

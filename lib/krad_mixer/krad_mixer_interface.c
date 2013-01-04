@@ -348,7 +348,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			
 			for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 				portgroup = krad_mixer->portgroup[p];
-				if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
+				if ((portgroup != NULL) && (portgroup->active == 1) && (portgroup->direction == INPUT)) {
 					crossfade_name = "";
 					crossfade_value = 0.0f;
 					has_xmms2 = 0;

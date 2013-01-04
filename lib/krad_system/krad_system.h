@@ -38,11 +38,17 @@
 typedef struct krad_system_St krad_system_t;
 typedef struct krad_system_cpu_monitor_St krad_system_cpu_monitor_t;
 
+typedef struct krad_control_St krad_control_t;
+
 #define KRAD_SYSNAME_MIN 4
 #define KRAD_SYSNAME_MAX 32
 
 #define KRAD_BUFLEN_CPUSTAT 128
 #define KRAD_CPU_MONITOR_INTERVAL 1800
+
+struct krad_control_St {
+  int sockets[2];
+};
 
 struct krad_system_cpu_monitor_St {
 
@@ -75,7 +81,7 @@ struct krad_system_cpu_monitor_St {
 	
 	int unset_cpu_monitor_callback;
 
-  int socketpair[2];
+  krad_control_t control;
 
 };
 
@@ -95,6 +101,15 @@ struct krad_system_St {
 	pthread_mutex_t log_lock;
 
 };
+
+int krad_controller_get_controller_fd (krad_control_t *krad_control);
+int krad_control_init (krad_control_t *krad_control);
+int krad_controller_get_client_fd (krad_control_t *krad_control);
+void krad_controller_destroy (krad_control_t *krad_control, pthread_t *thread);
+int krad_controller_shutdown (krad_control_t *krad_control, pthread_t *thread, int timeout);
+int krad_controller_client_wait (krad_control_t *krad_control, int timeout);
+int krad_controller_client_close (krad_control_t *krad_control);
+
 
 void krad_system_log_on (char *filename);
 void krad_system_log_off ();

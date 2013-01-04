@@ -10,7 +10,7 @@ typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 #define KRAD_MIXER_MAX_PORTGROUPS 20
 #define KRAD_MIXER_MAX_CHANNELS 8
 #define KRAD_MIXER_DEFAULT_SAMPLE_RATE 48000
-#define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1600
+#define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1024
 #define DEFAULT_MASTERBUS_LEVEL 75.0f
 #define KRAD_MIXER_RMS_WINDOW_SIZE_MS 125
 
@@ -91,6 +91,7 @@ struct krad_mixer_portgroup_St {
   int delay;
   int delay_actual;
 
+  int destroy_mark;
 	int active;
 	
 	krad_mixer_t *krad_mixer;
@@ -130,6 +131,8 @@ struct krad_mixer_St {
 	struct timespec start_time;
 
 	krad_ipc_server_t *krad_ipc;
+
+  int destroying;
 
 };
 

@@ -56,7 +56,7 @@ struct krad_http_St {
 	char *htmlfooter;	
 	
 	pthread_t server_thread;	
-	
+  krad_control_t krad_control;
 };
 
 struct krad_http_client_St {

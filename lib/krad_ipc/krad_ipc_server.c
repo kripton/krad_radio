@@ -10,6 +10,10 @@ krad_ipc_server_t *krad_ipc_server_init (char *appname, char *sysname) {
 		return NULL;
 	}
 	
+  if (krad_control_init (&krad_ipc_server->krad_control)) {
+		return NULL;
+  }
+	
 	krad_ipc_server->shutdown = KRAD_IPC_STARTING;
 	
 	if ((krad_ipc_server->clients = calloc (KRAD_IPC_SERVER_MAX_CLIENTS, sizeof (krad_ipc_server_client_t))) == NULL) {
@@ -322,6 +326,11 @@ void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) {
 
 	s = 0;
 
+	krad_ipc_server->sockets[s].fd = krad_controller_get_client_fd (&krad_ipc_server->krad_control);
+	krad_ipc_server->sockets[s].events = POLLIN;
+
+	s++;
+	
 	krad_ipc_server->sockets[s].fd = krad_ipc_server->sd;
 	krad_ipc_server->sockets[s].events = POLLIN;
 
@@ -766,6 +775,12 @@ void *krad_ipc_server_run_thread (void *arg) {
 			}
 	
 			s = 0;
+
+			if (krad_ipc_server->sockets[s].revents) {
+				break;
+			}
+			
+			s++;
 	
 			if (krad_ipc_server->sockets[s].revents & POLLIN) {
 				krad_ipc_server_accept_client (krad_ipc_server, krad_ipc_server->sd);
@@ -880,19 +895,26 @@ void *krad_ipc_server_run_thread (void *arg) {
 
 	krad_ipc_server->shutdown = KRAD_IPC_SHUTINGDOWN;
 
+  krad_controller_client_close (&krad_ipc_server->krad_control);
+
 	return NULL;
 
 }
 
 void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
 
-	int c;
-	int patience;
+	//int c;
+	//int patience;
 	
   printk ("Krad ipc_server_disable started");	
-	
+
+  if (!krad_controller_shutdown (&krad_ipc_server->krad_control, &krad_ipc_server->server_thread, 30)) {
+    krad_controller_destroy (&krad_ipc_server->krad_control, &krad_ipc_server->server_thread);
+  }
+
+	/*
 	patience = KRAD_IPC_SERVER_TIMEOUT_US * 2;
-	
+
 	if (krad_ipc_server->shutdown == KRAD_IPC_RUNNING) {
 		krad_ipc_server->shutdown = KRAD_IPC_DO_SHUTDOWN;
 	
@@ -915,10 +937,10 @@ void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
     krad_ipc_server->shutdown = KRAD_IPC_SHUTINGDOWN;
 	  printk ("Krad IPC Server thread canceled");
 	}
-	
+	*/
 	if (krad_ipc_server->tcp_sd != 0) {
 		krad_ipc_server_disable_remote (krad_ipc_server);
-	}	
+	}
 
 	if (krad_ipc_server->sd != 0) {
 		close (krad_ipc_server->sd);
