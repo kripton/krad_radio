@@ -169,10 +169,6 @@ static gboolean kr_manager_check_running_stations (gpointer data) {
   return TRUE;
 }
 
-void on_sdfsdf_event (int id, gpointer data) {
-  printf("hai!\n");
-}
-
 void create_station_window (gpointer data) {
 
   kr_manager_t *kr_manager = (kr_manager_t *)data;
@@ -226,7 +222,8 @@ int main (int argc, char *argv[]) {
 
   kr_manager->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (kr_manager->window), PROGRAM_NAME);
-  gtk_window_resize (GTK_WINDOW (kr_manager->window), 600, 400);
+  gtk_window_set_position (GTK_WINDOW (kr_manager->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_default_size (GTK_WINDOW (kr_manager->window), 600, 400);
   g_signal_connect (kr_manager->window, "delete-event", G_CALLBACK (on_delete_event), kr_manager);
   g_signal_connect (kr_manager->window, "destroy", G_CALLBACK (gtk_main_quit), kr_manager);
   kr_manager->label = gtk_label_new ("");
