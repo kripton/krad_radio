@@ -217,6 +217,10 @@ char *kr_station_uptime (char *sysname) {
     return NULL;
   }
   
+  int pos;
+  
+  pos = 0;
+  
   kr_uptime (kr_client);
   
   static char uptime[256];
@@ -259,18 +263,18 @@ char *kr_station_uptime (char *sysname) {
         switch ( ebml_id ) {
           case EBML_ID_KRAD_RADIO_UPTIME:
             number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-            //printf("up ");
+            pos += sprintf (uptime + pos, "Uptime: ");
             updays = number / (60*60*24);
             if (updays) {
-              sprintf (uptime, "Uptime: %d day%s, ", updays, (updays != 1) ? "s" : "");
+              pos += sprintf (uptime + pos, "%d day%s, ", updays, (updays != 1) ? "s" : "");
             }
             upminutes = number / 60;
             uphours = (upminutes / 60) % 24;
             upminutes %= 60;
             if (uphours) {
-              sprintf (uptime, "Uptime: %2d:%02d ", uphours, upminutes);
+              pos += sprintf (uptime + pos, "%2d:%02d ", uphours, upminutes);
             } else {
-              sprintf (uptime, "Uptime: %d min ", upminutes);
+              pos += sprintf (uptime + pos, "%d min ", upminutes);
             }
             break;
         }
