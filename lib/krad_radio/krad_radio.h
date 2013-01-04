@@ -85,6 +85,7 @@ struct krad_remote_control_St {
 };
 
 struct krad_log_St {
+  krad_timer_t *startup_timer;
 	char filename[512];
 };
 

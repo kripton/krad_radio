@@ -139,7 +139,7 @@ void krad_system_log_on (char *filename) {
 	pthread_mutex_lock (&krad_system.log_lock);
 	krad_system.log_fd = open (filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (krad_system.log_fd > 0) {
-		dprintf (krad_system.log_fd, "Logging started\n");
+		dprintf (krad_system.log_fd, "Log %d started\n", krad_system.lognum);
 	} else {
 		failfast ("frak");
 	}
@@ -150,6 +150,7 @@ void krad_system_log_off () {
 
 	pthread_mutex_lock (&krad_system.log_lock);
 	if (krad_system.log_fd > 0) {
+		dprintf (krad_system.log_fd, "Log %d ended\n", krad_system.lognum++);
 		fsync (krad_system.log_fd);
 		close (krad_system.log_fd);
 		krad_system.log_fd = 0;
@@ -296,6 +297,34 @@ uint64_t krad_system_daemon_uptime () {
 	return krad_system.uptime;
 
 }
+
+void krad_system_daemon_wait () {
+
+  int signal_caught;
+
+  signal_caught = 0;
+
+  while (1) {
+
+    if (sigwait (&krad_system.signal_mask, &signal_caught) != 0) {
+      failfast ("error on sigwait!");
+    }
+    switch (signal_caught) {
+      case SIGHUP:
+        printkd ("Got HANGUP Signal!");
+        break;
+      case SIGINT:
+        printkd ("Got SIGINT Signal!");
+      case SIGTERM:
+        printkd ("Got SIGTERM Signal!");
+      default:
+        printk ("Krad Radio Shutting down!");
+        return;
+    }
+  }
+}
+
+
 //FIXME these prints need locks or single/reader/writer buffers/handles
 void failfast (char* format, ...) {
 
@@ -408,7 +437,14 @@ void krad_system_daemonize () {
 	if ((chdir("/")) < 0) {
 		exit(EXIT_FAILURE);
 	}
-        
+	
+  sigemptyset (&krad_system.signal_mask);
+  sigaddset (&krad_system.signal_mask, SIGINT);
+  sigaddset (&krad_system.signal_mask, SIGTERM);
+  sigaddset (&krad_system.signal_mask, SIGHUP);
+  if (pthread_sigmask (SIG_BLOCK, &krad_system.signal_mask, NULL) != 0) {
+    failfast ("Could not set signal mask!");
+  } 
 }
 
 void krad_system_set_thread_name (char *name) {

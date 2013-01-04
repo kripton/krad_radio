@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
+#include <signal.h>
 #include <pthread.h>
 
 #ifndef __MACH__
@@ -98,7 +99,10 @@ struct krad_system_St {
 	uint64_t uptime;
 
 	int log_fd;
+	int lognum;	
 	pthread_mutex_t log_lock;
+
+  sigset_t signal_mask;
 
 };
 
@@ -109,7 +113,6 @@ void krad_controller_destroy (krad_control_t *krad_control, pthread_t *thread);
 int krad_controller_shutdown (krad_control_t *krad_control, pthread_t *thread, int timeout);
 int krad_controller_client_wait (krad_control_t *krad_control, int timeout);
 int krad_controller_client_close (krad_control_t *krad_control);
-
 
 void krad_system_log_on (char *filename);
 void krad_system_log_off ();
@@ -133,6 +136,7 @@ void printke (char* format, ...);
 void printkd (char* format, ...);
 void printk (char* format, ...);
 void krad_system_daemonize ();
+void krad_system_daemon_wait ();
 void krad_system_init ();
 
 void krad_system_set_thread_name (char *name);

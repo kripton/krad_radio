@@ -5,8 +5,19 @@ static inline uint64_t ts_to_ms (struct timespec ts) {
 }
 
 krad_timer_t *krad_timer_create() {
+  return krad_timer_create_with_name ("");
+}
+
+krad_timer_t *krad_timer_create_with_name (const char *name) {
   krad_timer_t *krad_timer = calloc(1, sizeof(krad_timer_t));
+  krad_timer->name = name;
   return krad_timer;
+}
+
+void krad_timer_status (krad_timer_t *krad_timer) {
+  printk ("Krad Radio: %s timer at %"PRIu64"ms",
+          krad_timer->name,
+          krad_timer_sample_duration_ms (krad_timer));
 }
 
 void krad_timer_start (krad_timer_t *krad_timer) {
