@@ -268,7 +268,9 @@ int krad_jack_process (jack_nframes_t nframes, void *arg) {
 
 void krad_jack_shutdown (void *arg) {
 
-	//jack_t *jack = (jack_t *)arg;
+	krad_jack_t *krad_jack = (krad_jack_t *)arg;
+
+  printke ("Krad Jack shutdown callback, oh dear!");
 
 }
 
@@ -386,7 +388,7 @@ krad_jack_t *krad_jack_create_for_jack_server_name (krad_audio_t *krad_audio, ch
 
 	jack_set_process_callback (krad_jack->client, krad_jack_process, krad_jack);
 	jack_on_shutdown (krad_jack->client, krad_jack_shutdown, krad_jack);
-	//jack_set_xrun_callback (krad_jack->client, krad_jack_xrun, krad_jack);
+  jack_set_xrun_callback (krad_jack->client, krad_jack_xrun, krad_jack);
 	//jack_set_port_registration_callback ( krad_jack->client, krad_jack_port_registration_callback, krad_jack );
 	//jack_set_port_connect_callback ( krad_jack->client, krad_jack_port_connection_callback, krad_jack );
 
