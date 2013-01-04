@@ -268,7 +268,7 @@ int krad_jack_process (jack_nframes_t nframes, void *arg) {
 
 void krad_jack_shutdown (void *arg) {
 
-	krad_jack_t *krad_jack = (krad_jack_t *)arg;
+  //krad_jack_t *krad_jack = (krad_jack_t *)arg;
 
   printke ("Krad Jack shutdown callback, oh dear!");
 

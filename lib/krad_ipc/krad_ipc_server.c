@@ -912,32 +912,6 @@ void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
     krad_controller_destroy (&krad_ipc_server->krad_control, &krad_ipc_server->server_thread);
   }
 
-	/*
-	patience = KRAD_IPC_SERVER_TIMEOUT_US * 2;
-
-	if (krad_ipc_server->shutdown == KRAD_IPC_RUNNING) {
-		krad_ipc_server->shutdown = KRAD_IPC_DO_SHUTDOWN;
-	
-		while ((krad_ipc_server->shutdown != KRAD_IPC_SHUTINGDOWN) && (patience > 0)) {
-			usleep (KRAD_IPC_SERVER_TIMEOUT_US / 4);
-			patience -= KRAD_IPC_SERVER_TIMEOUT_US / 4;
-		}
-		
-	  for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
-		  if (krad_ipc_server->clients[c].broadcasts == 1) {
-			  krad_ipc_server->clients[c].broadcasts = 0;
-		  }
-	  }
-  }
-	
-	if (krad_ipc_server->shutdown == KRAD_IPC_SHUTINGDOWN) {
-    pthread_join (krad_ipc_server->server_thread, NULL);
-	} else {
-    pthread_cancel (krad_ipc_server->server_thread);
-    krad_ipc_server->shutdown = KRAD_IPC_SHUTINGDOWN;
-	  printk ("Krad IPC Server thread canceled");
-	}
-	*/
 	if (krad_ipc_server->tcp_sd != 0) {
 		krad_ipc_server_disable_remote (krad_ipc_server);
 	}

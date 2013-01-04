@@ -1088,29 +1088,37 @@ void krad_mixer_unbind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgrou
 }
 
 
+void krad_mixer_ticker_thread_cleanup (void *arg) {
+
+	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
+	
+  if (krad_mixer->krad_ticker != NULL) {
+	  krad_ticker_destroy (krad_mixer->krad_ticker);
+    krad_mixer->krad_ticker = NULL;
+    printk ("Krad Mixer: Synthetic Timer Destroyed");
+  }
+}
+
 void *krad_mixer_ticker_thread (void *arg) {
 
 	krad_mixer_t *krad_mixer = (krad_mixer_t *)arg;
 
 	krad_system_set_thread_name ("kr_mixer");
-
-	krad_mixer->krad_ticker = krad_ticker_create (krad_mixer->sample_rate, krad_mixer->ticker_period);
-
+  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
+  krad_mixer->krad_ticker = krad_ticker_create (krad_mixer->sample_rate, krad_mixer->ticker_period);
+	pthread_cleanup_push (krad_mixer_ticker_thread_cleanup, krad_mixer);
+  pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 	krad_ticker_start_at (krad_mixer->krad_ticker, krad_mixer->start_time);
-
 	while (krad_mixer->ticker_running == 1) {
-	
+	  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 		krad_mixer_process (krad_mixer->ticker_period, krad_mixer);
-	
+	  pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 		krad_ticker_wait (krad_mixer->krad_ticker);
-
 	}
 
-	krad_ticker_destroy (krad_mixer->krad_ticker);
-
+	pthread_cleanup_pop (1);
 
 	return NULL;
-
 }
 
 
@@ -1142,6 +1150,7 @@ void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer) {
 
 	if (krad_mixer->ticker_running == 1) {
 		krad_mixer->ticker_running = 2;
+    pthread_cancel (krad_mixer->ticker_thread);
 		pthread_join (krad_mixer->ticker_thread, NULL);
 		krad_mixer->ticker_running = 0;
 	}

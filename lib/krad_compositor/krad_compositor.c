@@ -1419,6 +1419,8 @@ void krad_compositor_destroy (krad_compositor_t *krad_compositor) {
 			krad_compositor_port_destroy (krad_compositor, &krad_compositor->port[i]);
 		}
 	}
+	
+  krad_compositor_stop_ticker (krad_compositor);
 
 	krad_compositor_free_resources (krad_compositor);
 	
@@ -1519,31 +1521,39 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 
 }
 
+void krad_compositor_ticker_thread_cleanup (void *arg) {
+
+	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
+	
+  if (krad_compositor->krad_ticker != NULL) {
+	  krad_ticker_destroy (krad_compositor->krad_ticker);
+    krad_compositor->krad_ticker = NULL;
+    printk ("Krad Compositor: Synthetic Timer Destroyed");
+  }
+}
 
 void *krad_compositor_ticker_thread (void *arg) {
 
 	krad_compositor_t *krad_compositor = (krad_compositor_t *)arg;
 
 	krad_system_set_thread_name ("kr_compositor");
-
+  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 	krad_compositor->krad_ticker = krad_ticker_create (krad_compositor->frame_rate_numerator,
 													   krad_compositor->frame_rate_denominator);
-													   
+  pthread_cleanup_push (krad_compositor_ticker_thread_cleanup, krad_compositor);
+  pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 	krad_ticker_start_at (krad_compositor->krad_ticker, krad_compositor->start_time);
 
 	while (krad_compositor->ticker_running == 1) {
-	
+    pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 		krad_compositor_process (krad_compositor);
-	
+    pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 		krad_ticker_wait (krad_compositor->krad_ticker);
-
 	}
-
-	krad_ticker_destroy (krad_compositor->krad_ticker);
-
-
+	
+	pthread_cleanup_pop (1);
+	
 	return NULL;
-
 }
 
 void krad_compositor_start_ticker (krad_compositor_t *krad_compositor) {
@@ -1573,6 +1583,7 @@ void krad_compositor_stop_ticker (krad_compositor_t *krad_compositor) {
 
 	if (krad_compositor->ticker_running == 1) {
 		krad_compositor->ticker_running = 2;
+    pthread_cancel (krad_compositor->ticker_thread);
 		pthread_join (krad_compositor->ticker_thread, NULL);
 		krad_compositor->ticker_running = 0;
 	}

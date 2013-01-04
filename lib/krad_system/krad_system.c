@@ -84,6 +84,7 @@ void krad_controller_destroy (krad_control_t *krad_control, pthread_t *thread) {
     krad_control->sockets[1] = 0;
   }
   pthread_cancel (*thread);
+  pthread_join (*thread, NULL);
   if (krad_control->sockets[1] != 0) {
     close (krad_control->sockets[1]);
     krad_control->sockets[1] = 0;
