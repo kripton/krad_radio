@@ -86,8 +86,9 @@ struct krad_Xtransponder_St {
 	krad_radio_t *krad_radio;
 };
 
-
 int krad_Xtransponder_add_capture (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
+int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
+int krad_Xtransponder_add_demuxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 int krad_Xtransponder_add_encoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 int krad_Xtransponder_add_decoder (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 

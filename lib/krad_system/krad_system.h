@@ -101,8 +101,8 @@ void krad_system_set_monitor_cpu_callback (void *callback_pointer,
 
 void krad_system_set_monitor_cpu_interval (int ms);
 void *krad_system_monitor_cpu_thread (void *arg);
+void krad_system_monitor_cpu_off_slow ();
 void krad_system_monitor_cpu_off ();
-void krad_system_monitor_cpu_off_fast ();
 int krad_system_get_cpu_usage ();
 void krad_system_monitor_cpu_on ();
 
@@ -120,6 +120,7 @@ void krad_system_init ();
 
 void krad_system_set_thread_name (char *name);
 int krad_system_set_socket_nonblocking (int sd);
+int dir_exists (char *dir);
 int krad_valid_sysname (char *sysname);
 int krad_valid_host_and_port (char *string);
 void krad_get_host_and_port (char *string, char *host, int *port);

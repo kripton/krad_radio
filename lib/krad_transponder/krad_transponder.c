@@ -1,13 +1,5 @@
 #include "krad_transponder.h"
 
-extern int verbose;
-
-void krad_link_activate (krad_link_t *krad_link);
-static void *krad_transponder_listening_thread (void *arg);
-static void krad_transponder_listen_destroy_client (krad_transponder_listen_client_t *krad_transponder_listen_client);
-static void krad_transponder_listen_create_client (krad_transponder_t *krad_transponder, int sd);
-static void *krad_transponder_listen_client_thread (void *arg);
-
 #ifndef __MACH__
 
 void v4l2_capture_unit_create (void *arg) {
@@ -705,12 +697,13 @@ void audio_encoding_unit_destroy (void *arg) {
 	
 }
 
-void *stream_output_thread (void *arg) {
+
+void muxer_unit_create (void *arg) {
+/*
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	krad_system_set_thread_name ("kr_stream_out");
 	
-	krad_link_t *krad_link = (krad_link_t *)arg;
-
 	krad_transmission_t *krad_transmission;
 	unsigned char *packet;
 	int packet_size;
@@ -884,8 +877,13 @@ void *stream_output_thread (void *arg) {
 	}
 	
 	printk ("Output/Muxing thread waiting..");
-		
-	while ( krad_link->encoding ) {
+*/
+}
+
+
+int muxer_unit_process (void *arg) {
+/*
+  krad_link_t *krad_link = (krad_link_t *)arg;
 
 		if (krad_link->encoding == 4) {
 			break;
@@ -1042,9 +1040,13 @@ void *stream_output_thread (void *arg) {
 		}
 		
 		usleep (6000);		
-		
-		//krad_ebml_write_tag (krad_link->krad_ebml, "test tag 1", "monkey 123");
-	}
+*/
+  return 0;
+}
+
+void muxer_unit_destroy (void *arg) {
+/*
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
 	krad_container_destroy (krad_link->krad_container);
 	
@@ -1060,205 +1062,138 @@ void *stream_output_thread (void *arg) {
 
 	printk ("Output/Muxing thread exiting");
 	
-	return NULL;
-	
+*/
 }
 
-
-void *udp_output_thread(void *arg) {
-
-	krad_system_set_thread_name ("kr_udpout");
-
-	printk ("UDP Output thread starting");
+void demuxer_unit_create (void *arg) {
 
 	krad_link_t *krad_link = (krad_link_t *)arg;
-
-	unsigned char *buffer;
-	int count;
-	int packet_size;
-	int frames;
-	//uint64_t frames_big;
-	
-	//frames_big = 0;
-	count = 0;
-	
-	buffer = malloc(250000);
-	
-	krad_link->krad_slicer = krad_slicer_create ();
-	
-	if (krad_link->audio_codec == OPUS) {	
-	
-		while ( krad_link->encoding ) {
-		
-			if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) >= 4)) {
-
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
-		
-				while ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (krad_link->encoding != 4)) {
-					usleep(4000);
-				}
-			
-				if ((krad_ringbuffer_read_space(krad_link->encoded_audio_ringbuffer) < packet_size + 4) && (krad_link->encoding == 4)) {
-					break;
-				}
-			
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
-				//frames_big = frames;
-				//memcpy (buffer, &frames_big, 8);
-				krad_ringbuffer_read(krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
-
-				krad_slicer_sendto (krad_link->krad_slicer, buffer, packet_size, 1, krad_link->host, krad_link->port);
-				count++;
-				
-			} else {
-				if (krad_link->encoding == 4) {
-					break;
-				}
-				usleep(4000);
-			}
-		}
-	}
-	
-	krad_slicer_destroy (krad_link->krad_slicer);
-	
-	free (buffer);
-
-	printk ("UDP Output thread exiting");
-	
-	return NULL;
-
-}
-
-void *stream_input_thread (void *arg) {
 
 	krad_system_set_thread_name ("kr_stream_in");
 
-	krad_link_t *krad_link = (krad_link_t *)arg;
-
 	printk ("Input/Demuxing thread starting");
 
-	unsigned char *buffer;
-	unsigned char *header_buffer;
+	krad_link->demux_header_buffer = malloc (4096 * 512);
+	krad_link->demux_buffer = malloc (4096 * 2048);
+	
+	krad_link->demux_video_packets = 0;
+	krad_link->demux_audio_packets = 0;	
+	krad_link->demux_current_track = -1;	
+	
+	if (krad_link->host[0] != '\0') {
+		krad_link->krad_container = krad_container_open_stream (krad_link->host, krad_link->port, krad_link->mount, NULL);
+	} else {
+		krad_link->krad_container = krad_container_open_file (krad_link->input, KRAD_IO_READONLY);
+  }
+}
+
+int demuxer_unit_process (void *arg) {
+
+  krad_link_t *krad_link = (krad_link_t *)arg;
+
 	int codec_bytes;
-	int video_packets;
-	int audio_packets;
-	int current_track;
-	krad_codec_t track_codecs[10];
-	krad_codec_t nocodec;	
 	int packet_size;
 	uint64_t packet_timecode;
 	int header_size;
 	int h;
 	int total_header_size;
 	int writeheaders;
-	
-	nocodec = NOCODEC;
+
+	krad_link->demux_nocodec = NOCODEC;
 	packet_size = 0;
-	codec_bytes = 0;	
+	codec_bytes = 0;
 	header_size = 0;
 	total_header_size = 0;	
 	writeheaders = 0;
-	video_packets = 0;
-	audio_packets = 0;
-	current_track = -1;
-	
-	header_buffer = malloc (4096 * 512);
-	buffer = malloc (4096 * 2048);
-	
-	if (krad_link->host[0] != '\0') {
-		krad_link->krad_container = krad_container_open_stream (krad_link->host, krad_link->port, krad_link->mount, NULL);
-	} else {
-		krad_link->krad_container = krad_container_open_file (krad_link->input, KRAD_IO_READONLY);
+
+	packet_size = krad_container_read_packet ( krad_link->krad_container, &krad_link->demux_current_track, &packet_timecode, krad_link->demux_buffer);
+	//printk ("packet track %d timecode: %zu size %d", current_track, packet_timecode, packet_size);
+	if ((packet_size <= 0) && (packet_timecode == 0) && ((krad_link->demux_video_packets + krad_link->demux_audio_packets) > 20))  {
+		//printk ("stream input thread packet size was: %d", packet_size);
+    return 1;
 	}
-	
-	while (!krad_link->destroy) {
-		
-		writeheaders = 0;
-		total_header_size = 0;
-		header_size = 0;
 
-		packet_size = krad_container_read_packet ( krad_link->krad_container, &current_track, &packet_timecode, buffer);
-		//printk ("packet track %d timecode: %zu size %d", current_track, packet_timecode, packet_size);
-		if ((packet_size <= 0) && (packet_timecode == 0) && ((video_packets + audio_packets) > 20))  {
-			//printk ("stream input thread packet size was: %d", packet_size);
-			break;
+	if (krad_container_track_changed (krad_link->krad_container, krad_link->demux_current_track)) {
+		printk ("track %d changed! status is %d header count is %d",
+		        krad_link->demux_current_track, krad_container_track_active(krad_link->krad_container, krad_link->demux_current_track),
+		        krad_container_track_header_count(krad_link->krad_container, krad_link->demux_current_track));
+
+		krad_link->demux_track_codecs[krad_link->demux_current_track] = krad_container_track_codec (krad_link->krad_container, krad_link->demux_current_track);
+
+		if (krad_link->demux_track_codecs[krad_link->demux_current_track] == NOCODEC) {
+			return 1;
 		}
-		
-		if (krad_container_track_changed (krad_link->krad_container, current_track)) {
-			printk ("track %d changed! status is %d header count is %d",
-			        current_track, krad_container_track_active(krad_link->krad_container, current_track),
-			        krad_container_track_header_count(krad_link->krad_container, current_track));
-			
-			track_codecs[current_track] = krad_container_track_codec (krad_link->krad_container, current_track);
-			
-			if (track_codecs[current_track] == NOCODEC) {
-				continue;
-			}
-			writeheaders = 1;
-			for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, current_track); h++) {
-				printk ("header %d is %d bytes", h, krad_container_track_header_size (krad_link->krad_container, current_track, h));
-				total_header_size += krad_container_track_header_size (krad_link->krad_container, current_track, h);
-			}
-		}
-		
-		if ((track_codecs[current_track] == Y4M) ||
-		    (track_codecs[current_track] == KVHS) ||
-		    (track_codecs[current_track] == VP8) ||
-		    (track_codecs[current_track] == THEORA)) {
-
-			video_packets++;
-
-			while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!krad_link->destroy)) {
-				usleep(10000);
-			}
-			
-			if (writeheaders == 1) {
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&nocodec, 4);
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
-				for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, current_track); h++) {
-					header_size = krad_container_track_header_size(krad_link->krad_container, current_track, h);
-					krad_container_read_track_header(krad_link->krad_container, header_buffer, current_track, h);
-					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
-					krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)header_buffer, header_size);
-					codec_bytes += packet_size;
-				}
-			} else {
-				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&track_codecs[current_track], 4);
-			}
-			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_timecode, 8);
-			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
-			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)buffer, packet_size);
-			codec_bytes += packet_size;
-		}
-		
-		if ((track_codecs[current_track] == VORBIS) ||
-		    (track_codecs[current_track] == OPUS) ||
-		    (track_codecs[current_track] == FLAC)) {
-
-			audio_packets++;
-			
-			while ((krad_ringbuffer_write_space (krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!krad_link->destroy)) {
-				usleep(10000);
-			}
-			
-			if (writeheaders == 1) {
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
-				for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, current_track); h++) {
-					header_size = krad_container_track_header_size (krad_link->krad_container, current_track, h);
-					krad_container_read_track_header (krad_link->krad_container, header_buffer, current_track, h);
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
-					krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)header_buffer, header_size);
-					codec_bytes += packet_size;
-				}
-			} else {
-				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&track_codecs[current_track], 4);
-			}
-			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
-			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)buffer, packet_size);
-			codec_bytes += packet_size;
+		writeheaders = 1;
+		for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, krad_link->demux_current_track); h++) {
+			printk ("header %d is %d bytes", h, krad_container_track_header_size (krad_link->krad_container, krad_link->demux_current_track, h));
+			total_header_size += krad_container_track_header_size (krad_link->krad_container, krad_link->demux_current_track, h);
 		}
 	}
+
+	if ((krad_link->demux_track_codecs[krad_link->demux_current_track] == Y4M) ||
+	    (krad_link->demux_track_codecs[krad_link->demux_current_track] == KVHS) ||
+	    (krad_link->demux_track_codecs[krad_link->demux_current_track] == VP8) ||
+	    (krad_link->demux_track_codecs[krad_link->demux_current_track] == THEORA)) {
+
+		krad_link->demux_video_packets++;
+
+		while ((krad_ringbuffer_write_space(krad_link->encoded_video_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4 + 8) && (!krad_link->destroy)) {
+			usleep(10000);
+		}
+
+		if (writeheaders == 1) {
+			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&krad_link->demux_nocodec, 4);
+			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&krad_link->demux_track_codecs[krad_link->demux_current_track], 4);
+			for (h = 0; h < krad_container_track_header_count(krad_link->krad_container, krad_link->demux_current_track); h++) {
+				header_size = krad_container_track_header_size(krad_link->krad_container, krad_link->demux_current_track, h);
+				krad_container_read_track_header(krad_link->krad_container, krad_link->demux_header_buffer, krad_link->demux_current_track, h);
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&header_size, 4);
+				krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)krad_link->demux_header_buffer, header_size);
+				codec_bytes += packet_size;
+			}
+		} else {
+			krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&krad_link->demux_track_codecs[krad_link->demux_current_track], 4);
+		}
+		krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_timecode, 8);
+		krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)&packet_size, 4);
+		krad_ringbuffer_write(krad_link->encoded_video_ringbuffer, (char *)krad_link->demux_buffer, packet_size);
+		codec_bytes += packet_size;
+	}
+
+	if ((krad_link->demux_track_codecs[krad_link->demux_current_track] == VORBIS) ||
+	    (krad_link->demux_track_codecs[krad_link->demux_current_track] == OPUS) ||
+	    (krad_link->demux_track_codecs[krad_link->demux_current_track] == FLAC)) {
+
+		krad_link->demux_audio_packets++;
+
+		while ((krad_ringbuffer_write_space (krad_link->encoded_audio_ringbuffer) < packet_size + 4 + total_header_size + 4 + 4) && (!krad_link->destroy)) {
+			usleep(10000);
+		}
+
+		if (writeheaders == 1) {
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&krad_link->demux_nocodec, 4);
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&krad_link->demux_track_codecs[krad_link->demux_current_track], 4);
+			for (h = 0; h < krad_container_track_header_count (krad_link->krad_container, krad_link->demux_current_track); h++) {
+				header_size = krad_container_track_header_size (krad_link->krad_container, krad_link->demux_current_track, h);
+				krad_container_read_track_header (krad_link->krad_container, krad_link->demux_header_buffer, krad_link->demux_current_track, h);
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&header_size, 4);
+				krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)krad_link->demux_header_buffer, header_size);
+				codec_bytes += packet_size;
+			}
+		} else {
+			krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&krad_link->demux_track_codecs[krad_link->demux_current_track], 4);
+		}
+		krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&packet_size, 4);
+		krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)krad_link->demux_buffer, packet_size);
+		codec_bytes += packet_size;
+	}
+
+  return 0;	
+}
+
+void demuxer_unit_destroy (void *arg) {
+
+	krad_link_t *krad_link = (krad_link_t *)arg;
 
   krad_link->playing = 3;
 
@@ -1266,129 +1201,8 @@ void *stream_input_thread (void *arg) {
 
   krad_container_destroy (krad_link->krad_container);
 
-  free (buffer);
-  free (header_buffer);
-  return NULL;
-}
-
-void *udp_input_thread(void *arg) {
-
-	krad_system_set_thread_name ("kr_udp_in");
-
-	krad_link_t *krad_link = (krad_link_t *)arg;
-
-	printk ("UDP Input thread starting");
-
-	int sd;
-	int ret;
-	int rsize;
-	unsigned char *buffer;
-	unsigned char *packet_buffer;
-	struct sockaddr_in local_address;
-	struct sockaddr_in remote_address;
-	struct pollfd sockets[1];	
-	int nocodec;
-	int opus_codec;
-	int packets;
-	
-	packets = 0;
-	rsize = sizeof(remote_address);
-	opus_codec = OPUS;
-	nocodec = NOCODEC;
-	buffer = calloc (1, 2000);
-	packet_buffer = calloc (1, 500000);
-	sd = socket (AF_INET, SOCK_DGRAM, 0);
-
-	krad_link->krad_rebuilder = krad_rebuilder_create ();
-
-	memset((char *) &local_address, 0, sizeof(local_address));
-	local_address.sin_family = AF_INET;
-	local_address.sin_port = htons (krad_link->port);
-	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	if (bind (sd, (struct sockaddr *)&local_address, sizeof(local_address)) == -1 ) {
-		failfast ("UDP Input bind error");
-	}
-	
-	//kludge to get header
-	krad_opus_t *opus_temp;
-	unsigned char opus_header[256];
-	int opus_header_size;
-	
-	opus_temp = krad_opus_encoder_create (2, krad_link->krad_radio->krad_mixer->sample_rate, 110000, 
-										 OPUS_APPLICATION_AUDIO);
-										 
-	opus_header_size = opus_temp->header_data_size;
-	memcpy (opus_header, opus_temp->header_data, opus_header_size);
-	krad_opus_encoder_destroy(opus_temp);
-	
-	printk ("placing opus header size is %d", opus_header_size);
-	
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_header_size, 4);
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)opus_header, opus_header_size);
-
-	while (!krad_link->destroy) {
-	
-		sockets[0].fd = sd;
-		sockets[0].events = POLLIN;
-
-		ret = poll (sockets, 1, 250);	
-	
-		if (ret < 0) {
-			printk ("Krad Link UDP Poll Failure");
-			krad_link->destroy = 1;
-			continue;
-		}
-	
-		if (ret > 0) {
-		
-			ret = recvfrom (sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
-		
-			if (ret == -1) {
-				printk ("Krad Link UDP Recv Failure");
-				krad_link->destroy = 1;
-				continue;
-			}
-		
-			//printk ("Received packet from %s:%d", 
-			//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
-
-
-			krad_rebuilder_write (krad_link->krad_rebuilder, buffer, ret);
-
-			ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
-		
-			if (ret != 0) {
-				//printk ("read a packet with %d bytes", ret);
-
-				if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			
-					while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!krad_link->destroy)) {
-						usleep(10000);
-					}
-				
-					if (packets > 0) {
-						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
-					}
-					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&ret, 4);
-					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)packet_buffer, ret);
-					packets++;
-
-				}
-
-			}
-		}
-	}
-
-	krad_rebuilder_destroy (krad_link->krad_rebuilder);
-	close (sd);
-	free (buffer);
-	free (packet_buffer);
-	printk ("UDP Input thread exiting");
-	
-	return NULL;
+  free (krad_link->demux_buffer);
+  free (krad_link->demux_header_buffer);
 
 }
 
@@ -2054,7 +1868,7 @@ void decklink_capture_unit_create (void *arg) {
 	krad_link->krad_decklink->audio_frames_callback = krad_link_decklink_audio_callback;
 	krad_link->krad_decklink->video_frame_callback = krad_link_decklink_video_callback;
 	
-	krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
+	//krad_decklink_set_verbose (krad_link->krad_decklink, verbose);
 	
 	krad_decklink_start (krad_link->krad_decklink);
 }
@@ -2151,10 +1965,6 @@ void krad_link_destroy (krad_link_t *krad_link) {
 			pthread_join (krad_link->stream_output_thread, NULL);
 	}
 
-	if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == UDP)) {
-		pthread_join (krad_link->udp_output_thread, NULL);
-	}
-
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
 
 
@@ -2169,13 +1979,9 @@ void krad_link_destroy (krad_link_t *krad_link) {
     }
 		
 		if ((krad_link->transport_mode == TCP) || (krad_link->transport_mode == FILESYSTEM)) {
-			pthread_join (krad_link->stream_input_thread, NULL);
+      krad_Xtransponder_subunit_remove (krad_link->krad_transponder->krad_Xtransponder, krad_link->demux_graph_id);
+      demuxer_unit_destroy ((void *)krad_link);
 		}
-		
-		if (krad_link->transport_mode == UDP) {
-			pthread_join (krad_link->udp_input_thread, NULL);
-		}		
-			
 	}
 	
 	if (krad_link->operation_mode == CAPTURE) {
@@ -2321,12 +2127,16 @@ void krad_link_activate (krad_link_t *krad_link) {
 	}
 	
 	if ((krad_link->operation_mode == RECEIVE) || (krad_link->operation_mode == PLAYBACK)) {
-		if (krad_link->transport_mode == UDP) {
-			pthread_create(&krad_link->udp_input_thread, NULL, udp_input_thread, (void *)krad_link);	
-		} else {
-			pthread_create(&krad_link->stream_input_thread, NULL, stream_input_thread, (void *)krad_link);	
-		}
-		
+
+    demuxer_unit_create ((void *)krad_link);
+    krad_transponder_watch_t *watch;
+    watch = calloc (1, sizeof(krad_transponder_watch_t));
+    watch->idle_callback_interval = 5;
+    watch->callback_pointer = (void *)krad_link;
+    watch->readable_callback = demuxer_unit_process;
+    krad_link->demux_graph_id = krad_Xtransponder_add_demuxer (krad_link->krad_transponder->krad_Xtransponder, watch);
+    free (watch);
+				
 		if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
       video_decoding_unit_create ((void *)krad_link);
       krad_transponder_watch_t *watch;
@@ -2375,329 +2185,18 @@ void krad_link_activate (krad_link_t *krad_link) {
       free (watch);
 		}
 	
-		if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode == UDP)) {
-			pthread_create (&krad_link->udp_output_thread, NULL, udp_output_thread, (void *)krad_link);	
-		} else {
-			pthread_create (&krad_link->stream_output_thread, NULL, stream_output_thread, (void *)krad_link);	
+		if ((krad_link->operation_mode == TRANSMIT) && (krad_link->transport_mode != UDP)) {
+      muxer_unit_create ((void *)krad_link);
+      krad_transponder_watch_t *watch;
+      watch = calloc (1, sizeof(krad_transponder_watch_t));
+      watch->idle_callback_interval = 5;
+      watch->callback_pointer = (void *)krad_link;
+      watch->readable_callback = muxer_unit_process;
+      krad_link->mux_graph_id = krad_Xtransponder_add_muxer (krad_link->krad_transponder->krad_Xtransponder, watch);
+      free (watch);
 		}
 	}
 }
-
-int krad_link_wait_codec_init (krad_link_t *krad_link) {
-
-	//FIXME potential stuckness
-
-	if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-		if (krad_link->audio_codec == OPUS) {
-			while (krad_link->krad_opus == NULL) {
-				usleep (2000);
-			}
-		}
-		if (krad_link->audio_codec == VORBIS) {
-			while (krad_link->krad_vorbis == NULL) {
-				usleep (2000);
-			}
-		}							
-		if (krad_link->audio_codec == FLAC) {
-			while (krad_link->krad_flac == NULL) {
-				usleep (2000);
-			}
-		}
-	}
-
-	if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-		if (krad_link->video_codec == THEORA) {
-			while (krad_link->krad_theora_encoder == NULL) {
-				usleep (2000);
-			}
-		}							
-		if (krad_link->video_codec == VP8) {
-			while (krad_link->krad_vpx_encoder == NULL) {
-				usleep (2000);
-			}
-		}
-	}
-	
-	return 0;
-	
-}
-
-
-
-
-void krad_transponder_listen_promote_client (krad_transponder_listen_client_t *client) {
-
-	krad_transponder_t *krad_transponder;
-	krad_link_t *krad_link;	
-	int k;
-
-	krad_transponder = client->krad_transponder;
-
-	pthread_mutex_lock (&krad_transponder->change_lock);
-
-
-	for (k = 0; k < KRAD_TRANSPONDER_MAX_LINKS; k++) {
-		if (krad_transponder->krad_link[k] == NULL) {
-
-			krad_transponder->krad_link[k] = krad_link_create (k);
-			krad_link = krad_transponder->krad_link[k];
-			krad_link->krad_radio = krad_transponder->krad_radio;
-			krad_link->krad_transponder = krad_transponder;
-			
-			krad_tags_set_set_tag_callback (krad_link->krad_tags, krad_transponder->krad_radio->krad_ipc, 
-											(void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
-	
-			
-			sprintf (krad_link->sysname, "link%d", k);
-
-			krad_link->sd = client->sd;
-			strcpy (krad_link->mount, client->mount);
-			strcpy (krad_link->content_type, client->content_type);
-			strcpy (krad_link->host, "ListenSD");
-			krad_link->port = client->sd;
-			krad_link->operation_mode = PLAYBACK;
-			krad_link->transport_mode = TCP;
-			//FIXME default
-			krad_link->av_mode = AUDIO_AND_VIDEO;
-			
-			krad_link_run (krad_link);
-
-			break;
-		}
-	}
-
-	pthread_mutex_unlock (&krad_transponder->change_lock);
-	
-	free (client);
-	
-	pthread_exit(0);	
-
-}
-
-void *krad_transponder_listen_client_thread (void *arg) {
-
-
-	krad_transponder_listen_client_t *client = (krad_transponder_listen_client_t *)arg;
-	
-	int ret;
-	int wot;
-	char *string;
-	char byte;
-
-	krad_system_set_thread_name ("kr_lsn_client");
-
-	while (1) {
-		ret = read (client->sd, client->in_buffer + client->in_buffer_pos, 1);		
-
-		if (ret == 0 || ret == -1) {
-			printk ("done with transponder listen client");
-			krad_transponder_listen_destroy_client (client);
-		} else {
-	
-			client->in_buffer_pos += ret;
-			
-			byte = client->in_buffer[client->in_buffer_pos - 1];
-			
-			if ((byte == '\n') || (byte == '\r')) {
-			
-				if (client->got_mount == 0) {
-					if (client->in_buffer_pos > 8) {
-					
-						if (strncmp(client->in_buffer, "SOURCE /", 8) == 0) {
-							ret = strcspn (client->in_buffer + 8, "\n\r ");
-							memcpy (client->mount, client->in_buffer + 8, ret);
-							client->mount[ret] = '\0';
-						
-							printk ("Got a mount! its %s", client->mount);
-						
-							client->got_mount = 1;
-						} else {
-							printk ("client no good! %s", client->in_buffer);
-							krad_transponder_listen_destroy_client (client);							
-						}
-					
-					} else {
-						printk ("client no good! .. %s", client->in_buffer);
-						krad_transponder_listen_destroy_client (client);
-					}
-				} else {
-					printk ("client buffer: %s", client->in_buffer);
-					
-					
-					if (client->got_content_type == 0) {
-						if (((string = strstr(client->in_buffer, "Content-Type:")) != NULL) ||
-						    ((string = strstr(client->in_buffer, "content-type:")) != NULL) ||
-							((string = strstr(client->in_buffer, "Content-type:")) != NULL)) {
-							ret = strcspn(string + 14, "\n\r ");
-							memcpy(client->content_type, string + 14, ret);
-							client->content_type[ret] = '\0';
-							client->got_content_type = 1;
-							printk ("Got a content_type! its %s", client->content_type);							
-						}
-					} else {
-					
-						if (memcmp ("\r\n\r\n", &client->in_buffer[client->in_buffer_pos - 4], 4) == 0) {
-						//if ((string = strstr(client->in_buffer, "\r\n\r\n")) != NULL) {
-							printk ("got to the end of the http headers!");
-							
-							char *goodresp = "HTTP/1.0 200 OK\r\n\r\n";
-							
-							wot = write (client->sd, goodresp, strlen(goodresp));
-              if (wot != strlen(goodresp)) {
-                printke ("krad transponder: unexpected write return value %d in transponder_listen_client_thread", wot);
-              }							
-							
-							krad_transponder_listen_promote_client (client);
-						}
-					}
-				}
-			}
-			
-			
-			if (client->in_buffer_pos > 1000) {
-				printk ("client no good! .. %s", client->in_buffer);
-				krad_transponder_listen_destroy_client (client);
-			}
-		}
-	}
-
-	
-	printk ("Krad HTTP Request: %s\n", client->in_buffer);
-	
-
-	krad_transponder_listen_destroy_client (client);
-
-	return NULL;	
-	
-}
-
-
-void krad_transponder_listen_create_client (krad_transponder_t *krad_transponder, int sd) {
-
-	krad_transponder_listen_client_t *client = calloc(1, sizeof(krad_transponder_listen_client_t));
-
-	client->krad_transponder = krad_transponder;
-	
-	client->sd = sd;
-	
-	pthread_create (&client->client_thread, NULL, krad_transponder_listen_client_thread, (void *)client);
-	pthread_detach (client->client_thread);	
-
-}
-
-void krad_transponder_listen_destroy_client (krad_transponder_listen_client_t *krad_transponder_listen_client) {
-
-	close (krad_transponder_listen_client->sd);
-		
-	free (krad_transponder_listen_client);
-	
-	pthread_exit(0);	
-
-}
-
-void *krad_transponder_listening_thread (void *arg) {
-
-	krad_transponder_t *krad_transponder = (krad_transponder_t *)arg;
-
-	int ret;
-	int addr_size;
-	int client_fd;
-	struct sockaddr_in remote_address;
-	struct pollfd sockets[1];
-
-	krad_system_set_thread_name ("kr_listener");
-	
-	printk ("Krad transponder: Listening thread starting\n");
-	
-	addr_size = 0;
-	ret = 0;
-	memset (&remote_address, 0, sizeof(remote_address));	
-
-	addr_size = sizeof (remote_address);
-	
-	while (krad_transponder->stop_listening == 0) {
-
-		sockets[0].fd = krad_transponder->sd;
-		sockets[0].events = POLLIN;
-
-		ret = poll (sockets, 1, 250);	
-
-		if (ret < 0) {
-			printke ("Krad transponder: Failed on poll\n");
-			krad_transponder->stop_listening = 1;
-			break;
-		}
-	
-		if (ret > 0) {
-		
-			if ((client_fd = accept(krad_transponder->sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size)) < 0) {
-				close (krad_transponder->sd);
-				failfast ("Krad transponder: socket error on accept mayb a signal or such\n");
-			}
-
-			krad_transponder_listen_create_client (krad_transponder, client_fd);
-
-		}
-	}
-	
-	close (krad_transponder->sd);
-	krad_transponder->port = 0;
-	krad_transponder->listening = 0;	
-
-	printk ("Krad transponder: Listening thread exiting\n");
-
-	return NULL;
-}
-
-void krad_transponder_stop_listening (krad_transponder_t *krad_transponder) {
-
-	if (krad_transponder->listening == 1) {
-		krad_transponder->stop_listening = 1;
-		pthread_join (krad_transponder->listening_thread, NULL);
-		krad_transponder->stop_listening = 0;
-	}
-}
-
-
-int krad_transponder_listen (krad_transponder_t *krad_transponder, int port) {
-
-	if (krad_transponder->listening == 1) {
-		krad_transponder_stop_listening (krad_transponder);
-	}
-
-	krad_transponder->port = port;
-	krad_transponder->listening = 1;
-	
-	krad_transponder->local_address.sin_family = AF_INET;
-	krad_transponder->local_address.sin_port = htons (krad_transponder->port);
-	krad_transponder->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
-	
-	if ((krad_transponder->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-		printke ("Krad transponder: system call socket error\n");
-		krad_transponder->listening = 0;
-		krad_transponder->port = 0;		
-		return 1;
-	}
-
-	if (bind (krad_transponder->sd, (struct sockaddr *)&krad_transponder->local_address, sizeof(krad_transponder->local_address)) == -1) {
-		printke ("Krad transponder: bind error for tcp port %d\n", krad_transponder->port);
-		close (krad_transponder->sd);
-		krad_transponder->listening = 0;
-		krad_transponder->port = 0;
-		return 1;
-	}
-	
-	if (listen (krad_transponder->sd, SOMAXCONN) <0) {
-		printke ("Krad transponder: system call listen error\n");
-		close (krad_transponder->sd);
-		return 1;
-	}	
-	
-	pthread_create (&krad_transponder->listening_thread, NULL, krad_transponder_listening_thread, (void *)krad_transponder);
-	
-	return 0;
-}
-
 
 krad_link_t *krad_transponder_get_link_from_sysname (krad_transponder_t *krad_transponder, char *sysname) {
 
@@ -2737,11 +2236,8 @@ krad_transponder_t *krad_transponder_create (krad_radio_t *krad_radio) {
 	krad_transponder = calloc(1, sizeof(krad_transponder_t));
 
 	krad_transponder->krad_radio = krad_radio;
-
 	pthread_mutex_init (&krad_transponder->change_lock, NULL);	
-
 	krad_transponder->krad_transmitter = krad_transmitter_create ();
-
 	krad_transponder->krad_Xtransponder = krad_Xtransponder_create (krad_transponder->krad_radio);
 
 	return krad_transponder;
@@ -2764,14 +2260,13 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder) {
 	}
 
 	krad_transmitter_destroy (krad_transponder->krad_transmitter);
-
 	krad_Xtransponder_destroy (&krad_transponder->krad_Xtransponder);
 
 	pthread_mutex_unlock (&krad_transponder->change_lock);		
 	pthread_mutex_destroy (&krad_transponder->change_lock);
 	free (krad_transponder);
 	
-  printk ("Krad transponder destroy completed");	
+  printk ("Krad transponder destroy completed");
 
 }
 

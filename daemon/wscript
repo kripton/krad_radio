@@ -65,6 +65,7 @@ depsources = """
 ../lib/krad_ring/krad_ring.c
 ../lib/krad_transponder/krad_transponder_interface.c
 ../lib/krad_transponder/krad_transponder.c
+../lib/krad_transponder/krad_receiver.c
 ../lib/krad_transmitter/krad_transmitter.c
 ../lib/krad_io/krad_io.c
 ../lib/krad_ogg/krad_ogg.c

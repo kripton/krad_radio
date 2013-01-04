@@ -16,6 +16,8 @@
 #define KRAD_RADIO_H
 
 typedef struct krad_radio_St krad_radio_t;
+typedef struct krad_log_St krad_log_t;
+typedef struct krad_remote_control_St krad_remote_control_t;
 
 #include "krad_radio_version.h"
 #include "krad_system.h"
@@ -66,33 +68,35 @@ typedef struct krad_radio_St krad_radio_t;
 #include "krad_transponder_common.h"
 #include "krad_transponder_graph.h"
 #include "krad_transponder.h"
+#include "krad_receiver.h"
 
 #ifdef KRAD_USE_WAYLAND
 #include "krad_wayland.h"
 #endif
 
 extern int verbose;
-extern int do_shutdown;
 extern krad_system_t krad_system;
 
-struct krad_radio_St {
-
-	char *sysname;
-	char *dir;
-	char logname[1024];	
-	
+struct krad_remote_control_St {
 	krad_ipc_server_t *krad_ipc;
 	krad_osc_t *krad_osc;	
 	krad_websocket_t *krad_websocket;
 	krad_http_t *krad_http;
+};
+
+struct krad_log_St {
+	char filename[512];
+};
+
+struct krad_radio_St {
+
+	char sysname[KRAD_SYSNAME_MAX + 1];
+	krad_log_t log;
+	krad_tags_t *krad_tags;
+	krad_remote_control_t remote;
 	krad_transponder_t *krad_transponder;	
 	krad_mixer_t *krad_mixer;
 	krad_compositor_t *krad_compositor;
-	krad_tags_t *krad_tags;
-
-	struct timespec start_sync_time;
-
-	krad_timer_t *shutdown_timer;
 
 };
 

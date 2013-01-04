@@ -696,9 +696,9 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 					krad_link_run (krad_link);
 				
 					if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
-						if (krad_link_wait_codec_init (krad_link) == 0) {
-							krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
-						}
+						//if (krad_link_wait_codec_init (krad_link) == 0) {
+							//krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
+						//}
 					} else {
 						krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
 					}

@@ -233,7 +233,19 @@ struct krad_link_St {
   int vu_graph_id;
   int cap_graph_id;
   int demux_graph_id;
-  int mux_graph_id;  
+  int mux_graph_id;
+  
+  
+	unsigned char *demux_buffer;
+	unsigned char *demux_header_buffer;
+	int demux_video_packets;
+	int demux_audio_packets;
+	int demux_current_track;
+
+	krad_codec_t demux_track_codecs[10];
+	krad_codec_t demux_nocodec;	
+  
+  
 };
 
 
@@ -250,8 +262,10 @@ krad_transponder_t *krad_transponder_create ();
 void krad_transponder_destroy (krad_transponder_t *krad_transponder);
 
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
+
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_create (int linknum);
+void krad_link_activate (krad_link_t *krad_link);
 void krad_link_run (krad_link_t *krad_link);
 
 #endif

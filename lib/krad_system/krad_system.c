@@ -1,6 +1,5 @@
 #include "krad_system.h"
 
-int do_shutdown;
 int verbose;
 int krad_system_initialized;
 krad_system_t krad_system;
@@ -21,7 +20,7 @@ void krad_system_monitor_cpu_on () {
 	}
 }
 
-void krad_system_monitor_cpu_off () {
+void krad_system_monitor_cpu_off_slow () {
 
 	if (krad_system.kcm.on == 1) {
 		krad_system.kcm.on = 2;	
@@ -30,7 +29,7 @@ void krad_system_monitor_cpu_off () {
 	}
 }
 
-void krad_system_monitor_cpu_off_fast () {
+void krad_system_monitor_cpu_off () {
 
 	if (krad_system.kcm.on == 1) {
 		pthread_cancel (krad_system.kcm.monitor_thread);
@@ -269,7 +268,6 @@ void krad_system_init () {
 	if (krad_system_initialized != 31337) {
 		krad_system_initialized = 31337;
 		krad_system.kcm.interval = KRAD_CPU_MONITOR_INTERVAL;
-		do_shutdown = 0;
 		verbose = 0;
 		pthread_mutex_init (&krad_system.log_lock, NULL);
 		krad_system_info_collect ();
@@ -336,6 +334,34 @@ uint64_t ktime() {
 	
 	return seconds;
 
+}
+
+int dir_exists (char *dir) {
+
+  int err;
+  struct stat s;
+
+  err = stat (dir, &s);
+
+  if (err == -1) {
+    if(ENOENT == errno) {
+      // does not exist
+      return 0;
+    } else {
+      // another error
+      return 0;
+    }
+  } else {
+    if(S_ISDIR(s.st_mode)) {
+      // it's a directory
+      return 1;
+    } else {
+      // exists but is no dir
+      return 0;
+    }
+  }
+
+  return 0;
 }
 
 int krad_system_set_socket_nonblocking (int sd) {

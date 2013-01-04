@@ -608,11 +608,18 @@ int krad_Xtransponder_add_capture (krad_Xtransponder_t *krad_Xtransponder, krad_
   return krad_Xtransponder_subunit_add (krad_Xtransponder, XCAPTURE, watch);
 }
 
-int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, int videoport, int audioport) {
-  
-  int m;
+int krad_Xtransponder_add_demuxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {
+  return krad_Xtransponder_subunit_add (krad_Xtransponder, DEMUXER, watch);
+}
 
-  m = krad_Xtransponder_subunit_add (krad_Xtransponder, MUXER, NULL);
+//int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, int videoport, int audioport) {
+int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {
+
+//  int m;
+
+  return krad_Xtransponder_subunit_add (krad_Xtransponder, MUXER, watch);
+/*
+  m = krad_Xtransponder_subunit_add (krad_Xtransponder, MUXER, watch);
   
   if (m > -1) {
     
@@ -635,7 +642,7 @@ int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, int vid
   }
   
   return -1;
-  
+*/
 }
 
 void krad_Xtransponder_list (krad_Xtransponder_t *krad_Xtransponder) {
