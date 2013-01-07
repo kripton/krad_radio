@@ -1,12 +1,12 @@
 #include "krad_receiver.h"
 
-void krad_transponder_listen_promote_client (krad_transponder_listen_client_t *client) {
+void krad_receiver_promote_client (krad_receiver_client_t *client) {
 
 	krad_transponder_t *krad_transponder;
 	krad_link_t *krad_link;	
 	int k;
 
-	krad_transponder = client->krad_transponder;
+	krad_transponder = client->krad_receiver->krad_transponder;
 
 	pthread_mutex_lock (&krad_transponder->change_lock);
 
@@ -49,10 +49,10 @@ void krad_transponder_listen_promote_client (krad_transponder_listen_client_t *c
 
 }
 
-void *krad_transponder_listen_client_thread (void *arg) {
+void *krad_receiver_client_thread (void *arg) {
 
 
-	krad_transponder_listen_client_t *client = (krad_transponder_listen_client_t *)arg;
+	krad_receiver_client_t *client = (krad_receiver_client_t *)arg;
 	
 	int ret;
 	int wot;
@@ -65,8 +65,8 @@ void *krad_transponder_listen_client_thread (void *arg) {
 		ret = read (client->sd, client->in_buffer + client->in_buffer_pos, 1);		
 
 		if (ret == 0 || ret == -1) {
-			printk ("done with transponder listen client");
-			krad_transponder_listen_destroy_client (client);
+			printk ("done with receiver listen client");
+			krad_receiver_destroy_client (client);
 		} else {
 	
 			client->in_buffer_pos += ret;
@@ -88,12 +88,12 @@ void *krad_transponder_listen_client_thread (void *arg) {
 							client->got_mount = 1;
 						} else {
 							printk ("client no good! %s", client->in_buffer);
-							krad_transponder_listen_destroy_client (client);							
+							krad_receiver_destroy_client (client);							
 						}
 					
 					} else {
 						printk ("client no good! .. %s", client->in_buffer);
-						krad_transponder_listen_destroy_client (client);
+						krad_receiver_destroy_client (client);
 					}
 				} else {
 					printk ("client buffer: %s", client->in_buffer);
@@ -119,10 +119,10 @@ void *krad_transponder_listen_client_thread (void *arg) {
 							
 							wot = write (client->sd, goodresp, strlen(goodresp));
               if (wot != strlen(goodresp)) {
-                printke ("krad transponder: unexpected write return value %d in transponder_listen_client_thread", wot);
+                printke ("Krad Receiver: unexpected write return value %d in receiver_client_thread", wot);
               }							
 							
-							krad_transponder_listen_promote_client (client);
+							krad_receiver_promote_client (client);
 						}
 					}
 				}
@@ -131,7 +131,7 @@ void *krad_transponder_listen_client_thread (void *arg) {
 			
 			if (client->in_buffer_pos > 1000) {
 				printk ("client no good! .. %s", client->in_buffer);
-				krad_transponder_listen_destroy_client (client);
+				krad_receiver_destroy_client (client);
 			}
 		}
 	}
@@ -140,39 +140,39 @@ void *krad_transponder_listen_client_thread (void *arg) {
 	printk ("Krad HTTP Request: %s\n", client->in_buffer);
 	
 
-	krad_transponder_listen_destroy_client (client);
+	krad_receiver_destroy_client (client);
 
 	return NULL;	
 	
 }
 
 
-void krad_transponder_listen_create_client (krad_transponder_t *krad_transponder, int sd) {
+void krad_receiver_create_client (krad_receiver_t *krad_receiver, int sd) {
 
-	krad_transponder_listen_client_t *client = calloc(1, sizeof(krad_transponder_listen_client_t));
+	krad_receiver_client_t *client = calloc(1, sizeof(krad_receiver_client_t));
 
-	client->krad_transponder = krad_transponder;
+	client->krad_receiver = krad_receiver;
 	
 	client->sd = sd;
 	
-	pthread_create (&client->client_thread, NULL, krad_transponder_listen_client_thread, (void *)client);
+	pthread_create (&client->client_thread, NULL, krad_receiver_client_thread, (void *)client);
 	pthread_detach (client->client_thread);	
 
 }
 
-void krad_transponder_listen_destroy_client (krad_transponder_listen_client_t *krad_transponder_listen_client) {
+void krad_receiver_destroy_client (krad_receiver_client_t *krad_receiver_client) {
 
-	close (krad_transponder_listen_client->sd);
+	close (krad_receiver_client->sd);
 		
-	free (krad_transponder_listen_client);
+	free (krad_receiver_client);
 	
 	pthread_exit(0);	
 
 }
 
-void *krad_transponder_listening_thread (void *arg) {
+void *krad_receiver_thread (void *arg) {
 
-	krad_transponder_t *krad_transponder = (krad_transponder_t *)arg;
+	krad_receiver_t *krad_receiver = (krad_receiver_t *)arg;
 
 	int ret;
 	int addr_size;
@@ -182,7 +182,7 @@ void *krad_transponder_listening_thread (void *arg) {
 
 	krad_system_set_thread_name ("kr_listener");
 	
-	printk ("Krad transponder: Listening thread starting\n");
+	printk ("Krad Receiver: Listening thread starting\n");
 	
 	addr_size = 0;
 	ret = 0;
@@ -190,210 +190,103 @@ void *krad_transponder_listening_thread (void *arg) {
 
 	addr_size = sizeof (remote_address);
 	
-	while (krad_transponder->stop_listening == 0) {
+	while (krad_receiver->stop_listening == 0) {
 
-		sockets[0].fd = krad_transponder->sd;
+		sockets[0].fd = krad_receiver->sd;
 		sockets[0].events = POLLIN;
 
 		ret = poll (sockets, 1, 250);	
 
 		if (ret < 0) {
-			printke ("Krad transponder: Failed on poll\n");
-			krad_transponder->stop_listening = 1;
+			printke ("Krad Receiver: Failed on poll\n");
+			krad_receiver->stop_listening = 1;
 			break;
 		}
 	
 		if (ret > 0) {
 		
-			if ((client_fd = accept(krad_transponder->sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size)) < 0) {
-				close (krad_transponder->sd);
-				failfast ("Krad transponder: socket error on accept mayb a signal or such\n");
+			if ((client_fd = accept(krad_receiver->sd, (struct sockaddr *)&remote_address, (socklen_t *)&addr_size)) < 0) {
+				close (krad_receiver->sd);
+				failfast ("Krad Receiver: socket error on accept mayb a signal or such\n");
 			}
 
-			krad_transponder_listen_create_client (krad_transponder, client_fd);
+			krad_receiver_create_client (krad_receiver, client_fd);
 
 		}
 	}
 	
-	close (krad_transponder->sd);
-	krad_transponder->port = 0;
-	krad_transponder->listening = 0;	
+	close (krad_receiver->sd);
+	krad_receiver->port = 0;
+	krad_receiver->listening = 0;	
 
-	printk ("Krad transponder: Listening thread exiting\n");
+	printk ("Krad Receiver: Listening thread exiting\n");
 
 	return NULL;
 }
 
-void krad_transponder_stop_listening (krad_transponder_t *krad_transponder) {
+void krad_receiver_stop_listening (krad_receiver_t *krad_receiver) {
 
-	if (krad_transponder->listening == 1) {
-		krad_transponder->stop_listening = 1;
-		pthread_join (krad_transponder->listening_thread, NULL);
-		krad_transponder->stop_listening = 0;
+	if (krad_receiver->listening == 1) {
+		krad_receiver->stop_listening = 1;
+		pthread_join (krad_receiver->listening_thread, NULL);
+		krad_receiver->stop_listening = 0;
 	}
 }
 
 
-int krad_transponder_listen (krad_transponder_t *krad_transponder, int port) {
+int krad_receiver_listen_on (krad_receiver_t *krad_receiver, int port) {
 
-	if (krad_transponder->listening == 1) {
-		krad_transponder_stop_listening (krad_transponder);
+	if (krad_receiver->listening == 1) {
+		krad_receiver_stop_listening (krad_receiver);
 	}
 
-	krad_transponder->port = port;
-	krad_transponder->listening = 1;
+	krad_receiver->port = port;
+	krad_receiver->listening = 1;
 	
-	krad_transponder->local_address.sin_family = AF_INET;
-	krad_transponder->local_address.sin_port = htons (krad_transponder->port);
-	krad_transponder->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
+	krad_receiver->local_address.sin_family = AF_INET;
+	krad_receiver->local_address.sin_port = htons (krad_receiver->port);
+	krad_receiver->local_address.sin_addr.s_addr = htonl (INADDR_ANY);
 	
-	if ((krad_transponder->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-		printke ("Krad transponder: system call socket error\n");
-		krad_transponder->listening = 0;
-		krad_transponder->port = 0;		
+	if ((krad_receiver->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+		printke ("Krad Receiver: system call socket error\n");
+		krad_receiver->listening = 0;
+		krad_receiver->port = 0;		
 		return 1;
 	}
 
-	if (bind (krad_transponder->sd, (struct sockaddr *)&krad_transponder->local_address, sizeof(krad_transponder->local_address)) == -1) {
-		printke ("Krad transponder: bind error for tcp port %d\n", krad_transponder->port);
-		close (krad_transponder->sd);
-		krad_transponder->listening = 0;
-		krad_transponder->port = 0;
+	if (bind (krad_receiver->sd, (struct sockaddr *)&krad_receiver->local_address, sizeof(krad_receiver->local_address)) == -1) {
+		printke ("Krad receiver: bind error for tcp port %d\n", krad_receiver->port);
+		close (krad_receiver->sd);
+		krad_receiver->listening = 0;
+		krad_receiver->port = 0;
 		return 1;
 	}
 	
-	if (listen (krad_transponder->sd, SOMAXCONN) <0) {
-		printke ("Krad transponder: system call listen error\n");
-		close (krad_transponder->sd);
+	if (listen (krad_receiver->sd, SOMAXCONN) <0) {
+		printke ("Krad Receiver: system call listen error\n");
+		close (krad_receiver->sd);
 		return 1;
 	}	
 	
-	pthread_create (&krad_transponder->listening_thread, NULL, krad_transponder_listening_thread, (void *)krad_transponder);
+	pthread_create (&krad_receiver->listening_thread, NULL, krad_receiver_thread, (void *)krad_receiver);
 	
 	return 0;
 }
 
-/*
 
-void *udp_input_thread(void *arg) {
-
-	krad_system_set_thread_name ("kr_udp_in");
-
-	krad_link_t *krad_link = (krad_link_t *)arg;
-
-	printk ("UDP Input thread starting");
-
-	int sd;
-	int ret;
-	int rsize;
-	unsigned char *buffer;
-	unsigned char *packet_buffer;
-	struct sockaddr_in local_address;
-	struct sockaddr_in remote_address;
-	struct pollfd sockets[1];	
-	int nocodec;
-	int opus_codec;
-	int packets;
-	
-	packets = 0;
-	rsize = sizeof(remote_address);
-	opus_codec = OPUS;
-	nocodec = NOCODEC;
-	buffer = calloc (1, 2000);
-	packet_buffer = calloc (1, 500000);
-	sd = socket (AF_INET, SOCK_DGRAM, 0);
-
-	krad_link->krad_rebuilder = krad_rebuilder_create ();
-
-	memset((char *) &local_address, 0, sizeof(local_address));
-	local_address.sin_family = AF_INET;
-	local_address.sin_port = htons (krad_link->port);
-	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	if (bind (sd, (struct sockaddr *)&local_address, sizeof(local_address)) == -1 ) {
-		failfast ("UDP Input bind error");
-	}
-	
-	//kludge to get header
-	krad_opus_t *opus_temp;
-	unsigned char opus_header[256];
-	int opus_header_size;
-	
-	opus_temp = krad_opus_encoder_create (2, krad_link->krad_radio->krad_mixer->sample_rate, 110000, 
-										 OPUS_APPLICATION_AUDIO);
-										 
-	opus_header_size = opus_temp->header_data_size;
-	memcpy (opus_header, opus_temp->header_data, opus_header_size);
-	krad_opus_encoder_destroy(opus_temp);
-	
-	printk ("placing opus header size is %d", opus_header_size);
-	
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&nocodec, 4);
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_header_size, 4);
-	krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)opus_header, opus_header_size);
-
-	while (!krad_link->destroy) {
-	
-		sockets[0].fd = sd;
-		sockets[0].events = POLLIN;
-
-		ret = poll (sockets, 1, 250);	
-	
-		if (ret < 0) {
-			printk ("Krad Link UDP Poll Failure");
-			krad_link->destroy = 1;
-			continue;
-		}
-	
-		if (ret > 0) {
-		
-			ret = recvfrom (sd, buffer, 2000, 0, (struct sockaddr *)&remote_address, (socklen_t *)&rsize);
-		
-			if (ret == -1) {
-				printk ("Krad Link UDP Recv Failure");
-				krad_link->destroy = 1;
-				continue;
-			}
-		
-			//printk ("Received packet from %s:%d", 
-			//		inet_ntoa(remote_address.sin_addr), ntohs(remote_address.sin_port));
-
-
-			krad_rebuilder_write (krad_link->krad_rebuilder, buffer, ret);
-
-			ret = krad_rebuilder_read_packet (krad_link->krad_rebuilder, packet_buffer, 1);
-		
-			if (ret != 0) {
-				//printk ("read a packet with %d bytes", ret);
-
-				if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
-			
-					while ((krad_ringbuffer_write_space(krad_link->encoded_audio_ringbuffer) < ret + 4 + 4) && (!krad_link->destroy)) {
-						usleep(10000);
-					}
-				
-					if (packets > 0) {
-						krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&opus_codec, 4);
-					}
-					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)&ret, 4);
-					krad_ringbuffer_write(krad_link->encoded_audio_ringbuffer, (char *)packet_buffer, ret);
-					packets++;
-
-				}
-
-			}
-		}
-	}
-
-	krad_rebuilder_destroy (krad_link->krad_rebuilder);
-	close (sd);
-	free (buffer);
-	free (packet_buffer);
-	printk ("UDP Input thread exiting");
-	
-	return NULL;
-
+void krad_receiver_destroy (krad_receiver_t *krad_receiver) {
+  krad_receiver_stop_listening (krad_receiver);
+  free (krad_receiver);
 }
-*/
+
+krad_receiver_t *krad_receiver_create (krad_transponder_t *krad_transponder) {
+
+  krad_receiver_t *krad_receiver;
+
+  krad_receiver = calloc (1, sizeof(krad_receiver_t));
+
+  krad_receiver->krad_transponder = krad_transponder;
+
+  return krad_receiver;
+}
 

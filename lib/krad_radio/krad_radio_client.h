@@ -54,7 +54,7 @@ typedef struct kr_client_St kr_client_t;
 typedef struct kr_shm_St kr_shm_t;
 
 
-
+typedef struct kr_response_St kr_response_t;
 
 typedef enum {
   KR_FLOAT,
@@ -69,7 +69,7 @@ typedef union {
 } kr_subunit_control_value_t;
 
 typedef enum {
-//  KR_STATION,
+  KR_RADIO,
 	KR_MIXER,
 	KR_COMPOSITOR,
 	KR_TRANSPONDER,
@@ -217,13 +217,24 @@ int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
  * @brief prints out the type of a message
  * @param kr_client handle of the IPC-connection to the station
  */
-void kr_print_message_type (kr_client_t *kr_client);
+void kr_response_print_type (kr_response_t *kr_response);
 
+/**
+ * @brief get a response
+ * @param kr_client handle of the IPC-connection to the station
+ */
+void kr_client_response_get (kr_client_t *kr_client, kr_response_t **kr_response);
+
+/**
+ * @brief waits for a response
+ * @param kr_client handle of the IPC-connection to the station
+ */
+void kr_client_response_wait (kr_client_t *kr_client, kr_response_t **kr_response);
 /**
  * @brief prints out the client's response to a request-message
  * @param kr_client handle of the IPC-connection to the station
  */
-void kr_client_print_response (kr_client_t *kr_client);
+void kr_client_response_wait_print (kr_client_t *kr_client);
 
 /** @} */
 

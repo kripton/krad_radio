@@ -3,9 +3,9 @@
 
 typedef struct krad_link_St krad_link_t;
 typedef struct krad_transponder_St krad_transponder_t;
-typedef struct krad_transponder_listen_client_St krad_transponder_listen_client_t;
 
 #include "krad_radio.h"
+#include "krad_receiver.h"
 #include "krad_transponder_interface.h"
 
 #define DEFAULT_VPX_BITRATE 1200
@@ -33,44 +33,9 @@ struct krad_transponder_St {
 	krad_radio_t *krad_radio;
 
 	pthread_mutex_t change_lock;
-
-	/* transponder listener */	
-	unsigned char *buffer;
-
-	int port;
-	int sd;
-	struct sockaddr_in local_address;
-	int listening;
-	int stop_listening;
-	pthread_t listening_thread;
-	
-	/* transponder transmitter */	
+	krad_receiver_t *krad_receiver;	
 	krad_transmitter_t *krad_transmitter;	
-	
-	
 	krad_Xtransponder_t *krad_Xtransponder;
-	
-};
-
-struct krad_transponder_listen_client_St {
-
-	krad_transponder_t *krad_transponder;
-	pthread_t client_thread;
-
-	char in_buffer[1024];
-	char out_buffer[1024];
-	char mount[256];
-	char content_type[256];
-	int got_mount;
-	int got_content_type;
-
-	int in_buffer_pos;
-	int out_buffer_pos;
-	
-	int sd;
-	int ret;
-	int wrote;
-
 };
 
 struct krad_link_St {
@@ -228,8 +193,7 @@ struct krad_link_St {
 
 	krad_codec_t demux_track_codecs[10];
 	krad_codec_t demux_nocodec;	
-  
- 
+
   
   krad_transmission_t *muxer_krad_transmission;
   unsigned char *muxer_packet;
@@ -243,23 +207,17 @@ struct krad_link_St {
 };
 
 
-int krad_link_wait_codec_init (krad_link_t *krad_link);
-
-void krad_transponder_stop_listening (krad_transponder_t *krad_linker);
-int krad_transponder_listen (krad_transponder_t *krad_transponder, int port);
-
 krad_link_t *krad_transponder_get_link_from_sysname (krad_transponder_t *krad_transponder, char *sysname);
 krad_tags_t *krad_transponder_get_tags_for_link (krad_transponder_t *krad_transponder, char *sysname);
 krad_tags_t *krad_link_get_tags (krad_link_t *krad_link);
 
-krad_transponder_t *krad_transponder_create ();
-void krad_transponder_destroy (krad_transponder_t *krad_transponder);
-
-void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
-
 void krad_link_destroy (krad_link_t *krad_link);
 krad_link_t *krad_link_prepare (int linknum);
 void krad_link_start (krad_link_t *krad_link);
+
+krad_transponder_t *krad_transponder_create ();
+void krad_transponder_destroy (krad_transponder_t *krad_transponder);
+void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
 
 
 #endif

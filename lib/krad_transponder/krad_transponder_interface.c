@@ -927,13 +927,13 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 		
 			bigint = krad_ebml_read_number ( krad_ipc->current_client->krad_ebml, ebml_data_size);
 		
-			krad_transponder_listen (krad_transponder, bigint);
+			krad_receiver_listen_on (krad_transponder->krad_receiver, bigint);
 		
 			break;
 
 		case EBML_ID_KRAD_TRANSPONDER_CMD_LISTEN_DISABLE:
 		
-			krad_transponder_stop_listening (krad_transponder);
+			krad_receiver_stop_listening (krad_transponder->krad_receiver);
 		
 			break;
 			

@@ -28,8 +28,8 @@ void kr_transponder_decklink_list (kr_client_t *client);
 void kr_transponder_transmitter_disable (kr_client_t *client);
 void kr_transponder_transmitter_enable (kr_client_t *client, int port);
 
-void kr_transponder_listen_enable (kr_client_t *client, int port);
-void kr_transponder_listen_disable (kr_client_t *client);
+void kr_transponder_receiver_enable (kr_client_t *client, int port);
+void kr_transponder_receiver_disable (kr_client_t *client);
 
 void kr_transponder_play (kr_client_t *client, char *path);
 void kr_transponder_play_remote (kr_client_t *client, char *host, int port, char *mount);

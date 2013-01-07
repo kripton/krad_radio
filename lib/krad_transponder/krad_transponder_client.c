@@ -2,7 +2,7 @@
 #include "krad_radio_client_internal.h"
 #include "krad_transponder_common.h"
 
-void kr_transponder_listen_enable (kr_client_t *client, int port) {
+void kr_transponder_receiver_enable (kr_client_t *client, int port) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -22,7 +22,7 @@ void kr_transponder_listen_enable (kr_client_t *client, int port) {
 
 }
 
-void kr_transponder_listen_disable (kr_client_t *client) {
+void kr_transponder_receiver_disable (kr_client_t *client) {
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
@@ -127,38 +127,7 @@ void kr_transponder_capture (kr_client_t *client, krad_link_video_source_t video
 
 }
 
-void kr_transponder_receive (kr_client_t *client, int port) {
-
-	//uint64_t ipc_command;
-	uint64_t linker_command;
-	uint64_t create_link;
-	uint64_t link;
-	
-	linker_command = 0;
-	//set_control = 0;
-
-	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD, &linker_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK, &create_link);
-
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_TRANSPONDER_LINK, &link);	
-	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_OPERATION_MODE, krad_link_operation_mode_to_string (RECEIVE));
-	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_TRANSPORT_MODE, "udp");
-	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_PORT, port);
-	
-	krad_ebml_finish_element (client->krad_ebml, link);
-
-	krad_ebml_finish_element (client->krad_ebml, create_link);
-	krad_ebml_finish_element (client->krad_ebml, linker_command);
-	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
-		
-	krad_ebml_write_sync (client->krad_ebml);
-
-}
-
 void kr_transponder_play_remote (kr_client_t *client, char *host, int port, char *mount) {
-
-
 
 	//uint64_t ipc_command;
 	uint64_t linker_command;
