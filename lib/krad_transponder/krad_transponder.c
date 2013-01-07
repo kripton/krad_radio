@@ -492,6 +492,7 @@ int video_encoding_unit_process (void *arg) {
       if (krad_link->au_subunit != NULL) {
         krad_slice = krad_slice_create_with_data (krad_link->krad_vhs->enc_buffer, packet_size);
         krad_slice->frames = 1;
+        krad_slice->codec = krad_link->video_codec;
         krad_slice->keyframe = 1;
         krad_Xtransponder_slice_broadcast (krad_link->vu_subunit, &krad_slice);
         krad_slice_unref (krad_slice);
@@ -517,6 +518,7 @@ int video_encoding_unit_process (void *arg) {
           if (krad_link->vu_subunit != NULL) {
             krad_slice = krad_slice_create_with_data (video_packet, packet_size);
             krad_slice->frames = 1;
+            krad_slice->codec = krad_link->video_codec;
             krad_slice->keyframe = keyframe;
             krad_Xtransponder_slice_broadcast (krad_link->vu_subunit, &krad_slice);
             krad_slice_unref (krad_slice);
@@ -718,6 +720,7 @@ int audio_encoding_unit_process (void *arg) {
       if (krad_link->au_subunit != NULL) {
         krad_slice = krad_slice_create_with_data (krad_link->au_buffer, bytes);
         krad_slice->frames = frames;
+        krad_slice->codec = krad_link->audio_codec;
         krad_Xtransponder_slice_broadcast (krad_link->au_subunit, &krad_slice);
         krad_slice_unref (krad_slice);
       }
@@ -978,91 +981,34 @@ int muxer_unit_process (void *arg) {
 
   krad_link_t *krad_link = (krad_link_t *)arg;
 
-  int keyframe;
-  krad_frame_t *krad_frame;
   krad_slice_t *krad_slice;
-
-  keyframe = 0;
-  krad_frame = NULL;
   krad_slice = NULL;
 
-  if ((krad_link->av_mode != AUDIO_ONLY) && (krad_link->video_passthru == 0)) {
+  krad_slice = krad_Xtransponder_get_slice (krad_link->mux_subunit);
 
-    krad_slice = krad_Xtransponder_get_slice (krad_link->mux_subunit);
-    if (krad_slice != NULL) {
-
-      krad_container_add_video (krad_link->krad_container, 
-                    krad_link->video_track,
-                    krad_slice->data,
-                    krad_slice->size,
-                    krad_slice->keyframe);
-
-      krad_link->muxer_video_frames_muxed++;
-      krad_slice_unref (krad_slice);
-    }
+  if (krad_slice == NULL) {
+    return 1;
   }
-    
-  if (krad_link->video_passthru == 1) {
 
-    krad_frame = krad_compositor_port_pull_frame (krad_link->krad_compositor_port);
-
-    if (krad_frame != NULL) {
-
-      if (krad_link->video_codec == H264) {
-        keyframe = krad_v4l2_is_h264_keyframe ((unsigned char *)krad_frame->pixels);
-        if (krad_link->muxer_seen_passthu_keyframe == 0) {
-          if (keyframe == 1) {
-            krad_link->muxer_seen_passthu_keyframe = 1;
-            printk("Got first h264 passthru keyframe, skipped %d frames before it",
-                 krad_link->muxer_initial_passthu_frames_skipped);
-          } else {
-            krad_link->muxer_initial_passthu_frames_skipped++;
-          }
-        }
-      }
-      
-      if (krad_link->video_codec == MJPEG) {
-        if (krad_link->muxer_video_frames_muxed % 30 == 0) {
-          keyframe = 1;
-        } else {
-          keyframe = 0;
-        }        
-      }
-      
-      if (krad_link->muxer_seen_passthu_keyframe == 1) {
-        krad_container_add_video (krad_link->krad_container,
-                      krad_link->video_track, 
-             (unsigned char *)krad_frame->pixels,
-                      krad_frame->encoded_size,
-                      keyframe);
-        krad_link->muxer_video_frames_muxed++;
-      }
-      
-      krad_framepool_unref_frame (krad_frame);
-    }
-    
-    usleep(2000);
+  if (krad_link->video_codec == krad_slice->codec) {
+    krad_container_add_video (krad_link->krad_container, 
+                  krad_link->video_track,
+                  krad_slice->data,
+                  krad_slice->size,
+                  krad_slice->keyframe);
+    krad_link->muxer_video_frames_muxed++;
   }
-    
-  if (krad_link->av_mode != VIDEO_ONLY) {
-    //((krad_link->muxer_video_frames_muxed * krad_link->muxer_audio_frames_per_video_frame) > krad_link->muxer_audio_frames_muxed))) {
-    krad_slice = krad_Xtransponder_get_slice (krad_link->mux_subunit);
-    if (krad_slice != NULL) {
-      krad_container_add_audio (krad_link->krad_container,
-                    krad_link->audio_track,
-                    krad_slice->data,
-                    krad_slice->size,
-                    krad_slice->frames);
-
-      krad_link->muxer_audio_frames_muxed += krad_slice->frames;
-      printk ("ebml muxed audio frames: %d", krad_link->muxer_audio_frames_muxed);
-
-      krad_slice_unref (krad_slice);
-
-    } else {
-      printk ("null slice wtf!"); 
-    }
+  
+  if (krad_link->audio_codec == krad_slice->codec) {
+    krad_container_add_audio (krad_link->krad_container,
+                  krad_link->audio_track,
+                  krad_slice->data,
+                  krad_slice->size,
+                  krad_slice->frames);
+    krad_link->muxer_audio_frames_muxed += krad_slice->frames;
   }
+
+  krad_slice_unref (krad_slice);
   
   return 0;
 }
@@ -1905,11 +1851,16 @@ void krad_link_start (krad_link_t *krad_link) {
       memset (watch, 0, sizeof(krad_transponder_watch_t));
       krad_link->mux_subunit = krad_Xtransponder_get_subunit (krad_link->krad_transponder->krad_Xtransponder, krad_link->mux_graph_id);
 
-      if ((krad_link->av_mode == VIDEO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
+      if (krad_link->av_mode == AUDIO_AND_VIDEO) {
         krad_Xtransponder_subunit_connect (krad_link->mux_subunit, krad_link->vu_subunit);
-      }
-      if ((krad_link->av_mode == AUDIO_ONLY) || (krad_link->av_mode == AUDIO_AND_VIDEO)) {
         krad_Xtransponder_subunit_connect2 (krad_link->mux_subunit, krad_link->au_subunit);
+      } else {
+        if (krad_link->av_mode == VIDEO_ONLY) {
+          krad_Xtransponder_subunit_connect (krad_link->mux_subunit, krad_link->vu_subunit);
+        }
+        if (krad_link->av_mode == AUDIO_ONLY) {
+          krad_Xtransponder_subunit_connect (krad_link->mux_subunit, krad_link->au_subunit);
+        }
       }
     }
   }
