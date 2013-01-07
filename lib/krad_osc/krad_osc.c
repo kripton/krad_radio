@@ -148,6 +148,7 @@ void krad_osc_stop_listening (krad_osc_t *krad_osc) {
 	if (krad_osc->listening == 1) {
 		krad_osc->stop_listening = 1;
 		pthread_join (krad_osc->listening_thread, NULL);
+    free (krad_osc->buffer);
 		krad_osc->stop_listening = 0;
 	}
 }
@@ -158,6 +159,8 @@ int krad_osc_listen (krad_osc_t *krad_osc, int port) {
 	if (krad_osc->listening == 1) {
 		krad_osc_stop_listening (krad_osc);
 	}
+
+	krad_osc->buffer = calloc (1, 4000);
 
 	krad_osc->port = port;
 	krad_osc->listening = 1;
@@ -191,20 +194,11 @@ void krad_osc_destroy (krad_osc_t *krad_osc) {
 	if (krad_osc->listening == 1) {
 		krad_osc_stop_listening (krad_osc);
 	}
-
-	free (krad_osc->buffer);
-
 	free (krad_osc);
-
 }
 
 krad_osc_t *krad_osc_create () {
 
 	krad_osc_t *krad_osc = calloc (1, sizeof(krad_osc_t));
-
-	krad_osc->buffer = calloc (1, 4000);
-
-	
 	return krad_osc;
-
 }

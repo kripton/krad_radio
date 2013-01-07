@@ -93,7 +93,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
   krad_timer_start (krad_radio->log.startup_timer);  
   
   strncpy (krad_radio->sysname, strdup (sysname), sizeof(krad_radio->sysname));
-  
+
   krad_radio->krad_tags = krad_tags_create ("station");
   
   if (krad_radio->krad_tags == NULL) {
@@ -126,7 +126,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
     krad_radio_shutdown (krad_radio);
     return NULL;
   }
-  
+
   krad_radio->remote.krad_osc = krad_osc_create ();
   
   if (krad_radio->remote.krad_osc == NULL) {
@@ -142,7 +142,7 @@ static krad_radio_t *krad_radio_create (char *sysname) {
   }
   
   krad_ipc_server_register_broadcast ( krad_radio->remote.krad_ipc, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST );
-  
+
   krad_mixer_set_ipc (krad_radio->krad_mixer, krad_radio->remote.krad_ipc);
   krad_tags_set_set_tag_callback (krad_radio->krad_tags, krad_radio->remote.krad_ipc, 
                   (void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
@@ -165,6 +165,8 @@ void krad_radio_daemon (char *sysname) {
   if (pid > 0) {
     return;
   }
+  
+  krad_system_daemonize ();
 
   krad_system_init ();
 
@@ -190,8 +192,6 @@ void krad_radio_cpu_monitor_callback (krad_radio_t *krad_radio, uint32_t usage) 
 static void krad_radio_start (krad_radio_t *krad_radio) {
 
 	struct timespec start_sync;
-
-  krad_system_daemonize ();
 
   krad_system_monitor_cpu_on ();
     

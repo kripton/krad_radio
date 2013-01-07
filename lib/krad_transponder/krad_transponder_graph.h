@@ -38,6 +38,7 @@ struct krad_transponder_watch_St {
 
   int idle_callback_interval;
 	int (*readable_callback)(void *);
+	void (*destroy_callback)(void *);	
 	void *callback_pointer;
   int fd;
 	

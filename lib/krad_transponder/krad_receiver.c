@@ -14,7 +14,7 @@ void krad_transponder_listen_promote_client (krad_transponder_listen_client_t *c
 	for (k = 0; k < KRAD_TRANSPONDER_MAX_LINKS; k++) {
 		if (krad_transponder->krad_link[k] == NULL) {
 
-			krad_transponder->krad_link[k] = krad_link_create (k);
+			krad_transponder->krad_link[k] = krad_link_prepare (k);
 			krad_link = krad_transponder->krad_link[k];
 			krad_link->krad_radio = krad_transponder->krad_radio;
 			krad_link->krad_transponder = krad_transponder;
@@ -35,7 +35,7 @@ void krad_transponder_listen_promote_client (krad_transponder_listen_client_t *c
 			//FIXME default
 			krad_link->av_mode = AUDIO_AND_VIDEO;
 			
-			krad_link_run (krad_link);
+			krad_link_start (krad_link);
 
 			break;
 		}

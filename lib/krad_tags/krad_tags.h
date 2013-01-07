@@ -8,7 +8,7 @@
 #ifndef KRAD_TAG_H
 #define KRAD_TAG_H
 
-#define KRAD_MAX_TAGS 42
+#define KRAD_MAX_TAGS 20
 
 typedef struct krad_tag_St krad_tag_t;
 typedef struct krad_tags_St krad_tags_t;

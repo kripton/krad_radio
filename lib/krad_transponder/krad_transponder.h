@@ -25,7 +25,7 @@ typedef struct krad_transponder_listen_client_St krad_transponder_listen_client_
 #define KRAD_LINK_DEFAULT_UDP_PORT 42666
 #define KRAD_LINK_DEFAULT_VIDEO_CODEC VP8
 #define KRAD_LINK_DEFAULT_AUDIO_CODEC VORBIS
-#define KRAD_TRANSPONDER_MAX_LINKS 42
+#define KRAD_TRANSPONDER_MAX_LINKS 32
 #define HELP -1337
 
 struct krad_transponder_St {
@@ -125,20 +125,15 @@ struct krad_link_St {
 
 	int color_depth;
 	
-	char audio_input[128];	
-	
-	char device[512];
-	char alsa_capture_device[512];
-	char alsa_playback_device[512];
-	char jack_ports[512];
-	
+	char audio_input[64];	
+	char device[64];
 	char output[512];
 	char input[512];
-	char host[512];
+	char host[256];
 	int port;
-	char mount[512];
-	char content_type[512];	
-	char password[512];
+	char mount[256];
+	char content_type[64];	
+	char password[64];
 	
 	int sd;
 
@@ -190,17 +185,6 @@ struct krad_link_St {
 
 	int channels;
 
-	pthread_t main_thread;
-	pthread_t video_capture_thread;
-	pthread_t video_encoding_thread;
-	pthread_t audio_encoding_thread;
-	pthread_t video_decoding_thread;
-	pthread_t audio_decoding_thread;
-	pthread_t stream_output_thread;
-	pthread_t stream_input_thread;
-	pthread_t udp_output_thread;
-	pthread_t udp_input_thread;
-
 	int destroy;
 	int verbose;
 	
@@ -245,6 +229,16 @@ struct krad_link_St {
 	krad_codec_t demux_track_codecs[10];
 	krad_codec_t demux_nocodec;	
   
+ 
+  
+  krad_transmission_t *muxer_krad_transmission;
+  unsigned char *muxer_packet;
+  uint64_t muxer_video_frames_muxed;
+  uint64_t muxer_audio_frames_muxed;
+  float muxer_audio_frames_per_video_frame;
+  int muxer_seen_passthu_keyframe;
+  int muxer_initial_passthu_frames_skipped;
+
   
 };
 
@@ -264,8 +258,8 @@ void krad_transponder_destroy (krad_transponder_t *krad_transponder);
 void krad_link_audio_samples_callback (int frames, void *userdata, float **samples);
 
 void krad_link_destroy (krad_link_t *krad_link);
-krad_link_t *krad_link_create (int linknum);
-void krad_link_activate (krad_link_t *krad_link);
-void krad_link_run (krad_link_t *krad_link);
+krad_link_t *krad_link_prepare (int linknum);
+void krad_link_start (krad_link_t *krad_link);
+
 
 #endif

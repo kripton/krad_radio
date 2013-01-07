@@ -7,7 +7,7 @@ typedef struct krad_mixer_local_portgroup_St krad_mixer_local_portgroup_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_mixbus_t;
 typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
-#define KRAD_MIXER_MAX_PORTGROUPS 20
+#define KRAD_MIXER_MAX_PORTGROUPS 12
 #define KRAD_MIXER_MAX_CHANNELS 8
 #define KRAD_MIXER_DEFAULT_SAMPLE_RATE 48000
 #define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1024
@@ -65,7 +65,7 @@ struct krad_mixer_local_portgroup_St {
 
 struct krad_mixer_portgroup_St {
 	
-	char sysname[256];
+	char sysname[64];
 	krad_mixer_portgroup_direction_t direction;
 	krad_mixer_portgroup_io_t io_type;
 	krad_mixer_output_t output_type;
@@ -123,7 +123,7 @@ struct krad_mixer_St {
 
 	krad_mixer_portgroup_t *tone_port;
 	char *push_tone;	
-	char push_tone_value[64];
+	char push_tone_value[32];
     
 	krad_mixer_portgroup_t *portgroup[KRAD_MIXER_MAX_PORTGROUPS];
 	krad_mixer_crossfade_group_t *crossfade_group;

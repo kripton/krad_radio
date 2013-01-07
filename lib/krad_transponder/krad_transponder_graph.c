@@ -506,7 +506,11 @@ void krad_Xtransponder_subunit_destroy (krad_Xtransponder_subunit_t **krad_Xtran
       if ((*krad_Xtransponder_subunit)->outputs[p] != NULL) {
         krad_Xtransponder_output_port_destroy ((*krad_Xtransponder_subunit)->outputs[p]);
       }
-    }  
+    }
+    
+    if ((*krad_Xtransponder_subunit)->watch->destroy_callback != NULL) {
+      (*krad_Xtransponder_subunit)->watch->destroy_callback ((*krad_Xtransponder_subunit)->watch->callback_pointer);
+    }
     
     printk ("Krad Transponder: %s subunit destroyed",
             transponder_subunit_type_to_string((*krad_Xtransponder_subunit)->type));

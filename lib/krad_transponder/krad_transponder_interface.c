@@ -665,6 +665,8 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 		case EBML_ID_KRAD_TRANSPONDER_CMD_LIST_LINKS:
 			//printk ("krad transponder handler! LIST_LINKS");
 			
+			krad_Xtransponder_list ( krad_transponder->krad_Xtransponder );
+			
 			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_TRANSPONDER_MSG, &response);
 			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_TRANSPONDER_LINK_LIST, &element);	
 			
@@ -685,7 +687,7 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 			for (k = 0; k < KRAD_TRANSPONDER_MAX_LINKS; k++) {
 				if (krad_transponder->krad_link[k] == NULL) {
 
-					krad_transponder->krad_link[k] = krad_link_create (k);
+					krad_transponder->krad_link[k] = krad_link_prepare (k);
 					krad_link = krad_transponder->krad_link[k];
 					krad_link->link_num = k;
 					krad_link->krad_radio = krad_transponder->krad_radio;
@@ -693,7 +695,7 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 
 					krad_transponder_ebml_to_link ( krad_ipc, krad_link );
 					
-					krad_link_run (krad_link);
+					krad_link_start (krad_link);
 				
 					if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
 						//if (krad_link_wait_codec_init (krad_link) == 0) {

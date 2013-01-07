@@ -14,7 +14,7 @@ struct krad_text_St {
 
   
 	char font[128];
-	char text_actual[1024];
+	char text_actual[256];
 
   PangoLayout *layout;
   PangoFontDescription *font_description;

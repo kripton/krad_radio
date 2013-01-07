@@ -102,8 +102,8 @@ struct krad_ipc_server_client_St {
 	
 	int sd;
 
-	char input_buffer[4096 * 4];
-	char output_buffer[4096 * 4];
+	char input_buffer[4096 * 2];
+	char output_buffer[4096 * 2];
 	//char command_buffer[4096 * 4];
 	int command_response_len;
 	

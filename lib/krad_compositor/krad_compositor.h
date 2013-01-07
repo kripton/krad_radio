@@ -81,7 +81,7 @@ struct krad_compositor_St {
 	int snapshot;
 	int snapshot_jpeg;	
 	pthread_t snapshot_thread;
-	char last_snapshot_name[1024];
+	char last_snapshot_name[512];
 	pthread_mutex_t last_snapshot_name_lock;
 
 	krad_mixer_t *krad_mixer;
