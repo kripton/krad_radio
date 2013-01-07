@@ -242,7 +242,6 @@ void krad_radio_set_dir ( krad_radio_t *krad_radio, char *dir ) {
   }
 
   sprintf (krad_radio->log.filename, "%s/%s_%"PRIu64".log", dir, krad_radio->sysname, ktime ());
-  verbose = 1;
   krad_system_log_on (krad_radio->log.filename);
   printk (APPVERSION);
   printk ("Station: %s", krad_radio->sysname);

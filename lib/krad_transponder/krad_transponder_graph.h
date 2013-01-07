@@ -87,6 +87,8 @@ struct krad_Xtransponder_St {
 	krad_radio_t *krad_radio;
 };
 
+void krad_Xtransponder_list (krad_Xtransponder_t *krad_Xtransponder);
+
 int krad_Xtransponder_add_capture (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);
 int krad_Xtransponder_add_demuxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch);

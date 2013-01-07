@@ -74,7 +74,6 @@ typedef struct krad_remote_control_St krad_remote_control_t;
 #include "krad_wayland.h"
 #endif
 
-extern int verbose;
 extern krad_system_t krad_system;
 
 struct krad_remote_control_St {
@@ -86,11 +85,11 @@ struct krad_remote_control_St {
 
 struct krad_log_St {
   krad_timer_t *startup_timer;
+  int verbose;  
 	char filename[512];
 };
 
 struct krad_radio_St {
-
 	char sysname[KRAD_SYSNAME_MAX + 1];
 	krad_log_t log;
 	krad_tags_t *krad_tags;
@@ -98,7 +97,6 @@ struct krad_radio_St {
 	krad_transponder_t *krad_transponder;	
 	krad_mixer_t *krad_mixer;
 	krad_compositor_t *krad_compositor;
-
 };
 
 void krad_radio_daemon (char *sysname);
