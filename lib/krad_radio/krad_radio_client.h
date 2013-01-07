@@ -213,11 +213,14 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  */
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
 
+kr_unit_t kr_response_type (kr_response_t *kr_response);
+uint32_t kr_response_size (kr_response_t *kr_response);
+
 /**
  * @brief prints out the type of a message
  * @param kr_client handle of the IPC-connection to the station
  */
-void kr_response_print_type (kr_response_t *kr_response);
+void kr_response_print (kr_response_t *kr_response);
 
 /**
  * @brief get a response

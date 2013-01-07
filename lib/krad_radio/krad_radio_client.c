@@ -146,12 +146,29 @@ void kr_response_type_print (kr_response_t *kr_response) {
       printf ("Response Type: Krad Transponder\n");
       break;
   }
+}
 
-  //printf("with a %zu byte payload.\n", kr_response->size);
-  
+kr_unit_t kr_response_type (kr_response_t *kr_response) {
+  return kr_response->unit;
+}
+
+void kr_response_size_print (kr_response_t *kr_response) {
+  printf ("Response Size: %zu byte payload.\n", kr_response->size);
+}
+
+void kr_response_print (kr_response_t *kr_response) {
+  kr_response_type_print (kr_response);
+  kr_response_size_print (kr_response);
+}
+
+uint32_t kr_response_size (kr_response_t *kr_response) {
+  return kr_response->size;
 }
 
 void kr_response_free (kr_response_t *kr_response) {
+  if (kr_response->buffer != NULL) {
+    free (kr_response->buffer);
+  }
   free (kr_response);
 }
 
@@ -166,7 +183,6 @@ void kr_client_response_get (kr_client_t *kr_client, kr_response_t **kr_response
 
   uint32_t ebml_id;
   uint64_t ebml_data_size;
-  char string[1024];
 
   ebml_id = 0;
   ebml_data_size = 0;
@@ -192,7 +208,11 @@ void kr_client_response_get (kr_client_t *kr_client, kr_response_t **kr_response
       break;
   }
 
-  krad_ebml_read (client->krad_ebml, string, ebml_data_size);
+  if (ebml_data_size > 0) {
+    response->size = ebml_data_size;
+    response->buffer = malloc (response->size);
+    krad_ebml_read (client->krad_ebml, response->buffer, ebml_data_size);
+  }
 }
 
 void kr_client_response_wait (kr_client_t *kr_client, kr_response_t **kr_response) {
@@ -205,7 +225,7 @@ void kr_client_response_wait_print (kr_client_t *kr_client) {
   kr_response_t *kr_response;
 
   kr_client_response_wait (kr_client, &kr_response);
-  kr_response_type_print (kr_response);
+  kr_response_print (kr_response);
   
   kr_response_free (kr_response);
   

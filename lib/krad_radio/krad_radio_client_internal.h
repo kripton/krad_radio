@@ -8,7 +8,8 @@
 struct kr_response_St {
   kr_client_t *kr_client;
   kr_unit_t unit;
-  int size;
+  unsigned char *buffer;
+  uint32_t size;
 };
 
 struct kr_client_St {
