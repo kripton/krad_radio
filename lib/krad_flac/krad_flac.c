@@ -120,6 +120,7 @@ FLAC__StreamEncoderWriteStatus krad_flac_encoder_write_callback (
 		flac->header_size = KRAD_FLAC_MINIMAL_HEADER_SIZE;
 		flac->have_min_header = 1;
 		
+		flac->krad_codec_header.codec = FLAC;
 		// combined header just has fLaC + streaminfo and is marked as final metadata
 		flac->krad_codec_header.header_combined = flac->min_header;
 		flac->krad_codec_header.header_combined_size = KRAD_FLAC_MINIMAL_HEADER_SIZE;		

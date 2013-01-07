@@ -34,12 +34,14 @@ krad_vorbis_t *krad_vorbis_encoder_create (int channels, int sample_rate, float 
 		failfast ("Krad Vorbis Encoder: Sorry, but this is an illegal vorbis mode...");
 	}
 
-  	krad_vorbis->ret = vorbis_analysis_init (&krad_vorbis->vdsp, &krad_vorbis->vinfo);
+  krad_vorbis->ret = vorbis_analysis_init (&krad_vorbis->vdsp, &krad_vorbis->vinfo);
 	krad_vorbis->ret = vorbis_block_init (&krad_vorbis->vdsp, &krad_vorbis->vblock);
 	
 	vorbis_comment_init (&krad_vorbis->vc);
 
 	vorbis_comment_add_tag (&krad_vorbis->vc, "ENCODER", APPVERSION);
+
+  krad_vorbis->krad_codec_header.codec = VORBIS;
 
 	vorbis_analysis_headerout (&krad_vorbis->vdsp,
 							   &krad_vorbis->vc, 

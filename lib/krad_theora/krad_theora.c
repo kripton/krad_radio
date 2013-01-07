@@ -122,7 +122,7 @@ krad_theora_encoder_t *krad_theora_encoder_create (int width, int height,
 		
 	memcpy (krad_theora->header_combined + krad_theora->header_combined_pos, krad_theora->header[2], krad_theora->header_len[2]);
 	krad_theora->header_combined_pos += krad_theora->header_len[2];
-
+  krad_theora->krad_codec_header.codec = THEORA;
 	krad_theora->krad_codec_header.header[0] = krad_theora->header[0];
 	krad_theora->krad_codec_header.header_size[0] = krad_theora->header_len[0];
 	krad_theora->krad_codec_header.header[1] = krad_theora->header[1];

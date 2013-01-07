@@ -38,7 +38,8 @@ struct krad_transponder_watch_St {
 
   int idle_callback_interval;
 	int (*readable_callback)(void *);
-	void (*destroy_callback)(void *);	
+	void (*destroy_callback)(void *);
+	krad_codec_header_t *(*encoder_header_callback)(void *);	
 	void *callback_pointer;
   int fd;
 	
@@ -74,6 +75,9 @@ struct krad_Xtransponder_input_port_St {
 
 struct krad_Xtransponder_output_port_St {
   krad_Xtransponder_input_port_t **connections;
+  krad_slice_t *krad_slice[4];
+  int headers;
+  krad_codec_header_t *krad_codec_header;  
 };
 
 struct krad_Xtransponder_subunit_St {
@@ -87,7 +91,7 @@ struct krad_Xtransponder_subunit_St {
   krad_Xtransponder_output_port_t **outputs;
   
   krad_slice_t *krad_slice;
-  
+ 
 };
 
 struct krad_Xtransponder_St {
@@ -101,6 +105,20 @@ krad_slice_t *krad_slice_create ();
 int krad_slice_set_data (krad_slice_t *krad_slice, unsigned char *data, uint32_t size);
 void krad_slice_ref (krad_slice_t *krad_slice);
 void krad_slice_unref (krad_slice_t *krad_slice);
+
+void krad_Xtransponder_subunit_connect2 (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
+                                         krad_Xtransponder_subunit_t *from_krad_Xtransponder_subunit);
+void krad_Xtransponder_subunit_connect (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
+                                        krad_Xtransponder_subunit_t *from_krad_Xtransponder_subunit);
+
+krad_codec_header_t *krad_Xtransponder_get_audio_header (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit);
+krad_codec_header_t *krad_Xtransponder_get_header (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit);
+
+krad_codec_header_t *krad_Xtransponder_get_subunit_output_header (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
+                                                                  int port);
+
+int krad_Xtransponder_set_header (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
+                                  krad_codec_header_t *krad_codec_header);
 
 krad_slice_t *krad_Xtransponder_get_slice (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit);
 int krad_Xtransponder_slice_broadcast (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit, krad_slice_t **krad_slice);

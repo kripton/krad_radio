@@ -162,6 +162,7 @@ krad_opus_t *krad_opus_encoder_create (int channels, int input_sample_rate, int 
 	}
 
 	krad_opus->header_data_size = opus_header_to_packet (krad_opus->opus_header, krad_opus->header_data, 100);
+	krad_opus->krad_codec_header.codec = OPUS;
 	krad_opus->krad_codec_header.header[0] = krad_opus->header_data;
 	krad_opus->krad_codec_header.header_size[0] = krad_opus->header_data_size;
 	krad_opus->krad_codec_header.header_combined = krad_opus->header_data;

@@ -24,7 +24,7 @@ typedef enum {
 typedef struct krad_codec_header_St krad_codec_header_t;
 
 struct krad_codec_header_St {
-
+  krad_codec_t codec;
 	unsigned char *header_combined;
 	int header_combined_size;
 	
