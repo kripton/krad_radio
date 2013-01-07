@@ -31,7 +31,6 @@ typedef struct krad_transponder_St krad_transponder_t;
 struct krad_transponder_St {
 	krad_link_t *krad_link[KRAD_TRANSPONDER_MAX_LINKS];
 	krad_radio_t *krad_radio;
-
 	pthread_mutex_t change_lock;
 	krad_receiver_t *krad_receiver;	
 	krad_transmitter_t *krad_transmitter;	
@@ -41,18 +40,15 @@ struct krad_transponder_St {
 struct krad_link_St {
 
 	krad_radio_t *krad_radio;
-
 	krad_transponder_t *krad_transponder;
 
 	int link_num;
-
 	char sysname[64];
 	krad_tags_t *krad_tags;
 
 	krad_link_av_mode_t av_mode;
 
 	krad_framepool_t *krad_framepool;
-
 	krad_mixer_portgroup_t *krad_mixer_portgroup;
 	krad_compositor_port_t *krad_compositor_port;
 
@@ -128,11 +124,6 @@ struct krad_link_St {
 	int capture_buffer_frames;
 	int decoding_buffer_frames;
 	
-	int playing;
-	
-	int encoding;
-	int capturing;
-	
 	krad_ringbuffer_t *audio_capture_ringbuffer[KRAD_MIXER_MAX_CHANNELS];	
 	krad_ringbuffer_t *audio_input_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
 	krad_ringbuffer_t *audio_output_ringbuffer[KRAD_MIXER_MAX_CHANNELS];
@@ -141,17 +132,10 @@ struct krad_link_St {
 	int audio_encoder_ready;
 	int audio_frames_captured;
 
-	krad_ringbuffer_t *decoded_audio_ringbuffer;
-	krad_ringbuffer_t *encoded_audio_ringbuffer;
-	krad_ringbuffer_t *encoded_video_ringbuffer;
-	
 	int video_track;
 	int audio_track;
 
 	int channels;
-
-	int destroy;
-	int verbose;
 	
 	krad_Xtransponder_subunit_t *au_subunit;
 	krad_Xtransponder_subunit_t *vu_subunit;
@@ -160,28 +144,21 @@ struct krad_link_St {
 	krad_Xtransponder_subunit_t *cap_subunit;
 	krad_Xtransponder_subunit_t *demux_subunit;
 	krad_Xtransponder_subunit_t *mux_subunit;
-	
-	//krad_rebuilder_t *krad_rebuilder;
-	//krad_slicer_t *krad_slicer;
 
 	krad_mixer_portgroup_t *mixer_portgroup;
 	int au_framecnt;
 	float *au_samples[KRAD_MIXER_MAX_CHANNELS];
 	float *au_interleaved_samples;
-	unsigned char *au_buffer;
   int socketpair[2];
 
 	unsigned char *au_header[3];
 	int au_header_len[3];
-	
+	unsigned char *au_buffer;
 	unsigned char *vu_header[3];
 	int vu_header_len[3];
 	float *au_audio;
 
 	krad_resample_ring_t *krad_resample_ring[KRAD_MIXER_MAX_CHANNELS];
-
-
-	unsigned char *vu_buffer;
 
   int aud_graph_id;
   int vud_graph_id;
@@ -200,8 +177,6 @@ struct krad_link_St {
 	int demux_current_track;
 
 	krad_codec_t demux_track_codecs[10];
-	krad_codec_t demux_nocodec;	
-
   
   krad_transmission_t *muxer_krad_transmission;
   unsigned char *muxer_packet;

@@ -450,7 +450,6 @@ int krad_Xtransponder_subunit_poll (krad_Xtransponder_subunit_t *krad_Xtranspond
             }
           }
 				}
-			  
       }
 		}
 	}
@@ -514,7 +513,6 @@ void krad_Xtransponder_subunit_stop (krad_Xtransponder_subunit_t *krad_Xtranspon
       }
     }
   }
-
 
   krad_Xtransponder_subunit_send_destroy_msg (krad_Xtransponder_subunit);
 	pthread_join (krad_Xtransponder_subunit->thread, NULL);
@@ -624,8 +622,7 @@ krad_slice_t *krad_Xtransponder_get_slice (krad_Xtransponder_subunit_t *krad_Xtr
   return krad_Xtransponder_subunit->krad_slice;
 }
 
-
-int krad_Xtransponder_encoder_broadcast (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit, krad_slice_t **krad_slice) {
+int krad_Xtransponder_slice_broadcast (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit, krad_slice_t **krad_slice) {
 
   int p;
   int b;
@@ -694,7 +691,7 @@ int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, krad_tr
 
   int audioport;
   
-  audioport = 0;
+  audioport = 1;
 
 //  return krad_Xtransponder_subunit_add (krad_Xtransponder, MUXER, watch);
 
