@@ -153,8 +153,16 @@ struct krad_link_St {
 	int destroy;
 	int verbose;
 	
-	krad_rebuilder_t *krad_rebuilder;
-	krad_slicer_t *krad_slicer;
+	krad_Xtransponder_subunit_t *au_subunit;
+	krad_Xtransponder_subunit_t *vu_subunit;
+	krad_Xtransponder_subunit_t *aud_subunit;
+	krad_Xtransponder_subunit_t *vud_subunit;
+	krad_Xtransponder_subunit_t *cap_subunit;
+	krad_Xtransponder_subunit_t *demux_subunit;
+	krad_Xtransponder_subunit_t *mux_subunit;
+	
+	//krad_rebuilder_t *krad_rebuilder;
+	//krad_slicer_t *krad_slicer;
 
 	krad_mixer_portgroup_t *mixer_portgroup;
 	int au_framecnt;

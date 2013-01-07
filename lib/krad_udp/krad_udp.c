@@ -1,5 +1,5 @@
 #include "krad_udp.h"
-
+/*
 
 krad_slicer_t *krad_slicer_create () {
 
@@ -176,11 +176,11 @@ void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data
 	memcpy (krad_rebuilder->slices[s].data + payload_start, data + KRAD_UDP_HEADER_SIZE, payload_size);
 	krad_rebuilder->slices[s].fill += payload_size;
 
-	/*
-	if (krad_rebuilder->slices[s].fill == krad_rebuilder->slices[s].size) {
-		printkd("slice %d recieved %d bytes\n", krad_rebuilder->slices[s].seq, krad_rebuilder->slices[s].size);
-	}
-	*/
+	
+	//if (krad_rebuilder->slices[s].fill == krad_rebuilder->slices[s].size) {
+	//	printkd("slice %d recieved %d bytes\n", krad_rebuilder->slices[s].seq, krad_rebuilder->slices[s].size);
+	//}
+	
 
 	if (krad_rebuilder->slice_position < slice_num) {
 		krad_rebuilder->slice_position = slice_num;
@@ -217,4 +217,4 @@ int krad_rebuilder_read_packet (krad_rebuilder_t *krad_rebuilder, unsigned char 
 	return krad_rebuilder->slices[s].size;
 
 }
-
+*/

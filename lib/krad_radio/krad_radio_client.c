@@ -153,7 +153,7 @@ kr_unit_t kr_response_type (kr_response_t *kr_response) {
 }
 
 void kr_response_size_print (kr_response_t *kr_response) {
-  printf ("Response Size: %zu byte payload.\n", kr_response->size);
+  printf ("Response Size: %u byte payload.\n", kr_response->size);
 }
 
 void kr_response_print (kr_response_t *kr_response) {

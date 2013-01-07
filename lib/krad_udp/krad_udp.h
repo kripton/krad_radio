@@ -21,7 +21,7 @@
 #include <poll.h>
 
 #include "krad_system.h"
-
+/*
 typedef struct krad_slice_St krad_slice_t;
 typedef struct krad_slicer_St krad_slicer_t;
 typedef struct krad_rebuilder_St krad_rebuilder_t;
@@ -76,3 +76,4 @@ void krad_rebuilder_destroy (krad_rebuilder_t *krad_rebuilder);
 
 void krad_rebuilder_write (krad_rebuilder_t *krad_rebuilder, unsigned char *data, int length);
 int krad_rebuilder_read_packet (krad_rebuilder_t *krad_rebuilder, unsigned char *data, int track);
+*/

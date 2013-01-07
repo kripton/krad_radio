@@ -496,8 +496,7 @@ void krad_transponder_link_to_ebml ( krad_ipc_server_client_t *client, krad_link
 			krad_ebml_write_string (client->krad_ebml2, EBML_ID_KRAD_LINK_LINK_AV_MODE, "audio and video");
 			break;
 	}
-	
-	
+
 	switch ( krad_link->operation_mode ) {
 
 		case TRANSMIT:
@@ -683,7 +682,6 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 			break;
 			
 		case EBML_ID_KRAD_TRANSPONDER_CMD_CREATE_LINK:
-			//printk ("krad transponder handler! CREATE_LINK");
 			for (k = 0; k < KRAD_TRANSPONDER_MAX_LINKS; k++) {
 				if (krad_transponder->krad_link[k] == NULL) {
 
@@ -692,11 +690,10 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 					krad_link->link_num = k;
 					krad_link->krad_radio = krad_transponder->krad_radio;
 					krad_link->krad_transponder = krad_transponder;
-
 					krad_transponder_ebml_to_link ( krad_ipc, krad_link );
-					
 					krad_link_start (krad_link);
 				
+				  /*
 					if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
 						//if (krad_link_wait_codec_init (krad_link) == 0) {
 							//krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
@@ -704,7 +701,7 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 					} else {
 						krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
 					}
-
+          */
 					break;
 				}
 			}
@@ -718,13 +715,13 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 				krad_link_destroy (krad_transponder->krad_link[k]);
 				krad_transponder->krad_link[k] = NULL;
 			}
-			
+			/*
 			krad_ipc_server_simple_number_broadcast ( krad_ipc,
 													  EBML_ID_KRAD_TRANSPONDER_MSG,
 													  EBML_ID_KRAD_TRANSPONDER_LINK_DESTROYED,
 													  EBML_ID_KRAD_TRANSPONDER_LINK_NUMBER,
 											 		  k);			
-			
+			*/
 			break;
 		case EBML_ID_KRAD_TRANSPONDER_CMD_UPDATE_LINK:
 			//printk ("krad transponder handler! UPDATE_LINK");
@@ -848,7 +845,7 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 							}
 						}
 					}
-
+          /*
 					if ((ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_BANDWIDTH) || (ebml_id == EBML_ID_KRAD_LINK_LINK_OPUS_SIGNAL)) {
 
 						krad_ipc_server_advanced_string_broadcast ( krad_ipc,
@@ -868,6 +865,7 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 														 		  ebml_id,
 														 		  bigint);
 					}
+					*/
 				}
 			}
 			
