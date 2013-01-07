@@ -574,8 +574,11 @@ void audio_encoding_unit_create (void *arg) {
   
   krad_link->channels = 2;
   
+  if (krad_link->audio_codec != VORBIS) {
+    krad_link->au_buffer = malloc (300000);
+  }
+  
   krad_link->au_interleaved_samples = malloc (8192 * 4 * KRAD_MIXER_MAX_CHANNELS);
-  krad_link->au_buffer = malloc (300000);
   
   for (c = 0; c < krad_link->channels; c++) {
     krad_link->au_samples[c] = malloc (8192 * 4);
@@ -626,7 +629,7 @@ int audio_encoding_unit_process (void *arg) {
   krad_link_t *krad_link = (krad_link_t *)arg;
 
   int c;
-  unsigned char *vorbis_buffer;
+  //unsigned char *vorbis_buffer;
   float **float_buffer;
   int s;
   int bytes;
@@ -645,89 +648,58 @@ int audio_encoding_unit_process (void *arg) {
     }
     printk ("Krad AU Transponder: port read unexpected read return value %d", ret);
   }
+  
+  if (krad_link->audio_codec != VORBIS) {
+    frames = krad_link->au_framecnt;
+  }
 
   while (krad_ringbuffer_read_space(krad_link->audio_input_ringbuffer[krad_link->channels - 1]) >= krad_link->au_framecnt * 4) {
 
     if (krad_link->audio_codec == OPUS) {
-
       for (c = 0; c < krad_link->channels; c++) {
         krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)krad_link->au_samples[c], (krad_link->au_framecnt * 4) );
         krad_opus_encoder_write (krad_link->krad_opus, c + 1, (char *)krad_link->au_samples[c], krad_link->au_framecnt * 4);
       }
-
       bytes = krad_opus_encoder_read (krad_link->krad_opus, krad_link->au_buffer, &krad_link->au_framecnt);
     }
-  
     if (krad_link->audio_codec == FLAC) {
-    
       for (c = 0; c < krad_link->channels; c++) {
         krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)krad_link->au_samples[c], (krad_link->au_framecnt * 4) );
       }
-  
       for (s = 0; s < krad_link->au_framecnt; s++) {
         for (c = 0; c < krad_link->channels; c++) {
           krad_link->au_interleaved_samples[s * krad_link->channels + c] = krad_link->au_samples[c][s];
         }
       }
-  
       bytes = krad_flac_encode (krad_link->krad_flac, krad_link->au_interleaved_samples, krad_link->au_framecnt, krad_link->au_buffer);
-    }      
-  
-    if ((krad_link->audio_codec == FLAC) || (krad_link->audio_codec == OPUS)) {
-
-      while (bytes > 0) {
-      
-        //krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
-        //krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&krad_link->au_framecnt, 4);
-        //krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)krad_link->au_buffer, bytes);
-      
-        krad_slice = krad_slice_create_with_data (krad_link->au_buffer, bytes);
-        krad_slice->frames = krad_link->au_framecnt;
-        
-        if (krad_link->au_subunit != NULL) {
-          krad_Xtransponder_encoder_broadcast (krad_link->au_subunit, &krad_slice);
-        }
-        krad_slice_unref (krad_slice);
-      
-        bytes = 0;
-      
-        if (krad_link->audio_codec == OPUS) {
-          bytes = krad_opus_encoder_read (krad_link->krad_opus, krad_link->au_buffer, &krad_link->au_framecnt);
-        }
-      }
     }
-  
     if (krad_link->audio_codec == VORBIS) {
-  
       krad_vorbis_encoder_prepare (krad_link->krad_vorbis, krad_link->au_framecnt, &float_buffer);
-
       for (c = 0; c < krad_link->channels; c++) {
         krad_ringbuffer_read (krad_link->audio_input_ringbuffer[c], (char *)float_buffer[c], krad_link->au_framecnt * 4);
       }      
-
       krad_vorbis_encoder_wrote (krad_link->krad_vorbis, krad_link->au_framecnt);
-      // DUPE BELOW
-      bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
-      while (bytes > 0) {
-        //krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&bytes, 4);
-        //krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)&frames, 4);
-        //krad_ringbuffer_write (krad_link->encoded_audio_ringbuffer, (char *)vorbis_buffer, bytes);
-        
-        krad_slice = krad_slice_create_with_data (vorbis_buffer, bytes);
+      bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &krad_link->au_buffer);
+    }
+
+    while (bytes > 0) {
+      if (krad_link->au_subunit != NULL) {
+        krad_slice = krad_slice_create_with_data (krad_link->au_buffer, bytes);
         krad_slice->frames = frames;
-        
-        if (krad_link->au_subunit != NULL) {
-          krad_Xtransponder_encoder_broadcast (krad_link->au_subunit, &krad_slice);
-        }
+        krad_Xtransponder_encoder_broadcast (krad_link->au_subunit, &krad_slice);
         krad_slice_unref (krad_slice);
-        
-        bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &vorbis_buffer);
+      }
+      bytes = 0;
+      if (krad_link->audio_codec == VORBIS) {
+        bytes = krad_vorbis_encoder_read (krad_link->krad_vorbis, &frames, &krad_link->au_buffer);
+      }
+      if (krad_link->audio_codec == OPUS) {
+        bytes = krad_opus_encoder_read (krad_link->krad_opus, krad_link->au_buffer, &krad_link->au_framecnt);
       }
     }
   }
 
   return 0;
-
 }
 
 void audio_encoding_unit_destroy (void *arg) {
@@ -780,8 +752,10 @@ void audio_encoding_unit_destroy (void *arg) {
   }  
   
   free (krad_link->au_interleaved_samples);
-  free (krad_link->au_buffer);
-  
+
+  if (krad_link->audio_codec != VORBIS) {
+    free (krad_link->au_buffer);
+  }
   printk ("Audio encoding thread exiting");  
   
 }
