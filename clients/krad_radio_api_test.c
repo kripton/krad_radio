@@ -16,10 +16,9 @@ void kr_api_test (kr_client_t *client) {
     kr_client_response_get (client, &response);
   
     if (response != NULL) {
-      length = kr_radio_response_to_string (response, &string);
+      length = kr_response_to_string (response, &string);
       printf ("Response Length: %d\n", length);
       printf ("Response: %s\n", string);
-    
       kr_response_free_string (&string);
       kr_response_free (&response);
     }
