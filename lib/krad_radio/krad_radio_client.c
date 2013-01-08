@@ -162,6 +162,32 @@ void kr_radio_print_uptime (uint64_t uptime) {
   printf ("\n");
 }
 
+
+int kr_response_print_string_list (unsigned char *ebml_frag, uint64_t list_size) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+  int items;
+  int i;
+
+  items = 0;
+  pos = 0;
+  i = 0;
+  
+  pos += krad_ebml_read_element_from_frag (ebml_frag + pos, &ebml_id, &ebml_data_size);
+  items = krad_ebml_read_number_from_frag_add (ebml_frag + pos, ebml_data_size, &pos);
+  if (items == 0) {
+    printf ("None.\n");
+  } else {
+    for (i = 0; i < items; i++) {
+      pos += krad_ebml_read_element_from_frag (ebml_frag + pos, &ebml_id, &ebml_data_size);
+      pos += kr_response_print_string_test (ebml_frag + pos, ebml_data_size);
+    }
+  }
+  return pos;
+}
+
 void kr_response_free_string (char **string) {
   free (*string);
 }
@@ -280,7 +306,7 @@ void kr_response_print (kr_response_t *kr_response) {
       kr_compositor_response_print (kr_response);
       break;
     case KR_TRANSPONDER:
-      //kr_transponder_response_print (kr_response);
+      kr_transponder_response_print (kr_response);
       break;
   }
 }

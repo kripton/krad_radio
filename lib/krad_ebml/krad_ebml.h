@@ -407,6 +407,7 @@ int krad_ebml_read_copy (krad_ebml_t *krad_ebml, void *buffer );
 void krad_ebml_enable_read_copy ( krad_ebml_t *krad_ebml );
 float krad_ebml_read_float (krad_ebml_t *krad_ebml, uint64_t ebml_data_size);
 uint64_t krad_ebml_read_string (krad_ebml_t *krad_ebml, char *string, uint64_t ebml_data_size);
+uint64_t krad_ebml_read_number_from_frag_add (unsigned char *ebml_frag, uint64_t ebml_data_size, int *pos);
 uint64_t krad_ebml_read_number_from_frag (unsigned char *ebml_frag, uint64_t ebml_data_size);
 uint64_t krad_ebml_read_number (krad_ebml_t *krad_ebml, uint64_t ebml_data_size);
 uint64_t krad_ebml_read_command (krad_ebml_t *krad_ebml, unsigned char *buffer);

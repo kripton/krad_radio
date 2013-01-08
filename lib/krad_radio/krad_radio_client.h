@@ -213,6 +213,8 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  */
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
 
+int kr_response_print_string_list (unsigned char *ebml_frag, uint64_t list_size);
+
 void kr_response_free_string (char **string);
 int kr_response_print_string_test (unsigned char *ebml_frag, uint64_t ebml_data_size);
 int kr_response_print_string (unsigned char *ebml_frag, uint64_t ebml_data_size);

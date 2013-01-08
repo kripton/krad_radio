@@ -1184,6 +1184,22 @@ int krad_ebml_read_simpleblock( krad_ebml_t *krad_ebml, int len , int *tracknumb
 	
 }
 
+uint64_t krad_ebml_read_number_from_frag_add (unsigned char *ebml_frag, uint64_t ebml_data_size, int *pos) {
+
+	unsigned char temp[7];
+	uint64_t number;
+	
+	number = 0;
+	
+	*pos += ebml_data_size;
+	
+	memset (temp, '\0', sizeof(temp));
+	memcpy (&temp, &ebml_frag[0], ebml_data_size);
+	rmemcpy ( &number, &temp, ebml_data_size);
+	
+	return number;
+
+}
 
 uint64_t krad_ebml_read_number_from_frag (unsigned char *ebml_frag, uint64_t ebml_data_size) {
 

@@ -1123,3 +1123,35 @@ int kr_transponder_link_read ( kr_client_t *client, char *text, krad_link_rep_t 
 	return bytes_read;
 
 }
+
+
+void kr_transponder_response_print (kr_response_t *kr_response) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_TRANSPONDER_DECKLINK_LIST:
+      //printf("Received TRANSPONDER_DECKLINK_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      printf("Decklink Devices: \n");
+      pos += kr_response_print_string_list (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_TRANSPONDER_V4L2_LIST:
+      //printf("Received TRANSPONDER_V4L2_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      printf("V4L2 Devices: \n");
+      pos += kr_response_print_string_list (kr_response->buffer + pos, ebml_data_size);
+      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
+      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      break;
+    case EBML_ID_KRAD_TRANSPONDER_LINK_LIST:
+      printf("Received TRANSPONDER_LINK_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+
+      break;
+  }
+}
+
