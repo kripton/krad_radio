@@ -108,6 +108,14 @@ int kr_send_fd (kr_client_t *client, int fd) {
   return krad_ipc_client_send_fd (client->krad_ipc_client, fd);
 }
 
+void kr_response_free_string (char **string) {
+  free (*string);
+}
+
+char *kr_response_alloc_string (size_t length) {
+  return calloc (1, length + 16);
+}
+
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms) {
 
   krad_ipc_client_t *client;
@@ -130,38 +138,49 @@ int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms) {
   return select (client->sd+1, &set, NULL, NULL, &tv);
 }
 
-void kr_radio_print_uptime (uint64_t uptime) {
+int kr_radio_uptime_to_string (uint64_t uptime, char **string) {
 
   int days;
   int hours;
   int minutes;
   int seconds;
-
-  //printf ("uptime raw:  %"PRIu64" \n", uptime);
-
-  printf ("up ");
   
+  int pos;
+  
+  pos = 0;
+
+  *string = kr_response_alloc_string (64);
+
+  pos += sprintf (*string + pos, "up");
+
   days = uptime / (60*60*24);
   minutes = uptime / 60;
   hours = (minutes / 60) % 24;
   minutes %= 60;
   seconds = uptime % 60;
-  
+
   if (days) {
-    printf ("%d day%s, ", days, (days != 1) ? "s" : "");
+    pos += sprintf (*string + pos, " %d day%s,", days, (days != 1) ? "s" : "");
   }
   if (hours) {
-    printf ("%d:%02d ", hours, minutes);
+    pos += sprintf (*string + pos, " %d:%02d", hours, minutes);
   } else {
-    printf ("%02d min ", minutes);
+    pos += sprintf (*string + pos, " %02d min", minutes);
   }
   if (seconds) {
-    printf ("and %02d seconds", seconds);
+    pos += sprintf (*string + pos, " and %02d seconds", seconds);
   }
-
-  printf ("\n");
+  return pos;
 }
 
+void kr_radio_print_uptime (uint64_t uptime) {
+
+  char *string;
+  string = NULL;
+  kr_radio_uptime_to_string (uptime, &string);
+  printf ("%s\n", string);
+  kr_response_free_string (&string);
+}
 
 int kr_response_print_string_list (unsigned char *ebml_frag, uint64_t list_size) {
 
@@ -186,14 +205,6 @@ int kr_response_print_string_list (unsigned char *ebml_frag, uint64_t list_size)
     }
   }
   return pos;
-}
-
-void kr_response_free_string (char **string) {
-  free (*string);
-}
-
-char *kr_response_alloc_string (size_t length) {
-  return calloc (1, length + 16);
 }
 
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string) {
@@ -259,7 +270,7 @@ int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
       break;
     case EBML_ID_KRAD_RADIO_UPTIME:
       //printf("Received Uptime %"PRIu64" bytes of data.\n", ebml_data_size);
-      //kr_radio_print_uptime (krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
+      return kr_radio_uptime_to_string (krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size), string);
       break;
     case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
       return kr_response_get_string (kr_response->buffer + pos, ebml_data_size, string);
