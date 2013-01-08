@@ -715,15 +715,23 @@ int krad_Xtransponder_slice_broadcast (krad_Xtransponder_subunit_t *krad_Xtransp
 
   int p;
   int b;
+  int port;
   
   b = 0;
+  
+  port = 0;
+  
+  if ((krad_Xtransponder_subunit->type == DEMUXER) &&
+      (((*krad_slice)->codec == FLAC) || ((*krad_slice)->codec == OPUS) || ((*krad_slice)->codec == VORBIS))) {
+    port = 1;
+  }
   
   printk ("Krad Transponder: output port broadcasting");  
   
   for (p = 0; p < KRAD_TRANSPONDER_PORT_CONNECTIONS; p++) {
-    if (krad_Xtransponder_subunit->outputs[0]->connections[p] != NULL) {
+    if (krad_Xtransponder_subunit->outputs[port]->connections[p] != NULL) {
       krad_slice_ref (*krad_slice);
-      krad_Xtransponder_port_write (krad_Xtransponder_subunit->outputs[0]->connections[p], krad_slice);
+      krad_Xtransponder_port_write (krad_Xtransponder_subunit->outputs[port]->connections[p], krad_slice);
       b++;
     }
   }
@@ -794,6 +802,16 @@ void krad_Xtransponder_subunit_connect2 (krad_Xtransponder_subunit_t *krad_Xtran
                                     
 }
 
+void krad_Xtransponder_subunit_connect3 (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
+                                         krad_Xtransponder_subunit_t *from_krad_Xtransponder_subunit) {
+ 
+  krad_Xtransponder_port_connect (from_krad_Xtransponder_subunit,
+                                  krad_Xtransponder_subunit,
+                                  from_krad_Xtransponder_subunit->outputs[1],
+                                  krad_Xtransponder_subunit->inputs[0]);
+                                    
+}
+
 
 int krad_Xtransponder_add_muxer (krad_Xtransponder_t *krad_Xtransponder, krad_transponder_watch_t *watch) {
   return krad_Xtransponder_subunit_add (krad_Xtransponder, MUXER, watch);
@@ -855,34 +873,3 @@ krad_Xtransponder_t *krad_Xtransponder_create (krad_radio_t *krad_radio) {
 
 }
 
-/*
-int main (int argc, char *argv[]) {
-
-  krad_radio_t *krad_radio;
-  krad_Xtransponder_t *krad_Xtransponder;  
-  int t;
-  int s;
-
-  krad_radio = NULL;
-  krad_Xtransponder = NULL;
-
-  //freopen("/dev/null", "w", stdout);
-
-  krad_Xtransponder = krad_Xtransponder_create (krad_radio);  
-
-  for (t = 0; t < 10; t++) {
-    krad_Xtransponder_add_encoder (krad_Xtransponder, FLAC);
-    s = krad_Xtransponder_add_muxer (krad_Xtransponder, -1, 0);
-    krad_Xtransponder_list (krad_Xtransponder);
-    krad_Xtransponder_add_muxer (krad_Xtransponder, -1, 0);
-    krad_Xtransponder_list (krad_Xtransponder);
-    krad_Xtransponder_subunit_remove (krad_Xtransponder, s);
-    krad_Xtransponder_list (krad_Xtransponder);
-  }
-
-  krad_Xtransponder_destroy (&krad_Xtransponder);
-
-  return 0;
-
-}
-*/

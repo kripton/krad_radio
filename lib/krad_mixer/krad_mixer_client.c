@@ -796,3 +796,45 @@ void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *cont
 	krad_ebml_write_sync (client->krad_ebml);
 
 }
+
+
+void kr_mixer_response_print (kr_response_t *kr_response) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_MIXER_CONTROL:
+      printf("Received KRAD_MIXER_CONTROL %"PRIu64" bytes of data.\n", ebml_data_size);
+      //list_size = ebml_data_size;
+      //while ((list_size) && (bytes_read != list_size) && ((bytes_read += kr_read_tag ( kr_client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
+      //  printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      //}
+      break;
+    case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+      printf("Received KRAD_MIXER_PORTGROUP_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
+      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      break;
+    case EBML_ID_KRAD_MIXER_PORTGROUP:
+      printf("Received KRAD_MIXER_PORTGROUP %"PRIu64" bytes of data.\n", ebml_data_size);
+
+      break;
+    case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
+      printf("Received KRAD_MIXER_SAMPLE_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_MIXER_JACK_RUNNING:
+      printf("Received KRAD_MIXER_JACK_RUNNING %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+  }
+}
+

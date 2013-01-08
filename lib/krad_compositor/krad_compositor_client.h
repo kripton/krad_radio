@@ -17,6 +17,8 @@ typedef struct kr_videoport_St kr_videoport_t;
 
 #include "krad_compositor_common.h"
 
+void kr_compositor_response_print (kr_response_t *kr_response);
+
 int kr_compositor_read_frame_rate ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep);
 int kr_compositor_read_frame_size ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep);
 int kr_compositor_read_text ( kr_client_t *client, char *text);

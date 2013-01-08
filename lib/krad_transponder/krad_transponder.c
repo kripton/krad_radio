@@ -1813,6 +1813,19 @@ void krad_link_start (krad_link_t *krad_link) {
       memset (watch, 0, sizeof(krad_transponder_watch_t));
       krad_link->aud_subunit = krad_Xtransponder_get_subunit (krad_link->krad_transponder->krad_Xtransponder, krad_link->aud_graph_id);
     }
+    
+    if (krad_link->av_mode == AUDIO_AND_VIDEO) {
+      krad_Xtransponder_subunit_connect (krad_link->vud_subunit, krad_link->demux_subunit);
+      krad_Xtransponder_subunit_connect3 (krad_link->aud_subunit, krad_link->demux_subunit);
+    } else {
+      if (krad_link->av_mode == VIDEO_ONLY) {
+        krad_Xtransponder_subunit_connect (krad_link->vud_subunit, krad_link->demux_subunit);
+      }
+      if (krad_link->av_mode == AUDIO_ONLY) {
+        krad_Xtransponder_subunit_connect (krad_link->aud_subunit, krad_link->demux_subunit);
+      }
+    }
+    
   }
   
   if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {

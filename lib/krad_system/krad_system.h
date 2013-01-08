@@ -32,6 +32,13 @@
 #include "krad_mach.h"
 #endif
 
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+
 #ifndef KRAD_SYSTEM_H
 #define KRAD_SYSTEM_H
 

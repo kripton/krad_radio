@@ -111,6 +111,11 @@ void krad_Xtransponder_subunit_connect2 (krad_Xtransponder_subunit_t *krad_Xtran
 void krad_Xtransponder_subunit_connect (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
                                         krad_Xtransponder_subunit_t *from_krad_Xtransponder_subunit);
 
+
+void krad_Xtransponder_subunit_connect3 (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit,
+                                         krad_Xtransponder_subunit_t *from_krad_Xtransponder_subunit);
+
+
 krad_codec_header_t *krad_Xtransponder_get_audio_header (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit);
 krad_codec_header_t *krad_Xtransponder_get_header (krad_Xtransponder_subunit_t *krad_Xtransponder_subunit);
 

@@ -394,7 +394,7 @@ int krad_ebml_track_changed (krad_ebml_t *krad_ebml, int track);
 
 int krad_ebml_read_packet (krad_ebml_t *krad_ebml, int *track, uint64_t *timecode, unsigned char *buffer);
 
-
+int krad_ebml_read_string_from_frag (unsigned char *ebml_frag, uint64_t ebml_data_size, char *string);
 int krad_ebml_read_element_from_frag (unsigned char *ebml_frag, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
 
 /* internal read func */

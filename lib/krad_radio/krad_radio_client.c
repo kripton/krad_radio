@@ -130,6 +130,125 @@ int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms) {
   return select (client->sd+1, &set, NULL, NULL, &tv);
 }
 
+void kr_radio_print_uptime (uint64_t uptime) {
+
+  int days;
+  int hours;
+  int minutes;
+  int seconds;
+
+  //printf ("uptime raw:  %"PRIu64" \n", uptime);
+
+  printf ("up ");
+  
+  days = uptime / (60*60*24);
+  minutes = uptime / 60;
+  hours = (minutes / 60) % 24;
+  minutes %= 60;
+  seconds = uptime % 60;
+  
+  if (days) {
+    printf ("%d day%s, ", days, (days != 1) ? "s" : "");
+  }
+  if (hours) {
+    printf ("%d:%02d ", hours, minutes);
+  } else {
+    printf ("%02d min ", minutes);
+  }
+  if (seconds) {
+    printf ("and %02d seconds", seconds);
+  }
+
+  printf ("\n");
+}
+
+void kr_response_free_string (char **string) {
+  free (*string);
+}
+
+int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string) {
+
+  int pos;
+  pos = 0;
+
+  if (ebml_data_size > 0) {
+    *string = malloc (ebml_data_size + 1);
+    pos += krad_ebml_read_string_from_frag (ebml_frag + pos, ebml_data_size, *string);
+    (*string)[pos] = '\0';
+  }
+  return pos;
+}
+
+int kr_response_print_string_test (unsigned char *ebml_frag, uint64_t ebml_data_size) {
+
+  char *string;
+  int pos;
+  
+  pos = 0;
+  string = NULL;
+
+  pos += kr_response_get_string (ebml_frag, ebml_data_size, &string);
+  printf ("%.*s\n", pos, string);
+  kr_response_free_string (&string);
+
+  return ebml_data_size;
+}
+
+int kr_response_print_string (unsigned char *ebml_frag, uint64_t ebml_data_size) {
+
+  int length;
+  
+  length = MIN (ebml_data_size, INTMAX_MAX);
+  
+  printf ("%.*s\n", length, ebml_frag);
+  return ebml_data_size;
+}
+
+void kr_radio_response_print (kr_response_t *kr_response) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_RADIO_TAG_LIST:
+      printf("Received Tag list %"PRIu64" bytes of data.\n", ebml_data_size);
+      //list_size = ebml_data_size;
+      //while ((list_size) && (bytes_read != list_size) && ((bytes_read += kr_read_tag ( kr_client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
+      //  printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      //}
+      break;
+    case EBML_ID_KRAD_RADIO_TAG:
+      printf("Received Tag %"PRIu64" bytes of data.\n", ebml_data_size);
+      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
+      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      break;
+    case EBML_ID_KRAD_RADIO_UPTIME:
+      //printf("Received Uptime %"PRIu64" bytes of data.\n", ebml_data_size);
+      kr_radio_print_uptime (krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
+      break;
+    case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
+      //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      pos += kr_response_print_string_test (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_RADIO_LOGNAME:
+      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      pos += kr_response_print_string_test (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
+      //printf("Received CPU Usage %"PRIu64" bytes of data.\n", ebml_data_size);
+      //number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
+      printf ("%"PRIu64"%%\n", krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
+      break;
+  }
+}
+
 void kr_response_type_print (kr_response_t *kr_response) {
 
   switch ( kr_response->unit ) {
@@ -148,6 +267,24 @@ void kr_response_type_print (kr_response_t *kr_response) {
   }
 }
 
+void kr_response_print (kr_response_t *kr_response) {
+
+  switch ( kr_response->unit ) {
+    case KR_RADIO:
+      kr_radio_response_print (kr_response);
+      break;
+    case KR_MIXER:
+      kr_mixer_response_print (kr_response);
+      break;
+    case KR_COMPOSITOR:
+      kr_compositor_response_print (kr_response);
+      break;
+    case KR_TRANSPONDER:
+      //kr_transponder_response_print (kr_response);
+      break;
+  }
+}
+
 kr_unit_t kr_response_type (kr_response_t *kr_response) {
   return kr_response->unit;
 }
@@ -156,7 +293,7 @@ void kr_response_size_print (kr_response_t *kr_response) {
   printf ("Response Size: %u byte payload.\n", kr_response->size);
 }
 
-void kr_response_print (kr_response_t *kr_response) {
+void kr_response_print_info (kr_response_t *kr_response) {
   kr_response_type_print (kr_response);
   kr_response_size_print (kr_response);
 }

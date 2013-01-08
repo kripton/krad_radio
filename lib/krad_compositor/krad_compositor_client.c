@@ -642,7 +642,51 @@ void kr_compositor_set_port_mode (kr_client_t *client, int number, uint32_t x, u
 
 
 
+void kr_compositor_response_print (kr_response_t *kr_response) {
 
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_COMPOSITOR_INFO:
+      //printf("Received KRAD_COMPOSITOR_INFO %"PRIu64" bytes of data.\n", ebml_data_size);
+      pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_FRAME_SIZE:
+      printf("Received KRAD_COMPOSITOR_FRAME_SIZE %"PRIu64" bytes of data.\n", ebml_data_size);
+      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
+      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_FRAME_RATE:
+      printf("Received KRAD_COMPOSITOR_FRAME_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME:
+      //printf("Received KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
+      pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
+      printf("Received KRAD_COMPOSITOR_PORT_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST:
+      printf("Received KRAD_COMPOSITOR_SPRITE_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_TEXT_LIST:
+      printf("Received KRAD_COMPOSITOR_TEXT_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
+      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
+      break;
+  }
+}
 
 
 
