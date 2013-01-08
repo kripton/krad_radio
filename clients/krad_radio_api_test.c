@@ -6,7 +6,9 @@ void handle_response (kr_client_t *client) {
   char *string;
   int wait_time_ms;
   int length;
+  int number;
 
+  number = 0;
   string = NULL;
   response = NULL;  
   wait_time_ms = 250;
@@ -18,7 +20,10 @@ void handle_response (kr_client_t *client) {
       length = kr_response_to_string (response, &string);
       printf ("Response Length: %d\n", length);
       if (length > 0) {
-        printf ("Response: %s\n", string);
+        printf ("Response String: %s\n", string);
+      }
+      if (kr_response_to_int (response, &number)) {
+        printf ("Response Int: %d\n", number);
       }
       kr_response_free_string (&string);
       kr_response_free (&response);
@@ -26,6 +31,8 @@ void handle_response (kr_client_t *client) {
   } else {
     printf ("No response after waiting %dms\n", wait_time_ms);
   }
+
+  printf ("\n");
 }
 
 
@@ -39,7 +46,9 @@ void kr_api_test (kr_client_t *client) {
 
   kr_uptime (client);
   handle_response (client);
-
+  
+  kr_system_cpu_usage (client);  
+  handle_response (client);
 }
 
 int main (int argc, char *argv[]) {

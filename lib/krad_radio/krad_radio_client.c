@@ -164,12 +164,11 @@ int kr_radio_uptime_to_string (uint64_t uptime, char **string) {
   }
   if (hours) {
     pos += sprintf (*string + pos, " %d:%02d", hours, minutes);
-  } else {
+  }
+  if ((hours) || (minutes)) {
     pos += sprintf (*string + pos, " %02d min", minutes);
   }
-  if (seconds) {
-    pos += sprintf (*string + pos, " and %02d seconds", seconds);
-  }
+  pos += sprintf (*string + pos, " and %02d seconds", seconds);
   return pos;
 }
 
@@ -279,12 +278,37 @@ int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
       return kr_response_get_string (kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
-      //printf("Received CPU Usage %"PRIu64" bytes of data.\n", ebml_data_size);
-      //number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-      //printf ("%"PRIu64"%%\n", krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
+      *string = kr_response_alloc_string (ebml_data_size + 1);
+      return sprintf (*string, "%"PRIu64"%%",
+                      krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
       break;
   }
 
+  return 0;  
+}
+
+int kr_radio_response_to_int (kr_response_t *kr_response, int *number) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_RADIO_UPTIME:
+      *number = krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size);
+      return 1;
+      break;
+    case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
+      *number = krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size);
+      return 1;
+      break;
+  }
+
+  *number = 0;
   return 0;  
 }
 
@@ -367,6 +391,25 @@ void kr_response_print (kr_response_t *kr_response) {
       kr_transponder_response_print (kr_response);
       break;
   }
+}
+
+int kr_response_to_int (kr_response_t *kr_response, int *number) {
+
+  switch ( kr_response->unit ) {
+    case KR_RADIO:
+      return kr_radio_response_to_int (kr_response, number);
+      break;
+    case KR_MIXER:
+      //kr_mixer_response_print (kr_response);
+      break;
+    case KR_COMPOSITOR:
+      //kr_compositor_response_print (kr_response);
+      break;
+    case KR_TRANSPONDER:
+      //kr_transponder_response_print (kr_response);
+      break;
+  }
+  return 0;
 }
 
 int kr_response_to_string (kr_response_t *kr_response, char **string) {
