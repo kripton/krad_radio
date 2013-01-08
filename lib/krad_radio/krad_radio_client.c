@@ -192,13 +192,17 @@ void kr_response_free_string (char **string) {
   free (*string);
 }
 
+char *kr_response_alloc_string (size_t length) {
+  return calloc (1, length + 16);
+}
+
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string) {
 
   int pos;
   pos = 0;
 
   if (ebml_data_size > 0) {
-    *string = malloc (ebml_data_size + 1);
+    *string = kr_response_alloc_string (ebml_data_size + 1);
     pos += krad_ebml_read_string_from_frag (ebml_frag + pos, ebml_data_size, *string);
     (*string)[pos] = '\0';
   }
@@ -258,15 +262,10 @@ int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
       //kr_radio_print_uptime (krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
       break;
     case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
-      //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
-      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      //pos += kr_response_print_string_test (kr_response->buffer + pos, ebml_data_size);
       return kr_response_get_string (kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_RADIO_LOGNAME:
-      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
-      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      //pos += kr_response_print_string_test (kr_response->buffer + pos, ebml_data_size);
+      return kr_response_get_string (kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
       //printf("Received CPU Usage %"PRIu64" bytes of data.\n", ebml_data_size);
