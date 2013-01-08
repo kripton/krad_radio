@@ -164,11 +164,13 @@ int kr_radio_uptime_to_string (uint64_t uptime, char **string) {
   }
   if (hours) {
     pos += sprintf (*string + pos, " %d:%02d", hours, minutes);
+  } else {
+    if (minutes) {
+      pos += sprintf (*string + pos, " %02d min", minutes);
+    } else {
+      pos += sprintf (*string + pos, " %02d seconds", seconds);
+    }
   }
-  if ((hours) || (minutes)) {
-    pos += sprintf (*string + pos, " %02d min", minutes);
-  }
-  pos += sprintf (*string + pos, " and %02d seconds", seconds);
   return pos;
 }
 
