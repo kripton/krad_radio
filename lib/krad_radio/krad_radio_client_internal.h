@@ -15,6 +15,7 @@ struct kr_response_St {
 struct kr_client_St {
   krad_ipc_client_t *krad_ipc_client;
   krad_ebml_t *krad_ebml;
+  char *name;
 };
 
 struct kr_shm_St {

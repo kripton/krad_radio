@@ -1120,27 +1120,36 @@ int callback_kr_client (struct libwebsocket_context *this, struct libwebsocket *
 			pss->wsi = wsi;
 			pss->krad_websocket = krad_websocket_glob;
 
-			pss->kr_client = kr_connect (pss->krad_websocket->sysname);
-			if (pss->kr_client != NULL) {
-				pss->kr_client_info = 0;
-				pss->hello_sent = 0;			
-				krad_ipc_set_handler_callback (pss->kr_client->krad_ipc_client, krad_websocket_ipc_handler, pss);
-				kr_mixer_sample_rate (pss->kr_client);
-				kr_compositor_get_frame_rate (pss->kr_client);
-				kr_compositor_get_frame_size (pss->kr_client);			
-				kr_mixer_portgroups_list (pss->kr_client);
-				kr_transponder_decklink_list (pss->kr_client);
-				kr_transponder_list (pss->kr_client);
-				kr_tags (pss->kr_client, NULL);
-				krad_ipc_broadcast_subscribe (pss->kr_client->krad_ipc_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
-				add_poll_fd (pss->kr_client->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
-			}
+      pss->kr_client = kr_client_create ("websocket client");
+      
+      if (pss->kr_client == NULL) {
+        break;
+      }
+      
+      if (!kr_connect (pss->kr_client, pss->krad_websocket->sysname)) {
+        kr_client_destroy (&pss->kr_client);
+        break;
+      }
+
+			pss->kr_client_info = 0;
+			pss->hello_sent = 0;			
+			krad_ipc_set_handler_callback (pss->kr_client->krad_ipc_client, krad_websocket_ipc_handler, pss);
+			kr_mixer_sample_rate (pss->kr_client);
+			kr_compositor_get_frame_rate (pss->kr_client);
+			kr_compositor_get_frame_size (pss->kr_client);			
+			kr_mixer_portgroups_list (pss->kr_client);
+			kr_transponder_decklink_list (pss->kr_client);
+			kr_transponder_list (pss->kr_client);
+			kr_tags (pss->kr_client, NULL);
+			krad_ipc_broadcast_subscribe (pss->kr_client->krad_ipc_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
+			add_poll_fd (pss->kr_client->krad_ipc_client->sd, POLLIN, KRAD_IPC, pss, NULL);
+
 			break;
 
 		case LWS_CALLBACK_CLOSED:
 
 			del_poll_fd(pss->kr_client->krad_ipc_client->sd);
-			kr_disconnect (&pss->kr_client);
+			kr_client_destroy (&pss->kr_client);
 			pss->hello_sent = 0;
 			pss->context = NULL;
 			pss->wsi = NULL;

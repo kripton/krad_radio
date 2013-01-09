@@ -176,18 +176,31 @@ int kr_subunit_control_set (kr_client_t *kr_client,
                             kr_subunit_control_t control,
                             kr_subunit_control_value_t value);
 
+
+
+kr_client_t *kr_client_create (char *client_name);
+
 /**
  * @brief connect to a krad radio daemon identified by sysname
  * @param sysname of local station or ip:port remote station
  * @return connection handle or NULL on error
  */
-kr_client_t *kr_connect (char *sysname);
+int kr_connect (kr_client_t *client, char *sysname);
+
+
+int kr_connect_remote (kr_client_t *client, char *host, int port);
+
+
+int kr_connected (kr_client_t *client);
 
 /**
  * @brief disconnect an open IPC-connection
  * @param kr_client pointer to handle of the connection to be closed
  */
-void kr_disconnect (kr_client_t **kr_client);
+int kr_disconnect (kr_client_t *client);
+
+
+int kr_client_destroy (kr_client_t **client);
 
 /**
  * @brief determines if a connection is local or remote
@@ -325,13 +338,13 @@ void kr_logname (kr_client_t *client);
  * @param client handle of the IPC-connection to the station
  * @param port TCP-port on which to listen for incoming connections
  */
-void kr_remote_enable (kr_client_t *client, int port);
+void kr_remote_enable (kr_client_t *client, char *interface, int port);
 
 /**
  * @brief Disable the previously enabled IPC remote control
  * @param client handle of the IPC-connection to the station
  */
-void kr_remote_disable (kr_client_t *client);
+void kr_remote_disable (kr_client_t *client, char *interface, int port);
 
 /**
  * @brief Enable web UI remote control on a specifed port. This can only be 

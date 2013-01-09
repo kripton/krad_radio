@@ -98,10 +98,16 @@ int main (int argc, char *argv[]) {
     return 0;
   }
 
-  client = kr_connect (sysname);
+  client = kr_client_create ("krad command line client");
 
   if (client == NULL) {
+    fprintf (stderr, "Could create client\n");
+    return 1;
+  }
+
+  if (!kr_connect (client, sysname)) {
     fprintf (stderr, "Could not connect to %s krad radio daemon\n", sysname);
+    kr_client_destroy (&client);
     return 1;
   }
 
@@ -192,14 +198,14 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "remoteon", 8) == 0) {
     if (argc == 4) {
-      kr_remote_enable (client, atoi(argv[3]));
+      kr_remote_enable (client, NULL, atoi(argv[3]));
       kr_client_response_wait_print (client);
     }
   }      
 
   if (strncmp(argv[2], "remoteoff", 9) == 0) {
     if (argc == 3) {
-      kr_remote_disable (client);
+      kr_remote_disable (client, NULL, 0);
     }
   }
 
@@ -861,7 +867,7 @@ int main (int argc, char *argv[]) {
     }
   }
   
-  kr_disconnect (&client);
+  kr_client_destroy (&client);
 
   return 0;
 

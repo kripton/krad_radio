@@ -207,82 +207,46 @@ void krad_radio_launch (char *sysname) {
 /* the implementation of this is very silly */
 char *kr_station_uptime (char *sysname) {
 
-  krad_ipc_client_t *client;
-  kr_client_t *kr_client;
-  
-  kr_client = kr_connect (sysname);
+  kr_client_t *client;
+  static char uptime[128];
+  kr_response_t *response;
+  char *string;
+  int len;
 
-  if (kr_client == NULL) {
+  len = 0;
+  client = NULL;
+  string = NULL;
+  response = NULL;  
+  memset (uptime, 0, sizeof(uptime));
+  
+  client = kr_client_create ("kr_station_uptime_checker");
+
+  if (client == NULL) {
+    fprintf (stderr, "Could not create client\n");
+    return NULL;
+  }
+
+  if (!(kr_connect (client, sysname))) {
     fprintf (stderr, "Could not connect to %s krad radio daemon\n", sysname);
+    kr_client_destroy (&client);
     return NULL;
   }
   
-  int pos;
-  
-  pos = 0;
-  
-  kr_uptime (kr_client);
-  
-  static char uptime[256];
-  
-  strcat (uptime, "");
-  
-  client = kr_client->krad_ipc_client;
+  kr_uptime (client);
+  kr_client_response_wait (client, &response);
 
-  uint32_t ebml_id;
-  uint64_t ebml_data_size;
-  fd_set set;
-
-  int updays, uphours, upminutes;  
-  uint64_t number;
-  
-  struct timeval tv;
-  int ret;
-  
-  ret = 0;
-  if (client->tcp_port) {
-    tv.tv_sec = 1;
-  } else {
-      tv.tv_sec = 0;
-  }
-    tv.tv_usec = 500000;
-  
-  ebml_id = 0;
-  ebml_data_size = 0;
-  
-  FD_ZERO (&set);
-  FD_SET (client->sd, &set);  
-
-  ret = select (client->sd+1, &set, NULL, NULL, &tv);
-  
-  if (ret > 0) {
-    krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-    switch ( ebml_id ) {
-      case EBML_ID_KRAD_RADIO_MSG:
-        krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-        switch ( ebml_id ) {
-          case EBML_ID_KRAD_RADIO_UPTIME:
-            number = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-            pos += sprintf (uptime + pos, "Uptime: ");
-            updays = number / (60*60*24);
-            if (updays) {
-              pos += sprintf (uptime + pos, "%d day%s, ", updays, (updays != 1) ? "s" : "");
-            }
-            upminutes = number / 60;
-            uphours = (upminutes / 60) % 24;
-            upminutes %= 60;
-            if (uphours) {
-              pos += sprintf (uptime + pos, "%2d:%02d ", uphours, upminutes);
-            } else {
-              pos += sprintf (uptime + pos, "%d min ", upminutes);
-            }
-            break;
-        }
+  if (response != NULL) {
+    len = kr_response_to_string (response, &string);
+    if (len > 0) {
+      strncpy (uptime, string, sizeof(uptime));
+      kr_response_free_string (&string);
     }
+    kr_response_free (&response);
+  } else {
+    fprintf (stderr, "No response after waiting\n");
   }
-  
-  kr_disconnect (&kr_client);
-  
+
+  kr_client_destroy (&client);
+
   return uptime;
-  
 }

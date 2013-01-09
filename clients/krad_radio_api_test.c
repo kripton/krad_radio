@@ -21,11 +21,11 @@ void handle_response (kr_client_t *client) {
       printf ("Response Length: %d\n", length);
       if (length > 0) {
         printf ("Response String: %s\n", string);
+        kr_response_free_string (&string);
       }
       if (kr_response_to_int (response, &number)) {
         printf ("Response Int: %d\n", number);
       }
-      kr_response_free_string (&string);
       kr_response_free (&response);
     }
   } else {
@@ -75,10 +75,16 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  client = kr_connect (sysname);
+  client = kr_client_create ("krad api test");
 
   if (client == NULL) {
+    fprintf (stderr, "Could create client\n");
+    return 1;
+  }
+
+  if (!kr_connect (client, sysname)) {
     fprintf (stderr, "Could not connect to %s krad radio daemon\n", sysname);
+    kr_client_destroy (&client);
     return 1;
   }
 
@@ -87,9 +93,12 @@ int main (int argc, char *argv[]) {
   kr_api_test (client);
 
   printf ("Disconnecting from %s..\n", sysname);
-  kr_disconnect (&client);
+  kr_disconnect (client);
   printf ("Disconnected from %s.\n", sysname);
-
+  printf ("Destroying client..\n");
+  kr_client_destroy (&client);
+  printf ("Client Destroyed.\n");
+  
   return 0;
 
 }

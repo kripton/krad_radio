@@ -55,10 +55,16 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  client = kr_connect (sysname);
+  client = kr_client_create ("krad api broadcast watcher");
 
   if (client == NULL) {
+    fprintf (stderr, "Could create client\n");
+    return 1;
+  }
+
+  if (!kr_connect (client, sysname)) {
     fprintf (stderr, "Could not connect to %s krad radio daemon\n", sysname);
+    kr_client_destroy (&client);
     return 1;
   }
 
@@ -71,8 +77,11 @@ int main (int argc, char *argv[]) {
   wait_for_broadcasts (client);
   
   printf ("Disconnecting from %s..\n", sysname);
-  kr_disconnect (&client);
+  kr_disconnect (client);
   printf ("Disconnected from %s.\n", sysname);
+  printf ("Destroying client..\n");
+  kr_client_destroy (&client);
+  printf ("Client Destroyed.\n");
   return 0;
 
 }

@@ -12,28 +12,91 @@
 #include "krad_mixer_client.h"
 
 
-kr_client_t *kr_connect (char *sysname) {
+kr_client_t *kr_client_create (char *client_name) {
 
-  kr_client_t *kr_client;
+  kr_client_t *client;
+  int len;
   
-  kr_client = calloc (1, sizeof(kr_client_t));
-  kr_client->krad_ipc_client = krad_ipc_connect (sysname);
-  if (kr_client->krad_ipc_client != NULL) {
-    kr_client->krad_ebml = kr_client->krad_ipc_client->krad_ebml;
-    return kr_client;
-  } else {
-    free (kr_client);
+  if (client_name == NULL) {
+    return NULL;
   }
-  
-  return NULL;
+  len = strlen (client_name);
+  if ((len == 0) || (len > 255)) {
+    return NULL;
+  }
+
+  client = calloc (1, sizeof(kr_client_t));
+  client->name = strdup (client_name);
+
+  return client;
 }
 
-void kr_disconnect (kr_client_t **kr_client) {
-  if ((kr_client != NULL) && (*kr_client != NULL)) {
-    krad_ipc_disconnect ((*kr_client)->krad_ipc_client);
-    free (*kr_client);
-    *kr_client = NULL;
+int kr_connect_remote (kr_client_t *client, char *host, int port) {
+  
+  char url[532];
+  int len;
+  if ((client == NULL) || (host == NULL) || 
+      ((port < 1) || (port > 65535))) {
+    return 0;
   }
+  len = strlen (host);
+  if ((len == 0) || (len > 512)) {
+    return 0;
+  }
+
+  snprintf (url, sizeof(url), "%s:%d", host, port);
+
+  return kr_connect (client, url);
+}
+
+int kr_connect (kr_client_t *client, char *sysname) {
+
+  if (client == NULL) {
+    return -1;
+  }
+  if (kr_connected (client)) {
+    kr_disconnect (client);
+  }
+  client->krad_ipc_client = krad_ipc_connect (sysname);
+  if (client->krad_ipc_client != NULL) {
+    client->krad_ebml = client->krad_ipc_client->krad_ebml;
+    return 1;
+  } else {
+    return -1;
+  }
+  
+  return -2;
+}
+
+int kr_connected (kr_client_t *client) {
+  if (client->krad_ipc_client != NULL) {
+    return 1; 
+  }
+  return 0;
+}
+
+int kr_disconnect (kr_client_t *client) {
+  if (client != NULL) {
+    if (kr_connected (client)) {
+      krad_ipc_disconnect (client->krad_ipc_client);
+      client->krad_ipc_client = NULL;
+      return 1;
+    }
+    return -2;
+  }
+  return -1;
+}
+
+int kr_client_destroy (kr_client_t **client) {
+  if (*client != NULL) {
+    if (kr_connected (*client)) {
+      kr_disconnect (*client);
+    }
+    free (*client);
+    *client = NULL;
+    return 1;
+  }
+  return -1;
 }
 
 krad_ebml_t *kr_client_get_ebml (kr_client_t *kr_client) {
@@ -596,7 +659,7 @@ void kr_system_cpu_usage (kr_client_t *client) {
 
 /* Remote Control */
 
-void kr_remote_enable (kr_client_t *client, int port) {
+void kr_remote_enable (kr_client_t *client, char *interface, int port) {
 
   uint64_t radio_command;
   uint64_t enable_remote;
@@ -612,7 +675,7 @@ void kr_remote_enable (kr_client_t *client, int port) {
   krad_ebml_write_sync (client->krad_ebml);
 }
 
-void kr_remote_disable (kr_client_t *client) {
+void kr_remote_disable (kr_client_t *client, char *interface, int port) {
 
   uint64_t radio_command;
   uint64_t disable_remote;
