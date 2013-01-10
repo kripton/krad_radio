@@ -331,6 +331,8 @@ void kr_logname (kr_client_t *client);
  * @{
  */
 
+void kr_remote_status (kr_client_t *client);
+
 /**
  * @brief Enable IPC remote control on a specifed port. You can use 
  * "hostname:port" as sysname to specify this station from another machine. 

@@ -309,6 +309,59 @@ int kr_response_print_string (unsigned char *ebml_frag, uint64_t ebml_data_size)
   return ebml_data_size;
 }
 
+int kr_response_get_string_from_item (unsigned char *ebml_frag, uint64_t item_size, char **string) {
+
+  int item_pos;
+  int string_pos;
+  int ret;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	int number;
+	
+	ret = 0;
+  item_pos = 0;
+  string_pos = 0;
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag, &ebml_id, &ebml_data_size);
+  string_pos += sprintf (*string + string_pos, "Interface: ");
+  ret = krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, *string + string_pos);
+  item_pos += ret;
+  string_pos += ret;
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+  number = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  string_pos += sprintf (*string + string_pos, " Number: %d\n", number);
+
+  return string_pos;
+
+}
+
+
+int kr_response_get_string_from_list (unsigned char *ebml_frag, uint64_t list_size, char **string) {
+
+  int list_pos;
+  int string_pos;
+  int ret;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	char *string_loc_pos;
+	
+	ret = 0;
+  list_pos = 0;
+  string_pos = 0;
+  
+  string_loc_pos = *string;
+  
+  string_pos += sprintf (string_loc_pos + string_pos, "\n\nList: (%"PRIu64" bytes)\n", list_size);  
+  string_loc_pos = string_loc_pos + string_pos;
+  while (list_pos != list_size) {
+    ret = krad_ebml_read_element_from_frag (ebml_frag + list_pos, &ebml_id, &ebml_data_size);
+    string_loc_pos += kr_response_get_string_from_item (ebml_frag + list_pos + ret, ebml_data_size, &string_loc_pos);
+    list_pos += ebml_data_size + ret;
+  }
+
+  return list_pos;
+}
+
 int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
 
   int pos;
@@ -347,6 +400,12 @@ int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
       return sprintf (*string, "%"PRIu64"%%",
                       krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
       break;
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST:
+      //printf("Received REMOTE_STATUS_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      *string = kr_response_alloc_string (ebml_data_size * 4);
+      return kr_response_get_string_from_list (kr_response->buffer + pos, ebml_data_size, string);
+      break;
+      
   }
 
   return 0;  
@@ -658,6 +717,18 @@ void kr_system_cpu_usage (kr_client_t *client) {
 }
 
 /* Remote Control */
+
+void kr_remote_status (kr_client_t *client) {
+
+  uint64_t command;
+  uint64_t remote_status_command;
+  
+  krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &command);
+  krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_GET_REMOTE_STATUS, &remote_status_command);
+  krad_ebml_finish_element (client->krad_ebml, remote_status_command);
+  krad_ebml_finish_element (client->krad_ebml, command);
+  krad_ebml_write_sync (client->krad_ebml);
+}
 
 void kr_remote_enable (kr_client_t *client, char *interface, int port) {
 

@@ -49,6 +49,10 @@ void kr_api_test (kr_client_t *client) {
   
   kr_system_cpu_usage (client);  
   handle_response (client);
+    
+  kr_remote_status (client);
+  handle_response (client);  
+  
 }
 
 int main (int argc, char *argv[]) {

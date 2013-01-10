@@ -10,6 +10,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	kr_ipc = krad_radio->remote.krad_ipc;
 	
 	uint32_t ebml_id;	
+	uint64_t list;	
 	uint32_t command;
 	uint64_t ebml_data_size;
 	uint64_t element;
@@ -297,6 +298,30 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
+			krad_ipc_server_response_finish ( kr_ipc, response);
+			
+			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_GET_REMOTE_STATUS:
+
+			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+			krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
+
+
+	    krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
+			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "coconut");
+			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, 3336);
+	    krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+
+	    krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);	
+			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "b4ongo");
+			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, 666);									     
+	    krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+
+
+
+			krad_ipc_server_response_list_finish ( kr_ipc, list );			
+			
 			krad_ipc_server_response_finish ( kr_ipc, response);
 			
 			return 0;
