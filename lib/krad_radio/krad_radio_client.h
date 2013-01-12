@@ -236,7 +236,10 @@ int kr_response_to_int (kr_response_t *kr_response, int *number);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
 
-kr_unit_t kr_response_type (kr_response_t *kr_response);
+int kr_response_is_list (kr_response_t *kr_response);
+int kr_response_list_length (kr_response_t *kr_response);
+
+kr_unit_t kr_response_unit (kr_response_t *kr_response);
 uint32_t kr_response_size (kr_response_t *kr_response);
 
 void kr_client_response_wait_print (kr_client_t *kr_client);

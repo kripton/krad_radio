@@ -17,6 +17,9 @@ void handle_response (kr_client_t *client) {
     kr_client_response_get (client, &response);
   
     if (response != NULL) {
+      if (kr_response_is_list (response)) {
+        printf ("Response is a list with %d items.\n", kr_response_list_length (response));
+      }
       length = kr_response_to_string (response, &string);
       printf ("Response Length: %d\n", length);
       if (length > 0) {

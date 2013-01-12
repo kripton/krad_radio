@@ -463,7 +463,58 @@ int kr_response_to_string (kr_response_t *kr_response, char **string) {
   return 0;
 }
 
-kr_unit_t kr_response_type (kr_response_t *kr_response) {
+
+int kr_response_is_list (kr_response_t *kr_response) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_RADIO_TAG_LIST:
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST:
+      return 1;
+  }
+
+  return 0;  
+}
+
+
+int kr_response_list_length (kr_response_t *kr_response) {
+
+  int list_pos;
+  uint64_t list_size;
+  int list_items;
+  int ret;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	unsigned char *buffer;
+	
+	ret = 0;
+  list_pos = 0;
+  list_items = 0;
+  
+  if (!kr_response_is_list (kr_response)) {
+    return 0;
+  }
+  
+  buffer = kr_response->buffer + krad_ebml_read_element_from_frag (kr_response->buffer + list_pos, &ebml_id, &list_size);
+  
+  while (list_pos != list_size) {
+    ret = krad_ebml_read_element_from_frag (buffer + list_pos, &ebml_id, &ebml_data_size);
+    list_pos += ebml_data_size + ret;
+    list_items++;
+  }
+
+  return list_items;
+
+}
+
+kr_unit_t kr_response_unit (kr_response_t *kr_response) {
   return kr_response->unit;
 }
 

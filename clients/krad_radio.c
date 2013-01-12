@@ -605,7 +605,7 @@ int main (int argc, char *argv[]) {
       if (strcmp(argv[4], "ogg_maxpackets") == 0) {
         kr_transponder_update (client, atoi(argv[3]), EBML_ID_KRAD_LINK_LINK_OGG_MAX_PACKETS_PER_PAGE, atoi(argv[5]));
       }
-    }        
+    }
   }
   
   /* Krad Compositor Commands */
