@@ -47,6 +47,9 @@
   */
 typedef struct kr_client_St kr_client_t;
 
+
+#include "krad_mixer_common.h"
+
 /** Shared memory buffer.
  * @brief Variable sized buffer used to get data in and out of local A/V ports
  * @see kr_shm_create,kr_shm_destroy
@@ -194,6 +197,7 @@ struct kr_tag_St {
 typedef union {
   kr_tag_t *tag;
   kr_remote_t *remote;
+  kr_mixer_portgroup_t *mixer_portgroup;
 } kr_rep_ptr_t;
 
 typedef struct kr_rep_St kr_rep_t;
@@ -259,6 +263,8 @@ int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote)
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *kr_response, int *number);
+
+int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_frag, uint64_t list_size, char **string);
 
 char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);

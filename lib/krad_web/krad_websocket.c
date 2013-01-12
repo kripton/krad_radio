@@ -864,24 +864,18 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 					break;	
 				case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
 					//printkd ("Received PORTGROUP list %"PRIu64" bytes of data.\n", ebml_data_size);
-					list_size = ebml_data_size;
-					while ((list_size) && ((bytes_read += kr_mixer_read_portgroup ( kr_client_session_data->kr_client, portname, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
-						krad_websocket_add_portgroup (kr_client_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
-						
-						if (bytes_read == list_size) {
-							break;
-						}
-					}	
+					//list_size = ebml_data_size;
+					//while ((list_size) && ((bytes_read += kr_mixer_read_portgroup ( kr_client_session_data->kr_client, portname, &floatval, crossfadename, &crossfade, &has_xmms2 )) <= list_size)) {
+					//	krad_websocket_add_portgroup (kr_client_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
+					// FIXME
 					break;
 				case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
 					//printk ("PORTGROUP_CREATED msg %"PRIu64" bytes", ebml_data_size );
-					
-					kr_mixer_read_portgroup ( kr_client_session_data->kr_client, portname, &floatval, crossfadename, &crossfade, &has_xmms2 );
-
-					krad_websocket_add_portgroup (kr_client_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
-
+					// FIXME
+					//kr_mixer_read_portgroup ( kr_client_session_data->kr_client, portname, &floatval, crossfadename, &crossfade, &has_xmms2 );
+					//krad_websocket_add_portgroup (kr_client_session_data, portname, floatval, crossfadename, crossfade, has_xmms2);
 					break;
-				
+
 				case EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED:
 				
 					krad_ebml_read_element (krad_ipc->krad_ebml, &ebml_id, &ebml_data_size);	
@@ -894,7 +888,6 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 				
 					krad_ebml_read_string (krad_ipc->krad_ebml, portname_actual, ebml_data_size);
 					//printkd ("PORTGROUP_DESTROYED msg %zu bytes  \n", ebml_data_size );
-					
 					krad_websocket_remove_portgroup (kr_client_session_data, portname_actual);
 					
 					break;

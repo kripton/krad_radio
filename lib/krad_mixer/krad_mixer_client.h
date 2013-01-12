@@ -24,8 +24,12 @@ typedef struct kr_audioport_St kr_audioport_t;
 
 /** Mixer **/
 
+krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_frag,
+                                                            krad_mixer_portgroup_rep_t **krad_mixer_portgroup_repn);
+
+int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint64_t item_size, char **string);
 int kr_mixer_response_to_string (kr_response_t *kr_response, char **string);
-int kr_mixer_read_portgroup ( kr_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade, int *has_xmms2 );
+
 int kr_mixer_read_control ( kr_client_t *client, char **portgroup_name, char **control_name, float *value );
 
 void kr_mixer_portgroup_xmms2_cmd (kr_client_t *client, char *portgroupname, char *xmms2_cmd);

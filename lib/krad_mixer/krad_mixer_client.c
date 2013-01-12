@@ -537,138 +537,6 @@ void kr_mixer_remove_portgroup (kr_client_t *client, char *name) {
 
 }
 
-int kr_mixer_read_portgroup ( kr_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade, int *has_xmms2) {
-
-	uint32_t ebml_id;
-	uint64_t ebml_data_size;
-	int bytes_read;
-	
-	char string[1024];
-	float floaty;
-	
-	int8_t channels;
-	
-	bytes_read = 0;
-
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-	
-	bytes_read += ebml_data_size + 9;
-	
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP) {
-		//printk ("hrm wtf");
-	} else {
-		//printk ("tag size %"PRIu64"", ebml_data_size);
-	}
-	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
-		//printk ("hrm wtf2");
-	} else {
-		//printk ("tag name size %"PRIu64"", ebml_data_size);
-	}
-
-	krad_ebml_read_string (client->krad_ebml, portname, ebml_data_size);
-	
-	//printk ("Input name: %s", portname);
-	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS) {
-		//printk ("hrm wtf3");
-	} else {
-		//printk ("tag value size %"PRIu64"", ebml_data_size);
-	}
-
-	channels = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-	
-	printk  ("Channels: %d", channels);
-
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_TYPE) {
-		//printk ("hrm wtf2");
-	} else {
-		//printk ("tag name size %"PRIu64"", ebml_data_size);
-	}
-
-	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);
-	
-	//printk ("Type: %s", string);	
-	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME) {
-		//printk ("hrm wtf3");
-	} else {
-		//printk ("VOLUME value size %"PRIu64"", ebml_data_size);
-	}
-
-	floaty = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
-	
-	*volume = floaty;
-	
-	//printk ("Volume: %f", floaty);
-	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS) {
-		//printk ("hrm wtf2");
-	} else {
-		//printk ("tag name size %"PRIu64"", ebml_data_size);
-	}
-
-	krad_ebml_read_string (client->krad_ebml, string, ebml_data_size);	
-	
-	//printk ("Bus: %s", string);
-
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME) {
-		//printk ("hrm wtf2");
-	} else {
-		//printk ("tag name size %"PRIu64"", ebml_data_size);
-	}
-
-	krad_ebml_read_string (client->krad_ebml, crossfade_name, ebml_data_size);	
-	
-	
-	if (strlen(crossfade_name)) {
-		//printk ("Crossfade With: %s", crossfade_name);	
-	}
-
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE) {
-		//printk ("hrm wtf3");
-	} else {
-		//printk ("VOLUME value size %"PRIu64"", ebml_data_size);
-	}
-
-	floaty = krad_ebml_read_float (client->krad_ebml, ebml_data_size);
-	
-	if (strlen(crossfade_name)) {
-		*crossfade = floaty;
-		//printk ("Crossfade: %f", floaty);
-	} else {
-		*crossfade = 0.0f;
-	}
-	
-	krad_ebml_read_element (client->krad_ebml, &ebml_id, &ebml_data_size);
-
-	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2) {
-		//printk ("hrm wtf3");
-	} else {
-		//printk ("VOLUME value size %"PRIu64"", ebml_data_size);
-	}
-	
-	*has_xmms2 = krad_ebml_read_number (client->krad_ebml, ebml_data_size);
-	
-	return bytes_read;
-	
-}
-
-
 void kr_mixer_jack_running (kr_client_t *client) {
 
 	//uint64_t ipc_command;
@@ -797,6 +665,146 @@ void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *cont
 
 }
 
+krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_frag,
+                                                            krad_mixer_portgroup_rep_t **krad_mixer_portgroup_repn) {
+
+  uint32_t ebml_id;
+	uint64_t ebml_data_size;
+  krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep;
+  krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep_crossfade;
+  int i;
+  char string[256];
+  char crossfade_name[128];
+	float crossfade_value;
+  int item_pos;
+
+  item_pos = 0;
+
+  *krad_mixer_portgroup_repn = krad_mixer_portgroup_rep_create();
+
+  krad_mixer_portgroup_rep = *krad_mixer_portgroup_repn;
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, krad_mixer_portgroup_rep->sysname);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->channels = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, string);
+
+  if (strncmp (string, "Jack", 4) == 0) {
+    krad_mixer_portgroup_rep->io_type = 0;
+  } else {
+    krad_mixer_portgroup_rep->io_type = 1;    
+  }
+	
+  for (i = 0; i < krad_mixer_portgroup_rep->channels; i++) {
+    item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+    if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME) {
+      //printk ("hrm wtf3");
+    } 
+    krad_mixer_portgroup_rep->volume[i] = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  }
+	
+  for (i = 0; i < krad_mixer_portgroup_rep->channels; i++) {
+    item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+    if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME) {
+      //printk ("hrm wtf3");
+    } 
+    krad_mixer_portgroup_rep->peak[i] = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  }
+  
+  for (i = 0; i < krad_mixer_portgroup_rep->channels; i++) {
+    item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+    if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME) {
+      //printk ("hrm wtf3");
+    } 
+    krad_mixer_portgroup_rep->rms[i] = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  }
+  
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS) {
+		//printk ("hrm wtf2");
+	} 
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, krad_mixer_portgroup_rep->mixbus_rep->sysname);	
+	
+	//printk ("Bus: %s", string);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME) {
+		//printk ("hrm wtf2");
+	} else {
+		//printk ("tag name size %"PRIu64"", ebml_data_size);
+	}
+
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, crossfade_name);	
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE) {
+		//printk ("hrm wtf3");
+	} else {
+		//printk ("VOLUME value size %"PRIu64"", ebml_data_size);
+	}
+
+	crossfade_value = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+	
+	if (strlen(crossfade_name)) {
+    krad_mixer_portgroup_rep_crossfade = krad_mixer_portgroup_rep_create ();
+    strcpy (krad_mixer_portgroup_rep_crossfade->sysname, crossfade_name);
+    
+    krad_mixer_portgroup_rep->crossfade_group_rep = krad_mixer_crossfade_rep_create (krad_mixer_portgroup_rep,
+                                                                                         krad_mixer_portgroup_rep_crossfade);
+    krad_mixer_portgroup_rep->crossfade_group_rep->fade = crossfade_value;
+	} 
+	
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+
+	if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2) {
+		//printk ("hrm wtf3");
+	} else {
+		//printk ("VOLUME value size %"PRIu64"", ebml_data_size);
+	}
+	
+	krad_mixer_portgroup_rep->has_xmms2 = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+	
+	return krad_mixer_portgroup_rep;
+}
+
+int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint64_t item_size, char **string) {
+
+	int pos;
+  krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep;
+
+  pos = 0;
+  krad_mixer_portgroup_rep = NULL;
+  
+  kr_ebml_to_mixer_portgroup_rep (ebml_frag, &krad_mixer_portgroup_rep);
+
+  pos += sprintf (*string + pos, "  Peak_L: %0.2f  Peak_R: %0.2f RMS_L: %0.2f  RMS_R: %0.2f  Vol: %0.2f%%  %s", 
+            10.0 * log ((double) krad_mixer_portgroup_rep->peak[0]),  10.0 * log ((double) krad_mixer_portgroup_rep->peak[1]), 
+           krad_mixer_portgroup_rep->rms[0], krad_mixer_portgroup_rep->rms[1],
+           krad_mixer_portgroup_rep->volume[0], krad_mixer_portgroup_rep->sysname);
+ 
+  if (krad_mixer_portgroup_rep->crossfade_group_rep != NULL) {
+    pos += sprintf (*string + pos, "\t %s < %0.2f > %s",
+                    krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[0]->sysname,
+                    krad_mixer_portgroup_rep->crossfade_group_rep->fade,
+                    krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[1]->sysname);
+  }
+  
+  if (krad_mixer_portgroup_rep->has_xmms2 == 1) {
+    pos += sprintf (*string + pos, "\t\t[XMMS2]");
+  }
+
+  pos += sprintf (*string + pos, "\n");
+
+  krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep);
+  
+  return pos; 
+}
 
 int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
 
@@ -819,13 +827,12 @@ int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
     case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
       printf("Received KRAD_MIXER_PORTGROUP_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
       *string = kr_response_alloc_string (ebml_data_size * 4);
-      //kr_mixer_read_portgroup ( kr_client, string, &krad_mixer_portgroup_rep));
-      pos += sprintf (*string + pos, "KRAD_MIXER_PORTGROUP");      
-      //krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep);
+      return kr_response_get_string_from_list (ebml_id, kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_MIXER_PORTGROUP:
       printf("Received KRAD_MIXER_PORTGROUP %"PRIu64" bytes of data.\n", ebml_data_size);
-
+      *string = kr_response_alloc_string (ebml_data_size * 4);
+      return kr_mixer_response_get_string_from_portgroup (kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
       printf("Received KRAD_MIXER_SAMPLE_RATE %"PRIu64" bytes of data.\n", ebml_data_size);

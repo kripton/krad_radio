@@ -2,6 +2,7 @@
 #define KRAD_MIXER_COMMON_H
 
 typedef struct krad_mixer_rep_St krad_mixer_rep_t;
+typedef struct krad_mixer_portgroup_rep_St kr_mixer_portgroup_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_portgroup_rep_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_mixbus_rep_t;
 typedef struct krad_mixer_crossfade_group_rep_St krad_mixer_crossfade_group_rep_t;

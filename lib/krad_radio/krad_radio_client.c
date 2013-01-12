@@ -313,6 +313,9 @@ int kr_radio_response_get_string_from_remote (unsigned char *ebml_frag, uint64_t
 item_callback_t kr_response_get_item_to_string_converter (uint32_t list_type) {
 
   switch ( list_type ) {
+    case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+    case EBML_ID_KRAD_MIXER_PORTGROUP:
+      return kr_mixer_response_get_string_from_portgroup;
     case EBML_ID_KRAD_RADIO_TAG_LIST:
     case EBML_ID_KRAD_RADIO_TAG:
       return kr_radio_response_get_string_from_tag;
@@ -479,6 +482,7 @@ int kr_response_is_list (kr_response_t *kr_response) {
   switch ( ebml_id ) {
     case EBML_ID_KRAD_RADIO_TAG_LIST:
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST:
+    case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
       return 1;
   }
 
@@ -531,6 +535,12 @@ int kr_response_to_item (kr_response_t *kr_response, unsigned char *ebml_frag, u
       kr_response->kr_item.size = item_size;
       *kr_item = &kr_response->kr_item;
       return 1;
+    case EBML_ID_KRAD_MIXER_PORTGROUP:
+      kr_response->kr_item.type = EBML_ID_KRAD_MIXER_PORTGROUP;
+      kr_response->kr_item.buffer = ebml_frag;
+      kr_response->kr_item.size = item_size;
+      *kr_item = &kr_response->kr_item;
+      return 1;
   }
 
   return 0;
@@ -544,6 +554,8 @@ const char *kr_item_get_type_string (kr_item_t *item) {
       return "Tag";
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
       return "Remote Status";
+    case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
+      return "Mixer Portgroup";
   }
   
   return "";
@@ -602,6 +614,10 @@ kr_rep_t *kr_item_to_rep (kr_item_t *kr_item) {
   kr_rep->type = kr_item->type;
 
   switch ( kr_rep->type ) {
+    case EBML_ID_KRAD_MIXER_PORTGROUP:
+      kr_rep->rep_ptr.mixer_portgroup = (kr_mixer_portgroup_t *)kr_rep->buffer;
+      kr_ebml_to_mixer_portgroup_rep (kr_item->buffer, &kr_rep->rep_ptr.mixer_portgroup);
+      break;
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
       kr_rep->rep_ptr.remote = (kr_remote_t *)kr_rep->buffer;
       kr_ebml_to_remote_status_rep (kr_item->buffer, kr_rep->rep_ptr.remote);

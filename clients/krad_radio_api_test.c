@@ -16,6 +16,14 @@ void my_remote_print (kr_remote_t *remote) {
 
 }
 
+void my_portgroup_print (kr_mixer_portgroup_t *portgroup) {
+
+  printf ("oh its a portgroup called %s and the volume is %0.2f%%\n",
+           portgroup->sysname,
+           portgroup->volume[0]);
+
+}
+
 void my_rep_print (kr_rep_t *rep) {
   switch ( rep->type ) {
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
@@ -23,6 +31,9 @@ void my_rep_print (kr_rep_t *rep) {
       return;
     case EBML_ID_KRAD_RADIO_TAG:
       my_tag_print (rep->rep_ptr.tag);
+      return;
+    case EBML_ID_KRAD_MIXER_PORTGROUP:
+      my_portgroup_print (rep->rep_ptr.mixer_portgroup);
       return;
   }
 }
@@ -110,6 +121,9 @@ void kr_api_test (kr_client_t *client) {
   handle_response (client);
   
   kr_tags (client, NULL);
+  handle_response (client);
+  
+  kr_mixer_portgroups_list (client);
   handle_response (client);
   
 }
