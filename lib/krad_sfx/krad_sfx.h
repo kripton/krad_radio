@@ -1,21 +1,14 @@
+#include "krad_sfx_common.h"
 #include "krad_eq.h"
 #include "krad_pass.h"
 #include "krad_rushlimiter.h"
 #include "krad_hardlimiter.h"
 #include "krad_system.h"
 
-#define KRAD_EFFECTS_MAX 8
-#define KRAD_EFFECTS_MAX_CHANNELS 8
+
 
 typedef struct kr_effect_St kr_effect_t;
 typedef struct kr_effects_St kr_effects_t;
-
-typedef enum {
-  KRAD_NOFX,
-  KRAD_EQ,
-  KRAD_PASS,
-//  KRAD_RUSHLIMIT,
-} kr_effect_type_t;
 
 
 struct kr_effect_St {

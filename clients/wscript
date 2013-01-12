@@ -28,6 +28,7 @@ libsources = """
 ../lib/krad_ebml/krad_ebml.c
 ../lib/krad_osc/krad_osc.c
 ../lib/krad_ipc/krad_ipc_client.c
+../lib/krad_mixer/krad_mixer_common.c
 ../lib/krad_mixer/krad_mixer_client.c
 ../lib/krad_radio/krad_radio_client_ctl.c
 ../lib/krad_transmitter/krad_transmitter.c

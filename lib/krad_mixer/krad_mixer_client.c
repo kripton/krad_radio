@@ -798,7 +798,7 @@ void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *cont
 }
 
 
-void kr_mixer_response_print (kr_response_t *kr_response) {
+int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
 
   int pos;
 	uint32_t ebml_id;
@@ -818,8 +818,10 @@ void kr_mixer_response_print (kr_response_t *kr_response) {
       break;
     case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
       printf("Received KRAD_MIXER_PORTGROUP_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
-      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
-      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      *string = kr_response_alloc_string (ebml_data_size * 4);
+      //kr_mixer_read_portgroup ( kr_client, string, &krad_mixer_portgroup_rep));
+      pos += sprintf (*string + pos, "KRAD_MIXER_PORTGROUP");      
+      //krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep);
       break;
     case EBML_ID_KRAD_MIXER_PORTGROUP:
       printf("Received KRAD_MIXER_PORTGROUP %"PRIu64" bytes of data.\n", ebml_data_size);
@@ -836,5 +838,7 @@ void kr_mixer_response_print (kr_response_t *kr_response) {
       //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
       break;
   }
+  
+  return pos;
 }
 

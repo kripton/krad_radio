@@ -7,43 +7,12 @@ typedef struct krad_mixer_local_portgroup_St krad_mixer_local_portgroup_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_mixbus_t;
 typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
-#define KRAD_MIXER_MAX_PORTGROUPS 12
-#define KRAD_MIXER_MAX_CHANNELS 8
-#define KRAD_MIXER_DEFAULT_SAMPLE_RATE 48000
-#define KRAD_MIXER_DEFAULT_TICKER_PERIOD 1024
-#define DEFAULT_MASTERBUS_LEVEL 75.0f
-#define KRAD_MIXER_RMS_WINDOW_SIZE_MS 125
 
+#include "krad_mixer_common.h"
 #include "krad_radio.h"
 #include "krad_mixer_interface.h"
-#include "krad_mixer_common.h"
 #include "krad_sfx.h"
 
-typedef enum {
-	KRAD_TONE,
-	KLOCALSHM,
-	KRAD_AUDIO, /* i.e local audio i/o */
-	KRAD_LINK, /* i.e. remote audio i/o */
-	MIXBUS,	/* i.e. mixer internal i/o */
-} krad_mixer_portgroup_io_t;
-
-typedef enum {
-  NOTOUTPUT,
-	DIRECT,
-	AUX,
-} krad_mixer_output_t;
-
-typedef enum {
-	NIL,
-	MONO,
-	STEREO,
-	THREE,
-	QUAD,
-	FIVE,
-	SIX,
-	SEVEN,
-	EIGHT,
-} channels_t;
 
 struct krad_mixer_crossfade_group_St {
 

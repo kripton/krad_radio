@@ -19,12 +19,12 @@
 
 typedef struct kr_audioport_St kr_audioport_t;
 
+#include "krad_sfx_common.h"
 #include "krad_mixer_common.h"
 
 /** Mixer **/
 
-void kr_mixer_response_print (kr_response_t *kr_response);
-
+int kr_mixer_response_to_string (kr_response_t *kr_response, char **string);
 int kr_mixer_read_portgroup ( kr_client_t *client, char *portname, float *volume, char *crossfade_name, float *crossfade, int *has_xmms2 );
 int kr_mixer_read_control ( kr_client_t *client, char **portgroup_name, char **control_name, float *value );
 

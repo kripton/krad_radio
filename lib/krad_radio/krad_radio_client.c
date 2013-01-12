@@ -173,7 +173,7 @@ void kr_response_free_string (char **string) {
   free (*string);
 }
 
-char *kr_response_alloc_string (size_t length) {
+char *kr_response_alloc_string (int length) {
   return calloc (1, length + 16);
 }
 
@@ -453,7 +453,7 @@ int kr_response_to_string (kr_response_t *kr_response, char **string) {
       return kr_radio_response_to_string (kr_response, string);
       break;
     case KR_MIXER:
-      //
+      return kr_mixer_response_to_string (kr_response, string);
       break;
     case KR_COMPOSITOR:
       //

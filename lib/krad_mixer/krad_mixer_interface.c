@@ -1,20 +1,79 @@
 #include "krad_mixer_interface.h"
 
+krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep(krad_mixer_portgroup_t *krad_mixer_portgroup, krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep) {
+  krad_mixer_portgroup_rep_t *portgroup_rep_ret;
+  krad_mixer_portgroup_rep_t *portgroup_rep_crossfade;
+  
+  int i;
+  
+  if (krad_mixer_portgroup_rep == NULL) {
+    portgroup_rep_ret = krad_mixer_portgroup_rep_create ();
+  } else {
+    portgroup_rep_ret = krad_mixer_portgroup_rep;
+  }
+  
+  strcpy (portgroup_rep_ret->sysname, krad_mixer_portgroup->sysname);
+  portgroup_rep_ret->channels = krad_mixer_portgroup->channels;
+  portgroup_rep_ret->io_type = krad_mixer_portgroup->io_type;
+  
+  for (i = 0; i < KRAD_MIXER_MAX_CHANNELS; i++) {
+    portgroup_rep_ret->volume[i] = krad_mixer_portgroup->volume[i];
+    portgroup_rep_ret->map[i] = krad_mixer_portgroup->map[i];
+    portgroup_rep_ret->mixmap[i] = krad_mixer_portgroup->mixmap[i];
+    portgroup_rep_ret->rms[i] = krad_mixer_portgroup->rms[i];
+    portgroup_rep_ret->peak[i] = krad_mixer_portgroup->peak[i];
+  }
+  
+  if (krad_mixer_portgroup->krad_xmms != NULL) {
+    portgroup_rep_ret->has_xmms2 = 1;
+  }
+  
+  if ((krad_mixer_portgroup->crossfade_group != NULL) && 
+      (krad_mixer_portgroup->crossfade_group->portgroup[0] == krad_mixer_portgroup)) {
+     portgroup_rep_crossfade = krad_mixer_portgroup_rep_create ();
+     
+     strcpy (portgroup_rep_crossfade->sysname, krad_mixer_portgroup->crossfade_group->portgroup[1]->sysname);
+     portgroup_rep_crossfade->channels = krad_mixer_portgroup->crossfade_group->portgroup[1]->channels;
+     portgroup_rep_crossfade->io_type = krad_mixer_portgroup->crossfade_group->portgroup[1]->io_type;
+     
+     for (i = 0; i < KRAD_MIXER_MAX_CHANNELS; i++) {
+       portgroup_rep_crossfade->volume[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->volume[i];
+       portgroup_rep_crossfade->map[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->map[i];
+       portgroup_rep_crossfade->mixmap[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->mixmap[i];
+       portgroup_rep_crossfade->rms[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->rms[i];
+       portgroup_rep_crossfade->peak[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->peak[i];
+     }
+     
+     if (krad_mixer_portgroup->crossfade_group->portgroup[1]->krad_xmms != NULL) {
+       portgroup_rep_crossfade->has_xmms2 = 1;
+     }
+     
+     portgroup_rep_ret->crossfade_group_rep = krad_mixer_crossfade_rep_create (portgroup_rep_ret, portgroup_rep_crossfade);
+     portgroup_rep_ret->crossfade_group_rep->fade = krad_mixer_portgroup->crossfade_group->fade;
+  }
+  
+  return portgroup_rep_ret;
+}
+
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc ) {
 
 	uint32_t command;
 	uint32_t ebml_id;	
 	uint64_t ebml_data_size;
-//	uint64_t number;
+
 	krad_mixer_portgroup_t *portgroup;
 	krad_mixer_portgroup_t *portgroup2;
+	
+  krad_mixer_portgroup_rep_t *portgroup_rep;
+
+	
 	uint64_t element;
 	
 	uint64_t response;
-//	uint64_t broadcast;
+
 	krad_mixer_output_t output_type;
-	char *crossfade_name;
-	float crossfade_value;
+
+
 	int p;
 	
 	int sd1;
@@ -31,8 +90,6 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	char controlname[256];	
 	float floatval;
 
-	int has_xmms2;
-
 	char string[512];
 	int direction;
 	int number;
@@ -40,8 +97,6 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	
 	number = 0;
 	direction = 0;
-	crossfade_name = NULL;
-	//i = 0;
 	
 	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
 
@@ -341,41 +396,24 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			
 		case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
 
-			//printk ("List Portgroups\n");
+      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
+      krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_LIST, &element);
 
-			krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
-			krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_LIST, &element);
-			
-			for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
-				portgroup = krad_mixer->portgroup[p];
-				if ((portgroup != NULL) && (portgroup->active == 1) && (portgroup->direction == INPUT)) {
-					crossfade_name = "";
-					crossfade_value = 0.0f;
-					has_xmms2 = 0;
-					if (portgroup->krad_xmms != NULL) {
-						has_xmms2 = 1;
-					}
-					
-					if (portgroup->crossfade_group != NULL) {
-					
-						if (portgroup->crossfade_group->portgroup[0] == portgroup) {
-							crossfade_name = portgroup->crossfade_group->portgroup[1]->sysname;
-							crossfade_value = portgroup->crossfade_group->fade;
-						}
-					}
-				
-					krad_ipc_server_response_add_portgroup ( krad_ipc, portgroup->sysname, portgroup->channels,
-											  				 portgroup->io_type, portgroup->volume[0],
-											  				 portgroup->mixbus->sysname, crossfade_name,
-											  				 crossfade_value, has_xmms2 );
-				}
-			}
-			
-			krad_ipc_server_response_list_finish ( krad_ipc, element );
-			krad_ipc_server_response_finish ( krad_ipc, response );
-			return 1;
-			break;
-		// FIXME create / remove portgroup need broadcast	
+      for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+        portgroup = krad_mixer->portgroup[p];
+        if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
+
+          portgroup_rep = krad_mixer_portgroup_to_rep(portgroup, NULL);
+          krad_mixer_portgroup_rep_to_ebml (portgroup_rep, krad_ipc->current_client->krad_ebml2);
+          krad_mixer_portgroup_rep_destroy (portgroup_rep);
+          
+        }
+      }
+
+      krad_ipc_server_response_list_finish ( krad_ipc, element );
+      krad_ipc_server_response_finish ( krad_ipc, response );
+      return 1;
+
 		case EBML_ID_KRAD_MIXER_CMD_CREATE_PORTGROUP:
 		
 			krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	

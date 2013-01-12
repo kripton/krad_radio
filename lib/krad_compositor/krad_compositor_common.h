@@ -4,6 +4,7 @@
 #define KRAD_COMPOSITOR_SUBUNIT_DEFAULT_TICKRATE 4
 #include "krad_radio_ipc.h"
 #include "krad_ebml.h"
+//#include "krad_sfx_common.h"
 
 typedef struct krad_text_rep_St krad_text_rep_t;
 typedef struct krad_sprite_rep_St krad_sprite_rep_t;

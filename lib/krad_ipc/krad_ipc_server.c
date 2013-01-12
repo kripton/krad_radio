@@ -444,29 +444,7 @@ void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char
 
 }
 
-void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  int io_type, float volume, char *mixbus, char *crossfade_name, float crossfade_value, int xmms2) {
 
-	uint64_t portgroup;
-
-	krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP, &portgroup);	
-
-	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, name);
-	krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS, channels);
-	if (io_type == 0) {
-		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_TYPE, "Jack");
-	} else {
-		krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_TYPE, "Internal");
-	}
-	krad_ebml_write_float (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_VOLUME, volume);	
-	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_MIXBUS, mixbus);			
-
-	krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE_NAME, crossfade_name);
-	krad_ebml_write_float (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, crossfade_value);	
-	krad_ebml_write_int8 (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, xmms2);
-	krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, portgroup);
-
-}
 
 void krad_ipc_server_broadcast_portgroup_created ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
 											  	   int io_type, float volume, char *mixbus, int xmms2 ) {

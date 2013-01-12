@@ -50,6 +50,7 @@ depsources = """
 ../lib/krad_sfx/krad_sfx.c
 ../lib/krad_ipc/krad_ipc_server.c
 ../lib/krad_tags/krad_tags.c
+../lib/krad_mixer/krad_mixer_common.c
 ../lib/krad_mixer/krad_mixer_interface.c
 ../lib/krad_mixer/krad_mixer.c
 ../lib/krad_tone/krad_tone.c

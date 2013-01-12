@@ -259,6 +259,8 @@ int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote)
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *kr_response, int *number);
+
+char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
 kr_rep_t *kr_item_to_rep (kr_item_t *kr_item);

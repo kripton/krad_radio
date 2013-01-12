@@ -143,10 +143,6 @@ void krad_ipc_server_response_list_start ( krad_ipc_server_t *krad_ipc_server, u
 void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_item, char *tag_name, char *tag_value);
 void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list);
 
-
-void krad_ipc_server_response_add_portgroup ( krad_ipc_server_t *krad_ipc_server, char *name, int channels,
-											  int io_type, float volume,  char *mixgroup, char *crossfade_name, float crossfade_value, int xmms2 );
-											  
 void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_item, char **tag_name, char **tag_value );
 
 
