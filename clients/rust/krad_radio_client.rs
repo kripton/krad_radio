@@ -188,7 +188,7 @@ pub extern "C" {
     fn kr_response_get_string(++ebml_frag: *c_uchar,
                               ++ebml_data_size: uint64_t, ++string: **c_schar)
      -> c_int;
-    fn kr_response_type(++kr_response: *kr_response_t) -> kr_unit_t;
+    fn kr_response_unit(++kr_response: *kr_response_t) -> kr_unit_t;
     fn kr_response_size(++kr_response: *kr_response_t) -> uint32_t;
     fn kr_client_response_get(++kr_client: *kr_client_t,
                               ++kr_response: **kr_response_t);

@@ -1,21 +1,41 @@
 #include "kr_client.h"
 
+void my_remote_print (kr_remote_t *remote) {
+
+  printf ("oh its a remote! %d on interface %s\n",
+          remote->port,
+          remote->interface);
+
+}
+
+void my_rep_print (kr_rep_t *rep) {
+  switch ( rep->type ) {
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
+      my_remote_print (rep->rep_ptr.remote);
+      return;
+  }
+}
+
+
 void handle_response (kr_client_t *client) {
 
   kr_response_t *response;
-  kr_item_t *item; 
+  kr_item_t *item;
+  kr_rep_t *rep;
   char *string;
   int wait_time_ms;
   int length;
   int number;
   int i;
   int items;
-    
+  
+
   items = 0;
   i = 0;
   number = 0;
   string = NULL;
-  response = NULL;  
+  response = NULL;
+  rep = NULL;
   wait_time_ms = 250;
 
   if (kr_poll (client, wait_time_ms)) {
@@ -31,6 +51,11 @@ void handle_response (kr_client_t *client) {
             if (kr_item_to_string (item, &string)) {
               printf ("Item String: %s\n", string);
               kr_response_free_string (&string);
+            }
+            rep = kr_item_to_rep (item);
+            if (rep != NULL) {
+              my_rep_print (rep);
+              kr_rep_free (&rep);
             }
           } else {
             printf ("Did not get item %d\n", i);

@@ -177,11 +177,31 @@ int kr_subunit_control_set (kr_client_t *kr_client,
                             kr_subunit_control_value_t value);
 
 
+typedef struct kr_remote_St kr_remote_t;
+struct kr_remote_St {
+  int port;
+  char interface[128];
+};
+
+typedef struct kr_tag_St kr_tag_t;
+struct kr_tag_St {
+	char *name;
+	char *value;
+};
+
+typedef union {
+  kr_tag_t *tag;
+  kr_remote_t *remote;
+} kr_rep_ptr_t;
+
+typedef struct kr_rep_St kr_rep_t;
+struct kr_rep_St {
+	kr_rep_ptr_t rep_ptr;
+  uint32_t type;	
+	char *buffer;
+};
+
 typedef struct kr_item_St kr_item_t;
-
-
-
-
 typedef int (*item_callback_t)( unsigned char *, uint64_t, char ** );
 
 kr_client_t *kr_client_create (char *client_name);
@@ -239,6 +259,10 @@ int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *kr_response, int *number);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
+kr_rep_t *kr_item_to_rep (kr_item_t *kr_item);
+
+int kr_rep_free (kr_rep_t **);
+
 int kr_item_to_string (kr_item_t *kr_item, char **string);
 const char *kr_item_get_type_string (kr_item_t *item);
 int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **kr_item);

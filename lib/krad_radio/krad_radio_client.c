@@ -549,7 +549,42 @@ const char *kr_item_get_type_string (kr_item_t *item) {
   return "";
 
 }
+kr_rep_t *kr_item_to_rep (kr_item_t *kr_item) {
 
+  kr_rep_t *kr_rep;
+
+  if (kr_item == NULL) {
+    return NULL;
+  }
+
+  kr_rep = calloc (1, sizeof(kr_rep_t));
+  kr_rep->buffer = malloc (4096);
+  kr_rep->type = kr_item->type;
+
+  switch ( kr_rep->type ) {
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
+    kr_rep->rep_ptr.remote = (kr_remote_t *)kr_rep->buffer;
+    
+    kr_rep->rep_ptr.remote->port = 6666;
+    strcpy(kr_rep->rep_ptr.remote->interface, "bongococonutextreme");
+  }
+
+  return kr_rep;
+
+}
+
+
+
+int kr_rep_free (kr_rep_t **kr_rep) {
+  if (*kr_rep != NULL) {
+    if ((*kr_rep)->buffer != NULL) {
+      free ((*kr_rep)->buffer);
+    }
+    free ((*kr_rep));
+    return 0;
+  }
+  return -1;
+}
 
 int kr_item_to_string (kr_item_t *kr_item, char **string) {
 
