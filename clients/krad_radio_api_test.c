@@ -28,6 +28,10 @@ void handle_response (kr_client_t *client) {
         for (i = 0; i < items; i++) {
           if (kr_response_list_get_item (response, i, &item)) {
             printf ("Got item %d type is %s\n", i, kr_item_get_type_string (item));
+            if (kr_item_to_string (item, &string)) {
+              printf ("Item String: %s\n", string);
+              kr_response_free_string (&string);
+            }
           } else {
             printf ("Did not get item %d\n", i);
           }

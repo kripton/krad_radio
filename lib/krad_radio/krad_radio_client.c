@@ -304,7 +304,7 @@ int kr_radio_response_get_string_from_remote (unsigned char *ebml_frag, uint64_t
   string_pos += ret;
   item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
   number = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
-  string_pos += sprintf (*string + string_pos, " Number: %d\n", number);
+  string_pos += sprintf (*string + string_pos, " Port: %d\n", number);
 
   return string_pos;
 
@@ -314,8 +314,10 @@ item_callback_t kr_response_get_item_to_string_converter (uint32_t list_type) {
 
   switch ( list_type ) {
     case EBML_ID_KRAD_RADIO_TAG_LIST:
+    case EBML_ID_KRAD_RADIO_TAG:
       return kr_radio_response_get_string_from_tag;
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST:
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
       return kr_radio_response_get_string_from_remote;
     default:
       return NULL;
@@ -346,7 +348,7 @@ int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_fr
     return 0;
   }
   
-  string_pos += sprintf (string_loc_pos + string_pos, "\n\nList: (%"PRIu64" bytes)\n", list_size);  
+  string_pos += sprintf (string_loc_pos + string_pos, "List: (%"PRIu64" bytes):\n", list_size);  
   string_loc_pos = string_loc_pos + string_pos;
   while (list_pos != list_size) {
     ret = krad_ebml_read_element_from_frag (ebml_frag + list_pos, &ebml_id, &ebml_data_size);
@@ -518,11 +520,15 @@ int kr_response_to_item (kr_response_t *kr_response, unsigned char *ebml_frag, u
 
   switch ( ebml_id ) {
     case EBML_ID_KRAD_RADIO_TAG:
-      kr_response->kr_item.item_type = EBML_ID_KRAD_RADIO_TAG;
+      kr_response->kr_item.type = EBML_ID_KRAD_RADIO_TAG;
+      kr_response->kr_item.buffer = ebml_frag;
+      kr_response->kr_item.size = item_size;
       *kr_item = &kr_response->kr_item;
       return 1;
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
-      kr_response->kr_item.item_type = EBML_ID_KRAD_RADIO_REMOTE_STATUS;
+      kr_response->kr_item.type = EBML_ID_KRAD_RADIO_REMOTE_STATUS;
+      kr_response->kr_item.buffer = ebml_frag;
+      kr_response->kr_item.size = item_size;
       *kr_item = &kr_response->kr_item;
       return 1;
   }
@@ -533,7 +539,7 @@ int kr_response_to_item (kr_response_t *kr_response, unsigned char *ebml_frag, u
 
 const char *kr_item_get_type_string (kr_item_t *item) {
 
-  switch ( item->item_type ) {
+  switch ( item->type ) {
     case EBML_ID_KRAD_RADIO_TAG:
       return "Tag";
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
@@ -541,6 +547,38 @@ const char *kr_item_get_type_string (kr_item_t *item) {
   }
   
   return "";
+
+}
+
+
+int kr_item_to_string (kr_item_t *kr_item, char **string) {
+
+  *string = kr_response_alloc_string (kr_item->size * 4 + 1024); 
+
+  int string_pos;
+	char *string_loc_pos;
+	item_callback_t item_callback;
+	
+  string_pos = 0;
+  item_callback = NULL;
+  
+  string_loc_pos = *string;
+  
+  item_callback = kr_response_get_item_to_string_converter (kr_item->type);
+  
+  if (item_callback == NULL) {
+    printke ("Unable to find item to string conversion");
+    return 0;
+  }
+  
+  string_pos += sprintf (string_loc_pos + string_pos, "Item (%d bytes):\n", kr_item->size);  
+  string_loc_pos = string_loc_pos + string_pos;
+
+  string_pos += item_callback (kr_item->buffer, kr_item->size, &string_loc_pos);    
+
+
+  return string_pos;
+
 
 }
 
@@ -571,7 +609,7 @@ int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item
   while (list_pos != list_size) {
     ret = krad_ebml_read_element_from_frag (buffer + list_pos, &ebml_id, &ebml_data_size);
     if (item_num == i) {
-      return kr_response_to_item (kr_response, buffer + list_pos, ebml_id, ebml_data_size, item);
+      return kr_response_to_item (kr_response, buffer + list_pos + ret, ebml_id, ebml_data_size, item);
     }
     list_pos += ebml_data_size + ret;
     i++;
