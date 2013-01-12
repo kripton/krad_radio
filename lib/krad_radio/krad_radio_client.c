@@ -52,7 +52,7 @@ int kr_connect_remote (kr_client_t *client, char *host, int port) {
 int kr_connect (kr_client_t *client, char *sysname) {
 
   if (client == NULL) {
-    return -1;
+    return 0;
   }
   if (kr_connected (client)) {
     kr_disconnect (client);
@@ -61,11 +61,9 @@ int kr_connect (kr_client_t *client, char *sysname) {
   if (client->krad_ipc_client != NULL) {
     client->krad_ebml = client->krad_ipc_client->krad_ebml;
     return 1;
-  } else {
-    return -1;
   }
-  
-  return -2;
+
+  return 0;
 }
 
 int kr_connected (kr_client_t *client) {
@@ -375,9 +373,8 @@ int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
       return kr_response_get_string_from_list (ebml_id, kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_RADIO_TAG:
-      //printf("Received Tag %"PRIu64" bytes of data.\n", ebml_data_size);
-      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
-      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
+      *string = kr_response_alloc_string (ebml_data_size * 4);
+      return kr_radio_response_get_string_from_tag (kr_response->buffer + pos, ebml_data_size, string);
       break;
     case EBML_ID_KRAD_RADIO_UPTIME:
       return kr_radio_uptime_to_string (krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size), string);
@@ -475,10 +472,12 @@ uint32_t kr_response_size (kr_response_t *kr_response) {
 }
 
 void kr_response_free (kr_response_t **kr_response) {
-  if ((*kr_response)->buffer != NULL) {
-    free ((*kr_response)->buffer);
+  if (*kr_response != NULL) {
+    if ((*kr_response)->buffer != NULL) {
+      free ((*kr_response)->buffer);
+    }
+    free ((*kr_response));
   }
-  free ((*kr_response));
 }
 
 kr_response_t *kr_response_alloc () {

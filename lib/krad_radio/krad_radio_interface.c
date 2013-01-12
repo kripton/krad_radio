@@ -81,7 +81,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, tag_item, ebml_data_size);
 			
-			printk ("Get Tags for %s", tag_item);
+			//printk ("Get Tags for %s", tag_item);
 
 			if (strncmp("station", tag_item, 7) == 0) {
 				krad_tags = krad_radio->krad_tags;
@@ -90,14 +90,14 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			}
 			
 			if (krad_tags != NULL) {
-				printk ("Got Tags for %s", tag_item);
+				//printk ("Got Tags for %s", tag_item);
 		
 				krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 				krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_TAG_LIST, &element);
 			
 				while (krad_tags_get_next_tag ( krad_tags, &i, &tag_name, &tag_value)) {
 					krad_ipc_server_response_add_tag ( kr_ipc, tag_item, tag_name, tag_value);
-					printk ("Tag %d: %s - %s", i, tag_name, tag_value);
+					//printk ("Tag %d: %s - %s", i, tag_name, tag_value);
 				}
 			
 				krad_ipc_server_response_list_finish ( kr_ipc, element );
@@ -131,14 +131,14 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 		case EBML_ID_KRAD_RADIO_CMD_GET_TAG:
 			krad_ipc_server_read_tag ( kr_ipc, &tag_item, &tag_name, &tag_value );
-			printk ("Get Tag %s - %s - %s", tag_item, tag_name, tag_value);
+			//printk ("Get Tag %s - %s - %s", tag_item, tag_name, tag_value);
 			if (strncmp("station", tag_item, 7) == 0) {
 				tag_value = krad_tags_get_tag (krad_radio->krad_tags, tag_name);
 			} else {
 				krad_tags = krad_radio_find_tags_for_item ( krad_radio, tag_item );
 				if (krad_tags != NULL) {
 					tag_value = krad_tags_get_tag ( krad_tags, tag_name );
-					printk ("Got Tag %s on %s - %s", tag_name, tag_item, tag_value);
+					//printk ("Got Tag %s on %s - %s", tag_name, tag_item, tag_value);
 				} else {
 					printke ("Could not find %s", tag_item);
 				}
@@ -305,23 +305,18 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		case EBML_ID_KRAD_RADIO_CMD_GET_REMOTE_STATUS:
 
 			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
 
+      krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
 
-	    krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
-			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "coconut");
-			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, 3336);
-	    krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+      if (kr_ipc->tcp_port) {
+	      krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
+			  krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "ALL");
+			  krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, kr_ipc->tcp_port);
+	      krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+      }
 
-	    krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);	
-			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "b4ongo");
-			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, 666);									     
-	    krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
-
-
-
-			krad_ipc_server_response_list_finish ( kr_ipc, list );			
-			
+      krad_ipc_server_response_list_finish ( kr_ipc, list );
+		
 			krad_ipc_server_response_finish ( kr_ipc, response);
 			
 			return 0;
