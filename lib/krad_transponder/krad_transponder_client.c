@@ -1124,7 +1124,7 @@ int kr_transponder_link_read ( kr_client_t *client, char *text, krad_link_rep_t 
 
 }
 
-
+/*
 void kr_transponder_response_print (kr_response_t *kr_response) {
 
   int pos;
@@ -1154,4 +1154,5 @@ void kr_transponder_response_print (kr_response_t *kr_response) {
       break;
   }
 }
+*/
 

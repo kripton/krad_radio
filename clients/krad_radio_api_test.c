@@ -51,7 +51,10 @@ void kr_api_test (kr_client_t *client) {
   handle_response (client);
     
   kr_remote_status (client);
-  handle_response (client);  
+  handle_response (client);
+  
+  kr_tags (client, NULL);
+  handle_response (client);
   
 }
 

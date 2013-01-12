@@ -641,7 +641,7 @@ void kr_compositor_set_port_mode (kr_client_t *client, int number, uint32_t x, u
 }
 
 
-
+/*
 void kr_compositor_response_print (kr_response_t *kr_response) {
 
   int pos;
@@ -687,7 +687,7 @@ void kr_compositor_response_print (kr_response_t *kr_response) {
       break;
   }
 }
-
+*/
 
 
 

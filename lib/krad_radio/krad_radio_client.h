@@ -178,6 +178,8 @@ int kr_subunit_control_set (kr_client_t *kr_client,
 
 
 
+typedef int (*item_callback_t)( unsigned char *, uint64_t, char ** );
+
 kr_client_t *kr_client_create (char *client_name);
 
 /**
@@ -226,24 +228,19 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  */
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
 
-int kr_response_print_string_list (unsigned char *ebml_frag, uint64_t list_size);
+
 
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *kr_response, int *number);
 void kr_response_free_string (char **string);
-int kr_response_print_string_test (unsigned char *ebml_frag, uint64_t ebml_data_size);
-int kr_response_print_string (unsigned char *ebml_frag, uint64_t ebml_data_size);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
 
 kr_unit_t kr_response_type (kr_response_t *kr_response);
 uint32_t kr_response_size (kr_response_t *kr_response);
 
-/**
- * @brief prints out the type of a message
- * @param kr_client handle of the IPC-connection to the station
- */
-void kr_response_print (kr_response_t *kr_response);
+void kr_client_response_wait_print (kr_client_t *kr_client);
+
 
 /**
  * @brief get a response
@@ -256,11 +253,7 @@ void kr_client_response_get (kr_client_t *kr_client, kr_response_t **kr_response
  * @param kr_client handle of the IPC-connection to the station
  */
 void kr_client_response_wait (kr_client_t *kr_client, kr_response_t **kr_response);
-/**
- * @brief prints out the client's response to a request-message
- * @param kr_client handle of the IPC-connection to the station
- */
-void kr_client_response_wait_print (kr_client_t *kr_client);
+
 
 /** @} */
 
