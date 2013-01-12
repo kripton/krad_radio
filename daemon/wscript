@@ -13,8 +13,8 @@ depsources = """
 ../lib/krad_transponder/krad_transponder_common.c
 ../lib/krad_transponder/krad_transponder_graph.c
 ../lib/krad_system/krad_system.c
-../lib/krad_ticker/krad_timer.c
-../lib/krad_ticker/krad_ticker.c
+../lib/krad_chronometer/krad_timer.c
+../lib/krad_chronometer/krad_ticker.c
 ../lib/krad_y4m/krad_y4m.c
 ../lib/krad_xmms2/krad_xmms2.c
 ../lib/krad_ipc/krad_ipc_client.c
@@ -27,7 +27,7 @@ depsources = """
 ../lib/krad_compositor/krad_compositor_interface.c
 ../lib/krad_compositor/krad_sprite.c
 ../lib/krad_compositor/krad_text.c
-../lib/krad_compositor/krad_easing.c
+../lib/krad_chronometer/krad_easing.c
 ../lib/krad_compositor/krad_compositor.c
 ../lib/krad_framepool/krad_framepool.c
 ../lib/krad_osc/krad_osc.c
@@ -82,7 +82,7 @@ depsources = """
 
 includedirs = """
 ../lib/krad_compositor/
-../lib/krad_ticker/
+../lib/krad_chronometer/
 ../lib/krad_y4m/
 ../lib/krad_xmms2/
 ../lib/krad_framepool/

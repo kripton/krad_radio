@@ -40,7 +40,7 @@ libsources = """
 
 includedirs = """
 ../lib/krad_compositor/
-../lib/krad_ticker/
+../lib/krad_chronometer/
 ../lib/krad_xmms2/
 ../lib/krad_y4m/
 ../lib/krad_framepool/
