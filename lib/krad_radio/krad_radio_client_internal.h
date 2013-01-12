@@ -10,6 +10,9 @@ struct kr_response_St {
   kr_unit_t unit;
   unsigned char *buffer;
   uint32_t size;
+  
+  kr_item_t kr_item;
+  
 };
 
 struct kr_client_St {

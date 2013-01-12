@@ -3,11 +3,16 @@
 void handle_response (kr_client_t *client) {
 
   kr_response_t *response;
+  kr_item_t *item; 
   char *string;
   int wait_time_ms;
   int length;
   int number;
-
+  int i;
+  int items;
+    
+  items = 0;
+  i = 0;
   number = 0;
   string = NULL;
   response = NULL;  
@@ -18,7 +23,15 @@ void handle_response (kr_client_t *client) {
   
     if (response != NULL) {
       if (kr_response_is_list (response)) {
-        printf ("Response is a list with %d items.\n", kr_response_list_length (response));
+        items = kr_response_list_length (response);
+        printf ("Response is a list with %d items.\n", items);
+        for (i = 0; i < items; i++) {
+          if (kr_response_list_get_item (response, i, &item)) {
+            printf ("Got item %d type is %s\n", i, kr_item_get_type_string (item));
+          } else {
+            printf ("Did not get item %d\n", i);
+          }
+        }
       }
       length = kr_response_to_string (response, &string);
       printf ("Response Length: %d\n", length);

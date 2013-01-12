@@ -514,6 +514,73 @@ int kr_response_list_length (kr_response_t *kr_response) {
 
 }
 
+int kr_response_to_item (kr_response_t *kr_response, unsigned char *ebml_frag, uint32_t ebml_id, uint64_t item_size, kr_item_t **kr_item) {
+
+  switch ( ebml_id ) {
+    case EBML_ID_KRAD_RADIO_TAG:
+      kr_response->kr_item.item_type = EBML_ID_KRAD_RADIO_TAG;
+      *kr_item = &kr_response->kr_item;
+      return 1;
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
+      kr_response->kr_item.item_type = EBML_ID_KRAD_RADIO_REMOTE_STATUS;
+      *kr_item = &kr_response->kr_item;
+      return 1;
+  }
+
+  return 0;
+
+}
+
+const char *kr_item_get_type_string (kr_item_t *item) {
+
+  switch ( item->item_type ) {
+    case EBML_ID_KRAD_RADIO_TAG:
+      return "Tag";
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
+      return "Remote Status";
+  }
+  
+  return "";
+
+}
+
+int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **item) {
+
+  int list_pos;
+  uint64_t list_size;
+  int i;
+  int ret;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	unsigned char *buffer;
+	
+	ret = 0;
+  list_pos = 0;
+  i = 0;
+  
+  if (!kr_response_is_list (kr_response)) {
+    return 0;
+  }
+  
+  if ((item_num < 0) || (item_num > (kr_response_list_length (kr_response) - 1))) {
+    return 0;
+  }
+  
+  buffer = kr_response->buffer + krad_ebml_read_element_from_frag (kr_response->buffer + list_pos, &ebml_id, &list_size);
+  
+  while (list_pos != list_size) {
+    ret = krad_ebml_read_element_from_frag (buffer + list_pos, &ebml_id, &ebml_data_size);
+    if (item_num == i) {
+      return kr_response_to_item (kr_response, buffer + list_pos, ebml_id, ebml_data_size, item);
+    }
+    list_pos += ebml_data_size + ret;
+    i++;
+  }
+
+  return 0;
+
+}
+
 kr_unit_t kr_response_unit (kr_response_t *kr_response) {
   return kr_response->unit;
 }

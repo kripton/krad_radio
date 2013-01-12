@@ -177,6 +177,12 @@ int kr_subunit_control_set (kr_client_t *kr_client,
                             kr_subunit_control_value_t value);
 
 
+typedef struct kr_item_St kr_item_t;
+
+struct kr_item_St {
+  uint32_t item_type;
+};
+
 
 typedef int (*item_callback_t)( unsigned char *, uint64_t, char ** );
 
@@ -236,6 +242,8 @@ int kr_response_to_int (kr_response_t *kr_response, int *number);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
 
+const char *kr_item_get_type_string (kr_item_t *item);
+int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **kr_item);
 int kr_response_is_list (kr_response_t *kr_response);
 int kr_response_list_length (kr_response_t *kr_response);
 
