@@ -185,8 +185,10 @@ struct kr_remote_St {
 
 typedef struct kr_tag_St kr_tag_t;
 struct kr_tag_St {
-	char *name;
-	char *value;
+	char unit[256];
+	char name[256];
+	char value[256];
+	char source[256];
 };
 
 typedef union {
@@ -252,7 +254,7 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  */
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
 
-
+int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote);
 
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);

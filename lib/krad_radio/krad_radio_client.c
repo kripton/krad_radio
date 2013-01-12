@@ -549,6 +549,46 @@ const char *kr_item_get_type_string (kr_item_t *item) {
   return "";
 
 }
+
+int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote) {
+    
+  int item_pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	
+  item_pos = 0;
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+  item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, remote->interface);
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+  remote->port = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+  return item_pos;
+
+}
+
+int kr_ebml_to_tag_rep (unsigned char *ebml_frag, kr_tag_t *tag) {
+    
+  int item_pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	
+  item_pos = 0;
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+  item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, tag->unit);
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+  item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, tag->name);
+
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+  item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, tag->value);
+
+  return item_pos;
+
+}
+
 kr_rep_t *kr_item_to_rep (kr_item_t *kr_item) {
 
   kr_rep_t *kr_rep;
@@ -563,10 +603,13 @@ kr_rep_t *kr_item_to_rep (kr_item_t *kr_item) {
 
   switch ( kr_rep->type ) {
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
-    kr_rep->rep_ptr.remote = (kr_remote_t *)kr_rep->buffer;
-    
-    kr_rep->rep_ptr.remote->port = 6666;
-    strcpy(kr_rep->rep_ptr.remote->interface, "bongococonutextreme");
+      kr_rep->rep_ptr.remote = (kr_remote_t *)kr_rep->buffer;
+      kr_ebml_to_remote_status_rep (kr_item->buffer, kr_rep->rep_ptr.remote);
+      break;
+    case EBML_ID_KRAD_RADIO_TAG:
+      kr_rep->rep_ptr.tag = (kr_tag_t *)kr_rep->buffer;
+      kr_ebml_to_tag_rep (kr_item->buffer, kr_rep->rep_ptr.tag);
+      break;
   }
 
   return kr_rep;

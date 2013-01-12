@@ -1,5 +1,13 @@
 #include "kr_client.h"
 
+void my_tag_print (kr_tag_t *tag) {
+
+  printf ("The tag I wanted: %s - %s\n",
+          tag->name,
+          tag->value);
+
+}
+
 void my_remote_print (kr_remote_t *remote) {
 
   printf ("oh its a remote! %d on interface %s\n",
@@ -12,6 +20,9 @@ void my_rep_print (kr_rep_t *rep) {
   switch ( rep->type ) {
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
       my_remote_print (rep->rep_ptr.remote);
+      return;
+    case EBML_ID_KRAD_RADIO_TAG:
+      my_tag_print (rep->rep_ptr.tag);
       return;
   }
 }
