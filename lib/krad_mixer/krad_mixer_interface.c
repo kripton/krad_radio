@@ -178,7 +178,13 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	
 				//printk ("%f\n", floatval);
 
-				krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval);
+        krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
+        if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_DURATION) {
+          printke ("krm wtf3\n");
+        }
+        number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+        
+        krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval, number);
 
 				krad_ipc_server_mixer_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			} else {

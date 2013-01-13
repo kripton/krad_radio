@@ -60,7 +60,7 @@ void krad_ipc_from_json (kr_client_session_data_t *pss, char *value, int len) {
 						kr_mixer_portgroup_xmms2_cmd (pss->kr_client, part->valuestring, part3->valuestring);
 					} else {
 						floatval = part3->valuedouble;
-						kr_mixer_set_control (pss->kr_client, part->valuestring, part2->valuestring, floatval);
+						kr_mixer_set_control (pss->kr_client, part->valuestring, part2->valuestring, floatval, 0);
 					}
 				}
 			}
@@ -645,7 +645,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 
 	kr_client_session_data_t *kr_client_session_data = (kr_client_session_data_t *)ptr;
 
-	int has_xmms2;
+	//int has_xmms2;
 
 	uint32_t message;
 	uint32_t ebml_id;	
@@ -668,7 +668,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	char *string = string_actual;	
 	char crossfadename_actual[1024];	
 	char *crossfadename = crossfadename_actual;
-	float crossfade;	
+	//float crossfade;	
 	
 	uint64_t number;
 	uint64_t numbers[16];	
@@ -689,7 +689,7 @@ int krad_websocket_ipc_handler ( krad_ipc_client_t *krad_ipc, void *ptr ) {
 	
 	krad_link_rep = NULL;
 	
-	has_xmms2 = 0;	
+	//has_xmms2 = 0;	
 	
 	bytes_read = 0;
 	ebml_id = 0;

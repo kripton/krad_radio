@@ -18,7 +18,7 @@ struct krad_mixer_crossfade_group_St {
 
 	krad_mixer_portgroup_t *portgroup[2];
 	float fade;
-
+  krad_easing_t fade_easing;
 };
 
 
@@ -42,6 +42,8 @@ struct krad_mixer_portgroup_St {
 	channels_t channels;
 	krad_mixer_mixbus_t *mixbus;
 	krad_mixer_crossfade_group_t *crossfade_group;
+	
+	krad_easing_t volume_easing;
 	
 	int map[KRAD_MIXER_MAX_CHANNELS];
 	int mixmap[KRAD_MIXER_MAX_CHANNELS];	
@@ -158,7 +160,7 @@ float krad_mixer_portgroup_read_peak (krad_mixer_portgroup_t *portgroup);
 float krad_mixer_portgroup_read_channel_peak (krad_mixer_portgroup_t *portgroup, int channel);
 float krad_mixer_peak_scale (float value);
 
-int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value);
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value, int duration);
 void krad_mixer_portgroup_mixmap_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel);
 void krad_mixer_unplug_portgroup (krad_mixer_t *krad_mixer, char *name, char *remote_name);
 void krad_mixer_plug_portgroup (krad_mixer_t *krad_mixer, char *name, char *remote_name);

@@ -47,7 +47,7 @@ void kr_mixer_unbind_portgroup_xmms2 (kr_client_t *client, char *portgroupname);
 void kr_mixer_create_portgroup (kr_client_t *client, char *name, char *direction, int channels);
 void kr_mixer_remove_portgroup (kr_client_t *client, char *portgroupname);
 void kr_mixer_portgroups_list (kr_client_t *client);
-void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *control_name, float control_value);
+void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *control_name, float control_value, int duration);
 void kr_mixer_add_effect (kr_client_t *client, char *portgroup_name, char *effect_name);
 void kr_mixer_remove_effect (kr_client_t *client, char *portgroup_name, int effect_num);
 void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int effect_num, 

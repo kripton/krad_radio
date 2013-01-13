@@ -417,7 +417,8 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 
 	krad_mixer_portgroup_t *portgroup = NULL;
 	krad_mixer_portgroup_t *mixbus = NULL;
-	
+  krad_mixer_crossfade_group_t *crossfade_group = NULL;
+
 	// only run if we have something going on
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
 		portgroup = krad_mixer->portgroup[p];
@@ -443,6 +444,22 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 			portgroup_update_samples (portgroup, nframes);
 		}
 	}
+	
+  for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS / 2; p++) {
+     crossfade_group = &krad_mixer->crossfade_group[p];
+     if ((crossfade_group != NULL) && ((crossfade_group->portgroup[0] != NULL) && (crossfade_group->portgroup[1] != NULL))) {
+         if (crossfade_group->fade_easing.active) {
+           portgroup_set_crossfade (crossfade_group->portgroup[0], krad_easing_process (&crossfade_group->fade_easing, crossfade_group->fade));
+       }
+     }
+   }
+
+  for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+    portgroup = krad_mixer->portgroup[p];
+    if ((portgroup != NULL) && (portgroup->active) && (portgroup->volume_easing.active)) {
+      portgroup_set_volume (portgroup, krad_easing_process (&portgroup->volume_easing, portgroup->volume[0]));
+    }
+  }
 
 	// apply volume, effects and calc peaks on inputs
 	for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
@@ -947,7 +964,7 @@ void portgroup_update_volume (krad_mixer_portgroup_t *portgroup) {
 	}	
 }		
 
-int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value) {
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value, int duration) {
 
 	krad_mixer_portgroup_t *portgroup;
 
@@ -960,14 +977,16 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
     }
 			
     if ((strncmp(control, "volume", 6) == 0) && (strlen(control) == 6)) {
-      portgroup_set_volume (portgroup, value);
+      //portgroup_set_volume (portgroup, value);
+      krad_easing_set_new_value(&portgroup->volume_easing, value, duration, EASEINOUTSINE);
       return 1;
     }
 
     if ((portgroup->direction == INPUT) && (portgroup->io_type != MIXBUS)) {
 
       if ((strncmp(control, "crossfade", 9) == 0) && (strlen(control) == 9)) {
-        portgroup_set_crossfade (portgroup, value);
+        //portgroup_set_crossfade (portgroup, value);
+        krad_easing_set_new_value(&portgroup->crossfade_group->fade_easing, value, duration, EASEINOUTSINE);
         return 1;
       }				
 
@@ -1276,8 +1295,8 @@ krad_mixer_t *krad_mixer_create (char *name) {
 	
 	krad_mixer_portgroup_mixmap_channel (krad_mixer->tone_port, 0, 1);
 
-  krad_mixer_set_portgroup_control (krad_mixer, "MasterBUS", "volume", DEFAULT_MASTERBUS_LEVEL);
-  krad_mixer_set_portgroup_control (krad_mixer, "DTMF", "volume", 50.0f);
+  krad_mixer_set_portgroup_control (krad_mixer, "MasterBUS", "volume", DEFAULT_MASTERBUS_LEVEL, 0);
+  krad_mixer_set_portgroup_control (krad_mixer, "DTMF", "volume", 50.0f, 0);
   
 
 	return krad_mixer;

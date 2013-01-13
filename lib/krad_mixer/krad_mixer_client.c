@@ -640,7 +640,7 @@ void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int
 
 }
 
-void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *control_name, float control_value) {
+void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *control_name, float control_value, int duration) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -656,6 +656,7 @@ void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *cont
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroup_name);
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
+  krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_DURATION, duration);
 
 	krad_ebml_finish_element (client->krad_ebml, set_control);
 	krad_ebml_finish_element (client->krad_ebml, mixer_command);
