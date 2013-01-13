@@ -53,7 +53,7 @@ depsources = """
 ../lib/krad_mixer/krad_mixer_common.c
 ../lib/krad_mixer/krad_mixer_interface.c
 ../lib/krad_mixer/krad_mixer.c
-../lib/krad_tone/krad_tone.c
+../lib/krad_sfx/krad_tone.c
 ../lib/krad_audio/krad_audio.c
 ../lib/krad_jack/krad_jack.c
 ../lib/krad_ring/krad_resample_ring.c
