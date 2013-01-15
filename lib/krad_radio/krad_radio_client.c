@@ -102,10 +102,24 @@ krad_ebml_t *kr_client_get_ebml (kr_client_t *kr_client) {
 }
 
 int kr_client_local (kr_client_t *client) {
-  if (client->krad_ipc_client->tcp_port == 0) {
-    return 1;
+  if (client != NULL) {
+    if (kr_connected (client)) {
+      if (client->krad_ipc_client->tcp_port == 0) {
+        return 1;
+      }
+      return 0;
+    }
   }
-  return 0;
+  return -1;
+}
+
+int kr_client_get_fd (kr_client_t *client) {
+  if (client != NULL) {
+    if (kr_connected (client)) {
+      return client->krad_ipc_client->sd;
+    }
+  }
+  return -1;
 }
 
 void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id) {
