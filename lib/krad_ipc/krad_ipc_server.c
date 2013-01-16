@@ -2,7 +2,7 @@
 
 static krad_ipc_server_t *krad_ipc_server_init (char *appname, char *sysname);
 static void *krad_ipc_server_run_thread (void *arg);
-static int krad_ipc_server_tcp_socket_create (char *interface, int port);
+static int krad_ipc_server_tcp_socket_create_and_bind (char *interface, int port);
 static void krad_ipc_disconnect_client (krad_ipc_server_client_t *client);
 static void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
 static krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server, int sd);
@@ -98,13 +98,15 @@ static krad_ipc_server_t *krad_ipc_server_init (char *appname, char *sysname) {
 
 }
 
-static int krad_ipc_server_tcp_socket_create (char *interface, int port) {
+static int krad_ipc_server_tcp_socket_create_and_bind (char *interface, int port) {
 
   char port_string[6];
   struct addrinfo hints;
   struct addrinfo *result, *rp;
   int s;
   int sfd = 0;
+  
+  printk ("Krad IPC Server: interface: %s port %d", interface, port);
 
   snprintf (port_string, 6, "%d", port);
 
@@ -112,10 +114,6 @@ static int krad_ipc_server_tcp_socket_create (char *interface, int port) {
   hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
   hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
   hints.ai_flags = AI_PASSIVE;     /* All interfaces */
-
-  if (strncmp(interface, "All", 3) == 0) {
-    interface = NULL;
-  }
 
   s = getaddrinfo (interface, port_string, &hints, &result);
   if (s != 0) {
@@ -201,6 +199,9 @@ void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *i
   //FIXME needs to loop thru clients and disconnect remote ones .. optionally?
 
   int r;
+  int d;
+  
+  d = 0;
   
   if ((interface == NULL) || (strlen(interface) == 0)) {
     interface = "All";
@@ -212,21 +213,31 @@ void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *i
       krad_ipc_server->tcp_port[r] = 0;
       krad_ipc_server->tcp_sd[r] = 0;
       free (krad_ipc_server->tcp_interface[r]);
+      d++;
     }
   }
 
-  printk ("Disable remote on interface %s port %d", interface, port);
-  
-  krad_ipc_server_update_pollfds (krad_ipc_server);
-  
+  if (d > 0) {
+    printk ("Disable remote on interface %s port %d", interface, port);
+    krad_ipc_server_update_pollfds (krad_ipc_server);
+  }
 }
 
 int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port) {
 
   int r;
+  int sd;
+  
+  sd = 0;
   
   if ((interface == NULL) || (strlen(interface) == 0)) {
-    interface = "All";
+    interface = NULL;
+    printk ("Krad IPC Server: interface not specified, we should probably bind to all ips on this port");
+  } else {
+    if (krad_system_is_adapter (interface)) {
+      printk ("Krad IPC Server: its an adapter, we should probably bind to all ips of this adapter");
+      return -1;
+    }
   }
 
   for (r = 0; r < MAX_REMOTES; r++) {
@@ -238,13 +249,23 @@ int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *int
   for (r = 0; r < MAX_REMOTES; r++) {
     if ((krad_ipc_server->tcp_sd[r] == 0) && (krad_ipc_server->tcp_port[r] == 0)) {
     
+      sd = krad_ipc_server_tcp_socket_create_and_bind (interface, port);
+      
+      if (sd < 0) {
+        return 0;
+      }
+      
       krad_ipc_server->tcp_port[r] = port;
-      krad_ipc_server->tcp_sd[r] = krad_ipc_server_tcp_socket_create (interface, krad_ipc_server->tcp_port[r]);
+      krad_ipc_server->tcp_sd[r] = sd;
 
       if (krad_ipc_server->tcp_sd[r] != 0) {
         listen (krad_ipc_server->tcp_sd[r], SOMAXCONN);
         krad_ipc_server_update_pollfds (krad_ipc_server);
-        krad_ipc_server->tcp_interface[r] = strdup (interface);
+        if (interface == NULL) {
+          krad_ipc_server->tcp_interface[r] = strdup ("");
+        } else {
+          krad_ipc_server->tcp_interface[r] = strdup (interface);
+        }
         printk ("Enable remote on interface %s port %d", interface, port);
         return 1;
       } else {

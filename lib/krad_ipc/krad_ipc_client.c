@@ -66,37 +66,66 @@ krad_ipc_client_t *krad_ipc_connect (char *sysname) {
 
 static int krad_ipc_client_init (krad_ipc_client_t *client) {
 
-  struct sockaddr_in serveraddr;
-  struct hostent *hostp;
-  int sent;
+  int rc;
+  char port_string[6];
+  struct in6_addr serveraddr;
+  struct addrinfo hints;
+  struct addrinfo *res;
+
+  res = NULL;
 
   if (client->tcp_port != 0) {
 
-    printkd ("Krad IPC Client: Connecting to remote %s:%d", client->host, client->tcp_port);
+    printf ("Krad IPC Client: Connecting to remote %s:%d", client->host, client->tcp_port);
 
-    if ((client->sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-      failfast ("Krad IPC Client: Socket Error");
-    }
+    memset(&hints, 0x00, sizeof(hints));
+    hints.ai_flags = AI_NUMERICSERV;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
 
-    memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_port = htons (client->tcp_port);
-  
-    if ((serveraddr.sin_addr.s_addr = inet_addr(client->host)) == (unsigned long)INADDR_NONE) {
-      // get host address 
-      hostp = gethostbyname(client->host);
-      if (hostp == (struct hostent *)NULL) {
-        printke ("Krad IPC Client: Remote Host Error");
-        close (client->sd);
-        return 0;
+    rc = inet_pton (AF_INET, client->host, &serveraddr);
+    if (rc == 1) {
+      hints.ai_family = AF_INET;
+      hints.ai_flags |= AI_NUMERICHOST;
+    } else {
+      rc = inet_pton (AF_INET6, client->host, &serveraddr);
+      if (rc == 1) {
+        hints.ai_family = AF_INET6;
+        hints.ai_flags |= AI_NUMERICHOST;
       }
-      memcpy (&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
     }
 
-    // connect() to server. 
-    if ((sent = connect(client->sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
-      printke ("Krad IPC Client: Remote Connect Error");
+    snprintf (port_string, 6, "%d", client->tcp_port);
+
+    rc = getaddrinfo (client->host, port_string, &hints, &res);
+    if (rc != 0) {
+       printf ("Krad IPC Client: Host not found --> %s\n", gai_strerror(rc));
+       return 0;
+    }
+    
+    client->sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (client->sd < 0) {
+      printf ("Krad IPC Client: Socket Error");
+      if (res != NULL) {
+        freeaddrinfo (res);
+        res = NULL;
+      }
       return 0;
+    }
+
+    rc = connect(client->sd, res->ai_addr, res->ai_addrlen);
+    if (rc < 0) {
+      printf ("Krad IPC Client: Remote Connect Error");
+      if (res != NULL) {
+        freeaddrinfo (res);
+        res = NULL;
+      }
+      return 0;
+    }
+
+    if (res != NULL) {
+      freeaddrinfo (res);
+      res = NULL;
     }
 
   } else {

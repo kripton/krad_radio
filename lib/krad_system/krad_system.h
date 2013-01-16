@@ -28,6 +28,8 @@
 #ifndef __MACH__
 #include <sys/prctl.h>
 #include <malloc.h>
+#include <sys/ioctl.h>
+#include <linux/netdevice.h>
 #else
 #include "krad_mach.h"
 #endif
@@ -152,4 +154,7 @@ int dir_exists (char *dir);
 int krad_valid_sysname (char *sysname);
 int krad_valid_host_and_port (char *string);
 void krad_get_host_and_port (char *string, char *host, int *port);
+#ifdef IS_LINUX
+int krad_system_is_adapter (char *adapter);
+#endif
 #endif
