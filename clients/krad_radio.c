@@ -279,7 +279,14 @@ int main (int argc, char *argv[]) {
     if (argc == 4) {
       kr_mixer_push_tone (client, argv[3]);
     }
-  }      
+  }
+
+  if (strncmp(argv[2], "portinfo", 8) == 0) {
+    if (argc == 4) {
+      kr_mixer_portgroup_info (client, argv[3]);
+      kr_client_response_wait_print (client);
+    }
+  }
 
   if (strncmp(argv[2], "input", 5) == 0) {
     if (argc == 4) {
@@ -306,7 +313,7 @@ int main (int argc, char *argv[]) {
     if (argc == 5) {
       kr_mixer_create_portgroup (client, argv[3], "auxout", atoi (argv[4]));
     }
-  }  
+  }
 
   if (strncmp(argv[2], "rmport", 6) == 0) {
     if (argc == 4) {

@@ -517,6 +517,23 @@ void kr_mixer_update_portgroup (kr_client_t *client, char *portgroupname, uint64
 
 }
 
+void kr_mixer_portgroup_info (kr_client_t *client, char *portgroupname) {
+
+	uint64_t command;
+	uint64_t info;
+
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_PORTGROUP_INFO, &info);
+
+	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+
+	krad_ebml_finish_element (client->krad_ebml, info);
+	krad_ebml_finish_element (client->krad_ebml, command);
+		
+	krad_ebml_write_sync (client->krad_ebml);
+
+}
+
 void kr_mixer_remove_portgroup (kr_client_t *client, char *name) {
 
 	//uint64_t ipc_command;
