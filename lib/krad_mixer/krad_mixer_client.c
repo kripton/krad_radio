@@ -809,44 +809,69 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
 
 int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
 
+  int ret;
   int pos;
+  int rpos;
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
+  kr_item_t *item;
 
+  item = NULL;
+  ret = 0;
   pos = 0;
+  rpos = 0;
   
   pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
 
   switch ( ebml_id ) {
     case EBML_ID_KRAD_MIXER_CONTROL:
-      printf("Received KRAD_MIXER_CONTROL %"PRIu64" bytes of data.\n", ebml_data_size);
-      //list_size = ebml_data_size;
-      //while ((list_size) && (bytes_read != list_size) && ((bytes_read += kr_read_tag ( kr_client, &tag_item, &tag_name, &tag_value )) <= list_size)) {
-      //  printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
-      //}
-      break;
+      *string = kr_response_alloc_string (ebml_data_size * 4 + 64);
+      rpos += sprintf (*string + rpos, "Mixer Portgroup Control: ");
+      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+      ret += kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
+      pos += ret - 1;
+      rpos += ret - 1;
+      rpos += sprintf (*string + rpos, " ");
+      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+      ret = kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
+      pos += ret - 1;
+      rpos += ret - 1;
+      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+      rpos += sprintf (*string + rpos, " %0.2f%%", krad_ebml_read_float_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
+      return rpos;
     case EBML_ID_KRAD_MIXER_PORTGROUP_LIST:
-      printf("Received KRAD_MIXER_PORTGROUP_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received KRAD_MIXER_PORTGROUP_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
       *string = kr_response_alloc_string (ebml_data_size * 4);
       return kr_response_get_string_from_list (ebml_id, kr_response->buffer + pos, ebml_data_size, string);
-      break;
+    case EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED:
+      *string = kr_response_alloc_string (ebml_data_size * 4 + 32);
+      rpos += sprintf (*string + rpos, "Mixer Portgroup Destroyed: ");
+      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+      rpos += kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
+      return rpos;
+    case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
+      *string = kr_response_alloc_string (ebml_data_size * 4 + 32);
+      rpos += sprintf (*string + rpos, "Mixer Portgroup Created: ");
+      if (kr_response_get_item (kr_response, &item)) {
+        rpos += kr_item_read_into_string (item, *string + rpos);
+      }
+      return rpos;
     case EBML_ID_KRAD_MIXER_PORTGROUP:
-      printf("Received KRAD_MIXER_PORTGROUP %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received KRAD_MIXER_PORTGROUP %"PRIu64" bytes of data.\n", ebml_data_size);
       *string = kr_response_alloc_string (ebml_data_size * 4);
       return kr_mixer_response_get_string_from_portgroup (kr_response->buffer + pos, ebml_data_size, string);
-      break;
     case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
-      printf("Received KRAD_MIXER_SAMPLE_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received KRAD_MIXER_SAMPLE_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
       //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
       //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
+      return 0;
     case EBML_ID_KRAD_MIXER_JACK_RUNNING:
-      printf("Received KRAD_MIXER_JACK_RUNNING %"PRIu64" bytes of data.\n", ebml_data_size);
+      //printf("Received KRAD_MIXER_JACK_RUNNING %"PRIu64" bytes of data.\n", ebml_data_size);
       //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
       //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
+      return 0;
   }
   
-  return pos;
+  return 0;
 }
 

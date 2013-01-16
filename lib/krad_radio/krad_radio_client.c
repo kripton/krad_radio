@@ -249,6 +249,18 @@ int kr_radio_uptime_to_string (uint64_t uptime, char **string) {
   return pos;
 }
 
+int kr_response_read_into_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char *string) {
+
+  int pos;
+  pos = 0;
+
+  if (ebml_data_size > 0) {
+    pos += krad_ebml_read_string_from_frag (ebml_frag, ebml_data_size, string);
+    string[pos++] = '\0';
+  }
+  return pos;
+}
+
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string) {
 
   int pos;
@@ -690,6 +702,35 @@ int kr_item_to_string (kr_item_t *kr_item, char **string) {
 
 }
 
+int kr_item_read_into_string (kr_item_t *kr_item, char *string) {
+
+  int string_pos;
+	char *string_loc_pos;
+	item_callback_t item_callback;
+	
+  string_pos = 0;
+  item_callback = NULL;
+  
+  string_loc_pos = string;
+  
+  item_callback = kr_response_get_item_to_string_converter (kr_item->type);
+  
+  if (item_callback == NULL) {
+    printke ("Unable to find item to string conversion");
+    return 0;
+  }
+  
+  string_pos += sprintf (string_loc_pos + string_pos, "Item (%d bytes):\n", kr_item->size);  
+  string_loc_pos = string_loc_pos + string_pos;
+
+  string_pos += item_callback (kr_item->buffer, kr_item->size, &string_loc_pos);    
+
+
+  return string_pos;
+
+
+}
+
 int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **item) {
 
   int list_pos;
@@ -723,6 +764,25 @@ int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item
     i++;
   }
 
+  return 0;
+
+}
+
+int kr_response_get_item (kr_response_t *kr_response, kr_item_t **item) {
+
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+	
+  pos = 0;
+  
+  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+  
+  if (ebml_id == EBML_ID_KRAD_MIXER_PORTGROUP_CREATED) {
+    pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+    return kr_response_to_item (kr_response, kr_response->buffer + pos, ebml_id, ebml_data_size, item);
+  }
+  
   return 0;
 
 }

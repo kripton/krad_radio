@@ -101,6 +101,8 @@ struct krad_mixer_St {
 
 	struct timespec start_time;
 
+	krad_ipc_broadcaster_t *broadcaster;
+
 	krad_ipc_server_t *krad_ipc;
 
   int destroying;

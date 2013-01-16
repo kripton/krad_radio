@@ -277,8 +277,12 @@ kr_rep_t *kr_item_to_rep (kr_item_t *kr_item);
 int kr_rep_free (kr_rep_t **);
 
 int kr_item_to_string (kr_item_t *kr_item, char **string);
+
+int kr_item_read_into_string (kr_item_t *kr_item, char *string);
+
 const char *kr_item_get_type_string (kr_item_t *item);
 int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **kr_item);
+int kr_response_get_item (kr_response_t *kr_response, kr_item_t **item);
 int kr_response_is_list (kr_response_t *kr_response);
 int kr_response_list_length (kr_response_t *kr_response);
 
@@ -287,6 +291,7 @@ uint32_t kr_response_size (kr_response_t *kr_response);
 
 void kr_client_response_wait_print (kr_client_t *kr_client);
 
+int kr_response_read_into_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char *string);
 
 /**
  * @brief get a response

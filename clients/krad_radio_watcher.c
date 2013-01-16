@@ -20,10 +20,11 @@ void wait_for_broadcasts (kr_client_t *client) {
     ret = kr_poll (client, timeout_ms);
 
     if (ret > 0) {
-      printf ("Got a broadcast! (%d)\n", b);
+      printf ("\n");
       kr_client_response_wait_print (client);
     } else {
-      printf ("No broadcast this time :/ (%d)\n", b);
+      printf (".");
+      fflush (stdout);
     }
 
     b++;

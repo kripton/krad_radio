@@ -1,6 +1,12 @@
 #include "krad_mixer_interface.h"
 
-krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
+static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
+                                                         krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep);
+static int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value);
+static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, char *portgroupname);
+static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *krad_mixer_portgroup );
+
+static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
                                                          krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep) {
   krad_mixer_portgroup_rep_t *portgroup_rep_ret;
   krad_mixer_portgroup_rep_t *portgroup_rep_crossfade;
@@ -55,6 +61,124 @@ krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t 
   
   return portgroup_rep_ret;
 }
+
+static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup ) {
+
+  size_t size;
+  unsigned char *buffer;
+  krad_broadcast_msg_t *broadcast_msg;
+  krad_mixer_portgroup_rep_t *portgroup_rep;
+
+  size = 2048;
+  buffer = malloc (size);
+
+  uint64_t response;
+  uint64_t created;
+  krad_ebml_t *krad_ebml;
+
+  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_MSG, &response);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CREATED, &created);
+
+  portgroup_rep = krad_mixer_portgroup_to_rep (portgroup, NULL);
+  krad_mixer_portgroup_rep_to_ebml (portgroup_rep, krad_ebml);
+  krad_mixer_portgroup_rep_destroy (portgroup_rep);
+
+  krad_ebml_finish_element (krad_ebml, created);
+  krad_ebml_finish_element (krad_ebml, response);
+
+  size = krad_ebml->io_adapter.write_buffer_pos;
+  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
+  krad_ebml_destroy (krad_ebml);
+
+
+  broadcast_msg = krad_broadcast_msg_create (buffer, size);
+
+  free (buffer);
+
+  if (broadcast_msg != NULL) {
+    return krad_ipc_server_broadcaster_broadcast ( krad_mixer->broadcaster, &broadcast_msg );
+  }
+
+  return -1;
+
+}
+
+static int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value) {
+
+  size_t size;
+  unsigned char *buffer;
+  krad_broadcast_msg_t *broadcast_msg;
+  
+  size = 256;
+  buffer = malloc (size);
+
+
+  krad_ebml_t *krad_ebml;
+  uint64_t element_loc;
+  uint64_t subelement_loc;
+
+  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_MSG, &element_loc);  
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_CONTROL, &subelement_loc);  
+  krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+  krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, controlname);
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, value);
+  krad_ebml_finish_element (krad_ebml, subelement_loc);
+  krad_ebml_finish_element (krad_ebml, element_loc);
+  size = krad_ebml->io_adapter.write_buffer_pos;
+  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
+  krad_ebml_destroy (krad_ebml);
+
+
+
+  broadcast_msg = krad_broadcast_msg_create (buffer, size);
+
+  free (buffer);
+
+  if (broadcast_msg != NULL) {
+    return krad_ipc_server_broadcaster_broadcast ( krad_mixer->broadcaster, &broadcast_msg );
+  }
+
+  return -1;
+}
+
+static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, char *portgroupname) {
+
+  size_t size;
+  unsigned char *buffer;
+  krad_broadcast_msg_t *broadcast_msg;
+  
+  size = 256;
+  buffer = malloc (size);
+
+
+  krad_ebml_t *krad_ebml;
+  uint64_t element_loc;
+  uint64_t subelement_loc;
+
+  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_MSG, &element_loc);  
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED, &subelement_loc);  
+  krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);
+  krad_ebml_finish_element (krad_ebml, subelement_loc);
+  krad_ebml_finish_element (krad_ebml, element_loc);
+  size = krad_ebml->io_adapter.write_buffer_pos;
+  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
+  krad_ebml_destroy (krad_ebml);
+
+  broadcast_msg = krad_broadcast_msg_create (buffer, size);
+
+  free (buffer);
+
+  if (broadcast_msg != NULL) {
+    return krad_ipc_server_broadcaster_broadcast ( krad_mixer->broadcaster, &broadcast_msg );
+  }
+
+  return -1;
+
+}
+				
 
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc ) {
 
@@ -180,9 +304,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         }
         number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
         
-        krad_mixer_set_portgroup_control (krad_mixer, portname, controlname, floatval, number);
+        krad_mixer_set_portgroup_control ( krad_mixer, portname, controlname, floatval, number );
+				krad_mixer_broadcast_portgroup_control ( krad_mixer, portname, controlname, floatval );
 
-				//krad_ipc_server_mixer_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_CONTROL, portname, controlname, floatval);
 			} else {
 
 			}
@@ -462,12 +586,10 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 										 krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);			
 
 			if (portgroup != NULL) {
-			  /* since we dont handle non inputs in api right yet */
-			  //if (portgroup->direction == INPUT) {
-				//  krad_ipc_server_broadcast_portgroup_created ( krad_ipc, portgroup->sysname, portgroup->channels,
-				//								  	   		    portgroup->io_type, portgroup->volume[0],
-				//								  	   		    portgroup->mixbus->sysname, 0 );
-			  //}
+			  //if ((portgroup->direction == INPUT) || ((portgroup->direction == OUTPUT) && (portgroup->output_type == AUX))) {
+			  if (portgroup->direction == INPUT) {
+          krad_mixer_broadcast_portgroup_created ( krad_mixer, portgroup );
+			  }
       }
 
 			break;
@@ -485,8 +607,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 			
 			krad_mixer_portgroup_destroy (krad_mixer, krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname));
 		
-			//krad_ipc_server_simple_broadcast ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, portgroupname);		
-		
+      krad_mixer_broadcast_portgroup_destroyed ( krad_mixer, portgroupname );
+	
 			break;
 		case EBML_ID_KRAD_MIXER_CMD_UPDATE_PORTGROUP:			
 			

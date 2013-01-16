@@ -1304,6 +1304,7 @@ krad_mixer_t *krad_mixer_create (char *name) {
 }
 
 void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc) {
-	krad_mixer->krad_ipc = krad_ipc;
+  krad_mixer->krad_ipc = krad_ipc;
+  krad_mixer->broadcaster = krad_ipc_server_broadcaster_register ( krad_mixer->krad_ipc );
 }
 
