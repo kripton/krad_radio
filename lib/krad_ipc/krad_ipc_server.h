@@ -33,7 +33,7 @@
 #define KRAD_IPC_SERVER_H
 
 
-#define MAX_REMOTES 1
+#define MAX_REMOTES 8
 #define KRAD_IPC_SERVER_MAX_CLIENTS 16
 #define KRAD_IPC_SERVER_TIMEOUT_MS 100
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000
@@ -79,8 +79,9 @@ struct krad_ipc_server_St {
   struct utsname unixname;
   int on_linux;
   int sd;
-  int tcp_sd;
-  int tcp_port;    
+  int tcp_sd[MAX_REMOTES];
+  int tcp_port[MAX_REMOTES];
+  char *tcp_interface[MAX_REMOTES];
   int flags;
   int shutdown;
 

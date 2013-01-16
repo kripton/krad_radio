@@ -2,7 +2,7 @@
 
 static krad_ipc_server_t *krad_ipc_server_init (char *appname, char *sysname);
 static void *krad_ipc_server_run_thread (void *arg);
-static int krad_ipc_server_tcp_socket_create (int port);
+static int krad_ipc_server_tcp_socket_create (char *interface, int port);
 static void krad_ipc_disconnect_client (krad_ipc_server_client_t *client);
 static void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server);
 static krad_ipc_server_client_t *krad_ipc_server_accept_client (krad_ipc_server_t *krad_ipc_server, int sd);
@@ -98,7 +98,7 @@ static krad_ipc_server_t *krad_ipc_server_init (char *appname, char *sysname) {
 
 }
 
-static int krad_ipc_server_tcp_socket_create (int port) {
+static int krad_ipc_server_tcp_socket_create (char *interface, int port) {
 
   char port_string[6];
   struct addrinfo hints;
@@ -113,7 +113,11 @@ static int krad_ipc_server_tcp_socket_create (int port) {
   hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
   hints.ai_flags = AI_PASSIVE;     /* All interfaces */
 
-  s = getaddrinfo (NULL, port_string, &hints, &result);
+  if (strncmp(interface, "All", 3) == 0) {
+    interface = NULL;
+  }
+
+  s = getaddrinfo (interface, port_string, &hints, &result);
   if (s != 0) {
     printke ("getaddrinfo: %s\n", gai_strerror (s));
     return -1;
@@ -194,15 +198,24 @@ int krad_ipc_server_recvfd (krad_ipc_server_client_t *client) {
 
 void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port) {
 
-  //FIXME needs to loop thru clients and disconnect remote ones
+  //FIXME needs to loop thru clients and disconnect remote ones .. optionally?
+
+  int r;
+  
+  if ((interface == NULL) || (strlen(interface) == 0)) {
+    interface = "All";
+  }
+
+  for (r = 0; r < MAX_REMOTES; r++) {
+    if ((krad_ipc_server->tcp_sd[r] != 0) && ((port == 0) || (krad_ipc_server->tcp_port[r] == port))) {
+      close (krad_ipc_server->tcp_sd[r]);
+      krad_ipc_server->tcp_port[r] = 0;
+      krad_ipc_server->tcp_sd[r] = 0;
+      free (krad_ipc_server->tcp_interface[r]);
+    }
+  }
 
   printk ("Disable remote on interface %s port %d", interface, port);
-
-  if (krad_ipc_server->tcp_sd != 0) {
-    close (krad_ipc_server->tcp_sd);
-    krad_ipc_server->tcp_port = 0;
-    krad_ipc_server->tcp_sd = 0;
-  }
   
   krad_ipc_server_update_pollfds (krad_ipc_server);
   
@@ -210,21 +223,35 @@ void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *i
 
 int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port) {
 
-  if (krad_ipc_server->tcp_sd != 0) {
-    krad_ipc_server_disable_remote (krad_ipc_server, "", 0);
+  int r;
+  
+  if ((interface == NULL) || (strlen(interface) == 0)) {
+    interface = "All";
   }
-  
-  printk ("Enable remote on interface %s port %d", interface, port);  
-  
-  krad_ipc_server->tcp_port = port;
 
-  krad_ipc_server->tcp_sd = krad_ipc_server_tcp_socket_create (krad_ipc_server->tcp_port);
+  for (r = 0; r < MAX_REMOTES; r++) {
+    if ((krad_ipc_server->tcp_sd[r] != 0) && (krad_ipc_server->tcp_port[r] == port)) {
+      return 0;
+    }
+  }  
+  
+  for (r = 0; r < MAX_REMOTES; r++) {
+    if ((krad_ipc_server->tcp_sd[r] == 0) && (krad_ipc_server->tcp_port[r] == 0)) {
+    
+      krad_ipc_server->tcp_port[r] = port;
+      krad_ipc_server->tcp_sd[r] = krad_ipc_server_tcp_socket_create (interface, krad_ipc_server->tcp_port[r]);
 
-  if (krad_ipc_server->tcp_sd != 0) {
-    listen (krad_ipc_server->tcp_sd, SOMAXCONN);
-    krad_ipc_server_update_pollfds (krad_ipc_server);
-  } else {
-    krad_ipc_server->tcp_port = 0;
+      if (krad_ipc_server->tcp_sd[r] != 0) {
+        listen (krad_ipc_server->tcp_sd[r], SOMAXCONN);
+        krad_ipc_server_update_pollfds (krad_ipc_server);
+        krad_ipc_server->tcp_interface[r] = strdup (interface);
+        printk ("Enable remote on interface %s port %d", interface, port);
+        return 1;
+      } else {
+        krad_ipc_server->tcp_port[r] = 0;
+        return 0;
+      }
+    }
   }
 
   return 0;
@@ -329,13 +356,11 @@ static void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) 
   s++;
   
   for (r = 0; r < MAX_REMOTES; r++) {
-    //if (krad_ipc_server->broadcasters[b] != NULL) {
-      if (krad_ipc_server->tcp_sd != 0) {
-        krad_ipc_server->sockets[s].fd = krad_ipc_server->tcp_sd;
-        krad_ipc_server->sockets[s].events = POLLIN;
-        s++;
-      }
-    //}
+    if (krad_ipc_server->tcp_sd[r] != 0) {
+      krad_ipc_server->sockets[s].fd = krad_ipc_server->tcp_sd[r];
+      krad_ipc_server->sockets[s].events = POLLIN;
+      s++;
+    }
   }
   
   for (b = 0; b < MAX_BROADCASTERS + MAX_REMOTES + 2; b++) {
@@ -640,7 +665,7 @@ static void *krad_ipc_server_run_thread (void *arg) {
 
   krad_ipc_server_t *krad_ipc_server = (krad_ipc_server_t *)arg;
   krad_ipc_server_client_t *client;
-  int ret, s;
+  int ret, s, r;
   
   krad_system_set_thread_name ("kr_ipc_server");
   
@@ -673,13 +698,14 @@ static void *krad_ipc_server_run_thread (void *arg) {
       
       s++;
       
-      if ((krad_ipc_server->tcp_sd != 0) && (krad_ipc_server->sockets[s].revents & POLLIN)) {
-        krad_ipc_server_accept_client (krad_ipc_server, krad_ipc_server->tcp_sd);
-        ret--;
-      }      
-
-      if (krad_ipc_server->tcp_sd != 0) {
-        s++;
+      for (r = 0; r < MAX_REMOTES; r++) {
+        if (krad_ipc_server->tcp_sd[r] != 0) {
+          if ((krad_ipc_server->tcp_sd[r] != 0) && (krad_ipc_server->sockets[s].revents & POLLIN)) {
+            krad_ipc_server_accept_client (krad_ipc_server, krad_ipc_server->tcp_sd[r]);
+            ret--;
+          }
+          s++;
+        }
       }
   
       for (; ret > 0; s++) {
@@ -795,9 +821,7 @@ void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
     krad_controller_destroy (&krad_ipc_server->krad_control, &krad_ipc_server->server_thread);
   }
 
-  if (krad_ipc_server->tcp_sd != 0) {
-    krad_ipc_server_disable_remote (krad_ipc_server, "", 0);
-  }
+  krad_ipc_server_disable_remote (krad_ipc_server, "", 0);
 
   if (krad_ipc_server->sd != 0) {
     close (krad_ipc_server->sd);

@@ -224,11 +224,13 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
       krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
 
-      if (kr_ipc->tcp_port) {
-	      krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
-			  krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "ALL");
-			  krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, kr_ipc->tcp_port);
-	      krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+      for (i = 0; i < MAX_REMOTES; i++) {
+        if (kr_ipc->tcp_port[i]) {
+	        krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
+			    krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, kr_ipc->tcp_interface[i]);
+			    krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, kr_ipc->tcp_port[i]);
+	        krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+        }      
       }
 
       krad_ipc_server_response_list_finish ( kr_ipc, list );
