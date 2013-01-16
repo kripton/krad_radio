@@ -1,6 +1,7 @@
 #include "krad_mixer_interface.h"
 
-krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep(krad_mixer_portgroup_t *krad_mixer_portgroup, krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep) {
+krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
+                                                         krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep) {
   krad_mixer_portgroup_rep_t *portgroup_rep_ret;
   krad_mixer_portgroup_rep_t *portgroup_rep_crossfade;
   
@@ -32,24 +33,24 @@ krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep(krad_mixer_portgroup_t *
       (krad_mixer_portgroup->crossfade_group->portgroup[0] == krad_mixer_portgroup)) {
      portgroup_rep_crossfade = krad_mixer_portgroup_rep_create ();
      
-     strcpy (portgroup_rep_crossfade->sysname, krad_mixer_portgroup->crossfade_group->portgroup[1]->sysname);
-     portgroup_rep_crossfade->channels = krad_mixer_portgroup->crossfade_group->portgroup[1]->channels;
-     portgroup_rep_crossfade->io_type = krad_mixer_portgroup->crossfade_group->portgroup[1]->io_type;
+    strcpy (portgroup_rep_crossfade->sysname, krad_mixer_portgroup->crossfade_group->portgroup[1]->sysname);
+    portgroup_rep_crossfade->channels = krad_mixer_portgroup->crossfade_group->portgroup[1]->channels;
+    portgroup_rep_crossfade->io_type = krad_mixer_portgroup->crossfade_group->portgroup[1]->io_type;
      
-     for (i = 0; i < KRAD_MIXER_MAX_CHANNELS; i++) {
-       portgroup_rep_crossfade->volume[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->volume[i];
-       portgroup_rep_crossfade->map[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->map[i];
-       portgroup_rep_crossfade->mixmap[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->mixmap[i];
-       portgroup_rep_crossfade->rms[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->rms[i];
-       portgroup_rep_crossfade->peak[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->peak[i];
-     }
+    for (i = 0; i < KRAD_MIXER_MAX_CHANNELS; i++) {
+      portgroup_rep_crossfade->volume[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->volume[i];
+      portgroup_rep_crossfade->map[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->map[i];
+      portgroup_rep_crossfade->mixmap[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->mixmap[i];
+      portgroup_rep_crossfade->rms[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->rms[i];
+      portgroup_rep_crossfade->peak[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->peak[i];
+    }
      
-     if (krad_mixer_portgroup->crossfade_group->portgroup[1]->krad_xmms != NULL) {
-       portgroup_rep_crossfade->has_xmms2 = 1;
-     }
+    if (krad_mixer_portgroup->crossfade_group->portgroup[1]->krad_xmms != NULL) {
+      portgroup_rep_crossfade->has_xmms2 = 1;
+    }
      
-     portgroup_rep_ret->crossfade_group_rep = krad_mixer_crossfade_rep_create (portgroup_rep_ret, portgroup_rep_crossfade);
-     portgroup_rep_ret->crossfade_group_rep->fade = krad_mixer_portgroup->crossfade_group->fade;
+    portgroup_rep_ret->crossfade_group_rep = krad_mixer_crossfade_rep_create (portgroup_rep_ret, portgroup_rep_crossfade);
+    portgroup_rep_ret->crossfade_group_rep->fade = krad_mixer_portgroup->crossfade_group->fade;
   }
   
   return portgroup_rep_ret;
@@ -65,24 +66,16 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	krad_mixer_portgroup_t *portgroup2;
 	
   krad_mixer_portgroup_rep_t *portgroup_rep;
-
 	
 	uint64_t element;
-	
 	uint64_t response;
 
 	krad_mixer_output_t output_type;
-
 
 	int p;
 	
 	int sd1;
 	int sd2;
-			
-	sd1 = 0;
-	sd2 = 0;
-
-	ebml_id = 0;
 	
 	char portname[256];
 	char portgroupname[256];
@@ -94,11 +87,14 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 	int direction;
 	int number;
 	int numbers[16];
-	
+			
+	sd1 = 0;
+	sd2 = 0;
+	ebml_id = 0;
 	number = 0;
 	direction = 0;
 	
-	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size);
+	krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size );
 
 	switch ( command ) {
 
