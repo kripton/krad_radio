@@ -24,6 +24,10 @@
 
 #include <pthread.h>
 
+#ifdef IS_LINUX
+#include <ifaddrs.h>
+#endif
+
 #include "krad_radio_version.h"
 #include "krad_system.h"
 #include "krad_ebml.h"
@@ -33,7 +37,7 @@
 #define KRAD_IPC_SERVER_H
 
 
-#define MAX_REMOTES 8
+#define MAX_REMOTES 16
 #define KRAD_IPC_SERVER_MAX_CLIENTS 16
 #define KRAD_IPC_SERVER_TIMEOUT_MS 100
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000

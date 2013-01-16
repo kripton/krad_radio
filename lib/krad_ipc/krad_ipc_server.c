@@ -105,6 +105,9 @@ static int krad_ipc_server_tcp_socket_create_and_bind (char *interface, int port
   struct addrinfo *result, *rp;
   int s;
   int sfd = 0;
+  char *interface_actual;
+  
+  interface_actual = interface;
   
   printk ("Krad IPC Server: interface: %s port %d", interface, port);
 
@@ -115,7 +118,16 @@ static int krad_ipc_server_tcp_socket_create_and_bind (char *interface, int port
   hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
   hints.ai_flags = AI_PASSIVE;     /* All interfaces */
 
-  s = getaddrinfo (interface, port_string, &hints, &result);
+  if ((strlen(interface) == 7) && (strncmp(interface, "0.0.0.0", 7) == 0)) {
+    hints.ai_family = AF_INET;
+    interface_actual = NULL;
+  }
+  if ((strlen(interface) == 4) && (strncmp(interface, "[::]", 4) == 0)) {
+    hints.ai_family = AF_INET6;
+    interface_actual = NULL;
+  }
+
+  s = getaddrinfo (interface_actual, port_string, &hints, &result);
   if (s != 0) {
     printke ("getaddrinfo: %s\n", gai_strerror (s));
     return -1;
@@ -222,6 +234,51 @@ void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *i
     krad_ipc_server_update_pollfds (krad_ipc_server);
   }
 }
+#ifdef IS_LINUX
+int krad_ipc_server_enable_remote_on_adapter (krad_ipc_server_t *krad_ipc_server, char *adapter, int port) {
+
+  struct ifaddrs *ifaddr, *ifa;
+  int family, s;
+  char host[NI_MAXHOST];
+  int ret;
+  int ifs;
+
+  ret = 0;
+  ifs = 0;
+
+  if (getifaddrs (&ifaddr) == -1) {
+    return -1;
+  }
+
+  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ifa->ifa_addr == NULL) {
+      continue;
+    }
+
+    family = ifa->ifa_addr->sa_family;
+
+    if (family == AF_INET || family == AF_INET6) {
+      s = getnameinfo(ifa->ifa_addr,
+             (family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                   sizeof(struct sockaddr_in6),
+             host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+      if (s != 0) {
+        printke ("getnameinfo() failed: %s\n", gai_strerror(s));
+        return -1;
+      }
+      ret = krad_ipc_server_enable_remote (krad_ipc_server, host, port);
+      if (ret == 1) {
+        ifs++;
+      }
+    }
+  }
+
+  freeifaddrs (ifaddr);
+
+  return ifs;
+
+}
+#endif
 
 int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port) {
 
@@ -234,18 +291,24 @@ int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *int
   // bind to all ips on that port
   
   if ((interface == NULL) || (strlen(interface) == 0)) {
-    interface = NULL;
-    printk ("Krad IPC Server: interface not specified, we should probably bind to all ips on this port");
+    interface = "[::]";
   } else {
+    #ifdef IS_LINUX
     if (krad_system_is_adapter (interface)) {
-      printk ("Krad IPC Server: its an adapter, we should probably bind to all ips of this adapter");
-      return -1;
+      //printk ("Krad IPC Server: its an adapter, we should probably bind to all ips of this adapter");
+      return krad_ipc_server_enable_remote_on_adapter (krad_ipc_server, interface, port);
     }
+    #else
+      return -1;
+    #endif
   }
 
   for (r = 0; r < MAX_REMOTES; r++) {
     if ((krad_ipc_server->tcp_sd[r] != 0) && (krad_ipc_server->tcp_port[r] == port)) {
-      return 0;
+      if ((strlen(interface) == strlen(krad_ipc_server->tcp_interface[r])) &&
+          (strncmp(interface, krad_ipc_server->tcp_interface[r], strlen(interface)))) {
+        return 0;
+      }
     }
   }  
   
@@ -264,11 +327,7 @@ int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *int
       if (krad_ipc_server->tcp_sd[r] != 0) {
         listen (krad_ipc_server->tcp_sd[r], SOMAXCONN);
         krad_ipc_server_update_pollfds (krad_ipc_server);
-        if (interface == NULL) {
-          krad_ipc_server->tcp_interface[r] = strdup ("");
-        } else {
-          krad_ipc_server->tcp_interface[r] = strdup (interface);
-        }
+        krad_ipc_server->tcp_interface[r] = strdup (interface);
         printk ("Enable remote on interface %s port %d", interface, port);
         return 1;
       } else {

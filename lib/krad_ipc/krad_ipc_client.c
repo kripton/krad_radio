@@ -116,7 +116,7 @@ static int krad_ipc_client_init (krad_ipc_client_t *client) {
 
     rc = connect(client->sd, res->ai_addr, res->ai_addrlen);
     if (rc < 0) {
-      printf ("Krad IPC Client: Remote Connect Error");
+      printf ("Krad IPC Client: Remote Connect Error\n");
       if (res != NULL) {
         freeaddrinfo (res);
         res = NULL;
