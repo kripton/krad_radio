@@ -21,7 +21,7 @@ void wait_for_broadcasts (kr_client_t *client) {
 
     if (ret > 0) {
       printf ("Got a broadcast! (%d)\n", b);
-      //kr_client_response_wait_print (client);
+      kr_client_response_wait_print (client);
     } else {
       printf ("No broadcast this time :/ (%d)\n", b);
     }

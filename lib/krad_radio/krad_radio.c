@@ -18,6 +18,10 @@ static void krad_radio_shutdown (krad_radio_t *krad_radio) {
 
   krad_timer_status (shutdown_timer);
   
+  if (krad_radio->system_broadcaster != NULL) {
+    krad_ipc_server_broadcaster_unregister ( &krad_radio->system_broadcaster );
+  }
+  
   if (krad_radio->remote.krad_ipc != NULL) {
     krad_ipc_server_disable (krad_radio->remote.krad_ipc);
   }
@@ -141,11 +145,18 @@ static krad_radio_t *krad_radio_create (char *sysname) {
     return NULL;
   }
   
-  krad_ipc_server_register_broadcast ( krad_radio->remote.krad_ipc, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST );
+  krad_radio->system_broadcaster = krad_ipc_server_broadcaster_register ( krad_radio->remote.krad_ipc );
+  
+  if (krad_radio->system_broadcaster == NULL) {
+    krad_radio_shutdown (krad_radio);
+    return NULL;
+  }  
+  
+  krad_ipc_server_broadcaster_register_broadcast ( krad_radio->system_broadcaster, EBML_ID_KRAD_SYSTEM_BROADCAST );
 
   krad_mixer_set_ipc (krad_radio->krad_mixer, krad_radio->remote.krad_ipc);
-  krad_tags_set_set_tag_callback (krad_radio->krad_tags, krad_radio->remote.krad_ipc, 
-                  (void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
+  //krad_tags_set_set_tag_callback (krad_radio->krad_tags, krad_radio->remote.krad_ipc, 
+  //                (void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
 
   return krad_radio;
 
@@ -181,12 +192,37 @@ void krad_radio_daemon (char *sysname) {
 
 void krad_radio_cpu_monitor_callback (krad_radio_t *krad_radio, uint32_t usage) {
 
-  //printk ("System CPU Usage: %d%%", usage);
-  krad_ipc_server_simplest_broadcast ( krad_radio->remote.krad_ipc,
-                     EBML_ID_KRAD_RADIO_MSG,
-                     EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE,
-                     usage);
+  size_t size;
+  unsigned char *buffer;
+  krad_broadcast_msg_t *broadcast_msg;
+  
+  size = 64;
+  buffer = malloc (size);
 
+
+
+
+  krad_ebml_t *krad_ebml;
+  uint64_t element_loc;
+
+  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MSG, &element_loc);  
+  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, usage);
+  krad_ebml_finish_element (krad_ebml, element_loc);
+  size = krad_ebml->io_adapter.write_buffer_pos;
+  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
+  krad_ebml_destroy (krad_ebml);
+
+
+
+
+  broadcast_msg = krad_broadcast_msg_create (buffer, size);
+
+  free (buffer);
+
+  if (broadcast_msg != NULL) {
+    krad_ipc_server_broadcaster_broadcast ( krad_radio->system_broadcaster, &broadcast_msg );
+  }
 }
 
 static void krad_radio_start (krad_radio_t *krad_radio) {
@@ -196,7 +232,7 @@ static void krad_radio_start (krad_radio_t *krad_radio) {
   krad_system_monitor_cpu_on ();
     
   krad_system_set_monitor_cpu_callback ((void *)krad_radio, 
-                   (void (*)(void *, uint32_t))krad_radio_cpu_monitor_callback);    
+                   (void (*)(void *, uint32_t))krad_radio_cpu_monitor_callback);
     
   clock_gettime (CLOCK_MONOTONIC, &start_sync);
   start_sync = timespec_add_ms (start_sync, 100);

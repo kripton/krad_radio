@@ -1,6 +1,6 @@
 #include "krad_transponder_interface.h"
 
-
+/*
 void krad_transponder_broadcast_link_created ( krad_ipc_server_t *krad_ipc_server, krad_link_t *krad_link) {
 
 	int c;
@@ -25,6 +25,7 @@ void krad_transponder_broadcast_link_created ( krad_ipc_server_t *krad_ipc_serve
 		}
 	}
 }
+*/
 
 void krad_transponder_ebml_to_link ( krad_ipc_server_t *krad_ipc_server, krad_link_t *krad_link ) {
 
@@ -695,9 +696,9 @@ int krad_transponder_handler ( krad_transponder_t *krad_transponder, krad_ipc_se
 				
 				  /*
 					if ((krad_link->operation_mode == TRANSMIT) || (krad_link->operation_mode == RECORD)) {
-						//if (krad_link_wait_codec_init (krad_link) == 0) {
-							//krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
-						//}
+						if (krad_link_wait_codec_init (krad_link) == 0) {
+							krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
+						}
 					} else {
 						krad_transponder_broadcast_link_created ( krad_ipc, krad_link );
 					}

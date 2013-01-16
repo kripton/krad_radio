@@ -91,6 +91,7 @@ struct krad_log_St {
 
 struct krad_radio_St {
 	char sysname[KRAD_SYSNAME_MAX + 1];
+	krad_ipc_broadcaster_t *system_broadcaster;
 	krad_log_t log;
 	krad_tags_t *krad_tags;
 	krad_remote_control_t remote;

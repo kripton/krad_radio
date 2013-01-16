@@ -19,8 +19,8 @@ void krad_receiver_promote_client (krad_receiver_client_t *client) {
 			krad_link->krad_radio = krad_transponder->krad_radio;
 			krad_link->krad_transponder = krad_transponder;
 			
-			krad_tags_set_set_tag_callback (krad_link->krad_tags, krad_transponder->krad_radio->remote.krad_ipc, 
-											(void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
+			//krad_tags_set_set_tag_callback (krad_link->krad_tags, krad_transponder->krad_radio->remote.krad_ipc, 
+			//								(void (*)(void *, char *, char *, char *, int))krad_ipc_server_broadcast_tag);
 	
 			
 			sprintf (krad_link->sysname, "link%d", k);
