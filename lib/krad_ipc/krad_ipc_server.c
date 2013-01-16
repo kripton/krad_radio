@@ -230,6 +230,9 @@ int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *int
   
   sd = 0;
   
+  //FIXME handle when an adapter such as eth0 is specified or when interface is null
+  // bind to all ips on that port
+  
   if ((interface == NULL) || (strlen(interface) == 0)) {
     interface = NULL;
     printk ("Krad IPC Server: interface not specified, we should probably bind to all ips on this port");
