@@ -563,7 +563,7 @@ void krad_get_host_and_port (char *string, char *host, int *port) {
   *port = atoi (strrchr(string, ':') + 1);
   memset (host, '\0', 128);
   memcpy (host, string, strlen(string) - strlen(strrchr(string, ':')));
-  printf ("Got host %s and port %d\n", host, *port);
+  //printk ("Got host %s and port %d\n", host, *port);
 }
 
 //FIXME not actually any good
@@ -580,7 +580,7 @@ int krad_valid_host_and_port (char *string) {
     memcpy (host, string, strlen(string) - strlen(strrchr(string, ':')));
     //if (((port >= 0) && (port <= 65535)) && (strlen(host) > 3)) {
     if (((port >= 0) && (port <= 65535)) && (1)) {
-      printf ("Got host %s and port %d\n", host, port);
+      //printk ("Got host %s and port %d\n", host, port);
       return 1;
     } else {
       printke ("INVALID host %s port %d", host, port);

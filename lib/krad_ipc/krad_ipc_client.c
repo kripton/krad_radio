@@ -76,7 +76,8 @@ static int krad_ipc_client_init (krad_ipc_client_t *client) {
 
   if (client->tcp_port != 0) {
 
-    printf ("Krad IPC Client: Connecting to remote %s:%d", client->host, client->tcp_port);
+    //FIXME hrm we don't know the sysname of a remote connect! crazy ?
+    //printf ("Krad IPC Client: Connecting to remote %s:%d", client->host, client->tcp_port);
 
     memset(&hints, 0x00, sizeof(hints));
     hints.ai_flags = AI_NUMERICSERV;
