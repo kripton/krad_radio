@@ -5,8 +5,7 @@ import os
 programs = """
 krad_radio.c
 krad_radio_simple.c
-krad_radio_api_test.c
-krad_radio_watcher.c
+kr_api_demo.c
 """.split()
 
 programs2 = """

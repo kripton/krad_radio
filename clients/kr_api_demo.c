@@ -102,6 +102,37 @@ void handle_response (kr_client_t *client) {
   printf ("\n");
 }
 
+void wait_for_broadcasts (kr_client_t *client) {
+
+  int b;
+  int ret;
+  int max;
+  unsigned int timeout_ms;
+  
+  ret = 0;
+  b = 0;
+  max = 10000;
+  timeout_ms = 3000;
+  
+  printf ("Waiting for up to %d broadcasts up to %ums each\n", max, timeout_ms);
+  
+  
+  while (b < max) {
+
+    ret = kr_poll (client, timeout_ms);
+
+    if (ret > 0) {
+      printf ("\n");
+      kr_client_response_wait_print (client);
+    } else {
+      printf (".");
+      fflush (stdout);
+    }
+
+    b++;
+  }
+
+}
 
 void kr_api_test (kr_client_t *client) {
 
@@ -125,6 +156,12 @@ void kr_api_test (kr_client_t *client) {
   
   kr_mixer_portgroups_list (client);
   handle_response (client);
+  
+  printf ("Subscribing to all broadcasts\n");
+  kr_broadcast_subscribe (client, ALL_BROADCASTS);
+  printf ("Subscribed to all broadcasts\n");
+
+  wait_for_broadcasts (client);
   
 }
 
