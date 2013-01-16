@@ -217,8 +217,35 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_radio->remote.krad_websocket = NULL;
 			
 			return 0;
+
+		case EBML_ID_KRAD_RADIO_CMD_GET_REMOTE_STATUS:
+
+			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+
+      krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
+
+      if (kr_ipc->tcp_port) {
+	      krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
+			  krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "ALL");
+			  krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, kr_ipc->tcp_port);
+	      krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
+      }
+
+      krad_ipc_server_response_list_finish ( kr_ipc, list );
+		
+			krad_ipc_server_response_finish ( kr_ipc, response);
+			
+			return 0;
 			
 		case EBML_ID_KRAD_RADIO_CMD_REMOTE_ENABLE:
+
+			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_REMOTE_INTERFACE) {
+				failfast ("missing item");
+			}
+			
+			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, string1, ebml_data_size);
 			
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 
@@ -228,13 +255,29 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
 			
-			krad_ipc_server_enable_remote (kr_ipc, numbers[0]);
+			krad_ipc_server_enable_remote (kr_ipc, string1, numbers[0]);
 			
 			return 0;
 
 		case EBML_ID_KRAD_RADIO_CMD_REMOTE_DISABLE:
 			
-			krad_ipc_server_disable_remote (kr_ipc);
+			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_REMOTE_INTERFACE) {
+				failfast ("missing item");
+			}
+			
+			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, string1, ebml_data_size);
+			
+			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
+
+			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
+				printke ("hrm wtf6");
+			}
+			
+			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
+			
+			krad_ipc_server_disable_remote (kr_ipc, string1, numbers[0]);
 			
 			return 0;
 
@@ -298,25 +341,6 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
-			krad_ipc_server_response_finish ( kr_ipc, response);
-			
-			return 0;
-
-		case EBML_ID_KRAD_RADIO_CMD_GET_REMOTE_STATUS:
-
-			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-
-      krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
-
-      if (kr_ipc->tcp_port) {
-	      krad_ebml_start_element (kr_ipc->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_REMOTE_STATUS, &element);
-			  krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "ALL");
-			  krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_PORT, kr_ipc->tcp_port);
-	      krad_ebml_finish_element (kr_ipc->current_client->krad_ebml2, element);
-      }
-
-      krad_ipc_server_response_list_finish ( kr_ipc, list );
-		
 			krad_ipc_server_response_finish ( kr_ipc, response);
 			
 			return 0;

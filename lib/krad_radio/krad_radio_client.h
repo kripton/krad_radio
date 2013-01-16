@@ -384,13 +384,13 @@ void kr_remote_status (kr_client_t *client);
  * @param client handle of the IPC-connection to the station
  * @param port TCP-port on which to listen for incoming connections
  */
-void kr_remote_enable (kr_client_t *client, char *interface, int port);
+int kr_remote_enable (kr_client_t *client, char *interface, int port);
 
 /**
  * @brief Disable the previously enabled IPC remote control
  * @param client handle of the IPC-connection to the station
  */
-void kr_remote_disable (kr_client_t *client, char *interface, int port);
+int kr_remote_disable (kr_client_t *client, char *interface, int port);
 
 /**
  * @brief Enable web UI remote control on a specifed port. This can only be 

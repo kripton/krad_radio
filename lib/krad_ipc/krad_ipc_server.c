@@ -192,22 +192,29 @@ int krad_ipc_server_recvfd (krad_ipc_server_client_t *client) {
   }
 }
 
-void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server) {
+void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port) {
 
   //FIXME needs to loop thru clients and disconnect remote ones
+
+  printk ("Disable remote on interface %s port %d", interface, port);
 
   if (krad_ipc_server->tcp_sd != 0) {
     close (krad_ipc_server->tcp_sd);
     krad_ipc_server->tcp_port = 0;
     krad_ipc_server->tcp_sd = 0;
   }
+  
+  krad_ipc_server_update_pollfds (krad_ipc_server);
+  
 }
 
-int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, int port) {
+int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port) {
 
   if (krad_ipc_server->tcp_sd != 0) {
-    krad_ipc_server_disable_remote (krad_ipc_server);
+    krad_ipc_server_disable_remote (krad_ipc_server, "", 0);
   }
+  
+  printk ("Enable remote on interface %s port %d", interface, port);  
   
   krad_ipc_server->tcp_port = port;
 
@@ -304,6 +311,7 @@ static void krad_ipc_disconnect_client (krad_ipc_server_client_t *client) {
 
 static void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) {
 
+  int r;
   int b;
   int c;
   int s;
@@ -320,10 +328,18 @@ static void krad_ipc_server_update_pollfds (krad_ipc_server_t *krad_ipc_server) 
 
   s++;
   
-  if (krad_ipc_server->tcp_sd != 0) {
-    krad_ipc_server->sockets[s].fd = krad_ipc_server->tcp_sd;
-    krad_ipc_server->sockets[s].events = POLLIN;
-    s++;
+  for (r = 0; r < MAX_REMOTES; r++) {
+    //if (krad_ipc_server->broadcasters[b] != NULL) {
+      if (krad_ipc_server->tcp_sd != 0) {
+        krad_ipc_server->sockets[s].fd = krad_ipc_server->tcp_sd;
+        krad_ipc_server->sockets[s].events = POLLIN;
+        s++;
+      }
+    //}
+  }
+  
+  for (b = 0; b < MAX_BROADCASTERS + MAX_REMOTES + 2; b++) {
+    krad_ipc_server->sockets_broadcasters[b] = NULL;
   }
   
   for (b = 0; b < MAX_BROADCASTERS; b++) {
@@ -780,7 +796,7 @@ void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server) {
   }
 
   if (krad_ipc_server->tcp_sd != 0) {
-    krad_ipc_server_disable_remote (krad_ipc_server);
+    krad_ipc_server_disable_remote (krad_ipc_server, "", 0);
   }
 
   if (krad_ipc_server->sd != 0) {

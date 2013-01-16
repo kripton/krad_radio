@@ -11,6 +11,7 @@
 #include "krad_transponder_client.h"
 #include "krad_mixer_client.h"
 
+static int kr_remote_port_valid (int port);
 
 kr_client_t *kr_client_create (char *client_name) {
 
@@ -958,6 +959,15 @@ void kr_system_cpu_usage (kr_client_t *client) {
 
 /* Remote Control */
 
+static int kr_remote_port_valid (int port) {
+
+  if ((port >= 0) && (port <= 65535)) {
+    return 1;
+  }
+
+  return 0;
+}
+
 void kr_remote_status (kr_client_t *client) {
 
   uint64_t command;
@@ -970,13 +980,23 @@ void kr_remote_status (kr_client_t *client) {
   krad_ebml_write_sync (client->krad_ebml);
 }
 
-void kr_remote_enable (kr_client_t *client, char *interface, int port) {
+int kr_remote_enable (kr_client_t *client, char *interface, int port) {
 
   uint64_t radio_command;
   uint64_t enable_remote;
 
+  if (!kr_remote_port_valid (port)) {
+    return -1;
+  }
+
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_REMOTE_ENABLE, &enable_remote);  
+
+  if ((interface != NULL) && (strlen(interface))) {
+    krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, interface);
+  } else {
+    krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "");
+  }
 
   krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_TCP_PORT, port);
 
@@ -984,20 +1004,38 @@ void kr_remote_enable (kr_client_t *client, char *interface, int port) {
   krad_ebml_finish_element (client->krad_ebml, radio_command);
     
   krad_ebml_write_sync (client->krad_ebml);
+  
+  return 1;
+  
 }
 
-void kr_remote_disable (kr_client_t *client, char *interface, int port) {
+int kr_remote_disable (kr_client_t *client, char *interface, int port) {
 
   uint64_t radio_command;
   uint64_t disable_remote;
 
+  if (!kr_remote_port_valid (port)) {
+    return -1;
+  }
+
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD, &radio_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_RADIO_CMD_REMOTE_DISABLE, &disable_remote);
+
+  if ((interface != NULL) && (strlen(interface))) {
+    krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, interface);
+  } else {
+    krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_RADIO_REMOTE_INTERFACE, "");
+  }
+  
+  krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_RADIO_TCP_PORT, port);
 
   krad_ebml_finish_element (client->krad_ebml, disable_remote);
   krad_ebml_finish_element (client->krad_ebml, radio_command);
     
   krad_ebml_write_sync (client->krad_ebml);
+  
+  return 1;
+  
 }
 
 void kr_web_enable (kr_client_t *client, int http_port, int websocket_port,

@@ -32,6 +32,8 @@
 #ifndef KRAD_IPC_SERVER_H
 #define KRAD_IPC_SERVER_H
 
+
+#define MAX_REMOTES 1
 #define KRAD_IPC_SERVER_MAX_CLIENTS 16
 #define KRAD_IPC_SERVER_TIMEOUT_MS 100
 #define KRAD_IPC_SERVER_TIMEOUT_US KRAD_IPC_SERVER_TIMEOUT_MS * 1000
@@ -91,13 +93,13 @@ struct krad_ipc_server_St {
 
   pthread_t server_thread;
 
-  struct pollfd sockets[KRAD_IPC_SERVER_MAX_CLIENTS + MAX_BROADCASTERS + 2];
-  krad_ipc_server_client_t *sockets_clients[KRAD_IPC_SERVER_MAX_CLIENTS + MAX_BROADCASTERS + 2];  
+  struct pollfd sockets[KRAD_IPC_SERVER_MAX_CLIENTS + MAX_BROADCASTERS + MAX_REMOTES + 2];
+  krad_ipc_server_client_t *sockets_clients[KRAD_IPC_SERVER_MAX_CLIENTS + MAX_BROADCASTERS + MAX_REMOTES + 2];  
 
   int (*handler)(void *, int *, void *);
   void *pointer;
   
-  krad_ipc_broadcaster_t *sockets_broadcasters[MAX_BROADCASTERS + 2];
+  krad_ipc_broadcaster_t *sockets_broadcasters[MAX_BROADCASTERS + MAX_REMOTES + 2];
   krad_ipc_broadcaster_t *broadcasters[MAX_BROADCASTERS];
   int broadcasters_count;  
   
@@ -153,8 +155,8 @@ void krad_ipc_server_broadcaster_register_broadcast ( krad_ipc_broadcaster_t *br
 krad_ipc_broadcaster_t *krad_ipc_server_broadcaster_register ( krad_ipc_server_t *ipc_server );
 int krad_ipc_server_broadcaster_unregister ( krad_ipc_broadcaster_t **broadcaster );
 
-void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server);
-int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, int port);
+void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port);
+int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port);
 void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server);
 void krad_ipc_server_destroy (krad_ipc_server_t *ipc_server);
 void krad_ipc_server_run (krad_ipc_server_t *krad_ipc_server);

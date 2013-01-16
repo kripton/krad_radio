@@ -196,16 +196,38 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  if (strncmp(argv[2], "remoteon", 8) == 0) {
+  if ((strncmp(argv[2], "remoteon", 8) == 0) || (strncmp(argv[2], "remote_on", 9) == 0)) {
+    ret = 0;
     if (argc == 4) {
-      kr_remote_enable (client, NULL, atoi(argv[3]));
-      kr_client_response_wait_print (client);
+      ret = kr_remote_enable (client, NULL, atoi(argv[3]));
     }
-  }      
+    if (argc == 5) {
+      ret = kr_remote_enable (client, argv[3], atoi(argv[4]));
+    }
+    if (ret == -1) {
+      printf ("Invalid Port Specified\n");
+    }
+    if (ret == 1) {
+      //kr_client_response_wait_print (client);
+    }
+  }  
 
-  if (strncmp(argv[2], "remoteoff", 9) == 0) {
+  if ((strncmp(argv[2], "remoteoff", 9) == 0) || (strncmp(argv[2], "remote_off", 10) == 0)) {
+    ret = 0;
     if (argc == 3) {
-      kr_remote_disable (client, NULL, 0);
+      ret = kr_remote_disable (client, NULL, 0);
+    }
+    if (argc == 4) {
+      ret = kr_remote_disable (client, NULL, atoi(argv[3]));
+    }
+    if (argc == 5) {
+      ret = kr_remote_disable (client, argv[3], atoi(argv[4]));
+    }
+    if (ret == -1) {
+      printf ("Invalid Port Specified\n");
+    }
+    if (ret == 1) {
+      //kr_client_response_wait_print (client);
     }
   }
 

@@ -222,42 +222,6 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
   switch ( command ) {
 
-    case EBML_ID_KRAD_MIXER_CMD_JACK_RUNNING:
-    
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_JACK_RUNNING,
-                       krad_jack_detect ());
-      krad_ipc_server_response_finish ( krad_ipc, response);
-    
-      return 1;
-  
-    case EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE:
-    
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE, 
-                       krad_mixer_get_sample_rate (krad_mixer));
-      krad_ipc_server_response_finish ( krad_ipc, response);
-    
-      return 1;
-    case EBML_ID_KRAD_MIXER_CMD_SET_SAMPLE_RATE:
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_SAMPLE_RATE) {
-        printke ("hrm wtf2\n");
-      } else {
-        //printf("tag name size %zu\n", ebml_data_size);
-      }
-
-      number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-
-      if (krad_mixer_has_pusher (krad_mixer) == 0) {
-        krad_mixer_set_sample_rate (krad_mixer, number);
-      }
-
-      break;
-  
-  
     case EBML_ID_KRAD_MIXER_CMD_GET_CONTROL:
       //printk ("Get Control\n");
       return 1;
@@ -778,6 +742,41 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         
       krad_mixer_local_portgroup_create (krad_mixer, "localport", direction, sd1, sd2);
         
+      break;
+      
+    case EBML_ID_KRAD_MIXER_CMD_JACK_RUNNING:
+    
+      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_JACK_RUNNING,
+                       krad_jack_detect ());
+      krad_ipc_server_response_finish ( krad_ipc, response);
+    
+      return 1;
+  
+    case EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE:
+    
+      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE, 
+                       krad_mixer_get_sample_rate (krad_mixer));
+      krad_ipc_server_response_finish ( krad_ipc, response);
+    
+      return 1;
+    case EBML_ID_KRAD_MIXER_CMD_SET_SAMPLE_RATE:
+
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
+
+      if (ebml_id != EBML_ID_KRAD_MIXER_SAMPLE_RATE) {
+        printke ("hrm wtf2\n");
+      } else {
+        //printf("tag name size %zu\n", ebml_data_size);
+      }
+
+      number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+
+      if (krad_mixer_has_pusher (krad_mixer) == 0) {
+        krad_mixer_set_sample_rate (krad_mixer, number);
+      }
+
       break;
       
   }
