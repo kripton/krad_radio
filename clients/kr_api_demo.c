@@ -122,7 +122,7 @@ void wait_for_broadcasts (kr_client_t *client) {
     ret = kr_poll (client, timeout_ms);
 
     if (ret > 0) {
-      kr_client_response_wait_print (client);
+      handle_response (client);
     } else {
       printf (".");
       fflush (stdout);
