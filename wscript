@@ -44,6 +44,11 @@ def check_way(way):
     way.env['KRAD_USE_WAYLAND'] = "yes"
     way.env.append_unique('CFLAGS', ['-DKRAD_USE_WAYLAND'])
 
+def check_gif(gif):
+  if gif.options.nogif == False:
+    gif.env['KRAD_GIF'] = "yes"
+    gif.env.append_unique('CFLAGS', ['-DKRAD_GIF'])
+
 def check_x11(x11):
   if x11.options.nox11 == False:
     x11.env['KRAD_USE_X11'] = "yes"
@@ -74,6 +79,7 @@ def configure(conf):
     conf.env.append_unique('CFLAGS', ['-DIS_MACOSX'])
     conf.env.append_unique('CXXFLAGS', ['-DIS_MACOSX'])
 
+  check_gif(conf)
   check_x11(conf)
   check_way(conf)
   get_git_ver(conf)

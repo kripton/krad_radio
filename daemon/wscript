@@ -217,9 +217,7 @@ def check_x11(x11):
 
 def check_gif(conf):
   global syslibs
-  if conf.options.nogif == False:
-    conf.env['KRAD_GIF'] = "yes"
-    conf.env.append_unique('CFLAGS', ['-DKRAD_GIF'])
+  if conf.env['KRAD_GIF']:
     syslibs += ["gif"]
 
 def remake_webres(web):
