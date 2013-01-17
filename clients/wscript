@@ -157,12 +157,7 @@ def build(bld):
 	# possible API-breakages. closest to reality currently.
 	# plan for later: "API_VERSION.KRAD_VERSION.0" so rebuild is only 
 	# needed when we _really_ break the API
-	bld.shlib(
-		source = libsources, 
-		includes = includedirs, 
-		target = "kradradio_client",
-		vnum = krad_version + ".0.0",
-		uselib = shlibs + stlibs + syslibs)
+
 
 	for p in programs:
 
@@ -181,4 +176,11 @@ def build(bld):
 				target = p.replace(".c", ""),
 				use = ["kradradio_client"],
 				uselib = shlibs + shlibs2 + stlibs + syslibs)
+
+	bld.shlib(
+		source = libsources, 
+		includes = includedirs, 
+		target = "kradradio_client",
+		vnum = krad_version + ".0.0",
+		uselib = shlibs + stlibs + syslibs)
 
