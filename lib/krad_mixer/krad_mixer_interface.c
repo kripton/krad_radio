@@ -2,7 +2,7 @@
 
 static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
                                                          krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep);
-static int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value);
+
 static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, char *portgroupname);
 static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *krad_mixer_portgroup );
 
@@ -104,7 +104,7 @@ static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, kr
 
 }
 
-static int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value) {
+int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value) {
 
   size_t size;
   unsigned char *buffer;
@@ -269,7 +269,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
         
         krad_mixer_set_portgroup_control ( krad_mixer, portname, controlname, floatval, number );
-        krad_mixer_broadcast_portgroup_control ( krad_mixer, portname, controlname, floatval );
+        //krad_mixer_broadcast_portgroup_control ( krad_mixer, portname, controlname, floatval );
 
       } else {
 

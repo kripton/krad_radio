@@ -20,8 +20,7 @@ struct krad_frame_St {
 
 	int *pixels;
 	int refs;
-	int encoded_size;	
-	//pthread_mutex_t ref_lock;
+	int encoded_size;
 	
 	int format;
 	

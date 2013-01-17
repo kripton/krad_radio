@@ -881,6 +881,16 @@ void portgroup_set_crossfade (krad_mixer_portgroup_t *portgroup, float value) {
 
 		portgroup_update_volume (portgroup->crossfade_group->portgroup[0]);
 		portgroup_update_volume (portgroup->crossfade_group->portgroup[1]);	
+
+
+	  if (portgroup->direction == INPUT) {
+      krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
+                                               portgroup->crossfade_group->portgroup[0]->sysname,
+                                               "fade",
+                                               value );
+	  }
+
+
 	}
 }
 
@@ -918,6 +928,13 @@ void portgroup_set_volume (krad_mixer_portgroup_t *portgroup, float value) {
     } else {
 		  portgroup->new_volume_actual[c] = volume_temp;
 		}
+	}
+
+	if (portgroup->direction == INPUT) {
+    krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
+                                             portgroup->sysname,
+                                             "volume",
+                                             value );
 	}
 	
   if (portgroup->direction == MIX) {
