@@ -86,7 +86,7 @@ typedef enum {
 typedef enum {
 	KR_VOLUME,
 	KR_CROSSFADE,
-} kr_mixer_portgroup_control_t;
+} kr_mixer_portgroup_control_type_t;
 
 /*
 typedef enum {
@@ -146,7 +146,7 @@ typedef union {
 } kr_subunit_t;
 
 typedef union {
-  kr_mixer_portgroup_control_t portgroup_control;
+  kr_mixer_portgroup_control_type_t portgroup_control;
 //  kr_mixer_portgroup_effect_control_t portgroup_effect_control;
   kr_compositor_control_t compositor_control;
   kr_transponder_control_t transponder_control;
@@ -198,6 +198,7 @@ typedef union {
   kr_tag_t *tag;
   kr_remote_t *remote;
   kr_mixer_portgroup_t *mixer_portgroup;
+  kr_mixer_portgroup_control_rep_t *mixer_portgroup_control;
 } kr_rep_ptr_t;
 
 typedef struct kr_rep_St kr_rep_t;
@@ -260,26 +261,18 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  * @see kr_broadcast_subscribe
  */
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
-
 int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote);
-
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *kr_response, int *number);
-
 int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_frag, uint64_t list_size, char **string);
-
 char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
 kr_rep_t *kr_item_to_rep (kr_item_t *kr_item);
-
 int kr_rep_free (kr_rep_t **);
-
 int kr_item_to_string (kr_item_t *kr_item, char **string);
-
 int kr_item_read_into_string (kr_item_t *kr_item, char *string);
-
 const char *kr_item_get_type_string (kr_item_t *item);
 int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **kr_item);
 int kr_response_get_item (kr_response_t *kr_response, kr_item_t **item);

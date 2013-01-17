@@ -1,10 +1,18 @@
 #include "krad_mixer_common.h"
 
+kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep_create () {
+  kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep = (kr_mixer_portgroup_control_rep_t *) calloc (1, sizeof (kr_mixer_portgroup_control_rep_t));
+  return kr_mixer_portgroup_control_rep;
+}
+
+void kr_mixer_portgroup_control_rep_destroy (kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep) {
+  free (kr_mixer_portgroup_control_rep);
+}
+
 krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep_create() {
   krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep = (krad_mixer_portgroup_rep_t *) calloc (1, sizeof (krad_mixer_portgroup_rep_t));
   krad_mixer_portgroup_rep->mixbus_rep = krad_mixer_mixbus_rep_create();
   return krad_mixer_portgroup_rep;
-  
 }
 
 void krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep_t *portgroup_rep) {

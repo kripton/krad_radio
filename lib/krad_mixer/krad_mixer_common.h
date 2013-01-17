@@ -6,6 +6,7 @@ typedef struct krad_mixer_portgroup_rep_St kr_mixer_portgroup_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_portgroup_rep_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_mixbus_rep_t;
 typedef struct krad_mixer_crossfade_group_rep_St krad_mixer_crossfade_group_rep_t;
+typedef struct kr_mixer_portgroup_control_rep_St kr_mixer_portgroup_control_rep_t;
 
 #define KRAD_MIXER_MAX_PORTGROUPS 12
 #define KRAD_MIXER_MAX_CHANNELS 8
@@ -92,6 +93,15 @@ struct krad_effects_rep_St {
   kr_effect_type_t effect_typ;
   void *effect[KRAD_EFFECTS_MAX_CHANNELS];
 };
+
+struct kr_mixer_portgroup_control_rep_St {
+  char name[64];
+  char control[64];
+  float value;
+};
+
+void kr_mixer_portgroup_control_rep_destroy (kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep);
+kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep_create ();
 
 krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep_create ();
 void krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep_t *portgroup_rep);

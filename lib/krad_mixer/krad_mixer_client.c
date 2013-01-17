@@ -683,6 +683,33 @@ void kr_mixer_set_control (kr_client_t *client, char *portgroup_name, char *cont
 
 }
 
+kr_mixer_portgroup_control_rep_t *kr_ebml_to_mixer_portgroup_control_rep (unsigned char *ebml_frag,
+                                                            kr_mixer_portgroup_control_rep_t **kr_mixer_portgroup_control_repn) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+  int item_pos;
+  kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep;
+
+  item_pos = 0;
+  *kr_mixer_portgroup_control_repn = kr_mixer_portgroup_control_rep_create();
+
+  kr_mixer_portgroup_control_rep = *kr_mixer_portgroup_control_repn;
+  
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_mixer_portgroup_control_rep->name);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_mixer_portgroup_control_rep->control);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_mixer_portgroup_control_rep->value = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	return kr_mixer_portgroup_control_rep;
+
+}
+
 krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_frag,
                                                             krad_mixer_portgroup_rep_t **krad_mixer_portgroup_repn) {
 
