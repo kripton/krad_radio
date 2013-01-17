@@ -106,15 +106,15 @@ void wait_for_broadcasts (kr_client_t *client) {
 
   int b;
   int ret;
-  int max;
+  uint64_t max;
   unsigned int timeout_ms;
   
   ret = 0;
   b = 0;
-  max = 10000;
+  max = 10000000;
   timeout_ms = 3000;
   
-  printf ("Waiting for up to %d broadcasts up to %ums each\n", max, timeout_ms);
+  printf ("Waiting for up to %"PRIu64" broadcasts up to %ums each\n", max, timeout_ms);
   
   
   while (b < max) {
@@ -122,7 +122,6 @@ void wait_for_broadcasts (kr_client_t *client) {
     ret = kr_poll (client, timeout_ms);
 
     if (ret > 0) {
-      printf ("\n");
       kr_client_response_wait_print (client);
     } else {
       printf (".");

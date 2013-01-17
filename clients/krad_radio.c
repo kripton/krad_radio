@@ -195,7 +195,14 @@ int main (int argc, char *argv[]) {
       kr_set_tag (client, argv[3], argv[4], argv[5]);
     }
   }
-
+  
+  
+  if (((strlen(argv[2]) == 6) && (strncmp(argv[2], "remote", 6) == 0)) || 
+      ((strlen(argv[2]) == 7) && (strncmp(argv[2], "remotes", 7) == 0))) {
+    kr_remote_status (client);
+    kr_client_response_wait_print (client);
+  }
+    
   if ((strncmp(argv[2], "remoteon", 8) == 0) || (strncmp(argv[2], "remote_on", 9) == 0)) {
     ret = 0;
     if (argc == 4) {
