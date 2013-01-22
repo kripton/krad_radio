@@ -6,11 +6,11 @@ void kr_pass_set_type (kr_pass_t *kr_pass, int type) {
 }
 
 void kr_pass_set_bandwidth (kr_pass_t *kr_pass, float bandwidth) {
-  kr_pass->new_bandwidth = bandwidth;
+   krad_easing_set_new_value(&kr_pass->krad_easing_bandwidth, bandwidth, 600, EASEINOUTSINE);
 }
 
 void kr_pass_set_hz (kr_pass_t *kr_pass, float hz) {
-  kr_pass->new_hz = hz;
+  krad_easing_set_new_value(&kr_pass->krad_easing_hz, hz, 600, EASEINOUTSINE);
 }
 
 void kr_pass_process (kr_pass_t *kr_pass, float *input, float *output, int num_samples) {
@@ -30,13 +30,13 @@ void kr_pass_process (kr_pass_t *kr_pass, float *input, float *output, int num_s
     recompute = 1;
   }
 
-  if (kr_pass->new_bandwidth != kr_pass->bandwidth) {
-    kr_pass->bandwidth = kr_pass->new_bandwidth;
+  if (kr_pass->krad_easing_bandwidth.active) {
+    kr_pass->bandwidth = krad_easing_process (&kr_pass->krad_easing_bandwidth, kr_pass->bandwidth); 
     recompute = 1;
   }
 
-  if (kr_pass->new_hz != kr_pass->hz) {
-    kr_pass->hz = kr_pass->new_hz;
+  if (kr_pass->krad_easing_hz.active) {
+    kr_pass->hz = krad_easing_process (&kr_pass->krad_easing_hz, kr_pass->hz);
     recompute = 1;
   }
 
@@ -69,10 +69,13 @@ kr_pass_t *kr_pass_create (int sample_rate) {
   kr_pass_t *kr_pass = calloc (1, sizeof(kr_pass_t));
 
   kr_pass->new_sample_rate = sample_rate;
-  kr_pass->sample_rate = kr_pass->new_sample_rate;
+
+  kr_pass->hz = 19000;
+  kr_pass->bandwidth = 1;
+
+  kr_pass_set_hz (kr_pass, 1000);
 
   return kr_pass;
-
 }
 
 void kr_pass_destroy(kr_pass_t *kr_pass) {
