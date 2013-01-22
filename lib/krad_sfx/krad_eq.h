@@ -8,6 +8,7 @@
 #include <time.h>
 
 #include "krad_system.h"
+#include "krad_easing.h"
 
 #include "biquad.h"
 
@@ -28,11 +29,11 @@ typedef struct {
   float db;
   float bandwidth;
   float hz;
-
-  float new_db;
-  float new_bandwidth;
-  float new_hz;
-
+  
+  krad_easing_t krad_easing_db;
+  krad_easing_t krad_easing_bandwidth;
+  krad_easing_t krad_easing_hz;
+  
   int active;
 
 } kr_eq_band_t;
