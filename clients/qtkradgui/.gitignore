@@ -4,3 +4,7 @@ out.ogv
 qtkradgui
 qtkradgui.pro.user
 qtkradgio.files
+qtkradgui.creator
+qtkradgui.creator.user
+qtkradgui.config
+qtkradgui.includes
