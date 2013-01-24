@@ -8,3 +8,4 @@ qtkradgui.creator
 qtkradgui.creator.user
 qtkradgui.config
 qtkradgui.includes
+moc_*
