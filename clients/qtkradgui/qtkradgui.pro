@@ -14,13 +14,20 @@ TEMPLATE = app
 LIBS += -L/usr/local/lib/ -lkradradio_client
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     kradstation.cpp \
-    broadcastthread.cpp
+    broadcastthread.cpp \
+    labelledslider.cpp \
+    crossfade.cpp \
+    stationwidget.cpp \
+    mainwindow.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     kradstation.h \
-    broadcastthread.h
+    broadcastthread.h \
+    labelledslider.h \
+    crossfade.h \
+    stationwidget.h \
+    mainwindow.h
 
 
 
@@ -35,3 +42,5 @@ unix:INCLUDEPATH += "../../lib/krad_container"
 unix:INCLUDEPATH += "../../lib/krad_transponder"
 unix:INCLUDEPATH += "/usr/include/opus"
 unix:INCLUDEPATH += "../../lib/krad_compositor"
+
+FORMS +=
