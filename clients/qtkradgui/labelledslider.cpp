@@ -45,3 +45,7 @@ void LabelledSlider::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_co
   }
 
 }
+
+QString LabelledSlider::getLabel() {
+    return label->text();
+}

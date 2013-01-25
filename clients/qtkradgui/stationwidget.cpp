@@ -23,6 +23,11 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
 
 void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
 {
+    // Check if the slider exists. do nothing if so
+    foreach (LabelledSlider* slider, sliders) {
+        if (slider->getLabel() == rep->sysname) return;
+    }
+
   LabelledSlider *ls = new LabelledSlider(tr(rep->sysname), this);
   ls->setValue(rep->volume[0]);
   sliders.append(ls);

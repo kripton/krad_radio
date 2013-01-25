@@ -42,7 +42,7 @@ void KradStation::waitForBroadcasts()
 
   int b;
   int ret;
-  uint64_t max;
+  int64_t max;
   unsigned int timeout_ms;
 
   ret = 0;
@@ -69,6 +69,7 @@ QStringList KradStation::getRunningStations()
   char *list;
   QStringList sl;
   list = krad_radio_running_stations ();
+  if (list[0] == 0) return sl; // No station running
   QString qliststr = tr(list);
   sl = qliststr.split(tr("\n"));
   return sl;
@@ -127,7 +128,7 @@ void KradStation::handleResponse()
         qDebug() << tr("Response is a list with %1 items.").arg(items);
         for (i = 0; i < items; i++) {
           if (kr_response_list_get_item (response, i, &item)) {
-            qDebug() << tr("Got item %1 type is %2").arg(i).arg(kr_item_get_type_string (item));
+            qDebug() << tr("Got item \"%1\" type is \"%2\"").arg(i).arg(kr_item_get_type_string (item));
             emitItemType(item);
             if (kr_item_to_string (item, &string)) {
               qDebug() << tr("Item String: %1").arg(string);
@@ -164,35 +165,32 @@ void KradStation::handleResponse()
 
 void KradStation::emitItemType(kr_item_t *item)
 {
-  kr_rep_t *rep;
+    kr_rep_t *rep;
 
-  if (item != NULL) {
+    if (item == NULL) return;
     qDebug() << tr("Got item type is %1").arg(kr_item_get_type_string (item));
 
     rep = kr_item_to_rep(item);
-    if (rep != NULL) {
-      if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP || rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_CREATED) {
-
+    if (rep == NULL) return;
+    if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP || rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_CREATED) {
         emit portgroupAdded(rep->rep_ptr.mixer_portgroup);
         //kr_rep_free (&rep);
-      }
-      if (rep->type ==  EBML_ID_KRAD_MIXER_CONTROL) {
+    }
+    if (rep->type ==  EBML_ID_KRAD_MIXER_CONTROL) {
         if (strcmp(rep->rep_ptr.mixer_portgroup_control->control, "volume") == 0) {
-          emit volumeUpdate(rep->rep_ptr.mixer_portgroup_control);
+            emit volumeUpdate(rep->rep_ptr.mixer_portgroup_control);
         }
         qDebug() << tr("testing for crossfade: %1").arg(rep->rep_ptr.mixer_portgroup_control->control);
         if (strcmp(rep->rep_ptr.mixer_portgroup_control->control, "fade") == 0) {
-          qDebug() << tr("emitting crossfade");
-          emit crossfadUpdated(rep->rep_ptr.mixer_portgroup_control);
+            qDebug() << tr("emitting crossfade");
+            emit crossfadUpdated(rep->rep_ptr.mixer_portgroup_control);
         }
-      }
-
-      if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
-        emit portgroupDestroyed(tr(rep->rep_ptr.mixer_portgroup->sysname));
-      }
-
     }
-  }
+
+    if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
+        emit portgroupDestroyed(tr(rep->rep_ptr.mixer_portgroup->sysname));
+    }
+
 }
 
 
