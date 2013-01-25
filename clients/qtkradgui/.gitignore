@@ -9,3 +9,4 @@ qtkradgui.creator.user
 qtkradgui.config
 qtkradgui.includes
 moc_*
+ui_*

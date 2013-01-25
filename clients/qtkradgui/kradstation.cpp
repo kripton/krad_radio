@@ -69,6 +69,7 @@ QStringList KradStation::getRunningStations()
   char *list;
   QStringList sl;
   list = krad_radio_running_stations ();
+  if (list[0] == 0) return sl; // No station running
   QString qliststr = tr(list);
   sl = qliststr.split(tr("\n"));
   return sl;
