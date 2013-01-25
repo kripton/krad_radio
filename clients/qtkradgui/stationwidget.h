@@ -15,15 +15,17 @@ class StationWidget : public QWidget
   Q_OBJECT
 public:
   explicit StationWidget(QString sysname, QWidget *parent = 0);
-  
+
 signals:
-  
+
 public slots:
   void portgroupAdded(kr_mixer_portgroup_t *rep);
+  void closeTabRequested(int index);
 
 private:
   KradStation *kradStation;
   BroadcastThread *broadcastThread;
+  QThread* broadcastWorkerThread;
   QList<LabelledSlider *> sliders;
   QHBoxLayout *mixerLayout;
   QVBoxLayout *mainLayout;

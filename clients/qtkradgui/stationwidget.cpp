@@ -16,9 +16,14 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   mainLayout->addLayout(mixerLayout);
   mainLayout->addWidget(cpuTime);
 
-  broadcastThread->start();
+  broadcastWorkerThread = new QThread();
+  broadcastThread->moveToThread(broadcastWorkerThread);
+  connect(broadcastWorkerThread, SIGNAL(started()), broadcastThread, SLOT(process()));
+  broadcastWorkerThread->start();
+
   connect(kradStation, SIGNAL(portgroupAdded(kr_mixer_portgroup_t*)), this, SLOT(portgroupAdded(kr_mixer_portgroup_t*)));
-  connect(kradStation, SIGNAL(cpuTimeUpdated(int)), cpuTime, SLOT(setValue(int)));}
+  connect(kradStation, SIGNAL(cpuTimeUpdated(int)), cpuTime, SLOT(setValue(int)));
+}
 
 
 void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
@@ -45,6 +50,15 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
     connect(cf, SIGNAL(valueChanged(QString,int)), kradStation, SLOT(setCrossfade(QString,int)));
 
   }
+}
+
+void StationWidget::closeTabRequested(int index)
+{
+    qDebug() << "tab close requested";
+    broadcastWorkerThread->quit();
+    broadcastWorkerThread->deleteLater();
+    kradStation->kill();
+    delete this; // Maybe this is a little rude but it works :)
 }
 
 
