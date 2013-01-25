@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "stationwidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -12,7 +13,10 @@ public:
 signals:
   
 public slots:
-  
+  void launchStation();
+//  void launchStation(QString);
+private:
+  QTabWidget *tabWidget;
 };
 
 #endif // MAINWINDOW_H

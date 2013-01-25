@@ -6,13 +6,13 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent)
 {
-  QTabWidget *tabWidget = new QTabWidget(this);
+  tabWidget = new QTabWidget(this);
 
   QStringList sl = KradStation::getRunningStations();
   QStringListIterator sli(sl);
   QPushButton *addButton = new QPushButton("+");
   addButton->setFixedSize(26, 26);
-
+  connect(addButton, SIGNAL(clicked()), this, SLOT(launchStation()));
   tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
 
   tabWidget->setTabsClosable(true);
@@ -25,5 +25,21 @@ MainWindow::MainWindow(QWidget *parent) :
   }
 //  StationWidget *sw = new StationWidget(tr("djsh"), this);
   setCentralWidget(tabWidget);
+
+}
+
+void MainWindow::launchStation()
+{
+  QString name;
+  QInputDialog *qi = new QInputDialog();
+  name = qi->getText(this, tr("Launch a New Station"), tr("New Station Name"));
+
+
+  if (name.length() > 3) {
+    krad_radio_launch (name.toAscii().data());
+    sleep(2);
+ }
+
+  tabWidget->addTab(new StationWidget(name, this), name);
 
 }

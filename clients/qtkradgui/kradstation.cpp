@@ -13,7 +13,7 @@ KradStation::KradStation(QString sysname, QObject *parent) :
   QObject(parent)
 {
 
-  client = kr_client_create ("krad qt test");
+  client = kr_client_create (sysname.toAscii().data());
 
   this->sysname = sysname;
   if (client == NULL) {
@@ -21,10 +21,10 @@ KradStation::KradStation(QString sysname, QObject *parent) :
     return;
   }
 
-  if (!kr_connect (client, sysname.toAscii().data_ptr()->data)) {
+  while (!kr_connect (client, sysname.toAscii().data_ptr()->data)) {
     qDebug() << tr("Could not connect to %1 krad radio daemon").arg(sysname);
     kr_client_destroy (&client);
-    return;
+    sleep(1);
   }
 
  // connect(this, SIGNAL(portgroupUpdate(kr_mixer_portgroup_t*)), this, SLOT(handlePortgroupUpdate(kr_mixer_portgroup_t*)));
@@ -33,6 +33,8 @@ KradStation::KradStation(QString sysname, QObject *parent) :
   kr_broadcast_subscribe (client, ALL_BROADCASTS);
   qDebug() << tr("Subscribed to all broadcasts");
   kr_mixer_portgroups_list (client);
+  kr_tags (client, NULL);
+//  kr_client_response_wait_print (client);
 }
 
 
@@ -54,8 +56,11 @@ void KradStation::waitForBroadcasts()
 
   while (b < max) {
 
-    ret = kr_poll (client, timeout_ms);
-
+    if (client != NULL) {
+      ret = kr_poll (client, timeout_ms);
+    } else {
+      ret = -1;
+    }
     if (ret > 0) {
       handleResponse ();
     }

@@ -21,7 +21,6 @@ signals:
 public slots:
   void portgroupAdded(kr_mixer_portgroup_t *rep);
   void closeTabRequested(int index);
-
 private:
   KradStation *kradStation;
   BroadcastThread *broadcastThread;
