@@ -14,7 +14,8 @@ class LabelledSlider : public QWidget
 public:
   explicit LabelledSlider(QWidget *parent = 0);
   LabelledSlider(QString label, QWidget *parent = 0);
-  
+  QString getLabel();
+
 signals:
   void valueChanged(QString portname, int value);
 public slots:
