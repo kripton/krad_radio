@@ -128,7 +128,7 @@ void KradStation::handleResponse()
         qDebug() << tr("Response is a list with %1 items.").arg(items);
         for (i = 0; i < items; i++) {
           if (kr_response_list_get_item (response, i, &item)) {
-            qDebug() << tr("Got item %1 type is %2").arg(i).arg(kr_item_get_type_string (item));
+            qDebug() << tr("Got item \"%1\" type is \"%2\"").arg(i).arg(kr_item_get_type_string (item));
             emitItemType(item);
             if (kr_item_to_string (item, &string)) {
               qDebug() << tr("Item String: %1").arg(string);
@@ -173,7 +173,6 @@ void KradStation::emitItemType(kr_item_t *item)
     rep = kr_item_to_rep(item);
     if (rep == NULL) return;
     if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP || rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_CREATED) {
-
         emit portgroupAdded(rep->rep_ptr.mixer_portgroup);
         //kr_rep_free (&rep);
     }
