@@ -42,7 +42,7 @@ void KradStation::waitForBroadcasts()
 
   int b;
   int ret;
-  uint64_t max;
+  int64_t max;
   unsigned int timeout_ms;
 
   ret = 0;
