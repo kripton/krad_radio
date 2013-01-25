@@ -95,6 +95,13 @@ void KradStation::setCrossfade(QString name, int value)
   kr_mixer_set_control (client, name.toAscii().data(), "crossfade", (float) value, 0);
 }
 
+void KradStation::kill()
+{
+    client = NULL;
+    krad_radio_destroy(sysname.toLocal8Bit().data());
+    delete this;
+}
+
 void KradStation::handleResponse()
 {
 

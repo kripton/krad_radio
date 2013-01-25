@@ -1,23 +1,23 @@
 #ifndef BROADCASTTHREAD_H
 #define BROADCASTTHREAD_H
 
-#include <QThread>
 #include "kradstation.h"
 
-class BroadcastThread : public QThread
+class BroadcastThread : public QObject
 {
-  Q_OBJECT
+    Q_OBJECT
 public:
-  explicit BroadcastThread(QObject *parent = 0);
-  explicit BroadcastThread(KradStation *kradStation, QObject *parent = 0);
+    explicit BroadcastThread(QObject *parent = 0);
+    explicit BroadcastThread(KradStation *kradStation, QObject *parent = 0);
 
-  void run();
-signals:
-  
 public slots:
-  
+    void process();
+
+signals:
+    void finished();
+
 private:
-  KradStation *kradStation;
+    KradStation *kradStation;
 
 };
 

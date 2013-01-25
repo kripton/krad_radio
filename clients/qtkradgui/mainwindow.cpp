@@ -15,9 +15,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
   tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
 
+  tabWidget->setTabsClosable(true);
+
   while (sli.hasNext()) {
     QString i = sli.next();
-    tabWidget->addTab(new StationWidget(i, this), i);
+    StationWidget* station = new StationWidget(i, this);
+    connect(tabWidget, SIGNAL(tabCloseRequested(int)), station, SLOT(closeTabRequested(int)));
+    tabWidget->addTab(station, i);
   }
 //  StationWidget *sw = new StationWidget(tr("djsh"), this);
   setCentralWidget(tabWidget);

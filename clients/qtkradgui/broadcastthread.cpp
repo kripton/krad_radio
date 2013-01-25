@@ -1,12 +1,12 @@
 #include "broadcastthread.h"
 
 BroadcastThread::BroadcastThread(KradStation *kradStation, QObject *parent) :
-  QThread(parent)
+  QObject(parent)
 {
   this->kradStation = kradStation;
 }
 
-void BroadcastThread::run()
+void BroadcastThread::process()
 {
   kradStation->waitForBroadcasts();
 }

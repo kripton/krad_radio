@@ -26,13 +26,15 @@ public slots:
   void handlePortgroupAdded(kr_mixer_portgroup_t *portgroup);
   void setVolume(QString portname, int value);
   void setCrossfade(QString name, int value);
+  void kill();
 private:
   kr_client_t *client;
   QString sysname;
+  int krad_radio_pid(QString sysname);
 
   void handleResponse();
   void emitItemType(kr_item_t *item);
-  
+
 };
 
 #endif // KRADSTATION_H
