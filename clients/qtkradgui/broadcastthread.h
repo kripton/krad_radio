@@ -12,12 +12,14 @@ public:
 
 public slots:
     void process();
+    void stopprocessing();
 
 signals:
     void finished();
 
 private:
     KradStation *kradStation;
+    bool mystopprocessing;
 
 };
 
