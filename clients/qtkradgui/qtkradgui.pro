@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     labelledslider.cpp \
     crossfade.cpp \
     stationwidget.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    resizableframe.cpp
 
 HEADERS  += \
     kradstation.h \
@@ -27,7 +28,8 @@ HEADERS  += \
     labelledslider.h \
     crossfade.h \
     stationwidget.h \
-    mainwindow.h
+    mainwindow.h \
+    resizableframe.h
 
 
 
