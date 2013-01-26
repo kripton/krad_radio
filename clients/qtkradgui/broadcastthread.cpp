@@ -1,12 +1,23 @@
 #include "broadcastthread.h"
 
+#include <QDebug>
+
 BroadcastThread::BroadcastThread(KradStation *kradStation, QObject *parent) :
-  QObject(parent)
+    QObject(parent)
 {
-  this->kradStation = kradStation;
+    this->kradStation = kradStation;
+    mystopprocessing = false;
 }
 
 void BroadcastThread::process()
 {
-  kradStation->waitForBroadcasts();
+    while (!mystopprocessing) {
+        qDebug() << "THREAD:" << mystopprocessing;
+        kradStation->waitForBroadcasts();
+    }
+}
+
+void BroadcastThread::stopprocessing()
+{
+    mystopprocessing = true;
 }

@@ -41,31 +41,23 @@ KradStation::KradStation(QString sysname, QObject *parent) :
 
 void KradStation::waitForBroadcasts()
 {
-
-  int b;
   int ret;
-  int64_t max;
   unsigned int timeout_ms;
 
   ret = 0;
-  b = 0;
-  max = 10000000;
   timeout_ms = 3000;
 
-  qDebug() << tr("Waiting for up to %1 broadcasts up to %2 each").arg(max).arg(timeout_ms);
-
-  while (b < max) {
+  qDebug() << tr("Waiting for broadcasts up to %2 each").arg(timeout_ms);
 
     if (client != NULL) {
       ret = kr_poll (client, timeout_ms);
     } else {
       ret = -1;
     }
+
     if (ret > 0) {
       handleResponse ();
     }
-    b++;
-  }
 
 }
 
@@ -102,9 +94,10 @@ void KradStation::setCrossfade(QString name, int value)
 
 void KradStation::kill()
 {
-    client = NULL;
+    //client = NULL;
+    //qDebug() << krad_radio_pid(sysname.toLocal8Bit().data());
     krad_radio_destroy(sysname.toLocal8Bit().data());
-    delete this;
+    //delete this;
 }
 
 void KradStation::handleResponse()

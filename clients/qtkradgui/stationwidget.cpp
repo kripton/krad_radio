@@ -54,11 +54,14 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
 
 void StationWidget::closeTabRequested(int index)
 {
+    Q_UNUSED(index);
     qDebug() << "tab close requested";
+    broadcastThread->stopprocessing();
     broadcastWorkerThread->quit();
+    broadcastWorkerThread->wait();
     broadcastWorkerThread->deleteLater();
     kradStation->kill();
-    delete this; // Maybe this is a little rude but it works :)
+    //delete this; // Maybe this is a little rude but it works :)
 }
 
 
