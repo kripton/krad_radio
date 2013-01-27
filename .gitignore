@@ -67,7 +67,12 @@ doc/html
 doc/latex
 
 ## Files created by QtCreator
-#krad_radio.*
+krad_radio.config
+krad_radio.creator
+krad_radio.creator.user
+krad_radio.files
+krad_radio.includes
+krad_radio.update-filelist.sh
 
 scripts/kradradio_client.pyc
 clients/rust/krad_radio
