@@ -6,6 +6,9 @@ ResizableFrame::ResizableFrame(QWidget *parent) :
     QFrame(parent)
 {
     setMouseTracking(true);
+    opacity = 1.0f;
+    opacityLabel = new QLabel(this);
+    opacityLabel->setText(QString("Opacity: %1").arg(opacity, 0, 'f', 3));
 }
 
 ResizableFrame::~ResizableFrame()
@@ -129,4 +132,17 @@ void ResizableFrame::mouseMoveEvent(QMouseEvent *event)
     default:
         break;
     }
+}
+
+void ResizableFrame::wheelEvent(QWheelEvent *event)
+{
+    event->accept();
+    if (event->orientation() != Qt::Vertical) return;
+    qDebug() << "WHEEL:" << event->delta();
+
+    opacity = opacity + (event->delta() / 4800.0);
+    if (opacity < 0.0) opacity = 0.0;
+    if (opacity > 1.0) opacity = 1.0;
+
+    opacityLabel->setText(QString("Opacity: %1").arg(opacity, 0, 'f', 3));
 }

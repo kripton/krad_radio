@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>396</width>
-    <height>296</height>
+    <width>394</width>
+    <height>294</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,27 @@
    <widget class="ResizableFrame" name="resizableframe">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>30</y>
-      <width>301</width>
-      <height>181</height>
+      <x>20</x>
+      <y>20</y>
+      <width>161</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <zorder>resizableframe_2</zorder>
+   </widget>
+   <widget class="ResizableFrame" name="resizableframe_2">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>80</y>
+      <width>161</width>
+      <height>111</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -36,7 +53,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>396</width>
+     <width>394</width>
      <height>17</height>
     </rect>
    </property>

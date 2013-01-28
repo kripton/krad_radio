@@ -3,6 +3,9 @@
 
 #include <QFrame>
 #include <QMouseEvent>
+#include <QWheelEvent>
+
+#include <QLabel>
 
 //namespace Ui {
 //class ResizableFrame;
@@ -21,11 +24,14 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent* event);
+    void wheelEvent(QWheelEvent * event);
 
 private:
     QPoint dragStartPosition;
     QRect  dragStartGeometry;
     enum startPositions startPos;
+    QLabel *opacityLabel;
+    double opacity;
 };
 
 #endif // RESIZABLEFRAME_H
