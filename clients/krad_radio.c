@@ -405,6 +405,13 @@ int main (int argc, char *argv[]) {
     }
   }
 
+  if (((strlen(argv[2]) == 1) && (strncmp(argv[2], "s", 1) == 0)) ||
+      ((strlen(argv[2]) == 3) && (strncmp(argv[2], "set", 3) == 0))) {
+    if (argc > 3) {
+      kr_string_to_subunit_address (client, argv[3]);
+    }
+  }
+
   if (strncmp(argv[2], "setmix", 6) == 0) {
     if (argc == 6) {
       kr_mixer_set_control (client, argv[3], argv[4], atof(argv[5]), 0);

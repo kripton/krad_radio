@@ -1291,6 +1291,231 @@ void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_valu
   krad_ebml_write_sync (client->krad_ebml);
 }
 
+#define MAX_TOKENS 8
+
+int kr_string_to_subunit_address (kr_client_t *kr_client, char *string) {
+
+  char *pch;
+  char *save;
+  char *tokens[MAX_TOKENS];
+  int t;
+  int i;
+  
+  kr_unit_t unit;
+  kr_subunit_t subunit;
+  kr_subunit_address_t address;
+  kr_subunit_control_t control;
+  
+  i = 0;
+  t = 0;
+  save = NULL;
+
+  printf ("string was %s\n", string);
+
+  pch = strtok_r (string, "/ ", &save);
+  while ((pch != NULL) && (t < MAX_TOKENS)) {
+    tokens[t] = pch;
+    t++;
+    printf ("%s ", pch);
+    pch = strtok_r (NULL, "/ ", &save);
+  }
+
+  printf ("\n%d tokens\n", t);
+
+  for (i = 0; i < t; i++) {
+    printf ("%d: %s  ", i + 1, tokens[i]);
+  }
+  
+  printf ("\n");
+  
+  if (t == 0) {
+    return -1;
+  }
+    
+  // Determine Unit
+  
+  if (tokens[0][1] == '\0') {
+    switch (tokens[0][0]) {
+      case 'm':
+        unit = KR_MIXER;
+        break;
+      case 'c':
+        unit = KR_COMPOSITOR;
+        break;
+      case 't':
+        unit = KR_TRANSPONDER;
+        break;
+      case 'e':
+        unit = KR_MIXER;
+        subunit.mixer_subunit = KR_EFFECT;
+        break;
+      case 's':
+        unit = KR_COMPOSITOR;
+        subunit.compositor_subunit = KR_SPRITE;
+        break;
+      case 'v':
+        unit = KR_COMPOSITOR;
+        subunit.compositor_subunit = KR_VIDEOPORT;
+        break;
+    }
+  } else {
+    if (tokens[0][2] == '\0') {
+      if ((tokens[0][0] == 'c') && (tokens[0][1] == 's')) {
+        unit = KR_COMPOSITOR;
+        subunit.compositor_subunit = KR_SPRITE;
+      }
+      if ((tokens[0][0] == 'v') && (tokens[0][1] == 'e')) {
+        unit = KR_COMPOSITOR;
+        subunit.compositor_subunit = KR_VECTOR;
+      }
+      if ((tokens[0][0] == 't') && (tokens[0][1] == 't')) {
+        unit = KR_COMPOSITOR;
+        subunit.compositor_subunit = KR_TEXT;
+      }
+    } else {
+      if (tokens[0][3] == '\0') {
+        if ((tokens[0][0] == 'v') && (tokens[0][1] == 'e') && (tokens[0][1] == 'c')) {
+          unit = KR_COMPOSITOR;
+        }
+        if ((tokens[0][0] == 'm') && (tokens[0][1] == 'i') && (tokens[0][1] == 'x')) {
+          unit = KR_MIXER;
+        }
+        if ((tokens[0][0] == 'c') && (tokens[0][1] == 'o') && (tokens[0][1] == 'm')) {
+          unit = KR_COMPOSITOR;
+        }
+      } else {
+        if (tokens[0][4] == '\0') {
+          if ((tokens[0][0] == 't') && (tokens[0][1] == 'e') &&
+              (tokens[0][1] == 'x') && (tokens[0][1] == 't')) {
+            unit = KR_COMPOSITOR;
+            subunit.compositor_subunit = KR_TEXT;
+          }
+          if ((tokens[0][0] == 'c') && (tokens[0][1] == 'o') &&
+              (tokens[0][1] == 'm') && (tokens[0][1] == 'p')) {
+            unit = KR_COMPOSITOR;
+          }
+        } else {
+          if (tokens[0][5] == '\0') {
+            if ((tokens[0][0] == 'v') && (tokens[0][1] == 'e') &&
+                (tokens[0][1] == 'c') && (tokens[0][1] == 'o') && (tokens[0][1] == 'r')) {
+              unit = KR_COMPOSITOR;
+              subunit.compositor_subunit = KR_VECTOR;
+            }
+           if ((tokens[0][0] == 'm') && (tokens[0][1] == 'i') &&
+                (tokens[0][1] == 'x') && (tokens[0][1] == 'e') && (tokens[0][1] == 'r')) {
+              unit = KR_MIXER;
+            }
+          } else {
+            if (tokens[0][6] == '\0') {
+              if ((tokens[0][0] == 's') && (tokens[0][1] == 'p') && (tokens[0][1] == 'r') &&
+                  (tokens[0][1] == 'i') && (tokens[0][1] == 't') && (tokens[0][1] == 'e')) {
+                unit = KR_COMPOSITOR;
+                subunit.compositor_subunit = KR_SPRITE;
+              }
+            } else {
+              if ((strlen(tokens[0]) == 10) && (strncmp(tokens[0], "compositor", 10) == 0)) {
+                unit = KR_COMPOSITOR;
+              } else {
+                if ((strlen(tokens[0]) == 11) && (strncmp(tokens[0], "transponder", 11) == 0)) {
+                  unit = KR_TRANSPONDER;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (unit == 0) {
+    printf ("Unit could not be identified\n");
+    return -1;
+  }
+
+  switch (unit) {
+    case KR_MIXER:
+      printf ("Mixer Unit\n");
+      break;
+    case KR_COMPOSITOR:
+      printf ("Compositor Unit\n");
+      break;
+    case KR_TRANSPONDER:
+      printf ("Transponder Unit\n");
+      break;
+  }
+  
+  if (subunit.compositor_subunit == NULL) {
+    switch (unit) {
+      case KR_MIXER:
+
+        break;
+      case KR_COMPOSITOR:
+
+        break;
+      case KR_TRANSPONDER:
+
+        break;
+    }
+  }
+  
+  if (subunit.compositor_subunit == NULL) {
+    printf ("Subunit could not be identified\n");
+    return -1;
+  }
+ 
+  switch (unit) {
+    case KR_MIXER:
+      switch (subunit.mixer_subunit) {
+        case KR_PORTGROUP:
+          printf ("Mixer Unit, Portgroup\n");
+          break;
+        case KR_EFFECT:
+          printf ("Mixer Unit, Effect\n");
+          break;
+      }
+      break;
+    case KR_COMPOSITOR:
+      switch (subunit.mixer_subunit) {
+        case KR_VIDEOPORT:
+          printf ("Compositor Unit, Videoport\n");
+          break;
+        case KR_SPRITE:
+          printf ("Compositor Unit, Sprite\n");
+          break;
+        case KR_TEXT:
+          printf ("Compositor Unit, Text\n");
+          break;
+        case KR_VECTOR:
+          printf ("Compositor Unit, Vector\n");
+          break;
+      }
+      break;
+    case KR_TRANSPONDER:
+      switch (subunit.transponder_subunit) {
+        case KR_TRANSMITTER:
+          printf ("Transponder Unit, Transmitter\n");
+          break;
+        case KR_RECEIVER:
+          printf ("Transponder Unit, Receiver\n");
+          break;
+        case KR_DEMUXER:
+          printf ("Transponder Unit, Demuxer\n");
+          break;
+        case KR_MUXER:
+          printf ("Transponder Unit, Muxer\n");
+          break;
+        case KR_ENCODER:
+          printf ("Transponder Unit, Encoder\n");
+          break;
+        case KR_DECODER:
+          printf ("Transponder Unit, Decoder\n");
+          break;
+      }
+      break;
+    }
+
+  return 0;
+}
 
 
 int kr_subunit_control_set (kr_client_t *client,

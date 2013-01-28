@@ -72,19 +72,19 @@ typedef union {
 } kr_subunit_control_value_t;
 
 typedef enum {
-  KR_RADIO,
+  KR_RADIO = 1,
 	KR_MIXER,
 	KR_COMPOSITOR,
 	KR_TRANSPONDER,
 } kr_unit_t;
 
 typedef enum {
-	KR_PORTGROUP,
+	KR_PORTGROUP = 1,
 	KR_EFFECT,
 } kr_mixer_subunit_t;
 
 typedef enum {
-	KR_VOLUME,
+	KR_VOLUME = 1,
 	KR_CROSSFADE,
 } kr_mixer_portgroup_control_type_t;
 
@@ -100,7 +100,7 @@ typedef enum {
 */
 
 typedef enum {
-	KR_VIDEOPORT,
+	KR_VIDEOPORT = 1,
 	KR_SPRITE,
 	KR_TEXT,
 	KR_VECTOR,
@@ -123,7 +123,7 @@ typedef enum {
 } kr_compositor_control_t;
 
 typedef enum {
-	KR_TRANSMITTER,
+	KR_TRANSMITTER = 1,
 	KR_RECEIVER,
 	KR_DEMUXER,
 	KR_MUXER,
@@ -132,7 +132,7 @@ typedef enum {
 } kr_transponder_subunit_t;
 
 typedef enum {
-	KR_BUFFER,
+	KR_BUFFER = 1,
 	KR_BITRATE,
 } kr_transponder_control_t;
 
@@ -178,6 +178,8 @@ int kr_subunit_control_set (kr_client_t *kr_client,
                             kr_subunit_address_t address,
                             kr_subunit_control_t control,
                             kr_subunit_control_value_t value);
+
+int kr_string_to_subunit_address (kr_client_t *kr_client, char *string);
 
 
 typedef struct kr_remote_St kr_remote_t;
