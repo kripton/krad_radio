@@ -92,6 +92,14 @@ static void json_to_krad_api (kr_ws_client_t *kr_ws_client, char *value, int len
       if ((part != NULL) && (strcmp(part->valuestring, "snap") == 0)) {
         kr_compositor_snapshot (kr_ws_client->kr_client);
       }
+      if ((part != NULL) && (strcmp(part->valuestring, "setsprite") == 0)) {
+      
+        part2 = cJSON_GetObjectItem (cmd, "x");
+        part3 = cJSON_GetObjectItem (cmd, "y");
+      
+        kr_compositor_set_sprite (kr_ws_client->kr_client, 0, part2->valueint, part3->valueint,  0, 4,
+                                  1.0f, 1.0f, 0.0f);
+      }
     }
   
     if ((part != NULL) && (strcmp(part->valuestring, "kradradio") == 0)) {

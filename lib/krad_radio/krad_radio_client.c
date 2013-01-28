@@ -1321,6 +1321,15 @@ int kr_subunit_control_set (kr_client_t *client,
   
   switch (unit) {
     case KR_MIXER:
+      switch (subunit.mixer_subunit) {
+        case KR_PORTGROUP:
+
+          break;
+
+        case KR_EFFECT:
+
+          break;
+      }
       // portgroup name
       // control vol/fade
       // value

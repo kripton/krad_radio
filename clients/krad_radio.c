@@ -405,7 +405,7 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  if (strncmp(argv[2], "set", 3) == 0) {
+  if (strncmp(argv[2], "setmix", 6) == 0) {
     if (argc == 6) {
       kr_mixer_set_control (client, argv[3], argv[4], atof(argv[5]), 0);
     }

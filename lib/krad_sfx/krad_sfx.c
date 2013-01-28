@@ -47,6 +47,9 @@ void kr_effects_set_sample_rate (kr_effects_t *kr_effects, int sample_rate) {
           case KRAD_PASS:
             kr_pass_set_sample_rate (kr_effects->effect[x].effect[c], kr_effects->sample_rate);
             break;
+          case KRAD_TAPETUBE:
+            kr_tapetube_set_sample_rate (kr_effects->effect[x].effect[c], kr_effects->sample_rate);
+            break;
         }
       }
     }
@@ -68,6 +71,9 @@ void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output
             break;
           case KRAD_PASS:
             kr_pass_process (kr_effects->effect[x].effect[c], input[c], output[c], num_samples);
+            break;
+          case KRAD_TAPETUBE:
+            kr_tapetube_process (kr_effects->effect[x].effect[c], input[c], output[c], num_samples);
             break;
         }
       }
@@ -93,6 +99,9 @@ void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect) {
          case KRAD_PASS:
            kr_effects->effect[x].effect[c] = kr_pass_create (kr_effects->sample_rate);
            break;
+         case KRAD_TAPETUBE:
+           kr_effects->effect[x].effect[c] = kr_tapetube_create (kr_effects->sample_rate);
+           break;
         }
       }
       kr_effects->effect[x].active = 1;
@@ -114,6 +123,9 @@ void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num) {
         break;
       case KRAD_PASS:
         kr_pass_destroy(kr_effects->effect[effect_num].effect[c]);
+        break;
+      case KRAD_TAPETUBE:
+        kr_tapetube_destroy(kr_effects->effect[effect_num].effect[c]);
         break;
     }
     kr_effects->effect[effect_num].effect[c] = NULL;
@@ -164,11 +176,25 @@ void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, in
             break;
         }
         break;
+      case KRAD_TAPETUBE:
+        switch (control) {
+          case KRAD_TAPETUBE_CONTROL_BLEND:
+            kr_tapetube_set_blend (kr_effects->effect[effect_num].effect[c], value);
+            break;
+          case KRAD_TAPETUBE_CONTROL_DRIVE:
+            kr_tapetube_set_drive (kr_effects->effect[effect_num].effect[c], value);
+            break;
+        }
+        break;
     }
   }
 }
 
 kr_effect_type_t kr_effects_string_to_effect (char *string) {
+
+	if ((strlen(string) == 8) && (strncmp(string, "tapetube", 4) == 0)) {
+		return KRAD_TAPETUBE;
+	}
 
 	if ((strlen(string) == 4) && (strncmp(string, "pass", 4) == 0)) {
 		return KRAD_PASS;
@@ -218,6 +244,16 @@ int kr_effects_string_to_effect_control (kr_effect_type_t effect_type, char *str
 	
 	  if ((strlen(string) == 2) && (strncmp(string, "hz", 2) == 0)) {
 		  return KRAD_PASS_CONTROL_HZ;
+	  }
+  }
+  
+  if (effect_type == KRAD_TAPETUBE) {
+	  if ((strlen(string) == 5) && (strncmp(string, "blend", 5) == 0)) {
+		  return KRAD_TAPETUBE_CONTROL_BLEND;
+	  }
+	
+	  if ((strlen(string) == 5) && (strncmp(string, "drive", 5) == 0)) {
+		  return KRAD_TAPETUBE_CONTROL_DRIVE;
 	  }
   }
 

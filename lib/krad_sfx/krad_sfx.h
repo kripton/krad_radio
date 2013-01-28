@@ -1,6 +1,7 @@
 #include "krad_sfx_common.h"
 #include "krad_eq.h"
 #include "krad_pass.h"
+#include "krad_tapetube.h"
 #include "krad_rushlimiter.h"
 #include "krad_hardlimiter.h"
 #include "krad_system.h"

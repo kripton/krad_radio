@@ -80,7 +80,7 @@ typedef enum {
 
 typedef enum {
 	KR_PORTGROUP,
-//	PORTGROUP_EFFECT,
+	KR_EFFECT,
 } kr_mixer_subunit_t;
 
 typedef enum {
@@ -159,8 +159,8 @@ struct kr_subunit_control_path_St {
 };
 
 typedef union {
-  int subunit_number;
-  char subunit_name[64];
+  int number;
+  char name[64];
 } kr_subunit_address_t;
 
 struct kr_unit_control_St {
