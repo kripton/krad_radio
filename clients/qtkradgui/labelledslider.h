@@ -27,7 +27,7 @@ private:
 protected:
   QLabel *label;
   QSlider *slider;
-
+  QLabel *valueLabel;
 };
 
 #endif

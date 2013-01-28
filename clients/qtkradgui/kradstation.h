@@ -27,6 +27,7 @@ public slots:
   void setVolume(QString portname, int value);
   void setCrossfade(QString name, int value);
   void addEq();
+  void rmEq();
   void setEq(int bandId, int value);
   void eqBandAdded(int bandId, float freq);
   void kill();

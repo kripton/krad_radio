@@ -22,12 +22,20 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   kradStation->addEq();
 
   connect(eqWidget, SIGNAL(bandAdded(int,float)), kradStation, SLOT(eqBandAdded(int,float)));
+  connect(eqWidget, SIGNAL(destroyed()), kradStation, SLOT(rmEq()));
+
+  eqWidget->addBand(20.0f);
+  eqWidget->addBand(40.0f);
   eqWidget->addBand(70.0f);
   eqWidget->addBand(140.0f);
   eqWidget->addBand(300.0f);
   eqWidget->addBand(600.0f);
   eqWidget->addBand(1200.0f);
   eqWidget->addBand(2400.0f);
+  eqWidget->addBand(5000.0f);
+  eqWidget->addBand(10000.0f);
+  eqWidget->addBand(20000.0f);
+
 
   connect(eqWidget, SIGNAL(bandDbChanged(int,int)), kradStation, SLOT(setEq(int,int)));
   broadcastWorkerThread = new QThread();

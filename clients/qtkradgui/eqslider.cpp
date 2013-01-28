@@ -13,6 +13,7 @@ EqSlider::EqSlider(int bandId, QWidget *parent) :
 
   this->bandId = bandId;
   disconnect(slider, 0, 0, 0);
+  connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 }
 

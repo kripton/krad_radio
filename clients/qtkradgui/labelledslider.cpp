@@ -11,17 +11,20 @@ LabelledSlider::LabelledSlider(QString label, QWidget *parent) :
   size.setVerticalStretch(1);
   this->slider = new QSlider();
   this->label = new QLabel();
+  this->valueLabel = new QLabel();
 
   this->label->setText(label);
   slider->setMaximum(100);
-  //slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //this->label.setAlignment(Qt::Vertical);
   QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->addWidget(slider, 1, Qt::AlignHCenter);
-  layout->addWidget(this->label, 0,  Qt::AlignHCenter);
+  layout->addWidget(slider);
+  layout->addWidget(this->valueLabel, 0, Qt::AlignHCenter);
+  layout->addWidget(this->label, 0, Qt::AlignHCenter);
 
+  this->valueLabel->setNum(0);
   this->setLayout(layout);
-
+  connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 }
 
