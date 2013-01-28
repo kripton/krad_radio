@@ -137,10 +137,10 @@ void ResizableFrame::mouseMoveEvent(QMouseEvent *event)
 void ResizableFrame::wheelEvent(QWheelEvent *event)
 {
     event->accept();
-    if (event->orientation() != Qt::Horizontal) return;
+    if (event->orientation() != Qt::Vertical) return;
     qDebug() << "WHEEL:" << event->delta();
 
-    opacity = opacity - (event->delta() / 1200.0);
+    opacity = opacity + (event->delta() / 1200.0);
     if (opacity < 0.0) opacity = 0.0;
     if (opacity > 1.0) opacity = 1.0;
 
