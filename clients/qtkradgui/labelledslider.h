@@ -17,7 +17,7 @@ public:
   QString getLabel();
 
 signals:
-  void valueChanged(QString portname, int value);
+  void valueChanged(QString name, int value);
 public slots:
   void setValue (int value);
   void sliderValueChanged(int value);

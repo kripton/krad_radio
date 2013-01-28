@@ -9,6 +9,8 @@
 #include "broadcastthread.h"
 #include "labelledslider.h"
 #include "crossfade.h"
+#include "eq.h"
+#include "eqslider.h"
 
 class StationWidget : public QWidget
 {
@@ -28,6 +30,7 @@ private:
   QList<LabelledSlider *> sliders;
   QHBoxLayout *mixerLayout;
   QVBoxLayout *mainLayout;
+  EqWidget *eqWidget;
 };
 
 #endif // STATIONWIDGET_H

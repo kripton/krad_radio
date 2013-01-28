@@ -11,7 +11,7 @@ public:
   explicit Crossfade(QWidget *parent = 0);
   Crossfade(QString portname, QString label, QWidget *parent = 0);
 signals:
- // void valueChanged(QString portname, int value);
+  void valueChanged(QString name, int value);
 
 public slots:
 //  void setValue (int value);

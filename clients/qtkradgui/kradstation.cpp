@@ -92,6 +92,24 @@ void KradStation::setCrossfade(QString name, int value)
   kr_mixer_set_control (client, name.toAscii().data(), "crossfade", (float) value, 0);
 }
 
+void KradStation::addEq()
+{
+  qDebug() << tr("trying to add eq");
+  kr_mixer_add_effect (client, "XMMS2", "eq");
+}
+
+void KradStation::setEq(int bandId, int value)
+{
+  qDebug() << tr("trying to set eq %1 to %2").arg(bandId).arg(value);
+  kr_mixer_set_effect_control (client, "XMMS2", 0, "db", bandId, (float) value);
+}
+
+void KradStation::eqBandAdded(int bandId, float freq)
+{
+  qDebug() << tr("trying to addband on eq 0, id %2, freq %3").arg(bandId).arg(freq);
+  kr_mixer_set_effect_control (client, "XMMS2", 0, "addband", 0, freq);
+}
+
 void KradStation::kill()
 {
     //client = NULL;

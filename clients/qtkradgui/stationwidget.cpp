@@ -10,12 +10,26 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   QProgressBar *cpuTime = new QProgressBar ();
   cpuTime->setOrientation(Qt::Horizontal);
 
+
   mainLayout = new QVBoxLayout (this);
   mixerLayout = new QHBoxLayout ();
+  eqWidget = new EqWidget(this);
 
   mainLayout->addLayout(mixerLayout);
+  mainLayout->addWidget(eqWidget);
   mainLayout->addWidget(cpuTime);
 
+  kradStation->addEq();
+
+  connect(eqWidget, SIGNAL(bandAdded(int,float)), kradStation, SLOT(eqBandAdded(int,float)));
+  eqWidget->addBand(70.0f);
+  eqWidget->addBand(140.0f);
+  eqWidget->addBand(300.0f);
+  eqWidget->addBand(600.0f);
+  eqWidget->addBand(1200.0f);
+  eqWidget->addBand(2400.0f);
+
+  connect(eqWidget, SIGNAL(bandDbChanged(int,int)), kradStation, SLOT(setEq(int,int)));
   broadcastWorkerThread = new QThread();
   broadcastThread->moveToThread(broadcastWorkerThread);
   connect(broadcastWorkerThread, SIGNAL(started()), broadcastThread, SLOT(process()));
