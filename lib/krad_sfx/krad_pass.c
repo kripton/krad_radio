@@ -2,15 +2,18 @@
 
 /* Controls */
 void kr_pass_set_type (kr_pass_t *kr_pass, int type) {
+  type = LIMIT(type, 0, 1);
   kr_pass->new_type = type;
 }
 
 void kr_pass_set_bandwidth (kr_pass_t *kr_pass, float bandwidth) {
-   krad_easing_set_new_value(&kr_pass->krad_easing_bandwidth, bandwidth, 600, EASEINOUTSINE);
+  bandwidth = LIMIT(bandwidth, KRAD_PASS_BANDWIDTH_MIN, KRAD_PASS_BANDWIDTH_MAX);
+  krad_easing_set_new_value(&kr_pass->krad_easing_bandwidth, bandwidth, 200, EASEINOUTSINE);
 }
 
 void kr_pass_set_hz (kr_pass_t *kr_pass, float hz) {
-  krad_easing_set_new_value(&kr_pass->krad_easing_hz, hz, 600, EASEINOUTSINE);
+  hz = LIMIT(hz, KRAD_PASS_HZ_MIN, KRAD_PASS_HZ_MAX);
+  krad_easing_set_new_value(&kr_pass->krad_easing_hz, hz, 200, EASEINOUTSINE);
 }
 
 void kr_pass_process (kr_pass_t *kr_pass, float *input, float *output, int num_samples) {

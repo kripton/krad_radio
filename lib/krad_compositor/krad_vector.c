@@ -411,7 +411,7 @@ void krad_vector_render_meter (cairo_t *cr, int x, int y, int size, float pos, f
   cairo_save(cr);
   cairo_translate (cr, 0.05 * size, 0);
   cairo_rotate (cr, pos * (M_PI/180.0));  
-  /*
+  //
   cairo_pattern_t *pat;
   pat = cairo_pattern_create_linear (0, 0, 0.11 * size, 0);
   cairo_pattern_add_color_stop_rgba (pat, 0, 0, 0, 0, 0);

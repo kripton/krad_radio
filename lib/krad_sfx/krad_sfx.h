@@ -6,8 +6,6 @@
 #include "krad_hardlimiter.h"
 #include "krad_system.h"
 
-
-
 typedef struct kr_effect_St kr_effect_t;
 typedef struct kr_effects_St kr_effects_t;
 

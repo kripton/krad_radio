@@ -357,7 +357,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
 
       kr_effects_effect_set_control (portgroup->effects, number,
-                                     kr_effects_string_to_effect_control(portgroup->effects[number].effect->effect_type, controlname),
+                                     kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type, controlname),
                                      numbers[5], floatval);
 
       break;

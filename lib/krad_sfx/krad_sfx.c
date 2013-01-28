@@ -17,11 +17,11 @@ kr_effects_t *kr_effects_create (int channels, int sample_rate) {
 
 void kr_effects_destroy (kr_effects_t *kr_effects) {
 
-  int x;
+  int e;
 
-  for (x = 0; x < KRAD_EFFECTS_MAX; x++) {
-    if (kr_effects->effect[x].active == 1) {
-      kr_effects_effect_remove (kr_effects, x);
+  for (e = 0; e < KRAD_EFFECTS_MAX; e++) {
+    if (kr_effects->effect[e].active == 1) {
+      kr_effects_effect_remove (kr_effects, e);
     }
   }
 
@@ -31,24 +31,24 @@ void kr_effects_destroy (kr_effects_t *kr_effects) {
 
 void kr_effects_set_sample_rate (kr_effects_t *kr_effects, int sample_rate) {
 
-  int x, c;
+  int e, c;
 
   kr_effects->sample_rate = sample_rate;
 
-  for (x = 0; x < KRAD_EFFECTS_MAX; x++) {
-    if (kr_effects->effect[x].active == 1) {
+  for (e = 0; e < KRAD_EFFECTS_MAX; e++) {
+    if (kr_effects->effect[e].active == 1) {
       for (c = 0; c < kr_effects->channels; c++) {
-        switch (kr_effects->effect[x].effect_type) {
+        switch (kr_effects->effect[e].effect_type) {
           case KRAD_NOFX:
             break;
           case KRAD_EQ:
-            kr_eq_set_sample_rate (kr_effects->effect[x].effect[c], kr_effects->sample_rate);
+            kr_eq_set_sample_rate (kr_effects->effect[e].effect[c], kr_effects->sample_rate);
             break;
           case KRAD_PASS:
-            kr_pass_set_sample_rate (kr_effects->effect[x].effect[c], kr_effects->sample_rate);
+            kr_pass_set_sample_rate (kr_effects->effect[e].effect[c], kr_effects->sample_rate);
             break;
           case KRAD_TAPETUBE:
-            kr_tapetube_set_sample_rate (kr_effects->effect[x].effect[c], kr_effects->sample_rate);
+            kr_tapetube_set_sample_rate (kr_effects->effect[e].effect[c], kr_effects->sample_rate);
             break;
         }
       }
@@ -58,22 +58,22 @@ void kr_effects_set_sample_rate (kr_effects_t *kr_effects, int sample_rate) {
 
 void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output, int num_samples) {
 
-  int x, c;
+  int e, c;
 
-  for (x = 0; x < KRAD_EFFECTS_MAX; x++) {
-    if (kr_effects->effect[x].active == 1) {
+  for (e = 0; e < KRAD_EFFECTS_MAX; e++) {
+    if (kr_effects->effect[e].active == 1) {
       for (c = 0; c < kr_effects->channels; c++) {
-        switch (kr_effects->effect[x].effect_type) {
+        switch (kr_effects->effect[e].effect_type) {
           case KRAD_NOFX:
             break;
           case KRAD_EQ:
-            kr_eq_process (kr_effects->effect[x].effect[c], input[c], output[c], num_samples);
+            kr_eq_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
             break;
           case KRAD_PASS:
-            kr_pass_process (kr_effects->effect[x].effect[c], input[c], output[c], num_samples);
+            kr_pass_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
             break;
           case KRAD_TAPETUBE:
-            kr_tapetube_process (kr_effects->effect[x].effect[c], input[c], output[c], num_samples);
+            kr_tapetube_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
             break;
         }
       }
@@ -84,27 +84,27 @@ void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output
 
 void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect) {
  
-  int x, c;
+  int e, c;
 
-  for (x = 0; x < KRAD_EFFECTS_MAX; x++) {
-    if (kr_effects->effect[x].active == 0) {
-      kr_effects->effect[x].effect_type = effect;
+  for (e = 0; e < KRAD_EFFECTS_MAX; e++) {
+    if (kr_effects->effect[e].active == 0) {
+      kr_effects->effect[e].effect_type = effect;
       for (c = 0; c < kr_effects->channels; c++) {
-        switch (kr_effects->effect[x].effect_type) {
+        switch (kr_effects->effect[e].effect_type) {
           case KRAD_NOFX:
             break;
           case KRAD_EQ:
-            kr_effects->effect[x].effect[c] = kr_eq_create (kr_effects->sample_rate);
+            kr_effects->effect[e].effect[c] = kr_eq_create (kr_effects->sample_rate);
             break;
          case KRAD_PASS:
-           kr_effects->effect[x].effect[c] = kr_pass_create (kr_effects->sample_rate);
+           kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate);
            break;
          case KRAD_TAPETUBE:
-           kr_effects->effect[x].effect[c] = kr_tapetube_create (kr_effects->sample_rate);
+           kr_effects->effect[e].effect[c] = kr_tapetube_create (kr_effects->sample_rate);
            break;
         }
       }
-      kr_effects->effect[x].active = 1;
+      kr_effects->effect[e].active = 1;
       break;
     }
   }

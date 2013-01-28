@@ -10,6 +10,8 @@
 #include "krad_system.h"
 #include "krad_easing.h"
 
+#include "krad_sfx_common.h"
+
 #define KRAD_TAPETUBE_CONTROL_DRIVE 671
 #define KRAD_TAPETUBE_CONTROL_BLEND 672
 
@@ -17,8 +19,6 @@
 #define KRAD_TAPETUBE_DRIVE_MAX 10.0f
 #define KRAD_TAPETUBE_BLEND_MIN -10.0f
 #define KRAD_TAPETUBE_BLEND_MAX 10.0f
-
-#define LIMIT(v,l,u) ((v)<(l)?(l):((v)>(u)?(u):(v)))
 
 typedef struct {
 

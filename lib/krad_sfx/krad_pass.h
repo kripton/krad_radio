@@ -16,6 +16,11 @@
 #define KRAD_PASS_CONTROL_BANDWIDTH 789
 #define KRAD_PASS_CONTROL_HZ 780
 
+#define KRAD_PASS_BANDWIDTH_MIN 0.1
+#define KRAD_PASS_BANDWIDTH_MAX 5.0
+#define KRAD_PASS_HZ_MIN 20.0
+#define KRAD_PASS_HZ_MAX 20000.0
+
 typedef struct {
 
   biquad filter;

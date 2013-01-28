@@ -1,6 +1,9 @@
 #ifndef KRAD_SFX_COMMON_H
 #define KRAD_SFX_COMMON_H
 
+#ifndef LIMIT
+#define LIMIT(v,l,u) ((v)<(l)?(l):((v)>(u)?(u):(v)))
+#endif
 
 #define KRAD_EFFECTS_MAX 8
 #define KRAD_EFFECTS_MAX_CHANNELS 8
