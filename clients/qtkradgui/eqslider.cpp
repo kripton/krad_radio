@@ -17,8 +17,14 @@ EqSlider::EqSlider(int bandId, QWidget *parent) :
 }
 
 EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
-  EqSlider(bandId, parent)
+  LabelledSlider(tr("%1").arg(bandId), parent)
 {
+    slider->setMaximum(32);
+    slider->setMinimum(-32);
+
+    this->bandId = bandId;
+    disconnect(slider, 0, 0, 0);
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
   this->freq = freq;
 }
 
