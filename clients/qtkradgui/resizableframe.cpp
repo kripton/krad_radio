@@ -137,6 +137,8 @@ void ResizableFrame::mouseMoveEvent(QMouseEvent *event)
     default:
         break;
     }
+
+    emit geometryChanged(geometry());
 }
 
 void ResizableFrame::wheelEvent(QWheelEvent *event)
@@ -144,17 +146,19 @@ void ResizableFrame::wheelEvent(QWheelEvent *event)
     event->accept();
     if (event->orientation() != Qt::Vertical) return;
 
-    qDebug() << "WHEEL:" << event->delta() << "Modifiers:" <<  QApplication::keyboardModifiers();
+    //qDebug() << "WHEEL:" << event->delta() << "Modifiers:" <<  QApplication::keyboardModifiers();
 
     // Rotate
     if ((proxy != NULL) &&  (QApplication::keyboardModifiers() & Qt::ControlModifier)) {
         proxy->setTransformOriginPoint(geometry().width()/2, geometry().height()/2);
         proxy->setRotation(proxy->rotation() - event->delta() / 60.0);
+        emit rotationChanged(proxy->rotation());
     } else {
         // Change opacity
         opacity = opacity + (event->delta() / 4800.0);
         if (opacity < 0.0) opacity = 0.0;
         if (opacity > 1.0) opacity = 1.0;
         opacityLabel->setText(QString("Opacity: %1").arg(opacity, 0, 'f', 3));
+        emit opacityChanged(opacity);
     }
 }

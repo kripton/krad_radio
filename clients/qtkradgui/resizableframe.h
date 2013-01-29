@@ -36,6 +36,11 @@ private:
     QLabel *opacityLabel;
     double opacity;
     QGraphicsProxyWidget *proxy;
+
+signals:
+    void geometryChanged(QRect newGeometry);
+    void opacityChanged(float newOpacity);
+    void rotationChanged(float newAngle);
 };
 
 #endif // RESIZABLEFRAME_H
