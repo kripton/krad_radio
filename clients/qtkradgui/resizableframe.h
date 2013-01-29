@@ -4,8 +4,10 @@
 #include <QFrame>
 #include <QMouseEvent>
 #include <QWheelEvent>
-
 #include <QLabel>
+#include <QPainter>
+#include <QApplication>
+#include <QGraphicsProxyWidget>
 
 //namespace Ui {
 //class ResizableFrame;
@@ -20,6 +22,7 @@ public:
     ~ResizableFrame();
 
     enum startPositions {topleft, left, bottomleft, bottom, bottomright, right, topright, top, move} startPositions;
+    void setProxy(QGraphicsProxyWidget *proxy);
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -32,6 +35,7 @@ private:
     enum startPositions startPos;
     QLabel *opacityLabel;
     double opacity;
+    QGraphicsProxyWidget *proxy;
 };
 
 #endif // RESIZABLEFRAME_H

@@ -14,11 +14,7 @@ TEMPLATE = app
 
 SOURCES +=\
     resizableframe.cpp \
-    frametest_main.cpp \
-    frametest_mainwindow.cpp
+    frametest_main.cpp
 
 HEADERS  += \
     resizableframe.h \
-    frametest_mainwindow.h
-
-FORMS    += frametest_mainwindow.ui
