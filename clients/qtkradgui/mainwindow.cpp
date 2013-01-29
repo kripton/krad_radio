@@ -6,6 +6,7 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent)
 {
+  this->setWindowTitle("KRAD GUI PRO");
   tabWidget = new QTabWidget(this);
 
   QStringList sl = KradStation::getRunningStations();

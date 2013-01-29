@@ -13,16 +13,22 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
 
   mainLayout = new QVBoxLayout (this);
   mixerLayout = new QHBoxLayout ();
-  eqWidget = new EqWidget(this);
+  tabWidget = new QTabWidget(this);
+  eqWidget = new EqWidget(tr("XMMS2"));
+  tapetubeWidget = new TapetubeWidget(tr("XMMS2"));
+  tabWidget->setTabsClosable(true);
+  tabWidget->addTab(eqWidget, tr("XMMS2 EQ"));
+  tabWidget->addTab(tapetubeWidget, tr("XMMS2 Tapetube"));
 
   mainLayout->addLayout(mixerLayout);
-  mainLayout->addWidget(eqWidget);
+  mainLayout->addWidget(tabWidget);
   mainLayout->addWidget(cpuTime);
 
-  kradStation->addEq();
+  kradStation->addEq(tr("XMMS2"));
+  kradStation->addTapetube(tr("XMMS2"));
 
-  connect(eqWidget, SIGNAL(bandAdded(int,float)), kradStation, SLOT(eqBandAdded(int,float)));
-  connect(eqWidget, SIGNAL(destroyed()), kradStation, SLOT(rmEq()));
+  connect(eqWidget, SIGNAL(bandAdded(QString,int,float)), kradStation, SLOT(eqBandAdded(QString, int,float)));
+  connect(eqWidget, SIGNAL(eqDestroyed(QString)), kradStation, SLOT(rmEq(QString)));
 
   eqWidget->addBand(20.0f);
   eqWidget->addBand(40.0f);
@@ -37,7 +43,7 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   eqWidget->addBand(20000.0f);
 
 
-  connect(eqWidget, SIGNAL(bandDbChanged(int,int)), kradStation, SLOT(setEq(int,int)));
+  connect(eqWidget, SIGNAL(bandDbChanged(QString,int,int)), kradStation, SLOT(setEq(QString,int,int)));
   broadcastWorkerThread = new QThread();
   broadcastThread->moveToThread(broadcastWorkerThread);
   connect(broadcastWorkerThread, SIGNAL(started()), broadcastThread, SLOT(process()));
@@ -45,6 +51,7 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
 
   connect(kradStation, SIGNAL(portgroupAdded(kr_mixer_portgroup_t*)), this, SLOT(portgroupAdded(kr_mixer_portgroup_t*)));
   connect(kradStation, SIGNAL(cpuTimeUpdated(int)), cpuTime, SLOT(setValue(int)));
+  connect(tapetubeWidget, SIGNAL(tapetubeUpdated(QString,QString,int)), kradStation, SLOT(setTapeTube(QString,QString,int)));
 }
 
 
@@ -55,7 +62,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
         if (slider->getLabel() == rep->sysname) return;
     }
 
-  LabelledSlider *ls = new LabelledSlider(tr(rep->sysname), this);
+  LabelledSlider *ls = new LabelledSlider(tr(rep->sysname),Qt::Vertical,  100, 0, this);
   ls->setValue(rep->volume[0]);
   sliders.append(ls);
   mixerLayout->addWidget(ls);
@@ -74,6 +81,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
   }
 }
 
+
 void StationWidget::closeTabRequested(int index)
 {
     Q_UNUSED(index);
@@ -84,6 +92,11 @@ void StationWidget::closeTabRequested(int index)
     broadcastWorkerThread->deleteLater();
     kradStation->kill();
     //delete this; // Maybe this is a little rude but it works :)
+}
+
+void StationWidget::closeEffectRequested(int index)
+{
+
 }
 
 

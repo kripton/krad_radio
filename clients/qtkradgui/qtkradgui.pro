@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     resizableframe.cpp \
     eqslider.cpp \
-    eq.cpp
+    eq.cpp \
+    tapetubewidget.cpp
 
 HEADERS  += \
     kradstation.h \
@@ -33,7 +34,8 @@ HEADERS  += \
     mainwindow.h \
     resizableframe.h \
     eqslider.h \
-    eq.h
+    eq.h \
+    tapetubewidget.h
 
 
 

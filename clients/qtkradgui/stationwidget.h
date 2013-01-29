@@ -11,6 +11,7 @@
 #include "crossfade.h"
 #include "eq.h"
 #include "eqslider.h"
+#include "tapetubewidget.h"
 
 class StationWidget : public QWidget
 {
@@ -23,6 +24,7 @@ signals:
 public slots:
   void portgroupAdded(kr_mixer_portgroup_t *rep);
   void closeTabRequested(int index);
+  void closeEffectRequested(int index);
 private:
   KradStation *kradStation;
   BroadcastThread *broadcastThread;
@@ -31,6 +33,8 @@ private:
   QHBoxLayout *mixerLayout;
   QVBoxLayout *mainLayout;
   EqWidget *eqWidget;
+  TapetubeWidget *tapetubeWidget;
+  QTabWidget *tabWidget;
 };
 
 #endif // STATIONWIDGET_H

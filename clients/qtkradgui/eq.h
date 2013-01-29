@@ -8,13 +8,16 @@ class EqWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit EqWidget(QWidget *parent = 0);
+  explicit EqWidget(QString portname, QWidget *parent = 0);
 
 signals:
-  void bandAdded(int bandId, float freq);
-  void bandDbChanged(int bandId, int freq);
+  void bandAdded(QString portname, int bandId, float freq);
+  void bandDbChanged(QString portname, int bandId, int freq);
+  void eqDestroyed(QString portname);
 public slots:
   void addBand(float freq);
+  void bandDbChanged(int bandId, int freq);
+  void destroyed();
   //void eqUpdated()
 private:
 
