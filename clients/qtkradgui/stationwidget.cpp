@@ -7,7 +7,7 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   kradStation = new KradStation(sysname);
   broadcastThread = new BroadcastThread(kradStation);
 
-  QProgressBar *cpuTime = new QProgressBar ();
+  QProgressBar *cpuTime = new QProgressBar();
   cpuTime->setOrientation(Qt::Horizontal);
 
 
@@ -17,6 +17,7 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
 
   mainLayout->addLayout(mixerLayout);
   mainLayout->addWidget(cpuTime);
+
 
   broadcastWorkerThread = new QThread();
   broadcastThread->moveToThread(broadcastWorkerThread);
@@ -41,8 +42,17 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
   sliders.append(ps);
   mixerLayout->addWidget(ps);
 
+  if (rep->has_xmms2 == 1) {
+    ps->addXmms2Controls();
+    connect(ps, SIGNAL(xmms2Play(QString)), kradStation, SLOT(xmms2Play(QString)));
+    connect(ps, SIGNAL(xmms2Pause(QString)), kradStation, SLOT(xmms2Pause(QString)));
+    connect(ps, SIGNAL(xmms2Next(QString)), kradStation, SLOT(xmms2Next(QString)));
+    connect(ps, SIGNAL(xmms2Prev(QString)), kradStation, SLOT(xmms2Prev(QString)));
+  }
+
   connect(kradStation, SIGNAL(volumeUpdate(kr_mixer_portgroup_control_rep_t*)), ps, SLOT(updateVolume(kr_mixer_portgroup_control_rep_t*)));
-  connect(ps, SIGNAL(valueChanged(QString, int)), kradStation, SLOT(setVolume(QString, int)));
+  connect(ps, SIGNAL(valueChanged(QString, float)), kradStation, SLOT(setVolume(QString,float)));
+
 
   if (rep->crossfade_group_rep != NULL) {
     Crossfade *cf = new Crossfade(tr(rep->crossfade_group_rep->portgroup_rep[0]->sysname),tr("%1 - %2").arg(tr(rep->crossfade_group_rep->portgroup_rep[0]->sysname)).arg(tr(rep->crossfade_group_rep->portgroup_rep[1]->sysname)));
@@ -50,7 +60,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
     mixerLayout->addWidget(cf);
     //cf->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     connect(kradStation, SIGNAL(crossfadUpdated(kr_mixer_portgroup_control_rep_t*)), cf, SLOT(updateVolume(kr_mixer_portgroup_control_rep_t*)));
-    connect(cf, SIGNAL(valueChanged(QString,int)), kradStation, SLOT(setCrossfade(QString,int)));
+    connect(cf, SIGNAL(valueChanged(QString,float)), kradStation, SLOT(setCrossfade(QString,float)));
 
   }
 
@@ -60,17 +70,18 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
 
 void StationWidget::addEffects(QString portname)
 {
-  QTabWidget *tabWidget = new QTabWidget(this);
+  effectsWidgets[portname] = new QTabWidget(this);
   eqWidget = new EqWidget(portname);
   tapetubeWidget = new TapetubeWidget(portname);
   filterWidget = new FilterWidget(portname);
-  //tabWidget->setTabsClosable(true);
-  tabWidget->addTab(eqWidget, tr("%1 EQ").arg(portname));
-  tabWidget->addTab(tapetubeWidget, tr("%1 Tapetube").arg(portname));
-  tabWidget->addTab(filterWidget, tr("%1 Filters").arg(portname));
+
+  effectsWidgets[portname]->addTab(eqWidget, tr("%1 EQ").arg(portname));
+  effectsWidgets[portname]->addTab(tapetubeWidget, tr("%1 Tapetube").arg(portname));
+  effectsWidgets[portname]->addTab(filterWidget, tr("%1 Filters").arg(portname));
   kradStation->addEq(portname);
   kradStation->addTapetube(portname);
-  mainLayout->addWidget(tabWidget);
+  mainLayout->addWidget(effectsWidgets[portname]);
+
   connect(eqWidget, SIGNAL(bandAdded(QString,int,float)), kradStation, SLOT(eqBandAdded(QString, int,float)));
   //connect(eqWidget, SIGNAL(eqDestroyed(QString)), kradStation, SLOT(rmEq(QString)));
 
@@ -87,8 +98,8 @@ void StationWidget::addEffects(QString portname)
   eqWidget->addBand(20000.0f);
 
 
-  connect(eqWidget, SIGNAL(bandDbChanged(QString,int,int)), kradStation, SLOT(setEq(QString,int,int)));
-  connect(tapetubeWidget, SIGNAL(tapetubeUpdated(QString,QString,int)), kradStation, SLOT(setTapeTube(QString,QString,int)));
+  connect(eqWidget, SIGNAL(bandDbChanged(QString,int,float)), kradStation, SLOT(setEq(QString,int,float)));
+  connect(tapetubeWidget, SIGNAL(tapetubeUpdated(QString,QString,float)), kradStation, SLOT(setTapeTube(QString,QString,float)));
 
 }
 
@@ -99,9 +110,7 @@ void StationWidget::removeEffects(QString portname)
   kradStation->rmEq(portname);
   kradStation->removeTapeTube(portname);
 
-  eqWidget->close();
-  tapetubeWidget->close();
-  tabWidget->close();
+  effectsWidgets[portname]->close();
 }
 
 void StationWidget::closeTabRequested(int index)

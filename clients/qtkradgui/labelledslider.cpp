@@ -11,8 +11,8 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
   this->valueLabel = new QLabel();
 
   this->label->setText(label);
-  slider->setMinimum(min);
-  slider->setMaximum(max);
+  slider->setMinimum(10*min);
+  slider->setMaximum(10*max);
   slider->setOrientation(orientation);
   //slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //this->label.setAlignment(Qt::Vertical);
@@ -23,20 +23,21 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
 
   this->valueLabel->setNum(0);
   this->setLayout(layout);
-  connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
+  //connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 }
 
 
-void LabelledSlider::setValue(int value)
+void LabelledSlider::setValue(float value)
 {
-  slider->setValue(value);
+  slider->setValue((int) 10*value);
 }
 
 void LabelledSlider::sliderValueChanged(int value)
 {
-  qDebug() << tr("sliderValueChanged %1 %2").arg(label->text()).arg(value);
-  emit valueChanged(label->text(), value);
+  qDebug() << tr("sliderValueChanged %1 %2").arg(label->text()).arg(0.1*value);
+  valueLabel->setNum((double) 0.1 * value);
+  emit valueChanged(label->text(), 0.1f * value);
 }
 
 void LabelledSlider::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)

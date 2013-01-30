@@ -56,3 +56,6 @@ unix:INCLUDEPATH += "/usr/include/opus"
 unix:INCLUDEPATH += "../../lib/krad_compositor"
 
 FORMS +=
+
+OTHER_FILES += \
+    fxbutton.qml

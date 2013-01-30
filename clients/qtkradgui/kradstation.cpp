@@ -80,16 +80,16 @@ void KradStation::handlePortgroupAdded(kr_mixer_portgroup_t *portgroup)
 
 }
 
-void KradStation::setVolume(QString portname, int value)
+void KradStation::setVolume(QString portname, float value)
 {
   qDebug() << tr("trying to set volume of %1 to %2").arg(portname).arg(value);
-  kr_mixer_set_control (client, portname.toAscii().data(), "volume", (float) value, 0);
+  kr_mixer_set_control (client, portname.toAscii().data(), "volume", value, 0);
 }
 
-void KradStation::setCrossfade(QString name, int value)
+void KradStation::setCrossfade(QString name, float value)
 {
   qDebug() << tr("trying to set crossfade %1 to %2").arg(name).arg(value);
-  kr_mixer_set_control (client, name.toAscii().data(), "crossfade", (float) value, 0);
+  kr_mixer_set_control (client, name.toAscii().data(), "crossfade",  value, 0);
 }
 
 void KradStation::addTapetube(QString portname)
@@ -103,10 +103,10 @@ void KradStation::removeTapeTube(QString portname)
    kr_mixer_remove_effect(client, portname.toAscii().data(), 1);
 }
 
-void KradStation::setTapeTube(QString portname, QString control, int value)
+void KradStation::setTapeTube(QString portname, QString control, float value)
 {
   qDebug() << tr("trying to set tapetube %1 %2 to %3").arg(portname).arg(control).arg(value);
-  kr_mixer_set_effect_control (client, portname.toAscii().data(), 1, control.toAscii().data(), 0, (float) value);
+  kr_mixer_set_effect_control (client, portname.toAscii().data(), 1, control.toAscii().data(), 0, value);
 }
 
 void KradStation::addEq(QString portname)
@@ -120,16 +120,37 @@ void KradStation::rmEq(QString portname)
   kr_mixer_remove_effect(client, portname.toAscii().data(), 0);
 }
 
-void KradStation::setEq(QString portname, int bandId, int value)
+void KradStation::setEq(QString portname, int bandId, float value)
 {
   qDebug() << tr("trying to set eq %1 to %2").arg(bandId).arg(value);
-  kr_mixer_set_effect_control (client, portname.toAscii().data(), 0, "db", bandId, (float) value);
+  kr_mixer_set_effect_control (client, portname.toAscii().data(), 0, "db", bandId, value);
 }
 
 void KradStation::eqBandAdded(QString portname, int bandId, float freq)
 {
   qDebug() << tr("trying to addband on eq 0, id %2, freq %3").arg(bandId).arg(freq);
   kr_mixer_set_effect_control (client, portname.toAscii().data_ptr()->data, 0, "addband", 0, freq);
+}
+
+void KradStation::xmms2Play(QString portname)
+{
+  kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "play");
+}
+
+void KradStation::xmms2Pause(QString portname)
+{
+  kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "pause");
+}
+
+void KradStation::xmms2Next(QString portname)
+{
+  kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "next");
+
+}
+
+void KradStation::xmms2Prev(QString portname)
+{
+  kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "prev");
 }
 
 void KradStation::kill()

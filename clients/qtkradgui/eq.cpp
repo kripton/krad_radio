@@ -3,11 +3,11 @@
 EqWidget::EqWidget(QString portname, QWidget *parent) :
   QWidget(parent)
 {
+ // setMinimumHeight(500);
   this->setToolTip(tr("%1 EQ").arg(portname));
   this->portname = portname;
   eqLayout = new QHBoxLayout ();
   this->setLayout(eqLayout);
- // connect(this, SIGNAL(destroyed()), this, SLOT(destroyed()));
 }
 
 void EqWidget::addBand(float freq)

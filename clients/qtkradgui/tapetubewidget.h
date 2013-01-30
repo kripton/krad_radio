@@ -12,11 +12,11 @@ public:
   explicit TapetubeWidget(QString portname, QWidget *parent = 0);
   
 signals:
-  void tapetubeUpdated(QString portname, QString control, int value);
+  void tapetubeUpdated(QString portname, QString control, float value);
 
 public slots:
-  void tapetubeDriveUpdated(QString name, int value);
-  void tapetubeBlendUpdated(QString name, int value);
+  void tapetubeDriveUpdated(QString name, float value);
+  void tapetubeBlendUpdated(QString name, float value);
 private:
   QHBoxLayout *layout;
   QString portname;

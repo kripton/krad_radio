@@ -22,7 +22,7 @@ EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
     this->bandId = bandId;
     disconnect(slider, 0, 0, 0);
 
-    connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
+   // connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
     connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
   this->freq = freq;
 }
@@ -31,7 +31,8 @@ EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
 void EqSlider::sliderValueChanged(int value)
 {
   qDebug() << tr("EqSlider sliderValueChanged %1 %2").arg(bandId).arg(value);
-  emit valueChanged(bandId, value);
+  valueLabel->setNum((float) 0.1 * value);
+  emit valueChanged(bandId, (float) 0.1 * value);
 }
 
 //void EqSlider::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)

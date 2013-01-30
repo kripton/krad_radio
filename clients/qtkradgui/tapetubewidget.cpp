@@ -12,18 +12,18 @@ TapetubeWidget::TapetubeWidget(QString portname, QWidget *parent) :
   layout->addWidget(driveSlider);
   layout->addWidget(blendSlider);
 
-  connect(driveSlider, SIGNAL(valueChanged(QString,int)), this, SLOT(tapetubeDriveUpdated(QString, int)));
-  connect(blendSlider, SIGNAL(valueChanged(QString,int)), this, SLOT(tapetubeBlendUpdated(QString, int)));
+  connect(driveSlider, SIGNAL(valueChanged(QString,float)), this, SLOT(tapetubeDriveUpdated(QString, float)));
+  connect(blendSlider, SIGNAL(valueChanged(QString,float)), this, SLOT(tapetubeBlendUpdated(QString, float)));
 
 }
 
 
-void TapetubeWidget::tapetubeDriveUpdated(QString name, int value)
+void TapetubeWidget::tapetubeDriveUpdated(QString name, float value)
 {
   emit tapetubeUpdated(portname, tr("drive"), value);
 }
 
-void TapetubeWidget::tapetubeBlendUpdated(QString name, int value)
+void TapetubeWidget::tapetubeBlendUpdated(QString name, float value)
 {
   emit tapetubeUpdated(portname, tr("blend"), value);
 }

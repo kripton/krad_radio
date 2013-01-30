@@ -12,7 +12,7 @@ public:
 
 signals:
   void bandAdded(QString portname, int bandId, float freq);
-  void bandDbChanged(QString portname, int bandId, int freq);
+  void bandDbChanged(QString portname, int bandId, float freq);
 public slots:
   void addBand(float freq);
   void bandDbChanged(int bandId, int freq);

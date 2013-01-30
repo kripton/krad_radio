@@ -17,9 +17,9 @@ public:
   QString getLabel();
 
 signals:
-  void valueChanged(QString name, int value);
+  void valueChanged(QString name, float value);
 public slots:
-  void setValue (int value);
+  void setValue (float value);
   void sliderValueChanged(int value);
   void updateVolume(kr_mixer_portgroup_control_rep_t *);
 private:

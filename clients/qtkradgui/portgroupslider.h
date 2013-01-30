@@ -13,11 +13,26 @@ public:
 signals:
   void addEffects(QString portname);
   void removeEffects(QString portname);
+  void xmms2Play(QString portname);
+  void xmms2Pause(QString portname);
+  void xmms2Next(QString portname);
+  void xmms2Prev(QString portname);
+
 public slots:
   void addEffects();
   void removeEffects();
+  void fxToggled(int state);
+  void addXmms2Controls();
+  void xmms2Play();
+  void xmms2Pause();
+  void xmms2Next();
+  void xmms2Prev();
+
 private:
   QString portname;
+  int buttonAdd;
+  QCheckBox *toggleFx;
+  QPushButton *addFxButton;
 };
 
 #endif // PORTGROUPSLIDER_H

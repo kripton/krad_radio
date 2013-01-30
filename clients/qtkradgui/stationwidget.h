@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QSlider>
-#include <QHash>
+#include <QMap>
 
 #include "kradstation.h"
 #include "broadcastthread.h"
@@ -38,7 +38,7 @@ private:
   EqWidget *eqWidget;
   TapetubeWidget *tapetubeWidget;
   FilterWidget *filterWidget;
-  QTabWidget *tabWidget;
+  QMap<QString, QTabWidget*> effectsWidgets;
 };
 
 #endif // STATIONWIDGET_H

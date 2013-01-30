@@ -24,15 +24,20 @@ signals:
   void cpuTimeUpdated(int value);
 public slots:
   void handlePortgroupAdded(kr_mixer_portgroup_t *portgroup);
-  void setVolume(QString portname, int value);
-  void setCrossfade(QString name, int value);
+  void setVolume(QString portname, float value);
+  void setCrossfade(QString name, float value);
   void addTapetube(QString portname);
   void removeTapeTube(QString portname);
-  void setTapeTube(QString portname, QString control, int value);
+  void setTapeTube(QString portname, QString control, float value);
   void addEq(QString portname);
   void rmEq(QString portname);
-  void setEq(QString portname, int bandId, int value);
+  void setEq(QString portname, int bandId, float value);
   void eqBandAdded(QString portname, int bandId, float freq);
+  void xmms2Play(QString portname);
+  void xmms2Pause(QString portname);
+  void xmms2Next(QString portname);
+  void xmms2Prev(QString portname);
+
   void kill();
 private:
   kr_client_t *client;
