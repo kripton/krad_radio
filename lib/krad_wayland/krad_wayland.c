@@ -399,6 +399,8 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 
 	//wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland);
 	wl_display_get_fd (krad_wayland->display->display);
+    
+    printk ("Krad Wayland: connection set up..");
 
 }
 
@@ -443,6 +445,8 @@ static int krad_wayland_create_window (krad_wayland_t *krad_wayland) {
 	}
 
 	wl_shell_surface_set_toplevel (krad_wayland->window->shell_surface);
+    
+    printk ("Krad Wayland: create_window..");
 
 	return 0;
 }
@@ -557,7 +561,7 @@ void krad_wayland_iterate (krad_wayland_t *krad_wayland) {
 }
 
 void krad_wayland_close_window (krad_wayland_t *krad_wayland) {
-	//printk ("Krad Wayland: destroy_window..");
+	printk ("Krad Wayland: destroy_window..");
 	krad_wayland_destroy_window (krad_wayland);
 	//printk ("Krad Wayland: destroy_display..");	
 	krad_wayland_destroy_display (krad_wayland);
