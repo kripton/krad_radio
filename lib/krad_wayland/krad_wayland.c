@@ -48,7 +48,7 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 
 static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames,
 											uint32_t format, void **data_out) {
-
+    printk("krad_wayland_create_shm_buffer. format:", format);
 
 	char filename[] = "/tmp/wayland-shm-XXXXXX";
 	struct wl_shm_pool *pool;
@@ -386,13 +386,14 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 
 
 	//wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
+  printk("calling dispatch");
+    wl_display_dispatch (krad_wayland->display->display);
+    printk("calling roundtrip");
 	wl_display_roundtrip (krad_wayland->display->display);
-  //wl_display_flush (krad_wayland->display->display);
-
-  //wl_display_dispatch (krad_wayland->display->display);
+    
 
 	if (!(krad_wayland->display->formats & (1 << WL_SHM_FORMAT_XRGB8888))) {
-		printk ("WL_SHM_FORMAT_XRGB32 not available\n");
+		printk ("WL_SHM_FORMAT_XRGB32 not available. supported: %u", krad_wayland->display->formats);
 		exit(1);
 	}
 
