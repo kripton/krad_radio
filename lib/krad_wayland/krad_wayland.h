@@ -25,6 +25,7 @@ typedef struct krad_wayland_window_St krad_wayland_window_t;
 
 struct krad_wayland_display_St {
 	struct wl_display *display;
+  struct wl_registry *registry;
 	struct wl_compositor *compositor;
 	struct wl_shell *shell;
 	struct wl_shm *shm;
@@ -39,6 +40,7 @@ struct krad_wayland_display_St {
 	struct wl_seat_listener seat_listener;
 	struct wl_pointer_listener pointer_listener;
 	
+  struct wl_registry_listener registry_listener;
 	
 	int pointer_x;
 	int pointer_y;
