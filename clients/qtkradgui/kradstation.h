@@ -26,9 +26,13 @@ public slots:
   void handlePortgroupAdded(kr_mixer_portgroup_t *portgroup);
   void setVolume(QString portname, int value);
   void setCrossfade(QString name, int value);
-  void addEq();
-  void setEq(int bandId, int value);
-  void eqBandAdded(int bandId, float freq);
+  void addTapetube(QString portname);
+  void removeTapeTube(QString portname);
+  void setTapeTube(QString portname, QString control, int value);
+  void addEq(QString portname);
+  void rmEq(QString portname);
+  void setEq(QString portname, int bandId, int value);
+  void eqBandAdded(QString portname, int bandId, float freq);
   void kill();
 private:
   kr_client_t *client;

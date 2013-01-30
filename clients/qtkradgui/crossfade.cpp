@@ -7,14 +7,13 @@
 
 
 Crossfade::Crossfade(QString portname, QString label, QWidget *parent) :
-  LabelledSlider(label, parent)
+  LabelledSlider(label, Qt::Horizontal, 100, -100, parent)
 {
-  slider->setMaximum(100);
-  slider->setMinimum(-100);
-  slider->setOrientation(Qt::Horizontal);
- // slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+
   this->portname = portname;
+  slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   disconnect(slider, 0, 0, 0);
+  connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 }
 

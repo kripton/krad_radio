@@ -6,24 +6,23 @@
 //}
 
 EqSlider::EqSlider(int bandId, QWidget *parent) :
-  LabelledSlider(tr("%1").arg(bandId), parent)
+  LabelledSlider(tr("%1").arg(bandId), Qt::Vertical, 32, -32, parent)
 {
-  slider->setMaximum(32);
-  slider->setMinimum(-32);
 
   this->bandId = bandId;
   disconnect(slider, 0, 0, 0);
+  connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 }
 
 EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
-  LabelledSlider(tr("%1").arg(bandId), parent)
+  LabelledSlider(tr("%1 hz").arg(freq), Qt::Vertical, 20, -20, parent)
 {
-    slider->setMaximum(32);
-    slider->setMinimum(-32);
 
     this->bandId = bandId;
     disconnect(slider, 0, 0, 0);
+
+    connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
     connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
   this->freq = freq;
 }

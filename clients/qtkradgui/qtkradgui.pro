@@ -22,7 +22,10 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     resizableframe.cpp \
     eqslider.cpp \
-    eq.cpp
+    eq.cpp \
+    tapetubewidget.cpp \
+    portgroupslider.cpp \
+    filterwidget.cpp
 
 HEADERS  += \
     kradstation.h \
@@ -33,7 +36,10 @@ HEADERS  += \
     mainwindow.h \
     resizableframe.h \
     eqslider.h \
-    eq.h
+    eq.h \
+    tapetubewidget.h \
+    portgroupslider.h \
+    filterwidget.h
 
 
 
