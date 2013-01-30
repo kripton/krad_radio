@@ -140,6 +140,7 @@ typedef struct kr_unit_control_St kr_unit_control_t;
 typedef struct kr_subunit_control_path_St kr_subunit_control_path_t;
 
 typedef union {
+  void *ptr;
   kr_mixer_subunit_t mixer_subunit;
   kr_compositor_subunit_t compositor_subunit;
   kr_transponder_subunit_t transponder_subunit;
@@ -166,20 +167,16 @@ typedef union {
 struct kr_unit_control_St {
   kr_subunit_control_path_t path;
   kr_subunit_address_t address;
+  int subaddress;
   kr_subunit_control_data_t data_type;
   kr_subunit_control_value_t value;
   int duration;
   //krad_ease_t easing;
 };
 
-int kr_subunit_control_set (kr_client_t *kr_client,
-                            kr_unit_t unit,
-                            kr_subunit_t subunit,
-                            kr_subunit_address_t address,
-                            kr_subunit_control_t control,
-                            kr_subunit_control_value_t value);
+int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc);
 
-int kr_string_to_subunit_address (kr_client_t *kr_client, char *string);
+int kr_string_to_unit_control_path_address (char *string, kr_unit_control_t *uc);
 
 
 typedef struct kr_remote_St kr_remote_t;
