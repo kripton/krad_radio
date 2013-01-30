@@ -57,5 +57,4 @@ unix:INCLUDEPATH += "../../lib/krad_compositor"
 
 FORMS +=
 
-OTHER_FILES += \
-    fxbutton.qml
+OTHER_FILES +=
