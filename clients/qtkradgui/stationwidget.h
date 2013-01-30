@@ -7,11 +7,12 @@
 
 #include "kradstation.h"
 #include "broadcastthread.h"
-#include "labelledslider.h"
+#include "portgroupslider.h"
 #include "crossfade.h"
 #include "eq.h"
 #include "eqslider.h"
 #include "tapetubewidget.h"
+#include "filterwidget.h"
 
 class StationWidget : public QWidget
 {
@@ -23,17 +24,20 @@ signals:
 
 public slots:
   void portgroupAdded(kr_mixer_portgroup_t *rep);
+  void addEffects(QString portname);
+  void removeEffects(QString portname);
   void closeTabRequested(int index);
   void closeEffectRequested(int index);
 private:
   KradStation *kradStation;
   BroadcastThread *broadcastThread;
   QThread* broadcastWorkerThread;
-  QList<LabelledSlider *> sliders;
+  QList<PortgroupSlider *> sliders;
   QHBoxLayout *mixerLayout;
   QVBoxLayout *mainLayout;
   EqWidget *eqWidget;
   TapetubeWidget *tapetubeWidget;
+  FilterWidget *filterWidget;
   QTabWidget *tabWidget;
 };
 

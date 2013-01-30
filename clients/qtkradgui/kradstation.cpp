@@ -98,6 +98,11 @@ void KradStation::addTapetube(QString portname)
   kr_mixer_add_effect (client, portname.toAscii().data(), "tapetube");
 }
 
+void KradStation::removeTapeTube(QString portname)
+{
+   kr_mixer_remove_effect(client, portname.toAscii().data(), 1);
+}
+
 void KradStation::setTapeTube(QString portname, QString control, int value)
 {
   qDebug() << tr("trying to set tapetube %1 %2 to %3").arg(portname).arg(control).arg(value);

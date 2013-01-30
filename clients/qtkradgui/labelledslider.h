@@ -13,7 +13,7 @@ class LabelledSlider : public QWidget
   Q_OBJECT
 public:
   explicit LabelledSlider(QWidget *parent = 0);
-  LabelledSlider(QString label, QWidget *parent = 0);
+  LabelledSlider(QString label, Qt::Orientation orientation, int max, int min, QWidget *parent = 0);
   QString getLabel();
 
 signals:
@@ -25,6 +25,7 @@ public slots:
 private:
 
 protected:
+  QVBoxLayout *layout;
   QLabel *label;
   QSlider *slider;
   QLabel *valueLabel;

@@ -7,7 +7,7 @@ EqWidget::EqWidget(QString portname, QWidget *parent) :
   this->portname = portname;
   eqLayout = new QHBoxLayout ();
   this->setLayout(eqLayout);
-  connect(this, SIGNAL(destroyed()), this, SLOT(destroyed()));
+ // connect(this, SIGNAL(destroyed()), this, SLOT(destroyed()));
 }
 
 void EqWidget::addBand(float freq)
@@ -25,9 +25,4 @@ void EqWidget::addBand(float freq)
 void EqWidget::bandDbChanged(int bandId, int freq)
 {
   emit bandDbChanged(portname, bandId, freq);
-}
-
-void EqWidget::destroyed()
-{
-  emit eqDestroyed(portname);
 }

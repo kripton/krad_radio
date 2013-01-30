@@ -13,11 +13,10 @@ public:
 signals:
   void bandAdded(QString portname, int bandId, float freq);
   void bandDbChanged(QString portname, int bandId, int freq);
-  void eqDestroyed(QString portname);
 public slots:
   void addBand(float freq);
   void bandDbChanged(int bandId, int freq);
-  void destroyed();
+ // void destroyed();
   //void eqUpdated()
 private:
 

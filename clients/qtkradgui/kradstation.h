@@ -27,6 +27,7 @@ public slots:
   void setVolume(QString portname, int value);
   void setCrossfade(QString name, int value);
   void addTapetube(QString portname);
+  void removeTapeTube(QString portname);
   void setTapeTube(QString portname, QString control, int value);
   void addEq(QString portname);
   void rmEq(QString portname);
