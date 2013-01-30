@@ -7,8 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent)
 {
   this->setWindowTitle("KRAD PRO");
-  QIcon icon(tr("/home/dsheeler/Picturs/KP.png"));
-  this->setWindowIcon(icon);
+
   tabWidget = new QTabWidget(this);
 
   QStringList sl = KradStation::getRunningStations();
