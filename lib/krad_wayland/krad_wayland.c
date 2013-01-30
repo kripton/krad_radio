@@ -31,8 +31,8 @@ static void krad_wayland_seat_handle_capabilities (void *data, struct wl_seat *s
 
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format);
 static int krad_wayland_event_mask_update (uint32_t mask, void *data);
-static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
-												const char *interface, uint32_t version, void *data);
+static void krad_wayland_handle_global (void *data, struct wl_registry *registry, uint32_t id,
+                                        const char *interface, uint32_t version);
 
 static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland);
 static void krad_wayland_create_display (krad_wayland_t *krad_wayland);
@@ -307,21 +307,21 @@ static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
 	return 0;
 }
 
-static void krad_wayland_handle_global (struct wl_display *display, uint32_t id,
-												const char *interface, uint32_t version, void *data) {
+static void krad_wayland_handle_global (void *data, struct wl_registry *registry, uint32_t id,
+                                        const char *interface, uint32_t version) {
 
 	krad_wayland_t *krad_wayland = data;
 
 	if (strcmp(interface, "wl_compositor") == 0) {
 		krad_wayland->display->compositor =
-			wl_display_bind(display, id, &wl_compositor_interface);
+			wl_registry_bind (krad_wayland->display->registry, id, &wl_compositor_interface, 1);
 	} else if (strcmp(interface, "wl_shell") == 0) {
-		krad_wayland->display->shell = wl_display_bind(display, id, &wl_shell_interface);
+		krad_wayland->display->shell = wl_registry_bind (krad_wayland->display->registry, id, &wl_shell_interface, 1);
 	} else if (strcmp(interface, "wl_seat") == 0) {
-		krad_wayland->display->seat = wl_display_bind(display, id, &wl_seat_interface);
+		krad_wayland->display->seat = wl_registry_bind (krad_wayland->display->registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(krad_wayland->display->seat, &krad_wayland->display->seat_listener, krad_wayland);
 	} else if (strcmp(interface, "wl_shm") == 0) {
-		krad_wayland->display->shm = wl_display_bind(display, id, &wl_shm_interface);
+		krad_wayland->display->shm = wl_registry_bind (krad_wayland->display->registry, id, &wl_shm_interface, 1);
 		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->display->shm_listener, krad_wayland);
 	}
 
@@ -342,6 +342,8 @@ static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
 	if (krad_wayland->display->compositor) {
 		wl_compositor_destroy (krad_wayland->display->compositor);
 	}
+	
+	wl_registry_destroy (krad_wayland->display->registry);
 
 	wl_display_flush (krad_wayland->display->display);
 	wl_display_disconnect (krad_wayland->display->display);
@@ -370,16 +372,28 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display->shm_listener.format = krad_wayland_shm_format;
 
 	krad_wayland->display->formats = 0;
-	wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
-	wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
+	//wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
+
+
+	krad_wayland->display->registry_listener.global = krad_wayland_handle_global;
+
+  krad_wayland->display->registry = wl_display_get_registry (krad_wayland->display->display);
+  wl_registry_add_listener (krad_wayland->display->registry, &krad_wayland->display->registry_listener, krad_wayland);
+
+
+	//wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
 	wl_display_roundtrip (krad_wayland->display->display);
+  //wl_display_flush (krad_wayland->display->display);
+
+  //wl_display_dispatch (krad_wayland->display->display);
 
 	if (!(krad_wayland->display->formats & (1 << WL_SHM_FORMAT_XRGB8888))) {
 		fprintf(stderr, "WL_SHM_FORMAT_XRGB32 not available\n");
 		exit(1);
 	}
 
-	wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland);
+	//wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland);
+	wl_display_get_fd (krad_wayland->display->display);
 
 }
 
@@ -457,7 +471,7 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	} else {
 		wl_surface_damage (krad_wayland->window->surface, 0, 0, 10, 10);
 	}
-
+	
 	if (callback) {
 		wl_callback_destroy (callback);
 	}
@@ -467,6 +481,8 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	krad_wayland->window->frame_listener.done = krad_wayland_frame_listener;
 
 	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland);
+
+	wl_surface_commit (krad_wayland->window->surface);
 
 	//printf ("redraw done\n");
 
@@ -531,7 +547,8 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland) {
 }
 
 void krad_wayland_iterate (krad_wayland_t *krad_wayland) {
-	wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
+	//wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
+	wl_display_dispatch (krad_wayland->display->display);
 }
 
 void krad_wayland_close_window (krad_wayland_t *krad_wayland) {
