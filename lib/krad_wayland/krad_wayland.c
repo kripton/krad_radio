@@ -48,8 +48,6 @@ static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int 
 
 static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int width, int height, int frames,
 											uint32_t format, void **data_out) {
-    //printk("krad_wayland_create_shm_buffer. format:", format);
-
 	char filename[] = "/tmp/wayland-shm-XXXXXX";
 	struct wl_shm_pool *pool;
 	int fd, size, stride;
@@ -60,14 +58,12 @@ static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wid
 
 	fd = mkstemp (filename);
 	if (fd < 0) {
-		//printk ("open %s failed: %m\n", filename);
 		return 1;
 	}
 	stride = width * 4;
 	krad_wayland->frame_size = stride * height;
 	size = krad_wayland->frame_size * frames;
 	if (ftruncate (fd, size) < 0) {
-        //printk ("ftruncate failed: %m\n");
 		close (fd);
 		return 1;
 	}
@@ -76,7 +72,6 @@ static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wid
 	unlink (filename);
 
 	if (data == MAP_FAILED) {
-		//printk ("mmap failed: %m\n");
 		close (fd);
 		return 1;
 	}
@@ -96,17 +91,14 @@ static int krad_wayland_create_shm_buffer (krad_wayland_t *krad_wayland, int wid
 											
 static void krad_wayland_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial) {
 	wl_shell_surface_pong (shell_surface, serial);
-	//printk ("handle ping happened\n");	
 }
 
 static void krad_wayland_handle_configure (void *data, struct wl_shell_surface *shell_surface,
 							  uint32_t edges, int32_t width, int32_t height) {
-	//printk ("handle configure happened\n");
 							  
 }
 
 static void krad_wayland_handle_popup_done (void *data, struct wl_shell_surface *shell_surface) {
-	//printk ("handle popup_done happened\n");	
 }
 
 static void
@@ -115,41 +107,11 @@ krad_wayland_pointer_handle_enter(void *data, struct wl_pointer *pointer,
 		     wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
 	krad_wayland_t *krad_wayland = data;
-	//struct window *window;
-	//struct widget *widget;
-	//float sx = wl_fixed_to_double(sx_w);
-	//float sy = wl_fixed_to_double(sy_w);
 
 	krad_wayland->display->pointer_x = wl_fixed_to_int(sx_w);
 	krad_wayland->display->pointer_y = wl_fixed_to_int(sy_w);
 
 	krad_wayland->mousein = 1;
-
-	/*
-
-	if (!surface) {
-		// enter event for a window we've just destroyed 
-		return;
-	}
-
-	input->display->serial = serial;
-	input->pointer_enter_serial = serial;
-	input->pointer_focus = wl_surface_get_user_data(surface);
-	window = input->pointer_focus;
-
-	if (window->pool) {
-		shm_pool_destroy(window->pool);
-		window->pool = NULL;
-		//Schedule a redraw to free the pool 
-		window_schedule_redraw(window);
-	}
-
-	input->sx = sx;
-	input->sy = sy;
-
-	widget = widget_find_widget(window->widget, sx, sy);
-	input_set_focus_widget(input, widget, sx, sy);
-	*/
 }
 
 static void
@@ -162,9 +124,6 @@ krad_wayland_pointer_handle_leave(void *data, struct wl_pointer *pointer,
 	krad_wayland->display->pointer_y = -1;
 
 	krad_wayland->mousein = 0;
-
-	//input->display->serial = serial;
-	//input_remove_pointer_focus(input);
 }
 
 static void
@@ -172,37 +131,9 @@ krad_wayland_pointer_handle_motion(void *data, struct wl_pointer *pointer,
 		      uint32_t time, wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
 	krad_wayland_t *krad_wayland = data;
-	/*
-	struct window *window = input->pointer_focus;
-	struct widget *widget;
-	int cursor = CURSOR_LEFT_PTR;
-	*/
-	//float sx = wl_fixed_to_double(sx_w);
-	//float sy = wl_fixed_to_double(sy_w);
 
 	krad_wayland->display->pointer_x = wl_fixed_to_int(sx_w);
 	krad_wayland->display->pointer_y = wl_fixed_to_int(sy_w);
-
-	/*
-	input->sx = sx;
-	input->sy = sy;
-
-	if (!(input->grab && input->grab_button)) {
-		widget = widget_find_widget(window->widget, sx, sy);
-		input_set_focus_widget(input, widget, sx, sy);
-	}
-
-	if (input->grab)
-		widget = input->grab;
-	else
-		widget = input->focus_widget;
-	if (widget && widget->motion_handler)
-		cursor = widget->motion_handler(input->focus_widget,
-						input, time, sx, sy,
-						widget->user_data);
-
-	input_set_pointer_image(input, cursor);
-	*/
 }
 
 static void
@@ -211,56 +142,21 @@ krad_wayland_pointer_handle_button(void *data, struct wl_pointer *pointer, uint3
 {
 	krad_wayland_t *krad_wayland = data;
 	
-	//struct widget *widget;
 	enum wl_pointer_button_state state = state_w;
 
 	if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-		//printk ("clicky!\n");
 		krad_wayland->click = 1;
 	}
 	
 	if (state == WL_POINTER_BUTTON_STATE_RELEASED) {
-		//printk ("unclicky..\n");
 		krad_wayland->click = 0;		
 	}
-
-	/*
-	input->display->serial = serial;
-	if (input->focus_widget && input->grab == NULL &&
-	    state == WL_POINTER_BUTTON_STATE_PRESSED)
-		input_grab(input, input->focus_widget, button);
-
-	widget = input->grab;
-	if (widget && widget->button_handler)
-		(*widget->button_handler)(widget,
-					  input, time,
-					  button, state,
-					  input->grab->user_data);
-
-	if (input->grab && input->grab_button == button &&
-	    state == WL_POINTER_BUTTON_STATE_RELEASED)
-		input_ungrab(input);
-	*/
 }
 
 static void
 krad_wayland_pointer_handle_axis(void *data, struct wl_pointer *pointer,
 		    uint32_t time, uint32_t axis, wl_fixed_t value)
 {
-	//krad_wayland_t *krad_wayland = data;
-
-	/*
-	struct widget *widget;
-
-	widget = input->focus_widget;
-	if (input->grab)
-		widget = input->grab;
-	if (widget && widget->axis_handler)
-		(*widget->axis_handler)(widget,
-					input, time,
-					axis, value,
-					widget->user_data);
-	*/
 }
 
 static void krad_wayland_seat_handle_capabilities (void *data, struct wl_seat *seat, enum wl_seat_capability caps) {
@@ -269,23 +165,11 @@ static void krad_wayland_seat_handle_capabilities (void *data, struct wl_seat *s
 
 	if ((caps & WL_SEAT_CAPABILITY_POINTER) && !krad_wayland->display->pointer) {
 		krad_wayland->display->pointer = wl_seat_get_pointer(seat);
-		//wl_pointer_set_user_data (krad_wayland->display->pointer, krad_wayland);
 		wl_pointer_add_listener (krad_wayland->display->pointer, &krad_wayland->display->pointer_listener, krad_wayland);
 	} else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && krad_wayland->display->pointer) {
 		wl_pointer_destroy(krad_wayland->display->pointer);
 		krad_wayland->display->pointer = NULL;
 	}
-	/*
-	if ((caps & WL_SEAT_CAPABILITY_KEYBOARD) && !input->keyboard) {
-		input->keyboard = wl_seat_get_keyboard(seat);
-		wl_keyboard_set_user_data(input->keyboard, input);
-		wl_keyboard_add_listener(input->keyboard, &keyboard_listener,
-					 input);
-	} else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && input->keyboard) {
-		wl_keyboard_destroy(input->keyboard);
-		input->keyboard = NULL;
-	}
-	*/
 }
 
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format) {
@@ -294,8 +178,6 @@ static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t
 
 	krad_wayland->display->formats |= (1 << format);
 
-	//printk ("shm_format happened\n");
-
 }
 
 static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
@@ -303,7 +185,6 @@ static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
 	krad_wayland_t *krad_wayland = data;
 
 	krad_wayland->display->mask = mask;
-	//printk ("event_mask_update happened %u\n", mask);
 	return 0;
 }
 
@@ -313,24 +194,17 @@ static void krad_wayland_handle_global (void *data, struct wl_registry *registry
 	krad_wayland_t *krad_wayland = data;
 
 	if (strcmp(interface, "wl_compositor") == 0) {
-        //printk("interface: wl_compositor");
 		krad_wayland->display->compositor =
 			wl_registry_bind (krad_wayland->display->registry, id, &wl_compositor_interface, 1);
 	} else if (strcmp(interface, "wl_shell") == 0) {
-        //printk("interface: wl_shell");
 		krad_wayland->display->shell = wl_registry_bind (krad_wayland->display->registry, id, &wl_shell_interface, 1);
 	} else if (strcmp(interface, "wl_seat") == 0) {
-        //printk("interface: wl_seat");
 		krad_wayland->display->seat = wl_registry_bind (krad_wayland->display->registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(krad_wayland->display->seat, &krad_wayland->display->seat_listener, krad_wayland);
 	} else if (strcmp(interface, "wl_shm") == 0) {
-        //printk("interface: wl_shm");
 		krad_wayland->display->shm = wl_registry_bind (krad_wayland->display->registry, id, &wl_shm_interface, 1);
 		wl_shm_add_listener(krad_wayland->display->shm, &krad_wayland->display->shm_listener, krad_wayland);
 	}
-
-	//printk ("display_handle_global happened\n");
-
 }
 
 static void krad_wayland_destroy_display (krad_wayland_t *krad_wayland) {
@@ -359,7 +233,7 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display = calloc (1, sizeof (krad_wayland_display_t));
 	krad_wayland->display->display = wl_display_connect (NULL);
 	if (krad_wayland->display->display == NULL) {
-		//printk ("Can't connect to wayland\n");
+		printk ("Can't connect to wayland\n");
 		exit (1);
 	}
 
@@ -376,7 +250,6 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
 	krad_wayland->display->shm_listener.format = krad_wayland_shm_format;
 
 	krad_wayland->display->formats = 0;
-	//wl_display_add_global_listener (krad_wayland->display->display, krad_wayland_handle_global, krad_wayland);
 
 
 	krad_wayland->display->registry_listener.global = krad_wayland_handle_global;
@@ -384,20 +257,14 @@ static void krad_wayland_create_display (krad_wayland_t *krad_wayland) {
   krad_wayland->display->registry = wl_display_get_registry (krad_wayland->display->display);
   wl_registry_add_listener (krad_wayland->display->registry, &krad_wayland->display->registry_listener, krad_wayland);
 
-
-	//wl_display_iterate (krad_wayland->display->display, WL_DISPLAY_READABLE);
-  //printk("calling dispatch");
     wl_display_dispatch (krad_wayland->display->display);
-    //printk("calling roundtrip");
 	wl_display_roundtrip (krad_wayland->display->display);
     
 
 	if (!(krad_wayland->display->formats & (1 << WL_SHM_FORMAT_XRGB8888))) {
-		//printk ("WL_SHM_FORMAT_XRGB32 not available. supported: %u", krad_wayland->display->formats);
+		printk ("WL_SHM_FORMAT_XRGB32 not available. supported: %u", krad_wayland->display->formats);
 		exit(1);
 	}
-
-	//wl_display_get_fd (krad_wayland->display->display, krad_wayland_event_mask_update, krad_wayland);
 	wl_display_get_fd (krad_wayland->display->display);
     
     printk ("Krad Wayland: connection set up..");
@@ -459,8 +326,6 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 
 	updated = 0;
 
-	//printk ("redraw happened %u\n", time);
-
 	if (krad_wayland->render_test_pattern == 1) {
 		krad_wayland_render (krad_wayland, krad_wayland->window->shm_data,
 				     krad_wayland->window->width, krad_wayland->window->height, time);
@@ -492,9 +357,6 @@ static void krad_wayland_frame_listener (void *data, struct wl_callback *callbac
 	wl_callback_add_listener (krad_wayland->window->callback, &krad_wayland->window->frame_listener, krad_wayland);
 
 	wl_surface_commit (krad_wayland->window->surface);
-
-	//printk ("redraw done\n");
-
 }
 
 static void krad_wayland_render (krad_wayland_t *krad_wayland, void *image, int width, int height, uint32_t time) {
@@ -556,14 +418,12 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland) {
 }
 
 void krad_wayland_iterate (krad_wayland_t *krad_wayland) {
-	//wl_display_iterate (krad_wayland->display->display, krad_wayland->display->mask);
 	wl_display_dispatch (krad_wayland->display->display);
 }
 
 void krad_wayland_close_window (krad_wayland_t *krad_wayland) {
 	printk ("Krad Wayland: destroy_window..");
 	krad_wayland_destroy_window (krad_wayland);
-	//printk ("Krad Wayland: destroy_display..");	
 	krad_wayland_destroy_display (krad_wayland);
 }
 
