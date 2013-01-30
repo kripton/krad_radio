@@ -16,5 +16,7 @@ SOURCES +=\
     resizableframe.cpp \
     frametest_main.cpp
 
+
 HEADERS  += \
-    resizableframe.h \
+    resizableframe.h
+
