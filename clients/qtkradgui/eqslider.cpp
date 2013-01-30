@@ -16,7 +16,7 @@ EqSlider::EqSlider(int bandId, QWidget *parent) :
 }
 
 EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
-  LabelledSlider(tr("%1 hz").arg(freq), Qt::Vertical, 32, -32, parent)
+  LabelledSlider(tr("%1 hz").arg(freq), Qt::Vertical, 20, -20, parent)
 {
 
     this->bandId = bandId;

@@ -11,6 +11,7 @@ Crossfade::Crossfade(QString portname, QString label, QWidget *parent) :
 {
 
   this->portname = portname;
+  slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   disconnect(slider, 0, 0, 0);
   connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));

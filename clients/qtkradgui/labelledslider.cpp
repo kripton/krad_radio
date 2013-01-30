@@ -14,10 +14,10 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
   slider->setMinimum(min);
   slider->setMaximum(max);
   slider->setOrientation(orientation);
-  slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  //slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //this->label.setAlignment(Qt::Vertical);
   layout = new QVBoxLayout(this);
-  layout->addWidget(slider);
+  layout->addWidget(slider, 0, Qt::AlignHCenter);
   layout->addWidget(this->valueLabel, 0, Qt::AlignHCenter);
   layout->addWidget(this->label, 0, Qt::AlignHCenter);
 

@@ -7,11 +7,15 @@ PortgroupSlider::PortgroupSlider(QString label, QWidget *parent) :
   portname = label;
   QHBoxLayout *bg = new QHBoxLayout(this);
 
-  QPushButton *addEfxButton = new QPushButton(tr("+ Efx"));
-  QPushButton *rmEfxButton = new QPushButton(tr("- Efx"));
+  QPushButton *addEfxButton = new QPushButton(tr("+fx"));
+  addEfxButton->setFixedWidth(40);
+
+  QPushButton *rmEfxButton = new QPushButton(tr("-fx"));
+  rmEfxButton->setFixedWidth(40);
   bg->addWidget(addEfxButton);
   bg->addWidget(rmEfxButton);
   layout->addLayout(bg);
+
 
   connect(addEfxButton, SIGNAL(clicked()), this, SLOT(addEffects()));
   connect(rmEfxButton, SIGNAL(clicked()), this, SLOT(removeEffects()));
