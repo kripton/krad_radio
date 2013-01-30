@@ -9,6 +9,8 @@
 #include <QApplication>
 #include <QGraphicsProxyWidget>
 
+#define BORDER_RANGE 5
+
 //namespace Ui {
 //class ResizableFrame;
 //}
@@ -36,6 +38,16 @@ private:
     QLabel *opacityLabel;
     double opacity;
     QGraphicsProxyWidget *proxy;
+
+public slots:
+    void updateGeometry(QRect geometry);
+    void updateOpacity(float opacity);
+    void updaterotation(float angle);
+
+signals:
+    void geometryChanged(QRect newGeometry);
+    void opacityChanged(float newOpacity);
+    void rotationChanged(float newAngle);
 };
 
 #endif // RESIZABLEFRAME_H

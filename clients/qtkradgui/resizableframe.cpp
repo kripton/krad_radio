@@ -33,28 +33,28 @@ void ResizableFrame::mouseMoveEvent(QMouseEvent *event)
     if (!(event->buttons() & Qt::LeftButton)) {
         // No drag, just change the cursor and return
 
-        if (event->x() <= 3 && event->y() <= 3) {
+        if (event->x() <= BORDER_RANGE && event->y() <= BORDER_RANGE) {
             startPos = topleft;
             setCursor(Qt::SizeFDiagCursor);
-        } else if (event->x() <= 3 && event->y() >= height() - 3) {
+        } else if (event->x() <= BORDER_RANGE && event->y() >= height() - BORDER_RANGE) {
             startPos = bottomleft;
             setCursor(Qt::SizeBDiagCursor);
-        } else if (event->x() >= width() - 3 && event->y() <= 3) {
+        } else if (event->x() >= width() - BORDER_RANGE && event->y() <= BORDER_RANGE) {
             startPos = topright;
             setCursor(Qt::SizeBDiagCursor);
-        } else if (event->x() >= width() - 3 && event->y() >= height() - 3) {
+        } else if (event->x() >= width() - BORDER_RANGE && event->y() >= height() - BORDER_RANGE) {
             startPos = bottomright;
             setCursor(Qt::SizeFDiagCursor);
-        } else if (event->x() <= 3) {
+        } else if (event->x() <= BORDER_RANGE) {
             startPos = left;
             setCursor(Qt::SizeHorCursor);
-        } else if (event->x() >= width() - 3) {
+        } else if (event->x() >= width() - BORDER_RANGE) {
             startPos = right;
             setCursor(Qt::SizeHorCursor);
-        } else if (event->y() <= 3) {
+        } else if (event->y() <= BORDER_RANGE) {
             startPos = top;
             setCursor(Qt::SizeVerCursor);
-        } else if (event->y() >= height() - 3) {
+        } else if (event->y() >= height() - BORDER_RANGE) {
             startPos = bottom;
             setCursor(Qt::SizeVerCursor);
         } else {
@@ -137,6 +137,8 @@ void ResizableFrame::mouseMoveEvent(QMouseEvent *event)
     default:
         break;
     }
+
+    emit geometryChanged(geometry());
 }
 
 void ResizableFrame::wheelEvent(QWheelEvent *event)
@@ -144,17 +146,38 @@ void ResizableFrame::wheelEvent(QWheelEvent *event)
     event->accept();
     if (event->orientation() != Qt::Vertical) return;
 
-    qDebug() << "WHEEL:" << event->delta() << "Modifiers:" <<  QApplication::keyboardModifiers();
+    //qDebug() << "WHEEL:" << event->delta() << "Modifiers:" <<  QApplication::keyboardModifiers();
 
     // Rotate
     if ((proxy != NULL) &&  (QApplication::keyboardModifiers() & Qt::ControlModifier)) {
         proxy->setTransformOriginPoint(geometry().width()/2, geometry().height()/2);
         proxy->setRotation(proxy->rotation() - event->delta() / 60.0);
+        emit rotationChanged(proxy->rotation());
     } else {
         // Change opacity
         opacity = opacity + (event->delta() / 4800.0);
         if (opacity < 0.0) opacity = 0.0;
         if (opacity > 1.0) opacity = 1.0;
         opacityLabel->setText(QString("Opacity: %1").arg(opacity, 0, 'f', 3));
+        emit opacityChanged(opacity);
     }
+}
+
+void ResizableFrame::updateGeometry(QRect geometry)
+{
+    setGeometry(geometry);
+}
+
+void ResizableFrame::updateOpacity(float opacity)
+{
+    this->opacity = opacity;
+    if (this->opacity < 0.0) this->opacity = 0.0;
+    if (this->opacity > 1.0) this->opacity = 1.0;
+    opacityLabel->setText(QString("Opacity: %1").arg(this->opacity, 0, 'f', 3));
+}
+
+void ResizableFrame::updaterotation(float angle)
+{
+   proxy->setTransformOriginPoint(geometry().width()/2, geometry().height()/2);
+    proxy->setRotation(angle);
 }
