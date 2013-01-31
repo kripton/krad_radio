@@ -282,10 +282,10 @@ void KradStation::emitItemType(kr_item_t *item)
         }
     }
 
-    if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
+   /* if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
         emit portgroupDestroyed(tr(rep->rep_ptr.mixer_portgroup->sysname));
     }
-
+*/
 }
 
 
