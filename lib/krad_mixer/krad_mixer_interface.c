@@ -3,7 +3,7 @@
 static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
                                                          krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep);
 
-static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, char *portgroupname);
+//static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, char *portgroupname);
 static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *krad_mixer_portgroup );
 
 static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
@@ -143,6 +143,7 @@ int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *port
   return -1;
 }
 
+/*
 static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, char *portgroupname) {
 
   size_t size;
@@ -177,9 +178,8 @@ static int krad_mixer_broadcast_portgroup_destroyed (krad_mixer_t *krad_mixer, c
 
   return -1;
 
-}
-        
-
+}    
+*/
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc ) {
 
   uint32_t command;
@@ -357,7 +357,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
 
       kr_effects_effect_set_control (portgroup->effects, number,
-                                     kr_effects_string_to_effect_control(portgroup->effects[number].effect->effect_type, controlname),
+                                     kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type, controlname),
                                      numbers[5], floatval);
 
       break;
@@ -571,7 +571,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       
       krad_mixer_portgroup_destroy (krad_mixer, krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname));
     
-      krad_mixer_broadcast_portgroup_destroyed ( krad_mixer, portgroupname );
+      krad_radio_broadcast_subunit_destroyed (krad_mixer->broadcaster, KR_MIXER, KR_PORTGROUP, portgroupname);
+      //krad_mixer_broadcast_portgroup_destroyed ( krad_mixer, portgroupname );
   
       break;
       

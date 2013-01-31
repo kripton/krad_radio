@@ -25,9 +25,11 @@ depsources = """
 ../lib/krad_compositor/krad_compositor_common.c
 ../lib/krad_compositor/krad_compositor_subunit.c
 ../lib/krad_compositor/krad_compositor_interface.c
+../lib/krad_compositor/krad_vector.c
 ../lib/krad_compositor/krad_sprite.c
 ../lib/krad_compositor/krad_text.c
 ../lib/krad_chronometer/krad_easing.c
+../lib/krad_compositor/krad_perspective.c
 ../lib/krad_compositor/krad_compositor.c
 ../lib/krad_framepool/krad_framepool.c
 ../lib/krad_osc/krad_osc.c
@@ -44,6 +46,7 @@ depsources = """
 ../lib/krad_web/krad_http.c
 ../lib/krad_web/krad_websocket.c
 ../lib/krad_sfx/krad_eq.c
+../lib/krad_sfx/krad_tapetube.c
 ../lib/krad_sfx/krad_pass.c
 ../lib/krad_sfx/krad_hardlimiter.c
 ../lib/krad_sfx/krad_rushlimiter.c

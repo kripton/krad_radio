@@ -8,8 +8,13 @@
 #include <time.h>
 
 #include "krad_system.h"
+#include "krad_easing.h"
+
+#include "krad_sfx_common.h"
 
 #include "biquad.h"
+
+#define MAX_BANDS 32
 
 #define KRAD_EQ_CONTROL_DB 666
 #define KRAD_EQ_CONTROL_BANDWIDTH 667
@@ -18,8 +23,12 @@
 #define KRAD_EQ_OPCONTROL_ADDBAND 669
 #define KRAD_EQ_OPCONTROL_RMBAND 670
 
-
-#define MAX_BANDS 32
+#define KRAD_EQ_BANDWIDTH_MIN 0.1
+#define KRAD_EQ_BANDWIDTH_MAX 5.0
+#define KRAD_EQ_DB_MIN -50.0
+#define KRAD_EQ_DB_MAX 20.0
+#define KRAD_EQ_HZ_MIN 20.0
+#define KRAD_EQ_HZ_MAX 20000.0
 
 typedef struct {
 
@@ -28,11 +37,11 @@ typedef struct {
   float db;
   float bandwidth;
   float hz;
-
-  float new_db;
-  float new_bandwidth;
-  float new_hz;
-
+  
+  krad_easing_t krad_easing_db;
+  krad_easing_t krad_easing_bandwidth;
+  krad_easing_t krad_easing_hz;
+  
   int active;
 
 } kr_eq_band_t;

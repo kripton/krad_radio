@@ -93,6 +93,18 @@ void handle_response (kr_client_t *client) {
       if (kr_response_to_int (response, &number)) {
         printf ("Response Int: %d\n", number);
       }
+      if (kr_response_get_item (response, &item)) {
+        printk ("Got item.. type is %s\n", kr_item_get_type_string (item));
+        if (kr_item_to_string (item, &string)) {
+          printf ("Item String: %s\n", string);
+          kr_response_free_string (&string);
+        }
+        //rep = kr_item_to_rep (item);
+        //if (rep != NULL) {
+        //  rep_to_json (kr_ws_client, rep);
+        //  kr_rep_free (&rep);
+        //}
+      }
       kr_response_free (&response);
     }
   } else {

@@ -10,11 +10,16 @@
 #include "biquad.h"
 
 #include "krad_system.h"
-
+#include "krad_easing.h"
 
 #define KRAD_PASS_CONTROL_TYPE 788
 #define KRAD_PASS_CONTROL_BANDWIDTH 789
 #define KRAD_PASS_CONTROL_HZ 780
+
+#define KRAD_PASS_BANDWIDTH_MIN 0.1
+#define KRAD_PASS_BANDWIDTH_MAX 5.0
+#define KRAD_PASS_HZ_MIN 20.0
+#define KRAD_PASS_HZ_MAX 20000.0
 
 typedef struct {
 
@@ -25,12 +30,13 @@ typedef struct {
   float hz;
 
   int new_type;
-  float new_bandwidth;
-  float new_hz;
 
   float new_sample_rate;
   float sample_rate;
-      
+  
+  krad_easing_t krad_easing_bandwidth;
+  krad_easing_t krad_easing_hz;
+  
 } kr_pass_t;
 
 

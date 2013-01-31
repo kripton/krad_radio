@@ -1291,19 +1291,270 @@ void kr_set_tag (kr_client_t *client, char *item, char *tag_name, char *tag_valu
   krad_ebml_write_sync (client->krad_ebml);
 }
 
+#define MAX_TOKENS 8
+
+int kr_string_to_unit_control_path_address (char *string, kr_unit_control_t *uc) {
+
+  char *pch;
+  char *save;
+  char *tokens[MAX_TOKENS];
+  int t;
+  int i;
+  
+  kr_unit_t *unit;
+  kr_subunit_t *subunit;
+  kr_subunit_address_t *address;
+  kr_subunit_control_t *control;
+    
+  unit = &uc->path.unit;
+  subunit = &uc->path.subunit;
+  address = &uc->address;    
+  control = &uc->path.control;
+  
+  i = 0;
+  t = 0;
+  save = NULL;
+
+  printf ("string was %s\n", string);
+
+  pch = strtok_r (string, "/ ", &save);
+  while ((pch != NULL) && (t < MAX_TOKENS)) {
+    tokens[t] = pch;
+    t++;
+    printf ("%s ", pch);
+    pch = strtok_r (NULL, "/ ", &save);
+  }
+
+  printf ("\n%d tokens\n", t);
+
+  for (i = 0; i < t; i++) {
+    printf ("%d: %s  ", i + 1, tokens[i]);
+  }
+  
+  printf ("\n");
+  
+  if (t < 2) {
+    printf ("Invalid Unit Control Address: Less than 2 parts\n");
+    return -1;
+  }
+    
+  // Determine Unit
+  
+  if (tokens[0][1] == '\0') {
+    switch (tokens[0][0]) {
+      case 'm':
+        *unit = KR_MIXER;
+        break;
+      case 'c':
+        *unit = KR_COMPOSITOR;
+        break;
+      case 't':
+        *unit = KR_TRANSPONDER;
+        break;
+      case 'e':
+        *unit = KR_MIXER;
+        subunit->mixer_subunit = KR_EFFECT;
+        break;
+      case 's':
+        *unit = KR_COMPOSITOR;
+        subunit->compositor_subunit = KR_SPRITE;
+        break;
+      case 'v':
+        *unit = KR_COMPOSITOR;
+        subunit->compositor_subunit = KR_VIDEOPORT;
+        break;
+    }
+  } else {
+    if (tokens[0][2] == '\0') {
+      if ((tokens[0][0] == 'c') && (tokens[0][1] == 's')) {
+        *unit = KR_COMPOSITOR;
+        subunit->compositor_subunit = KR_SPRITE;
+      }
+      if ((tokens[0][0] == 'v') && (tokens[0][1] == 'e')) {
+        *unit = KR_COMPOSITOR;
+        subunit->compositor_subunit = KR_VECTOR;
+      }
+      if ((tokens[0][0] == 't') && (tokens[0][1] == 't')) {
+        *unit = KR_COMPOSITOR;
+        subunit->compositor_subunit = KR_TEXT;
+      }
+    } else {
+      if (tokens[0][3] == '\0') {
+        if ((tokens[0][0] == 'v') && (tokens[0][1] == 'e') && (tokens[0][1] == 'c')) {
+          *unit = KR_COMPOSITOR;
+        }
+        if ((tokens[0][0] == 'm') && (tokens[0][1] == 'i') && (tokens[0][1] == 'x')) {
+          *unit = KR_MIXER;
+        }
+        if ((tokens[0][0] == 'c') && (tokens[0][1] == 'o') && (tokens[0][1] == 'm')) {
+          *unit = KR_COMPOSITOR;
+        }
+      } else {
+        if (tokens[0][4] == '\0') {
+          if ((tokens[0][0] == 't') && (tokens[0][1] == 'e') &&
+              (tokens[0][1] == 'x') && (tokens[0][1] == 't')) {
+            *unit = KR_COMPOSITOR;
+            subunit->compositor_subunit = KR_TEXT;
+          }
+          if ((tokens[0][0] == 'c') && (tokens[0][1] == 'o') &&
+              (tokens[0][1] == 'm') && (tokens[0][1] == 'p')) {
+            *unit = KR_COMPOSITOR;
+          }
+        } else {
+          if (tokens[0][5] == '\0') {
+            if ((tokens[0][0] == 'v') && (tokens[0][1] == 'e') &&
+                (tokens[0][1] == 'c') && (tokens[0][1] == 'o') && (tokens[0][1] == 'r')) {
+              *unit = KR_COMPOSITOR;
+              subunit->compositor_subunit = KR_VECTOR;
+            }
+           if ((tokens[0][0] == 'm') && (tokens[0][1] == 'i') &&
+                (tokens[0][1] == 'x') && (tokens[0][1] == 'e') && (tokens[0][1] == 'r')) {
+              *unit = KR_MIXER;
+            }
+          } else {
+            if (tokens[0][6] == '\0') {
+              if ((tokens[0][0] == 's') && (tokens[0][1] == 'p') && (tokens[0][1] == 'r') &&
+                  (tokens[0][1] == 'i') && (tokens[0][1] == 't') && (tokens[0][1] == 'e')) {
+                *unit = KR_COMPOSITOR;
+                subunit->compositor_subunit = KR_SPRITE;
+              }
+            } else {
+              if ((strlen(tokens[0]) == 10) && (strncmp(tokens[0], "compositor", 10) == 0)) {
+                *unit = KR_COMPOSITOR;
+              } else {
+                if ((strlen(tokens[0]) == 11) && (strncmp(tokens[0], "transponder", 11) == 0)) {
+                  *unit = KR_TRANSPONDER;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (*unit == 0) {
+    printf ("Unit could not be identified\n");
+    return -1;
+  }
+  
+  if (subunit->ptr == NULL) {
+    switch (*unit) {
+      case KR_MIXER:
+        strncpy (address->name, tokens[1], sizeof (address->name));
+        if (t == 2) {
+          subunit->mixer_subunit = KR_PORTGROUP;
+          control->portgroup_control = KR_VOLUME;
+        }
+        if (t > 3) {
+          subunit->mixer_subunit = KR_EFFECT;
+        } else {
+          subunit->mixer_subunit = KR_PORTGROUP;
+        }
+        if (t == 3) {
+          if ((tokens[2][0] == 'f') || (tokens[2][0] == 'c')) {
+            control->portgroup_control = KR_CROSSFADE;
+          } else {
+            if ((tokens[2][0] == 'v')) {
+              control->portgroup_control = KR_VOLUME;
+            } else {
+              printf ("Invalid Mixer Portgroup Control\n");
+              return -1;
+            }
+          }
+        }
+        break;
+      case KR_COMPOSITOR:
+        printf ("Invalid COMPOSITOR Control\n");
+        return -1;
+        break;
+      case KR_TRANSPONDER:
+        printf ("Invalid TRANSPONDER Control\n");
+        return -1;
+        break;
+      case KR_RADIO:
+        printf ("Invalid RADIO Control\n");
+        return -1;
+        break;
+    }
+  }
+  
+  if (subunit->ptr == NULL) {
+    printf ("Subunit could not be identified\n");
+    return -1;
+  }
+ 
+  // Print it out
+ 
+  switch (*unit) {
+    case KR_RADIO:
+
+      break;
+    case KR_MIXER:
+      switch (subunit->mixer_subunit) {
+        case KR_PORTGROUP:
+          printf ("Mixer Unit, Portgroup: %s ", address->name);
+          if (control->portgroup_control == KR_VOLUME) {
+            printf ("Volume\n");
+          } else {
+            printf ("Crossfade\n");
+          }
+          break;
+        case KR_EFFECT:
+          printf ("Mixer Unit, Effect\n");
+          break;
+      }
+      break;
+    case KR_COMPOSITOR:
+      switch (subunit->compositor_subunit) {
+        case KR_VIDEOPORT:
+          printf ("Compositor Unit, Videoport\n");
+          break;
+        case KR_SPRITE:
+          printf ("Compositor Unit, Sprite\n");
+          break;
+        case KR_TEXT:
+          printf ("Compositor Unit, Text\n");
+          break;
+        case KR_VECTOR:
+          printf ("Compositor Unit, Vector\n");
+          break;
+      }
+      break;
+    case KR_TRANSPONDER:
+      switch (subunit->transponder_subunit) {
+        case KR_TRANSMITTER:
+          printf ("Transponder Unit, Transmitter\n");
+          break;
+        case KR_RECEIVER:
+          printf ("Transponder Unit, Receiver\n");
+          break;
+        case KR_DEMUXER:
+          printf ("Transponder Unit, Demuxer\n");
+          break;
+        case KR_MUXER:
+          printf ("Transponder Unit, Muxer\n");
+          break;
+        case KR_ENCODER:
+          printf ("Transponder Unit, Encoder\n");
+          break;
+        case KR_DECODER:
+          printf ("Transponder Unit, Decoder\n");
+          break;
+      }
+      break;
+    }
+
+  return 0;
+}
 
 
-int kr_subunit_control_set (kr_client_t *client,
-                            kr_unit_t unit,
-                            kr_subunit_t subunit,
-                            kr_subunit_address_t address,
-                            kr_subunit_control_t control,
-                            kr_subunit_control_value_t value) {
+int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc) {
 
   uint64_t command;
   uint64_t control_set;
 
-  switch (unit) {
+  switch (uc->path.unit) {
     case KR_MIXER:
       krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &command);
       break;
@@ -1319,8 +1570,22 @@ int kr_subunit_control_set (kr_client_t *client,
   
   krad_ebml_start_element (client->krad_ebml, EBML_ID_CONTROL_SET, &control_set);
   
-  switch (unit) {
+  switch (uc->path.unit) {
     case KR_MIXER:
+      switch (uc->path.subunit.mixer_subunit) {
+        case KR_PORTGROUP:
+          if (uc->path.control.portgroup_control == KR_VOLUME) {
+            kr_mixer_set_control (client, uc->address.name, "volume", uc->value.real, uc->duration);
+          } else {
+            kr_mixer_set_control (client, uc->address.name, "crossfade", uc->value.real, uc->duration);
+          }
+
+          break;
+
+        case KR_EFFECT:
+
+          break;
+      }
       // portgroup name
       // control vol/fade
       // value

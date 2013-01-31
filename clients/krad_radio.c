@@ -24,6 +24,7 @@ int main (int argc, char *argv[]) {
   char *sysname;
   int ret;
   int val;
+  kr_unit_control_t uc;
 
   sysname = NULL;
   client = NULL;
@@ -405,7 +406,25 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  if (strncmp(argv[2], "set", 3) == 0) {
+  if ((argc > 3) &&
+      (((strlen(argv[2]) == 1) && (strncmp(argv[2], "s", 1) == 0)) ||
+       ((strlen(argv[2]) == 3) && (strncmp(argv[2], "set", 3) == 0)))) {
+
+      memset (&uc, 0, sizeof (uc));
+      if (kr_string_to_unit_control_path_address (argv[3], &uc)) {
+        if (argc == 4) {
+          //kr_unit_info (client, &uc);
+        } else {
+          uc.value.real = atof(argv[4]);
+          if (argc == 6) {
+            uc.duration = atoi(argv[5]);
+          }
+          kr_unit_control_set (client, &uc);
+        }
+      }
+  }
+
+  if (strncmp(argv[2], "setmix", 6) == 0) {
     if (argc == 6) {
       kr_mixer_set_control (client, argv[3], argv[4], atof(argv[5]), 0);
     }

@@ -887,12 +887,12 @@ int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
       //printf("Received KRAD_MIXER_PORTGROUP_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
       *string = kr_response_alloc_string (ebml_data_size * 4);
       return kr_response_get_string_from_list (ebml_id, kr_response->buffer + pos, ebml_data_size, string);
-    case EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED:
-      *string = kr_response_alloc_string (ebml_data_size * 4 + 32);
-      rpos += sprintf (*string + rpos, "Mixer Portgroup Destroyed: ");
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      rpos += kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
-      return rpos;
+//    case EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED:
+//      *string = kr_response_alloc_string (ebml_data_size * 4 + 32);
+//      rpos += sprintf (*string + rpos, "Mixer Portgroup Destroyed: ");
+//      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+//      rpos += kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
+//      return rpos;
     case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
       *string = kr_response_alloc_string (ebml_data_size * 4 + 32);
       rpos += sprintf (*string + rpos, "Mixer Portgroup Created: ");

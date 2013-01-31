@@ -72,19 +72,19 @@ typedef union {
 } kr_subunit_control_value_t;
 
 typedef enum {
-  KR_RADIO,
+  KR_RADIO = 1,
 	KR_MIXER,
 	KR_COMPOSITOR,
 	KR_TRANSPONDER,
 } kr_unit_t;
 
 typedef enum {
-	KR_PORTGROUP,
-//	PORTGROUP_EFFECT,
+	KR_PORTGROUP = 1,
+	KR_EFFECT,
 } kr_mixer_subunit_t;
 
 typedef enum {
-	KR_VOLUME,
+	KR_VOLUME = 1,
 	KR_CROSSFADE,
 } kr_mixer_portgroup_control_type_t;
 
@@ -100,7 +100,7 @@ typedef enum {
 */
 
 typedef enum {
-	KR_VIDEOPORT,
+	KR_VIDEOPORT = 1,
 	KR_SPRITE,
 	KR_TEXT,
 	KR_VECTOR,
@@ -123,7 +123,7 @@ typedef enum {
 } kr_compositor_control_t;
 
 typedef enum {
-	KR_TRANSMITTER,
+	KR_TRANSMITTER = 1,
 	KR_RECEIVER,
 	KR_DEMUXER,
 	KR_MUXER,
@@ -132,7 +132,7 @@ typedef enum {
 } kr_transponder_subunit_t;
 
 typedef enum {
-	KR_BUFFER,
+	KR_BUFFER = 1,
 	KR_BITRATE,
 } kr_transponder_control_t;
 
@@ -140,6 +140,7 @@ typedef struct kr_unit_control_St kr_unit_control_t;
 typedef struct kr_subunit_control_path_St kr_subunit_control_path_t;
 
 typedef union {
+  void *ptr;
   kr_mixer_subunit_t mixer_subunit;
   kr_compositor_subunit_t compositor_subunit;
   kr_transponder_subunit_t transponder_subunit;
@@ -159,25 +160,23 @@ struct kr_subunit_control_path_St {
 };
 
 typedef union {
-  int subunit_number;
-  char subunit_name[64];
+  int number;
+  char name[64];
 } kr_subunit_address_t;
 
 struct kr_unit_control_St {
   kr_subunit_control_path_t path;
   kr_subunit_address_t address;
+  int subaddress;
   kr_subunit_control_data_t data_type;
   kr_subunit_control_value_t value;
   int duration;
   //krad_ease_t easing;
 };
 
-int kr_subunit_control_set (kr_client_t *kr_client,
-                            kr_unit_t unit,
-                            kr_subunit_t subunit,
-                            kr_subunit_address_t address,
-                            kr_subunit_control_t control,
-                            kr_subunit_control_value_t value);
+int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc);
+
+int kr_string_to_unit_control_path_address (char *string, kr_unit_control_t *uc);
 
 
 typedef struct kr_remote_St kr_remote_t;
