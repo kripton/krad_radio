@@ -5,6 +5,10 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
 {
 
   kradStation = new KradStation(sysname);
+  if (!kradStation->isConnected()) {
+    return;
+  }
+
   broadcastThread = new BroadcastThread(kradStation);
 
   QProgressBar *cpuTime = new QProgressBar();
@@ -27,6 +31,11 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   connect(kradStation, SIGNAL(portgroupAdded(kr_mixer_portgroup_t*)), this, SLOT(portgroupAdded(kr_mixer_portgroup_t*)));
   connect(kradStation, SIGNAL(cpuTimeUpdated(int)), cpuTime, SLOT(setValue(int)));
 
+}
+
+bool StationWidget::isConnected()
+{
+  return kradStation->isConnected();
 }
 
 

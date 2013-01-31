@@ -16,6 +16,7 @@ public:
   KradStation(QString sysname, QObject *parent = 0);
   void waitForBroadcasts();
   static QStringList getRunningStations();
+  bool isConnected();
 signals:
   void portgroupDestroyed(QString name);
   void portgroupAdded(kr_mixer_portgroup_t *portgroup);
@@ -37,7 +38,10 @@ public slots:
   void xmms2Pause(QString portname);
   void xmms2Next(QString portname);
   void xmms2Prev(QString portname);
-
+  void openDisplay();
+  void closeDisplay();
+  void addSprite(QString filename, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
+  void setSprite(int spriteNum, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
   void kill();
 private:
   kr_client_t *client;

@@ -50,8 +50,7 @@ void PortgroupSlider::addXmms2Controls()
   hbox->addWidget(play);
   hbox->addWidget(pause);
   hbox->addWidget(next);
-
-  layout->addLayout(hbox);
+  layout->insertLayout(3,hbox);
   connect(play, SIGNAL(clicked()), this, SLOT(xmms2Play()));
   connect(pause, SIGNAL(clicked()), this, SLOT(xmms2Pause()));
   connect(next, SIGNAL(clicked()), this, SLOT(xmms2Next()));

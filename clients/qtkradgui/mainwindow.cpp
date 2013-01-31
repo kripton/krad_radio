@@ -44,9 +44,14 @@ void MainWindow::launchStation()
 
   if (name.length() > 3) {
     krad_radio_launch (name.toAscii().data());
-    sleep(1);
  }
 
-  tabWidget->addTab(new StationWidget(name, this), name);
-
+  bool done = false;
+  while (!done) {
+    StationWidget *sw = new StationWidget(name, this);
+    if (sw != NULL) {
+      done = true;
+      tabWidget->addTab(sw, name);
+    }
+  }
 }

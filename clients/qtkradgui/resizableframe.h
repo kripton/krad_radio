@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <QGraphicsProxyWidget>
+#include "kradstation.h"
 
 #define BORDER_RANGE 5
 
@@ -38,6 +39,8 @@ private:
     QLabel *opacityLabel;
     double opacity;
     QGraphicsProxyWidget *proxy;
+    QRect currentGeometry;
+    double rotation;
 
 public slots:
     void updateGeometry(QRect geometry);
@@ -48,6 +51,8 @@ signals:
     void geometryChanged(QRect newGeometry);
     void opacityChanged(float newOpacity);
     void rotationChanged(float newAngle);
+private:
+    KradStation *kradStation;
 };
 
 #endif // RESIZABLEFRAME_H

@@ -21,10 +21,10 @@ KradStation::KradStation(QString sysname, QObject *parent) :
     return;
   }
 
-  while (!kr_connect (client, sysname.toAscii().data_ptr()->data)) {
+  if (!kr_connect (client, sysname.toAscii().data_ptr()->data)) {
     qDebug() << tr("Could not connect to %1 krad radio daemon").arg(sysname);
     kr_client_destroy (&client);
-    sleep(1);
+    return;
   }
 
  // connect(this, SIGNAL(portgroupUpdate(kr_mixer_portgroup_t*)), this, SLOT(handlePortgroupUpdate(kr_mixer_portgroup_t*)));
@@ -70,6 +70,15 @@ QStringList KradStation::getRunningStations()
   QString qliststr = tr(list);
   sl = qliststr.split(tr("\n"));
   return sl;
+}
+
+bool KradStation::isConnected()
+{
+  if (kr_connected(client) == 1)
+    return true;
+  else
+    return false;
+
 }
 
 
@@ -151,6 +160,26 @@ void KradStation::xmms2Next(QString portname)
 void KradStation::xmms2Prev(QString portname)
 {
   kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "prev");
+}
+
+void KradStation::openDisplay()
+{
+  kr_compositor_open_display(client, 1280, 720);
+}
+
+void KradStation::closeDisplay()
+{
+  kr_compositor_close_display(client);
+}
+
+void KradStation::addSprite(QString filename, int x, int y, int z, int tickrate, float scale, float opacity, float rotation)
+{
+  kr_compositor_add_sprite(client, filename.toAscii().data(), x, y, z, tickrate, scale, opacity, rotation);
+}
+
+void KradStation::setSprite(int spriteNum, int x, int y, int z, int tickrate, float scale, float opacity, float rotation)
+{
+  kr_compositor_set_sprite(client, spriteNum, x, y, z, tickrate, scale, opacity, rotation);
 }
 
 void KradStation::kill()

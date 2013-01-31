@@ -19,7 +19,7 @@ class StationWidget : public QWidget
   Q_OBJECT
 public:
   explicit StationWidget(QString sysname, QWidget *parent = 0);
-
+  bool isConnected();
 signals:
 
 public slots:
