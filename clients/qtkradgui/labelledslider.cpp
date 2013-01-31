@@ -14,6 +14,7 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
   slider->setMinimum(10*min);
   slider->setMaximum(10*max);
   slider->setOrientation(orientation);
+  slider->setTracking(false);
   //slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //this->label.setAlignment(Qt::Vertical);
   layout = new QVBoxLayout(this);
@@ -25,12 +26,15 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
   this->setLayout(layout);
   //connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
+  //connect(slider, SIGNAL())
 }
 
 
 void LabelledSlider::setValue(float value)
 {
-  slider->setValue((int) 10*value);
+  slider->setSliderPosition((int) 10*value);
+  //slider->setValue((int) 10*value);
+  valueLabel->setNum((double) value);
 }
 
 void LabelledSlider::sliderValueChanged(int value)
@@ -43,11 +47,9 @@ void LabelledSlider::sliderValueChanged(int value)
 void LabelledSlider::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)
 {
   if (label->text() == tr(portgroup_cont->name)) {
-    setValue(portgroup_cont->value);
-  } else {
-    qDebug() << tr("no match <%1> <%2>").arg(label->text()).arg(tr(portgroup_cont->name));
-  }
 
+    setValue(portgroup_cont->value);
+  }
 }
 
 QString LabelledSlider::getLabel() {

@@ -21,8 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
   //QScrollArea *scrollArea = new QScrollArea(this);
   //scrollArea->setWidget(tabWidget);
 
-  tabWidget->setMinimumSize(2000, 500);
-  tabWidget->setMaximumSize(2000, 1000);
+ // tabWidget->setMinimumSize(2000, 500);
+ // tabWidget->setMaximumSize(2000, 1000);
   while (sli.hasNext()) {
     QString i = sli.next();
     StationWidget* station = new StationWidget(i, this);

@@ -83,13 +83,13 @@ void KradStation::handlePortgroupAdded(kr_mixer_portgroup_t *portgroup)
 void KradStation::setVolume(QString portname, float value)
 {
   qDebug() << tr("trying to set volume of %1 to %2").arg(portname).arg(value);
-  kr_mixer_set_control (client, portname.toAscii().data(), "volume", value, 0);
+  kr_mixer_set_control (client, portname.toAscii().data(), "volume", value, 240);
 }
 
 void KradStation::setCrossfade(QString name, float value)
 {
   qDebug() << tr("trying to set crossfade %1 to %2").arg(name).arg(value);
-  kr_mixer_set_control (client, name.toAscii().data(), "crossfade",  value, 0);
+  kr_mixer_set_control (client, name.toAscii().data(), "crossfade",  value, 240);
 }
 
 void KradStation::addTapetube(QString portname)
