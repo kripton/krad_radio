@@ -378,7 +378,7 @@ int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_fr
     return 0;
   }
   
-  string_pos += sprintf (string_loc_pos + string_pos, "List: (%"PRIu64" bytes):\n", list_size);  
+  //string_pos += sprintf (string_loc_pos + string_pos, "List: (%"PRIu64" bytes):\n", list_size);
   string_loc_pos = string_loc_pos + string_pos;
   while (list_pos != list_size) {
     ret = krad_ebml_read_element_from_frag (ebml_frag + list_pos, &ebml_id, &ebml_data_size);
@@ -1463,7 +1463,7 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
   //printf ("\n%d tokens\n", t);
 
   for (i = 0; i < t; i++) {
-    printf ("%d: %s  ", i + 1, tokens[i]);
+    //printf ("%d: %s  ", i + 1, tokens[i]);
   }
   
   printf ("\n");
@@ -1688,9 +1688,9 @@ int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc) {
           }
           break;
         case KR_EFFECT:
-          printf("%s %d %s %d %f - dur %d\n", uc->address.id.name, uc->address.sub_id, 
-                            effect_control_to_string(uc->address.control.effect_control),
-                            uc->value.integer, uc->value2.real, uc->duration);
+          //printf("%s %d %s %d %f - dur %d\n", uc->address.id.name, uc->address.sub_id, 
+          //                  effect_control_to_string(uc->address.control.effect_control),
+          //                  uc->value.integer, uc->value2.real, uc->duration);
           kr_mixer_set_effect_control (client, uc->address.id.name, uc->address.sub_id, 
                                        effect_control_to_string(uc->address.control.effect_control),
                                        uc->value.integer, uc->value2.real, uc->duration, EASEINOUTSINE);

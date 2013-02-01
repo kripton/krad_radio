@@ -819,6 +819,7 @@ krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_
 int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint64_t item_size, char **string) {
 
 	int pos;
+	int c;
   krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep;
 
   pos = 0;
@@ -826,13 +827,29 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
   
   kr_ebml_to_mixer_portgroup_rep (ebml_frag, &krad_mixer_portgroup_rep);
 
-  pos += sprintf (*string + pos, "  Peak_L: %0.2f  Peak_R: %0.2f RMS_L: %0.2f  RMS_R: %0.2f  Vol: %0.2f%%  %s", 
-            10.0 * log ((double) krad_mixer_portgroup_rep->peak[0]),  10.0 * log ((double) krad_mixer_portgroup_rep->peak[1]), 
-           krad_mixer_portgroup_rep->rms[0], krad_mixer_portgroup_rep->rms[1],
-           krad_mixer_portgroup_rep->volume[0], krad_mixer_portgroup_rep->sysname);
+  //pos += sprintf (*string + pos, "  Peak_L: %0.2f  Peak_R: %0.2f RMS_L: %0.2f  RMS_R: %0.2f  Vol: %0.2f%%  %s", 
+  //          10.0 * log ((double) krad_mixer_portgroup_rep->peak[0]),  10.0 * log ((double) krad_mixer_portgroup_rep->peak[1]), 
+  //         krad_mixer_portgroup_rep->rms[0], krad_mixer_portgroup_rep->rms[1],
+  //         krad_mixer_portgroup_rep->volume[0], krad_mixer_portgroup_rep->sysname);
  
+  if ((krad_mixer_portgroup_rep->channels == 1) || ((krad_mixer_portgroup_rep->channels == 2) &&
+       (krad_mixer_portgroup_rep->volume[0] == krad_mixer_portgroup_rep->volume[1]))) {
+ 
+    pos += sprintf (*string + pos, "Vol: %6.2f%%  %s",
+                    krad_mixer_portgroup_rep->volume[0],
+                    krad_mixer_portgroup_rep->sysname); 
+  } else {
+    for (c = 0; c < krad_mixer_portgroup_rep->channels; c++) {
+      pos += sprintf (*string + pos, "Chn %d Vol: %6.2f%% ",
+                      c,
+                      krad_mixer_portgroup_rep->volume[c]);
+    }
+      pos += sprintf (*string + pos, " %s",
+                      krad_mixer_portgroup_rep->sysname);
+  }
+  
   if (krad_mixer_portgroup_rep->crossfade_group_rep != NULL) {
-    pos += sprintf (*string + pos, "\t %s < %0.2f > %s",
+    pos += sprintf (*string + pos, "\t %s < %6.2f > %s",
                     krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[0]->sysname,
                     krad_mixer_portgroup_rep->crossfade_group_rep->fade,
                     krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[1]->sysname);
