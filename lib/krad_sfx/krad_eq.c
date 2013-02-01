@@ -29,10 +29,10 @@ void kr_eq_process (kr_eq_t *kr_eq, float *input, float *output, int num_samples
   }
 
   for (b = 0; b < MAX_BANDS; b++) {
-    recompute = recompute_default;
     if ((kr_eq->band[b].db == 0.0f) && (!kr_eq->band[b].krad_easing_db.active)) {
       continue;
     }
+    recompute = recompute_default;
     if (kr_eq->band[b].krad_easing_hz.active) {
       kr_eq->band[b].hz = krad_easing_process (&kr_eq->band[b].krad_easing_hz, kr_eq->band[b].hz); 
       recompute = 1;
