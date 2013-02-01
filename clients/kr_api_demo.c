@@ -174,6 +174,9 @@ void kr_api_test (kr_client_t *client) {
   kr_remote_status (client);
   handle_response (client);
   
+  kr_mixer_info (client);
+  handle_response (client);
+  
   kr_compositor_info (client);
   handle_response (client);
   
