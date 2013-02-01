@@ -49,6 +49,7 @@ typedef struct kr_client_St kr_client_t;
 
 
 #include "krad_mixer_common.h"
+#include "krad_compositor_common.h"
 
 /** Shared memory buffer.
  * @brief Variable sized buffer used to get data in and out of local A/V ports
@@ -213,6 +214,7 @@ typedef union {
   kr_remote_t *remote;
   kr_mixer_portgroup_t *mixer_portgroup;
   kr_mixer_portgroup_control_rep_t *mixer_portgroup_control;
+  kr_compositor_t *compositor;
 } kr_rep_ptr_t;
 
 typedef struct kr_rep_St kr_rep_t;

@@ -24,6 +24,15 @@ void my_portgroup_print (kr_mixer_portgroup_t *portgroup) {
 
 }
 
+void my_compositor_print (kr_compositor_t *compositor) {
+
+  printf ("Compositor Resolution: %d x %d Frame Rate: %d / %d - %f\n",
+					 compositor->width, compositor->height,
+					 compositor->fps_numerator, compositor->fps_denominator,
+					 ((float)compositor->fps_numerator / (float)compositor->fps_denominator));
+
+}
+
 void my_rep_print (kr_rep_t *rep) {
   switch ( rep->type ) {
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
@@ -34,6 +43,9 @@ void my_rep_print (kr_rep_t *rep) {
       return;
     case EBML_ID_KRAD_MIXER_PORTGROUP:
       my_portgroup_print (rep->rep_ptr.mixer_portgroup);
+      return;
+    case EBML_ID_KRAD_COMPOSITOR_INFO:
+      my_compositor_print (rep->rep_ptr.compositor);
       return;
   }
 }
@@ -160,6 +172,9 @@ void kr_api_test (kr_client_t *client) {
   handle_response (client);
     
   kr_remote_status (client);
+  handle_response (client);
+  
+  kr_compositor_info (client);
   handle_response (client);
   
   kr_tags (client, NULL);

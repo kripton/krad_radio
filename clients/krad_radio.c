@@ -294,7 +294,7 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "rate", 4) == 0) {
     if (argc == 3) {
-      kr_mixer_sample_rate (client);
+      kr_mixer_info (client);
       kr_client_response_wait_print (client);
     }
   }      

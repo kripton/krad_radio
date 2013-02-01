@@ -426,9 +426,8 @@ static int callback_kr_client (struct libwebsocket_context *this,
 
       kr_ws_client->kr_client_info = 0;
       kr_ws_client->hello_sent = 0;      
-      kr_mixer_sample_rate (kr_ws_client->kr_client);
-      kr_compositor_get_frame_rate (kr_ws_client->kr_client);
-      kr_compositor_get_frame_size (kr_ws_client->kr_client);      
+      kr_mixer_info (kr_ws_client->kr_client);
+      kr_compositor_info (kr_ws_client->kr_client);
       kr_mixer_portgroups_list (kr_ws_client->kr_client);
       kr_transponder_decklink_list (kr_ws_client->kr_client);
       kr_transponder_list (kr_ws_client->kr_client);

@@ -335,21 +335,17 @@ void kr_mixer_set_sample_rate (kr_client_t *client, int sample_rate) {
 
 }
 
-void kr_mixer_sample_rate (kr_client_t *client) {
+void kr_mixer_info (kr_client_t *client) {
 
-	//uint64_t ipc_command;
 	uint64_t mixer_command;
-	uint64_t get_sample_rate;
+	uint64_t get_info;
 
-	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE, &get_sample_rate);
-	krad_ebml_finish_element (client->krad_ebml, get_sample_rate);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_GET_INFO, &get_info);
+	krad_ebml_finish_element (client->krad_ebml, get_info);
 	krad_ebml_finish_element (client->krad_ebml, mixer_command);
-	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
 		
 	krad_ebml_write_sync (client->krad_ebml);
-
 }
 
 void kr_mixer_plug_portgroup (kr_client_t *client, char *name, char *remote_name) {
@@ -905,10 +901,15 @@ int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
       *string = kr_response_alloc_string (ebml_data_size * 4);
       return kr_mixer_response_get_string_from_portgroup (kr_response->buffer + pos, ebml_data_size, string);
     case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
+      *string = kr_response_alloc_string (ebml_data_size * 4 + 82);
+      rpos += sprintf (*string + rpos, "Mixer Sample Rate: ");
+      //rpos += sprintf (*string + rpos, " %d", krad_ebml_read_number_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
+      rpos += sprintf (*string + rpos, "%"PRIu64"", krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
+      return rpos;
       //printf("Received KRAD_MIXER_SAMPLE_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
       //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
       //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      return 0;
+      //return 0;
     case EBML_ID_KRAD_MIXER_JACK_RUNNING:
       //printf("Received KRAD_MIXER_JACK_RUNNING %"PRIu64" bytes of data.\n", ebml_data_size);
       //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);

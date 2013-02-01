@@ -754,7 +754,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
     
       return 1;
   
-    case EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE:
+    case EBML_ID_KRAD_MIXER_CMD_GET_INFO:
     
       krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
       krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE, 

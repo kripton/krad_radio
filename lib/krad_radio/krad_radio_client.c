@@ -462,7 +462,6 @@ int kr_response_to_int (kr_response_t *kr_response, int *number) {
   switch ( kr_response->unit ) {
     case KR_STATION:
       return kr_radio_response_to_int (kr_response, number);
-      break;
     case KR_MIXER:
       //
       break;
@@ -481,13 +480,10 @@ int kr_response_to_string (kr_response_t *kr_response, char **string) {
   switch ( kr_response->unit ) {
     case KR_STATION:
       return kr_radio_response_to_string (kr_response, string);
-      break;
     case KR_MIXER:
       return kr_mixer_response_to_string (kr_response, string);
-      break;
     case KR_COMPOSITOR:
-      //
-      break;
+      return kr_compositor_response_to_string (kr_response, string);
     case KR_TRANSPONDER:
       //
       break;
@@ -576,6 +572,12 @@ int kr_response_to_item (kr_response_t *kr_response, unsigned char *ebml_frag, u
       return 1;
     case EBML_ID_KRAD_MIXER_PORTGROUP:
       kr_response->kr_item.type = EBML_ID_KRAD_MIXER_PORTGROUP;
+      kr_response->kr_item.buffer = ebml_frag;
+      kr_response->kr_item.size = item_size;
+      *kr_item = &kr_response->kr_item;
+      return 1;
+    case EBML_ID_KRAD_COMPOSITOR_INFO:
+      kr_response->kr_item.type = EBML_ID_KRAD_COMPOSITOR_INFO;
       kr_response->kr_item.buffer = ebml_frag;
       kr_response->kr_item.size = item_size;
       *kr_item = &kr_response->kr_item;
@@ -693,6 +695,10 @@ kr_rep_t *kr_item_to_rep (kr_item_t *kr_item) {
     case EBML_ID_KRAD_RADIO_TAG:
       kr_rep->rep_ptr.tag = (kr_tag_t *)kr_rep->buffer;
       kr_ebml_to_tag_rep (kr_item->buffer, kr_rep->rep_ptr.tag);
+      break;
+    case EBML_ID_KRAD_COMPOSITOR_INFO:
+      kr_rep->rep_ptr.compositor = (kr_compositor_t *)kr_rep->buffer;
+      kr_ebml_to_compositor_rep (kr_item->buffer, &kr_rep->rep_ptr.compositor);
       break;
   }
 
@@ -847,6 +853,10 @@ int kr_response_get_item (kr_response_t *kr_response, kr_item_t **item) {
 
   if (ebml_id == EBML_ID_KRAD_MIXER_PORTGROUP_UPDATED) {
     pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+    return kr_response_to_item (kr_response, kr_response->buffer + pos, ebml_id, ebml_data_size, item);
+  }
+  
+  if (ebml_id == EBML_ID_KRAD_COMPOSITOR_INFO) {
     return kr_response_to_item (kr_response, kr_response->buffer + pos, ebml_id, ebml_data_size, item);
   }
 
