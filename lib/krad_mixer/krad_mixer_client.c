@@ -335,21 +335,17 @@ void kr_mixer_set_sample_rate (kr_client_t *client, int sample_rate) {
 
 }
 
-void kr_mixer_sample_rate (kr_client_t *client) {
+void kr_mixer_info (kr_client_t *client) {
 
-	//uint64_t ipc_command;
 	uint64_t mixer_command;
-	uint64_t get_sample_rate;
+	uint64_t get_info;
 
-	//krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
 	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD, &mixer_command);
-	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE, &get_sample_rate);
-	krad_ebml_finish_element (client->krad_ebml, get_sample_rate);
+	krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_MIXER_CMD_GET_INFO, &get_info);
+	krad_ebml_finish_element (client->krad_ebml, get_info);
 	krad_ebml_finish_element (client->krad_ebml, mixer_command);
-	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
 		
 	krad_ebml_write_sync (client->krad_ebml);
-
 }
 
 void kr_mixer_plug_portgroup (kr_client_t *client, char *name, char *remote_name) {
@@ -630,7 +626,8 @@ void kr_mixer_remove_effect (kr_client_t *client, char *portgroup_name, int effe
 }
 
 void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int effect_num, 
-                                  char *control_name, int subunit, float control_value) {
+                                  char *control_name, int subunit, float control_value, int duration,
+                                  krad_ease_t ease) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -648,7 +645,8 @@ void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_SUBUNIT, subunit);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
-
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_DURATION, duration);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_DURATION, ease);
 	krad_ebml_finish_element (client->krad_ebml, set_control);
 	krad_ebml_finish_element (client->krad_ebml, mixer_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);
@@ -821,6 +819,7 @@ krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_
 int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint64_t item_size, char **string) {
 
 	int pos;
+	int c;
   krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep;
 
   pos = 0;
@@ -828,20 +827,48 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
   
   kr_ebml_to_mixer_portgroup_rep (ebml_frag, &krad_mixer_portgroup_rep);
 
-  pos += sprintf (*string + pos, "  Peak_L: %0.2f  Peak_R: %0.2f RMS_L: %0.2f  RMS_R: %0.2f  Vol: %0.2f%%  %s", 
-            10.0 * log ((double) krad_mixer_portgroup_rep->peak[0]),  10.0 * log ((double) krad_mixer_portgroup_rep->peak[1]), 
-           krad_mixer_portgroup_rep->rms[0], krad_mixer_portgroup_rep->rms[1],
-           krad_mixer_portgroup_rep->volume[0], krad_mixer_portgroup_rep->sysname);
+  //pos += sprintf (*string + pos, "  Peak_L: %0.2f  Peak_R: %0.2f RMS_L: %0.2f  RMS_R: %0.2f  Vol: %0.2f%%  %s", 
+  //          10.0 * log ((double) krad_mixer_portgroup_rep->peak[0]),  10.0 * log ((double) krad_mixer_portgroup_rep->peak[1]), 
+  //         krad_mixer_portgroup_rep->rms[0], krad_mixer_portgroup_rep->rms[1],
+  //         krad_mixer_portgroup_rep->volume[0], krad_mixer_portgroup_rep->sysname);
  
+  if ((krad_mixer_portgroup_rep->channels == 1) || ((krad_mixer_portgroup_rep->channels == 2) &&
+       (krad_mixer_portgroup_rep->volume[0] == krad_mixer_portgroup_rep->volume[1]))) {
+ 
+    pos += sprintf (*string + pos, "Volume: %6.2f%% ",
+                    krad_mixer_portgroup_rep->volume[0]); 
+  } else {
+    for (c = 0; c < krad_mixer_portgroup_rep->channels; c++) {
+      pos += sprintf (*string + pos, "Chn %d Vol: %6.2f%% ",
+                      c,
+                      krad_mixer_portgroup_rep->volume[c]);
+    }
+  }
+  
+  if (krad_mixer_portgroup_rep->channels == 1) {
+    pos += sprintf (*string + pos, "%-8s (Mono)",
+                    krad_mixer_portgroup_rep->sysname);
+  }
+  if (krad_mixer_portgroup_rep->channels == 2) {
+    //pos += sprintf (*string + pos, " Stereo");
+    pos += sprintf (*string + pos, "%-12s ",
+                    krad_mixer_portgroup_rep->sysname);
+  }
+  if (krad_mixer_portgroup_rep->channels > 2) {
+    pos += sprintf (*string + pos, "%-12s (%d Channel)",
+                    krad_mixer_portgroup_rep->sysname,
+                    krad_mixer_portgroup_rep->channels);
+  }
+  
   if (krad_mixer_portgroup_rep->crossfade_group_rep != NULL) {
-    pos += sprintf (*string + pos, "\t %s < %0.2f > %s",
+    pos += sprintf (*string + pos, "\n*Crossfade: %6.2f",
                     krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[0]->sysname,
                     krad_mixer_portgroup_rep->crossfade_group_rep->fade,
                     krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[1]->sysname);
   }
   
   if (krad_mixer_portgroup_rep->has_xmms2 == 1) {
-    pos += sprintf (*string + pos, "\t\t[XMMS2]");
+    pos += sprintf (*string + pos, " [XMMS2]");
   }
 
   pos += sprintf (*string + pos, "\n");
@@ -905,10 +932,15 @@ int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
       *string = kr_response_alloc_string (ebml_data_size * 4);
       return kr_mixer_response_get_string_from_portgroup (kr_response->buffer + pos, ebml_data_size, string);
     case EBML_ID_KRAD_MIXER_SAMPLE_RATE:
+      *string = kr_response_alloc_string (ebml_data_size * 4 + 82);
+      rpos += sprintf (*string + rpos, "Mixer Sample Rate: ");
+      //rpos += sprintf (*string + rpos, " %d", krad_ebml_read_number_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
+      rpos += sprintf (*string + rpos, "%"PRIu64"", krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
+      return rpos;
       //printf("Received KRAD_MIXER_SAMPLE_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
       //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
       //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      return 0;
+      //return 0;
     case EBML_ID_KRAD_MIXER_JACK_RUNNING:
       //printf("Received KRAD_MIXER_JACK_RUNNING %"PRIu64" bytes of data.\n", ebml_data_size);
       //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);

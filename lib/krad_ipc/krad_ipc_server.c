@@ -538,6 +538,10 @@ void krad_ipc_server_response_list_start ( krad_ipc_server_t *krad_ipc_server, u
   krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, ebml_id, list);
 }
 
+void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list) {
+  krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, list);
+}
+
 void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_item, char *tag_name, char *tag_value) {
 
   uint64_t tag;
@@ -549,10 +553,6 @@ void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char
   //krad_ebml_write_string (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_TAG_SOURCE, "");
   krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, tag);
 
-}
-
-void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list) {
-  krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, list);
 }
 
 void krad_ipc_server_respond_number ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, int32_t number) {

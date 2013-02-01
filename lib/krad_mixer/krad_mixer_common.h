@@ -20,6 +20,20 @@ typedef struct kr_mixer_portgroup_control_rep_St kr_mixer_portgroup_control_rep_
 #include "krad_radio_ipc.h"
 
 typedef enum {
+  KR_VOLUME = 1,
+  KR_CROSSFADE,
+} kr_mixer_portgroup_control_t;
+
+typedef enum {
+  DB,
+  BANDWIDTH,
+  HZ,  
+  TYPE,
+  DRIVE,
+  BLEND,
+} kr_mixer_effect_control_t;
+
+typedef enum {
 	KRAD_TONE,
 	KLOCALSHM,
 	KRAD_AUDIO, /* i.e local audio i/o */
@@ -99,6 +113,8 @@ struct kr_mixer_portgroup_control_rep_St {
   char control[64];
   float value;
 };
+
+char *effect_control_to_string (kr_mixer_effect_control_t effect_control);
 
 void kr_mixer_portgroup_control_rep_destroy (kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep);
 kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep_create ();

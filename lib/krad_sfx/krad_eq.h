@@ -20,9 +20,6 @@
 #define KRAD_EQ_CONTROL_BANDWIDTH 667
 #define KRAD_EQ_CONTROL_HZ 668
 
-#define KRAD_EQ_OPCONTROL_ADDBAND 669
-#define KRAD_EQ_OPCONTROL_RMBAND 670
-
 #define KRAD_EQ_BANDWIDTH_MIN 0.1
 #define KRAD_EQ_BANDWIDTH_MAX 5.0
 #define KRAD_EQ_DB_MIN -50.0
@@ -42,7 +39,7 @@ typedef struct {
   krad_easing_t krad_easing_bandwidth;
   krad_easing_t krad_easing_hz;
   
-  int active;
+//  int active;
 
 } kr_eq_band_t;
 
@@ -61,11 +58,6 @@ void kr_eq_destroy (kr_eq_t *kr_eq);
 void kr_eq_set_sample_rate (kr_eq_t *kr_eq, int sample_rate);
 void kr_eq_process (kr_eq_t *kr_eq, float *input, float *output, int num_samples);
 
-/* OpControls */
-void kr_eq_band_add (kr_eq_t *kr_eq, float hz);
-void kr_eq_band_remove (kr_eq_t *kr_eq, int band_num);
-
-/* Controls */
-void kr_eq_band_set_db (kr_eq_t *kr_eq, int band_num, float db);
-void kr_eq_band_set_bandwidth (kr_eq_t *kr_eq, int band_num, float bandwidth);
-void kr_eq_band_set_hz (kr_eq_t *kr_eq, int band_num, float hz);
+void kr_eq_band_set_db (kr_eq_t *kr_eq, int band_num, float db, int duration, krad_ease_t ease);
+void kr_eq_band_set_bandwidth (kr_eq_t *kr_eq, int band_num, float bandwidth, int duration, krad_ease_t ease);
+void kr_eq_band_set_hz (kr_eq_t *kr_eq, int band_num, float hz, int duration, krad_ease_t ease);

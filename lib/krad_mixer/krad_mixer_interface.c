@@ -292,9 +292,10 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       }
 
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
-
-      if (portgroup->direction == INPUT) {
-        kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect (string));
+      if (portgroup != NULL) {
+        if (portgroup->direction == INPUT) {
+          kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect (string));
+        }
       }
 
       break;
@@ -314,8 +315,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
       }
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
-
-      kr_effects_effect_remove (portgroup->effects, number);
+      if (portgroup != NULL) {
+        kr_effects_effect_remove (portgroup->effects, number);
+      }
 
       break;
     case EBML_ID_KRAD_MIXER_CMD_SET_EFFECT_CONTROL:
@@ -353,13 +355,24 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
         floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
       }
+      
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+      if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_DURATION) {
+        numbers[6] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+      }
+      
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+      if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_DURATION) {
+        numbers[7] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+      }
 
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
 
-      kr_effects_effect_set_control (portgroup->effects, number,
-                                     kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type, controlname),
-                                     numbers[5], floatval);
-
+      if (portgroup != NULL) {
+        kr_effects_effect_set_control (portgroup->effects, number,
+                                       kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type, controlname),
+                                       numbers[5], floatval, numbers[6], numbers[7]);
+      }
       break;
     case EBML_ID_KRAD_MIXER_CMD_PUSH_TONE:
     
@@ -754,7 +767,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
     
       return 1;
   
-    case EBML_ID_KRAD_MIXER_CMD_GET_SAMPLE_RATE:
+    case EBML_ID_KRAD_MIXER_CMD_GET_INFO:
     
       krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
       krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE, 

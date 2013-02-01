@@ -60,7 +60,7 @@ void kr_tapetube_set_sample_rate (kr_tapetube_t *kr_tapetube, int sample_rate);
 void kr_tapetube_process (kr_tapetube_t *kr_tapetube, float *input, float *output, int num_samples);
 
 /* Controls */
-void kr_tapetube_set_drive (kr_tapetube_t *kr_tapetube, float drive);
-void kr_tapetube_set_blend (kr_tapetube_t *kr_tapetube, float blend);
+void kr_tapetube_set_drive (kr_tapetube_t *kr_tapetube, float drive, int duration, krad_ease_t ease);
+void kr_tapetube_set_blend (kr_tapetube_t *kr_tapetube, float blend, int duration, krad_ease_t ease);
 
 

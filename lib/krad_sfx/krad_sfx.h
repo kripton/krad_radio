@@ -39,7 +39,8 @@ void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect);
 void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num);
 
 /* Controls */
-void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control, int subunit, float value);
+void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control,
+                                    int subunit, float value, int duration, krad_ease_t ease);
 
 /* Utils */
 

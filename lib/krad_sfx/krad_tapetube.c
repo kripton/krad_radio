@@ -18,14 +18,14 @@ static inline float D(float x) {
 		return 0.0f;
 }
 
-void kr_tapetube_set_blend (kr_tapetube_t *kr_tapetube, float blend) {
+void kr_tapetube_set_blend (kr_tapetube_t *kr_tapetube, float blend, int duration, krad_ease_t ease) {
 	blend = LIMIT(blend, KRAD_TAPETUBE_BLEND_MIN, KRAD_TAPETUBE_BLEND_MAX);
-  krad_easing_set_new_value (&kr_tapetube->krad_easing_blend, blend, 200, EASEINOUTSINE);
+  krad_easing_set_new_value (&kr_tapetube->krad_easing_blend, blend, duration, ease);
 }
 
-void kr_tapetube_set_drive (kr_tapetube_t *kr_tapetube, float drive) {
+void kr_tapetube_set_drive (kr_tapetube_t *kr_tapetube, float drive, int duration, krad_ease_t ease) {
 	drive = LIMIT(drive, KRAD_TAPETUBE_DRIVE_MIN, KRAD_TAPETUBE_DRIVE_MAX);
-  krad_easing_set_new_value (&kr_tapetube->krad_easing_drive, drive, 200, EASEINOUTSINE);
+  krad_easing_set_new_value (&kr_tapetube->krad_easing_drive, drive, duration, ease);
 }
 
 void kr_tapetube_set_sample_rate (kr_tapetube_t *kr_tapetube, int sample_rate) {
