@@ -835,28 +835,40 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
   if ((krad_mixer_portgroup_rep->channels == 1) || ((krad_mixer_portgroup_rep->channels == 2) &&
        (krad_mixer_portgroup_rep->volume[0] == krad_mixer_portgroup_rep->volume[1]))) {
  
-    pos += sprintf (*string + pos, "Vol: %6.2f%%  %s",
-                    krad_mixer_portgroup_rep->volume[0],
-                    krad_mixer_portgroup_rep->sysname); 
+    pos += sprintf (*string + pos, "Volume: %6.2f%% ",
+                    krad_mixer_portgroup_rep->volume[0]); 
   } else {
     for (c = 0; c < krad_mixer_portgroup_rep->channels; c++) {
       pos += sprintf (*string + pos, "Chn %d Vol: %6.2f%% ",
                       c,
                       krad_mixer_portgroup_rep->volume[c]);
     }
-      pos += sprintf (*string + pos, " %s",
-                      krad_mixer_portgroup_rep->sysname);
+  }
+  
+  if (krad_mixer_portgroup_rep->channels == 1) {
+    pos += sprintf (*string + pos, "%-8s (Mono)",
+                    krad_mixer_portgroup_rep->sysname);
+  }
+  if (krad_mixer_portgroup_rep->channels == 2) {
+    //pos += sprintf (*string + pos, " Stereo");
+    pos += sprintf (*string + pos, "%-12s ",
+                    krad_mixer_portgroup_rep->sysname);
+  }
+  if (krad_mixer_portgroup_rep->channels > 2) {
+    pos += sprintf (*string + pos, "%-12s (%d Channel)",
+                    krad_mixer_portgroup_rep->sysname,
+                    krad_mixer_portgroup_rep->channels);
   }
   
   if (krad_mixer_portgroup_rep->crossfade_group_rep != NULL) {
-    pos += sprintf (*string + pos, "\t %s < %6.2f > %s",
+    pos += sprintf (*string + pos, "\n*Crossfade: %6.2f",
                     krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[0]->sysname,
                     krad_mixer_portgroup_rep->crossfade_group_rep->fade,
                     krad_mixer_portgroup_rep->crossfade_group_rep->portgroup_rep[1]->sysname);
   }
   
   if (krad_mixer_portgroup_rep->has_xmms2 == 1) {
-    pos += sprintf (*string + pos, "\t\t[XMMS2]");
+    pos += sprintf (*string + pos, " [XMMS2]");
   }
 
   pos += sprintf (*string + pos, "\n");
