@@ -56,88 +56,102 @@ typedef struct kr_client_St kr_client_t;
  */
 typedef struct kr_shm_St kr_shm_t;
 
-
 typedef struct kr_response_St kr_response_t;
+
+
+typedef struct kr_unit_path_St kr_unit_path_t;
+typedef struct kr_unit_control_St kr_unit_control_t;
+
+/*
+*  An address can be:
+*    Unit:           compositor/sprite/2
+*    Unit & Control: compositor/sprite/2/opacity
+*/
+
+typedef struct kr_address_St kr_address_t;
+
+/* Top level Units */
+
+typedef enum {
+  KR_STATION = 1,
+  KR_MIXER,
+  KR_COMPOSITOR,
+  KR_TRANSPONDER,
+} kr_unit_t;
+
+/* Subunits */
+
+typedef enum {
+  KR_PORTGROUP = 1,
+  KR_EFFECT,
+} kr_mixer_subunit_t;
+
+typedef enum {
+  KR_VIDEOPORT = 1,
+  KR_SPRITE,
+  KR_TEXT,
+  KR_VECTOR,
+} kr_compositor_subunit_t;
+
+typedef enum {
+  KR_TRANSMITTER = 1,
+  KR_RECEIVER,
+  KR_DEMUXER,
+  KR_MUXER,
+  KR_ENCODER,
+  KR_DECODER,
+} kr_transponder_subunit_t;
+
+/* Control Types */
 
 typedef enum {
   KR_FLOAT,
-	KR_INT32,
-	KR_STRING,
-} kr_subunit_control_data_t;
+  KR_INT32,
+  KR_STRING,
+} kr_unit_control_data_t;
 
 typedef union {
   int integer;
   char *string;
   float real;
-} kr_subunit_control_value_t;
+} kr_unit_control_value_t;
+
+/* Control Names */
 
 typedef enum {
-  KR_RADIO = 1,
-	KR_MIXER,
-	KR_COMPOSITOR,
-	KR_TRANSPONDER,
-} kr_unit_t;
+  KR_VOLUME = 1,
+  KR_CROSSFADE,
+} kr_mixer_portgroup_control_t;
 
 typedef enum {
-	KR_PORTGROUP = 1,
-	KR_EFFECT,
-} kr_mixer_subunit_t;
+  EQ_DB,
+  EQ_BANDWIDTH,
+  EQ_HZ,  
+  PASS_TYPE,
+  PASS_BANDWIDTH,
+  PASS_HZ,
+} kr_mixer_effect_control_t;
 
 typedef enum {
-	KR_VOLUME = 1,
-	KR_CROSSFADE,
-} kr_mixer_portgroup_control_type_t;
-
-/*
-typedef enum {
-	EQ_DB,
-	EQ_BANDWIDTH,
-	EQ_HZ,	
-	PASS_TYPE,
-	PASS_BANDWIDTH,
-	PASS_HZ,
-} kr_mixer_portgroup_effect_control_t;
-*/
-
-typedef enum {
-	KR_VIDEOPORT = 1,
-	KR_SPRITE,
-	KR_TEXT,
-	KR_VECTOR,
-} kr_compositor_subunit_t;
-
-typedef enum {
-	KR_X,
-	KR_Y,
-	KR_Z,
-	KR_WIDTH,
-	KR_HEIGHT,
-	KR_ROTATION,
-	KR_OPACITY,
-	KR_XSCALE,
-	KR_YSCALE,
-	KR_RED,
-	KR_GREEN,
-	KR_BLUE,
-	KR_ALPHA,
+  KR_X,
+  KR_Y,
+  KR_Z,
+  KR_WIDTH,
+  KR_HEIGHT,
+  KR_ROTATION,
+  KR_OPACITY,
+  KR_XSCALE,
+  KR_YSCALE,
+  KR_RED,
+  KR_GREEN,
+  KR_BLUE,
+  KR_ALPHA,
 } kr_compositor_control_t;
 
 typedef enum {
-	KR_TRANSMITTER = 1,
-	KR_RECEIVER,
-	KR_DEMUXER,
-	KR_MUXER,
-	KR_ENCODER,
-	KR_DECODER,
-} kr_transponder_subunit_t;
-
-typedef enum {
-	KR_BUFFER = 1,
-	KR_BITRATE,
+  KR_BUFFER = 1,
+  KR_BITRATE,
 } kr_transponder_control_t;
-
-typedef struct kr_unit_control_St kr_unit_control_t;
-typedef struct kr_subunit_control_path_St kr_subunit_control_path_t;
 
 typedef union {
   void *ptr;
@@ -147,37 +161,38 @@ typedef union {
 } kr_subunit_t;
 
 typedef union {
-  kr_mixer_portgroup_control_type_t portgroup_control;
-//  kr_mixer_portgroup_effect_control_t portgroup_effect_control;
+  kr_mixer_portgroup_control_t portgroup_control;
+  kr_mixer_effect_control_t effect_control;
   kr_compositor_control_t compositor_control;
   kr_transponder_control_t transponder_control;
-} kr_subunit_control_t;
+} kr_unit_control_name_t;
 
-struct kr_subunit_control_path_St {
+struct kr_unit_path_St {
   kr_unit_t unit;
   kr_subunit_t subunit;
-  kr_subunit_control_t control;
 };
 
 typedef union {
   int number;
   char name[64];
-} kr_subunit_address_t;
+} kr_unit_id_t;
 
-struct kr_unit_control_St {
-  kr_subunit_control_path_t path;
-  kr_subunit_address_t address;
-  int subaddress;
-  kr_subunit_control_data_t data_type;
-  kr_subunit_control_value_t value;
-  int duration;
-  //krad_ease_t easing;
+struct kr_address_St {
+  kr_unit_path_t path;
+  kr_unit_control_name_t control;
+  kr_unit_id_t id;
+  int sub_id;
 };
 
+struct kr_unit_control_St {
+  kr_address_t address;
+  kr_unit_control_data_t data_type;
+  kr_unit_control_value_t value;
+  int duration;
+};
+
+int kr_string_to_address (char *string, kr_address_t *addr);
 int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc);
-
-int kr_string_to_unit_control_path_address (char *string, kr_unit_control_t *uc);
-
 
 typedef struct kr_remote_St kr_remote_t;
 struct kr_remote_St {
@@ -187,10 +202,10 @@ struct kr_remote_St {
 
 typedef struct kr_tag_St kr_tag_t;
 struct kr_tag_St {
-	char unit[256];
-	char name[256];
-	char value[256];
-	char source[256];
+  char unit[256];
+  char name[256];
+  char value[256];
+  char source[256];
 };
 
 typedef union {
@@ -202,13 +217,10 @@ typedef union {
 
 typedef struct kr_rep_St kr_rep_t;
 struct kr_rep_St {
-	kr_rep_ptr_t rep_ptr;
-  uint32_t type;	
-	char *buffer;
+  kr_rep_ptr_t rep_ptr;
+  uint32_t type;  
+  char *buffer;
 };
-
-typedef struct kr_item_St kr_item_t;
-typedef int (*item_callback_t)( unsigned char *, uint64_t, char ** );
 
 kr_client_t *kr_client_create (char *client_name);
 
@@ -268,15 +280,17 @@ int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_fr
 char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
-kr_rep_t *kr_item_to_rep (kr_item_t *kr_item);
 int kr_rep_free (kr_rep_t **);
-int kr_item_to_string (kr_item_t *kr_item, char **string);
-int kr_item_read_into_string (kr_item_t *kr_item, char *string);
-const char *kr_item_get_type_string (kr_item_t *item);
-int kr_response_list_get_item (kr_response_t *kr_response, int item_num, kr_item_t **kr_item);
-int kr_response_get_item (kr_response_t *kr_response, kr_item_t **item);
+
+int kr_response_listitem_to_rep (kr_response_t *kr_response, int item_num, kr_rep_t **kr_rep);
+
+int kr_response_to_rep (kr_response_t *kr_response, kr_rep_t **kr_rep);
+
+void kr_response_address (kr_response_t *response, kr_address_t **address);
 int kr_response_is_list (kr_response_t *kr_response);
 int kr_response_list_length (kr_response_t *kr_response);
+
+void kr_address_debug_print (kr_address_t *addr);
 
 kr_unit_t kr_response_unit (kr_response_t *kr_response);
 uint32_t kr_response_size (kr_response_t *kr_response);

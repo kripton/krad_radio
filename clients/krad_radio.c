@@ -406,22 +406,18 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  if ((argc > 3) &&
+  if ((argc > 4) &&
       (((strlen(argv[2]) == 1) && (strncmp(argv[2], "s", 1) == 0)) ||
        ((strlen(argv[2]) == 3) && (strncmp(argv[2], "set", 3) == 0)))) {
 
-      memset (&uc, 0, sizeof (uc));
-      if (kr_string_to_unit_control_path_address (argv[3], &uc)) {
-        if (argc == 4) {
-          //kr_unit_info (client, &uc);
-        } else {
-          uc.value.real = atof(argv[4]);
-          if (argc == 6) {
-            uc.duration = atoi(argv[5]);
-          }
-          kr_unit_control_set (client, &uc);
-        }
+    memset (&uc, 0, sizeof (uc));
+    if (kr_string_to_address (argv[3], &uc.address)) {
+      uc.value.real = atof(argv[4]);
+      if (argc == 6) {
+        uc.duration = atoi(argv[5]);
       }
+      kr_unit_control_set (client, &uc);
+    }
   }
 
   if (strncmp(argv[2], "setmix", 6) == 0) {

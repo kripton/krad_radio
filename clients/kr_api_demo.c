@@ -42,7 +42,7 @@ void my_rep_print (kr_rep_t *rep) {
 void handle_response (kr_client_t *client) {
 
   kr_response_t *response;
-  kr_item_t *item;
+  kr_address_t *address;
   kr_rep_t *rep;
   char *string;
   int wait_time_ms;
@@ -50,7 +50,6 @@ void handle_response (kr_client_t *client) {
   int number;
   int i;
   int items;
-  
 
   items = 0;
   i = 0;
@@ -62,28 +61,30 @@ void handle_response (kr_client_t *client) {
 
   if (kr_poll (client, wait_time_ms)) {
     kr_client_response_get (client, &response);
-  
     if (response != NULL) {
+    
+      kr_response_address (response, &address);
+      kr_address_debug_print (address); 
+    
+      /* Response sometimes is a list */
+    
       if (kr_response_is_list (response)) {
         items = kr_response_list_length (response);
         printf ("Response is a list with %d items.\n", items);
         for (i = 0; i < items; i++) {
-          if (kr_response_list_get_item (response, i, &item)) {
-            printf ("Got item %d type is %s\n", i, kr_item_get_type_string (item));
-            if (kr_item_to_string (item, &string)) {
-              printf ("Item String: %s\n", string);
-              kr_response_free_string (&string);
-            }
-            rep = kr_item_to_rep (item);
+          if (kr_response_listitem_to_rep (response, i, &rep)) {
             if (rep != NULL) {
               my_rep_print (rep);
               kr_rep_free (&rep);
             }
           } else {
-            printf ("Did not get item %d\n", i);
+            printf ("Did not get list item %d rep\n", i);
           }
         }
       }
+      
+      /* Response sometimes can be converted to a string or int */
+      
       length = kr_response_to_string (response, &string);
       printf ("Response Length: %d\n", length);
       if (length > 0) {
@@ -93,18 +94,17 @@ void handle_response (kr_client_t *client) {
       if (kr_response_to_int (response, &number)) {
         printf ("Response Int: %d\n", number);
       }
-      if (kr_response_get_item (response, &item)) {
-        printk ("Got item.. type is %s\n", kr_item_get_type_string (item));
-        if (kr_item_to_string (item, &string)) {
-          printf ("Item String: %s\n", string);
-          kr_response_free_string (&string);
-        }
-        //rep = kr_item_to_rep (item);
-        //if (rep != NULL) {
-        //  rep_to_json (kr_ws_client, rep);
-        //  kr_rep_free (&rep);
-        //}
+      
+      /* Response sometimes can be converted to a rep struct */
+      
+      if (kr_response_to_rep (response, &rep)) {
+        printf ("Got rep from response!\n");
+        my_rep_print (rep);
+        kr_rep_free (&rep);
+      } else {
+        printf ("No rep from response :/\n");
       }
+
       kr_response_free (&response);
     }
   } else {
