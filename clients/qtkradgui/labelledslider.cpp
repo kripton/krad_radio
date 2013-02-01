@@ -18,7 +18,11 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
   //slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //this->label.setAlignment(Qt::Vertical);
   layout = new QVBoxLayout(this);
-  layout->addWidget(slider, 0, Qt::AlignHCenter);
+  if (orientation == Qt::Horizontal) {
+    layout->addWidget(slider);
+  } else {
+    layout->addWidget(slider, 0, Qt::AlignHCenter);
+  }
   layout->addWidget(this->valueLabel, 0, Qt::AlignHCenter);
   layout->addWidget(this->label, 0, Qt::AlignHCenter);
 

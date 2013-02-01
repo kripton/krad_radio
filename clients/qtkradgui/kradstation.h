@@ -30,12 +30,19 @@ public slots:
   void addTapetube(QString portname);
   void removeTapeTube(QString portname);
   void setTapeTube(QString portname, QString control, float value);
+  void addHiPassFilter(QString portname);
+  void addLoPassFilter(QString portname);
+  void setHiPassFilter(QString portname, QString control, float value);
+
+  void setLoPassFilter(QString portname, QString control, float value);
+  void removePassFilter(QString portname);
   void addEq(QString portname);
   void rmEq(QString portname);
   void setEq(QString portname, int bandId, float value);
   void eqBandAdded(QString portname, int bandId, float freq);
   void xmms2Play(QString portname);
   void xmms2Pause(QString portname);
+  void xmms2Stop(QString portname);
   void xmms2Next(QString portname);
   void xmms2Prev(QString portname);
   void openDisplay();

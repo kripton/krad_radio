@@ -41,6 +41,56 @@ void PortgroupSlider::fxToggled(int state)
 
 void PortgroupSlider::addXmms2Controls()
 {
+
+  playAction = new QAction(style()->standardIcon(QStyle::SP_MediaPlay), tr("Play"), this);
+  playAction->setShortcut(tr("Ctrl+P"));
+  //playAction->setDisabled(true);
+  pauseAction = new QAction(style()->standardIcon(QStyle::SP_MediaPause), tr("Pause"), this);
+  pauseAction->setShortcut(tr("Ctrl+A"));
+  //pauseAction->setDisabled(true);
+  stopAction = new QAction(style()->standardIcon(QStyle::SP_MediaStop), tr("Stop"), this);
+  stopAction->setShortcut(tr("Ctrl+S"));
+  //stopAction->setDisabled(true);
+  nextAction = new QAction(style()->standardIcon(QStyle::SP_MediaSkipForward), tr("Next"), this);
+  nextAction->setShortcut(tr("Ctrl+N"));
+  previousAction = new QAction(style()->standardIcon(QStyle::SP_MediaSkipBackward), tr("Previous"), this);
+  previousAction->setShortcut(tr("Ctrl+R"));
+
+  connect(playAction, SIGNAL(triggered()), this, SLOT(xmms2Play()));
+  connect(pauseAction, SIGNAL(triggered()), this, SLOT(xmms2Pause()));
+  connect(stopAction, SIGNAL(triggered()), this, SLOT(xmms2Stop()));
+  connect(nextAction, SIGNAL(triggered()), this, SLOT(xmms2Next()));
+  connect(previousAction, SIGNAL(triggered()), this, SLOT(xmms2Prev()));
+
+  QToolBar *bar = new QToolBar;
+
+  bar->addAction(previousAction);
+  bar->addAction(playAction);
+  bar->addAction(pauseAction);
+  bar->addAction(stopAction);
+  bar->addAction(nextAction);
+
+  layout->insertWidget(3, bar);
+   /*
+
+      QHBoxLayout *playbackLayout = new QHBoxLayout;
+      playbackLayout->addWidget(bar);
+      playbackLayout->addStretch();
+      playbackLayout->addWidget(volumeLabel);
+      playbackLayout->addWidget(volumeSlider);
+
+      QVBoxLayout *mainLayout = new QVBoxLayout;
+      mainLayout->addWidget(musicTable);
+      mainLayout->addLayout(seekerLayout);
+      mainLayout->addLayout(playbackLayout);
+
+      QWidget *widget = new QWidget;
+      widget->setLayout(mainLayout);
+
+      setCentralWidget(widget);
+      setWindowTitle("Phonon Music Player");
+
+  /*
   QHBoxLayout *hbox = new QHBoxLayout();
   QPushButton *play = new QPushButton(tr("Play"));
   QPushButton *prev = new QPushButton(tr("Prev"));
@@ -55,7 +105,7 @@ void PortgroupSlider::addXmms2Controls()
   connect(pause, SIGNAL(clicked()), this, SLOT(xmms2Pause()));
   connect(next, SIGNAL(clicked()), this, SLOT(xmms2Next()));
   connect(prev, SIGNAL(clicked()), this, SLOT(xmms2Prev()));
-
+*/
 }
 
 void PortgroupSlider::xmms2Play()
@@ -66,6 +116,11 @@ void PortgroupSlider::xmms2Play()
 void PortgroupSlider::xmms2Pause()
 {
   emit xmms2Pause(portname);
+}
+
+void PortgroupSlider::xmms2Stop()
+{
+  emit xmms2Stop(portname);
 }
 
 void PortgroupSlider::xmms2Next()

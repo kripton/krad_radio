@@ -55,6 +55,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
     ps->addXmms2Controls();
     connect(ps, SIGNAL(xmms2Play(QString)), kradStation, SLOT(xmms2Play(QString)));
     connect(ps, SIGNAL(xmms2Pause(QString)), kradStation, SLOT(xmms2Pause(QString)));
+    connect(ps, SIGNAL(xmms2Stop(QString)), kradStation, SLOT(xmms2Stop(QString)));
     connect(ps, SIGNAL(xmms2Next(QString)), kradStation, SLOT(xmms2Next(QString)));
     connect(ps, SIGNAL(xmms2Prev(QString)), kradStation, SLOT(xmms2Prev(QString)));
   }
@@ -89,6 +90,8 @@ void StationWidget::addEffects(QString portname)
   effectsWidgets[portname]->addTab(filterWidget, tr("%1 Filters").arg(portname));
   kradStation->addEq(portname);
   kradStation->addTapetube(portname);
+  kradStation->addHiPassFilter(portname);
+  kradStation->addLoPassFilter(portname);
   mainLayout->addWidget(effectsWidgets[portname]);
 
   connect(eqWidget, SIGNAL(bandAdded(QString,int,float)), kradStation, SLOT(eqBandAdded(QString, int,float)));
@@ -109,7 +112,8 @@ void StationWidget::addEffects(QString portname)
 
   connect(eqWidget, SIGNAL(bandDbChanged(QString,int,float)), kradStation, SLOT(setEq(QString,int,float)));
   connect(tapetubeWidget, SIGNAL(tapetubeUpdated(QString,QString,float)), kradStation, SLOT(setTapeTube(QString,QString,float)));
-
+  connect(filterWidget, SIGNAL(hiPassFilterUpdated(QString,QString,float)), kradStation, SLOT(setHiPassFilter(QString,QString,float)));
+  connect(filterWidget, SIGNAL(loPassFilterUpdated(QString,QString,float)), kradStation, SLOT(setLoPassFilter(QString,QString,float)));
 }
 
 void StationWidget::removeEffects(QString portname)
@@ -118,7 +122,7 @@ void StationWidget::removeEffects(QString portname)
 
   kradStation->rmEq(portname);
   kradStation->removeTapeTube(portname);
-
+  kradStation->removePassFilter(portname);
   effectsWidgets[portname]->close();
 }
 

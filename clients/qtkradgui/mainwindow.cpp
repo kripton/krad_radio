@@ -6,8 +6,10 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent)
 {
+  QIcon icon(tr("/home/dsheeler/Pictures/satanism80.gif"));
   this->setWindowTitle("KRAD PRO");
-
+  this->setWindowIcon(icon);
+  this->setWindowIconText(tr("Krad Pro"));
   tabWidget = new QTabWidget(this);
 
   QStringList sl = KradStation::getRunningStations();

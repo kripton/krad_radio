@@ -118,6 +118,34 @@ void KradStation::setTapeTube(QString portname, QString control, float value)
   kr_mixer_set_effect_control (client, portname.toAscii().data(), 1, control.toAscii().data(), 0, value);
 }
 
+void KradStation::addHiPassFilter(QString portname)
+{
+  kr_mixer_add_effect(client, portname.toAscii().data(), "pass");
+}
+
+void KradStation::addLoPassFilter(QString portname)
+{
+  kr_mixer_add_effect(client, portname.toAscii().data(), "pass");
+  kr_mixer_set_effect_control(client, portname.toAscii().data(), 3, "type",0, 1);
+}
+
+void KradStation::setHiPassFilter(QString portname, QString control, float value)
+{
+  qDebug() << tr("trying to set hi pass filter %1 %2 %3").arg(portname).arg(control).arg(value);
+  kr_mixer_set_effect_control(client, portname.toAscii().data(), 2, control.toAscii().data(), 0, value);
+}
+
+void KradStation::setLoPassFilter(QString portname, QString control, float value)
+{
+  qDebug() << tr("trying to set lo pass filter %1 %2 %3").arg(portname).arg(control).arg(value);
+  kr_mixer_set_effect_control(client, portname.toAscii().data(), 3, control.toAscii().data(), 0, value);
+}
+void KradStation::removePassFilter(QString portname)
+{
+  kr_mixer_remove_effect(client, portname.toAscii().data(), 2);
+  kr_mixer_remove_effect(client, portname.toAscii().data(), 3);
+}
+
 void KradStation::addEq(QString portname)
 {
   qDebug() << tr("trying to add eq");
@@ -149,6 +177,11 @@ void KradStation::xmms2Play(QString portname)
 void KradStation::xmms2Pause(QString portname)
 {
   kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "pause");
+}
+
+void KradStation::xmms2Stop(QString portname)
+{
+  kr_mixer_portgroup_xmms2_cmd(client, portname.toAscii().data(), "stop");
 }
 
 void KradStation::xmms2Next(QString portname)
