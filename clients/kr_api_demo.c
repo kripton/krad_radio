@@ -1,55 +1,52 @@
 #include "kr_client.h"
 
-void my_tag_print (kr_tag_t *tag) {
-
-  printf ("The tag I wanted: %s - %s\n",
-          tag->name,
-          tag->value);
-
-}
-
-void my_remote_print (kr_remote_t *remote) {
-
+void my_remote_print (kr_remote_t *remote, void *user_ptr) {
   printf ("oh its a remote! %d on interface %s\n",
           remote->port,
           remote->interface);
-
 }
 
-void my_portgroup_print (kr_mixer_portgroup_t *portgroup) {
+void my_tag_print (kr_tag_t *tag, void *user_ptr) {
+  printf ("The tag I wanted: %s - %s\n",
+          tag->name,
+          tag->value);
+}
 
+void my_portgroup_print (kr_mixer_portgroup_t *portgroup, void *user_ptr) {
   printf ("oh its a portgroup called %s and the volume is %0.2f%%\n",
            portgroup->sysname,
            portgroup->volume[0]);
-
 }
 
-void my_compositor_print (kr_compositor_t *compositor) {
+void my_compositor_print (kr_compositor_t *compositor, void *user_ptr) {
 
   printf ("Compositor Resolution: %d x %d Frame Rate: %d / %d - %f\n",
 					 compositor->width, compositor->height,
 					 compositor->fps_numerator, compositor->fps_denominator,
 					 ((float)compositor->fps_numerator / (float)compositor->fps_denominator));
-
 }
 
 void my_rep_print (kr_rep_t *rep) {
+
+  void *user_ptr;
+  
+  user_ptr = NULL;
+
   switch ( rep->type ) {
     case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
-      my_remote_print (rep->rep_ptr.remote);
+      my_remote_print (rep->rep_ptr.actual, user_ptr);
       return;
     case EBML_ID_KRAD_RADIO_TAG:
-      my_tag_print (rep->rep_ptr.tag);
+      my_tag_print (rep->rep_ptr.tag, user_ptr);
       return;
     case EBML_ID_KRAD_MIXER_PORTGROUP:
-      my_portgroup_print (rep->rep_ptr.mixer_portgroup);
+      my_portgroup_print (rep->rep_ptr.mixer_portgroup, user_ptr);
       return;
     case EBML_ID_KRAD_COMPOSITOR_INFO:
-      my_compositor_print (rep->rep_ptr.compositor);
+      my_compositor_print (rep->rep_ptr.compositor, user_ptr);
       return;
   }
 }
-
 
 void handle_response (kr_client_t *client) {
 
@@ -138,23 +135,18 @@ void wait_for_broadcasts (kr_client_t *client) {
   max = 10000000;
   timeout_ms = 3000;
   
-  printf ("Waiting for up to %"PRIu64" broadcasts up to %ums each\n", max, timeout_ms);
+  printf ("Waiting for up to %"PRIu64" broadcasts up to %ums each\n",
+          max, timeout_ms);
   
-  
-  while (b < max) {
-
+  for (b = 0; b < max; b++) {
     ret = kr_poll (client, timeout_ms);
-
     if (ret > 0) {
       handle_response (client);
     } else {
       printf (".");
       fflush (stdout);
     }
-
-    b++;
   }
-
 }
 
 void kr_api_test (kr_client_t *client) {
@@ -173,14 +165,14 @@ void kr_api_test (kr_client_t *client) {
     
   kr_remote_status (client);
   handle_response (client);
-  
-  kr_mixer_info (client);
+
+  kr_tags (client, NULL);
   handle_response (client);
-  
+
   kr_compositor_info (client);
   handle_response (client);
   
-  kr_tags (client, NULL);
+  kr_mixer_info (client);
   handle_response (client);
   
   kr_mixer_portgroups_list (client);

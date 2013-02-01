@@ -48,5 +48,5 @@ void kr_pass_process (kr_pass_t *kr_pass, float *input, float *output, int num_s
 
 /* Controls */
 void kr_pass_set_type (kr_pass_t *kr_pass, int type);
-void kr_pass_set_bandwidth (kr_pass_t *kr_pass, float bandwidth);
-void kr_pass_set_hz (kr_pass_t *kr_pass, float hz);
+void kr_pass_set_bandwidth (kr_pass_t *kr_pass, float bandwidth, int duration, krad_ease_t ease);
+void kr_pass_set_hz (kr_pass_t *kr_pass, float hz, int duration, krad_ease_t ease);

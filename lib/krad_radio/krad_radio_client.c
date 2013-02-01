@@ -1364,15 +1364,17 @@ void kr_address_debug_print (kr_address_t *addr) {
       printf ("Mixer ");
       switch (subunit->mixer_subunit) {
         case KR_PORTGROUP:
-          printf ("Portgroup: %s ", id->name);
+          printf ("%s ", id->name);
           if (control->portgroup_control == KR_VOLUME) {
-            printf ("Control: Volume");
+            printf ("Volume");
           } else {
-            printf ("Control: Crossfade");
+            printf ("Crossfade");
           }
           break;
         case KR_EFFECT:
-          printf ("Effect");
+          printf ("%s ", id->name);
+          printf ("Effect: %d Control: %s", addr->sub_id,
+                  effect_control_to_string(addr->control.effect_control));
           break;
       }
       break;
@@ -1432,6 +1434,7 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
   char *tokens[MAX_TOKENS];
   int t;
   int i;
+  char *effect_control;
 
   kr_unit_t *unit;
   kr_subunit_t *subunit;
@@ -1447,7 +1450,7 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
   t = 0;
   save = NULL;
 
-  printf ("string was %s\n", string);
+  //printf ("string was %s\n", string);
 
   pch = strtok_r (string, "/ ", &save);
   while ((pch != NULL) && (t < MAX_TOKENS)) {
@@ -1457,7 +1460,7 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
     pch = strtok_r (NULL, "/ ", &save);
   }
 
-  printf ("\n%d tokens\n", t);
+  //printf ("\n%d tokens\n", t);
 
   for (i = 0; i < t; i++) {
     printf ("%d: %s  ", i + 1, tokens[i]);
@@ -1467,6 +1470,10 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
   
   if (t < 2) {
     printf ("Invalid Unit Control Address: Less than 2 parts\n");
+    return -1;
+  }
+  if (t > 5) {
+    printf ("Invalid Unit Control Address: More than 5 parts\n");
     return -1;
   }
     
@@ -1486,6 +1493,10 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
       case 'e':
         *unit = KR_MIXER;
         subunit->mixer_subunit = KR_EFFECT;
+        if (t != 4) {
+          printf ("Invalid Mixer Effect control address, not 4 parts\n");
+          return -1;
+        }
         break;
       case 's':
         *unit = KR_COMPOSITOR;
@@ -1570,50 +1581,73 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
     return -1;
   }
   
-  if (subunit->ptr == NULL) {
-    switch (*unit) {
-      case KR_MIXER:
-        strncpy (id->name, tokens[1], sizeof (id->name));
-        if (t == 2) {
-          subunit->mixer_subunit = KR_PORTGROUP;
-          control->portgroup_control = KR_VOLUME;
-        }
-        if (t > 3) {
-          subunit->mixer_subunit = KR_EFFECT;
+  switch (*unit) {
+    case KR_MIXER:
+      strncpy (id->name, tokens[1], sizeof (id->name));
+      if (t == 2) {
+        subunit->mixer_subunit = KR_PORTGROUP;
+        control->portgroup_control = KR_VOLUME;
+      }
+      if (t == 3) {
+        subunit->mixer_subunit = KR_PORTGROUP;
+        if ((tokens[2][0] == 'f') || (tokens[2][0] == 'c')) {
+          control->portgroup_control = KR_CROSSFADE;
         } else {
-          subunit->mixer_subunit = KR_PORTGROUP;
-        }
-        if (t == 3) {
-          if ((tokens[2][0] == 'f') || (tokens[2][0] == 'c')) {
-            control->portgroup_control = KR_CROSSFADE;
+          if ((tokens[2][0] == 'v')) {
+            control->portgroup_control = KR_VOLUME;
           } else {
-            if ((tokens[2][0] == 'v')) {
-              control->portgroup_control = KR_VOLUME;
+            printf ("Invalid Mixer Portgroup Control\n");
+            return -1;
+          }
+        }
+      }
+      if ((t >= 4) || (t == 5)) {
+        subunit->mixer_subunit = KR_EFFECT;
+        if (t == 4) {
+          addr->sub_id = atoi(tokens[2]);
+          effect_control = tokens[3];
+        }
+        if (t == 5) {
+          addr->sub_id = atoi(tokens[3]);
+          effect_control = tokens[4];
+        }
+        if ((effect_control[0] == 'd') && (effect_control[1] == 'b')) {
+          addr->control.effect_control = DB;
+        } else {
+          if ((effect_control[0] == 'h') && (effect_control[1] == 'z')) {
+            addr->control.effect_control = HZ;
+          } else {
+            if ((effect_control[0] == 'b') && (effect_control[1] == 'w')) {
+              addr->control.effect_control = BANDWIDTH;
             } else {
-              printf ("Invalid Mixer Portgroup Control\n");
-              return -1;
+              if (effect_control[0] == 't') {
+                addr->control.effect_control = TYPE;
+              } else {
+                if ((effect_control[0] == 'd') && (effect_control[1] == 'r')) {
+                  addr->control.effect_control = DRIVE;
+                } else {
+                  if ((effect_control[0] == 'b') && (effect_control[1] == 'l')) {
+                    addr->control.effect_control = BLEND;
+                  }
+                }
+              }
             }
           }
         }
-        break;
-      case KR_COMPOSITOR:
-        printf ("Invalid COMPOSITOR Control\n");
-        return -1;
-        break;
-      case KR_TRANSPONDER:
-        printf ("Invalid TRANSPONDER Control\n");
-        return -1;
-        break;
-      case KR_STATION:
-        printf ("Invalid RADIO Control\n");
-        return -1;
-        break;
-    }
-  }
-  
-  if (subunit->ptr == NULL) {
-    printf ("Subunit could not be identified\n");
-    return -1;
+      }
+      break;
+    case KR_COMPOSITOR:
+      printf ("Invalid COMPOSITOR Control\n");
+      return -1;
+      break;
+    case KR_TRANSPONDER:
+      printf ("Invalid TRANSPONDER Control\n");
+      return -1;
+      break;
+    case KR_STATION:
+      printf ("Invalid RADIO Control\n");
+      return -1;
+      break;
   }
 
   kr_address_debug_print (addr); 
@@ -1652,16 +1686,16 @@ int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc) {
           } else {
             kr_mixer_set_control (client, uc->address.id.name, "crossfade", uc->value.real, uc->duration);
           }
-
           break;
-
         case KR_EFFECT:
-
+          printf("%s %d %s %d %f - dur %d\n", uc->address.id.name, uc->address.sub_id, 
+                            effect_control_to_string(uc->address.control.effect_control),
+                            uc->value.integer, uc->value2.real, uc->duration);
+          kr_mixer_set_effect_control (client, uc->address.id.name, uc->address.sub_id, 
+                                       effect_control_to_string(uc->address.control.effect_control),
+                                       uc->value.integer, uc->value2.real, uc->duration, EASEINOUTSINE);
           break;
       }
-      // portgroup name
-      // control vol/fade
-      // value
       break;
     case KR_COMPOSITOR:
       // subunit type

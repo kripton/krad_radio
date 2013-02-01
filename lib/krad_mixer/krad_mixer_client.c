@@ -626,7 +626,8 @@ void kr_mixer_remove_effect (kr_client_t *client, char *portgroup_name, int effe
 }
 
 void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int effect_num, 
-                                  char *control_name, int subunit, float control_value) {
+                                  char *control_name, int subunit, float control_value, int duration,
+                                  krad_ease_t ease) {
 
 	//uint64_t ipc_command;
 	uint64_t mixer_command;
@@ -644,7 +645,8 @@ void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int
 	krad_ebml_write_string (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_NAME, control_name);
 	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_SUBUNIT, subunit);
 	krad_ebml_write_float (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_VALUE, control_value);
-
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_DURATION, duration);
+	krad_ebml_write_int32 (client->krad_ebml, EBML_ID_KRAD_MIXER_CONTROL_DURATION, ease);
 	krad_ebml_finish_element (client->krad_ebml, set_control);
 	krad_ebml_finish_element (client->krad_ebml, mixer_command);
 	//krad_ebml_finish_element (client->krad_ebml, ipc_command);

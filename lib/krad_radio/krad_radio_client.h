@@ -47,9 +47,14 @@
   */
 typedef struct kr_client_St kr_client_t;
 
-
+#include "krad_easing_common.h"
 #include "krad_mixer_common.h"
 #include "krad_compositor_common.h"
+
+
+
+//typedef void (*rep_callback_t)( void *, void * );
+
 
 /** Shared memory buffer.
  * @brief Variable sized buffer used to get data in and out of local A/V ports
@@ -120,20 +125,6 @@ typedef union {
 /* Control Names */
 
 typedef enum {
-  KR_VOLUME = 1,
-  KR_CROSSFADE,
-} kr_mixer_portgroup_control_t;
-
-typedef enum {
-  EQ_DB,
-  EQ_BANDWIDTH,
-  EQ_HZ,  
-  PASS_TYPE,
-  PASS_BANDWIDTH,
-  PASS_HZ,
-} kr_mixer_effect_control_t;
-
-typedef enum {
   KR_X,
   KR_Y,
   KR_Z,
@@ -189,6 +180,7 @@ struct kr_unit_control_St {
   kr_address_t address;
   kr_unit_control_data_t data_type;
   kr_unit_control_value_t value;
+  kr_unit_control_value_t value2;
   int duration;
 };
 
@@ -210,6 +202,7 @@ struct kr_tag_St {
 };
 
 typedef union {
+  void *actual;
   kr_tag_t *tag;
   kr_remote_t *remote;
   kr_mixer_portgroup_t *mixer_portgroup;

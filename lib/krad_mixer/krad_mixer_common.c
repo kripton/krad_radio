@@ -244,6 +244,25 @@ krad_mixer_portgroup_rep_t *krad_mixer_ebml_to_krad_mixer_portgroup_rep (krad_eb
 	return krad_mixer_portgroup_rep_ret;
 }
 
+char *effect_control_to_string (kr_mixer_effect_control_t effect_control) {
+
+  switch (effect_control) {
+    case DB:
+      return "db";
+    case HZ:
+      return "hz";
+    case BANDWIDTH:
+      return "bandwidth";
+    case TYPE:
+      return "type";
+    case DRIVE:
+      return "drive";
+    case BLEND:
+      return "blend";
+  }
+  return "Unknown";
+}
+
 krad_mixer_rep_t *krad_mixer_rep_create () {
   krad_mixer_rep_t *mixer_rep = (krad_mixer_rep_t *) calloc (1, sizeof (krad_mixer_rep_t));
   return mixer_rep;

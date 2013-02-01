@@ -412,9 +412,31 @@ int main (int argc, char *argv[]) {
 
     memset (&uc, 0, sizeof (uc));
     if (kr_string_to_address (argv[3], &uc.address)) {
-      uc.value.real = atof(argv[4]);
-      if (argc == 6) {
-        uc.duration = atoi(argv[5]);
+    
+      if ((uc.address.path.unit == KR_MIXER) && (uc.address.path.subunit.mixer_subunit == KR_EFFECT)) {
+        if (argc == 5) {
+          uc.value.integer = atof(argv[4]);
+          uc.duration = 0;
+        }
+        if (argc == 6) {
+          uc.value.integer = atof(argv[4]);
+          uc.value2.real = atoi(argv[5]);
+          uc.duration = 0;
+        }
+        if (argc == 7) {
+          uc.value.integer = atoi(argv[4]);
+          uc.value2.real = atoi(argv[5]);
+          uc.duration = atoi(argv[6]);
+        }
+      } else {
+        if (argc == 5) {
+          uc.value.real = atof(argv[4]);
+          uc.duration = 0;
+        }
+        if (argc == 6) {
+          uc.value.real = atof(argv[4]);
+          uc.duration = atoi(argv[5]);
+        }
       }
       kr_unit_control_set (client, &uc);
     }
@@ -443,7 +465,13 @@ int main (int argc, char *argv[]) {
 
   if (strncmp(argv[2], "setfx", 5) == 0) {
     if (argc == 8) {
-      kr_mixer_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]));
+      kr_mixer_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]), 0, EASEINOUTSINE);
+    }
+    if (argc == 9) {
+      kr_mixer_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]), atoi(argv[8]), EASEINOUTSINE);
+    }
+    if (argc == 10) {
+      kr_mixer_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]), atoi(argv[8]), EASEINOUTSINE);
     }
   }
 
