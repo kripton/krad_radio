@@ -451,18 +451,6 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  if (strncmp(argv[2], "addfx", 5) == 0) {
-    if (argc == 5) {
-      kr_mixer_add_effect (client, argv[3], argv[4]);
-    }
-  }
-
-  if (strncmp(argv[2], "rmfx", 4) == 0) {
-    if (argc == 5) {
-      kr_mixer_remove_effect (client, argv[3], atoi(argv[4]));
-    }
-  }
-
   if (strncmp(argv[2], "setfx", 5) == 0) {
     if (argc == 8) {
       kr_mixer_set_effect_control (client, argv[3], atoi(argv[4]), argv[5], atoi(argv[6]), atof(argv[7]), 0, EASEINOUTSINE);
