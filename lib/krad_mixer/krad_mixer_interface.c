@@ -35,6 +35,31 @@ static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portg
     portgroup_rep_ret->has_xmms2 = 1;
   }
   
+  kr_eq_t *eq;
+  kr_pass_t *lowpass;
+  kr_pass_t *highpass;
+  kr_analog_t *analog;
+  
+  eq = (kr_eq_t *)krad_mixer_portgroup->effects->effect[0].effect[0];
+  lowpass = (kr_lowpass_t *)krad_mixer_portgroup->effects->effect[1].effect[0];
+  highpass = (kr_highpass_t *)krad_mixer_portgroup->effects->effect[2].effect[0];
+  analog = (kr_analog_t *)krad_mixer_portgroup->effects->effect[3].effect[0];
+
+  for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
+    portgroup_rep_ret->eq.band[i].db = eq->band[i].db;
+    portgroup_rep_ret->eq.band[i].bandwidth = eq->band[i].bandwidth;
+    portgroup_rep_ret->eq.band[i].hz = eq->band[i].hz;
+    //printk ("hz is %f %f\n", portgroup_rep_ret->eq.band[i].hz, eq->band[i].hz); 
+  }
+  
+  portgroup_rep_ret->lowpass.hz = lowpass->hz;
+  portgroup_rep_ret->lowpass.bandwidth = lowpass->bandwidth;
+  portgroup_rep_ret->highpass.hz = highpass->hz;
+  portgroup_rep_ret->highpass.bandwidth = highpass->bandwidth;
+  
+  portgroup_rep_ret->analog.drive = analog->drive;
+  portgroup_rep_ret->analog.blend = analog->blend;
+  
   if ((krad_mixer_portgroup->crossfade_group != NULL) && 
       (krad_mixer_portgroup->crossfade_group->portgroup[0] == krad_mixer_portgroup)) {
      portgroup_rep_crossfade = krad_mixer_portgroup_rep_create ();

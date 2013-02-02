@@ -515,32 +515,6 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
 
 }
 
-
-char *krad_mixer_channel_number_to_string (int channel) {
-
-  switch ( channel ) {
-    case 0:
-      return "Left";
-    case 1:
-      return "Right";
-    case 2:
-      return "RearLeft";
-    case 3:
-      return "RearRight";
-    case 4:
-      return "Center";
-    case 5:
-      return "Sub";
-    case 6:
-      return "BackLeft";
-    case 7:
-      return "BackRight";
-    default:
-      return "Unknown";
-  }
-}
-
-
 void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_portgroup_t *krad_mixer_local_portgroup,
                         float **samples) {
 
@@ -566,7 +540,6 @@ void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_port
   }
   
   return;
-
 }
 
 krad_mixer_portgroup_t *krad_mixer_local_portgroup_create (krad_mixer_t *krad_mixer, char *sysname,
@@ -754,13 +727,12 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
     kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("highpass"));
     kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("analog"));
   }
-  
     
   if (portgroup->io_type != KLOCALSHM) {
     portgroup->active = 1;
   }
-  return portgroup;
 
+  return portgroup;
 }
 
 void krad_mixer_local_portgroup_destroy (krad_mixer_local_portgroup_t *krad_mixer_local_portgroup) {

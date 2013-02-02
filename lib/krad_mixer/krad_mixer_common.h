@@ -83,7 +83,13 @@ struct krad_mixer_portgroup_rep_St {
 	float peak[KRAD_MIXER_MAX_CHANNELS];
   int delay;
 
+  kr_eq_rep_t eq;
+  kr_lowpass_rep_t lowpass;
+  kr_highpass_rep_t highpass;
+  kr_analog_rep_t analog;
+
   int has_xmms2;
+  char xmms2_ipc_path[128];
 
 };
 
@@ -113,6 +119,8 @@ struct kr_mixer_portgroup_control_rep_St {
   char control[64];
   float value;
 };
+
+char *krad_mixer_channel_number_to_string (int channel);
 
 char *effect_control_to_string (kr_mixer_effect_control_t effect_control);
 

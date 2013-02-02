@@ -701,6 +701,32 @@ krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_
 	
 	krad_mixer_portgroup_rep->has_xmms2 = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
 	
+	
+  for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
+	  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+    krad_mixer_portgroup_rep->eq.band[i].db = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+    item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+    krad_mixer_portgroup_rep->eq.band[i].bandwidth = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+    item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+    krad_mixer_portgroup_rep->eq.band[i].hz = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  }
+  
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->lowpass.hz = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->lowpass.bandwidth = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->highpass.hz = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->highpass.bandwidth = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->analog.drive = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->analog.blend = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+	
+	
 	return krad_mixer_portgroup_rep;
 }
 
@@ -708,6 +734,7 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
 
 	int pos;
 	int c;
+	int i;
   krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep;
 
   pos = 0;
@@ -756,6 +783,37 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
   if (krad_mixer_portgroup_rep->has_xmms2 == 1) {
     pos += sprintf (*string + pos, " [XMMS2]");
   }
+
+  pos += sprintf (*string + pos, "\n");
+
+  pos += sprintf (*string + pos, " EQ Band \t %4s \t %6s \t %2s\n", "Db", "Hz", "BW");
+  
+  for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
+    pos += sprintf (*string + pos, "     %2d:\t %4.2f \t %6.0f \t %0.2f\n",
+                    i, 
+                    krad_mixer_portgroup_rep->eq.band[i].db,
+                    krad_mixer_portgroup_rep->eq.band[i].hz,
+                    krad_mixer_portgroup_rep->eq.band[i].bandwidth);
+  }
+  
+
+  //if (krad_mixer_portgroup_rep->lowpass.hz != ) {
+    pos += sprintf (*string + pos, "  Lowpass     Hz %8.2f      BW %5.2f\n", 
+                    krad_mixer_portgroup_rep->lowpass.hz,
+                    krad_mixer_portgroup_rep->lowpass.bandwidth);  
+  //}
+
+  //if (krad_mixer_portgroup_rep->highpass.hz != ) {
+    pos += sprintf (*string + pos, " Highpass     Hz %8.2f      BW %5.2f\n", 
+                    krad_mixer_portgroup_rep->highpass.hz,
+                    krad_mixer_portgroup_rep->highpass.bandwidth);
+  //}
+  
+  //if (krad_mixer_portgroup_rep->analog.drive != ) {
+    pos += sprintf (*string + pos, "   Analog  Drive    %5.2f   Blend %5.2f\n", 
+                    krad_mixer_portgroup_rep->analog.drive,
+                    krad_mixer_portgroup_rep->analog.blend);  
+  //}
 
   pos += sprintf (*string + pos, "\n");
 

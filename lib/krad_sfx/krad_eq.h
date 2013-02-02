@@ -14,8 +14,6 @@
 
 #include "biquad.h"
 
-#define MAX_BANDS 32
-
 #define KRAD_EQ_CONTROL_DB 666
 #define KRAD_EQ_CONTROL_BANDWIDTH 667
 #define KRAD_EQ_CONTROL_HZ 668
@@ -47,7 +45,7 @@ typedef struct {
 
   float new_sample_rate;
   float sample_rate;
-  kr_eq_band_t band[MAX_BANDS];
+  kr_eq_band_t band[KRAD_EQ_MAX_BANDS];
       
 } kr_eq_t;
 

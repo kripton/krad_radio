@@ -24,7 +24,15 @@
 #define KRAD_PASS_HZ_MAX 20000.0
 #define KRAD_LOWPASS_HZ_MAX 12000.0
 
-typedef struct {
+
+typedef struct krad_pass_St krad_pass_t;
+typedef struct krad_pass_St kr_pass_t;
+typedef struct krad_pass_St kr_highpass_t;
+typedef struct krad_pass_St kr_lowpass_t;
+
+
+
+struct krad_pass_St {
 
   biquad filter;
 
@@ -40,7 +48,7 @@ typedef struct {
   krad_easing_t krad_easing_bandwidth;
   krad_easing_t krad_easing_hz;
   
-} kr_pass_t;
+};
 
 
 kr_pass_t *kr_pass_create (int sample_rate, kr_effect_type_t type);
