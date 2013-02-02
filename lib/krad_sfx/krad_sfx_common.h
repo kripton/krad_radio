@@ -5,15 +5,15 @@
 #define LIMIT(v,l,u) ((v)<(l)?(l):((v)>(u)?(u):(v)))
 #endif
 
-#define KRAD_EFFECTS_MAX 8
+#define KRAD_EFFECTS_MAX 4
 #define KRAD_EFFECTS_MAX_CHANNELS 8
 
 typedef enum {
   KRAD_NOFX,
   KRAD_EQ,
-  KRAD_PASS,
-  KRAD_TAPETUBE,
-//  KRAD_RUSHLIMIT,
+  KRAD_LOWPASS,
+  KRAD_HIGHPASS,
+  KRAD_ANALOG,
 } kr_effect_type_t;
 
 
