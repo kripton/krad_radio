@@ -786,10 +786,10 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
 
   pos += sprintf (*string + pos, "\n");
 
-  pos += sprintf (*string + pos, " EQ Band \t %4s \t %6s \t %2s\n", "Db", "Hz", "BW");
+  pos += sprintf (*string + pos, " EQ Band \t %6s \t %6s \t %2s\n", "Db", "Hz", "BW");
   
   for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
-    pos += sprintf (*string + pos, "     %2d:\t %4.2f \t %6.0f \t %0.2f\n",
+    pos += sprintf (*string + pos, "     %2d:\t %6.2f \t %6.0f \t %0.2f\n",
                     i, 
                     krad_mixer_portgroup_rep->eq.band[i].db,
                     krad_mixer_portgroup_rep->eq.band[i].hz,
