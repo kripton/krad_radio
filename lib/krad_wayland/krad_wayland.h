@@ -24,59 +24,61 @@ typedef struct krad_wayland_display_St krad_wayland_display_t;
 typedef struct krad_wayland_window_St krad_wayland_window_t;
 
 struct krad_wayland_display_St {
-	struct wl_display *display;
-	struct wl_compositor *compositor;
-	struct wl_shell *shell;
-	struct wl_shm *shm;
-	uint32_t formats;
-	uint32_t mask;
-
-	struct wl_shm_listener shm_listener;
-
-	struct wl_seat *seat;
-	struct wl_pointer *pointer;
-
-	struct wl_seat_listener seat_listener;
-	struct wl_pointer_listener pointer_listener;
-	
-	
-	int pointer_x;
-	int pointer_y;
-
+    struct wl_display *display;
+    struct wl_registry *registry;
+    struct wl_compositor *compositor;
+    struct wl_shell *shell;
+    struct wl_shm *shm;
+    uint32_t formats;
+    uint32_t mask;
+    
+    struct wl_shm_listener shm_listener;
+    
+    struct wl_seat *seat;
+    struct wl_pointer *pointer;
+    
+    struct wl_seat_listener seat_listener;
+    struct wl_pointer_listener pointer_listener;
+    
+    struct wl_registry_listener registry_listener;
+    
+    int pointer_x;
+    int pointer_y;
+    
 };
 
 struct krad_wayland_window_St {
-	int width;
-	int height;
-	char title[512];
-	struct wl_surface *surface;
-	struct wl_shell_surface *shell_surface;
-	struct wl_buffer *buffer;
-	void *shm_data;
-	struct wl_callback *callback;
-
-	struct wl_shell_surface_listener surface_listener;
-	struct wl_callback_listener frame_listener;
+    int width;
+    int height;
+    char title[512];
+    struct wl_surface *surface;
+    struct wl_shell_surface *shell_surface;
+    struct wl_buffer *buffer;
+    void *shm_data;
+    struct wl_callback *callback;
+    
+    struct wl_shell_surface_listener surface_listener;
+    struct wl_callback_listener frame_listener;
 };
 
 
 struct krad_wayland_St {
-
-	krad_wayland_window_t *window;
-	krad_wayland_display_t *display;
-
-	int frame_size;
-	struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
-	int current_buffer;
-
-	int (*frame_callback)(void *, uint32_t);
-	void *callback_pointer;
-
-	int render_test_pattern;
-
-	int click;
-	int mousein;	
-
+    
+    krad_wayland_window_t *window;
+    krad_wayland_display_t *display;
+    
+    int frame_size;
+    struct wl_buffer *buffer[KRAD_WAYLAND_BUFFER_COUNT];
+    int current_buffer;
+    
+    int (*frame_callback)(void *, uint32_t);
+    void *callback_pointer;
+    
+    int render_test_pattern;
+    
+    int click;
+    int mousein;	
+    
 };
 
 
