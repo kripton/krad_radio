@@ -2,6 +2,8 @@
 #define KRADSTATION_H
 
 #include <QObject>
+#include <QRect>
+
 extern "C" {
 #include "kr_client.h"
 #include "krad_radio_client.h"
@@ -43,6 +45,7 @@ public slots:
   void addSprite(QString filename, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
   void setSprite(int spriteNum, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
   void kill();
+  QRect getCompFrameSize();
 private:
   kr_client_t *client;
   QString sysname;

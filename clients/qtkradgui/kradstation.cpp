@@ -190,6 +190,34 @@ void KradStation::kill()
     //delete this;
 }
 
+QRect KradStation::getCompFrameSize()
+{
+    kr_compositor_get_frame_size(client);
+    kr_response_t *response;
+    char *string;
+    int wait_time_ms;
+    int length;
+
+    string = NULL;
+    response = NULL;
+    wait_time_ms = 250;
+
+    if (kr_poll (client, wait_time_ms)) {
+      kr_client_response_get (client, &response);
+      if (response != NULL) {
+        length = kr_response_to_string (response, &string);
+        if (length > 0) {
+          printf ("%s\n", string);
+          kr_response_free_string (&string);
+        }
+        kr_response_free (&response);
+      }
+    } else {
+      printf ("No response after waiting %dms\n", wait_time_ms);
+    }
+    qDebug() << "Frame size:" << string;
+}
+
 void KradStation::handleResponse()
 {
 

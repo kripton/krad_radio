@@ -31,6 +31,8 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   connect(kradStation, SIGNAL(portgroupAdded(kr_mixer_portgroup_t*)), this, SLOT(portgroupAdded(kr_mixer_portgroup_t*)));
   connect(kradStation, SIGNAL(cpuTimeUpdated(int)), cpuTime, SLOT(setValue(int)));
 
+  kradStation->getCompFrameSize();
+
 }
 
 bool StationWidget::isConnected()
