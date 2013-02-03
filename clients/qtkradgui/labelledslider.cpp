@@ -17,17 +17,21 @@ LabelledSlider::LabelledSlider(QString label, Qt::Orientation orientation, int m
   slider->setTracking(false);
   //slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //this->label.setAlignment(Qt::Vertical);
-  layout = new QVBoxLayout(this);
+  sliderLayout = new QVBoxLayout();
   if (orientation == Qt::Horizontal) {
-    layout->addWidget(slider);
+    sliderLayout->addWidget(slider, 1);
+    slider->setMinimumWidth(200);
   } else {
-    layout->addWidget(slider, 0, Qt::AlignHCenter);
+    slider->setMinimumHeight(200);
+    sliderLayout->addWidget(slider, 1, Qt::AlignHCenter);
   }
-  layout->addWidget(this->valueLabel, 0, Qt::AlignHCenter);
-  layout->addWidget(this->label, 0, Qt::AlignHCenter);
-
-  this->valueLabel->setNum(0);
-  this->setLayout(layout);
+  sliderLayout->addWidget(this->valueLabel, 0, Qt::AlignHCenter);
+  sliderLayout->addWidget(this->label, 0, Qt::AlignHCenter);
+  //this->valueLabel->setTextFormat(Qt::TextFormat);
+  this->valueLabel->setText(tr("%1").arg(0.0, 0, 'f', 1));
+  mainLayout = new QHBoxLayout(this);
+  mainLayout->addLayout(sliderLayout);
+  this->setLayout(mainLayout);
   //connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
   //connect(slider, SIGNAL())
@@ -38,13 +42,14 @@ void LabelledSlider::setValue(float value)
 {
   slider->setSliderPosition((int) 10*value);
   //slider->setValue((int) 10*value);
-  valueLabel->setNum((double) value);
+
+  valueLabel->setText(tr("%1").arg(value, 0, 'f', 1));
 }
 
 void LabelledSlider::sliderValueChanged(int value)
 {
   qDebug() << tr("sliderValueChanged %1 %2").arg(label->text()).arg(0.1*value);
-  valueLabel->setNum((double) 0.1 * value);
+  valueLabel->setText(tr("%1").arg((double) 0.1 * value, 0, 'f', 1));
   emit valueChanged(label->text(), 0.1f * value);
 }
 

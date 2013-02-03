@@ -56,7 +56,7 @@ private:
   int krad_radio_pid(QString sysname);
 
   void handleResponse();
-  void emitItemType(kr_item_t *item);
+  void emitRepType(kr_rep_t *rep);
 
 };
 

@@ -5,7 +5,7 @@ PortgroupSlider::PortgroupSlider(QString label, QWidget *parent) :
 {
 
   portname = label;
-  buttonAdd = 1;
+
   QHBoxLayout *bg = new QHBoxLayout(this);
 
   toggleFx = new QCheckBox(tr("Effects"));
@@ -13,7 +13,7 @@ PortgroupSlider::PortgroupSlider(QString label, QWidget *parent) :
   connect(toggleFx, SIGNAL(stateChanged(int)), this, SLOT(fxToggled(int)));
   bg->addWidget(toggleFx);
 
-  layout->addLayout(bg);
+  sliderLayout->addLayout(bg);
 
 }
 
@@ -62,15 +62,18 @@ void PortgroupSlider::addXmms2Controls()
   connect(nextAction, SIGNAL(triggered()), this, SLOT(xmms2Next()));
   connect(previousAction, SIGNAL(triggered()), this, SLOT(xmms2Prev()));
 
-  QToolBar *bar = new QToolBar;
 
+
+  QToolBar *bar = new QToolBar();
+  bar->setOrientation(Qt::Vertical);
   bar->addAction(previousAction);
   bar->addAction(playAction);
   bar->addAction(pauseAction);
   bar->addAction(stopAction);
   bar->addAction(nextAction);
 
-  layout->insertWidget(3, bar);
+  mainLayout->addWidget(bar, 0, Qt::AlignVCenter);
+//  this->setLayout(newlayout);
    /*
 
       QHBoxLayout *playbackLayout = new QHBoxLayout;

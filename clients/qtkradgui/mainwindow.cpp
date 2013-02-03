@@ -6,10 +6,11 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent)
 {
-  QIcon icon(tr("/home/dsheeler/Pictures/satanism80.gif"));
-  this->setWindowTitle("KRAD PRO");
-  this->setWindowIcon(icon);
+  //QIcon icon(tr("/home/dsheeler/Pictures/satanism80.gif"));
+  //this->setWindowIcon(icon);
   this->setWindowIconText(tr("Krad Pro"));
+  this->setWindowTitle("KRAD PRO");
+
   tabWidget = new QTabWidget(this);
 
   QStringList sl = KradStation::getRunningStations();
@@ -20,8 +21,6 @@ MainWindow::MainWindow(QWidget *parent) :
   tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
 
   tabWidget->setTabsClosable(true);
-  //QScrollArea *scrollArea = new QScrollArea(this);
-  //scrollArea->setWidget(tabWidget);
 
  // tabWidget->setMinimumSize(2000, 500);
  // tabWidget->setMaximumSize(2000, 1000);
@@ -32,8 +31,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), station, SLOT(closeTabRequested(int)));
     tabWidget->addTab(station, i);
   }
-//  StationWidget *sw = new StationWidget(tr("djsh"), this);
-  setCentralWidget(tabWidget);
+
+  QScrollArea *sa = new QScrollArea();
+  sa->setWidget(tabWidget);
+  sa->setWidgetResizable(true);
+  setCentralWidget(sa);
 
 }
 

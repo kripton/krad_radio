@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QStringList>
 
+#define DEFAULT_DURATION 240
+
 KradStation::KradStation(QObject *parent) :
   QObject(parent)
 {
@@ -104,69 +106,72 @@ void KradStation::setCrossfade(QString name, float value)
 void KradStation::addTapetube(QString portname)
 {
   qDebug() << tr("trying to add tapetube to %1").arg(portname);
-  kr_mixer_add_effect (client, portname.toAscii().data(), "tapetube");
+//  kr_mixer_add_effect (client, portname.toAscii().data(), "tapetube");
+//  kr_mixer_set_effect_control (client, portname.toAscii().data(), 3, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 
 void KradStation::removeTapeTube(QString portname)
 {
-   kr_mixer_remove_effect(client, portname.toAscii().data(), 1);
+ //  kr_mixer_remove_effect(client, portname.toAscii().data(), 1);
 }
 
 void KradStation::setTapeTube(QString portname, QString control, float value)
 {
   qDebug() << tr("trying to set tapetube %1 %2 to %3").arg(portname).arg(control).arg(value);
-  kr_mixer_set_effect_control (client, portname.toAscii().data(), 1, control.toAscii().data(), 0, value);
+  kr_mixer_set_effect_control (client, portname.toAscii().data(), 3, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 
 void KradStation::addHiPassFilter(QString portname)
 {
-  kr_mixer_add_effect(client, portname.toAscii().data(), "pass");
+//  kr_mixer_add_effect(client, portname.toAscii().data(), "pass");
 }
 
 void KradStation::addLoPassFilter(QString portname)
 {
-  kr_mixer_add_effect(client, portname.toAscii().data(), "pass");
-  kr_mixer_set_effect_control(client, portname.toAscii().data(), 3, "type",0, 1);
+ // kr_mixer_add_effect(client, portname.toAscii().data(), "pass");
+ // kr_mixer_set_effect_control(client, portname.toAscii().data(), 3, "type",0, 1, 240, EASEINOUTSINE);
 }
 
 void KradStation::setHiPassFilter(QString portname, QString control, float value)
 {
   qDebug() << tr("trying to set hi pass filter %1 %2 %3").arg(portname).arg(control).arg(value);
-  kr_mixer_set_effect_control(client, portname.toAscii().data(), 2, control.toAscii().data(), 0, value);
+//  krad_ease_t blah;
+  kr_mixer_set_effect_control(client, portname.toAscii().data(), 2, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 
 void KradStation::setLoPassFilter(QString portname, QString control, float value)
 {
   qDebug() << tr("trying to set lo pass filter %1 %2 %3").arg(portname).arg(control).arg(value);
-  kr_mixer_set_effect_control(client, portname.toAscii().data(), 3, control.toAscii().data(), 0, value);
+  kr_mixer_set_effect_control(client, portname.toAscii().data(), 1, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 void KradStation::removePassFilter(QString portname)
 {
-  kr_mixer_remove_effect(client, portname.toAscii().data(), 2);
-  kr_mixer_remove_effect(client, portname.toAscii().data(), 3);
+//  kr_mixer_remove_effect(client, portname.toAscii().data(), 2);
+ // kr_mixer_remove_effect(client, portname.toAscii().data(), 3);
 }
 
 void KradStation::addEq(QString portname)
 {
   qDebug() << tr("trying to add eq");
-  kr_mixer_add_effect (client, portname.toAscii().data(), "eq");
+  //kr_mixer_effect_control_t
+  //kr_mixer_add_effect (client, portname.toAscii().data(), "eq");
 }
 
 void KradStation::rmEq(QString portname)
 {
-  kr_mixer_remove_effect(client, portname.toAscii().data(), 0);
+  //kr_mixer_remove_effect(client, portname.toAscii().data(), 0);
 }
 
 void KradStation::setEq(QString portname, int bandId, float value)
 {
   qDebug() << tr("trying to set eq %1 to %2").arg(bandId).arg(value);
-  kr_mixer_set_effect_control (client, portname.toAscii().data(), 0, "db", bandId, value);
+  kr_mixer_set_effect_control (client, portname.toAscii().data(), 0, "db", bandId, value, DEFAULT_DURATION, EASEINOUTSINE);
 }
 
 void KradStation::eqBandAdded(QString portname, int bandId, float freq)
 {
   qDebug() << tr("trying to addband on eq 0, id %2, freq %3").arg(bandId).arg(freq);
-  kr_mixer_set_effect_control (client, portname.toAscii().data_ptr()->data, 0, "addband", 0, freq);
+  kr_mixer_set_effect_control (client, portname.toAscii().data_ptr()->data, 0, "hz", bandId, freq, 0, EASEINOUTSINE);
 }
 
 void KradStation::xmms2Play(QString portname)
@@ -227,8 +232,7 @@ void KradStation::handleResponse()
 {
 
   kr_response_t *response;
-
-  kr_item_t *item;
+  kr_address_t *address;
   kr_rep_t *rep;
 
   char *string;
@@ -244,34 +248,32 @@ void KradStation::handleResponse()
   number = 0;
   string = NULL;
   response = NULL;
-  rep = NULL;
   wait_time_ms = 250;
 
   if (kr_poll (client, wait_time_ms)) {
     kr_client_response_get (client, &response);
 
     if (response != NULL) {
+      kr_response_address (response, &address);
+      kr_address_debug_print (address);
       if (kr_response_is_list (response)) {
         items = kr_response_list_length (response);
         qDebug() << tr("Response is a list with %1 items.").arg(items);
         for (i = 0; i < items; i++) {
-          if (kr_response_list_get_item (response, i, &item)) {
-            qDebug() << tr("Got item \"%1\" type is \"%2\"").arg(i).arg(kr_item_get_type_string (item));
-            emitItemType(item);
-            if (kr_item_to_string (item, &string)) {
-              qDebug() << tr("Item String: %1").arg(string);
-              kr_response_free_string (&string);
+          if (kr_response_listitem_to_rep(response, i, &rep)) {
+            qDebug() << tr("Got rep \"%1\"").arg(i);
+            emitRepType(rep);
 
-            } else {
-              qDebug() << tr("Did not get item %1").arg(i);
-            }
+          } else {
+            qDebug() << tr("Did not get item %1").arg(i);
           }
         }
       } else {
 
-        kr_response_get_item (response, &item);
-        emitItemType(item);
-
+        if (kr_response_to_rep(response, &rep)) {
+          qDebug() << tr("response is a single rep");
+          emitRepType(rep);
+        }
         length = kr_response_to_string (response, &string);
         qDebug() <<  tr("Response Length: %1").arg(length);
         if (length > 0) {
@@ -283,6 +285,7 @@ void KradStation::handleResponse()
           qDebug() << tr("Response Int: %1").arg(number);
         }
         kr_response_free (&response);
+
       }
     } else {
       qDebug() << tr("No response after waiting %1 ms").arg(wait_time_ms);
@@ -291,18 +294,16 @@ void KradStation::handleResponse()
   // printf ("\n");
 }
 
-void KradStation::emitItemType(kr_item_t *item)
+
+void KradStation::emitRepType(kr_rep_t *rep)
 {
-    kr_rep_t *rep;
 
-    if (item == NULL) return;
-    qDebug() << tr("Got item type is %1").arg(kr_item_get_type_string (item));
 
-    rep = kr_item_to_rep(item);
     if (rep == NULL) return;
+
     if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP || rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_CREATED) {
         emit portgroupAdded(rep->rep_ptr.mixer_portgroup);
-        //kr_rep_free (&rep);
+        qDebug() << tr("signalling portgroup added");
     }
     if (rep->type ==  EBML_ID_KRAD_MIXER_CONTROL) {
         if (strcmp(rep->rep_ptr.mixer_portgroup_control->control, "volume") == 0) {

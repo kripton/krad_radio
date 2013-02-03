@@ -22,6 +22,8 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   mainLayout->addLayout(mixerLayout);
   mainLayout->addWidget(cpuTime);
 
+  mainLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+
 
   broadcastWorkerThread = new QThread();
   broadcastThread->moveToThread(broadcastWorkerThread);
@@ -45,6 +47,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
   foreach (PortgroupSlider* slider, sliders) {
     if (slider->getLabel() == rep->sysname) return;
   }
+
 
   PortgroupSlider *ps = new PortgroupSlider(tr(rep->sysname), this);
   ps->setValue(rep->volume[0]);
@@ -86,25 +89,25 @@ void StationWidget::addEffects(QString portname)
   filterWidget = new FilterWidget(portname);
 
   effectsWidgets[portname]->addTab(eqWidget, tr("%1 EQ").arg(portname));
-  effectsWidgets[portname]->addTab(tapetubeWidget, tr("%1 Tapetube").arg(portname));
+  effectsWidgets[portname]->addTab(tapetubeWidget, tr("%1 Analog").arg(portname));
   effectsWidgets[portname]->addTab(filterWidget, tr("%1 Filters").arg(portname));
   kradStation->addEq(portname);
   kradStation->addTapetube(portname);
   kradStation->addHiPassFilter(portname);
   kradStation->addLoPassFilter(portname);
-  mainLayout->addWidget(effectsWidgets[portname]);
+  mainLayout->insertWidget(mainLayout->count()-1, effectsWidgets[portname]);
 
   connect(eqWidget, SIGNAL(bandAdded(QString,int,float)), kradStation, SLOT(eqBandAdded(QString, int,float)));
   //connect(eqWidget, SIGNAL(eqDestroyed(QString)), kradStation, SLOT(rmEq(QString)));
 
   eqWidget->addBand(20.0f);
   eqWidget->addBand(40.0f);
-  eqWidget->addBand(70.0f);
-  eqWidget->addBand(140.0f);
+  eqWidget->addBand(80.0f);
+  eqWidget->addBand(150.0f);
   eqWidget->addBand(300.0f);
   eqWidget->addBand(600.0f);
   eqWidget->addBand(1200.0f);
-  eqWidget->addBand(2400.0f);
+  eqWidget->addBand(2500.0f);
   eqWidget->addBand(5000.0f);
   eqWidget->addBand(10000.0f);
   eqWidget->addBand(20000.0f);
