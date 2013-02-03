@@ -228,37 +228,13 @@ void KradStation::kill()
     //delete this;
 }
 
-QRect KradStation::getCompFrameSize()
+void KradStation::requestCompositorInfo()
 {
-    kr_compositor_get_frame_size(client);
-    kr_response_t *response;
-    char *string;
-    int wait_time_ms;
-    int length;
-
-    string = NULL;
-    response = NULL;
-    wait_time_ms = 250;
-
-    if (kr_poll (client, wait_time_ms)) {
-      kr_client_response_get (client, &response);
-      if (response != NULL) {
-        length = kr_response_to_string (response, &string);
-        if (length > 0) {
-          printf ("%s\n", string);
-          kr_response_free_string (&string);
-        }
-        kr_response_free (&response);
-      }
-    } else {
-      printf ("No response after waiting %dms\n", wait_time_ms);
-    }
-    qDebug() << "Frame size:" << string;
+    kr_compositor_info(client);
 }
 
 void KradStation::handleResponse()
 {
-
   kr_response_t *response;
   kr_address_t *address;
   kr_rep_t *rep;
@@ -342,6 +318,10 @@ void KradStation::emitRepType(kr_rep_t *rep)
             qDebug() << tr("emitting crossfade");
             emit crossfadUpdated(rep->rep_ptr.mixer_portgroup_control);
         }
+    }
+    if (rep->type == EBML_ID_KRAD_COMPOSITOR_INFO) {
+        qDebug() << "Got frame size information:" << rep->rep_ptr.compositor->width << "x" << rep->rep_ptr.compositor->height;
+        emit frameSizeInformation(QRect(0,0,rep->rep_ptr.compositor->width,rep->rep_ptr.compositor->height));
     }
 
    /* if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
