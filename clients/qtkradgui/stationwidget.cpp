@@ -9,6 +9,9 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
     return;
   }
 
+  compCtrl = NULL;
+  compCtrlDialog = NULL;
+
   broadcastThread = new BroadcastThread(kradStation);
 
   QProgressBar *cpuTime = new QProgressBar();
@@ -33,6 +36,7 @@ StationWidget::StationWidget(QString sysname, QWidget *parent) :
   connect(kradStation, SIGNAL(portgroupAdded(kr_mixer_portgroup_t*)), this, SLOT(portgroupAdded(kr_mixer_portgroup_t*)));
   connect(kradStation, SIGNAL(cpuTimeUpdated(int)), cpuTime, SLOT(setValue(int)));
 
+  connect(kradStation, SIGNAL(frameSizeInformation(QRect)), this, SLOT(frameSizeUpdated(QRect)));
 
   kradStation->requestCompositorInfo();
 
@@ -149,4 +153,17 @@ void StationWidget::closeEffectRequested(int index)
 
 }
 
-
+void StationWidget::frameSizeUpdated(QRect geometry)
+{
+    if (compCtrlDialog == NULL) {
+        compCtrlDialog = new QDialog(this);
+        compCtrl = new CompositorControl(geometry, this);
+        QGridLayout layout;
+        layout.addWidget(compCtrl);
+        layout.setGeometry(compCtrl->geometry());
+        compCtrlDialog->setLayout(&layout);
+        qDebug() << compCtrl->geometry();
+        compCtrlDialog->setGeometry(compCtrl->geometry());
+        compCtrlDialog->show();
+    }
+}

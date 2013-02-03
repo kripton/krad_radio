@@ -13,6 +13,7 @@
 #include "eqslider.h"
 #include "tapetubewidget.h"
 #include "filterwidget.h"
+#include "compositorcontrol.h"
 
 class StationWidget : public QWidget
 {
@@ -28,6 +29,7 @@ public slots:
   void removeEffects(QString portname);
   void closeTabRequested(int index);
   void closeEffectRequested(int index);
+  void frameSizeUpdated(QRect geometry);
 private:
   KradStation *kradStation;
   BroadcastThread *broadcastThread;
@@ -39,6 +41,8 @@ private:
   TapetubeWidget *tapetubeWidget;
   FilterWidget *filterWidget;
   QMap<QString, QTabWidget*> effectsWidgets;
+  CompositorControl *compCtrl;
+  QDialog *compCtrlDialog;
 };
 
 #endif // STATIONWIDGET_H
