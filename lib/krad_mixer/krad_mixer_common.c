@@ -107,6 +107,24 @@ void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_po
 	krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, crossfade_value);	
   
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, has_xmms2);
+	
+
+  for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
+    krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].db);
+    krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].bandwidth);
+    krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].hz);
+    // ("NOW hz is %f %f\n", krad_mixer_portgroup_rep->eq.band[i].hz); 
+  }
+  
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->lowpass.hz);
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->lowpass.bandwidth);
+
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->highpass.hz);
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->highpass.bandwidth);
+
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->analog.drive);
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->analog.blend);
+	
 	krad_ebml_finish_element (krad_ebml, portgroup);
   
 }
@@ -241,7 +259,74 @@ krad_mixer_portgroup_rep_t *krad_mixer_ebml_to_krad_mixer_portgroup_rep (krad_eb
 	
 	krad_mixer_portgroup_rep_ret->has_xmms2 = krad_ebml_read_number (krad_ebml, ebml_data_size);
 	
+  for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
+    krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+    krad_mixer_portgroup_rep->eq.band[i].db = krad_ebml_read_float (krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+    krad_mixer_portgroup_rep->eq.band[i].bandwidth = krad_ebml_read_float (krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+    krad_mixer_portgroup_rep->eq.band[i].hz = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  }
+  
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->lowpass.hz = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->lowpass.bandwidth = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->highpass.hz = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->highpass.bandwidth = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->analog.drive = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+  krad_mixer_portgroup_rep->analog.blend = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  
 	return krad_mixer_portgroup_rep_ret;
+}
+
+char *krad_mixer_channel_number_to_string (int channel) {
+
+  switch ( channel ) {
+    case 0:
+      return "Left";
+    case 1:
+      return "Right";
+    case 2:
+      return "RearLeft";
+    case 3:
+      return "RearRight";
+    case 4:
+      return "Center";
+    case 5:
+      return "Sub";
+    case 6:
+      return "BackLeft";
+    case 7:
+      return "BackRight";
+    default:
+      return "Unknown";
+  }
+}
+
+char *effect_control_to_string (kr_mixer_effect_control_t effect_control) {
+
+  switch (effect_control) {
+    case DB:
+      return "db";
+    case HZ:
+      return "hz";
+    case BANDWIDTH:
+      return "bandwidth";
+    case TYPE:
+      return "type";
+    case DRIVE:
+      return "drive";
+    case BLEND:
+      return "blend";
+  }
+  return "Unknown";
 }
 
 krad_mixer_rep_t *krad_mixer_rep_create () {

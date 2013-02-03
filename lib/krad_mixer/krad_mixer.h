@@ -155,7 +155,6 @@ void portgroup_set_channel_volume (krad_mixer_portgroup_t *portgroup, int channe
 void portgroup_set_volume (krad_mixer_portgroup_t *portgroup, float value);
 void portgroup_set_crossfade (krad_mixer_portgroup_t *portgroup, float value);
 
-char *krad_mixer_channel_number_to_string (int channel);
 void krad_mixer_portgroup_compute_channel_peak (krad_mixer_portgroup_t *portgroup, int channel, uint32_t nframes);
 void krad_mixer_portgroup_compute_peaks (krad_mixer_portgroup_t *portgroup, uint32_t nframes);
 float krad_mixer_portgroup_read_peak (krad_mixer_portgroup_t *portgroup);

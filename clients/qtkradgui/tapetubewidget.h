@@ -13,7 +13,7 @@ public:
   
 signals:
   void tapetubeUpdated(QString portname, QString control, float value);
-
+  void passFilterUpdated(QString portname, QString control, float value);
 public slots:
   void tapetubeDriveUpdated(QString name, float value);
   void tapetubeBlendUpdated(QString name, float value);

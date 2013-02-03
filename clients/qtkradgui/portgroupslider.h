@@ -15,6 +15,7 @@ signals:
   void removeEffects(QString portname);
   void xmms2Play(QString portname);
   void xmms2Pause(QString portname);
+  void xmms2Stop(QString portname);
   void xmms2Next(QString portname);
   void xmms2Prev(QString portname);
 
@@ -25,6 +26,7 @@ public slots:
   void addXmms2Controls();
   void xmms2Play();
   void xmms2Pause();
+  void xmms2Stop();
   void xmms2Next();
   void xmms2Prev();
 
@@ -33,6 +35,13 @@ private:
   int buttonAdd;
   QCheckBox *toggleFx;
   QPushButton *addFxButton;
+
+
+  QAction *playAction;
+  QAction *pauseAction;
+  QAction *stopAction;
+  QAction *nextAction;
+  QAction *previousAction;
 };
 
 #endif // PORTGROUPSLIDER_H

@@ -15,6 +15,7 @@ TapetubeWidget::TapetubeWidget(QString portname, QWidget *parent) :
   connect(driveSlider, SIGNAL(valueChanged(QString,float)), this, SLOT(tapetubeDriveUpdated(QString, float)));
   connect(blendSlider, SIGNAL(valueChanged(QString,float)), this, SLOT(tapetubeBlendUpdated(QString, float)));
 
+
 }
 
 

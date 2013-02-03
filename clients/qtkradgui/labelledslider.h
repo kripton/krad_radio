@@ -25,7 +25,8 @@ public slots:
 private:
 
 protected:
-  QVBoxLayout *layout;
+  QHBoxLayout *mainLayout;
+  QVBoxLayout *sliderLayout;
   QLabel *label;
   QSlider *slider;
   QLabel *valueLabel;

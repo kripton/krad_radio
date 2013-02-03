@@ -6,10 +6,13 @@
 
 QT       += core gui
 
+#CONFIG   += debug
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = qtkradgui
 TEMPLATE = app
+
 
 LIBS += -L/usr/local/lib/ -lkradradio_client
 
@@ -54,7 +57,7 @@ unix:INCLUDEPATH += "../../lib/krad_container"
 unix:INCLUDEPATH += "../../lib/krad_transponder"
 unix:INCLUDEPATH += "/usr/include/opus"
 unix:INCLUDEPATH += "../../lib/krad_compositor"
-
+unix:INCLUDEPATH += "../../lib/krad_chronometer/"
 FORMS +=
 
 OTHER_FILES +=

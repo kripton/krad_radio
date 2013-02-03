@@ -11,7 +11,7 @@ EqSlider::EqSlider(int bandId, QWidget *parent) :
 
   this->bandId = bandId;
   disconnect(slider, 0, 0, 0);
-  connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
+  //connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 }
 
@@ -19,11 +19,12 @@ EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
   LabelledSlider(tr("%1 hz").arg(freq), Qt::Vertical, 20, -20, parent)
 {
 
-    this->bandId = bandId;
-    disconnect(slider, 0, 0, 0);
+  this->bandId = bandId;
+  disconnect(slider, 0, 0, 0);
 
-   // connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
+  // connect(slider, SIGNAL(valueChanged(int)), this->valueLabel, SLOT(setNum(int)));
+  connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
+  valueLabel->setText(tr("%1").arg(0.0, 0, 'f', 1));
   this->freq = freq;
 }
 
@@ -31,7 +32,7 @@ EqSlider::EqSlider(int bandId, float freq, QWidget *parent) :
 void EqSlider::sliderValueChanged(int value)
 {
   qDebug() << tr("EqSlider sliderValueChanged %1 %2").arg(bandId).arg(value);
-  valueLabel->setNum((float) 0.1 * value);
+  valueLabel->setText(tr("%1").arg((float) 0.1 * value, 0, 'f', 1));
   emit valueChanged(bandId, (float) 0.1 * value);
 }
 

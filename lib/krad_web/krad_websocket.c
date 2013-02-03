@@ -278,79 +278,44 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
 
   kr_client_t *client;
   kr_response_t *response;
-  kr_item_t *item;
   kr_rep_t *rep;
-  //char *string;
-  //int wait_time_ms;
-  //int length;
-  //int number;
   int i;
   int items;
   
   items = 0;
   i = 0;
-  //number = 0;
-  //string = NULL;
   response = NULL;
   rep = NULL;
-  //wait_time_ms = 250;
 
   client = kr_ws_client->kr_client;
 
-  //if (kr_poll (client, wait_time_ms)) {
-    kr_client_response_get (client, &response);
-  
-    if (response != NULL) {
-      if (kr_response_is_list (response)) {
-        items = kr_response_list_length (response);
-        //printk ("Response is a list with %d items.\n", items);
-        for (i = 0; i < items; i++) {
-          if (kr_response_list_get_item (response, i, &item)) {
-            //printk ("Got item %d type is %s\n", i, kr_item_get_type_string (item));
-            //if (kr_item_to_string (item, &string)) {
-             // printk ("Item String: %s\n", string);
-             // kr_response_free_string (&string);
-            //}
-            rep = kr_item_to_rep (item);
-            if (rep != NULL) {
-              rep_to_json (kr_ws_client, rep);
-              kr_rep_free (&rep);
-            }
-          } else {
-            //printk ("Did not get item %d\n", i);
-          }
-        }
-      }
-      //length = kr_response_to_string (response, &string);
-      //printk ("Response Length: %d\n", length);
-      //if (length > 0) {
-      //  printk ("Response String: %s\n", string);
-      //  kr_response_free_string (&string);
-      //}
-      //if (kr_response_to_int (response, &number)) {
-      // printk ("Response Int: %d\n", number);
-      //}
-      if (kr_response_get_item (response, &item)) {
-        //printk ("Got item.. type is %s\n", kr_item_get_type_string (item));
-        rep = kr_item_to_rep (item);
-        if (rep != NULL) {
+  kr_client_response_get (client, &response);
+
+  if (response != NULL) {
+    if (kr_response_is_list (response)) {
+      items = kr_response_list_length (response);
+      //printk ("Response is a list with %d items.\n", items);
+      for (i = 0; i < items; i++) {
+        if (kr_response_listitem_to_rep (response, i, &rep)) {
           rep_to_json (kr_ws_client, rep);
           kr_rep_free (&rep);
+        } else {
+          //printk ("Did not get item %d\n", i);
         }
       }
-      kr_response_free (&response);
-    } else {
-      printk ("Krad WebSocket: Krad API Handler.. I should have got a response :/");
     }
-  //} else {
-  //  printk ("No response after waiting %dms\n", wait_time_ms);
-  //}
 
-  //printf ("\n");
+    if (kr_response_to_rep (response, &rep)) {
+      rep_to_json (kr_ws_client, rep);
+      kr_rep_free (&rep);
+    }
+    kr_response_free (&response);
+  } else {
+    printk ("Krad WebSocket: Krad API Handler.. I should have got a response :/");
+  }
   
   return 0;
 }
-
 
 /****  Poll Functions  ****/
 
@@ -461,9 +426,8 @@ static int callback_kr_client (struct libwebsocket_context *this,
 
       kr_ws_client->kr_client_info = 0;
       kr_ws_client->hello_sent = 0;      
-      kr_mixer_sample_rate (kr_ws_client->kr_client);
-      kr_compositor_get_frame_rate (kr_ws_client->kr_client);
-      kr_compositor_get_frame_size (kr_ws_client->kr_client);      
+      kr_mixer_info (kr_ws_client->kr_client);
+      kr_compositor_info (kr_ws_client->kr_client);
       kr_mixer_portgroups_list (kr_ws_client->kr_client);
       kr_transponder_decklink_list (kr_ws_client->kr_client);
       kr_transponder_list (kr_ws_client->kr_client);

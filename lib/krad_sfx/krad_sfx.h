@@ -1,7 +1,7 @@
 #include "krad_sfx_common.h"
 #include "krad_eq.h"
 #include "krad_pass.h"
-#include "krad_tapetube.h"
+#include "krad_analog.h"
 #include "krad_rushlimiter.h"
 #include "krad_hardlimiter.h"
 #include "krad_system.h"
@@ -39,7 +39,8 @@ void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect);
 void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num);
 
 /* Controls */
-void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control, int subunit, float value);
+void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control,
+                                    int subunit, float value, int duration, krad_ease_t ease);
 
 /* Utils */
 

@@ -12,10 +12,11 @@ public:
   explicit FilterWidget(QString portname, QWidget *parent = 0);
   
 signals:
-  void filterUpdated(QString portname, QString control, int value);
+  void hiPassFilterUpdated(QString portname, QString control, float value);
+  void loPassFilterUpdated(QString portname, QString control, float value);
 public slots:
-  void hipassUpdated(QString name, int value);
-  void lopassUpdated(QString name, int value);
+  void hipassUpdated(QString name, float value);
+  void lopassUpdated(QString name, float value);
 private:
   QVBoxLayout *layout;
   QString portname;
