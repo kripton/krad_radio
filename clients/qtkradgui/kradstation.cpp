@@ -320,8 +320,9 @@ void KradStation::emitRepType(kr_rep_t *rep)
         }
     }
     if (rep->type == EBML_ID_KRAD_COMPOSITOR_INFO) {
-        qDebug() << "Got frame size information:" << rep->rep_ptr.compositor->width << "x" << rep->rep_ptr.compositor->height;
+        qDebug() << "Got compositor information:" << rep->rep_ptr.compositor->width << "x" << rep->rep_ptr.compositor->height << "Framerate:" << rep->rep_ptr.compositor->fps_numerator << "/" << rep->rep_ptr.compositor->fps_denominator;
         emit frameSizeInformation(QRect(0,0,rep->rep_ptr.compositor->width,rep->rep_ptr.compositor->height));
+        emit frameRateInformation(rep->rep_ptr.compositor->fps_numerator, rep->rep_ptr.compositor->fps_denominator);
     }
 
    /* if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
@@ -329,6 +330,5 @@ void KradStation::emitRepType(kr_rep_t *rep)
     }
 */
 }
-
 
 

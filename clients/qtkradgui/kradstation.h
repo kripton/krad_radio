@@ -26,6 +26,7 @@ signals:
   void crossfadUpdated(kr_mixer_portgroup_control_rep_t *control_rep);
   void cpuTimeUpdated(int value);
   void frameSizeInformation(QRect frameSize);
+  void frameRateInformation(int num, int denom);
 public slots:
   void handlePortgroupAdded(kr_mixer_portgroup_t *portgroup);
   void setVolume(QString portname, float value);
