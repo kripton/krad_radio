@@ -107,8 +107,10 @@ void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_po
 	krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CROSSFADE, crossfade_value);	
   
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, has_xmms2);
-	
-
+	if (has_xmms2 == 1) {
+	  krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, krad_mixer_portgroup_rep->xmms2_ipc_path);
+  }
+  
   for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
     krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].db);
     krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].bandwidth);
@@ -258,6 +260,12 @@ krad_mixer_portgroup_rep_t *krad_mixer_ebml_to_krad_mixer_portgroup_rep (krad_eb
 	}
 	
 	krad_mixer_portgroup_rep_ret->has_xmms2 = krad_ebml_read_number (krad_ebml, ebml_data_size);
+
+  if (krad_mixer_portgroup_rep_ret->has_xmms2 == 1) {
+	  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
+	  krad_ebml_read_string (krad_ebml, krad_mixer_portgroup_rep_ret->xmms2_ipc_path, ebml_data_size);	
+  }
+
 	
   for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
     krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	

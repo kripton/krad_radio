@@ -33,6 +33,9 @@ static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portg
   
   if (krad_mixer_portgroup->krad_xmms != NULL) {
     portgroup_rep_ret->has_xmms2 = 1;
+    strncpy (portgroup_rep_ret->xmms2_ipc_path,
+             krad_mixer_portgroup->krad_xmms->ipc_path,
+             sizeof(portgroup_rep_ret->xmms2_ipc_path));
   }
   
   kr_eq_t *eq;

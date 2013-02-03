@@ -701,6 +701,10 @@ krad_mixer_portgroup_rep_t *kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_
 	
 	krad_mixer_portgroup_rep->has_xmms2 = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
 	
+  if (krad_mixer_portgroup_rep->has_xmms2 == 1) {
+	  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	  item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, krad_mixer_portgroup_rep->xmms2_ipc_path);	
+  }
 	
   for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
 	  item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
@@ -781,7 +785,7 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
   }
   
   if (krad_mixer_portgroup_rep->has_xmms2 == 1) {
-    pos += sprintf (*string + pos, " [XMMS2]");
+    pos += sprintf (*string + pos, " [XMMS2] (%s)", krad_mixer_portgroup_rep->xmms2_ipc_path);
   }
 
   pos += sprintf (*string + pos, "\n");

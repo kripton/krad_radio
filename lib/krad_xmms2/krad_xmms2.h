@@ -30,7 +30,7 @@ typedef struct krad_xmms_St krad_xmms_t;
 struct krad_xmms_St {
 
 	char sysname[256];
-	char ipc_path[256];
+	char ipc_path[128];
 	xmmsc_connection_t *connection;
 	int fd;
 	int connected;
