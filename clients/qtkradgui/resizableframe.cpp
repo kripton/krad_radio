@@ -6,14 +6,25 @@ ResizableFrame::ResizableFrame(QWidget *parent) :
     QFrame(parent)
 {
     setMouseTracking(true);
+
+    setFrameStyle(QFrame::Panel);
+    setFrameShadow(QFrame::Plain);
+    setLineWidth(0);
+    setMidLineWidth(0);
+
+    layout = new QBoxLayout(QBoxLayout::TopToBottom, this);
+
+    idLabel = new QLabel(this);
+    //idLabel->setText("ID LABEL");
+    layout->addWidget(idLabel);
+
     opacity = 1.0f;
     opacityLabel = new QLabel(this);
-    opacityLabel->setGeometry(10, 10, opacityLabel->geometry().width(), opacityLabel->geometry().height());
     opacityLabel->setText(QString("Opacity: %1").arg(opacity, 0, 'f', 3));
+    layout->addWidget(opacityLabel);
 
     connect(this, SIGNAL(geometryChanged(QRect)), this, SLOT(updateGeometry(QRect)));
     connect(this, SIGNAL(opacityChanged(float)), this, SLOT(updateOpacity(float)));
-
 }
 
 ResizableFrame::~ResizableFrame()
@@ -23,7 +34,8 @@ ResizableFrame::~ResizableFrame()
 void ResizableFrame::setProxy(QGraphicsProxyWidget *proxy)
 {
     this->proxy = proxy;
-  connect(this, SIGNAL(rotationChanged(float)), this, SLOT(updaterotation(float)));
+    qDebug() << "Our new proxy is" << proxy;
+    connect(this, SIGNAL(rotationChanged(float)), this, SLOT(updaterotation(float)));
 }
 
 void ResizableFrame::mousePressEvent(QMouseEvent *event)
@@ -185,9 +197,16 @@ void ResizableFrame::updateOpacity(float opacity)
 
 void ResizableFrame::updaterotation(float angle)
 {
-  if (rotation != angle) {
-    rotation = angle;
-    proxy->setTransformOriginPoint(geometry().width()/2, geometry().height()/2);
-    proxy->setRotation(angle);
-  }
+    if (rotation != angle) {
+        rotation = angle;
+        proxy->setTransformOriginPoint(geometry().width()/2, geometry().height()/2);
+        proxy->setRotation(angle);
+    }
+}
+
+void ResizableFrame::setId(QString id)
+{
+    qDebug() << "setID" << id << "Text pre" << idLabel->text();
+    idLabel->setText(QString("ID: %1").arg(id));
+    qDebug() << "setID" << id << "Text post" << idLabel->text();
 }

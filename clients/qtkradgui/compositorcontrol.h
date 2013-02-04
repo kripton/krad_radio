@@ -16,10 +16,12 @@ public:
 signals:
 
 public slots:
+    void addFrame(QString id);
+    void removeFrame(QString id);
 
 private:
     QGraphicsScene *scene;
-    QList<QGraphicsProxyWidget> *frameList;
+    QHash<QString, QGraphicsProxyWidget*> *frameList;
 
 };
 

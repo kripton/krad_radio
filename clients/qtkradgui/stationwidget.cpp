@@ -155,6 +155,7 @@ void StationWidget::closeEffectRequested(int index)
 
 void StationWidget::frameSizeUpdated(QRect geometry)
 {
+    /* Display in own dialog window: */
     if (compCtrlDialog == NULL) {
         compCtrlDialog = new QDialog(this);
         compCtrl = new CompositorControl(geometry, this);
@@ -162,8 +163,12 @@ void StationWidget::frameSizeUpdated(QRect geometry)
         layout.addWidget(compCtrl);
         layout.setGeometry(compCtrl->geometry());
         compCtrlDialog->setLayout(&layout);
-        qDebug() << compCtrl->geometry();
-        compCtrlDialog->setGeometry(compCtrl->geometry());
+        compCtrlDialog->setGeometry(compCtrl->geometry().x(), compCtrl->geometry().y(), compCtrl->geometry().width() + 30, compCtrl->geometry().height() + 30);
         compCtrlDialog->show();
-    }
+    } // */
+    /* Display in the main window:
+    if (compCtrl == NULL) {
+        compCtrl = new CompositorControl(geometry, this);
+        mainLayout->addWidget(compCtrl);
+    } // */
 }

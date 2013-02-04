@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <QGraphicsProxyWidget>
+#include <QBoxLayout>
 
 #define BORDER_RANGE 5
 
@@ -32,15 +33,18 @@ private:
     QRect  dragStartGeometry;
     enum startPositions startPos;
     QLabel *opacityLabel;
+    QLabel *idLabel;
     double opacity;
     QGraphicsProxyWidget *proxy;
     QRect currentGeometry;
     double rotation;
+    QBoxLayout *layout;
 
 public slots:
     void updateGeometry(QRect geometry);
     void updateOpacity(float opacity);
     void updaterotation(float angle);
+    void setId(QString id);
 
 signals:
     void geometryChanged(QRect newGeometry);
