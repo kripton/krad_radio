@@ -1,9 +1,7 @@
 #include "krad_radio_interface.h"
-
 #include "krad_radio_internal.h"
 
-//int krad_radio_broadcast_subunit_destroyed (krad_broadcaster_t *krad_broadcaster, int unit, int subunit, kr_subunit_address_t *address) {
-int krad_radio_broadcast_subunit_destroyed (krad_ipc_broadcaster_t *broadcaster, int unit, int subunit, char *name) {
+int krad_radio_broadcast_subunit_destroyed (krad_ipc_broadcaster_t *broadcaster, kr_address_t *address) {
 
   size_t size;
   unsigned char *buffer;
@@ -12,21 +10,15 @@ int krad_radio_broadcast_subunit_destroyed (krad_ipc_broadcaster_t *broadcaster,
   size = 256;
   buffer = malloc (size);
 
-
   krad_ebml_t *krad_ebml;
-  uint64_t element_loc;
-  uint64_t subelement_loc;
+  uint64_t message_loc;
 
   krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
-  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MSG, &element_loc);  
-  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_DESTROYED, &subelement_loc);
-  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_UNIT, unit);
-  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT, subunit);
-  krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ADDRESS_NAME, name);
-  //krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ADDRESS_NAME, address->name);
-  //krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ADDRESS_NUMBER, address->number);
-  krad_ebml_finish_element (krad_ebml, subelement_loc);
-  krad_ebml_finish_element (krad_ebml, element_loc);
+  
+  krad_radio_address_to_ebml (krad_ebml, &message_loc, address);
+  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_RADIO_UNIT_DESTROYED);
+  krad_ebml_finish_element (krad_ebml, message_loc);
+
   size = krad_ebml->io_adapter.write_buffer_pos;
   memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
   krad_ebml_destroy (krad_ebml);
@@ -40,7 +32,6 @@ int krad_radio_broadcast_subunit_destroyed (krad_ipc_broadcaster_t *broadcaster,
   }
 
   return -1;
-
 }
 
 int krad_radio_handler ( void *output, int *output_len, void *ptr ) {

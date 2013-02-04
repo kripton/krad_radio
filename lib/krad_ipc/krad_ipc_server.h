@@ -33,6 +33,9 @@
 #include "krad_ebml.h"
 #include "krad_radio_ipc.h"
 
+
+#include "krad_radio_client.h"
+
 #ifndef KRAD_IPC_SERVER_H
 #define KRAD_IPC_SERVER_H
 
@@ -139,9 +142,19 @@ struct krad_ipc_server_client_St {
 int krad_ipc_server_recvfd (krad_ipc_server_client_t *client);
 void krad_ipc_server_add_client_to_broadcast ( krad_ipc_server_t *krad_ipc_server, uint32_t broadcast_ebml_id );
 
-void krad_ipc_server_respond_string ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, char *string);
-void krad_ipc_server_response_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t response);
+void krad_ipc_server_response_start_with_address_and_type ( krad_ipc_server_t *krad_ipc_server,
+                                                            kr_address_t *address,
+                                                            uint32_t message_type,
+                                                            uint64_t *response);
+
+void krad_ipc_server_write_message_type (krad_ipc_server_t *krad_ipc_server, uint32_t message_type);
+
+void krad_ipc_server_payload_start ( krad_ipc_server_t *krad_ipc_server, uint64_t *payload);
+void krad_ipc_server_payload_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t payload);
 void krad_ipc_server_response_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *response);
+void krad_ipc_server_response_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t response);
+
+void krad_ipc_server_respond_string ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, char *string);
 void krad_ipc_server_response_list_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *list);
 void krad_ipc_server_response_add_tag ( krad_ipc_server_t *krad_ipc_server, char *tag_item, char *tag_name, char *tag_value);
 void krad_ipc_server_response_list_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t list);

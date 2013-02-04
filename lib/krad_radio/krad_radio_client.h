@@ -85,6 +85,8 @@ typedef enum {
   KR_TRANSPONDER,
 } kr_unit_t;
 
+#define KR_UNIT 0
+
 /* Subunits */
 
 typedef enum {
@@ -184,9 +186,6 @@ struct kr_unit_control_St {
   int duration;
 };
 
-int kr_string_to_address (char *string, kr_address_t *addr);
-int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc);
-
 typedef struct kr_remote_St kr_remote_t;
 struct kr_remote_St {
   int port;
@@ -216,6 +215,11 @@ struct kr_rep_St {
   uint32_t type;  
   char *buffer;
 };
+
+int kr_string_to_address (char *string, kr_address_t *addr);
+int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc);
+int krad_radio_address_to_ebml (krad_ebml_t *krad_ebml, uint64_t *element_loc, kr_address_t *address);
+
 
 kr_client_t *kr_client_create (char *client_name);
 
@@ -266,12 +270,15 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  * @return > 0 if there are new messages, 0 otherwise
  * @see kr_broadcast_subscribe
  */
+ 
+int kr_response_get_string_from_list (kr_response_t *response, char **string);
+ 
 int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
 int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote);
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *kr_response, int *number);
-int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_frag, uint64_t list_size, char **string);
+//int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_frag, uint64_t list_size, char **string);
 char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
@@ -287,7 +294,11 @@ int kr_response_list_length (kr_response_t *kr_response);
 
 void kr_address_debug_print (kr_address_t *addr);
 
-kr_unit_t kr_response_unit (kr_response_t *kr_response);
+int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address);
+inline int krad_message_type_has_payload (uint32_t type);
+inline int krad_read_message_type_from_ebml (krad_ebml_t *ebml, uint32_t *message_type);
+
+//kr_unit_t kr_response_unit (kr_response_t *kr_response);
 uint32_t kr_response_size (kr_response_t *kr_response);
 
 void kr_client_response_wait_print (kr_client_t *kr_client);

@@ -369,6 +369,8 @@ void krad_ebml_write_data_size (krad_ebml_t *krad_ebml, uint64_t data_size);
 void krad_ebml_write_reversed (krad_ebml_t *krad_ebml, void *buffer, uint32_t len);
 void krad_ebml_write_float (krad_ebml_t *krad_ebml, uint64_t element, float number);
 
+void krad_ebml_write_data (krad_ebml_t *krad_ebml, uint64_t element, void *data, uint64_t length);
+
 void krad_ebml_write_tag (krad_ebml_t *krad_ebml, char *name, char *value);
 int krad_ebml_write_sync(krad_ebml_t *krad_ebml);
 void krad_ebml_start_element (krad_ebml_t *krad_ebml, uint32_t element, uint64_t *position);
@@ -401,6 +403,8 @@ int krad_ebml_read_element_from_frag (unsigned char *ebml_frag, uint32_t *ebml_i
 /* internal read func */
 int krad_ebml_read_element (krad_ebml_t *krad_ebml, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr);
 
+
+int krad_ebml_read_data_from_frag (unsigned char *ebml_frag, void *data, uint64_t ebml_data_size);
 
 // fwd copy kludge
 void krad_ebml_disable_read_copy ( krad_ebml_t *krad_ebml );

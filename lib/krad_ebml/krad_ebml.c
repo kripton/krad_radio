@@ -1242,6 +1242,11 @@ int krad_ebml_read_string_from_frag (unsigned char *ebml_frag, uint64_t ebml_dat
 	return ebml_data_size;
 }
 
+int krad_ebml_read_data_from_frag (unsigned char *ebml_frag, void *data, uint64_t ebml_data_size) {
+	memcpy (data, ebml_frag, ebml_data_size);
+	return ebml_data_size;
+}
+
 int krad_ebml_read_element_from_frag (unsigned char *ebml_frag, uint32_t *ebml_id_ptr, uint64_t *ebml_data_size_ptr) {
 	
 	int frag_pos;

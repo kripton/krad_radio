@@ -653,6 +653,10 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
   portgroup->mixbus = mixbus;
   portgroup->direction = direction;
 
+  portgroup->address.path.unit = KR_MIXER;
+  portgroup->address.path.subunit.mixer_subunit = KR_PORTGROUP;
+  strcpy (portgroup->address.id.name, portgroup->sysname);
+
   for (c = 0; c < KRAD_MIXER_MAX_CHANNELS; c++) {
 
     if (c < portgroup->channels) {
@@ -1265,6 +1269,9 @@ krad_mixer_t *krad_mixer_create (char *name) {
   if ((krad_mixer = calloc (1, sizeof (krad_mixer_t))) == NULL) {
     failfast ("Krad Mixer memory alloc failure");
   }
+  
+  krad_mixer->address.path.unit = KR_MIXER;
+  krad_mixer->address.path.subunit.mixer_subunit = KR_UNIT;
   
   krad_mixer->name = strdup (name);
   krad_mixer->sample_rate = KRAD_MIXER_DEFAULT_SAMPLE_RATE;

@@ -35,6 +35,9 @@ struct krad_mixer_local_portgroup_St {
 struct krad_mixer_portgroup_St {
 	
 	char sysname[64];
+	
+	kr_address_t address;
+	
 	krad_mixer_portgroup_direction_t direction;
 	krad_mixer_portgroup_io_t io_type;
 	krad_mixer_output_t output_type;
@@ -76,6 +79,8 @@ struct krad_mixer_portgroup_St {
 
 
 struct krad_mixer_St {
+
+	kr_address_t address;
 
 	krad_audio_t *krad_audio;
 

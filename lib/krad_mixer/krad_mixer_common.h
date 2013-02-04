@@ -25,7 +25,7 @@ typedef enum {
 } kr_mixer_portgroup_control_t;
 
 typedef enum {
-  DB,
+  DB = 1,
   BANDWIDTH,
   HZ,  
   TYPE,
@@ -34,7 +34,7 @@ typedef enum {
 } kr_mixer_effect_control_t;
 
 typedef enum {
-	KRAD_TONE,
+	KRAD_TONE = 1,
 	KLOCALSHM,
 	KRAD_AUDIO, /* i.e local audio i/o */
 	KRAD_LINK, /* i.e. remote audio i/o */

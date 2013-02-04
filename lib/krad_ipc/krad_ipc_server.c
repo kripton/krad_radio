@@ -526,6 +526,30 @@ void krad_ipc_server_read_tag ( krad_ipc_server_t *krad_ipc_server, char **tag_i
   krad_ebml_read_string (krad_ipc_server->current_client->krad_ebml, *tag_value, ebml_data_size);
 }
 
+void krad_ipc_server_write_message_type (krad_ipc_server_t *krad_ipc_server, uint32_t message_type) {
+  krad_ebml_write_int32 (krad_ipc_server->current_client->krad_ebml2,
+                         EBML_ID_KRAD_RADIO_MESSAGE_TYPE,
+                         message_type);
+}
+
+void krad_ipc_server_payload_start ( krad_ipc_server_t *krad_ipc_server, uint64_t *payload) {
+  krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, EBML_ID_KRAD_RADIO_MESSAGE_PAYLOAD, payload);
+}
+
+void krad_ipc_server_payload_finish ( krad_ipc_server_t *krad_ipc_server, uint64_t payload) {
+  krad_ebml_finish_element (krad_ipc_server->current_client->krad_ebml2, payload);
+}
+
+void krad_ipc_server_response_start_with_address_and_type ( krad_ipc_server_t *krad_ipc_server,
+                                                            kr_address_t *address,
+                                                            uint32_t message_type,
+                                                            uint64_t *response) {
+                                                            
+  krad_radio_address_to_ebml (krad_ipc_server->current_client->krad_ebml2, response, address);
+  krad_ipc_server_write_message_type ( krad_ipc_server, message_type );
+        
+}
+
 void krad_ipc_server_response_start ( krad_ipc_server_t *krad_ipc_server, uint32_t ebml_id, uint64_t *response) {
   krad_ebml_start_element (krad_ipc_server->current_client->krad_ebml2, ebml_id, response);
 }

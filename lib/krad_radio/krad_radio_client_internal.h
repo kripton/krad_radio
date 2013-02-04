@@ -15,14 +15,16 @@ struct kr_item_St {
 
 struct kr_response_St {
   kr_client_t *kr_client;
-  kr_unit_t unit;
-  unsigned char *buffer;
-  uint32_t size;
-  
-  kr_item_t kr_item;
-  
+
   kr_address_t address;
+  uint32_t type;
   
+  /* get rid of me */
+  kr_item_t kr_item;
+  /* end rid of me */
+
+  unsigned char *buffer;
+  uint32_t size;  
 };
 
 struct kr_client_St {

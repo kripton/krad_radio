@@ -82,7 +82,7 @@ void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_po
     }
   }
   
-  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP, &portgroup);	
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP, &portgroup);
 
 	krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_NAME, krad_mixer_portgroup_rep->sysname);
 	krad_ebml_write_int8 (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS, krad_mixer_portgroup_rep->channels);
@@ -110,13 +110,15 @@ void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_po
 	if (has_xmms2 == 1) {
 	  krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_MIXER_PORTGROUP_XMMS2, krad_mixer_portgroup_rep->xmms2_ipc_path);
   }
-  
+ /* 
   for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
     krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].db);
     krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].bandwidth);
     krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->eq.band[i].hz);
     // ("NOW hz is %f %f\n", krad_mixer_portgroup_rep->eq.band[i].hz); 
   }
+  */
+  krad_ebml_write_data (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, &krad_mixer_portgroup_rep->eq, sizeof(kr_eq_rep_t));
   
   krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->lowpass.hz);
   krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_EFFECT_CONTROL, krad_mixer_portgroup_rep->lowpass.bandwidth);

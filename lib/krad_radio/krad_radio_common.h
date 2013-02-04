@@ -14,4 +14,16 @@ struct krad_radio_rep_St {
   
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
 #endif // KRAD_RADIO_COMMON_H
