@@ -12,6 +12,9 @@
 
 #include "krad_sfx_common.h"
 
+#ifndef KRAD_ANALOG_H
+#define KRAD_ANALOG_H
+
 #define KRAD_ANALOG_CONTROL_DRIVE 671
 #define KRAD_ANALOG_CONTROL_BLEND 672
 
@@ -64,4 +67,4 @@ void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int
 void kr_analog_set_drive (kr_analog_t *kr_analog, float drive, int duration, krad_ease_t ease);
 void kr_analog_set_blend (kr_analog_t *kr_analog, float blend, int duration, krad_ease_t ease);
 
-
+#endif

@@ -59,7 +59,7 @@ void kr_mixer_add_effect (kr_client_t *client, char *portgroup_name, char *effec
 void kr_mixer_remove_effect (kr_client_t *client, char *portgroup_name, int effect_num);
 */
 void kr_mixer_set_effect_control (kr_client_t *client, char *portgroup_name, int effect_num, 
-                                  char *control_name, int subunit, float control_value, int duration,
+                                  int control_id, char *control_name, float control_value, int duration,
                                   krad_ease_t ease);
 
 void kr_mixer_jack_running (kr_client_t *client);

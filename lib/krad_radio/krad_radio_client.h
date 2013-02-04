@@ -177,13 +177,13 @@ struct kr_address_St {
   kr_unit_control_name_t control;
   kr_unit_id_t id;
   int sub_id;
+  int sub_id2;
 };
 
 struct kr_unit_control_St {
   kr_address_t address;
   kr_unit_control_data_t data_type;
   kr_unit_control_value_t value;
-  kr_unit_control_value_t value2;
   int duration;
 };
 

@@ -730,7 +730,8 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
   }
 
   if (portgroup->direction == INPUT) {
-    kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("eq"));
+    //kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("eq"));
+    kr_effects_effect_add2 (portgroup->effects, kr_effects_string_to_effect ("eq"), portgroup->krad_mixer, portgroup->sysname);
     kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("lowpass"));
     kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("highpass"));
     kr_effects_effect_add (portgroup->effects, kr_effects_string_to_effect ("analog"));

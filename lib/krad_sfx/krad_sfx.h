@@ -9,6 +9,8 @@
 typedef struct kr_effect_St kr_effect_t;
 typedef struct kr_effects_St kr_effects_t;
 
+#ifndef KRAD_SFX_H
+#define KRAD_SFX_H
 
 struct kr_effect_St {
 
@@ -35,14 +37,17 @@ void kr_effects_set_sample_rate (kr_effects_t *kr_effects, uint32_t sample_rate)
 void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output, int num_samples);
 
 /* OpControls */
+void kr_effects_effect_add2 (kr_effects_t *kr_effects, kr_effect_type_t effect, krad_mixer_t *krad_mixer, char *portgroupname);
 void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect);
 void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num);
 
 /* Controls */
-void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control,
-                                    int subunit, float value, int duration, krad_ease_t ease);
+void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control_id,
+                                    int control, float value, int duration, krad_ease_t ease);
 
 /* Utils */
 
 kr_effect_type_t kr_effects_string_to_effect (char *string);
 int kr_effects_string_to_effect_control (kr_effect_type_t effect_type, char *string);
+
+#endif

@@ -65,7 +65,7 @@ void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output
           case KRAD_NOFX:
             break;
           case KRAD_EQ:
-            kr_eq_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
+            kr_eq_process2 (kr_effects->effect[e].effect[c], input[c], output[c], num_samples, c == 0);
             break;
           case KRAD_LOWPASS:
           case KRAD_HIGHPASS:
@@ -111,6 +111,38 @@ void kr_effects_effect_add (kr_effects_t *kr_effects, kr_effect_type_t effect) {
   }
 }
 
+void kr_effects_effect_add2 (kr_effects_t *kr_effects, kr_effect_type_t effect, krad_mixer_t *krad_mixer, char *portgroupname) {
+ 
+  int e, c;
+
+  for (e = 0; e < KRAD_EFFECTS_MAX; e++) {
+    if (kr_effects->effect[e].active == 0) {
+      kr_effects->effect[e].effect_type = effect;
+      for (c = 0; c < kr_effects->channels; c++) {
+        switch (kr_effects->effect[e].effect_type) {
+          case KRAD_NOFX:
+            break;
+          case KRAD_EQ:
+            //kr_effects->effect[e].effect[c] = kr_eq_create (kr_effects->sample_rate);
+            kr_effects->effect[e].effect[c] = kr_eq_create2 (kr_effects->sample_rate, krad_mixer, portgroupname);
+            break;
+         case KRAD_LOWPASS:
+           kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate, KRAD_LOWPASS);
+           break;
+         case KRAD_HIGHPASS:
+           kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate, KRAD_HIGHPASS);
+           break;
+         case KRAD_ANALOG:
+           kr_effects->effect[e].effect[c] = kr_analog_create (kr_effects->sample_rate);
+           break;
+        }
+      }
+      kr_effects->effect[e].active = 1;
+      break;
+    }
+  }
+}
+
 void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num) {
 
   int c;
@@ -137,7 +169,7 @@ void kr_effects_effect_remove (kr_effects_t *kr_effects, int effect_num) {
 }
 
 
-void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control, int subunit, float value,
+void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, int control_id, int control, float value,
                                     int duration, krad_ease_t ease) {
 
   int c;
@@ -149,13 +181,13 @@ void kr_effects_effect_set_control (kr_effects_t *kr_effects, int effect_num, in
       case KRAD_EQ:
         switch (control) {
           case KRAD_EQ_CONTROL_DB:
-            kr_eq_band_set_db (kr_effects->effect[effect_num].effect[c], subunit, value, duration, ease);
+            kr_eq_band_set_db (kr_effects->effect[effect_num].effect[c], control_id, value, duration, ease);
             break;
           case KRAD_EQ_CONTROL_BANDWIDTH:
-            kr_eq_band_set_bandwidth (kr_effects->effect[effect_num].effect[c], subunit, value, duration, ease);
+            kr_eq_band_set_bandwidth (kr_effects->effect[effect_num].effect[c], control_id, value, duration, ease);
             break;
           case KRAD_EQ_CONTROL_HZ:
-            kr_eq_band_set_hz (kr_effects->effect[effect_num].effect[c], subunit, value, duration, ease);
+            kr_eq_band_set_hz (kr_effects->effect[effect_num].effect[c], control_id, value, duration, ease);
             break;
         }
         break;

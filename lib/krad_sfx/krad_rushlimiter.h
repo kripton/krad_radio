@@ -9,6 +9,10 @@
 
 #include "krad_system.h"
 
+#ifndef KRAD_RUSHLIMIT_H
+#define KRAD_RUSHLIMIT_H
+
+
 typedef struct {
 
   float gain;
@@ -22,4 +26,4 @@ void kr_rushlimiter_destroy (kr_rushlimiter_t *kr_rushlimiter);
 
 void kr_rushlimiter_process (kr_rushlimiter_t *kr_rushlimiter, float *input, float *output, int num_samples);
 
-
+#endif

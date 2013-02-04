@@ -655,6 +655,8 @@ int krad_radio_address_to_ebml (krad_ebml_t *krad_ebml, uint64_t *element_loc, k
         krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ID_NAME, address->id.name);
         if (address->path.subunit.mixer_subunit == KR_EFFECT) {
           krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ID_NUMBER, address->sub_id);
+          krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ID_NUMBER, address->sub_id2);
+          krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_CONTROL, address->control.effect_control);
         }
         if (address->path.subunit.mixer_subunit == KR_PORTGROUP) {
           krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_CONTROL, address->control.portgroup_control);
@@ -712,21 +714,27 @@ int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address) {
     case EBML_ID_KRAD_RADIO_MSG:
       address->path.unit = KR_STATION;
       krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
-      address->path.subunit.zero = krad_ebml_read_number ( ebml, ebml_data_size);
+      address->path.subunit.zero = krad_ebml_read_number ( ebml, ebml_data_size );
       break;
     case EBML_ID_KRAD_MIXER_MSG:
       address->path.unit = KR_MIXER;
       krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
-      address->path.subunit.mixer_subunit = krad_ebml_read_number ( ebml, ebml_data_size);
+      address->path.subunit.mixer_subunit = krad_ebml_read_number ( ebml, ebml_data_size );
       if (address->path.subunit.mixer_subunit != KR_UNIT) {
         krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
 			  krad_ebml_read_string (ebml, address->id.name, ebml_data_size);
         if (address->path.subunit.mixer_subunit == KR_EFFECT) {
           krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
-          address->sub_id = krad_ebml_read_number ( ebml, ebml_data_size);
+          address->sub_id = krad_ebml_read_number ( ebml, ebml_data_size );
+          krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+          address->sub_id2 = krad_ebml_read_number ( ebml, ebml_data_size );
+          krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+          address->control.effect_control = krad_ebml_read_number ( ebml, ebml_data_size );
         }
-        krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
-        address->control.portgroup_control = krad_ebml_read_number ( ebml, ebml_data_size);
+        if (address->path.subunit.mixer_subunit == KR_PORTGROUP) {
+          krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+          address->control.portgroup_control = krad_ebml_read_number ( ebml, ebml_data_size) ;
+        }
       }
       break;
     case EBML_ID_KRAD_COMPOSITOR_MSG:
@@ -1248,7 +1256,7 @@ void kr_address_debug_print (kr_address_t *addr) {
           break;
         case KR_EFFECT:
           printf ("%s ", id->name);
-          printf ("Effect: %d Control: %s", addr->sub_id,
+          printf ("Effect: %d Control ID: %d Control: %s", addr->sub_id, addr->sub_id2,
                   effect_control_to_string(addr->control.effect_control));
           break;
       }
@@ -1307,6 +1315,8 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
   char *tokens[MAX_TOKENS];
   int t;
   int i;
+  char *effect_num;
+  char *effect_control_id;
   char *effect_control;
 
   kr_unit_t *unit;
@@ -1366,8 +1376,8 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
       case 'e':
         *unit = KR_MIXER;
         subunit->mixer_subunit = KR_EFFECT;
-        if (t != 4) {
-          printf ("Invalid Mixer Effect control address, not 4 parts\n");
+        if ((t != 4) && (t != 5)) {
+          printf ("Invalid Mixer Effect control address, not 4 or 5 parts\n");
           return -1;
         }
         break;
@@ -1474,15 +1484,40 @@ int kr_string_to_address (char *string, kr_address_t *addr) {
           }
         }
       }
-      if ((t >= 4) || (t == 5)) {
+      if ((t == 4) || (t == 5)) {
         subunit->mixer_subunit = KR_EFFECT;
         if (t == 4) {
-          addr->sub_id = atoi(tokens[2]);
+          effect_num = tokens[2];
           effect_control = tokens[3];
         }
         if (t == 5) {
-          addr->sub_id = atoi(tokens[3]);
+          effect_num = tokens[2];
+          effect_control_id = tokens[3];
           effect_control = tokens[4];
+        }
+        if (effect_num[0] == 'e') {
+          addr->sub_id = 0;
+        } else {
+          if (effect_num[0] == 'l') {
+            addr->sub_id = 1;
+          } else {
+            if (effect_num[0] == 'h') {
+              addr->sub_id = 2;
+            } else {
+              if (effect_num[0] == 'a') {
+                addr->sub_id = 3;
+              } else {
+                addr->sub_id = atoi(effect_num);
+              }
+            }
+          }
+        }
+        if ((addr->sub_id == 0) && (t != 5)) {
+          printf ("Invalid Mixer Portgroup Effect Control\n");
+          return -1;
+        }
+        if ((addr->sub_id == 0) && (t == 5)) {
+          addr->sub_id2 = atoi(effect_control_id);
         }
         if ((effect_control[0] == 'd') && (effect_control[1] == 'b')) {
           addr->control.effect_control = DB;
@@ -1561,12 +1596,10 @@ int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc) {
           }
           break;
         case KR_EFFECT:
-          //printf("%s %d %s %d %f - dur %d\n", uc->address.id.name, uc->address.sub_id, 
-          //                  effect_control_to_string(uc->address.control.effect_control),
-          //                  uc->value.integer, uc->value2.real, uc->duration);
-          kr_mixer_set_effect_control (client, uc->address.id.name, uc->address.sub_id, 
+          printf( "eff c %s val %f\n", effect_control_to_string(uc->address.control.effect_control), uc->value.real);
+          kr_mixer_set_effect_control (client, uc->address.id.name, uc->address.sub_id, uc->address.sub_id2,
                                        effect_control_to_string(uc->address.control.effect_control),
-                                       uc->value.integer, uc->value2.real, uc->duration, EASEINOUTSINE);
+                                       uc->value.real, uc->duration, EASEINOUTSINE);
           break;
       }
       break;

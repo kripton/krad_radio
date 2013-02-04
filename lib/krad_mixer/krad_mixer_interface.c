@@ -139,6 +139,52 @@ static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, kr
 
 }
 
+int krad_mixer_broadcast_portgroup_effect_control (krad_mixer_t *krad_mixer, char *portgroupname, int effect_num, int effect_param_num, kr_mixer_effect_control_t effect_control, float value) {
+
+  size_t size;
+  unsigned char *buffer;
+  krad_broadcast_msg_t *broadcast_msg;
+  krad_ebml_t *krad_ebml;
+  kr_address_t address;
+  uint64_t message_loc;
+  uint64_t payload_loc;
+  
+  size = 256;
+  buffer = malloc (size);
+
+  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
+  
+  address.path.unit = KR_MIXER;
+  address.path.subunit.mixer_subunit = KR_EFFECT;
+  strncpy (address.id.name, portgroupname, sizeof (address.id.name));
+  address.sub_id = effect_num;
+  address.sub_id2 = effect_param_num;
+  address.control.effect_control = effect_control;
+
+  krad_radio_address_to_ebml (krad_ebml, &message_loc, &address);
+  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_SUBUNIT_CONTROL);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_PAYLOAD, &payload_loc);
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_SUBUNIT_CONTROL, value);
+  krad_ebml_finish_element (krad_ebml, payload_loc);
+  krad_ebml_finish_element (krad_ebml, message_loc);
+
+  size = krad_ebml->io_adapter.write_buffer_pos;
+  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
+  krad_ebml_destroy (krad_ebml);
+
+
+
+  broadcast_msg = krad_broadcast_msg_create (buffer, size);
+
+  free (buffer);
+
+  if (broadcast_msg != NULL) {
+    return krad_ipc_server_broadcaster_broadcast ( krad_mixer->broadcaster, &broadcast_msg );
+  }
+
+  return -1;
+}
+
 int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value) {
 
   size_t size;
@@ -263,9 +309,9 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
       number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
       numbers[5] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
+      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
         floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
@@ -280,10 +326,10 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       }
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
       if (portgroup != NULL) {
-        kr_effects_effect_set_control (portgroup->effects, number,
+        kr_effects_effect_set_control (portgroup->effects, number, numbers[5],
                    kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type,
                                                         controlname),
-                                       numbers[5], floatval, numbers[6], numbers[7]);
+                                       floatval, numbers[6], numbers[7]);
       }
       break;
     case EBML_ID_KRAD_MIXER_CMD_PUSH_TONE:

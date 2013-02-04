@@ -14,6 +14,10 @@
 
 #include "krad_sfx_common.h"
 
+#ifndef KRAD_PASS_H
+#define KRAD_PASS_H
+
+
 #define KRAD_PASS_CONTROL_TYPE 788
 #define KRAD_PASS_CONTROL_BANDWIDTH 789
 #define KRAD_PASS_CONTROL_HZ 780
@@ -61,3 +65,5 @@ void kr_pass_process (kr_pass_t *kr_pass, float *input, float *output, int num_s
 void kr_pass_set_type (kr_pass_t *kr_pass, kr_effect_type_t type);
 void kr_pass_set_bandwidth (kr_pass_t *kr_pass, float bandwidth, int duration, krad_ease_t ease);
 void kr_pass_set_hz (kr_pass_t *kr_pass, float hz, int duration, krad_ease_t ease);
+
+#endif
