@@ -150,7 +150,7 @@ int main (int argc, char *argv[]) {
 
 
   if (strncmp(argv[2], "uptime", 6) == 0) {
-    kr_uptime (client);
+    //kr_uptime (client);
     kr_client_response_wait_print (client);
   }
 
@@ -160,7 +160,7 @@ int main (int argc, char *argv[]) {
   }
 
   if (strncmp(argv[2], "cpu", 4) == 0) {
-    kr_system_cpu_usage (client);
+    //kr_system_cpu_usage (client);
     kr_client_response_wait_print (client);
   }      
 
@@ -200,17 +200,17 @@ int main (int argc, char *argv[]) {
   
   if (((strlen(argv[2]) == 6) && (strncmp(argv[2], "remote", 6) == 0)) || 
       ((strlen(argv[2]) == 7) && (strncmp(argv[2], "remotes", 7) == 0))) {
-    kr_remote_status (client);
+    kr_remote_list (client);
     kr_client_response_wait_print (client);
   }
     
   if ((strncmp(argv[2], "remoteon", 8) == 0) || (strncmp(argv[2], "remote_on", 9) == 0)) {
     ret = 0;
     if (argc == 4) {
-      ret = kr_remote_enable (client, NULL, atoi(argv[3]));
+      ret = kr_remote_on (client, NULL, atoi(argv[3]));
     }
     if (argc == 5) {
-      ret = kr_remote_enable (client, argv[3], atoi(argv[4]));
+      ret = kr_remote_on (client, argv[3], atoi(argv[4]));
     }
     if (ret == -1) {
       printf ("Invalid Port Specified\n");
@@ -223,13 +223,13 @@ int main (int argc, char *argv[]) {
   if ((strncmp(argv[2], "remoteoff", 9) == 0) || (strncmp(argv[2], "remote_off", 10) == 0)) {
     ret = 0;
     if (argc == 3) {
-      ret = kr_remote_disable (client, NULL, 0);
+      ret = kr_remote_off (client, NULL, 0);
     }
     if (argc == 4) {
-      ret = kr_remote_disable (client, NULL, atoi(argv[3]));
+      ret = kr_remote_off (client, NULL, atoi(argv[3]));
     }
     if (argc == 5) {
-      ret = kr_remote_disable (client, argv[3], atoi(argv[4]));
+      ret = kr_remote_off (client, argv[3], atoi(argv[4]));
     }
     if (ret == -1) {
       printf ("Invalid Port Specified\n");
@@ -279,7 +279,7 @@ int main (int argc, char *argv[]) {
   }
 
   if (strncmp(argv[2], "logname", 7) == 0) {
-    kr_logname (client);
+    //kr_logname (client);
     kr_client_response_wait_print (client);
   }
 

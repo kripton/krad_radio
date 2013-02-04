@@ -91,7 +91,7 @@ struct krad_mixer_St {
 	pthread_t ticker_thread;
 		
 	char *name;
-	int sample_rate;
+	uint32_t sample_rate;
     
   int rms_window_size;
 
@@ -135,7 +135,7 @@ int krad_mixer_has_pusher (krad_mixer_t *krad_mixer);
 void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher);
 void krad_mixer_unset_pusher (krad_mixer_t *krad_mixer);
 
-int krad_mixer_get_sample_rate ();
+uint32_t krad_mixer_get_sample_rate ();
 void krad_mixer_set_sample_rate ();
 
 int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer);
@@ -146,7 +146,7 @@ void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc);
 
 
 krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, krad_mixer_output_t output_type,
-                                                     int channels, krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
+                                                     int channels, float volume, krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup);
 void krad_mixer_portgroup_map_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel);
 krad_mixer_portgroup_t *krad_mixer_get_portgroup_from_sysname (krad_mixer_t *krad_mixer, char *sysname);

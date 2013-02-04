@@ -232,7 +232,7 @@ char *kr_station_uptime (char *sysname) {
     return NULL;
   }
   
-  kr_uptime (client);
+  kr_system_info (client);
   kr_client_response_wait (client, &response);
 
   if (response != NULL) {

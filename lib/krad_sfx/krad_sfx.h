@@ -31,7 +31,7 @@ struct kr_effects_St {
 kr_effects_t *kr_effects_create (int channels, int sample_rate);
 void kr_effects_destroy (kr_effects_t *kr_effects);
 
-void kr_effects_set_sample_rate (kr_effects_t *kr_effects, int sample_rate);
+void kr_effects_set_sample_rate (kr_effects_t *kr_effects, uint32_t sample_rate);
 void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output, int num_samples);
 
 /* OpControls */

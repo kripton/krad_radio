@@ -2,6 +2,7 @@
 #define KRAD_MIXER_COMMON_H
 
 typedef struct krad_mixer_rep_St krad_mixer_rep_t;
+typedef struct krad_mixer_rep_St kr_mixer_t;
 typedef struct krad_mixer_portgroup_rep_St kr_mixer_portgroup_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_portgroup_rep_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_mixbus_rep_t;
@@ -94,13 +95,13 @@ struct krad_mixer_portgroup_rep_St {
 };
 
 struct krad_mixer_rep_St {
-  int sample_rate;
+  uint32_t sample_rate;
   
-  uint64_t frames;
-  uint64_t timecode;
+//  uint64_t frames;
+//  uint64_t timecode;
   
-  krad_mixer_portgroup_rep_t *portgroup_rep[KRAD_MIXER_MAX_PORTGROUPS];
-  krad_mixer_crossfade_group_rep_t *crossfade_group;
+//  krad_mixer_portgroup_rep_t *portgroup_rep[KRAD_MIXER_MAX_PORTGROUPS];
+//  krad_mixer_crossfade_group_rep_t *crossfade_group;
   
 };
 

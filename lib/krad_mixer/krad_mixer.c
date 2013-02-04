@@ -571,7 +571,7 @@ krad_mixer_portgroup_t *krad_mixer_local_portgroup_create (krad_mixer_t *krad_mi
   }
 
   krad_mixer_portgroup = krad_mixer_portgroup_create (krad_mixer, sysname, krad_mixer_local_portgroup->direction,
-                          output_type, 2, krad_mixer->master_mix, KLOCALSHM, krad_mixer_local_portgroup, NOAUDIO);
+                          output_type, 2, 100.0f, krad_mixer->master_mix, KLOCALSHM, krad_mixer_local_portgroup, NOAUDIO);
 
   krad_mixer_portgroup->samples[0] = (float *)krad_mixer_local_portgroup->local_buffer;
   krad_mixer_portgroup->samples[1] = (float *)krad_mixer_local_portgroup->local_buffer + 1600;
@@ -600,7 +600,7 @@ int krad_mixer_portgroup_is_jack (krad_mixer_portgroup_t *portgroup) {
 }
 
 krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction,
-                           krad_mixer_output_t output_type, int channels, 
+                           krad_mixer_output_t output_type, int channels, float volume,
                            krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, 
                            void *io_ptr, krad_audio_api_t api) {
 
@@ -666,7 +666,11 @@ krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, c
     }
     portgroup->map[c] = c;
     portgroup->mapped_samples[c] = &portgroup->samples[c];
-    portgroup->volume[c] = 100;
+    if ((direction == INPUT) || (output_type == AUX)) {
+      portgroup->volume[c] = volume;
+    } else {
+      portgroup->volume[c] = 100.0f;
+    }
     portgroup->volume_actual[c] = (float)(portgroup->volume[c]/100.0f);
     portgroup->volume_actual[c] *= portgroup->volume_actual[c];
     portgroup->new_volume_actual[c] = portgroup->volume_actual[c];
@@ -1245,11 +1249,11 @@ krad_audio_api_t krad_mixer_get_pusher (krad_mixer_t *krad_mixer) {
   return krad_mixer->pusher;
 }
 
-int krad_mixer_get_sample_rate (krad_mixer_t *krad_mixer) {
+uint32_t krad_mixer_get_sample_rate (krad_mixer_t *krad_mixer) {
   return krad_mixer->sample_rate;
 }
 
-void krad_mixer_set_sample_rate (krad_mixer_t *krad_mixer, int sample_rate) {
+void krad_mixer_set_sample_rate (krad_mixer_t *krad_mixer, uint32_t sample_rate) {
   krad_mixer->sample_rate = sample_rate;
   krad_tone_set_sample_rate (krad_mixer->tone_port->io_ptr, krad_mixer->sample_rate);
   
@@ -1286,19 +1290,15 @@ krad_mixer_t *krad_mixer_create (char *name) {
   
   krad_mixer->krad_audio = krad_audio_create (krad_mixer);
   
-  krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterBUS", MIX, NOTOUTPUT, 8, NULL, MIXBUS, NULL, 0);
+  krad_mixer->master_mix = krad_mixer_portgroup_create (krad_mixer, "MasterBUS", MIX,
+                           NOTOUTPUT, 2, DEFAULT_MASTERBUS_LEVEL, NULL, MIXBUS, NULL, 0);
   
-  krad_mixer->tone_port = krad_mixer_portgroup_create (krad_mixer, "DTMF", INPUT, NOTOUTPUT, 1,
+  krad_mixer->tone_port = krad_mixer_portgroup_create (krad_mixer, "DTMF", INPUT, NOTOUTPUT, 1, 35.0f,
                               krad_mixer->master_mix, KRAD_TONE, NULL, 0);
   
   krad_mixer_portgroup_mixmap_channel (krad_mixer->tone_port, 0, 1);
 
-  krad_mixer_set_portgroup_control (krad_mixer, "MasterBUS", "volume", DEFAULT_MASTERBUS_LEVEL, 0);
-  krad_mixer_set_portgroup_control (krad_mixer, "DTMF", "volume", 50.0f, 0);
-  
-
   return krad_mixer;
-  
 }
 
 void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc) {

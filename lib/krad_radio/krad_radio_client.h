@@ -286,7 +286,7 @@ int kr_rep_free (kr_rep_t **);
 
 int kr_response_listitem_to_rep (kr_response_t *kr_response, int item_num, kr_rep_t **kr_rep);
 
-int kr_response_to_rep (kr_response_t *kr_response, kr_rep_t **kr_rep);
+int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in);
 
 void kr_response_address (kr_response_t *response, kr_address_t **address);
 int kr_response_is_list (kr_response_t *kr_response);
@@ -350,7 +350,7 @@ void kr_shm_destroy (kr_shm_t *kr_shm);
  * @brief Prints out the uptime of the station
  * @param client handle of the IPC-connection to the station
  */
-void kr_uptime (kr_client_t *client);
+//void kr_uptime (kr_client_t *client);
 
 /**
  * @brief Prints out system information (hostname, architecture and kernel 
@@ -363,7 +363,7 @@ void kr_system_info (kr_client_t *client);
  * @brief Prints out the current CPU usage of the station
  * @param client handle of the IPC-connection to the station
  */
-void kr_system_cpu_usage (kr_client_t *client);
+//void kr_system_cpu_usage (kr_client_t *client);
 
 /**
  * @brief Sets the "working directory" for the station where logfiles and 
@@ -378,7 +378,7 @@ void kr_set_dir (kr_client_t *client, char *dir);
  * @brief Prints out the currently used logfile of the station
  * @param client handle of the IPC-connection to the station
  */
-void kr_logname (kr_client_t *client);
+//void kr_logname (kr_client_t *client);
 
 /** @} */
 
@@ -387,7 +387,7 @@ void kr_logname (kr_client_t *client);
  * @{
  */
 
-void kr_remote_status (kr_client_t *client);
+void kr_remote_list (kr_client_t *client);
 
 /**
  * @brief Enable IPC remote control on a specifed port. You can use 
@@ -396,13 +396,13 @@ void kr_remote_status (kr_client_t *client);
  * @param client handle of the IPC-connection to the station
  * @param port TCP-port on which to listen for incoming connections
  */
-int kr_remote_enable (kr_client_t *client, char *interface, int port);
+int kr_remote_on (kr_client_t *client, char *interface, int port);
 
 /**
  * @brief Disable the previously enabled IPC remote control
  * @param client handle of the IPC-connection to the station
  */
-int kr_remote_disable (kr_client_t *client, char *interface, int port);
+int kr_remote_off (kr_client_t *client, char *interface, int port);
 
 /**
  * @brief Enable web UI remote control on a specifed port. This can only be 

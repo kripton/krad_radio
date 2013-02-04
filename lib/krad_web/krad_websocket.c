@@ -295,6 +295,7 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
     if (kr_response_is_list (response)) {
       items = kr_response_list_length (response);
       //printk ("Response is a list with %d items.\n", items);
+      /*
       for (i = 0; i < items; i++) {
         if (kr_response_listitem_to_rep (response, i, &rep)) {
           rep_to_json (kr_ws_client, rep);
@@ -303,6 +304,7 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
           //printk ("Did not get item %d\n", i);
         }
       }
+      */
     }
 
     if (kr_response_to_rep (response, &rep)) {

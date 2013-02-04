@@ -26,7 +26,7 @@ void kr_effects_destroy (kr_effects_t *kr_effects) {
   free (kr_effects);
 }
 
-void kr_effects_set_sample_rate (kr_effects_t *kr_effects, int sample_rate) {
+void kr_effects_set_sample_rate (kr_effects_t *kr_effects, uint32_t sample_rate) {
 
   int e, c;
 

@@ -24,6 +24,8 @@ typedef struct kr_audioport_St kr_audioport_t;
 
 /** Mixer **/
 
+void kr_ebml_to_mixer_rep (unsigned char *ebml_frag, kr_mixer_t **kr_mixer_rep);
+
 kr_mixer_portgroup_control_rep_t *kr_ebml_to_mixer_portgroup_control_rep (unsigned char *ebml_frag,
                                                             kr_mixer_portgroup_control_rep_t **kr_mixer_portgroup_control_repn);
 

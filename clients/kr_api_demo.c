@@ -80,6 +80,7 @@ void handle_response (kr_client_t *client) {
       if (kr_response_is_list (response)) {
         items = kr_response_list_length (response);
         printf ("Response is a list with %d items.\n", items);
+        /*
         for (i = 0; i < items; i++) {
           if (kr_response_listitem_to_rep (response, i, &rep)) {
             if (rep != NULL) {
@@ -90,6 +91,7 @@ void handle_response (kr_client_t *client) {
             printf ("Did not get list item %d rep\n", i);
           }
         }
+        */
       }
       
       /* Response sometimes can be converted to a string or int */
@@ -151,30 +153,21 @@ void wait_for_broadcasts (kr_client_t *client) {
 
 void kr_api_test (kr_client_t *client) {
 
-  kr_system_info (client);
-  handle_response (client);
+  //kr_system_info (client);
+  //handle_response (client);
 
-  kr_logname (client);
-  handle_response (client);
+  //kr_remote_list (client);
+  //handle_response (client);
 
-  kr_uptime (client);
-  handle_response (client);
-  
-  kr_system_cpu_usage (client);  
-  handle_response (client);
-    
-  kr_remote_status (client);
-  handle_response (client);
+  //kr_tags (client, NULL);
+  //handle_response (client);
 
-  kr_tags (client, NULL);
-  handle_response (client);
-
-  kr_compositor_info (client);
-  handle_response (client);
+  //kr_compositor_info (client);
+  //handle_response (client);
   
   kr_mixer_info (client);
   handle_response (client);
-  
+
   kr_mixer_portgroups_list (client);
   handle_response (client);
   

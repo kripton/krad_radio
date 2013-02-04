@@ -110,7 +110,7 @@ static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, kr
   
   krad_radio_address_to_ebml (krad_ebml, &message_loc, &portgroup->address);
 
-  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_MIXER_PORTGROUP_CREATED);
+  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_SUBUNIT_CREATED);
 
   krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_PAYLOAD, &payload_loc);
 
@@ -190,7 +190,8 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
   
   krad_mixer_portgroup_rep_t *portgroup_rep;
   
-  //uint64_t element;
+  //kr_mixer_t *kr_mixer;
+  uint64_t info_loc;
   uint64_t response;
 
   krad_mixer_output_t output_type;
@@ -224,125 +225,53 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
   krad_ipc_server_read_command ( krad_ipc, &command, &ebml_data_size );
 
   switch ( command ) {
-
-    case EBML_ID_KRAD_MIXER_CMD_GET_CONTROL:
-      //printk ("Get Control\n");
-      return 1;
-      break;  
+  
     case EBML_ID_KRAD_MIXER_CMD_SET_CONTROL:
-      //printf("krad mixer handler! got set control\n");      
-
-    
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
-        printke ("hrm wtf2\n");
-      } else {
-        //printf("tag name size %zu\n", ebml_data_size);
-      }
-
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portname, ebml_data_size);
-  
-      //printk ("Set Control: %s / ", portname);
-  
-  
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_NAME) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
-  
-      //printk ("%s = ", controlname);
-
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
         floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
-  
-        //printk ("%f\n", floatval);
-
         krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-        if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_DURATION) {
-          printke ("krm wtf3\n");
-        }
-        number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-        
+        number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);  
         krad_mixer_set_portgroup_control ( krad_mixer, portname, controlname, floatval, number );
         //krad_mixer_broadcast_portgroup_control ( krad_mixer, portname, controlname, floatval );
-
-      } else {
-
       }
-
       return 2;
 
     case EBML_ID_KRAD_MIXER_CMD_SET_EFFECT_CONTROL:
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME) {
-        printke ("hrm wtf");
-      } else {
-        krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
-      }
-
+      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_EFFECT_NUM) {
-        printke ("hrm wtf2\n");
-      } else {
-        number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-
+      number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-      if (ebml_id != EBML_ID_KRAD_MIXER_CONTROL_NAME) {
-        printke ("hrm wtf");
-      } else {
-        krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
-      }
-
+      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, controlname, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_SUBUNIT) {
-        printke ("hrm wtf2\n");
-      } else {
-        numbers[5] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-
+      numbers[5] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
         floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
       }
-      
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_DURATION) {
         numbers[6] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
       }
-      
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_DURATION) {
         numbers[7] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
       }
-
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
-
       if (portgroup != NULL) {
         kr_effects_effect_set_control (portgroup->effects, number,
-                                       kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type, controlname),
+                   kr_effects_string_to_effect_control(portgroup->effects->effect[number].effect_type,
+                                                        controlname),
                                        numbers[5], floatval, numbers[6], numbers[7]);
       }
       break;
     case EBML_ID_KRAD_MIXER_CMD_PUSH_TONE:
-    
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_TONE_NAME) {
-        printke ("hrm wtf2\n");
-      } else {
-        //printf("tag name size %zu\n", ebml_data_size);
-      }
       if (krad_mixer->push_tone == NULL) {
         krad_ebml_read_string (krad_ipc->current_client->krad_ebml, krad_mixer->push_tone_value, ebml_data_size);
         krad_mixer->push_tone = krad_mixer->push_tone_value;
@@ -350,52 +279,22 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
       }
       break;
-
     case EBML_ID_KRAD_MIXER_CMD_PORTGROUP_XMMS2_CMD:
-
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_XMMS2_CMD) {
-        printke ("hrm wtf2\n");
-      } else {
-        //printf("tag name size %zu\n", ebml_data_size);
-      }
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
-
       krad_mixer_portgroup_xmms2_cmd (krad_mixer, portgroupname, string);
-
       break;
       
     case EBML_ID_KRAD_MIXER_CMD_PLUG_PORTGROUP:
-    
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      }
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);    
-  
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      }
-      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname2, ebml_data_size);    
-    
-      krad_mixer_plug_portgroup (krad_mixer, portgroupname, portgroupname2);    
-    
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname2, ebml_data_size);
+      krad_mixer_plug_portgroup (krad_mixer, portgroupname, portgroupname2);
       break;
-
     case EBML_ID_KRAD_MIXER_CMD_UNPLUG_PORTGROUP:
-    
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
       if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
         printke ("hrm wtf3\n");
@@ -412,51 +311,19 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
     
       break;
       
-    case EBML_ID_KRAD_MIXER_CMD_BIND_PORTGROUP_XMMS2:
-    
+    case EBML_ID_KRAD_MIXER_CMD_BIND_PORTGROUP_XMMS2:  
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
-      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);    
-    
-    
+      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_XMMS2_IPC_PATH) {
-        printke ("hrm wtf2\n");
-      } else {
-        //printf("tag name size %zu\n", ebml_data_size);
-      }
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
-
       krad_mixer_bind_portgroup_xmms2 (krad_mixer, portgroupname, string);
-
       break;
-
     case EBML_ID_KRAD_MIXER_CMD_UNBIND_PORTGROUP_XMMS2:
-    
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
-      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);    
-    
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
       krad_mixer_unbind_portgroup_xmms2 (krad_mixer, portgroupname);
-    
       break;
-            
-      
     case EBML_ID_KRAD_MIXER_CMD_LIST_PORTGROUPS:
-
 
       krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
                                                              &krad_mixer->address,
@@ -479,27 +346,11 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
       krad_ipc_server_response_finish ( krad_ipc, response );
       return 1;
-
     case EBML_ID_KRAD_MIXER_CMD_CREATE_PORTGROUP:
     
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_DIRECTION ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
+      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
 
       if (strncmp(string, "output", 6) == 0) {
@@ -516,65 +367,37 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       }
       
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_CHANNELS) {
-        printke ("w0t");
-      }
-      
       numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-
       portgroup = krad_mixer_portgroup_create (krad_mixer, portgroupname, direction, output_type, numbers[0],
-                     krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);      
+                  0.0f, krad_mixer->master_mix, KRAD_AUDIO, NULL, JACK);      
 
       if (portgroup != NULL) {
-        //if ((portgroup->direction == INPUT) || ((portgroup->direction == OUTPUT) && (portgroup->output_type == AUX))) {
         if (portgroup->direction == INPUT) {
           krad_mixer_broadcast_portgroup_created ( krad_mixer, portgroup );
           //krad_radio_broadcast_subunit_created (krad_mixer->broadcaster, &address, rep);
         }
       }
 
+      krad_mixer_set_portgroup_control (krad_mixer, portgroupname, "volume", 100.0f, 500);
+
       break;
     case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:
-      
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
-      
-      
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
-      
       if (portgroup != NULL) {
         krad_mixer_portgroup_destroy (krad_mixer, portgroup);
-    
         address.path.unit = KR_MIXER;
         address.path.subunit.mixer_subunit = KR_PORTGROUP;
         strncpy (address.id.name, portgroupname, sizeof (address.id.name));
-    
         krad_radio_broadcast_subunit_destroyed (krad_mixer->broadcaster, &address);
       }
-
       break;
-      
     case EBML_ID_KRAD_MIXER_CMD_PORTGROUP_INFO:  
-      
+
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_MIXER_PORTGROUP_NAME ) {
-        printke ("hrm wtf3\n");
-      } else {
-        //printf("tag value size %zu\n", ebml_data_size);
-      }
-
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
-      
       portgroup = krad_mixer_get_portgroup_from_sysname (krad_mixer, portgroupname);
-
       if ((portgroup != NULL) && (portgroup->active) && (portgroup->direction == INPUT)) {
         
         krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
@@ -592,7 +415,6 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       }
 
       break;
-      
     case EBML_ID_KRAD_MIXER_CMD_UPDATE_PORTGROUP:      
       
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
@@ -748,12 +570,21 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       return 1;
   
     case EBML_ID_KRAD_MIXER_CMD_GET_INFO:
-    
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER_MSG, &response);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE, 
+
+      krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                             &krad_mixer->address,
+                                                             EBML_ID_KRAD_UNIT_INFO,
+                                                             &response);
+
+      krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+
+      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER, &info_loc);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE,
                        krad_mixer_get_sample_rate (krad_mixer));
-      krad_ipc_server_response_finish ( krad_ipc, response);
-    
+      krad_ipc_server_response_finish ( krad_ipc, info_loc);
+      
+      krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+      krad_ipc_server_response_finish ( krad_ipc, response );
       return 1;
     case EBML_ID_KRAD_MIXER_CMD_SET_SAMPLE_RATE:
 
