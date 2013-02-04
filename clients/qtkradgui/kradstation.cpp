@@ -302,14 +302,14 @@ void KradStation::handleResponse()
 void KradStation::emitRepType(kr_rep_t *rep)
 {
 
-
-    if (rep == NULL) return;
-
-    if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP || rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_CREATED) {
+    switch (rep->type) {
+    case EBML_ID_KRAD_MIXER_PORTGROUP:
+    case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
         emit portgroupAdded(rep->rep_ptr.mixer_portgroup);
         qDebug() << tr("signalling portgroup added");
-    }
-    if (rep->type ==  EBML_ID_KRAD_MIXER_CONTROL) {
+        break;
+
+    case EBML_ID_KRAD_MIXER_CONTROL:
         if (strcmp(rep->rep_ptr.mixer_portgroup_control->control, "volume") == 0) {
             emit volumeUpdate(rep->rep_ptr.mixer_portgroup_control);
         }
@@ -318,17 +318,14 @@ void KradStation::emitRepType(kr_rep_t *rep)
             qDebug() << tr("emitting crossfade");
             emit crossfadUpdated(rep->rep_ptr.mixer_portgroup_control);
         }
-    }
-    if (rep->type == EBML_ID_KRAD_COMPOSITOR_INFO) {
+        break;
+
+    case EBML_ID_KRAD_COMPOSITOR_INFO:
         qDebug() << "Got compositor information:" << rep->rep_ptr.compositor->width << "x" << rep->rep_ptr.compositor->height << "Framerate:" << rep->rep_ptr.compositor->fps_numerator << "/" << rep->rep_ptr.compositor->fps_denominator;
         emit frameSizeInformation(QRect(0,0,rep->rep_ptr.compositor->width,rep->rep_ptr.compositor->height));
         emit frameRateInformation(rep->rep_ptr.compositor->fps_numerator, rep->rep_ptr.compositor->fps_denominator);
+        break;
     }
-
-   /* if (rep->type == EBML_ID_KRAD_MIXER_PORTGROUP_DESTROYED) {
-        emit portgroupDestroyed(tr(rep->rep_ptr.mixer_portgroup->sysname));
-    }
-*/
 }
 
 
