@@ -394,45 +394,9 @@ int kr_response_get_string_from_list (kr_response_t *response, char **string) {
 }
 
 int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
-  /*
-  int pos;
-	uint32_t ebml_id;
-	uint64_t ebml_data_size;
 
-  pos = 0;
-  
-  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+    
 
-  switch ( ebml_id ) {
-    case EBML_ID_KRAD_RADIO_TAG_LIST:
-      *string = kr_response_alloc_string (ebml_data_size * 4);
-      return kr_response_get_string_from_list (ebml_id, kr_response->buffer + pos, ebml_data_size, string);
-      break;
-    case EBML_ID_KRAD_RADIO_TAG:
-      *string = kr_response_alloc_string (ebml_data_size * 4);
-      return kr_radio_response_get_string_from_tag (kr_response->buffer + pos, ebml_data_size, string);
-      break;
-    case EBML_ID_KRAD_RADIO_UPTIME:
-      return kr_radio_uptime_to_string (krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size), string);
-      break;
-    case EBML_ID_KRAD_RADIO_SYSTEM_INFO:
-      return kr_response_get_string (kr_response->buffer + pos, ebml_data_size, string);
-      break;
-    case EBML_ID_KRAD_RADIO_LOGNAME:
-      return kr_response_get_string (kr_response->buffer + pos, ebml_data_size, string);
-      break;
-    case EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE:
-      *string = kr_response_alloc_string (ebml_data_size + 1);
-      return sprintf (*string, "%"PRIu64"%%",
-                      krad_ebml_read_number_from_frag (kr_response->buffer + pos, ebml_data_size));
-      break;
-    case EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST:
-      *string = kr_response_alloc_string (ebml_data_size * 4);
-      return kr_response_get_string_from_list (ebml_id, kr_response->buffer + pos, ebml_data_size, string);
-      break;
-      
-  }
-*/
   return 0;  
 }
 
@@ -645,6 +609,9 @@ int krad_radio_address_to_ebml (krad_ebml_t *krad_ebml, uint64_t *element_loc, k
         if (address->path.subunit.mixer_subunit == KR_EFFECT) {
           krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_ID_NUMBER, address->sub_id);
         }
+        if (address->path.subunit.mixer_subunit == KR_PORTGROUP) {
+          krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT_CONTROL, address->control.portgroup_control);
+        }
       }
       return 1;
     case KR_COMPOSITOR:
@@ -655,13 +622,15 @@ int krad_radio_address_to_ebml (krad_ebml_t *krad_ebml, uint64_t *element_loc, k
       }
       return 1;
     case KR_TRANSPONDER:
-      //krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_TRANSPONDER_MSG, element_loc);
       //FIXME
       return 0;
     case KR_STATION:
-      //krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MSG, *element_loc);
-      //FIXME
-      return 0;
+      krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MSG, element_loc);
+      krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT, KR_UNIT);
+      if (address->path.subunit.mixer_subunit != KR_UNIT) {
+
+      }
+      return 1;
   }
   
   return 0;
@@ -695,6 +664,8 @@ int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address) {
   switch ( ebml_id ) {
     case EBML_ID_KRAD_RADIO_MSG:
       address->path.unit = KR_STATION;
+      krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+      address->path.subunit.zero = krad_ebml_read_number ( ebml, ebml_data_size);
       break;
     case EBML_ID_KRAD_MIXER_MSG:
       address->path.unit = KR_MIXER;
@@ -705,8 +676,10 @@ int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address) {
 			  krad_ebml_read_string (ebml, address->id.name, ebml_data_size);
         if (address->path.subunit.mixer_subunit == KR_EFFECT) {
           krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
-          address->path.subunit.mixer_subunit = krad_ebml_read_number ( ebml, ebml_data_size);
+          address->sub_id = krad_ebml_read_number ( ebml, ebml_data_size);
         }
+        krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+        address->control.portgroup_control = krad_ebml_read_number ( ebml, ebml_data_size);
       }
       break;
     case EBML_ID_KRAD_COMPOSITOR_MSG:
@@ -730,6 +703,8 @@ inline int krad_message_type_has_payload (uint32_t type) {
 
 char *kr_message_type_to_string (uint32_t type) {
   switch (type) {
+    case EBML_ID_KRAD_SUBUNIT_CONTROL:
+      return "Subunit Controlled";
     case EBML_ID_KRAD_SUBUNIT_CREATED:
       return "Subunit Created";
     case EBML_ID_KRAD_SUBUNIT_LIST:
@@ -1202,8 +1177,8 @@ void kr_address_debug_print (kr_address_t *addr) {
       break;
   }
 
-  if (subunit->mixer_subunit == KR_UNIT) {
-    printf ("\n");
+  if (subunit->zero == KR_UNIT) {
+    printf ("Unit Info\n");
     return;
   }
 

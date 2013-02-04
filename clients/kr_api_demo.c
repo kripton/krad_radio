@@ -69,9 +69,9 @@ void handle_response (kr_client_t *client) {
   wait_time_ms = 250;
 
   if (kr_poll (client, wait_time_ms)) {
+    printf ("----- Handle Response Start: \n\n");
     kr_client_response_get (client, &response);
     if (response != NULL) {
-    
       kr_response_address (response, &address);
       kr_address_debug_print (address); 
     
@@ -117,12 +117,11 @@ void handle_response (kr_client_t *client) {
       }
 
       kr_response_free (&response);
+      printf ("----- Handle Response End\n\n\n\n\n");
     }
   } else {
     printf ("No response after waiting %dms\n", wait_time_ms);
   }
-
-  printf ("\n");
 }
 
 void wait_for_broadcasts (kr_client_t *client) {

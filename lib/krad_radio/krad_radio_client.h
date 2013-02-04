@@ -149,6 +149,7 @@ typedef enum {
 
 typedef union {
   void *ptr;
+  uint64_t zero;
   kr_mixer_subunit_t mixer_subunit;
   kr_compositor_subunit_t compositor_subunit;
   kr_transponder_subunit_t transponder_subunit;

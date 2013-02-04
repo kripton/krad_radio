@@ -761,6 +761,25 @@ void kr_ebml_to_mixer_rep (unsigned char *ebml_frag, kr_mixer_t **kr_mixer_rep) 
 
 }
 
+int kr_mixer_response_get_string_from_subunit_control (unsigned char *ebml_frag, uint64_t item_size, char **string) {
+
+	int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;	
+	int ebml_pos;
+  float value;
+	
+	ebml_pos = 0;
+  pos = 0;
+
+	ebml_pos += krad_ebml_read_element_from_frag (ebml_frag + ebml_pos, &ebml_id, &ebml_data_size);	
+  value = krad_ebml_read_float_from_frag_add (ebml_frag + ebml_pos, ebml_data_size, &ebml_pos);
+  
+  pos += sprintf (*string + pos, "Control Value: %5.2f\n", value);
+  
+  return pos; 
+}
+
 int kr_mixer_response_get_string_from_mixer (unsigned char *ebml_frag, uint64_t item_size, char **string) {
 
 	int pos;
@@ -885,22 +904,9 @@ int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
   rpos = 0;
   
   switch ( kr_response->type ) {
-    case EBML_ID_KRAD_MIXER_CONTROL:
-      *string = kr_response_alloc_string (ebml_data_size * 4 + 64);
-      rpos += sprintf (*string + rpos, "Mixer Portgroup Control: ");
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      ret += kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
-      pos += ret - 1;
-      rpos += ret - 1;
-      rpos += sprintf (*string + rpos, " ");
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      ret = kr_response_read_into_string (kr_response->buffer + pos, ebml_data_size, *string + rpos);
-      pos += ret - 1;
-      rpos += ret - 1;
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      rpos += sprintf (*string + rpos, " %0.2f%%", krad_ebml_read_float_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
-      return rpos;
-
+    case EBML_ID_KRAD_SUBUNIT_CONTROL:
+      *string = kr_response_alloc_string (kr_response->size * 4);
+      return kr_mixer_response_get_string_from_subunit_control (kr_response->buffer + pos, kr_response->size, string);
     case EBML_ID_KRAD_UNIT_INFO:
       *string = kr_response_alloc_string (kr_response->size * 4);
       return kr_mixer_response_get_string_from_mixer (kr_response->buffer + pos, kr_response->size, string);

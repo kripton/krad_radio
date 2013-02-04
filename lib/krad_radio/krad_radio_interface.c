@@ -241,19 +241,13 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return 0;
 		
 		case EBML_ID_KRAD_RADIO_CMD_WEB_DISABLE:
-			
 			krad_http_server_destroy (krad_radio->remote.krad_http);
-      krad_websocket_server_destroy (krad_radio->remote.krad_websocket);			
-			
+      krad_websocket_server_destroy (krad_radio->remote.krad_websocket);
 			krad_radio->remote.krad_http = NULL;
 			krad_radio->remote.krad_websocket = NULL;
-			
 			return 0;
-
 		case EBML_ID_KRAD_RADIO_CMD_GET_REMOTE_STATUS:
-
 			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-
       krad_ipc_server_response_list_start ( kr_ipc, EBML_ID_KRAD_RADIO_REMOTE_STATUS_LIST, &list);
 
       for (i = 0; i < MAX_REMOTES; i++) {
@@ -266,132 +260,53 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
       }
 
       krad_ipc_server_response_list_finish ( kr_ipc, list );
-		
 			krad_ipc_server_response_finish ( kr_ipc, response);
-			
 			return 0;
-			
 		case EBML_ID_KRAD_RADIO_CMD_REMOTE_ENABLE:
-
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_RADIO_REMOTE_INTERFACE) {
-				failfast ("missing item");
-			}
-			
 			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, string1, ebml_data_size);
-			
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
-				printke ("hrm wtf6");
-			}
-			
-			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
-			
+		  numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
 			krad_ipc_server_enable_remote (kr_ipc, string1, numbers[0]);
-			
 			return 0;
-
 		case EBML_ID_KRAD_RADIO_CMD_REMOTE_DISABLE:
-			
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_RADIO_REMOTE_INTERFACE) {
-				failfast ("missing item");
-			}
-			
 			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, string1, ebml_data_size);
-			
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_RADIO_TCP_PORT) {
-				printke ("hrm wtf6");
-			}
-			
 			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
-			
 			krad_ipc_server_disable_remote (kr_ipc, string1, numbers[0]);
-			
 			return 0;
-
 		case EBML_ID_KRAD_RADIO_CMD_OSC_ENABLE:
-			
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_RADIO_UDP_PORT) {
-				printke ("hrm wtf6");
-			}
-			
 			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
-			
 			krad_osc_listen (krad_radio->remote.krad_osc, numbers[0]);
-			
 			return 0;
-
 		case EBML_ID_KRAD_RADIO_CMD_OSC_DISABLE:
-			
 			krad_osc_stop_listening (krad_radio->remote.krad_osc);
-			
 			return 0;
-			
-		case EBML_ID_KRAD_RADIO_CMD_UPTIME:
-			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_UPTIME, krad_system_daemon_uptime());
-			krad_ipc_server_response_finish ( kr_ipc, response);
-		
-			return 1;
 		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO:
 			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
 			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_INFO, krad_system_info());
+			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_LOGNAME, krad_radio->log.filename);
+			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_UPTIME, krad_system_daemon_uptime());
+			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
 			krad_ipc_server_response_finish ( kr_ipc, response);
 			return 1;
-			
 		case EBML_ID_KRAD_RADIO_CMD_SET_DIR:
-
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
-
-			if (ebml_id != EBML_ID_KRAD_RADIO_DIR) {
-				printke ("hrm wtf6");
-			}
-			
 			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, tag_value_actual, ebml_data_size);
-			
 			if (strlen(tag_value_actual)) {
 				krad_radio_set_dir ( krad_radio, tag_value_actual );
 			}
-			
 			return 0;
-	
-		case EBML_ID_KRAD_RADIO_CMD_GET_LOGNAME:
-
-			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_LOGNAME, krad_radio->log.filename);
-			krad_ipc_server_response_finish ( kr_ipc, response);
-			
-			return 0;
-
-		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_CPU_USAGE:
-
-			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
-			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
-			krad_ipc_server_response_finish ( kr_ipc, response);
-			
-			return 0;
-			
 		case EBML_ID_KRAD_RADIO_CMD_BROADCAST_SUBSCRIBE:
-		
-			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);		
-		
+			numbers[0] = krad_ebml_read_number ( kr_ipc->current_client->krad_ebml, ebml_data_size);
 			krad_ipc_server_add_client_to_broadcast ( kr_ipc, numbers[0] );
-		
 			return 0;
-
 		default:
 			printke ("Krad Radio Command Unknown! %u", command);
 			return 0;
 	}
 
 	return 0;
-
 }
