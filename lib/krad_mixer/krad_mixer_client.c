@@ -578,16 +578,16 @@ kr_mixer_portgroup_control_rep_t *kr_ebml_to_mixer_portgroup_control_rep (unsign
   kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep;
 
   item_pos = 0;
-  *kr_mixer_portgroup_control_repn = kr_mixer_portgroup_control_rep_create();
+  //*kr_mixer_portgroup_control_repn = kr_mixer_portgroup_control_rep_create();
 
   kr_mixer_portgroup_control_rep = *kr_mixer_portgroup_control_repn;
   
   
-	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
-	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_mixer_portgroup_control_rep->name);
+	//item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	//item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_mixer_portgroup_control_rep->name);
   
-	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
-	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_mixer_portgroup_control_rep->control);
+	//item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	//item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_mixer_portgroup_control_rep->control);
   
 	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
   kr_mixer_portgroup_control_rep->value = krad_ebml_read_float_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
@@ -783,8 +783,8 @@ int kr_mixer_response_get_string_from_subunit_control (unsigned char *ebml_frag,
 int kr_mixer_response_get_string_from_mixer (unsigned char *ebml_frag, uint64_t item_size, char **string) {
 
 	int pos;
-	int c;
-	int i;
+	//int c;
+	//int i;
   kr_mixer_t *kr_mixer;
 
   pos = 0;
@@ -893,15 +893,11 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
 
 int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
 
-  int ret;
   int pos;
-  int rpos;
 	uint32_t ebml_id;
 	uint64_t ebml_data_size;
 
-  ret = 0;
   pos = 0;
-  rpos = 0;
   
   switch ( kr_response->type ) {
     case EBML_ID_KRAD_SUBUNIT_CONTROL:

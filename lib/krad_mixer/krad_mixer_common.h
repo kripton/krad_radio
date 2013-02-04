@@ -116,8 +116,8 @@ struct krad_effects_rep_St {
 };
 
 struct kr_mixer_portgroup_control_rep_St {
-  char name[64];
-  char control[64];
+  //char name[64];
+  //char control[64];
   float value;
 };
 

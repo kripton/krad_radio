@@ -209,8 +209,8 @@ void krad_websocket_set_control ( kr_ws_client_t *kr_ws_client, kr_mixer_portgro
   cJSON_AddStringToObject (msg, "com", "kradmixer");
   
   cJSON_AddStringToObject (msg, "cmd", "control_portgroup");
-  cJSON_AddStringToObject (msg, "portgroup_name", portgroup_control->name);
-  cJSON_AddStringToObject (msg, "control_name", portgroup_control->control);
+  //cJSON_AddStringToObject (msg, "portgroup_name", portgroup_control->name);
+  //cJSON_AddStringToObject (msg, "control_name", portgroup_control->control);
   cJSON_AddNumberToObject (msg, "value", portgroup_control->value);
 }
 

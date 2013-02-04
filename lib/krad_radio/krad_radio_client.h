@@ -213,7 +213,7 @@ typedef union {
 typedef struct kr_rep_St kr_rep_t;
 struct kr_rep_St {
   kr_rep_ptr_t rep_ptr;
-  uint32_t type;  
+  uint32_t type;
   char *buffer;
 };
 
@@ -278,7 +278,8 @@ int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
 int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote);
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
-int kr_response_to_int (kr_response_t *kr_response, int *number);
+int kr_response_to_int (kr_response_t *response, int *number);
+int kr_response_to_float (kr_response_t *response, float *number);
 //int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_frag, uint64_t list_size, char **string);
 char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);

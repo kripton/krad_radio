@@ -425,14 +425,44 @@ int kr_radio_response_to_int (kr_response_t *kr_response, int *number) {
   return 0;  
 }
 
-int kr_response_to_int (kr_response_t *kr_response, int *number) {
+int kr_response_to_int (kr_response_t *response, int *number) {
 
-  switch ( kr_response->address.path.unit ) {
+  switch ( response->address.path.unit ) {
     case KR_STATION:
-      return kr_radio_response_to_int (kr_response, number);
+      return kr_radio_response_to_int (response, number);
     case KR_MIXER:
       //
       break;
+    case KR_COMPOSITOR:
+      //
+      break;
+    case KR_TRANSPONDER:
+      //
+      break;
+  }
+  return 0;
+}
+
+int kr_response_to_float (kr_response_t *response, float *number) {
+
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+  int pos;
+  
+  pos = 0;
+
+  if (response->type != EBML_ID_KRAD_SUBUNIT_CONTROL) {
+    return 0;
+  }
+
+  switch ( response->address.path.unit ) {
+    case KR_STATION:
+    
+      break;
+    case KR_MIXER:
+      pos += krad_ebml_read_element_from_frag (response->buffer, &ebml_id, &ebml_data_size);	
+      *number = krad_ebml_read_float_from_frag_add (response->buffer + pos, ebml_data_size, &pos);
+      return 1;
     case KR_COMPOSITOR:
       //
       break;
@@ -549,23 +579,40 @@ void kr_response_address (kr_response_t *response, kr_address_t **address) {
 
 int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in) {
 
-  return 0;
-
   kr_rep_t *kr_rep;
 
-  kr_rep = calloc (1, sizeof(kr_rep_t));
-  kr_rep->buffer = malloc (4096);
+  if (response->type == EBML_ID_KRAD_RADIO_UNIT_DESTROYED) {
+    return 0;
+  }
 
-  switch ( kr_rep->type ) {
-    case EBML_ID_KRAD_MIXER_CONTROL:
-      kr_rep->rep_ptr.mixer_portgroup_control = (kr_mixer_portgroup_control_rep_t *)kr_rep->buffer;
-      kr_ebml_to_mixer_portgroup_control_rep (response->buffer, &kr_rep->rep_ptr.mixer_portgroup_control);
+  kr_rep = calloc (1, sizeof(kr_rep_t));
+
+  switch ( response->address.path.unit ) {
+    case KR_STATION:
       break;
+    case KR_MIXER:
+      //switch ( response->type ) {
+      //  case EBML_ID_KRAD_SUBUNIT_CONTROL:
+      //    kr_rep->buffer = malloc (64);
+      //    kr_rep->rep_ptr.mixer_portgroup_control = (kr_mixer_portgroup_control_rep_t *)kr_rep->buffer;
+      //    kr_ebml_to_mixer_portgroup_control_rep (response->buffer, &kr_rep->rep_ptr.mixer_portgroup_control);
+      //    break;
+      //}
+      break;
+    case KR_COMPOSITOR:
+      break;
+    case KR_TRANSPONDER:
+      break;
+  }
+
+  if (kr_rep->buffer == NULL) {
+    kr_rep_free (&kr_rep);
+    return 0;
   }
 
   *kr_rep_in = kr_rep;
 
-  return 0;
+  return 1;
 }
 
 int kr_rep_free (kr_rep_t **kr_rep) {

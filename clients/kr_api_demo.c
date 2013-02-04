@@ -56,13 +56,15 @@ void handle_response (kr_client_t *client) {
   char *string;
   int wait_time_ms;
   int length;
-  int number;
+  int integer;
+  float real;
   int i;
   int items;
 
   items = 0;
   i = 0;
-  number = 0;
+  integer = 0;
+  real = 0.0f;
   string = NULL;
   response = NULL;
   rep = NULL;
@@ -102,8 +104,13 @@ void handle_response (kr_client_t *client) {
         printf ("Response String: %s\n", string);
         kr_response_free_string (&string);
       }
-      if (kr_response_to_int (response, &number)) {
-        printf ("Response Int: %d\n", number);
+      
+      if (kr_response_to_int (response, &integer)) {
+        printf ("Response Int: %d\n", integer);
+      }
+      
+      if (kr_response_to_float (response, &real)) {
+        printf ("Response Float: %f\n", real);
       }
       
       /* Response sometimes can be converted to a rep struct */
