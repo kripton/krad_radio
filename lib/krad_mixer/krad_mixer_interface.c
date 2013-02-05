@@ -1,40 +1,32 @@
 #include "krad_mixer_interface.h"
 
-static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
-                                                         krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep);
-
-static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *krad_mixer_portgroup );
-
-static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *krad_mixer_portgroup,
-                                                         krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep) {
-  krad_mixer_portgroup_rep_t *portgroup_rep_ret;
-  krad_mixer_portgroup_rep_t *portgroup_rep_crossfade;
-  
+static kr_portgroup_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *portgroup,
+                                                    kr_portgroup_t *portgroup_rep) {
   int i;
   
-  if (krad_mixer_portgroup_rep == NULL) {
-    portgroup_rep_ret = krad_mixer_portgroup_rep_create ();
-  } else {
-    portgroup_rep_ret = krad_mixer_portgroup_rep;
+  if (portgroup_rep == NULL) {
+    portgroup_rep = krad_mixer_portgroup_rep_create ();
   }
   
-  strcpy (portgroup_rep_ret->sysname, krad_mixer_portgroup->sysname);
-  portgroup_rep_ret->channels = krad_mixer_portgroup->channels;
-  portgroup_rep_ret->io_type = krad_mixer_portgroup->io_type;
+  strcpy (portgroup_rep->sysname, portgroup->sysname);
+  portgroup_rep->channels = portgroup->channels;
+  portgroup_rep->io_type = portgroup->io_type;
+  
+  strncpy (portgroup_rep->mixbus, portgroup->mixbus->sysname, sizeof(portgroup_rep->mixbus));
   
   for (i = 0; i < KRAD_MIXER_MAX_CHANNELS; i++) {
-    portgroup_rep_ret->volume[i] = krad_mixer_portgroup->volume[i];
-    portgroup_rep_ret->map[i] = krad_mixer_portgroup->map[i];
-    portgroup_rep_ret->mixmap[i] = krad_mixer_portgroup->mixmap[i];
-    portgroup_rep_ret->rms[i] = krad_mixer_portgroup->rms[i];
-    portgroup_rep_ret->peak[i] = krad_mixer_portgroup->peak[i];
+    portgroup_rep->volume[i] = portgroup->volume[i];
+    portgroup_rep->map[i] = portgroup->map[i];
+    portgroup_rep->mixmap[i] = portgroup->mixmap[i];
+    portgroup_rep->rms[i] = portgroup->rms[i];
+    portgroup_rep->peak[i] = portgroup->peak[i];
   }
   
-  if (krad_mixer_portgroup->krad_xmms != NULL) {
-    portgroup_rep_ret->has_xmms2 = 1;
-    strncpy (portgroup_rep_ret->xmms2_ipc_path,
-             krad_mixer_portgroup->krad_xmms->ipc_path,
-             sizeof(portgroup_rep_ret->xmms2_ipc_path));
+  if (portgroup->krad_xmms != NULL) {
+    portgroup_rep->has_xmms2 = 1;
+    strncpy (portgroup_rep->xmms2_ipc_path,
+             portgroup->krad_xmms->ipc_path,
+             sizeof(portgroup_rep->xmms2_ipc_path));
   }
   
   kr_eq_t *eq;
@@ -42,51 +34,33 @@ static krad_mixer_portgroup_rep_t *krad_mixer_portgroup_to_rep (krad_mixer_portg
   kr_pass_t *highpass;
   kr_analog_t *analog;
   
-  eq = (kr_eq_t *)krad_mixer_portgroup->effects->effect[0].effect[0];
-  lowpass = (kr_lowpass_t *)krad_mixer_portgroup->effects->effect[1].effect[0];
-  highpass = (kr_highpass_t *)krad_mixer_portgroup->effects->effect[2].effect[0];
-  analog = (kr_analog_t *)krad_mixer_portgroup->effects->effect[3].effect[0];
+  eq = (kr_eq_t *)portgroup->effects->effect[0].effect[0];
+  lowpass = (kr_lowpass_t *)portgroup->effects->effect[1].effect[0];
+  highpass = (kr_highpass_t *)portgroup->effects->effect[2].effect[0];
+  analog = (kr_analog_t *)portgroup->effects->effect[3].effect[0];
 
   for (i = 0; i < KRAD_EQ_MAX_BANDS; i++) {
-    portgroup_rep_ret->eq.band[i].db = eq->band[i].db;
-    portgroup_rep_ret->eq.band[i].bandwidth = eq->band[i].bandwidth;
-    portgroup_rep_ret->eq.band[i].hz = eq->band[i].hz;
-    //printk ("hz is %f %f\n", portgroup_rep_ret->eq.band[i].hz, eq->band[i].hz); 
+    portgroup_rep->eq.band[i].db = eq->band[i].db;
+    portgroup_rep->eq.band[i].bandwidth = eq->band[i].bandwidth;
+    portgroup_rep->eq.band[i].hz = eq->band[i].hz;
   }
   
-  portgroup_rep_ret->lowpass.hz = lowpass->hz;
-  portgroup_rep_ret->lowpass.bandwidth = lowpass->bandwidth;
-  portgroup_rep_ret->highpass.hz = highpass->hz;
-  portgroup_rep_ret->highpass.bandwidth = highpass->bandwidth;
+  portgroup_rep->lowpass.hz = lowpass->hz;
+  portgroup_rep->lowpass.bandwidth = lowpass->bandwidth;
+  portgroup_rep->highpass.hz = highpass->hz;
+  portgroup_rep->highpass.bandwidth = highpass->bandwidth;
   
-  portgroup_rep_ret->analog.drive = analog->drive;
-  portgroup_rep_ret->analog.blend = analog->blend;
+  portgroup_rep->analog.drive = analog->drive;
+  portgroup_rep->analog.blend = analog->blend;
   
-  if ((krad_mixer_portgroup->crossfade_group != NULL) && 
-      (krad_mixer_portgroup->crossfade_group->portgroup[0] == krad_mixer_portgroup)) {
-     portgroup_rep_crossfade = krad_mixer_portgroup_rep_create ();
-     
-    strcpy (portgroup_rep_crossfade->sysname, krad_mixer_portgroup->crossfade_group->portgroup[1]->sysname);
-    portgroup_rep_crossfade->channels = krad_mixer_portgroup->crossfade_group->portgroup[1]->channels;
-    portgroup_rep_crossfade->io_type = krad_mixer_portgroup->crossfade_group->portgroup[1]->io_type;
-     
-    for (i = 0; i < KRAD_MIXER_MAX_CHANNELS; i++) {
-      portgroup_rep_crossfade->volume[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->volume[i];
-      portgroup_rep_crossfade->map[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->map[i];
-      portgroup_rep_crossfade->mixmap[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->mixmap[i];
-      portgroup_rep_crossfade->rms[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->rms[i];
-      portgroup_rep_crossfade->peak[i] = krad_mixer_portgroup->crossfade_group->portgroup[1]->peak[i];
-    }
-     
-    if (krad_mixer_portgroup->crossfade_group->portgroup[1]->krad_xmms != NULL) {
-      portgroup_rep_crossfade->has_xmms2 = 1;
-    }
-     
-    portgroup_rep_ret->crossfade_group_rep = krad_mixer_crossfade_rep_create (portgroup_rep_ret, portgroup_rep_crossfade);
-    portgroup_rep_ret->crossfade_group_rep->fade = krad_mixer_portgroup->crossfade_group->fade;
+  if ((portgroup->crossfade_group != NULL) && (portgroup->crossfade_group->portgroup[0] == portgroup)) {
+    portgroup_rep->fade = portgroup->crossfade_group->fade;
+    strncpy (portgroup_rep->crossfade_group,
+             portgroup->crossfade_group->portgroup[1]->sysname,
+             sizeof(portgroup_rep->crossfade_group));
   }
   
-  return portgroup_rep_ret;
+  return portgroup_rep;
 }
 
 static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup ) {

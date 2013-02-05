@@ -26,6 +26,12 @@ void my_compositor_print (kr_compositor_t *compositor, void *user_ptr) {
 					 ((float)compositor->fps_numerator / (float)compositor->fps_denominator));
 }
 
+void my_mixer_print (kr_mixer_t *mixer, void *user_ptr) {
+
+  printf ("Mixer Sample Rate: %d\n",
+					 mixer->sample_rate);
+}
+
 void my_rep_print (kr_rep_t *rep) {
 
   void *user_ptr;
@@ -33,18 +39,21 @@ void my_rep_print (kr_rep_t *rep) {
   user_ptr = NULL;
 
   switch ( rep->type ) {
-    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
-      my_remote_print (rep->rep_ptr.actual, user_ptr);
+    case KR_MIXER:
+      my_mixer_print (rep->rep_ptr.actual, user_ptr);
       return;
-    case EBML_ID_KRAD_RADIO_TAG:
-      my_tag_print (rep->rep_ptr.tag, user_ptr);
-      return;
-    case EBML_ID_KRAD_MIXER_PORTGROUP:
-      my_portgroup_print (rep->rep_ptr.mixer_portgroup, user_ptr);
+    case KR_PORTGROUP:
+      my_portgroup_print (rep->rep_ptr.portgroup, user_ptr);
       return;
     case EBML_ID_KRAD_COMPOSITOR_INFO:
       my_compositor_print (rep->rep_ptr.compositor, user_ptr);
       return;
+    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
+      my_remote_print (rep->rep_ptr.actual, user_ptr);
+      return;
+    //case EBML_ID_KRAD_RADIO_TAG:
+    //  my_tag_print (rep->rep_ptr.tag, user_ptr);
+    //  return;
   }
 }
 
@@ -82,20 +91,19 @@ void handle_response (kr_client_t *client) {
       if (kr_response_is_list (response)) {
         items = kr_response_list_length (response);
         printf ("Response is a list with %d items.\n", items);
-        /*
+        
         for (i = 0; i < items; i++) {
-          if (kr_response_listitem_to_rep (response, i, &rep)) {
-            if (rep != NULL) {
-              my_rep_print (rep);
-              kr_rep_free (&rep);
-            }
-          } else {
-            printf ("Did not get list item %d rep\n", i);
-          }
-        }
-        */
-      }
-      
+          //if (kr_response_listitem_to_rep (response, i, &rep)) {
+          //  if (rep != NULL) {
+          //    my_rep_print (rep);
+          //    kr_rep_free (&rep);
+          //  }
+          //} else {
+          //  printf ("Did not get list item %d rep\n", i);
+          //}
+         }
+       }
+            
       /* Response sometimes can be converted to a string or int */
       
       length = kr_response_to_string (response, &string);

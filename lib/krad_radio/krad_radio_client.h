@@ -205,8 +205,8 @@ typedef union {
   void *actual;
   kr_tag_t *tag;
   kr_remote_t *remote;
-  kr_mixer_portgroup_t *mixer_portgroup;
-  kr_mixer_portgroup_control_rep_t *mixer_portgroup_control;
+  kr_mixer_t *mixer;
+  kr_mixer_portgroup_t *portgroup;
   kr_compositor_t *compositor;
 } kr_rep_ptr_t;
 

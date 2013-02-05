@@ -3,11 +3,9 @@
 
 typedef struct krad_mixer_rep_St krad_mixer_rep_t;
 typedef struct krad_mixer_rep_St kr_mixer_t;
+typedef struct krad_mixer_portgroup_rep_St kr_portgroup_t;
 typedef struct krad_mixer_portgroup_rep_St kr_mixer_portgroup_t;
 typedef struct krad_mixer_portgroup_rep_St krad_mixer_portgroup_rep_t;
-typedef struct krad_mixer_portgroup_rep_St krad_mixer_mixbus_rep_t;
-typedef struct krad_mixer_crossfade_group_rep_St krad_mixer_crossfade_group_rep_t;
-typedef struct kr_mixer_portgroup_control_rep_St kr_mixer_portgroup_control_rep_t;
 
 #define KRAD_MIXER_MAX_PORTGROUPS 12
 #define KRAD_MIXER_MAX_CHANNELS 8
@@ -68,12 +66,13 @@ typedef enum {
 
 struct krad_mixer_portgroup_rep_St {
 
-  char sysname[256];
+  char sysname[64];
   channels_t channels;
   int io_type;
   
-  krad_mixer_mixbus_rep_t *mixbus_rep;
-  krad_mixer_crossfade_group_rep_t *crossfade_group_rep;
+  char mixbus[64];
+  char crossfade_group[64];
+  float fade;
   
   float volume[KRAD_MIXER_MAX_CHANNELS];
   
@@ -96,18 +95,8 @@ struct krad_mixer_portgroup_rep_St {
 
 struct krad_mixer_rep_St {
   uint32_t sample_rate;
-  
 //  uint64_t frames;
 //  uint64_t timecode;
-  
-//  krad_mixer_portgroup_rep_t *portgroup_rep[KRAD_MIXER_MAX_PORTGROUPS];
-//  krad_mixer_crossfade_group_rep_t *crossfade_group;
-  
-};
-
-struct krad_mixer_crossfade_group_rep_St {
-  krad_mixer_portgroup_rep_t *portgroup_rep[2];
-  float fade;
 };
 
 struct krad_effects_rep_St {
@@ -115,30 +104,11 @@ struct krad_effects_rep_St {
   void *effect[KRAD_EFFECTS_MAX_CHANNELS];
 };
 
-struct kr_mixer_portgroup_control_rep_St {
-  //char name[64];
-  //char control[64];
-  float value;
-};
-
 char *krad_mixer_channel_number_to_string (int channel);
-
 char *effect_control_to_string (kr_mixer_effect_control_t effect_control);
-
-void kr_mixer_portgroup_control_rep_destroy (kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep);
-kr_mixer_portgroup_control_rep_t *kr_mixer_portgroup_control_rep_create ();
-
 krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep_create ();
 void krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep_t *portgroup_rep);
 void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep, krad_ebml_t *krad_ebml);
-krad_mixer_portgroup_rep_t *krad_mixer_ebml_to_krad_mixer_portgroup_rep (krad_ebml_t *krad_ebml, uint64_t *ebml_data_size, krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep);
-
-krad_mixer_mixbus_rep_t *krad_mixer_mixbus_rep_create ();
-void krad_mixer_mixbus_rep_destroy (krad_mixer_mixbus_rep_t *mixbus_rep);
-
-krad_mixer_crossfade_group_rep_t *krad_mixer_crossfade_rep_create (krad_mixer_portgroup_rep_t *portgroup_rep1, krad_mixer_portgroup_rep_t *portgroup_rep2);
-void krad_mixer_crossfade_group_rep_destroy (krad_mixer_crossfade_group_rep_t *crossfade_group_rep);
-
 krad_mixer_rep_t *krad_mixer_rep_create ();
 void krad_mixer_rep_destroy (krad_mixer_rep_t *mixer_rep);
 

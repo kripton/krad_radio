@@ -591,13 +591,27 @@ int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in) {
     case KR_STATION:
       break;
     case KR_MIXER:
-      //switch ( response->type ) {
+      switch ( response->address.path.subunit.zero ) {
+        case KR_UNIT:
+          kr_rep->buffer = malloc (64);
+          kr_rep->type = KR_MIXER;
+          kr_rep->rep_ptr.mixer = (kr_mixer_t *)kr_rep->buffer;
+          kr_ebml_to_mixer_rep (response->buffer, &kr_rep->rep_ptr.mixer);
+          break;
+        case KR_PORTGROUP:
+          if (response->type == EBML_ID_KRAD_SUBUNIT_CREATED) {
+            kr_rep->buffer = malloc (4096);
+            kr_rep->type = KR_PORTGROUP;
+            kr_rep->rep_ptr.portgroup = (kr_mixer_portgroup_t *)kr_rep->buffer;
+            kr_ebml_to_mixer_portgroup_rep (response->buffer, &kr_rep->rep_ptr.portgroup);
+          }
+          break;
       //  case EBML_ID_KRAD_SUBUNIT_CONTROL:
       //    kr_rep->buffer = malloc (64);
       //    kr_rep->rep_ptr.mixer_portgroup_control = (kr_mixer_portgroup_control_rep_t *)kr_rep->buffer;
       //    kr_ebml_to_mixer_portgroup_control_rep (response->buffer, &kr_rep->rep_ptr.mixer_portgroup_control);
       //    break;
-      //}
+      }
       break;
     case KR_COMPOSITOR:
       break;

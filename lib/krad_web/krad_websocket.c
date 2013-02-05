@@ -175,9 +175,9 @@ void krad_websocket_add_portgroup ( kr_ws_client_t *kr_ws_client, kr_mixer_portg
   cJSON_AddStringToObject (msg, "portgroup_name", portgroup->sysname);
   cJSON_AddNumberToObject (msg, "volume", portgroup->volume[0]);
   
-  if (portgroup->crossfade_group_rep != NULL) {
-    cJSON_AddStringToObject (msg, "crossfade_name", portgroup->crossfade_group_rep->portgroup_rep[1]->sysname);
-    cJSON_AddNumberToObject (msg, "crossfade", portgroup->crossfade_group_rep->fade);
+  if (portgroup->crossfade_group[0] != '\0') {
+    cJSON_AddStringToObject (msg, "crossfade_name", portgroup->crossfade_group);
+    cJSON_AddNumberToObject (msg, "crossfade", portgroup->fade);
   } else {
     cJSON_AddStringToObject (msg, "crossfade_name", "");
     cJSON_AddNumberToObject (msg, "crossfade", 0);
@@ -199,7 +199,7 @@ void krad_websocket_remove_portgroup ( kr_ws_client_t *kr_ws_client, kr_mixer_po
   cJSON_AddStringToObject (msg, "cmd", "remove_portgroup");
   cJSON_AddStringToObject (msg, "portgroup_name", portgroup->sysname);
 }
-
+/*
 void krad_websocket_set_control ( kr_ws_client_t *kr_ws_client, kr_mixer_portgroup_control_rep_t *portgroup_control) {
 
   cJSON *msg;  
@@ -213,19 +213,17 @@ void krad_websocket_set_control ( kr_ws_client_t *kr_ws_client, kr_mixer_portgro
   //cJSON_AddStringToObject (msg, "control_name", portgroup_control->control);
   cJSON_AddNumberToObject (msg, "value", portgroup_control->value);
 }
+*/
+void krad_websocket_set_mixer ( kr_ws_client_t *kr_ws_client, kr_mixer_t *mixer) {
 
-void krad_websocket_set_sample_rate ( kr_ws_client_t *kr_ws_client, int sample_rate) {
-
-  printkd ("set_sample_rate called %d", sample_rate);
-  
   cJSON *msg;
   
   cJSON_AddItemToArray(kr_ws_client->msgs, msg = cJSON_CreateObject());
   
   cJSON_AddStringToObject (msg, "com", "kradmixer");
   
-  cJSON_AddStringToObject (msg, "cmd", "set_sample_rate");
-  cJSON_AddNumberToObject (msg, "sample_rate", sample_rate);
+  cJSON_AddStringToObject (msg, "cmd", "set_mixer_params");
+  cJSON_AddNumberToObject (msg, "sample_rate", mixer->sample_rate);
 }
 
 
@@ -259,17 +257,11 @@ void krad_websocket_set_frame_size ( kr_ws_client_t *kr_ws_client, int width, in
 
 static void rep_to_json (kr_ws_client_t *kr_ws_client, kr_rep_t *rep) {
   switch ( rep->type ) {
-    case EBML_ID_KRAD_MIXER_CONTROL:
-      krad_websocket_set_control (kr_ws_client,
-                                  rep->rep_ptr.mixer_portgroup_control);
-    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
+    case KR_MIXER:
+      krad_websocket_set_mixer (kr_ws_client, rep->rep_ptr.mixer);
       return;
-    case EBML_ID_KRAD_RADIO_TAG:
-      
-      return;
-    case EBML_ID_KRAD_MIXER_PORTGROUP:
-      krad_websocket_add_portgroup (kr_ws_client,
-                                    rep->rep_ptr.mixer_portgroup);
+    case KR_PORTGROUP:
+      krad_websocket_add_portgroup (kr_ws_client, rep->rep_ptr.portgroup);
       return;
   }
 }
@@ -281,7 +273,11 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
   kr_rep_t *rep;
   int i;
   int items;
+  int integer;
+  float real;
   
+  integer = 0;
+  real = 0.0f;
   items = 0;
   i = 0;
   response = NULL;
@@ -294,23 +290,31 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
   if (response != NULL) {
     if (kr_response_is_list (response)) {
       items = kr_response_list_length (response);
-      //printk ("Response is a list with %d items.\n", items);
-      /*
+      printk ("Krad WebSocket: Response is a list with %d items.\n", items);
+
       for (i = 0; i < items; i++) {
-        if (kr_response_listitem_to_rep (response, i, &rep)) {
-          rep_to_json (kr_ws_client, rep);
-          kr_rep_free (&rep);
-        } else {
-          //printk ("Did not get item %d\n", i);
-        }
+        //if (kr_response_listitem_to_rep (response, i, &rep)) {
+        //  rep_to_json (kr_ws_client, rep);
+        //  kr_rep_free (&rep);
+        //} else {
+        //  //printk ("Did not get item %d\n", i);
+        //}
       }
-      */
+    }
+    
+    if (kr_response_to_int (response, &integer)) {
+      printf ("Response Int: %d\n", integer);
+    }
+    
+    if (kr_response_to_float (response, &real)) {
+      printf ("Response Float: %f\n", real);
     }
 
     if (kr_response_to_rep (response, &rep)) {
       rep_to_json (kr_ws_client, rep);
       kr_rep_free (&rep);
     }
+    
     kr_response_free (&response);
   } else {
     printk ("Krad WebSocket: Krad API Handler.. I should have got a response :/");
@@ -429,11 +433,11 @@ static int callback_kr_client (struct libwebsocket_context *this,
       kr_ws_client->kr_client_info = 0;
       kr_ws_client->hello_sent = 0;      
       kr_mixer_info (kr_ws_client->kr_client);
-      kr_compositor_info (kr_ws_client->kr_client);
-      kr_mixer_portgroups_list (kr_ws_client->kr_client);
-      kr_transponder_decklink_list (kr_ws_client->kr_client);
-      kr_transponder_list (kr_ws_client->kr_client);
-      kr_tags (kr_ws_client->kr_client, NULL);
+      //kr_compositor_info (kr_ws_client->kr_client);
+      //kr_mixer_portgroups_list (kr_ws_client->kr_client);
+      //kr_transponder_decklink_list (kr_ws_client->kr_client);
+      //kr_transponder_list (kr_ws_client->kr_client);
+      //kr_tags (kr_ws_client->kr_client, NULL);
       kr_broadcast_subscribe (kr_ws_client->kr_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
       add_poll_fd (kr_client_get_fd (kr_ws_client->kr_client), POLLIN, KRAD_IPC, kr_ws_client, NULL);
       break;
@@ -541,19 +545,10 @@ static void *krad_websocket_server_run (void *arg) {
                   cJSON *msg;
 
                   if (kr_ws_client->hello_sent == 0) {
-
                     cJSON_AddItemToArray (kr_ws_client->msgs, msg = cJSON_CreateObject());
-  
                     cJSON_AddStringToObject (msg, "com", "kradradio");
                     cJSON_AddStringToObject (msg, "info", "sysname");
                     cJSON_AddStringToObject (msg, "infoval", krad_websocket->sysname);
-
-                    cJSON_AddItemToArray (kr_ws_client->msgs, msg = cJSON_CreateObject());
-  
-                    cJSON_AddStringToObject (msg, "com", "kradradio");
-                    cJSON_AddStringToObject (msg, "info", "motd");
-                    cJSON_AddStringToObject (msg, "infoval", "krad radio ws api alpha");
-                    
                     kr_ws_client->hello_sent = 1;
                   }
                   
