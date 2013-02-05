@@ -167,13 +167,10 @@ void wait_for_broadcasts (kr_client_t *client) {
 
 void kr_api_test (kr_client_t *client) {
 
-  //kr_system_info (client);
-  //handle_response (client);
+  kr_system_info (client);
+  handle_response (client);
 
   //kr_remote_list (client);
-  //handle_response (client);
-
-  //kr_tags (client, NULL);
   //handle_response (client);
 
   //kr_compositor_info (client);
@@ -190,7 +187,6 @@ void kr_api_test (kr_client_t *client) {
   printf ("Subscribed to all broadcasts\n");
 
   wait_for_broadcasts (client);
-  
 }
 
 int main (int argc, char *argv[]) {

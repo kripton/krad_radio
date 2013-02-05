@@ -50,7 +50,7 @@ typedef struct kr_client_St kr_client_t;
 #include "krad_easing_common.h"
 #include "krad_mixer_common.h"
 #include "krad_compositor_common.h"
-
+#include "krad_radio_common.h"
 
 
 //typedef void (*rep_callback_t)( void *, void * );
@@ -208,13 +208,14 @@ typedef union {
   kr_mixer_t *mixer;
   kr_mixer_portgroup_t *portgroup;
   kr_compositor_t *compositor;
+  kr_radio_t *radio;
 } kr_rep_ptr_t;
 
 typedef struct kr_rep_St kr_rep_t;
 struct kr_rep_St {
   kr_rep_ptr_t rep_ptr;
   uint32_t type;
-  char *buffer;
+  //char *buffer;
 };
 
 int kr_string_to_address (char *string, kr_address_t *addr);

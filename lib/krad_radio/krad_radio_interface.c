@@ -47,7 +47,9 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	uint64_t ebml_data_size;
 	uint64_t element;
 	uint64_t response;
-//	uint64_t broadcast;
+  uint64_t payload_loc;
+  uint64_t info_loc;
+  kr_address_t address;
 	uint64_t numbers[10];
 	krad_tags_t *krad_tags;
 	
@@ -80,8 +82,6 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	ebml_data_size = 0;
 	element = 0;
 	response = 0;
-
-	//printf("handler! ");
 	
 	krad_ipc_server_read_command ( kr_ipc, &command, &ebml_data_size);
 
@@ -285,12 +285,31 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			krad_osc_stop_listening (krad_radio->remote.krad_osc);
 			return 0;
 		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO:
-			krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_MSG, &response);
+		
+			address.path.unit = KR_STATION;
+			address.path.subunit.zero = KR_UNIT;
+			
+      krad_ipc_server_response_start_with_address_and_type ( kr_ipc,
+                                                             &address,
+                                                             EBML_ID_KRAD_UNIT_INFO,
+                                                             &response);
+
+      krad_ipc_server_payload_start ( kr_ipc, &payload_loc);
+
+      krad_ipc_server_response_start ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_INFO, &info_loc);
+
 			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_INFO, krad_system_info());
 			krad_ipc_server_respond_string ( kr_ipc, EBML_ID_KRAD_RADIO_LOGNAME, krad_radio->log.filename);
 			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_UPTIME, krad_system_daemon_uptime());
 			krad_ipc_server_respond_number ( kr_ipc, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, krad_system_get_cpu_usage());
-			krad_ipc_server_response_finish ( kr_ipc, response);
+
+
+      krad_ipc_server_response_finish ( kr_ipc, info_loc);
+      
+      krad_ipc_server_payload_finish ( kr_ipc, payload_loc );
+      krad_ipc_server_response_finish ( kr_ipc, response );
+			
+			
 			return 1;
 		case EBML_ID_KRAD_RADIO_CMD_SET_DIR:
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	

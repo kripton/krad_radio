@@ -668,8 +668,6 @@ int kr_mixer_response_get_string_from_subunit_control (unsigned char *ebml_frag,
 int kr_mixer_response_get_string_from_mixer (unsigned char *ebml_frag, uint64_t item_size, char **string) {
 
 	int pos;
-	//int c;
-	//int i;
   kr_mixer_t *kr_mixer;
 
   pos = 0;
