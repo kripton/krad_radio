@@ -7,20 +7,16 @@ typedef struct krad_mixer_local_portgroup_St krad_mixer_local_portgroup_t;
 typedef struct krad_mixer_portgroup_St krad_mixer_mixbus_t;
 typedef struct krad_mixer_crossfade_group_St krad_mixer_crossfade_group_t;
 
-
 #include "krad_mixer_common.h"
 #include "krad_radio.h"
 #include "krad_mixer_interface.h"
 #include "krad_sfx.h"
 
-
 struct krad_mixer_crossfade_group_St {
-
 	krad_mixer_portgroup_t *portgroup[2];
 	float fade;
   krad_easing_t fade_easing;
 };
-
 
 struct krad_mixer_local_portgroup_St {
 	int local;
@@ -31,11 +27,9 @@ struct krad_mixer_local_portgroup_St {
 	krad_mixer_portgroup_direction_t direction;	
 };
 
-
 struct krad_mixer_portgroup_St {
 	
 	char sysname[64];
-	
 	kr_address_t address;
 	
 	krad_mixer_portgroup_direction_t direction;
@@ -77,7 +71,6 @@ struct krad_mixer_portgroup_St {
   kr_rushlimiter_t *kr_rushlimiter[KRAD_MIXER_MAX_CHANNELS];
 };
 
-
 struct krad_mixer_St {
 
 	kr_address_t address;
@@ -118,18 +111,13 @@ struct krad_mixer_St {
 
 void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_portgroup_t *krad_mixer_local_portgroup,
 											  float **samples);
-
-
 void krad_mixer_portgroup_xmms2_cmd (krad_mixer_t *krad_mixer, char *portgroupname, char *xmms2_cmd);
 void krad_mixer_bind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname, char *ipc_path);
 void krad_mixer_unbind_portgroup_xmms2 (krad_mixer_t *krad_mixer, char *portgroupname);
-		
-
 void *krad_mixer_ticker_thread (void *arg);
 void krad_mixer_start_ticker_at (krad_mixer_t *krad_mixer, struct timespec start_time);
 void krad_mixer_start_ticker (krad_mixer_t *krad_mixer);
 void krad_mixer_stop_ticker (krad_mixer_t *krad_mixer);
-
 krad_audio_api_t krad_mixer_get_pusher (krad_mixer_t *krad_mixer);
 int krad_mixer_has_pusher (krad_mixer_t *krad_mixer);
 void krad_mixer_set_pusher (krad_mixer_t *krad_mixer, krad_audio_api_t pusher);

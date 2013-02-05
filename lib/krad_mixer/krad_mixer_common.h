@@ -106,10 +106,12 @@ struct krad_effects_rep_St {
 
 char *krad_mixer_channel_number_to_string (int channel);
 char *effect_control_to_string (kr_mixer_effect_control_t effect_control);
-krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep_create ();
-void krad_mixer_portgroup_rep_destroy (krad_mixer_portgroup_rep_t *portgroup_rep);
+
 void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep, krad_ebml_t *krad_ebml);
-krad_mixer_rep_t *krad_mixer_rep_create ();
-void krad_mixer_rep_destroy (krad_mixer_rep_t *mixer_rep);
+
+kr_portgroup_t *kr_portgroup_rep_create ();
+void kr_portgroup_rep_destroy (kr_portgroup_t *portgroup_rep);
+kr_mixer_t *kr_mixer_rep_create ();
+void kr_mixer_rep_destroy (kr_mixer_t *mixer_rep);
 
 #endif

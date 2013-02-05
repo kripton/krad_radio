@@ -534,12 +534,12 @@ int kr_ebml_to_mixer_portgroup_rep (unsigned char *ebml_frag, kr_mixer_portgroup
   int i;
   char string[256];
   int item_pos;
-  kr_mixer_portgroup_t *portgroup_rep;
+  kr_portgroup_t *portgroup_rep;
 
   item_pos = 0;
 
   if (*portgroup_rep_in == NULL) {
-    *portgroup_rep_in = krad_mixer_portgroup_rep_create ();
+    *portgroup_rep_in = kr_portgroup_rep_create ();
   }
   
   portgroup_rep = *portgroup_rep_in;
@@ -635,7 +635,7 @@ void kr_ebml_to_mixer_rep (unsigned char *ebml_frag, kr_mixer_t **kr_mixer_rep_i
   item_pos = 0;
 
   if (*kr_mixer_rep_in == NULL) {
-    *kr_mixer_rep_in = krad_mixer_rep_create ();
+    *kr_mixer_rep_in = kr_mixer_rep_create ();
   }
   
   kr_mixer_rep = *kr_mixer_rep_in;
@@ -677,7 +677,7 @@ int kr_mixer_response_get_string_from_mixer (unsigned char *ebml_frag, uint64_t 
 
   kr_ebml_to_mixer_rep (ebml_frag, &kr_mixer);
   pos += sprintf (*string + pos, "Sample Rate: %u\n", kr_mixer->sample_rate);
-  krad_mixer_rep_destroy (kr_mixer);
+  kr_mixer_rep_destroy (kr_mixer);
   
   return pos; 
 }
@@ -769,7 +769,7 @@ int kr_mixer_response_get_string_from_portgroup (unsigned char *ebml_frag, uint6
 
   pos += sprintf (*string + pos, "\n");
 
-  krad_mixer_portgroup_rep_destroy (portgroup_rep);
+  kr_portgroup_rep_destroy (portgroup_rep);
   
   return pos; 
 }
