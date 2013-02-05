@@ -34,7 +34,6 @@ void krad_mixer_crossfade_group_create (krad_mixer_t *krad_mixer, krad_mixer_por
   portgroup2->crossfade_group = crossfade_group;
   
   crossfade_group_set_crossfade (crossfade_group, -100.0f);
-  
 }
 
 void krad_mixer_crossfade_group_destroy (krad_mixer_t *krad_mixer, krad_mixer_crossfade_group_t *crossfade_group) {
@@ -45,7 +44,6 @@ void krad_mixer_crossfade_group_destroy (krad_mixer_t *krad_mixer, krad_mixer_cr
   crossfade_group->portgroup[0] = NULL;
   crossfade_group->portgroup[1] = NULL;
   crossfade_group->fade = -100.0f;
-
 }
 
 float get_fade_out (float crossfade_value) {
@@ -56,13 +54,10 @@ float get_fade_out (float crossfade_value) {
   fade_out = fade_out * fade_out;
     
   return fade_out;
-    
 }
 
 float get_fade_in (float crossfade_value) {
-  
   return 1.0f - get_fade_out (crossfade_value);
-  
 }
 
 float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
@@ -78,7 +73,6 @@ float portgroup_get_crossfade (krad_mixer_portgroup_t *portgroup) {
   failfast ("failed to get portgroup for crossfade!");
 
   return 0;
-  
 }
 
 void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
@@ -88,7 +82,6 @@ void portgroup_apply_effects (krad_mixer_portgroup_t *portgroup, int nframes) {
   }
   // FIXME hrm we count on thems being the same btw in them effects lookout
   kr_effects_process (portgroup->effects, portgroup->samples, portgroup->samples, nframes);
-
 }
 
 void portgroup_apply_volume (krad_mixer_portgroup_t *portgroup, int nframes) {
@@ -209,7 +202,6 @@ void krad_mixer_portgroup_compute_channel_peak (krad_mixer_portgroup_t *portgrou
   }
 }
 
-
 void krad_mixer_portgroup_compute_peaks (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 
   int c;
@@ -218,6 +210,7 @@ void krad_mixer_portgroup_compute_peaks (krad_mixer_portgroup_t *portgroup, uint
     krad_mixer_portgroup_compute_channel_peak (portgroup, c, nframes);
   }
 }
+
 /*
 void krad_mixer_portgroup_compute_channel_rms (krad_mixer_portgroup_t *portgroup, int channel, uint32_t nframes) {
 
@@ -236,6 +229,7 @@ void krad_mixer_portgroup_compute_channel_rms (krad_mixer_portgroup_t *portgroup
 
 }
 */
+
 void krad_mixer_compute_levels (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
 
   int c;
@@ -259,17 +253,12 @@ void portgroup_clear_samples (krad_mixer_portgroup_t *portgroup, uint32_t nframe
 }
 
 void krad_mixer_portgroup_map_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel) {
-
   portgroup->map[in_channel] = out_channel;
-
   portgroup->mapped_samples[in_channel] = &portgroup->samples[out_channel];
-
 }
 
 void krad_mixer_portgroup_mixmap_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel) {
-
   portgroup->mixmap[out_channel] = in_channel;
-
 }
 
 int portgroup_handle_delay (krad_mixer_portgroup_t *portgroup, uint32_t nframes) {
@@ -348,7 +337,6 @@ void portgroup_mix_samples (krad_mixer_portgroup_t *dest_portgroup, krad_mixer_p
         }
       }
     }
-  
   }
 }
 
@@ -511,8 +499,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
   
   krad_mixer_deactivate_portgroups (krad_mixer);
 
-  return 0;      
-
+  return 0;
 }
 
 void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_portgroup_t *krad_mixer_local_portgroup,
@@ -538,7 +525,7 @@ void krad_mixer_local_audio_samples_callback (int nframes, krad_mixer_local_port
 
     }
   }
-  
+
   return;
 }
 

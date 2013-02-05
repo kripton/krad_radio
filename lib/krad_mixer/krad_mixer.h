@@ -131,8 +131,6 @@ krad_mixer_t *krad_mixer_create (char *name);
 void krad_mixer_destroy (krad_mixer_t *krad_mixer);
 void krad_mixer_set_ipc (krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc);
 
-
-
 krad_mixer_portgroup_t *krad_mixer_portgroup_create (krad_mixer_t *krad_mixer, char *sysname, int direction, krad_mixer_output_t output_type,
                                                      int channels, float volume, krad_mixer_mixbus_t *mixbus, krad_mixer_portgroup_io_t io_type, void *io_ptr, krad_audio_api_t api);
 void krad_mixer_portgroup_destroy (krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup);
