@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     eq.cpp \
     tapetubewidget.cpp \
     portgroupslider.cpp \
-    filterwidget.cpp
+    filterwidget.cpp \
+    compositorcontrol.cpp
 
 HEADERS  += \
     kradstation.h \
@@ -42,7 +43,8 @@ HEADERS  += \
     eq.h \
     tapetubewidget.h \
     portgroupslider.h \
-    filterwidget.h
+    filterwidget.h \
+    compositorcontrol.h
 
 
 

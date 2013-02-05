@@ -2,6 +2,8 @@
 #define KRADSTATION_H
 
 #include <QObject>
+#include <QRect>
+
 extern "C" {
 #include "kr_client.h"
 #include "krad_radio_client.h"
@@ -23,6 +25,8 @@ signals:
   void volumeUpdate(kr_mixer_portgroup_control_rep_t *control_rep);
   void crossfadUpdated(kr_mixer_portgroup_control_rep_t *control_rep);
   void cpuTimeUpdated(int value);
+  void frameSizeInformation(QRect frameSize);
+  void frameRateInformation(int num, int denom);
 public slots:
   void handlePortgroupAdded(kr_mixer_portgroup_t *portgroup);
   void setVolume(QString portname, float value);
@@ -33,7 +37,6 @@ public slots:
   void addHiPassFilter(QString portname);
   void addLoPassFilter(QString portname);
   void setHiPassFilter(QString portname, QString control, float value);
-
   void setLoPassFilter(QString portname, QString control, float value);
   void removePassFilter(QString portname);
   void addEq(QString portname);
@@ -50,6 +53,7 @@ public slots:
   void addSprite(QString filename, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
   void setSprite(int spriteNum, int x, int y, int z, int tickrate, float scale, float opacity, float rotation);
   void kill();
+  void requestCompositorInfo();
 private:
   kr_client_t *client;
   QString sysname;

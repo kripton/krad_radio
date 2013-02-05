@@ -8,13 +8,9 @@
 #include <QPainter>
 #include <QApplication>
 #include <QGraphicsProxyWidget>
-#include "kradstation.h"
+#include <QBoxLayout>
 
 #define BORDER_RANGE 5
-
-//namespace Ui {
-//class ResizableFrame;
-//}
 
 class ResizableFrame : public QFrame
 {
@@ -37,22 +33,23 @@ private:
     QRect  dragStartGeometry;
     enum startPositions startPos;
     QLabel *opacityLabel;
+    QLabel *idLabel;
     double opacity;
     QGraphicsProxyWidget *proxy;
     QRect currentGeometry;
     double rotation;
+    QBoxLayout *layout;
 
 public slots:
     void updateGeometry(QRect geometry);
     void updateOpacity(float opacity);
     void updaterotation(float angle);
+    void setId(QString id);
 
 signals:
     void geometryChanged(QRect newGeometry);
     void opacityChanged(float newOpacity);
     void rotationChanged(float newAngle);
-private:
-    KradStation *kradStation;
 };
 
 #endif // RESIZABLEFRAME_H
