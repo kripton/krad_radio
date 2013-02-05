@@ -287,7 +287,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 		case EBML_ID_KRAD_RADIO_CMD_GET_SYSTEM_INFO:
 		
 			address.path.unit = KR_STATION;
-			address.path.subunit.zero = KR_UNIT;
+			address.path.subunit.station_subunit = KR_STATION_UNIT;
 			
       krad_ipc_server_response_start_with_address_and_type ( kr_ipc,
                                                              &address,

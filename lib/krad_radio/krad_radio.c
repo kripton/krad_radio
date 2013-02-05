@@ -204,12 +204,12 @@ void krad_radio_cpu_monitor_callback (krad_radio_t *krad_radio, uint32_t usage) 
   buffer = malloc (size);
 
   address.path.unit = KR_STATION;
-  address.path.subunit.mixer_subunit = KR_UNIT;
+  address.path.subunit.station_subunit = KR_CPU;
 
   krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
 
   krad_radio_address_to_ebml (krad_ebml, &message_loc, &address);
-  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_UNIT_INFO);
+  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_SUBUNIT_INFO);
   krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_PAYLOAD, &payload_loc);
   krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SYSTEM_CPU_USAGE, usage);
   krad_ebml_finish_element (krad_ebml, payload_loc);

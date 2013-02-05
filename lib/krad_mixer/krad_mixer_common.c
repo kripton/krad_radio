@@ -102,6 +102,16 @@ char *krad_mixer_channel_number_to_string (int channel) {
   }
 }
 
+char *portgroup_control_to_string (kr_mixer_portgroup_control_t portgroup_control) {
+  switch (portgroup_control) {
+    case KR_VOLUME:
+      return "volume";
+    case KR_CROSSFADE:
+      return "crossfade";
+  }
+  return "Unknown";
+}
+
 char *effect_control_to_string (kr_mixer_effect_control_t effect_control) {
 
   switch (effect_control) {

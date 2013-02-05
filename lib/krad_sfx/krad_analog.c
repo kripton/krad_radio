@@ -44,12 +44,27 @@ kr_analog_t *kr_analog_create (int sample_rate) {
   return kr_analog;
 }
 
+kr_analog_t *kr_analog_create2 (int sample_rate, krad_mixer_t *krad_mixer, char *portgroupname) {
+
+  kr_analog_t *kr_analog = calloc (1, sizeof(kr_analog_t));
+
+  kr_analog->krad_mixer = krad_mixer;
+  strncpy (kr_analog->portgroupname, portgroupname, sizeof(kr_analog->portgroupname));
+
+  kr_analog->sample_rate = sample_rate;
+
+  kr_analog->prev_drive = -1.0f;
+  kr_analog->prev_blend = -11.0f;
+
+  return kr_analog;
+}
+
 void kr_analog_destroy(kr_analog_t *kr_analog) {
   free (kr_analog);
 }
 
-void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int num_samples) {
-
+//void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int num_samples) {
+void kr_analog_process2 (kr_analog_t *kr_analog, float *input, float *output, int num_samples, int broadcast) {
   int s;
   
 	float drive;
@@ -78,10 +93,24 @@ void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int
 	float out;
 	
   if (kr_analog->krad_easing_blend.active) {
-    kr_analog->blend = krad_easing_process (&kr_analog->krad_easing_blend, kr_analog->blend); 
+    kr_analog->blend = krad_easing_process (&kr_analog->krad_easing_blend, kr_analog->blend);
+    
+    if (broadcast == 1) {
+      krad_mixer_broadcast_portgroup_effect_control (kr_analog->krad_mixer,
+                                                     kr_analog->portgroupname,
+                                                     3, 0, BLEND, kr_analog->blend);      
+    }
+    
   }
   if (kr_analog->krad_easing_drive.active) {
-    kr_analog->drive = krad_easing_process (&kr_analog->krad_easing_drive, kr_analog->drive); 
+    kr_analog->drive = krad_easing_process (&kr_analog->krad_easing_drive, kr_analog->drive);
+    
+    if (broadcast == 1) {
+      krad_mixer_broadcast_portgroup_effect_control (kr_analog->krad_mixer,
+                                                     kr_analog->portgroupname,
+                                                     3, 0, DRIVE, kr_analog->drive);      
+    }
+    
   }
 
   if (kr_analog->drive < KRAD_ANALOG_DRIVE_MIN) {

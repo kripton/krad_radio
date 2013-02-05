@@ -106,6 +106,7 @@ struct krad_effects_rep_St {
 
 char *krad_mixer_channel_number_to_string (int channel);
 char *effect_control_to_string (kr_mixer_effect_control_t effect_control);
+char *portgroup_control_to_string (kr_mixer_portgroup_control_t portgroup_control);
 
 void krad_mixer_portgroup_rep_to_ebml (krad_mixer_portgroup_rep_t *krad_mixer_portgroup_rep, krad_ebml_t *krad_ebml);
 

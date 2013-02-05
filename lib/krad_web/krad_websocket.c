@@ -199,8 +199,8 @@ void krad_websocket_remove_portgroup ( kr_ws_client_t *kr_ws_client, kr_mixer_po
   cJSON_AddStringToObject (msg, "cmd", "remove_portgroup");
   cJSON_AddStringToObject (msg, "portgroup_name", portgroup->sysname);
 }
-/*
-void krad_websocket_set_control ( kr_ws_client_t *kr_ws_client, kr_mixer_portgroup_control_rep_t *portgroup_control) {
+
+void krad_websocket_set_portgroup_control ( kr_ws_client_t *kr_ws_client, kr_address_t *address, float value) {
 
   cJSON *msg;  
   
@@ -209,11 +209,11 @@ void krad_websocket_set_control ( kr_ws_client_t *kr_ws_client, kr_mixer_portgro
   cJSON_AddStringToObject (msg, "com", "kradmixer");
   
   cJSON_AddStringToObject (msg, "cmd", "control_portgroup");
-  //cJSON_AddStringToObject (msg, "portgroup_name", portgroup_control->name);
-  //cJSON_AddStringToObject (msg, "control_name", portgroup_control->control);
-  cJSON_AddNumberToObject (msg, "value", portgroup_control->value);
+  cJSON_AddStringToObject (msg, "portgroup_name", address->id.name);
+  cJSON_AddStringToObject (msg, "control_name", portgroup_control_to_string(address->control.portgroup_control));
+  cJSON_AddNumberToObject (msg, "value", value);
 }
-*/
+
 void krad_websocket_set_mixer ( kr_ws_client_t *kr_ws_client, kr_mixer_t *mixer) {
 
   cJSON *msg;
@@ -270,6 +270,7 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
 
   kr_client_t *client;
   kr_response_t *response;
+  kr_address_t *address;
   kr_rep_t *rep;
   int i;
   int items;
@@ -290,7 +291,7 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
   if (response != NULL) {
     if (kr_response_is_list (response)) {
       items = kr_response_list_length (response);
-      printk ("Krad WebSocket: Response is a list with %d items.\n", items);
+      //printk ("Krad WebSocket: Response is a list with %d items.\n", items);
 
       for (i = 0; i < items; i++) {
         //if (kr_response_listitem_to_rep (response, i, &rep)) {
@@ -302,12 +303,21 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
       }
     }
     
+    kr_response_address (response, &address);
+    
+    if ((kr_response_get_event (response) == EBML_ID_KRAD_SUBUNIT_CONTROL) &&
+        (address->path.unit == KR_MIXER) && (address->path.subunit.mixer_subunit == KR_PORTGROUP)) {
+        if (kr_response_to_float (response, &real)) {
+          krad_websocket_set_portgroup_control (kr_ws_client, address, real);
+        }
+    }
+    
     if (kr_response_to_int (response, &integer)) {
-      printf ("Response Int: %d\n", integer);
+      //printk ("Response Int: %d\n", integer);
     }
     
     if (kr_response_to_float (response, &real)) {
-      printf ("Response Float: %f\n", real);
+      //printk ("Response Float: %f\n", real);
     }
 
     if (kr_response_to_rep (response, &rep)) {
@@ -317,7 +327,7 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
     
     kr_response_free (&response);
   } else {
-    printk ("Krad WebSocket: Krad API Handler.. I should have got a response :/");
+    //printk ("Krad WebSocket: Krad API Handler.. I should have got a response :/");
   }
   
   return 0;

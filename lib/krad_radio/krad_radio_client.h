@@ -110,6 +110,11 @@ typedef enum {
   KR_DECODER,
 } kr_transponder_subunit_t;
 
+typedef enum {
+  KR_STATION_UNIT = 1,
+  KR_CPU,
+} kr_station_subunit_t;
+
 /* Control Types */
 
 typedef enum {
@@ -153,6 +158,7 @@ typedef union {
   kr_mixer_subunit_t mixer_subunit;
   kr_compositor_subunit_t compositor_subunit;
   kr_transponder_subunit_t transponder_subunit;
+  kr_station_subunit_t station_subunit;
 } kr_subunit_t;
 
 typedef union {
@@ -218,6 +224,7 @@ struct kr_rep_St {
   //char *buffer;
 };
 
+uint32_t kr_response_get_event (kr_response_t *response);
 int kr_string_to_address (char *string, kr_address_t *addr);
 int kr_unit_control_set (kr_client_t *client, kr_unit_control_t *uc);
 int krad_radio_address_to_ebml (krad_ebml_t *krad_ebml, uint64_t *element_loc, kr_address_t *address);

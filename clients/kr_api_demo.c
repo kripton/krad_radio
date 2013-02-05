@@ -32,29 +32,19 @@ void my_mixer_print (kr_mixer_t *mixer, void *user_ptr) {
 					 mixer->sample_rate);
 }
 
-void my_rep_print (kr_rep_t *rep) {
+void my_print (kr_address_t *address, kr_rep_t *rep) {
 
   void *user_ptr;
   
   user_ptr = NULL;
 
-  switch ( rep->type ) {
-    case KR_MIXER:
-      my_mixer_print (rep->rep_ptr.actual, user_ptr);
-      return;
-    case KR_PORTGROUP:
-      my_portgroup_print (rep->rep_ptr.portgroup, user_ptr);
-      return;
-    case EBML_ID_KRAD_COMPOSITOR_INFO:
-      my_compositor_print (rep->rep_ptr.compositor, user_ptr);
-      return;
-    case EBML_ID_KRAD_RADIO_REMOTE_STATUS:
-      my_remote_print (rep->rep_ptr.actual, user_ptr);
-      return;
-    //case EBML_ID_KRAD_RADIO_TAG:
-    //  my_tag_print (rep->rep_ptr.tag, user_ptr);
-    //  return;
+  if ((address->path.unit == KR_MIXER) && (address->path.subunit.zero == KR_UNIT)) {
+    my_mixer_print (rep->rep_ptr.actual, user_ptr);
   }
+  if ((address->path.unit == KR_MIXER) && (address->path.subunit.mixer_subunit == KR_PORTGROUP)) {
+    my_portgroup_print (rep->rep_ptr.portgroup, user_ptr);
+  }
+
 }
 
 void handle_response (kr_client_t *client) {
@@ -107,28 +97,28 @@ void handle_response (kr_client_t *client) {
       /* Response sometimes can be converted to a string or int */
       
       length = kr_response_to_string (response, &string);
-      printf ("Response Length: %d\n", length);
+      printf ("Response String Length: %d\n", length);
       if (length > 0) {
-        printf ("Response String: %s\n", string);
+        printf ("%s\n", string);
         kr_response_free_string (&string);
       }
       
       if (kr_response_to_int (response, &integer)) {
-        printf ("Response Int: %d\n", integer);
+        printf ("Int: %d\n", integer);
       }
       
       if (kr_response_to_float (response, &real)) {
-        printf ("Response Float: %f\n", real);
+        printf ("Float: %f\n", real);
       }
       
       /* Response sometimes can be converted to a rep struct */
       
       if (kr_response_to_rep (response, &rep)) {
-        printf ("Got rep from response!\n");
-        my_rep_print (rep);
+        printf ("Got rep\n");
+        my_print (address, rep);
         kr_rep_free (&rep);
       } else {
-        printf ("No rep from response :/\n");
+        //printf ("No rep from response :/\n");
       }
 
       kr_response_free (&response);

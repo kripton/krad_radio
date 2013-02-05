@@ -415,12 +415,35 @@ int kr_radio_response_get_string_from_radio (unsigned char *ebml_frag, uint64_t 
   return pos; 
 }
 
-int kr_radio_response_to_string (kr_response_t *kr_response, char **string) {
+int kr_radio_response_get_string_from_cpu (unsigned char *ebml_frag, uint64_t item_size, char **string) {
 
-  switch ( kr_response->type ) {
-    case EBML_ID_KRAD_UNIT_INFO:
-      *string = kr_response_alloc_string (kr_response->size * 4);
-      return kr_radio_response_get_string_from_radio (kr_response->buffer, kr_response->size, string);
+	int ebml_pos;
+  int pos;
+	uint32_t ebml_id;
+	uint64_t ebml_data_size;
+
+  ebml_pos = 0;
+  pos = 0;
+
+  uint32_t usage;
+  
+  ebml_pos += krad_ebml_read_element_from_frag (ebml_frag + ebml_pos, &ebml_id, &ebml_data_size);
+  usage = krad_ebml_read_number_from_frag (ebml_frag + ebml_pos, ebml_data_size);
+  pos += sprintf (*string + pos, "System CPU Usage: %u%%\n", usage);  
+
+  
+  return pos; 
+}
+
+int kr_radio_response_to_string (kr_response_t *response, char **string) {
+
+  switch ( response->address.path.subunit.station_subunit ) {
+    case KR_STATION_UNIT:
+      *string = kr_response_alloc_string (response->size * 4);
+      return kr_radio_response_get_string_from_radio (response->buffer, response->size, string);
+    case KR_CPU:
+      *string = kr_response_alloc_string (response->size * 8);
+      return kr_radio_response_get_string_from_cpu (response->buffer, response->size, string);
   }
   
   return 0;  
@@ -643,23 +666,41 @@ int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in) {
   }
 
   kr_rep = calloc (1, sizeof(kr_rep_t));
-
+  *kr_rep_in = kr_rep;
+  
   switch ( response->address.path.unit ) {
     case KR_STATION:
       kr_rep->type = KR_STATION;
-      kr_ebml_to_radio_rep (response->buffer, &kr_rep->rep_ptr.radio);
+      switch ( response->address.path.subunit.station_subunit ) {
+        case KR_STATION_UNIT:
+          kr_ebml_to_radio_rep (response->buffer, &kr_rep->rep_ptr.radio);
+          return 1;
+        default:
+          break;
+      }
       break;
     case KR_MIXER:
-      switch ( response->address.path.subunit.zero ) {
-        case KR_UNIT:
-          kr_rep->type = KR_MIXER;
-          kr_ebml_to_mixer_rep (response->buffer, &kr_rep->rep_ptr.mixer);
+      if (response->type == EBML_ID_KRAD_SUBUNIT_LIST) {
+        break;
+      }
+      if ((response->address.path.subunit.mixer_subunit != KR_PORTGROUP) && 
+          (response->type == EBML_ID_KRAD_UNIT_INFO)) {
+        kr_rep->type = KR_MIXER;
+        kr_ebml_to_mixer_rep (response->buffer, &kr_rep->rep_ptr.mixer);
+        return 1;
+      }
+      switch ( response->address.path.subunit.mixer_subunit ) {
+        case KR_EFFECT:
+
           break;
         case KR_PORTGROUP:
           if (response->type == EBML_ID_KRAD_SUBUNIT_CREATED) {
             kr_rep->type = KR_PORTGROUP;
             kr_ebml_to_mixer_portgroup_rep (response->buffer, &kr_rep->rep_ptr.portgroup);
+            return 1;
           }
+          break;
+        default:
           break;
       }
       break;
@@ -669,9 +710,10 @@ int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in) {
       break;
   }
 
-  *kr_rep_in = kr_rep;
+  kr_rep_free (&kr_rep);
+  *kr_rep_in = NULL;
 
-  return 1;
+  return 0;
 }
 
 int kr_rep_free (kr_rep_t **kr_rep) {
@@ -731,10 +773,7 @@ int krad_radio_address_to_ebml (krad_ebml_t *krad_ebml, uint64_t *element_loc, k
       return 0;
     case KR_STATION:
       krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MSG, element_loc);
-      krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT, KR_UNIT);
-      if (address->path.subunit.mixer_subunit != KR_UNIT) {
-
-      }
+      krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_SUBUNIT, address->path.subunit.station_subunit);
       return 1;
   }
   
@@ -844,6 +883,10 @@ void kr_response_payload_print_raw_ebml (kr_response_t *response) {
     printf ("%02X", response->buffer[i]);
   }
   printf ("\nEnd EBML\n");
+}
+
+uint32_t kr_response_get_event (kr_response_t *response) {
+  return response->type;
 }
 
 void kr_client_response_get (kr_client_t *kr_client, kr_response_t **kr_response) {

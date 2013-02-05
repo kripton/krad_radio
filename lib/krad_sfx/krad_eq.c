@@ -38,6 +38,9 @@ void kr_eq_process2 (kr_eq_t *kr_eq, float *input, float *output, int num_sample
     if (kr_eq->band[b].krad_easing_hz.active) {
       kr_eq->band[b].hz = krad_easing_process (&kr_eq->band[b].krad_easing_hz, kr_eq->band[b].hz); 
       recompute = 1;
+      if (broadcast == 1) {
+        krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, HZ, kr_eq->band[b].hz);      
+      }
     }
     if (kr_eq->band[b].krad_easing_db.active) {
       kr_eq->band[b].db = krad_easing_process (&kr_eq->band[b].krad_easing_db, kr_eq->band[b].db); 
@@ -49,6 +52,9 @@ void kr_eq_process2 (kr_eq_t *kr_eq, float *input, float *output, int num_sample
     if (kr_eq->band[b].krad_easing_bandwidth.active) {
       kr_eq->band[b].bandwidth = krad_easing_process (&kr_eq->band[b].krad_easing_bandwidth, kr_eq->band[b].bandwidth); 
       recompute = 1;
+      if (broadcast == 1) {
+        krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, BANDWIDTH, kr_eq->band[b].bandwidth);      
+      }
     }
 
     if (recompute == 1) {

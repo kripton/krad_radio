@@ -65,14 +65,17 @@ void kr_effects_process (kr_effects_t *kr_effects, float **input, float **output
           case KRAD_NOFX:
             break;
           case KRAD_EQ:
+            //kr_eq_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
             kr_eq_process2 (kr_effects->effect[e].effect[c], input[c], output[c], num_samples, c == 0);
             break;
           case KRAD_LOWPASS:
           case KRAD_HIGHPASS:
-            kr_pass_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
+            //kr_pass_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
+            kr_pass_process2 (kr_effects->effect[e].effect[c], input[c], output[c], num_samples, c == 0);
             break;
           case KRAD_ANALOG:
-            kr_analog_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
+            //kr_analog_process (kr_effects->effect[e].effect[c], input[c], output[c], num_samples);
+            kr_analog_process2 (kr_effects->effect[e].effect[c], input[c], output[c], num_samples, c == 0);
             break;
         }
       }
@@ -127,13 +130,16 @@ void kr_effects_effect_add2 (kr_effects_t *kr_effects, kr_effect_type_t effect, 
             kr_effects->effect[e].effect[c] = kr_eq_create2 (kr_effects->sample_rate, krad_mixer, portgroupname);
             break;
          case KRAD_LOWPASS:
-           kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate, KRAD_LOWPASS);
+           //kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate, KRAD_LOWPASS);
+           kr_effects->effect[e].effect[c] = kr_pass_create2 (kr_effects->sample_rate, KRAD_LOWPASS, krad_mixer, portgroupname);
            break;
          case KRAD_HIGHPASS:
-           kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate, KRAD_HIGHPASS);
+           //kr_effects->effect[e].effect[c] = kr_pass_create (kr_effects->sample_rate, KRAD_HIGHPASS);
+           kr_effects->effect[e].effect[c] = kr_pass_create2 (kr_effects->sample_rate, KRAD_HIGHPASS, krad_mixer, portgroupname);
            break;
          case KRAD_ANALOG:
-           kr_effects->effect[e].effect[c] = kr_analog_create (kr_effects->sample_rate);
+           //kr_effects->effect[e].effect[c] = kr_analog_create (kr_effects->sample_rate);
+           kr_effects->effect[e].effect[c] = kr_analog_create2 (kr_effects->sample_rate, krad_mixer, portgroupname);
            break;
         }
       }

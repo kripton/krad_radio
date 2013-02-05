@@ -12,6 +12,8 @@
 
 #include "krad_sfx_common.h"
 
+#include "krad_mixer.h"
+
 #ifndef KRAD_ANALOG_H
 #define KRAD_ANALOG_H
 
@@ -53,15 +55,19 @@ typedef struct {
 	float srct;
 	float sq;
 	float pwrq;
+	
+  krad_mixer_t *krad_mixer;
+  char portgroupname[64];
 
 } kr_analog_t;
 
-
+kr_analog_t *kr_analog_create2 (int sample_rate, krad_mixer_t *krad_mixer, char *portgroupname);
 kr_analog_t *kr_analog_create (int sample_rate);
 void kr_analog_destroy (kr_analog_t *kr_analog);
 
 void kr_analog_set_sample_rate (kr_analog_t *kr_analog, int sample_rate);
-void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int num_samples);
+//void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int num_samples);
+void kr_analog_process2 (kr_analog_t *kr_analog, float *input, float *output, int num_samples, int broadcast);
 
 /* Controls */
 void kr_analog_set_drive (kr_analog_t *kr_analog, float drive, int duration, krad_ease_t ease);
