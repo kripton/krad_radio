@@ -56,7 +56,7 @@ struct krad_pass_St {
   
   krad_mixer_t *krad_mixer;
   char portgroupname[64];
-  
+  kr_address_t address;
 };
 
 kr_pass_t *kr_pass_create2 (int sample_rate, kr_effect_type_t type, krad_mixer_t *krad_mixer, char *portgroupname);

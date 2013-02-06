@@ -42,7 +42,7 @@ void kr_pass_process2 (kr_pass_t *kr_pass, float *input, float *output, int num_
     recompute = 1;
   }
 
-
+/*
   int effect_num;
   
   if (kr_pass->type == KRAD_LOWPASS) {
@@ -50,15 +50,16 @@ void kr_pass_process2 (kr_pass_t *kr_pass, float *input, float *output, int num_
   } else {
     effect_num = 2;
   }
-
+*/
   if (kr_pass->krad_easing_bandwidth.active) {
     kr_pass->bandwidth = krad_easing_process (&kr_pass->krad_easing_bandwidth, kr_pass->bandwidth, &ptr); 
     recompute = 1;
     
     if (broadcast == 1) {
-      krad_mixer_broadcast_portgroup_effect_control (kr_pass->krad_mixer,
-                                                     kr_pass->portgroupname,
-                                                     effect_num, 0, BANDWIDTH, kr_pass->bandwidth);      
+      krad_radio_broadcast_subunit_control (kr_pass->krad_mixer->broadcaster, &kr_pass->address, BANDWIDTH, kr_pass->bandwidth, NULL);
+      //krad_mixer_broadcast_portgroup_effect_control (kr_pass->krad_mixer,
+      //                                               kr_pass->portgroupname,
+      //                                               effect_num, 0, BANDWIDTH, kr_pass->bandwidth);    
     }
     
   }
@@ -68,9 +69,10 @@ void kr_pass_process2 (kr_pass_t *kr_pass, float *input, float *output, int num_
     recompute = 1;
     
     if (broadcast == 1) {
-      krad_mixer_broadcast_portgroup_effect_control (kr_pass->krad_mixer,
-                                                     kr_pass->portgroupname,
-                                                     effect_num, 0, HZ, kr_pass->hz);      
+      krad_radio_broadcast_subunit_control (kr_pass->krad_mixer->broadcaster, &kr_pass->address, HZ, kr_pass->hz, NULL);
+      //krad_mixer_broadcast_portgroup_effect_control (kr_pass->krad_mixer,
+      //                                               kr_pass->portgroupname,
+      //                                               effect_num, 0, HZ, kr_pass->hz);      
     }
     
   }
@@ -114,6 +116,17 @@ kr_pass_t *kr_pass_create2 (int sample_rate, kr_effect_type_t type, krad_mixer_t
   kr_pass->krad_mixer = krad_mixer;
   strncpy (kr_pass->portgroupname, portgroupname, sizeof(kr_pass->portgroupname));
 
+  kr_pass->address.path.unit = KR_MIXER;
+  kr_pass->address.path.subunit.mixer_subunit = KR_EFFECT;
+  strncpy (kr_pass->address.id.name, portgroupname, sizeof(kr_pass->portgroupname));
+
+  if (kr_pass->type == KRAD_LOWPASS) {
+    kr_pass->address.sub_id = 1;
+  }
+  if (kr_pass->type == KRAD_HIGHPASS) {
+    kr_pass->address.sub_id = 2;
+  }
+  kr_pass->address.sub_id2 = 0;
 
   kr_pass->new_sample_rate = sample_rate;
 

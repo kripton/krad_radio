@@ -441,9 +441,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
       if (crossfade_group->fade_easing.active) {
         portgroup_set_crossfade (crossfade_group->portgroup[0], krad_easing_process (&crossfade_group->fade_easing, crossfade_group->fade, &client));
         if (portgroup->direction == INPUT) {
-          krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
-                                                   crossfade_group->portgroup[0]->sysname,
-                                                   "fade",
+          krad_radio_broadcast_subunit_control ( krad_mixer->broadcaster, &portgroup->address, KR_CROSSFADE,
                                                    crossfade_group->fade, client );
         }
       }
@@ -455,9 +453,7 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
     if ((portgroup != NULL) && (portgroup->active) && (portgroup->volume_easing.active)) {
       portgroup_set_volume (portgroup, krad_easing_process (&portgroup->volume_easing, portgroup->volume[0], &client));
       if (portgroup->direction == INPUT) {
-        krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
-                                                 portgroup->sysname,
-                                                 "volume",
+        krad_radio_broadcast_subunit_control ( krad_mixer->broadcaster, &portgroup->address, KR_VOLUME, 
                                                  portgroup->volume[0], client );
       }
     }
