@@ -34,6 +34,59 @@ int krad_radio_broadcast_subunit_destroyed (krad_ipc_broadcaster_t *broadcaster,
   return -1;
 }
 
+int krad_radio_broadcast_subunit_created ( krad_mixer_t *krad_mixer, kr_address_t *address, void *subunit_in ) {
+
+  size_t size;
+  unsigned char *buffer;
+  krad_broadcast_msg_t *broadcast_msg;
+  krad_subunit_ptr_t subunit;
+  kr_rep_ptr_t rep;
+
+  size = 2048;
+  buffer = malloc (size);
+
+  uint64_t message_loc;
+  uint64_t payload_loc;
+  krad_ebml_t *krad_ebml;
+
+  payload_loc = 0;
+
+  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
+  
+  krad_radio_address_to_ebml (krad_ebml, &message_loc, address);
+  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_SUBUNIT_CREATED);
+  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_PAYLOAD, &payload_loc);
+  
+  
+  if ((address->path.unit == KR_MIXER) && (address->path.subunit.mixer_subunit == KR_PORTGROUP)) {
+  
+    subunit.portgroup = subunit_in;
+     
+    rep.portgroup = krad_mixer_portgroup_to_rep (subunit.portgroup, NULL);
+    krad_mixer_portgroup_rep_to_ebml (rep.portgroup, krad_ebml);
+    kr_portgroup_rep_destroy (rep.portgroup);
+  }
+  
+  
+  
+  krad_ebml_finish_element (krad_ebml, payload_loc);
+  krad_ebml_finish_element (krad_ebml, message_loc);
+
+  size = krad_ebml->io_adapter.write_buffer_pos;
+  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
+  krad_ebml_destroy (krad_ebml);
+
+  broadcast_msg = krad_broadcast_msg_create (buffer, size);
+
+  free (buffer);
+
+  if (broadcast_msg != NULL) {
+    return krad_ipc_server_broadcaster_broadcast ( krad_mixer->broadcaster, &broadcast_msg );
+  }
+
+  return -1;
+}
+
 int krad_radio_broadcast_subunit_control (krad_ipc_broadcaster_t *broadcaster, kr_address_t *address_in, int control, float value, void *client) {
 
   size_t size;

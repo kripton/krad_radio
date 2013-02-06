@@ -1,7 +1,7 @@
 #include "krad_mixer_interface.h"
 
-static kr_portgroup_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *portgroup,
-                                                    kr_portgroup_t *portgroup_rep) {
+kr_portgroup_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *portgroup,
+                                             kr_portgroup_t *portgroup_rep) {
   int i;
   
   if (portgroup_rep == NULL) {
@@ -61,48 +61,6 @@ static kr_portgroup_t *krad_mixer_portgroup_to_rep (krad_mixer_portgroup_t *port
   }
   
   return portgroup_rep;
-}
-
-static int krad_mixer_broadcast_portgroup_created ( krad_mixer_t *krad_mixer, krad_mixer_portgroup_t *portgroup ) {
-
-  size_t size;
-  unsigned char *buffer;
-  krad_broadcast_msg_t *broadcast_msg;
-  krad_mixer_portgroup_rep_t *portgroup_rep;
-
-  size = 2048;
-  buffer = malloc (size);
-
-  uint64_t message_loc;
-  uint64_t payload_loc;
-  krad_ebml_t *krad_ebml;
-
-  payload_loc = 0;
-
-  krad_ebml = krad_ebml_open_buffer (KRAD_EBML_IO_WRITEONLY);
-  
-  krad_radio_address_to_ebml (krad_ebml, &message_loc, &portgroup->address);
-  krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_TYPE, EBML_ID_KRAD_SUBUNIT_CREATED);
-  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_RADIO_MESSAGE_PAYLOAD, &payload_loc);
-  portgroup_rep = krad_mixer_portgroup_to_rep (portgroup, NULL);
-  krad_mixer_portgroup_rep_to_ebml (portgroup_rep, krad_ebml);
-  kr_portgroup_rep_destroy (portgroup_rep);
-  krad_ebml_finish_element (krad_ebml, payload_loc);
-  krad_ebml_finish_element (krad_ebml, message_loc);
-
-  size = krad_ebml->io_adapter.write_buffer_pos;
-  memcpy (buffer, krad_ebml->io_adapter.write_buffer, size);
-  krad_ebml_destroy (krad_ebml);
-
-  broadcast_msg = krad_broadcast_msg_create (buffer, size);
-
-  free (buffer);
-
-  if (broadcast_msg != NULL) {
-    return krad_ipc_server_broadcaster_broadcast ( krad_mixer->broadcaster, &broadcast_msg );
-  }
-
-  return -1;
 }
 
 int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc ) {
@@ -299,8 +257,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
       if (portgroup != NULL) {
         if (portgroup->direction == INPUT) {
-          krad_mixer_broadcast_portgroup_created ( krad_mixer, portgroup );
-          //krad_radio_broadcast_subunit_created (krad_mixer->broadcaster, &address, rep);
+          krad_radio_broadcast_subunit_created ( krad_mixer, &portgroup->address, (void *)portgroup);
         }
       }
 
