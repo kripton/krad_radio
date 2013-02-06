@@ -188,7 +188,7 @@ void krad_websocket_add_portgroup ( kr_ws_client_t *kr_ws_client, kr_mixer_portg
   //kr_tags (kr_ws_client->kr_client, portgroup->sysname);
 }
 
-void krad_websocket_remove_portgroup ( kr_ws_client_t *kr_ws_client, kr_mixer_portgroup_t *portgroup ) {
+void krad_websocket_remove_portgroup ( kr_ws_client_t *kr_ws_client, kr_address_t *address ) {
 
   cJSON *msg;
   
@@ -197,7 +197,7 @@ void krad_websocket_remove_portgroup ( kr_ws_client_t *kr_ws_client, kr_mixer_po
   cJSON_AddStringToObject (msg, "com", "kradmixer");
   
   cJSON_AddStringToObject (msg, "cmd", "remove_portgroup");
-  cJSON_AddStringToObject (msg, "portgroup_name", portgroup->sysname);
+  cJSON_AddStringToObject (msg, "portgroup_name", address->id.name);
 }
 
 void krad_websocket_set_portgroup_control ( kr_ws_client_t *kr_ws_client, kr_address_t *address, float value) {
@@ -272,10 +272,8 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
   kr_response_t *response;
   kr_address_t *address;
   kr_rep_t *rep;
-  int integer;
   float real;
   
-  integer = 0;
   real = 0.0f;
   response = NULL;
   rep = NULL;
@@ -293,14 +291,15 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
         if (kr_response_to_float (response, &real)) {
           krad_websocket_set_portgroup_control (kr_ws_client, address, real);
         }
+        kr_response_free (&response);
+        return 0;
     }
-    
-    if (kr_response_to_int (response, &integer)) {
-      //printk ("Response Int: %d\n", integer);
-    }
-    
-    if (kr_response_to_float (response, &real)) {
-      //printk ("Response Float: %f\n", real);
+
+    if ((kr_response_get_event (response) == EBML_ID_KRAD_RADIO_UNIT_DESTROYED) &&
+        (address->path.unit == KR_MIXER) && (address->path.subunit.mixer_subunit == KR_PORTGROUP)) {
+        krad_websocket_remove_portgroup (kr_ws_client, address);
+        kr_response_free (&response);
+        return 0;
     }
 
     if (kr_response_to_rep (response, &rep)) {
