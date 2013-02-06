@@ -41,6 +41,9 @@ void my_print (kr_address_t *address, kr_rep_t *rep) {
   if ((address->path.unit == KR_MIXER) && (address->path.subunit.zero == KR_UNIT)) {
     my_mixer_print (rep->rep_ptr.actual, user_ptr);
   }
+  if ((address->path.unit == KR_COMPOSITOR) && (address->path.subunit.zero == KR_UNIT)) {
+    my_compositor_print (rep->rep_ptr.actual, user_ptr);
+  }
   if ((address->path.unit == KR_MIXER) && (address->path.subunit.mixer_subunit == KR_PORTGROUP)) {
     my_portgroup_print (rep->rep_ptr.portgroup, user_ptr);
   }
@@ -147,8 +150,8 @@ void one_shot_demo (kr_client_t *client) {
   //kr_remote_list (client);
   //get_delivery (client);
 
-  //kr_compositor_info (client);
-  //get_delivery (client);
+  kr_compositor_info (client);
+  get_delivery (client);
   
   kr_mixer_info (client);
   accept_some_deliveries (client);

@@ -117,10 +117,7 @@ void krad_compositor_vector_rep_reset (krad_vector_rep_t *krad_vector_rep);
 krad_vector_type_t krad_string_to_vector_type (char *string); 
 void krad_vector_type_to_string (krad_vector_type_t krad_vector_type, char *string);
 
-kr_compositor_t *kr_ebml_to_compositor_rep (unsigned char *ebml_frag,
-                                                            kr_compositor_t **compositor_repn);
-
-kr_compositor_t *krad_compositor_rep_create ();
-void krad_compositor_rep_destroy (kr_compositor_t *compositor);
+kr_compositor_t *kr_compositor_rep_create ();
+void kr_compositor_rep_destroy (kr_compositor_t *compositor);
 
 #endif // KRAD_COMPOSITOR_COMMON_H

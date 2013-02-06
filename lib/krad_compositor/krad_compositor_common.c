@@ -478,42 +478,12 @@ void krad_vector_type_to_string (krad_vector_type_t krad_vector_type, char *stri
   
 }
 
-kr_compositor_t *krad_compositor_rep_create () {
+kr_compositor_t *kr_compositor_rep_create () {
   kr_compositor_t *compositor = (kr_compositor_t *) calloc (1, sizeof (kr_compositor_t));
   return compositor;
 }
 
-void krad_compositor_rep_destroy (kr_compositor_t *compositor) {
+void kr_compositor_rep_destroy (kr_compositor_t *compositor) {
   free (compositor);
 }
 
-kr_compositor_t *kr_ebml_to_compositor_rep (unsigned char *ebml_frag,
-                                                            kr_compositor_t **compositor_rep) {
-
-	uint32_t ebml_id;
-	uint64_t ebml_data_size;
-  int pos;
-  kr_compositor_t *compositor;
-
-  pos = 0;
-  
-  if (*compositor_rep == NULL) {
-    *compositor_rep = krad_compositor_rep_create ();
-  }
-
-  compositor = *compositor_rep;
-
-  pos += krad_ebml_read_element_from_frag (ebml_frag + pos, &ebml_id, &ebml_data_size);
-  compositor->width = krad_ebml_read_number_from_frag_add (ebml_frag + pos, ebml_data_size, &pos);
-
-  pos += krad_ebml_read_element_from_frag (ebml_frag + pos, &ebml_id, &ebml_data_size);
-  compositor->height = krad_ebml_read_number_from_frag_add (ebml_frag + pos, ebml_data_size, &pos);
-  
-  pos += krad_ebml_read_element_from_frag (ebml_frag + pos, &ebml_id, &ebml_data_size);
-  compositor->fps_numerator = krad_ebml_read_number_from_frag_add (ebml_frag + pos, ebml_data_size, &pos);
-  
-  pos += krad_ebml_read_element_from_frag (ebml_frag + pos, &ebml_id, &ebml_data_size);
-  compositor->fps_denominator = krad_ebml_read_number_from_frag_add (ebml_frag + pos, ebml_data_size, &pos);
-
-	return compositor;
-}

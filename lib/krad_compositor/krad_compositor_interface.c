@@ -70,8 +70,8 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
   uint64_t ebml_data_size;
   uint64_t element;
   uint64_t response;
-  uint64_t subresponse;
-  
+  uint64_t info_loc;
+  uint64_t payload_loc;
   krad_sprite_rep_t *krad_sprite_rep;
   krad_text_rep_t *krad_text_rep;
   
@@ -168,9 +168,14 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
   
     case EBML_ID_KRAD_COMPOSITOR_CMD_INFO:
 
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
+      krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                             &krad_compositor->address,
+                                                             EBML_ID_KRAD_UNIT_INFO,
+                                                             &response);
 
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_INFO, &subresponse);
+      krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+
+      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_INFO, &info_loc);
 
       krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_WIDTH,
                        krad_compositor->width);
@@ -183,13 +188,12 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 
       krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR,
                        krad_compositor->frame_rate_denominator);
-
-      krad_ipc_server_response_finish ( krad_ipc, subresponse);
-      krad_ipc_server_response_finish ( krad_ipc, response);
-    
-      break;
-
-
+      krad_ipc_server_response_finish ( krad_ipc, info_loc);
+      
+      krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+      krad_ipc_server_response_finish ( krad_ipc, response );
+      
+      return 1;
 
     case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT:
       krad_compositor->snapshot++;

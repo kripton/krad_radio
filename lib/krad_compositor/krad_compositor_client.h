@@ -17,7 +17,7 @@
 typedef struct kr_videoport_St kr_videoport_t;
 
 int kr_compositor_response_to_string (kr_response_t *kr_response, char **string);
-
+void kr_ebml_to_compositor_rep (unsigned char *ebml_frag, kr_compositor_t **kr_compositor_rep_in);
 int kr_compositor_read_frame_rate ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep);
 int kr_compositor_read_frame_size ( kr_client_t *client, char *text, krad_compositor_rep_t **krad_compositor_rep);
 

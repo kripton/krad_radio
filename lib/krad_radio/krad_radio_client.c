@@ -663,6 +663,12 @@ int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in) {
       }
       break;
     case KR_COMPOSITOR:
+      if ((response->address.path.unit == KR_COMPOSITOR) && (response->address.path.subunit.zero == KR_UNIT) && 
+          (response->type == EBML_ID_KRAD_UNIT_INFO)) {
+        kr_rep->type = KR_COMPOSITOR;
+        kr_ebml_to_compositor_rep (response->buffer, &kr_rep->rep_ptr.compositor);
+        return 1;
+      }
       break;
     case KR_TRANSPONDER:
       break;
@@ -792,6 +798,8 @@ int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address) {
       break;
     case EBML_ID_KRAD_COMPOSITOR_MSG:
       address->path.unit = KR_COMPOSITOR;
+      krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+      address->path.subunit.zero = krad_ebml_read_number ( ebml, ebml_data_size );
       break;
     case EBML_ID_KRAD_TRANSPONDER_MSG:
       address->path.unit = KR_TRANSPONDER;

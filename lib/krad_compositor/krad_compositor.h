@@ -124,7 +124,7 @@ struct krad_compositor_St {
 	int active_texts;
 	
 	struct timespec start_time;
-	
+	kr_address_t address;
   krad_compositor_subunit_t *subunit_z_order[KC_MAX_SUBUNITS];
 
 };

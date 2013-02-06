@@ -1517,6 +1517,9 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
 	krad_compositor_set_frame_rate (krad_compositor, frame_rate_numerator, frame_rate_denominator);
 
+  krad_compositor->address.path.unit = KR_COMPOSITOR;
+  krad_compositor->address.path.subunit.mixer_subunit = KR_UNIT;
+
 	return krad_compositor;
 
 }

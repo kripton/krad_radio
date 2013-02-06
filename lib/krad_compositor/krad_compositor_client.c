@@ -511,36 +511,59 @@ void kr_compositor_set_port_mode (kr_client_t *client, int number, uint32_t x, u
   krad_ebml_write_sync (client->krad_ebml);
 }
 
-int kr_compositor_response_to_string (kr_response_t *kr_response, char **string) {
+void kr_ebml_to_compositor_rep (unsigned char *ebml_frag, kr_compositor_t **kr_compositor_rep_in) {
 
-  int pos;
-  int rpos;
   uint32_t ebml_id;
-  uint64_t ebml_data_size;
+	uint64_t ebml_data_size;
+  kr_compositor_t *kr_compositor_rep;
+  int item_pos;
+
+  item_pos = 0;
+
+  if (*kr_compositor_rep_in == NULL) {
+    *kr_compositor_rep_in = kr_compositor_rep_create ();
+  }
+  
+  kr_compositor_rep = *kr_compositor_rep_in;
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->width = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->height = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->fps_numerator = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->fps_denominator = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+}
+
+int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag, char **string) {
+
+	int pos;
+  kr_compositor_t *kr_compositor;
 
   pos = 0;
-  rpos = 0;
+  kr_compositor = NULL;
+
+  kr_ebml_to_compositor_rep (ebml_frag, &kr_compositor);
+  pos += sprintf (*string + pos, "Resolution: %ux%u\n", kr_compositor->width, kr_compositor->width);
+  pos += sprintf (*string + pos, "Frame Rate: %u / %u\n", kr_compositor->fps_numerator, kr_compositor->fps_denominator);
+
+  kr_compositor_rep_destroy (kr_compositor);
   
-  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
+  return pos; 
+}
 
-  switch ( ebml_id ) {
-    case EBML_ID_KRAD_COMPOSITOR_INFO:
-      *string = kr_response_alloc_string (ebml_data_size * 4 + 82);
-      rpos += sprintf (*string + rpos, "Compositor Resolution: ");
+int kr_compositor_response_to_string (kr_response_t *kr_response, char **string) {
 
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      rpos += sprintf (*string + rpos, "%"PRIu64" x ", krad_ebml_read_number_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
-
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      rpos += sprintf (*string + rpos, "%"PRIu64" Frame Rate: ", krad_ebml_read_number_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
-
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      rpos += sprintf (*string + rpos, "%"PRIu64" / ", krad_ebml_read_number_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
-
-      pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-      rpos += sprintf (*string + rpos, "%"PRIu64"", krad_ebml_read_number_from_frag_add (kr_response->buffer + pos, ebml_data_size, &pos));
-
-      return rpos;
+  switch ( kr_response->type ) {
+    case EBML_ID_KRAD_UNIT_INFO:
+      *string = kr_response_alloc_string (kr_response->size * 4);
+      return kr_compositor_response_get_string_from_compositor (kr_response->buffer, string);
   }
   
   return 0;
