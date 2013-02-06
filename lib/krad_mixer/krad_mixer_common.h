@@ -95,6 +95,10 @@ struct krad_mixer_portgroup_rep_St {
 
 struct krad_mixer_rep_St {
   uint32_t sample_rate;
+  uint32_t inputs;
+  uint32_t outputs;
+  uint32_t buses;    
+  char time_source[32];
 //  uint64_t frames;
 //  uint64_t timecode;
 };

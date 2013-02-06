@@ -454,6 +454,24 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       return 1;
   
     case EBML_ID_KRAD_MIXER_CMD_GET_INFO:
+    
+      numbers[0] = 0;
+      numbers[1] = 0;
+      numbers[2] = 0;
+      for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
+        portgroup = krad_mixer->portgroup[p];
+        if ((portgroup != NULL) && (portgroup->active == 1)) {
+          if (portgroup->direction == INPUT) {
+            numbers[0]++;
+          }
+          if (portgroup->direction == OUTPUT) {
+            numbers[1]++;
+          }
+          if (portgroup->direction == MIX) {
+            numbers[2]++;
+          }
+        }
+      }
 
       krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
                                                              &krad_mixer->address,
@@ -465,6 +483,17 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_MIXER, &info_loc);
       krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_SAMPLE_RATE,
                        krad_mixer_get_sample_rate (krad_mixer));
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_COUNT,
+                                       numbers[0]);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_COUNT,
+                                       numbers[1]);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_MIXER_PORTGROUP_COUNT,
+                                       numbers[2]);
+      if (krad_mixer->pusher == JACK) {
+        krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_MIXER_TIME_SOURCE, "Jack");
+      } else {
+        krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_MIXER_TIME_SOURCE, "Internal Chronometer");
+      }
       krad_ipc_server_response_finish ( krad_ipc, info_loc);
       
       krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
