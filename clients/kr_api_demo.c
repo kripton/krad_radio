@@ -47,9 +47,9 @@ void my_print (kr_address_t *address, kr_rep_t *rep) {
 
 }
 
-void handle_response (kr_client_t *client) {
+void get_delivery (kr_client_t *client) {
 
-  kr_response_t *response;
+  kr_crate_t *crate;
   kr_address_t *address;
   kr_rep_t *rep;
   char *string;
@@ -57,75 +57,51 @@ void handle_response (kr_client_t *client) {
   int length;
   int integer;
   float real;
-  int i;
-  int items;
 
-  items = 0;
-  i = 0;
   integer = 0;
   real = 0.0f;
   string = NULL;
-  response = NULL;
+  crate = NULL;
   rep = NULL;
   wait_time_ms = 250;
 
-  if (kr_poll (client, wait_time_ms)) {
-    printf ("----- Handle Response Start: \n\n");
-    kr_client_response_get (client, &response);
-    if (response != NULL) {
-      kr_response_address (response, &address);
+  if (kr_delivery_wait (client, wait_time_ms)) {
+    printf ("----- Get Delivery Start: \n\n");
+    kr_delivery_get (client, &crate);
+    if (crate != NULL) {
+      kr_address_get (crate, &address);
       kr_address_debug_print (address); 
     
-      /* Response sometimes is a list */
-    
-      if (kr_response_is_list (response)) {
-        items = kr_response_list_length (response);
-        printf ("Response is a list with %d items.\n", items);
-        
-        for (i = 0; i < items; i++) {
-          //if (kr_response_listitem_to_rep (response, i, &rep)) {
-          //  if (rep != NULL) {
-          //    my_rep_print (rep);
-          //    kr_rep_free (&rep);
-          //  }
-          //} else {
-          //  printf ("Did not get list item %d rep\n", i);
-          //}
-         }
-       }
-            
-      /* Response sometimes can be converted to a string or int */
+      /* Crate sometimes can be converted to a string or int */
       
-      length = kr_response_to_string (response, &string);
-      printf ("Response String Length: %d\n", length);
+      length = kr_uncrate_string (crate, &string);
+      printf ("String Length: %d\n", length);
       if (length > 0) {
         printf ("%s\n", string);
-        kr_response_free_string (&string);
+        kr_string_recycle (&string);
       }
       
-      if (kr_response_to_int (response, &integer)) {
+      if (kr_uncrate_int (crate, &integer)) {
         printf ("Int: %d\n", integer);
       }
       
-      if (kr_response_to_float (response, &real)) {
+      if (kr_uncrate_float (crate, &real)) {
         printf ("Float: %f\n", real);
       }
       
-      /* Response sometimes can be converted to a rep struct */
+      /* Crate sometimes has a rep struct */
       
-      if (kr_response_to_rep (response, &rep)) {
+      if (kr_uncrate (crate, &rep)) {
         printf ("Got rep\n");
         my_print (address, rep);
         kr_rep_free (&rep);
-      } else {
-        //printf ("No rep from response :/\n");
       }
 
-      kr_response_free (&response);
-      printf ("----- Handle Response End\n\n\n\n\n");
+      kr_crate_recycle (&crate);
+      printf ("----- Get Delivery End\n\n\n\n\n");
     }
   } else {
-    printf ("No response after waiting %dms\n", wait_time_ms);
+    printf ("No delivery after waiting %dms\n", wait_time_ms);
   }
 }
 
@@ -145,9 +121,9 @@ void wait_for_broadcasts (kr_client_t *client) {
           max, timeout_ms);
   
   for (b = 0; b < max; b++) {
-    ret = kr_poll (client, timeout_ms);
+    ret = kr_wait (client, timeout_ms);
     if (ret > 0) {
-      handle_response (client);
+      get_delivery (client);
     } else {
       printf (".");
       fflush (stdout);
@@ -158,22 +134,22 @@ void wait_for_broadcasts (kr_client_t *client) {
 void kr_api_test (kr_client_t *client) {
 
   kr_system_info (client);
-  handle_response (client);
+  get_delivery (client);
 
   //kr_remote_list (client);
-  //handle_response (client);
+  //get_delivery (client);
 
   //kr_compositor_info (client);
-  //handle_response (client);
+  //get_delivery (client);
   
   kr_mixer_info (client);
-  handle_response (client);
+  get_delivery (client);
 
   kr_mixer_portgroups_list (client);
-  handle_response (client);
+  get_delivery (client);
   
   printf ("Subscribing to all broadcasts\n");
-  kr_broadcast_subscribe (client, ALL_BROADCASTS);
+  kr_subscribe (client, ALL_BROADCASTS);
   printf ("Subscribed to all broadcasts\n");
 
   wait_for_broadcasts (client);

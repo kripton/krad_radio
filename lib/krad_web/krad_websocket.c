@@ -272,15 +272,11 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
   kr_response_t *response;
   kr_address_t *address;
   kr_rep_t *rep;
-  int i;
-  int items;
   int integer;
   float real;
   
   integer = 0;
   real = 0.0f;
-  items = 0;
-  i = 0;
   response = NULL;
   rep = NULL;
 
@@ -289,20 +285,7 @@ static int krad_api_handler (kr_ws_client_t *kr_ws_client) {
   kr_client_response_get (client, &response);
 
   if (response != NULL) {
-    if (kr_response_is_list (response)) {
-      items = kr_response_list_length (response);
-      //printk ("Krad WebSocket: Response is a list with %d items.\n", items);
 
-      for (i = 0; i < items; i++) {
-        //if (kr_response_listitem_to_rep (response, i, &rep)) {
-        //  rep_to_json (kr_ws_client, rep);
-        //  kr_rep_free (&rep);
-        //} else {
-        //  //printk ("Did not get item %d\n", i);
-        //}
-      }
-    }
-    
     kr_response_address (response, &address);
     
     if ((kr_response_get_event (response) == EBML_ID_KRAD_SUBUNIT_CONTROL) &&
@@ -444,11 +427,11 @@ static int callback_kr_client (struct libwebsocket_context *this,
       kr_ws_client->hello_sent = 0;      
       kr_mixer_info (kr_ws_client->kr_client);
       //kr_compositor_info (kr_ws_client->kr_client);
-      //kr_mixer_portgroups_list (kr_ws_client->kr_client);
+      kr_mixer_portgroups_list (kr_ws_client->kr_client);
       //kr_transponder_decklink_list (kr_ws_client->kr_client);
       //kr_transponder_list (kr_ws_client->kr_client);
       //kr_tags (kr_ws_client->kr_client, NULL);
-      kr_broadcast_subscribe (kr_ws_client->kr_client, EBML_ID_KRAD_RADIO_GLOBAL_BROADCAST);
+      kr_subscribe_all (kr_ws_client->kr_client);
       add_poll_fd (kr_client_get_fd (kr_ws_client->kr_client), POLLIN, KRAD_IPC, kr_ws_client, NULL);
       break;
 

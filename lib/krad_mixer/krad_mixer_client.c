@@ -784,9 +784,6 @@ int kr_mixer_response_to_string (kr_response_t *kr_response, char **string) {
     case EBML_ID_KRAD_SUBUNIT_INFO:
       *string = kr_response_alloc_string (kr_response->size * 4);
       return kr_mixer_response_get_string_from_portgroup (kr_response->buffer, kr_response->size, string);
-    case EBML_ID_KRAD_SUBUNIT_LIST:
-      *string = kr_response_alloc_string (kr_response->size * 4);
-      return kr_response_get_string_from_list (kr_response, string);
     case EBML_ID_KRAD_SUBUNIT_CREATED:
       *string = kr_response_alloc_string (kr_response->size * 4);
       return kr_mixer_response_get_string_from_portgroup (kr_response->buffer, kr_response->size, string);

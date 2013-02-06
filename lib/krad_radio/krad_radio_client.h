@@ -63,7 +63,7 @@ typedef struct kr_client_St kr_client_t;
 typedef struct kr_shm_St kr_shm_t;
 
 typedef struct kr_response_St kr_response_t;
-
+typedef struct kr_response_St kr_crate_t;
 
 typedef struct kr_unit_path_St kr_unit_path_t;
 typedef struct kr_unit_control_St kr_unit_control_t;
@@ -259,7 +259,7 @@ int kr_client_destroy (kr_client_t **client);
  * @param kr_client handle of the IPC-connection to the station
  * @return 1 if local, 0 otherwise
  */
-int kr_client_local (kr_client_t *kr_client);
+int kr_client_local (kr_client_t *client);
 
 
 int kr_client_get_fd (kr_client_t *client);
@@ -270,7 +270,10 @@ int kr_client_get_fd (kr_client_t *client);
  * @param broadcast_id type of the broadcast messages
  * @see kr_poll
  */
-void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
+void kr_broadcast_subscribe (kr_client_t *client, uint32_t broadcast_id);
+
+void kr_subscribe_all (kr_client_t *client);
+
 
 /**
  * @brief check for new broadcast messages after having subscribed to them
@@ -280,52 +283,60 @@ void kr_broadcast_subscribe (kr_client_t *kr_client, uint32_t broadcast_id);
  * @see kr_broadcast_subscribe
  */
  
-int kr_response_get_string_from_list (kr_response_t *response, char **string);
- 
-int kr_poll (kr_client_t *kr_client, uint32_t timeout_ms);
+int kr_poll (kr_client_t *client, uint32_t timeout_ms);
 int kr_ebml_to_remote_status_rep (unsigned char *ebml_frag, kr_remote_t *remote);
 void kr_response_free (kr_response_t **kr_response);
 int kr_response_to_string (kr_response_t *kr_response, char **string);
 int kr_response_to_int (kr_response_t *response, int *number);
 int kr_response_to_float (kr_response_t *response, float *number);
-//int kr_response_get_string_from_list (uint32_t list_type, unsigned char *ebml_frag, uint64_t list_size, char **string);
 char *kr_response_alloc_string (int length);
 void kr_response_free_string (char **string);
 int kr_response_get_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char **string);
 int kr_rep_free (kr_rep_t **);
-
-int kr_response_listitem_to_rep (kr_response_t *kr_response, int item_num, kr_rep_t **kr_rep);
-
 int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in);
-
 void kr_response_address (kr_response_t *response, kr_address_t **address);
-int kr_response_is_list (kr_response_t *kr_response);
-int kr_response_list_length (kr_response_t *kr_response);
-
 void kr_address_debug_print (kr_address_t *addr);
-
 int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address);
 inline int krad_message_type_has_payload (uint32_t type);
 inline int krad_read_message_type_from_ebml (krad_ebml_t *ebml, uint32_t *message_type);
-
-//kr_unit_t kr_response_unit (kr_response_t *kr_response);
 uint32_t kr_response_size (kr_response_t *kr_response);
-
-void kr_client_response_wait_print (kr_client_t *kr_client);
-
+void kr_client_response_wait_print (kr_client_t *client);
 int kr_response_read_into_string (unsigned char *ebml_frag, uint64_t ebml_data_size, char *string);
 
 /**
  * @brief get a response
  * @param kr_client handle of the IPC-connection to the station
  */
-void kr_client_response_get (kr_client_t *kr_client, kr_response_t **kr_response);
+void kr_client_response_get (kr_client_t *client, kr_response_t **kr_response);
+
+#define kr_delivery_get kr_client_response_get
+#define kr_delivery_wait kr_poll
+#define kr_wait kr_poll
+#define kr_crate_address_get kr_response_address
+#define kr_address_get kr_response_address
+#define kr_crate_to_string kr_response_to_string
+#define kr_uncrate_string kr_response_to_string
+#define kr_uncrate_to_string kr_response_to_string
+
+#define kr_uncrate_int kr_response_to_int
+#define kr_uncrate_float kr_response_to_float
+#define kr_uncrate_rep kr_response_to_rep
+#define kr_uncrate kr_response_to_rep
+
+#define kr_string_release kr_response_free_string
+#define kr_string_recycle kr_response_free_string
+#define kr_string_goodbye kr_response_free_string
+
+#define kr_crate_recycle kr_response_free
+#define kr_crate_go_away kr_response_free
+
+#define kr_subscribe kr_broadcast_subscribe
 
 /**
  * @brief waits for a response
  * @param kr_client handle of the IPC-connection to the station
  */
-void kr_client_response_wait (kr_client_t *kr_client, kr_response_t **kr_response);
+void kr_client_response_wait (kr_client_t *client, kr_response_t **kr_response);
 
 
 /** @} */
