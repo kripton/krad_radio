@@ -90,7 +90,6 @@ void get_delivery (kr_client_t *client) {
     /* Crate has a rep struct */
     
     if (kr_uncrate (crate, &rep)) {
-      printf ("Rep\n");
       my_print (address, rep);
       kr_rep_free (&rep);
     }
@@ -130,7 +129,12 @@ void take_deliveries_long_time (kr_client_t *client) {
 }
 
 void accept_some_deliveries (kr_client_t *client) {
-  while (kr_delivery_wait (client, 20)) {
+
+  int wait_ms;
+  
+  wait_ms = 250;
+
+  while (kr_delivery_wait_until_final (client, wait_ms)) {
     get_delivery (client);
   }
 }
@@ -196,7 +200,7 @@ int main (int argc, char *argv[]) {
   one_shot_demo (client);
   
   printf ("Now getting into the business\n");
-  take_deliveries_long_time (client);
+  //take_deliveries_long_time (client);
 
   printf ("Disconnecting from %s..\n", sysname);
   kr_disconnect (client);

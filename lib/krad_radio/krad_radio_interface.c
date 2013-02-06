@@ -34,6 +34,23 @@ int krad_radio_broadcast_subunit_destroyed (krad_ipc_broadcaster_t *broadcaster,
   return -1;
 }
 
+void krad_radio_send_shipment_terminator (krad_ipc_server_t *kr_ipc) {
+
+  kr_address_t address;
+	uint64_t response;
+
+  memset (&address, 0, sizeof (kr_address_t));
+
+  address.path.unit = KR_STATION;
+  address.path.subunit.station_subunit = KR_STATION_UNIT;
+
+  krad_ipc_server_response_start_with_address_and_type ( kr_ipc,
+                                                         &address,
+                                                         EBML_ID_KRAD_SHIPMENT_TERMINATOR,
+                                                         &response);
+  krad_ipc_server_response_finish ( kr_ipc, response );
+}
+
 int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
 	krad_radio_t *krad_radio = (krad_radio_t *)ptr;
@@ -41,6 +58,7 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	
 	kr_ipc = krad_radio->remote.krad_ipc;
 	
+	int ret;
 	uint32_t ebml_id;	
 	uint64_t list;	
 	uint32_t command;
@@ -82,23 +100,21 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 	ebml_data_size = 0;
 	element = 0;
 	response = 0;
+	ret = 0;
 	
 	krad_ipc_server_read_command ( kr_ipc, &command, &ebml_data_size);
 
 	switch ( command ) {
 		
-		/* Handoffs */
 		case EBML_ID_KRAD_MIXER_CMD:
-			//printk ("Krad Mixer Command");
-			return krad_mixer_handler ( krad_radio->krad_mixer, kr_ipc );
+			ret = krad_mixer_handler ( krad_radio->krad_mixer, kr_ipc );
+      break;			
 		case EBML_ID_KRAD_COMPOSITOR_CMD:
-			//printk ("Krad Compositor Command");
-			return krad_compositor_handler ( krad_radio->krad_compositor, kr_ipc );			
+			ret = krad_compositor_handler ( krad_radio->krad_compositor, kr_ipc );		
+      break;				
 		case EBML_ID_KRAD_TRANSPONDER_CMD:
-			//printk ("Krad Link Command");
-			return krad_transponder_handler ( krad_radio->krad_transponder, kr_ipc );
-
-		/* Krad Radio Commands */
+			ret = krad_transponder_handler ( krad_radio->krad_transponder, kr_ipc );
+      break;
 		case EBML_ID_KRAD_RADIO_CMD:
 			//printk ("Krad Radio Command");
 			return krad_radio_handler ( output, output_len, ptr );
@@ -310,7 +326,8 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
       krad_ipc_server_response_finish ( kr_ipc, response );
 			
 			
-			return 1;
+			ret = 1;
+			break;
 		case EBML_ID_KRAD_RADIO_CMD_SET_DIR:
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, tag_value_actual, ebml_data_size);
@@ -327,5 +344,9 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			return 0;
 	}
 
-	return 0;
+  if (ret && (!krad_ipc_server_current_client_is_subscriber (kr_ipc))) {
+    krad_radio_send_shipment_terminator (kr_ipc);
+  }
+
+	return ret;
 }

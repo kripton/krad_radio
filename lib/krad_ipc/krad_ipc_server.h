@@ -173,6 +173,8 @@ void krad_ipc_server_broadcaster_register_broadcast ( krad_ipc_broadcaster_t *br
 krad_ipc_broadcaster_t *krad_ipc_server_broadcaster_register ( krad_ipc_server_t *ipc_server );
 int krad_ipc_server_broadcaster_unregister ( krad_ipc_broadcaster_t **broadcaster );
 
+int krad_ipc_server_current_client_is_subscriber (krad_ipc_server_t *ipc);
+
 void krad_ipc_server_disable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port);
 int krad_ipc_server_enable_remote (krad_ipc_server_t *krad_ipc_server, char *interface, int port);
 void krad_ipc_server_disable (krad_ipc_server_t *krad_ipc_server);

@@ -130,6 +130,7 @@ void kr_subscribe_all (kr_client_t *client) {
 }
 
 void kr_broadcast_subscribe (kr_client_t *client, uint32_t broadcast_id) {
+  client->subscriber = 1;
   krad_ipc_broadcast_subscribe (client->krad_ipc_client, broadcast_id);
 }
 
@@ -218,6 +219,22 @@ int kr_poll (kr_client_t *client, uint32_t timeout_ms) {
   FD_SET (kr_ipc_client->sd, &set);  
 
   return select (kr_ipc_client->sd+1, &set, NULL, NULL, &tv);
+}
+
+int kr_delivery_final (kr_client_t *client) {
+  return client->last_delivery_was_final;
+}
+
+void kr_delivery_final_reset (kr_client_t *client) {
+  client->last_delivery_was_final = 0;
+}
+
+int kr_delivery_wait_until_final (kr_client_t *client, uint32_t timeout_ms) {
+  if (kr_delivery_final (client)) {
+    kr_delivery_final_reset (client);
+    return 0;
+  }
+  return kr_poll (client, timeout_ms);
 }
 
 int kr_radio_uptime_to_string (uint64_t uptime, char **string) {
@@ -445,6 +462,10 @@ int kr_radio_response_to_int (kr_response_t *kr_response, int *number) {
 
 int kr_response_to_int (kr_response_t *response, int *number) {
 
+  if (response->size == 0) {
+    return 0;
+  }
+
   switch ( response->address.path.unit ) {
     case KR_STATION:
       return kr_radio_response_to_int (response, number);
@@ -468,6 +489,10 @@ int kr_response_to_float (kr_response_t *response, float *number) {
   int pos;
   
   pos = 0;
+  
+  if (response->size == 0) {
+    return 0;
+  }
 
   if (response->type != EBML_ID_KRAD_SUBUNIT_CONTROL) {
     return 0;
@@ -494,6 +519,10 @@ int kr_response_to_float (kr_response_t *response, float *number) {
 int kr_response_to_string (kr_response_t *response, char **string) {
 
   if (response->type == EBML_ID_KRAD_RADIO_UNIT_DESTROYED) {
+    return 0;
+  }
+  
+  if (response->size == 0) {
     return 0;
   }
 
@@ -590,6 +619,10 @@ int kr_response_to_rep (kr_response_t *response, kr_rep_t **kr_rep_in) {
   kr_rep_t *kr_rep;
 
   if (response->type == EBML_ID_KRAD_RADIO_UNIT_DESTROYED) {
+    return 0;
+  }
+  
+  if (response->size == 0) {
     return 0;
   }
 
@@ -770,6 +803,10 @@ int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address) {
 
 inline int krad_message_type_has_payload (uint32_t type) {
 
+  if (type == EBML_ID_KRAD_SHIPMENT_TERMINATOR) {
+    return 0;
+  }
+
   if (type != EBML_ID_KRAD_RADIO_UNIT_DESTROYED) {
     return 1;
   }
@@ -831,6 +868,14 @@ void kr_client_response_get (kr_client_t *client, kr_response_t **kr_response) {
 
   krad_read_address_from_ebml (kr_ipc_client->krad_ebml, &response->address);
   krad_read_message_type_from_ebml (kr_ipc_client->krad_ebml, &response->type);
+  
+  if (!client->subscriber) {
+    if (response->type == EBML_ID_KRAD_SHIPMENT_TERMINATOR) {
+      client->last_delivery_was_final = 1;
+    } else {
+      client->last_delivery_was_final = 0;
+    }
+  }
 
   //kr_address_debug_print (&response->address);
   //kr_message_type_debug_print (response->type);
@@ -861,14 +906,18 @@ void kr_client_response_wait_print (kr_client_t *client) {
   char *string;
   int wait_time_ms;
   int length;
+  int got_a_response;
 
+  got_a_response = 0;
   string = NULL;
   response = NULL;  
   wait_time_ms = 250;
 
-  if (kr_poll (client, wait_time_ms)) {
+  while (kr_delivery_wait_until_final (client, wait_time_ms)) {
+  //if (kr_poll (client, wait_time_ms)) {
     kr_client_response_get (client, &response);
     if (response != NULL) {
+      got_a_response = 1;
       length = kr_response_to_string (response, &string);
       if (length > 0) {
         printf ("%s\n", string);
@@ -876,7 +925,9 @@ void kr_client_response_wait_print (kr_client_t *client) {
       }
       kr_response_free (&response);
     }
-  } else {
+  }
+
+  if (got_a_response == 0) {
     printf ("No response after waiting %dms\n", wait_time_ms);
   }
 }

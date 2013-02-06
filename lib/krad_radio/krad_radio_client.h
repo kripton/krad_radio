@@ -334,6 +334,9 @@ void kr_client_response_get (kr_client_t *client, kr_response_t **kr_response);
 
 #define kr_mixer_portgroups kr_mixer_portgroups_list
 
+int kr_delivery_wait_until_final (kr_client_t *client, uint32_t timeout_ms);
+int kr_delivery_final (kr_client_t *client);
+
 /**
  * @brief waits for a response
  * @param kr_client handle of the IPC-connection to the station

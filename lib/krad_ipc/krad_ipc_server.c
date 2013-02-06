@@ -713,6 +713,15 @@ int krad_ipc_server_broadcaster_broadcast ( krad_ipc_broadcaster_t *broadcaster,
 
 }
 
+int krad_ipc_server_current_client_is_subscriber (krad_ipc_server_t *ipc) {
+
+  if (ipc->current_client->broadcasts > 0) {
+    return 1;
+  }
+
+  return 0;
+}
+
 void krad_ipc_server_broadcaster_register_broadcast ( krad_ipc_broadcaster_t *broadcaster, uint32_t broadcast_ebml_id ) {
 
   broadcaster->ipc_server->broadcasts[broadcaster->ipc_server->broadcasts_count] = broadcast_ebml_id;
