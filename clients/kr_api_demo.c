@@ -53,7 +53,6 @@ void get_delivery (kr_client_t *client) {
   kr_address_t *address;
   kr_rep_t *rep;
   char *string;
-  int wait_time_ms;
   int integer;
   float real;
 
@@ -61,15 +60,10 @@ void get_delivery (kr_client_t *client) {
   real = 0.0f;
   string = NULL;
   crate = NULL;
+  address = NULL;
   rep = NULL;
-  wait_time_ms = 250;
 
-  if (!kr_delivery_wait (client, wait_time_ms)) {
-    printf ("No delivery after waiting %dms\n", wait_time_ms);
-    return;
-  }
-
-  printf ("*** Get Delivery Start: \n");
+  printf ("*** Delivery Start: \n");
 
   kr_delivery_get (client, &crate);
 
@@ -103,11 +97,11 @@ void get_delivery (kr_client_t *client) {
     }
 
     kr_crate_recycle (&crate);
-    printf ("*** Get Delivery End\n\n\n");
+    printf ("*** Delivery End\n\n\n");
   }
 }
 
-void wait_for_broadcasts (kr_client_t *client) {
+void take_deliveries_long_time (kr_client_t *client) {
 
   int b;
   int ret;
@@ -119,7 +113,10 @@ void wait_for_broadcasts (kr_client_t *client) {
   max = 10000000;
   timeout_ms = 3000;
   
-  printf ("Waiting for up to %"PRIu64" broadcasts up to %ums each\n",
+
+  kr_subscribe_all (client);
+  
+  printf ("Waiting for up to %"PRIu64" deliveries for up to %ums each\n",
           max, timeout_ms);
   
   for (b = 0; b < max; b++) {
@@ -133,10 +130,16 @@ void wait_for_broadcasts (kr_client_t *client) {
   }
 }
 
-void kr_api_test (kr_client_t *client) {
+void accept_some_deliveries (kr_client_t *client) {
+  while (kr_delivery_wait (client, 20)) {
+    get_delivery (client);
+  }
+}
+
+void one_shot_demo (kr_client_t *client) {
 
   kr_system_info (client);
-  get_delivery (client);
+  accept_some_deliveries (client);
 
   //kr_remote_list (client);
   //get_delivery (client);
@@ -145,16 +148,10 @@ void kr_api_test (kr_client_t *client) {
   //get_delivery (client);
   
   kr_mixer_info (client);
-  get_delivery (client);
+  accept_some_deliveries (client);
 
-  kr_mixer_portgroups_list (client);
-  get_delivery (client);
-  
-  printf ("Subscribing to all broadcasts\n");
-  kr_subscribe (client, ALL_BROADCASTS);
-  printf ("Subscribed to all broadcasts\n");
-
-  wait_for_broadcasts (client);
+  kr_mixer_portgroups (client);
+  accept_some_deliveries (client);
 }
 
 int main (int argc, char *argv[]) {
@@ -196,7 +193,11 @@ int main (int argc, char *argv[]) {
 
   printf ("Connected to %s!\n", sysname);
 
-  kr_api_test (client);
+  printf ("Running the one shot demo\n");
+  one_shot_demo (client);
+  
+  printf ("Now getting into the business\n");
+  take_deliveries_long_time (client);
 
   printf ("Disconnecting from %s..\n", sysname);
   kr_disconnect (client);
@@ -206,5 +207,4 @@ int main (int argc, char *argv[]) {
   printf ("Client Destroyed.\n");
   
   return 0;
-
 }
