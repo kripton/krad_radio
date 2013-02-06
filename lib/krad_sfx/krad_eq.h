@@ -55,7 +55,6 @@ typedef struct {
   kr_eq_band_t band[KRAD_EQ_MAX_BANDS];
       
   krad_mixer_t *krad_mixer;
-  char portgroupname[64];
   kr_address_t address;
 
 } kr_eq_t;

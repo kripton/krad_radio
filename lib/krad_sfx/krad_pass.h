@@ -55,7 +55,6 @@ struct krad_pass_St {
   krad_easing_t krad_easing_hz;
   
   krad_mixer_t *krad_mixer;
-  char portgroupname[64];
   kr_address_t address;
 };
 

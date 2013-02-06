@@ -56,6 +56,7 @@ float krad_easing_process (krad_easing_t *krad_easing, float current, void **ptr
     while (__sync_bool_compare_and_swap( &krad_easing->updating, 0, 1 ));
     // FIXME probably should recheck elapsed_time == duration here but
     // ill leave it alone for now since it appears to work..
+    // PS i think what we do is check for update = 1 since we use active to know if to process teh ease
     if (ptr != NULL) {
       *ptr = krad_easing->ptr;
       //if (krad_easing->ptr != NULL) {

@@ -57,7 +57,6 @@ typedef struct {
 	float pwrq;
 	
   krad_mixer_t *krad_mixer;
-  char portgroupname[64];
   kr_address_t address;
 
 } kr_analog_t;

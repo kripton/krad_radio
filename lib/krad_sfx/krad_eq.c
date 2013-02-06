@@ -51,7 +51,6 @@ void kr_eq_process2 (kr_eq_t *kr_eq, float *input, float *output, int num_sample
       recompute = 1;
       if (broadcast == 1) {
         krad_radio_broadcast_subunit_control (kr_eq->krad_mixer->broadcaster, &kr_eq->address, DB, kr_eq->band[b].db, NULL);
-        //krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, DB, kr_eq->band[b].db);      
       }
     }
     if (kr_eq->band[b].krad_easing_bandwidth.active) {
@@ -59,7 +58,6 @@ void kr_eq_process2 (kr_eq_t *kr_eq, float *input, float *output, int num_sample
       recompute = 1;
       if (broadcast == 1) {
         krad_radio_broadcast_subunit_control (kr_eq->krad_mixer->broadcaster, &kr_eq->address, BANDWIDTH, kr_eq->band[b].bandwidth, NULL);
-        //krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, BANDWIDTH, kr_eq->band[b].bandwidth);      
       }
     }
 
@@ -124,11 +122,10 @@ kr_eq_t *kr_eq_create2 (int sample_rate, krad_mixer_t *krad_mixer, char *portgro
   kr_eq->sample_rate = kr_eq->new_sample_rate;
 
   kr_eq->krad_mixer = krad_mixer;
-  strncpy (kr_eq->portgroupname, portgroupname, sizeof(kr_eq->portgroupname));
 
   kr_eq->address.path.unit = KR_MIXER;
   kr_eq->address.path.subunit.mixer_subunit = KR_EFFECT;
-  strncpy (kr_eq->address.id.name, portgroupname, sizeof(kr_eq->portgroupname));
+  strncpy (kr_eq->address.id.name, portgroupname, sizeof(kr_eq->address.id.name));
   kr_eq->address.sub_id = 0;
 
   hz = 30.0;
