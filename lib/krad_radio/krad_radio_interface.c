@@ -155,7 +155,8 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				printke ("Could not find %s", tag_item);
 			}
 
-			return 1;
+			ret = 1;
+			break;
 
 		case EBML_ID_KRAD_RADIO_CMD_SET_TAG:
 			
@@ -175,7 +176,8 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 			
 			//krad_ipc_server_broadcast_tag ( kr_ipc, tag_item, tag_name, tag_value);
 
-			return 2;
+			ret = 1;
+			break;
 
 		case EBML_ID_KRAD_RADIO_CMD_GET_TAG:
 			krad_ipc_server_read_tag ( kr_ipc, &tag_item, &tag_name, &tag_value );
@@ -197,7 +199,8 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 				krad_ipc_server_response_add_tag ( kr_ipc, tag_item, tag_name, tag_value);
 				krad_ipc_server_response_finish ( kr_ipc, response);
 			}
-			return 1;
+			ret = 1;
+			break;
 			
 		case EBML_ID_KRAD_RADIO_CMD_WEB_ENABLE:
 		
@@ -277,7 +280,8 @@ int krad_radio_handler ( void *output, int *output_len, void *ptr ) {
 
       krad_ipc_server_response_list_finish ( kr_ipc, list );
 			krad_ipc_server_response_finish ( kr_ipc, response);
-			return 0;
+			ret = 1;
+			break;
 		case EBML_ID_KRAD_RADIO_CMD_REMOTE_ENABLE:
 			krad_ebml_read_element ( kr_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);	
 			krad_ebml_read_string (kr_ipc->current_client->krad_ebml, string1, ebml_data_size);

@@ -402,7 +402,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
 
       krad_mixer_set_portgroup_control (krad_mixer, portgroupname, "volume", 100.0f, 500);
 
-      break;
+      return 0;
     case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
       krad_ebml_read_string (krad_ipc->current_client->krad_ebml, portgroupname, ebml_data_size);
@@ -437,7 +437,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         krad_ipc_server_response_finish ( krad_ipc, response );
       }
 
-      break;
+      return 1;
     case EBML_ID_KRAD_MIXER_CMD_UPDATE_PORTGROUP:      
       
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  

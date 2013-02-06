@@ -200,7 +200,7 @@ int main (int argc, char *argv[]) {
   one_shot_demo (client);
   
   printf ("Now getting into the business\n");
-  //take_deliveries_long_time (client);
+  take_deliveries_long_time (client);
 
   printf ("Disconnecting from %s..\n", sysname);
   kr_disconnect (client);
