@@ -12,7 +12,7 @@ void my_tag_print (kr_tag_t *tag, void *user_ptr) {
           tag->value);
 }
 
-void my_portgroup_print (kr_mixer_portgroup_t *portgroup, void *user_ptr) {
+void my_portgroup_print (kr_portgroup_t *portgroup, void *user_ptr) {
   printf ("oh its a portgroup called %s and the volume is %0.2f%%\n",
            portgroup->sysname,
            portgroup->volume[0]);
@@ -44,7 +44,6 @@ void my_print (kr_address_t *address, kr_rep_t *rep) {
   if ((address->path.unit == KR_MIXER) && (address->path.subunit.mixer_subunit == KR_PORTGROUP)) {
     my_portgroup_print (rep->rep_ptr.portgroup, user_ptr);
   }
-
 }
 
 void get_delivery (kr_client_t *client) {
