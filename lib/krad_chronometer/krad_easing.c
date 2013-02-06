@@ -19,7 +19,7 @@ krad_ease_t krad_ease_random () {
 
 
 
-float krad_easing_process (krad_easing_t *krad_easing, float current) {
+float krad_easing_process (krad_easing_t *krad_easing, float current, void **ptr) {
 
   float value;
 
@@ -46,10 +46,23 @@ float krad_easing_process (krad_easing_t *krad_easing, float current) {
     krad_easing->duration = 0;
     krad_easing->elapsed_time = 0;
   }
-
+  
+  if (ptr != NULL) {
+    *ptr = NULL;
+  }
+  
   if (krad_easing->elapsed_time == krad_easing->duration) {
     value = krad_easing->target;
     while (__sync_bool_compare_and_swap( &krad_easing->updating, 0, 1 ));
+    // FIXME probably should recheck elapsed_time == duration here but
+    // ill leave it alone for now since it appears to work..
+    if (ptr != NULL) {
+      *ptr = krad_easing->ptr;
+      //if (krad_easing->ptr != NULL) {
+      //  printk ("easing delt it it!\n");
+      //}
+    }
+    krad_easing->ptr = NULL;
     krad_easing->active = 0;
     while (__sync_bool_compare_and_swap( &krad_easing->updating, 1, 0 ));
   }
@@ -58,8 +71,12 @@ float krad_easing_process (krad_easing_t *krad_easing, float current) {
 }
 
 
-void krad_easing_set_new_value (krad_easing_t *krad_easing, float target, int duration, krad_ease_t krad_ease) {
+void krad_easing_set_new_value (krad_easing_t *krad_easing, float target, int duration, krad_ease_t krad_ease, void *ptr) {
   while (__sync_bool_compare_and_swap( &krad_easing->updating, 0, 1 ));
+  krad_easing->ptr = ptr;
+  //if (ptr != NULL) {
+  //  printk ("easing got it!\n");
+  //}
   krad_easing->new_target = target;
   krad_easing->new_duration = duration;
   krad_easing->new_krad_ease = krad_ease;

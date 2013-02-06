@@ -290,7 +290,7 @@ void decklink_capture_unit_create (void *arg) {
   
   krad_mixer_set_portgroup_control (krad_link->krad_radio->krad_mixer,
                                     krad_link->krad_decklink->simplename,
-                                    "volume", 100.0f, 500);
+                                    "volume", 100.0f, 500, NULL);
   
   krad_link->krad_compositor_port = krad_compositor_port_create (krad_link->krad_radio->krad_compositor,
                                                                  krad_link->krad_decklink->simplename,
@@ -1419,7 +1419,7 @@ void audio_decoding_unit_create (void *arg) {
   krad_link->mixer_portgroup = krad_mixer_portgroup_create (krad_link->krad_radio->krad_mixer, krad_link->sysname, INPUT, NOTOUTPUT, 2, 
                            0.0f, krad_link->krad_radio->krad_mixer->master_mix, KRAD_LINK, krad_link, 0);
   
-  krad_mixer_set_portgroup_control (krad_link->krad_radio->krad_mixer, krad_link->sysname, "volume", 100.0f, 500);
+  krad_mixer_set_portgroup_control (krad_link->krad_radio->krad_mixer, krad_link->sysname, "volume", 100.0f, 500, NULL);
   
 }
 

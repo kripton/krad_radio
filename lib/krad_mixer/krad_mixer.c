@@ -402,7 +402,9 @@ void krad_mixer_deactivate_portgroups (krad_mixer_t *krad_mixer) {
 int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
   
   int p, m;
-
+  void *client;
+  
+  client = NULL;
   krad_mixer_portgroup_t *portgroup = NULL;
   krad_mixer_portgroup_t *mixbus = NULL;
   krad_mixer_crossfade_group_t *crossfade_group = NULL;
@@ -434,18 +436,30 @@ int krad_mixer_process (uint32_t nframes, krad_mixer_t *krad_mixer) {
   }
   
   for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS / 2; p++) {
-     crossfade_group = &krad_mixer->crossfade_group[p];
-     if ((crossfade_group != NULL) && ((crossfade_group->portgroup[0] != NULL) && (crossfade_group->portgroup[1] != NULL))) {
-         if (crossfade_group->fade_easing.active) {
-           portgroup_set_crossfade (crossfade_group->portgroup[0], krad_easing_process (&crossfade_group->fade_easing, crossfade_group->fade));
-       }
-     }
-   }
+    crossfade_group = &krad_mixer->crossfade_group[p];
+    if ((crossfade_group != NULL) && ((crossfade_group->portgroup[0] != NULL) && (crossfade_group->portgroup[1] != NULL))) {
+      if (crossfade_group->fade_easing.active) {
+        portgroup_set_crossfade (crossfade_group->portgroup[0], krad_easing_process (&crossfade_group->fade_easing, crossfade_group->fade, &client));
+        if (portgroup->direction == INPUT) {
+          krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
+                                                   crossfade_group->portgroup[0]->sysname,
+                                                   "fade",
+                                                   crossfade_group->fade, client );
+        }
+      }
+    }
+  }
 
   for (p = 0; p < KRAD_MIXER_MAX_PORTGROUPS; p++) {
     portgroup = krad_mixer->portgroup[p];
     if ((portgroup != NULL) && (portgroup->active) && (portgroup->volume_easing.active)) {
-      portgroup_set_volume (portgroup, krad_easing_process (&portgroup->volume_easing, portgroup->volume[0]));
+      portgroup_set_volume (portgroup, krad_easing_process (&portgroup->volume_easing, portgroup->volume[0], &client));
+      if (portgroup->direction == INPUT) {
+        krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
+                                                 portgroup->sysname,
+                                                 "volume",
+                                                 portgroup->volume[0], client );
+      }
     }
   }
 
@@ -860,14 +874,6 @@ void portgroup_set_crossfade (krad_mixer_portgroup_t *portgroup, float value) {
 
     portgroup_update_volume (portgroup->crossfade_group->portgroup[0]);
     portgroup_update_volume (portgroup->crossfade_group->portgroup[1]);  
-
-
-    if (portgroup->direction == INPUT) {
-      krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
-                                               portgroup->crossfade_group->portgroup[0]->sysname,
-                                               "fade",
-                                               value );
-    }
   }
 }
 
@@ -907,13 +913,6 @@ void portgroup_set_volume (krad_mixer_portgroup_t *portgroup, float value) {
     }
   }
 
-  if (portgroup->direction == INPUT) {
-    krad_mixer_broadcast_portgroup_control ( portgroup->krad_mixer,
-                                             portgroup->sysname,
-                                             "volume",
-                                             value );
-  }
-  
   if (portgroup->direction == MIX) {
   
     int p;
@@ -958,7 +957,7 @@ void portgroup_update_volume (krad_mixer_portgroup_t *portgroup) {
   }  
 }    
 
-int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value, int duration) {
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value, int duration, void *ptr) {
 
   krad_mixer_portgroup_t *portgroup;
 
@@ -972,7 +971,7 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
       
     if ((strncmp(control, "volume", 6) == 0) && (strlen(control) == 6)) {
       //portgroup_set_volume (portgroup, value);
-      krad_easing_set_new_value(&portgroup->volume_easing, value, duration, EASEINOUTSINE);
+      krad_easing_set_new_value (&portgroup->volume_easing, value, duration, EASEINOUTSINE, ptr);
       return 1;
     }
 
@@ -980,7 +979,7 @@ int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, c
 
       if ((strncmp(control, "crossfade", 9) == 0) && (strlen(control) == 9)) {
         //portgroup_set_crossfade (portgroup, value);
-        krad_easing_set_new_value(&portgroup->crossfade_group->fade_easing, value, duration, EASEINOUTSINE);
+        krad_easing_set_new_value (&portgroup->crossfade_group->fade_easing, value, duration, EASEINOUTSINE, ptr);
         return 1;
       }        
 

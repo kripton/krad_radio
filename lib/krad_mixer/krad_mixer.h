@@ -152,7 +152,7 @@ float krad_mixer_portgroup_read_peak (krad_mixer_portgroup_t *portgroup);
 float krad_mixer_portgroup_read_channel_peak (krad_mixer_portgroup_t *portgroup, int channel);
 float krad_mixer_peak_scale (float value);
 
-int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value, int duration);
+int krad_mixer_set_portgroup_control (krad_mixer_t *krad_mixer, char *sysname, char *control, float value, int duration, void *ptr);
 void krad_mixer_portgroup_mixmap_channel (krad_mixer_portgroup_t *portgroup, int in_channel, int out_channel);
 void krad_mixer_unplug_portgroup (krad_mixer_t *krad_mixer, char *name, char *remote_name);
 void krad_mixer_plug_portgroup (krad_mixer_t *krad_mixer, char *name, char *remote_name);

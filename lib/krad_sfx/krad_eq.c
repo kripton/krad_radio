@@ -2,17 +2,17 @@
 
 void kr_eq_band_set_db (kr_eq_t *kr_eq, int band_num, float db, int duration, krad_ease_t ease) {
   db = LIMIT(db, KRAD_EQ_DB_MIN, KRAD_EQ_DB_MAX);
-  krad_easing_set_new_value(&kr_eq->band[band_num].krad_easing_db, db, duration, ease);
+  krad_easing_set_new_value(&kr_eq->band[band_num].krad_easing_db, db, duration, ease, NULL);
 }
 
 void kr_eq_band_set_bandwidth (kr_eq_t *kr_eq, int band_num, float bandwidth, int duration, krad_ease_t ease) {
   bandwidth = LIMIT(bandwidth, KRAD_EQ_BANDWIDTH_MIN, KRAD_EQ_BANDWIDTH_MAX);
-  krad_easing_set_new_value(&kr_eq->band[band_num].krad_easing_bandwidth, bandwidth, duration, ease);
+  krad_easing_set_new_value(&kr_eq->band[band_num].krad_easing_bandwidth, bandwidth, duration, ease, NULL);
 }
 
 void kr_eq_band_set_hz (kr_eq_t *kr_eq, int band_num, float hz, int duration, krad_ease_t ease) {
   hz = LIMIT(hz, KRAD_EQ_HZ_MIN, KRAD_EQ_HZ_MAX);
-  krad_easing_set_new_value(&kr_eq->band[band_num].krad_easing_hz, hz, duration, ease);
+  krad_easing_set_new_value(&kr_eq->band[band_num].krad_easing_hz, hz, duration, ease, NULL);
 }
 
 //void kr_eq_process (kr_eq_t *kr_eq, float *input, float *output, int num_samples) {
@@ -22,6 +22,9 @@ void kr_eq_process2 (kr_eq_t *kr_eq, float *input, float *output, int num_sample
   int b, s;
   int recompute;
   int recompute_default;
+  void *ptr;
+
+	ptr = NULL;
 
   if (kr_eq->new_sample_rate != kr_eq->sample_rate) {
     kr_eq->sample_rate = kr_eq->new_sample_rate;
@@ -36,21 +39,21 @@ void kr_eq_process2 (kr_eq_t *kr_eq, float *input, float *output, int num_sample
     //}
     recompute = recompute_default;
     if (kr_eq->band[b].krad_easing_hz.active) {
-      kr_eq->band[b].hz = krad_easing_process (&kr_eq->band[b].krad_easing_hz, kr_eq->band[b].hz); 
+      kr_eq->band[b].hz = krad_easing_process (&kr_eq->band[b].krad_easing_hz, kr_eq->band[b].hz, &ptr); 
       recompute = 1;
       if (broadcast == 1) {
         krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, HZ, kr_eq->band[b].hz);      
       }
     }
     if (kr_eq->band[b].krad_easing_db.active) {
-      kr_eq->band[b].db = krad_easing_process (&kr_eq->band[b].krad_easing_db, kr_eq->band[b].db); 
+      kr_eq->band[b].db = krad_easing_process (&kr_eq->band[b].krad_easing_db, kr_eq->band[b].db, &ptr); 
       recompute = 1;
       if (broadcast == 1) {
         krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, DB, kr_eq->band[b].db);      
       }
     }
     if (kr_eq->band[b].krad_easing_bandwidth.active) {
-      kr_eq->band[b].bandwidth = krad_easing_process (&kr_eq->band[b].krad_easing_bandwidth, kr_eq->band[b].bandwidth); 
+      kr_eq->band[b].bandwidth = krad_easing_process (&kr_eq->band[b].krad_easing_bandwidth, kr_eq->band[b].bandwidth, &ptr); 
       recompute = 1;
       if (broadcast == 1) {
         krad_mixer_broadcast_portgroup_effect_control (kr_eq->krad_mixer, kr_eq->portgroupname, 0, b, BANDWIDTH, kr_eq->band[b].bandwidth);      

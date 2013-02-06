@@ -760,12 +760,18 @@ int handle_broadcast (krad_ipc_broadcaster_t *broadcaster) {
     printke ("Krad IPC Server: invalid broadcast msg read len %d", ret);
     return -1;
   }
+  
+  //if (broadcast_msg->skip_client != NULL) {
+  //  printk ("Goint to skip a client!!\n");
+  //}
 
   for (c = 0; c < KRAD_IPC_SERVER_MAX_CLIENTS; c++) {
     if (broadcaster->ipc_server->clients[c].broadcasts == 1) {
-      krad_ebml_write (broadcaster->ipc_server->clients[c].krad_ebml2, broadcast_msg->buffer, broadcast_msg->size);
-      krad_ebml_write_sync (broadcaster->ipc_server->clients[c].krad_ebml2);
-      b++;
+      if (&broadcaster->ipc_server->clients[c] != broadcast_msg->skip_client) {
+        krad_ebml_write (broadcaster->ipc_server->clients[c].krad_ebml2, broadcast_msg->buffer, broadcast_msg->size);
+        krad_ebml_write_sync (broadcaster->ipc_server->clients[c].krad_ebml2);
+        b++;
+      }
     }
   }
   

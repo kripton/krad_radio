@@ -72,6 +72,7 @@ typedef struct krad_broadcast_msg_St krad_broadcast_msg_t;
 struct krad_broadcast_msg_St {
   unsigned char *buffer;
   uint32_t size;
+  krad_ipc_server_client_t *skip_client;
 };
 
 struct krad_ipc_broadcaster_St {

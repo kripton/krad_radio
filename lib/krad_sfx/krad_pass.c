@@ -10,7 +10,7 @@ void kr_pass_set_type (kr_pass_t *kr_pass, kr_effect_type_t type) {
 
 void kr_pass_set_bandwidth (kr_pass_t *kr_pass, float bandwidth, int duration, krad_ease_t ease) {
   bandwidth = LIMIT(bandwidth, KRAD_PASS_BANDWIDTH_MIN, KRAD_PASS_BANDWIDTH_MAX);
-  krad_easing_set_new_value(&kr_pass->krad_easing_bandwidth, bandwidth, duration, ease);
+  krad_easing_set_new_value(&kr_pass->krad_easing_bandwidth, bandwidth, duration, ease, NULL);
 }
 
 void kr_pass_set_hz (kr_pass_t *kr_pass, float hz, int duration, krad_ease_t ease) {
@@ -19,14 +19,17 @@ void kr_pass_set_hz (kr_pass_t *kr_pass, float hz, int duration, krad_ease_t eas
   } else {
     hz = LIMIT(hz, KRAD_PASS_HZ_MIN, KRAD_PASS_HZ_MAX);
   }
-  krad_easing_set_new_value(&kr_pass->krad_easing_hz, hz, duration, ease);
+  krad_easing_set_new_value(&kr_pass->krad_easing_hz, hz, duration, ease, NULL);
 }
 
 //void kr_pass_process (kr_pass_t *kr_pass, float *input, float *output, int num_samples) {
 void kr_pass_process2 (kr_pass_t *kr_pass, float *input, float *output, int num_samples, int broadcast) {
+
   int s;
   int recompute;
+  void *ptr;
 
+	ptr = NULL;
   recompute = 0;
 
   if (kr_pass->new_sample_rate != kr_pass->sample_rate) {
@@ -49,7 +52,7 @@ void kr_pass_process2 (kr_pass_t *kr_pass, float *input, float *output, int num_
   }
 
   if (kr_pass->krad_easing_bandwidth.active) {
-    kr_pass->bandwidth = krad_easing_process (&kr_pass->krad_easing_bandwidth, kr_pass->bandwidth); 
+    kr_pass->bandwidth = krad_easing_process (&kr_pass->krad_easing_bandwidth, kr_pass->bandwidth, &ptr); 
     recompute = 1;
     
     if (broadcast == 1) {
@@ -61,7 +64,7 @@ void kr_pass_process2 (kr_pass_t *kr_pass, float *input, float *output, int num_
   }
 
   if (kr_pass->krad_easing_hz.active) {
-    kr_pass->hz = krad_easing_process (&kr_pass->krad_easing_hz, kr_pass->hz);
+    kr_pass->hz = krad_easing_process (&kr_pass->krad_easing_hz, kr_pass->hz, &ptr);
     recompute = 1;
     
     if (broadcast == 1) {

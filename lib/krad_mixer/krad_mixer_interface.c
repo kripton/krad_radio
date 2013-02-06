@@ -151,7 +151,7 @@ int krad_mixer_broadcast_portgroup_effect_control (krad_mixer_t *krad_mixer, cha
   return -1;
 }
 
-int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value) {
+int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *portgroupname, char *controlname, float value, void *client) {
 
   size_t size;
   unsigned char *buffer;
@@ -196,7 +196,12 @@ int krad_mixer_broadcast_portgroup_control (krad_mixer_t *krad_mixer, char *port
 
 
   broadcast_msg = krad_broadcast_msg_create (buffer, size);
-
+  broadcast_msg->skip_client = client;
+  
+  if (broadcast_msg->skip_client != NULL) {
+    printk ("want to Goint to skip a client!!\n");
+  }
+  
   free (buffer);
 
   if (broadcast_msg != NULL) {
@@ -263,11 +268,16 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
       if (ebml_id == EBML_ID_KRAD_MIXER_CONTROL_VALUE) {
         floatval = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
         krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-        number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);  
-        krad_mixer_set_portgroup_control ( krad_mixer, portname, controlname, floatval, number );
+        number = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+        if ((number == 0) && (krad_ipc_server_current_client_is_subscriber (krad_ipc))) {
+          //printk ("will want Goint to skip a client!!\n");
+          krad_mixer_set_portgroup_control ( krad_mixer, portname, controlname, floatval, number, krad_ipc->current_client );
+        } else {
+          krad_mixer_set_portgroup_control ( krad_mixer, portname, controlname, floatval, number, NULL );
+        }
         //krad_mixer_broadcast_portgroup_control ( krad_mixer, portname, controlname, floatval );
       }
-      return 2;
+      return 0;
 
     case EBML_ID_KRAD_MIXER_CMD_SET_EFFECT_CONTROL:
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
@@ -400,7 +410,7 @@ int krad_mixer_handler ( krad_mixer_t *krad_mixer, krad_ipc_server_t *krad_ipc )
         }
       }
 
-      krad_mixer_set_portgroup_control (krad_mixer, portgroupname, "volume", 100.0f, 500);
+      krad_mixer_set_portgroup_control (krad_mixer, portgroupname, "volume", 100.0f, 500, NULL);
 
       return 0;
     case EBML_ID_KRAD_MIXER_CMD_DESTROY_PORTGROUP:

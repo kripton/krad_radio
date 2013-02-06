@@ -20,12 +20,12 @@ static inline float D(float x) {
 
 void kr_analog_set_blend (kr_analog_t *kr_analog, float blend, int duration, krad_ease_t ease) {
 	blend = LIMIT(blend, KRAD_ANALOG_BLEND_MIN, KRAD_ANALOG_BLEND_MAX);
-  krad_easing_set_new_value (&kr_analog->krad_easing_blend, blend, duration, ease);
+  krad_easing_set_new_value (&kr_analog->krad_easing_blend, blend, duration, ease, NULL);
 }
 
 void kr_analog_set_drive (kr_analog_t *kr_analog, float drive, int duration, krad_ease_t ease) {
 	drive = LIMIT(drive, KRAD_ANALOG_DRIVE_MIN_OFF, KRAD_ANALOG_DRIVE_MAX);
-  krad_easing_set_new_value (&kr_analog->krad_easing_drive, drive, duration, ease);
+  krad_easing_set_new_value (&kr_analog->krad_easing_drive, drive, duration, ease, NULL);
 }
 
 void kr_analog_set_sample_rate (kr_analog_t *kr_analog, int sample_rate) {
@@ -65,7 +65,10 @@ void kr_analog_destroy(kr_analog_t *kr_analog) {
 
 //void kr_analog_process (kr_analog_t *kr_analog, float *input, float *output, int num_samples) {
 void kr_analog_process2 (kr_analog_t *kr_analog, float *input, float *output, int num_samples, int broadcast) {
+  
   int s;
+  
+  void *ptr;
   
 	float drive;
 	float blend;
@@ -92,8 +95,10 @@ void kr_analog_process2 (kr_analog_t *kr_analog, float *input, float *output, in
 	float med;
 	float out;
 	
+	ptr = NULL;
+	
   if (kr_analog->krad_easing_blend.active) {
-    kr_analog->blend = krad_easing_process (&kr_analog->krad_easing_blend, kr_analog->blend);
+    kr_analog->blend = krad_easing_process (&kr_analog->krad_easing_blend, kr_analog->blend, &ptr);
     
     if (broadcast == 1) {
       krad_mixer_broadcast_portgroup_effect_control (kr_analog->krad_mixer,
@@ -103,7 +108,7 @@ void kr_analog_process2 (kr_analog_t *kr_analog, float *input, float *output, in
     
   }
   if (kr_analog->krad_easing_drive.active) {
-    kr_analog->drive = krad_easing_process (&kr_analog->krad_easing_drive, kr_analog->drive);
+    kr_analog->drive = krad_easing_process (&kr_analog->krad_easing_drive, kr_analog->drive, &ptr);
     
     if (broadcast == 1) {
       krad_mixer_broadcast_portgroup_effect_control (kr_analog->krad_mixer,
