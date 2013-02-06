@@ -54,7 +54,6 @@ void get_delivery (kr_client_t *client) {
   kr_rep_t *rep;
   char *string;
   int wait_time_ms;
-  int length;
   int integer;
   float real;
 
@@ -65,43 +64,46 @@ void get_delivery (kr_client_t *client) {
   rep = NULL;
   wait_time_ms = 250;
 
-  if (kr_delivery_wait (client, wait_time_ms)) {
-    printf ("----- Get Delivery Start: \n\n");
-    kr_delivery_get (client, &crate);
-    if (crate != NULL) {
-      kr_address_get (crate, &address);
-      kr_address_debug_print (address); 
-    
-      /* Crate sometimes can be converted to a string or int */
-      
-      length = kr_uncrate_string (crate, &string);
-      printf ("String Length: %d\n", length);
-      if (length > 0) {
-        printf ("%s\n", string);
-        kr_string_recycle (&string);
-      }
-      
-      if (kr_uncrate_int (crate, &integer)) {
-        printf ("Int: %d\n", integer);
-      }
-      
-      if (kr_uncrate_float (crate, &real)) {
-        printf ("Float: %f\n", real);
-      }
-      
-      /* Crate sometimes has a rep struct */
-      
-      if (kr_uncrate (crate, &rep)) {
-        printf ("Got rep\n");
-        my_print (address, rep);
-        kr_rep_free (&rep);
-      }
-
-      kr_crate_recycle (&crate);
-      printf ("----- Get Delivery End\n\n\n\n\n");
-    }
-  } else {
+  if (!kr_delivery_wait (client, wait_time_ms)) {
     printf ("No delivery after waiting %dms\n", wait_time_ms);
+    return;
+  }
+
+  printf ("*** Get Delivery Start: \n");
+
+  kr_delivery_get (client, &crate);
+
+  if (crate != NULL) {
+
+    kr_address_get (crate, &address);
+    kr_address_debug_print (address); 
+
+    /* Crate sometimes can be converted
+       to a integer, float or string */
+    
+    if (kr_uncrate_string (crate, &string)) {
+      printf ("String: \n%s\n", string);
+      kr_string_recycle (&string);
+    }
+    
+    if (kr_uncrate_int (crate, &integer)) {
+      printf ("Int: %d\n", integer);
+    }
+    
+    if (kr_uncrate_float (crate, &real)) {
+      printf ("Float: %f\n", real);
+    }
+    
+    /* Crate has a rep struct */
+    
+    if (kr_uncrate (crate, &rep)) {
+      printf ("Rep\n");
+      my_print (address, rep);
+      kr_rep_free (&rep);
+    }
+
+    kr_crate_recycle (&crate);
+    printf ("*** Get Delivery End\n\n\n");
   }
 }
 
