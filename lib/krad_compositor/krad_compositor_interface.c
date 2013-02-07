@@ -1,36 +1,6 @@
 #include "krad_compositor_interface.h"
 
-void krad_compositor_subunit_to_ebml (krad_ipc_server_t *krad_ipc, krad_compositor_subunit_t *krad_compositor_subunit) {
-  
-  krad_ebml_write_int32 (krad_ipc->current_client->krad_ebml2, 
-                         EBML_ID_KRAD_COMPOSITOR_X, 
-                         krad_compositor_subunit->x);
-  krad_ebml_write_int32 (krad_ipc->current_client->krad_ebml2, 
-                         EBML_ID_KRAD_COMPOSITOR_Y, 
-                         krad_compositor_subunit->y);
-  krad_ebml_write_int32 (krad_ipc->current_client->krad_ebml2, 
-                         EBML_ID_KRAD_COMPOSITOR_Y, 
-                         krad_compositor_subunit->z);
-  
-  krad_ebml_write_float (krad_ipc->current_client->krad_ebml2,
-                         EBML_ID_KRAD_COMPOSITOR_SPRITE_TICKRATE,
-                         krad_compositor_subunit->tickrate);
-  
-  krad_ebml_write_float (krad_ipc->current_client->krad_ebml2,
-                         EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE,
-                         krad_compositor_subunit->xscale);               
-  
-  krad_ebml_write_float (krad_ipc->current_client->krad_ebml2, 
-                         EBML_ID_KRAD_COMPOSITOR_SPRITE_OPACITY, 
-                         krad_compositor_subunit->opacity);
-  
-  krad_ebml_write_float (krad_ipc->current_client->krad_ebml2, 
-                       EBML_ID_KRAD_COMPOSITOR_SPRITE_ROTATION, 
-                       krad_compositor_subunit->rotation);
-}  
-
 void krad_compositor_sprite_to_ebml ( krad_ipc_server_t *krad_ipc, krad_sprite_t *krad_sprite, int number) {
-
   krad_sprite_rep_t *ksr = krad_sprite_to_sprite_rep (krad_sprite);
   ksr->controls.number = number;
   krad_compositor_sprite_rep_to_ebml (ksr, krad_ipc->current_client->krad_ebml2);
@@ -41,14 +11,12 @@ void krad_compositor_port_to_ebml ( krad_ipc_server_t *krad_ipc, krad_compositor
 
   uint64_t port;
 
-  krad_ebml_start_element (krad_ipc->current_client->krad_ebml2, EBML_ID_KRAD_COMPOSITOR_PORT, &port);  
-
+  krad_ebml_start_element (krad_ipc->current_client->krad_ebml2, EBML_ID_KRAD_COMPOSITOR_PORT, &port);
   krad_ipc_server_respond_number ( krad_ipc,
                    EBML_ID_KRAD_COMPOSITOR_PORT_SOURCE_WIDTH,
                    krad_compositor_port->source_width);
                    
   krad_ebml_finish_element (krad_ipc->current_client->krad_ebml2, port);
-  
 }
 
 
