@@ -592,98 +592,37 @@ int kr_compositor_response_to_string (kr_response_t *kr_response, char **string)
   
   return 0;
 }
-/*
-void kr_compositor_response_print (kr_response_t *kr_response) {
-
-  int pos;
-  uint32_t ebml_id;
-  uint64_t ebml_data_size;
-
-  pos = 0;
-  
-  pos += krad_ebml_read_element_from_frag (kr_response->buffer + pos, &ebml_id, &ebml_data_size);
-
-  switch ( ebml_id ) {
-    case EBML_ID_KRAD_COMPOSITOR_INFO:
-      //printf("Received KRAD_COMPOSITOR_INFO %"PRIu64" bytes of data.\n", ebml_data_size);
-      pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_FRAME_SIZE:
-      printf("Received KRAD_COMPOSITOR_FRAME_SIZE %"PRIu64" bytes of data.\n", ebml_data_size);
-      //kr_read_tag_inner ( kr_client, &tag_item, &tag_name, &tag_value );
-      //printf ("%s: %s - %s\n", tag_item, tag_name, tag_value);
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_FRAME_RATE:
-      printf("Received KRAD_COMPOSITOR_FRAME_RATE %"PRIu64" bytes of data.\n", ebml_data_size);
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME:
-      //printf("Received KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME %"PRIu64" bytes of data.\n", ebml_data_size);
-      //printf("Received System Info %"PRIu64" bytes of data.\n", ebml_data_size);
-      pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_PORT_LIST:
-      printf("Received KRAD_COMPOSITOR_PORT_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
-      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
-      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST:
-      printf("Received KRAD_COMPOSITOR_SPRITE_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
-      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
-      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_TEXT_LIST:
-      printf("Received KRAD_COMPOSITOR_TEXT_LIST %"PRIu64" bytes of data.\n", ebml_data_size);
-      //printf("Received Logname %"PRIu64" bytes of data.\n", ebml_data_size);
-      //pos += kr_response_print_string (kr_response->buffer + pos, ebml_data_size);
-      break;
-  }
-}
-*/
-
-
 
 void kr_videoport_destroy_cmd (kr_client_t *client) {
 
-  //uint64_t ipc_command;
   uint64_t compositor_command;
   uint64_t destroy_videoport;
   
   compositor_command = 0;
 
-  //krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_DESTROY, &destroy_videoport);
 
-  //krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
-
   krad_ebml_finish_element (client->krad_ebml, destroy_videoport);
   krad_ebml_finish_element (client->krad_ebml, compositor_command);
-  //krad_ebml_finish_element (client->krad_ebml, ipc_command);
     
   krad_ebml_write_sync (client->krad_ebml);
-
 }
 
 void kr_videoport_create_cmd (kr_client_t *client) {
 
-  //uint64_t ipc_command;
   uint64_t compositor_command;
   uint64_t create_videoport;
   
   compositor_command = 0;
 
-  //krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_IPC_CMD, &ipc_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_CREATE, &create_videoport);
 
-  //krad_ebml_write_int8 (client->krad_ebml, EBML_ID_KRAD_LINK_LINK_NUMBER, number);
-
   krad_ebml_finish_element (client->krad_ebml, create_videoport);
   krad_ebml_finish_element (client->krad_ebml, compositor_command);
-  //krad_ebml_finish_element (client->krad_ebml, ipc_command);
     
   krad_ebml_write_sync (client->krad_ebml);
-
 }
 
 
@@ -813,6 +752,4 @@ void kr_videoport_destroy (kr_videoport_t *kr_videoport) {
   }
 
 }
-
-
 
