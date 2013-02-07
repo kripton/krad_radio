@@ -70,10 +70,10 @@ int kr_compositor_read_sprite ( kr_client_t *client, char *text) {
   bytes_read = ebml_data_size + 10;
   
   sprintf (text, "Id: %d  Filename: \"%s\"  X: %d  Y: %d  Z: %d  Xscale: %f Yscale: %f  Rotation: %f  Opacity: %f", 
-           krad_sprite->controls->number, krad_sprite->filename,
-           krad_sprite->controls->x, krad_sprite->controls->y, krad_sprite->controls->z,
-           krad_sprite->controls->xscale, krad_sprite->controls->yscale,
-           krad_sprite->controls->rotation, krad_sprite->controls->opacity);
+           krad_sprite->controls.number, krad_sprite->filename,
+           krad_sprite->controls.x, krad_sprite->controls.y, krad_sprite->controls.z,
+           krad_sprite->controls.xscale, krad_sprite->controls.yscale,
+           krad_sprite->controls.rotation, krad_sprite->controls.opacity);
          
     
   return bytes_read;
@@ -198,7 +198,7 @@ void kr_compositor_add_text (kr_client_t *client, char *text, int x, int y, int 
   krad_text_rep->green = green;
   krad_text_rep->blue = blue;
   
-  krad_text_rep->controls = krad_compositor_subunit_controls_create_and_init (0, x, y, z, tickrate, 0, 0, scale, opacity, rotation);
+  krad_compositor_subunit_controls_init (krad_text_rep->controls, 0, x, y, z, tickrate, 0, 0, scale, opacity, rotation);
 
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD, &compositor_command);
   krad_ebml_start_element (client->krad_ebml, EBML_ID_KRAD_COMPOSITOR_CMD_ADD_TEXT, &textcmd);
@@ -214,11 +214,11 @@ void kr_compositor_add_text (kr_client_t *client, char *text, int x, int y, int 
 
 void kr_compositor_set_text (kr_client_t *client, int num, int x, int y, int z, int tickrate, 
                   float scale, float opacity, float rotation, float red, float green, float blue) {
-
+/*
   uint64_t compositor_command;
   uint64_t text;
  
-  krad_text_rep_t *krad_text_rep = krad_compositor_text_rep_create_and_init(num, "", "", red, green, blue, x, y, z, tickrate, scale, opacity, rotation);
+  krad_compositor_subunit_controls_init (krad_text_rep->controls, num, "", "", red, green, blue, x, y, z, tickrate, scale, opacity, rotation);
   
   compositor_command = 0;
   
@@ -233,6 +233,7 @@ void kr_compositor_set_text (kr_client_t *client, int num, int x, int y, int z, 
   krad_ebml_write_sync (client->krad_ebml);
 
   krad_compositor_text_rep_destroy (krad_text_rep);
+*/
 }
 
 void kr_compositor_remove_text (kr_client_t *client, int num) {
@@ -291,7 +292,7 @@ void kr_compositor_add_sprite (kr_client_t *client, char *filename, int x, int y
     
   krad_ebml_write_sync (client->krad_ebml);
   
-  krad_compositor_sprite_rep_destroy (krad_sprite_rep);
+  kr_compositor_sprite_rep_destroy (krad_sprite_rep);
 }
 
 void kr_compositor_set_sprite (kr_client_t *client, int num, 
@@ -316,7 +317,7 @@ void kr_compositor_set_sprite (kr_client_t *client, int num,
     
   krad_ebml_write_sync (client->krad_ebml);
   
-  krad_compositor_sprite_rep_destroy (krad_sprite_rep);
+  kr_compositor_sprite_rep_destroy (krad_sprite_rep);
 }
 
 void kr_compositor_remove_sprite (kr_client_t *client, int num) {
@@ -559,6 +560,64 @@ void kr_ebml_to_compositor_rep (unsigned char *ebml_frag, kr_compositor_t **kr_c
 
 }
 
+void kr_ebml_to_comp_controls (unsigned char *ebml_frag, kr_comp_controls_t *controls) {
+
+  uint32_t ebml_id;
+  uint64_t ebml_data_size;
+  int item_pos;
+
+  item_pos = 0;
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->number = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->x = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->y = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->z = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->tickrate = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->xscale = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+ 
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->yscale = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->opacity = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  controls->rotation = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+}
+
+void kr_ebml_to_sprite_rep (unsigned char *ebml_frag, kr_sprite_t **kr_sprite_rep_in) {
+
+  uint32_t ebml_id;
+	uint64_t ebml_data_size;
+  kr_sprite_t *kr_sprite_rep;
+  int item_pos;
+
+  item_pos = 0;
+
+  if (*kr_sprite_rep_in == NULL) {
+    *kr_sprite_rep_in = kr_compositor_sprite_rep_create ();
+  }
+  
+  kr_sprite_rep = *kr_sprite_rep_in;
+  
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);
+	item_pos += krad_ebml_read_string_from_frag (ebml_frag + item_pos, ebml_data_size, kr_sprite_rep->filename);
+  
+  kr_ebml_to_comp_controls (ebml_frag + item_pos, &kr_sprite_rep->controls);
+  
+}
+
 int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag, char **string) {
 
 	int pos;
@@ -582,15 +641,55 @@ int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag,
   return pos; 
 }
 
-int kr_compositor_response_get_string_from_subunit (unsigned char *ebml_frag, char **string) {
+int kr_compositor_response_get_string_from_subunit_controls (kr_comp_controls_t *controls, char *string) {
 
-	int pos;
+  int pos;
 
   pos = 0;
 
-  pos += sprintf (*string + pos, "Annoying Placeholder Text\n");
+  pos += sprintf (string + pos, "X: %d\n", controls->x);
+  pos += sprintf (string + pos, "Y: %d\n", controls->y);
+  pos += sprintf (string + pos, "Z: %d\n", controls->z);
+
+  pos += sprintf (string + pos, "Y Scale: %f\n", controls->yscale);
+  pos += sprintf (string + pos, "X Scale: %f\n", controls->xscale);
+
+  pos += sprintf (string + pos, "Opacity: %f\n", controls->opacity);
+  pos += sprintf (string + pos, "Rotation: %f\n", controls->rotation);
+  pos += sprintf (string + pos, "Tickrate: %d\n", controls->tickrate);
+  
+  return pos;
+
+}
+
+int kr_compositor_response_get_string_from_sprite (unsigned char *ebml_frag, char **string) {
+
+	int pos;
+  kr_sprite_t *kr_sprite;
+
+  pos = 0;
+  kr_sprite = NULL;
+
+  kr_ebml_to_sprite_rep (ebml_frag, &kr_sprite);
+  pos += sprintf (*string + pos, "Filename: %s\n", kr_sprite->filename);
+  pos += kr_compositor_response_get_string_from_subunit_controls (&kr_sprite->controls, *string + pos);
+
+  kr_compositor_sprite_rep_destroy (kr_sprite);
   
   return pos; 
+}
+
+int kr_compositor_response_get_string_from_subunit (kr_response_t *kr_response, unsigned char *ebml_frag, char **string) {
+
+  switch ( kr_response->address.path.subunit.compositor_subunit ) {
+    case KR_SPRITE:
+      return kr_compositor_response_get_string_from_sprite (ebml_frag, string);
+      break;
+    default:
+      return sprintf (*string, "Annoying Placeholder Text\n");
+  }
+  
+  return 0; 
 }
 
 int kr_compositor_response_to_string (kr_response_t *kr_response, char **string) {
@@ -601,10 +700,10 @@ int kr_compositor_response_to_string (kr_response_t *kr_response, char **string)
       return kr_compositor_response_get_string_from_compositor (kr_response->buffer, string);
     case EBML_ID_KRAD_SUBUNIT_INFO:
       *string = kr_response_alloc_string (kr_response->size * 4);
-      return kr_compositor_response_get_string_from_subunit (kr_response->buffer, string);
+      return kr_compositor_response_get_string_from_subunit (kr_response, kr_response->buffer, string);
     case EBML_ID_KRAD_SUBUNIT_CREATED:
       *string = kr_response_alloc_string (kr_response->size * 4);
-      return kr_compositor_response_get_string_from_subunit (kr_response->buffer, string);
+      return kr_compositor_response_get_string_from_subunit (kr_response, kr_response->buffer, string);
   }
   return 0;
 }

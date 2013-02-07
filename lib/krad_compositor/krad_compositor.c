@@ -241,12 +241,12 @@ void krad_compositor_add_sprite (krad_compositor_t *krad_compositor, krad_sprite
 	if (krad_sprite_open_file (krad_sprite, krad_sprite_rep->filename)) {
 	
 
-	  krad_compositor_subunit_set_xy (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->x, krad_sprite_rep->controls->y);
-    krad_compositor_subunit_set_z (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->z);
-	  krad_compositor_subunit_set_scale (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->xscale);
-    krad_compositor_subunit_set_new_opacity (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->opacity);
-	  krad_compositor_subunit_set_rotation (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->rotation);
-	  krad_compositor_subunit_set_tickrate (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->tickrate);
+	  krad_compositor_subunit_set_xy (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.x, krad_sprite_rep->controls.y);
+    krad_compositor_subunit_set_z (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.z);
+	  krad_compositor_subunit_set_scale (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.xscale);
+    krad_compositor_subunit_set_new_opacity (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.opacity);
+	  krad_compositor_subunit_set_rotation (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.rotation);
+	  krad_compositor_subunit_set_tickrate (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.tickrate);
 
 	  krad_sprite->krad_compositor_subunit->active = 1;
 	  krad_compositor->active_sprites++;
@@ -264,14 +264,14 @@ void krad_compositor_set_sprite (krad_compositor_t *krad_compositor,
 	
 	krad_sprite = NULL;
 
-	krad_sprite = &krad_compositor->krad_sprite[krad_sprite_rep->controls->number];
+	krad_sprite = &krad_compositor->krad_sprite[krad_sprite_rep->controls.number];
 
-	krad_compositor_subunit_set_new_xy (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->x, krad_sprite_rep->controls->y);
-  krad_compositor_subunit_set_z (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->z);
-	krad_compositor_subunit_set_new_scale (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->xscale);
-	krad_compositor_subunit_set_new_opacity (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->opacity);
-	krad_compositor_subunit_set_new_rotation (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->rotation);
-	krad_compositor_subunit_set_tickrate (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls->tickrate);
+	krad_compositor_subunit_set_new_xy (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.x, krad_sprite_rep->controls.y);
+  krad_compositor_subunit_set_z (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.z);
+	krad_compositor_subunit_set_new_scale (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.xscale);
+	krad_compositor_subunit_set_new_opacity (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.opacity);
+	krad_compositor_subunit_set_new_rotation (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.rotation);
+	krad_compositor_subunit_set_tickrate (krad_sprite->krad_compositor_subunit, krad_sprite_rep->controls.tickrate);
 
 }
 

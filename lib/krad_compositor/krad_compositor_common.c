@@ -9,6 +9,7 @@ void krad_compositor_subunit_controls_to_ebml (krad_ebml_t *krad_ebml, kr_compos
 	krad_ebml_write_int32 (krad_ebml, EBML_ID_KRAD_COMPOSITOR_SPRITE_TICKRATE, krad_compositor_subunit_controls->tickrate);
 	
   krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE, krad_compositor_subunit_controls->xscale);
+  krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE, krad_compositor_subunit_controls->yscale);
 	krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_COMPOSITOR_SPRITE_OPACITY, krad_compositor_subunit_controls->opacity);
 	krad_ebml_write_float (krad_ebml, EBML_ID_KRAD_COMPOSITOR_SPRITE_ROTATION, krad_compositor_subunit_controls->rotation);
 
@@ -45,13 +46,13 @@ void krad_compositor_subunit_controls_read (krad_ebml_t *krad_ebml, kr_composito
   
   krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
   if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE) {
-     subunit_controls->yscale = subunit_controls->xscale = krad_ebml_read_float (krad_ebml, ebml_data_size);
+    subunit_controls->xscale = krad_ebml_read_float (krad_ebml, ebml_data_size);
   }
   
-//  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
-//  if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE) {
-//    subunit_controls->yscale = krad_ebml_read_float (krad_ebml, ebml_data_size);
-//  }
+  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
+  if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_SCALE) {
+     subunit_controls->yscale = krad_ebml_read_float (krad_ebml, ebml_data_size);
+  }
   
   krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
   if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_OPACITY) {
@@ -65,49 +66,26 @@ void krad_compositor_subunit_controls_read (krad_ebml_t *krad_ebml, kr_composito
   
 }
 
-void krad_compositor_subunit_controls_destroy (kr_compositor_subunit_controls_t *krad_compositor_subunit_controls) {
-  free (krad_compositor_subunit_controls);
-}
-
-kr_compositor_subunit_controls_t *krad_compositor_subunit_controls_create () {
-
-	kr_compositor_subunit_controls_t *krad_compositor_subunit_controls;
-
-	krad_compositor_subunit_controls = calloc (1, sizeof (kr_compositor_subunit_controls_t));
-	
-	krad_compositor_subunit_controls_reset (krad_compositor_subunit_controls);
-	
-	return krad_compositor_subunit_controls;
-
-}
-
-kr_compositor_subunit_controls_t *krad_compositor_subunit_controls_create_and_init (int number, int x, int y, int z, int tickrate, int width, int height,
+void krad_compositor_subunit_controls_init (kr_comp_controls_t *controls, int number, int x, int y, int z, int tickrate, int width, int height,
                                                                                     float scale, float opacity, float rotation) {
 
-	kr_compositor_subunit_controls_t *krad_compositor_subunit_controls;
-
-	krad_compositor_subunit_controls = calloc (1, sizeof (kr_compositor_subunit_controls_t));
-	
-	krad_compositor_subunit_controls_reset (krad_compositor_subunit_controls);
+	krad_compositor_subunit_controls_reset (controls);
   
-  krad_compositor_subunit_controls->x = x;
-	krad_compositor_subunit_controls->y = y;
-  krad_compositor_subunit_controls->z = z;
+  controls->x = x;
+	controls->y = y;
+  controls->z = z;
   
-  krad_compositor_subunit_controls->number = number;
-  krad_compositor_subunit_controls->tickrate = tickrate;
+  controls->number = number;
+  controls->tickrate = tickrate;
   
-  krad_compositor_subunit_controls->width = width;
-  krad_compositor_subunit_controls->height = height;
+  controls->width = width;
+  controls->height = height;
   
-  krad_compositor_subunit_controls->xscale = scale;
-  krad_compositor_subunit_controls->yscale = scale;
+  controls->xscale = scale;
+  controls->yscale = scale;
   
-  krad_compositor_subunit_controls->rotation = rotation;
-  krad_compositor_subunit_controls->opacity = opacity;
-
-  return krad_compositor_subunit_controls;
-
+  controls->rotation = rotation;
+  controls->opacity = opacity;
 }
 
 void krad_compositor_subunit_controls_reset (kr_compositor_subunit_controls_t *krad_compositor_subunit_controls) {
@@ -149,12 +127,10 @@ void krad_compositor_validate_text_rep (krad_text_rep_t *krad_text_rep) {
 krad_text_rep_t *krad_compositor_text_rep_create () {
   
   krad_text_rep_t *krad_text_rep = calloc(1, sizeof (krad_text_rep_t));
-  krad_text_rep->controls = krad_compositor_subunit_controls_create();
   return krad_text_rep;
 }
 
 void krad_compositor_text_rep_destroy (krad_text_rep_t *krad_text_rep) {
-  krad_compositor_subunit_controls_destroy (krad_text_rep->controls);
   free (krad_text_rep);
 }
 
@@ -246,15 +222,19 @@ krad_text_rep_t *krad_compositor_text_rep_create_and_init (int number, char *tex
   krad_text_rep->green = green;
   krad_text_rep->blue = blue;
   
-  krad_text_rep->controls = krad_compositor_subunit_controls_create_and_init (number, x, y, z, tickrate, 0, 0, scale, opacity, rotation); 
+  krad_compositor_subunit_controls_init (krad_text_rep->controls, number, x, y, z, tickrate, 0, 0, scale, opacity, rotation); 
   return krad_text_rep;
 }
 
-krad_sprite_rep_t *krad_compositor_sprite_rep_create() {
-  krad_sprite_rep_t *krad_sprite_rep = calloc(1, sizeof (krad_sprite_rep_t));
-  krad_sprite_rep->controls = krad_compositor_subunit_controls_create();
-  return krad_sprite_rep;
+kr_sprite_t *kr_compositor_sprite_rep_create () {
+  kr_sprite_t *sprite = calloc (1, sizeof (kr_sprite_t));
+  return sprite;
 }
+
+void kr_compositor_sprite_rep_destroy (kr_sprite_t *sprite) {
+  free (sprite);
+}
+
 
 krad_sprite_rep_t *krad_compositor_sprite_rep_create_and_init ( int number, char *filename, int x, int y, int z, int tickrate, 
                                                             float scale, float opacity, float rotation) {
@@ -263,45 +243,29 @@ krad_sprite_rep_t *krad_compositor_sprite_rep_create_and_init ( int number, char
   
   strcpy (krad_sprite_rep->filename, filename);
       
-  krad_sprite_rep->controls = krad_compositor_subunit_controls_create_and_init (number, x, y, z, tickrate, 0, 0, scale, opacity, rotation); 
+  krad_compositor_subunit_controls_init (&krad_sprite_rep->controls, number, x, y, z, tickrate, 0, 0, scale, opacity, rotation); 
   return krad_sprite_rep;
 }
 
-void krad_compositor_sprite_rep_destroy (krad_sprite_rep_t *krad_sprite_rep) {
-  krad_compositor_subunit_controls_destroy (krad_sprite_rep->controls);
-  free (krad_sprite_rep);
-}
-
 void krad_compositor_sprite_rep_to_ebml (krad_sprite_rep_t *krad_sprite_rep, krad_ebml_t *krad_ebml) {
-  uint64_t cmd;
-  
-  krad_ebml_start_element (krad_ebml, EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST, &cmd);
-  
   krad_ebml_write_string (krad_ebml, EBML_ID_KRAD_COMPOSITOR_FILENAME, krad_sprite_rep->filename);
-  krad_compositor_subunit_controls_to_ebml (krad_ebml, krad_sprite_rep->controls);
-
-  krad_ebml_finish_element (krad_ebml, cmd);
+  krad_compositor_subunit_controls_to_ebml (krad_ebml, &krad_sprite_rep->controls);
 }
 
 krad_sprite_rep_t *krad_compositor_ebml_to_new_krad_sprite_rep (krad_ebml_t *krad_ebml, uint64_t *bytes_read) {
-  
+
   uint32_t ebml_id;
   uint64_t ebml_data_size;
 
-  krad_sprite_rep_t *krad_sprite_rep = krad_compositor_sprite_rep_create();
- 
-  krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);
-  if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST) {
-    *bytes_read = ebml_data_size;
-  }
-  
+  krad_sprite_rep_t *krad_sprite_rep = kr_compositor_sprite_rep_create ();
+
   krad_ebml_read_element (krad_ebml, &ebml_id, &ebml_data_size);	
   if (ebml_id == EBML_ID_KRAD_COMPOSITOR_FILENAME) {
     krad_ebml_read_string (krad_ebml, krad_sprite_rep->filename, ebml_data_size);
   }
 
-  krad_compositor_subunit_controls_read (krad_ebml, krad_sprite_rep->controls);
-  
+  krad_compositor_subunit_controls_read (krad_ebml, &krad_sprite_rep->controls);
+
   return krad_sprite_rep;
 }
 
@@ -322,14 +286,11 @@ void krad_compositor_validate_vector_rep (krad_vector_rep_t *krad_vector_rep) {
 }
 
 krad_vector_rep_t *krad_compositor_vector_rep_create () {
-  
   krad_vector_rep_t *krad_vector_rep = calloc(1, sizeof (krad_vector_rep_t));
-  krad_vector_rep->controls = krad_compositor_subunit_controls_create();
   return krad_vector_rep;
 }
 
 void krad_compositor_vector_rep_destroy (krad_vector_rep_t *krad_vector_rep) {
-  krad_compositor_subunit_controls_destroy (krad_vector_rep->controls);
   free (krad_vector_rep);
 }
 
@@ -417,8 +378,8 @@ krad_vector_rep_t *krad_compositor_vector_rep_create_and_init (int number, char 
   krad_vector_rep->red = red;
   krad_vector_rep->green = green;
   krad_vector_rep->blue = blue;
-  
-  krad_vector_rep->controls = krad_compositor_subunit_controls_create_and_init (number, x, y, z, tickrate, 0, 0, scale, opacity, rotation); 
+
+  krad_compositor_subunit_controls_init (krad_vector_rep->controls, number, x, y, z, tickrate, 0, 0, scale, opacity, rotation); 
   return krad_vector_rep;
 }
 krad_vector_type_t krad_string_to_vector_type (char *string) {

@@ -424,6 +424,24 @@ int main (int argc, char *argv[]) {
       kr_unit_control_set (client, &uc);
     }
   }
+  
+  if (((argc == 4) || (argc == 5)) &&
+      (((strlen(argv[2]) > 2) && (argv[2][1] == '/')) ||
+       (0))) {
+
+    memset (&uc, 0, sizeof (uc));
+    if (kr_string_to_address (argv[2], &uc.address)) {
+      if (argc == 4) {
+        uc.value.real = atof(argv[3]);
+        uc.duration = 0;
+      }
+      if (argc == 5) {
+        uc.value.real = atoi(argv[3]);
+        uc.duration = atoi(argv[4]);
+      }
+      kr_unit_control_set (client, &uc);
+    }
+  }
 
   if (strncmp(argv[2], "setmix", 6) == 0) {
     if (argc == 6) {

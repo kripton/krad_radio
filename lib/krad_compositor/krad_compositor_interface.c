@@ -32,10 +32,9 @@ void krad_compositor_subunit_to_ebml (krad_ipc_server_t *krad_ipc, krad_composit
 void krad_compositor_sprite_to_ebml ( krad_ipc_server_t *krad_ipc, krad_sprite_t *krad_sprite, int number) {
 
   krad_sprite_rep_t *ksr = krad_sprite_to_sprite_rep (krad_sprite);
-  ksr->controls->number = number;
+  ksr->controls.number = number;
   krad_compositor_sprite_rep_to_ebml (ksr, krad_ipc->current_client->krad_ebml2);
-  krad_compositor_sprite_rep_destroy(ksr);
-
+  kr_compositor_sprite_rep_destroy (ksr);
 }
 
 void krad_compositor_port_to_ebml ( krad_ipc_server_t *krad_ipc, krad_compositor_port_t *krad_compositor_port) {
@@ -100,325 +99,198 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 
   switch ( command ) {
   
-    case EBML_ID_KRAD_COMPOSITOR_CMD_UPDATE_PORT:
+  case EBML_ID_KRAD_COMPOSITOR_CMD_UPDATE_PORT:
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[2] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[3] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[4] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[5] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[6] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[7] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[8] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    floats[0] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    floats[1] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_compositor_port_set_comp_params (&krad_compositor->port[numbers[0]],
+                                          numbers[1], numbers[2], numbers[3], numbers[4],
+                                          numbers[5], numbers[6], numbers[7], numbers[8],
+                                          floats[0], floats[1]);
 
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_NUMBER) {
-        numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_X) {
-        numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_Y) {
-        numbers[2] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_WIDTH) {
-        numbers[3] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_HEIGHT) {
-        numbers[4] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_X) {
-        numbers[5] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_Y) {
-        numbers[6] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_WIDTH) {
-        numbers[7] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_CROP_HEIGHT) {
-        numbers[8] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }      
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_OPACITY) {
-        floats[0] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_PORT_ROTATION) {
-        floats[1] = krad_ebml_read_float (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }      
-      
-      printkd ("comp params ipc cmd");
-      
-      krad_compositor_port_set_comp_params (&krad_compositor->port[numbers[0]],
-                             numbers[1], numbers[2], numbers[3], numbers[4],
-                          numbers[5], numbers[6], numbers[7], numbers[8],
-                          floats[0], floats[1]);
-
-      break;    
-  
-    case EBML_ID_KRAD_COMPOSITOR_CMD_INFO:
-
-      krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
-                                                             &krad_compositor->address,
-                                                             EBML_ID_KRAD_UNIT_INFO,
-                                                             &response);
-
-      krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
-
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_INFO, &info_loc);
-
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_WIDTH,
-                       krad_compositor->width);
-
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_HEIGHT,
-                       krad_compositor->height);  
-      
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_NUMERATOR,
-                       krad_compositor->frame_rate_numerator);
-
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR,
-                       krad_compositor->frame_rate_denominator);
-                       
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_SPRITE_COUNT,
-                                       krad_compositor->active_sprites);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_TEXT_COUNT,
-                                       krad_compositor->active_texts);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_VECTOR_COUNT,
-                                       0);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
-                                       krad_compositor->active_input_ports);
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
-                                       krad_compositor->active_output_ports);
-
-      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
-                                       krad_compositor->frame_num);
-                       
-      krad_ipc_server_response_finish ( krad_ipc, info_loc);
-      
-      krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
-      krad_ipc_server_response_finish ( krad_ipc, response );
-      
-      return 1;
-
-    case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT:
-      krad_compositor->snapshot++;
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT_JPEG:
-      krad_compositor->snapshot_jpeg++;
-      break;  
-      
-    case EBML_ID_KRAD_COMPOSITOR_CMD_SET_FRAME_RATE:
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_FPS_NUMERATOR) {
-        numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR) {
-        numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_compositor_set_frame_rate (krad_compositor, numbers[0], numbers[1]);
-
-      break;
-
-    case EBML_ID_KRAD_COMPOSITOR_CMD_SET_RESOLUTION:
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_WIDTH) {
-        numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_HEIGHT) {
-        numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-      
-      krad_compositor_update_resolution (krad_compositor, numbers[0], numbers[1]);
-
-      break;
-
-  
-    case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_PORTS:
-
-      for (p = 0; p < KC_MAX_PORTS; p++) {
-        if (krad_compositor->port[p].krad_compositor_subunit->active == 1) {
-          krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
-                                                                 &krad_compositor->port[p].krad_compositor_subunit->address,
-                                                                 EBML_ID_KRAD_SUBUNIT_INFO,
-                                                                 &response);
-          krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
-          krad_compositor_port_to_ebml ( krad_ipc, &krad_compositor->port[p]);
-          krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
-          krad_ipc_server_response_finish ( krad_ipc, response );
-        }
-      } 
-          
-      return 1;
-        
-    
-    case EBML_ID_KRAD_COMPOSITOR_CMD_SET_BACKGROUND:
-      
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
-
-      if (ebml_id != EBML_ID_KRAD_COMPOSITOR_FILENAME) {
-        
-      }
-
-      krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
-
-      krad_compositor_set_background (krad_compositor, string);
-    
-      break;      
-  
-    case EBML_ID_KRAD_COMPOSITOR_CMD_CLOSE_DISPLAY:
-    
-      krad_compositor_close_display (krad_compositor);    
-      
-      break;
-    case EBML_ID_KRAD_COMPOSITOR_CMD_OPEN_DISPLAY:
-      
-      krad_compositor->display_width = krad_compositor->width;
-      krad_compositor->display_height = krad_compositor->height;
-      
-      krad_compositor_open_display (krad_compositor);
-      
-      break;    
-
-  case EBML_ID_KRAD_COMPOSITOR_CMD_ADD_SPRITE:
-   
-    krad_sprite_rep = krad_compositor_ebml_to_new_krad_sprite_rep (krad_ipc->current_client->krad_ebml, numbers);
-    
-    krad_compositor_add_sprite (krad_compositor, krad_sprite_rep);
-    
-    krad_compositor_sprite_rep_destroy (krad_sprite_rep);
-    
     break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_INFO:
+    krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                           &krad_compositor->address,
+                                                           EBML_ID_KRAD_UNIT_INFO,
+                                                           &response);
 
+    krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+    krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_INFO, &info_loc);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_WIDTH, krad_compositor->width);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_HEIGHT, krad_compositor->height);  
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_NUMERATOR,
+                                     krad_compositor->frame_rate_numerator);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR,
+                                     krad_compositor->frame_rate_denominator);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_SPRITE_COUNT,
+                                     krad_compositor->active_sprites);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_TEXT_COUNT,
+                                     krad_compositor->active_texts);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_VECTOR_COUNT,
+                                     0);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
+                                     krad_compositor->active_input_ports);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
+                                     krad_compositor->active_output_ports);
+    krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
+                                     krad_compositor->frame_num);
+    krad_ipc_server_response_finish ( krad_ipc, info_loc);
+    krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+    krad_ipc_server_response_finish ( krad_ipc, response );
+    return 1;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT:
+    krad_compositor->snapshot++;
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_SNAPSHOT_JPEG:
+    krad_compositor->snapshot_jpeg++;
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_SET_FRAME_RATE:
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_compositor_set_frame_rate (krad_compositor, numbers[0], numbers[1]);
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_SET_RESOLUTION:
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[1] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_compositor_update_resolution (krad_compositor, numbers[0], numbers[1]);
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_PORTS:
+    for (p = 0; p < KC_MAX_PORTS; p++) {
+      if (krad_compositor->port[p].krad_compositor_subunit->active == 1) {
+        krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                               &krad_compositor->port[p].krad_compositor_subunit->address,
+                                                               EBML_ID_KRAD_SUBUNIT_INFO,
+                                                               &response);
+        krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+        krad_compositor_port_to_ebml ( krad_ipc, &krad_compositor->port[p]);
+        krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+        krad_ipc_server_response_finish ( krad_ipc, response );
+      }
+    } 
+    return 1;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_SET_BACKGROUND:
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
+    krad_ebml_read_string (krad_ipc->current_client->krad_ebml, string, ebml_data_size);
+    krad_compositor_set_background (krad_compositor, string);
+    break;      
+  case EBML_ID_KRAD_COMPOSITOR_CMD_CLOSE_DISPLAY:
+    krad_compositor_close_display (krad_compositor);    
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_OPEN_DISPLAY:
+    krad_compositor->display_width = krad_compositor->width;
+    krad_compositor->display_height = krad_compositor->height;
+    krad_compositor_open_display (krad_compositor);
+    break;    
+  case EBML_ID_KRAD_COMPOSITOR_CMD_ADD_SPRITE:
+    krad_sprite_rep = krad_compositor_ebml_to_new_krad_sprite_rep (krad_ipc->current_client->krad_ebml, numbers);
+    krad_compositor_add_sprite (krad_compositor, krad_sprite_rep);
+    kr_compositor_sprite_rep_destroy (krad_sprite_rep);
+    break;
   case EBML_ID_KRAD_COMPOSITOR_CMD_SET_SPRITE:
-    
     krad_sprite_rep = krad_compositor_ebml_to_new_krad_sprite_rep (krad_ipc->current_client->krad_ebml, numbers);
     krad_compositor_set_sprite (krad_compositor, krad_sprite_rep);
-    krad_compositor_sprite_rep_destroy (krad_sprite_rep);
+    kr_compositor_sprite_rep_destroy (krad_sprite_rep);
     break;
-    
   case EBML_ID_KRAD_COMPOSITOR_CMD_REMOVE_SPRITE:
-    
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_NUMBER) {
-        numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
-      }
-    
-      krad_compositor_remove_sprite (krad_compositor, numbers[0]);
-    
-      break;
-      
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    if (ebml_id == EBML_ID_KRAD_COMPOSITOR_SPRITE_NUMBER) {
+      numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    }
+    krad_compositor_remove_sprite (krad_compositor, numbers[0]);
+    break;
   case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_SPRITES:
-
-      for (s = 0; s < KC_MAX_SPRITES; s++) {
-        if (krad_compositor->krad_sprite[s].krad_compositor_subunit->active == 1) {
-          krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
-                                                                 &krad_compositor->krad_sprite[s].krad_compositor_subunit->address,
-                                                                 EBML_ID_KRAD_SUBUNIT_INFO,
-                                                                 &response);
-          krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
-          krad_compositor_sprite_to_ebml ( krad_ipc, &krad_compositor->krad_sprite[s], s);
-          krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
-          krad_ipc_server_response_finish ( krad_ipc, response );
-        }
-      } 
-          
+    for (s = 0; s < KC_MAX_SPRITES; s++) {
+      if (krad_compositor->krad_sprite[s].krad_compositor_subunit->active == 1) {
+        krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                               &krad_compositor->krad_sprite[s].krad_compositor_subunit->address,
+                                                               EBML_ID_KRAD_SUBUNIT_INFO,
+                                                               &response);
+        krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+        krad_compositor_sprite_to_ebml ( krad_ipc, &krad_compositor->krad_sprite[s], s);
+        krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+        krad_ipc_server_response_finish ( krad_ipc, response );
+      }
+    }
     return 1;
-
   case EBML_ID_KRAD_COMPOSITOR_CMD_ADD_TEXT:
-    
     krad_text_rep = krad_compositor_ebml_to_krad_text_rep (krad_ipc->current_client->krad_ebml, numbers, NULL);
     krad_compositor_add_text (krad_compositor, krad_text_rep);
     krad_compositor_text_rep_destroy (krad_text_rep);
-    
     break;
-      
   case EBML_ID_KRAD_COMPOSITOR_CMD_SET_TEXT:
-    
     krad_compositor_ebml_to_krad_text_rep (krad_ipc->current_client->krad_ebml, numbers, krad_compositor->krad_text_rep_ipc);
     krad_compositor_set_text(krad_compositor, krad_compositor->krad_text_rep_ipc);
-    
     break;
-    
   case EBML_ID_KRAD_COMPOSITOR_CMD_REMOVE_TEXT:
-    
-      krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
-      if (ebml_id == EBML_ID_KRAD_COMPOSITOR_TEXT_NUMBER) {
-        numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);
+    numbers[0] = krad_ebml_read_number (krad_ipc->current_client->krad_ebml, ebml_data_size);
+    krad_compositor_remove_text (krad_compositor, numbers[0]);
+    break;
+      
+  case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_TEXTS:
+    for (s = 0; s < KC_MAX_TEXTS; s++) {
+      if (krad_compositor->krad_text[s].krad_compositor_subunit->active == 1) {
+        krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                               &krad_compositor->krad_text[s].krad_compositor_subunit->address,
+                                                               EBML_ID_KRAD_SUBUNIT_INFO,
+                                                               &response);
+        krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+        krad_compositor_text_to_ebml ( krad_compositor, krad_ipc, &krad_compositor->krad_text[s], s);
+        krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+        krad_ipc_server_response_finish ( krad_ipc, response );
       }
-    
-      krad_compositor_remove_text (krad_compositor, numbers[0]);
-    
-      break;
-      
-    case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_TEXTS:
-
-      for (s = 0; s < KC_MAX_TEXTS; s++) {
-        if (krad_compositor->krad_text[s].krad_compositor_subunit->active == 1) {
-          krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
-                                                                 &krad_compositor->krad_text[s].krad_compositor_subunit->address,
-                                                                 EBML_ID_KRAD_SUBUNIT_INFO,
-                                                                 &response);
-          krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
-          krad_compositor_text_to_ebml ( krad_compositor, krad_ipc, &krad_compositor->krad_text[s], s);
-          krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
-          krad_ipc_server_response_finish ( krad_ipc, response );
-        }
+    }
+    return 1;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_GET_LAST_SNAPSHOT_NAME:
+    krad_compositor_get_last_snapshot_name (krad_compositor, string);
+    krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
+    krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME, string);
+    krad_ipc_server_response_finish ( krad_ipc, response);
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_DESTROY:
+    for (p = 0; p < KC_MAX_PORTS; p++) {
+      if (krad_compositor->port[p].local == 1) {
+        krad_compositor_port_destroy (krad_compositor, &krad_compositor->port[p]);
+        break;
       }
+    }
+    break;
+  case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_CREATE:
+
+    sd1 = 0;
+    sd2 = 0;
+
+    sd1 = krad_ipc_server_recvfd (krad_ipc->current_client);
+    sd2 = krad_ipc_server_recvfd (krad_ipc->current_client);
       
-      return 1;
-
-    case EBML_ID_KRAD_COMPOSITOR_CMD_GET_LAST_SNAPSHOT_NAME:
-
-      krad_compositor_get_last_snapshot_name (krad_compositor, string);
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
-      krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_LAST_SNAPSHOT_NAME, string);
-      krad_ipc_server_response_finish ( krad_ipc, response);
-    
-      break;
+    printk ("VIDEOPORT_CREATE Got FD's %d and %d\n", sd1, sd2);
       
-    case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_DESTROY:
-
-      for (p = 0; p < KC_MAX_PORTS; p++) {
-        if (krad_compositor->port[p].local == 1) {
-          krad_compositor_port_destroy (krad_compositor, &krad_compositor->port[p]);
-          break;
-        }
-      }
-        
-      break;
-
-    case EBML_ID_KRAD_COMPOSITOR_CMD_LOCAL_VIDEOPORT_CREATE:
-    
-  
-      sd1 = 0;
-      sd2 = 0;
-    
-      sd1 = krad_ipc_server_recvfd (krad_ipc->current_client);
-      sd2 = krad_ipc_server_recvfd (krad_ipc->current_client);
-        
-      printk ("VIDEOPORT_CREATE Got FD's %d and %d\n", sd1, sd2);
-        
-      krad_compositor_local_port_create (krad_compositor, "localport", INPUT, sd1, sd2);
-        
-      break;
-      
+    krad_compositor_local_port_create (krad_compositor, "localport", INPUT, sd1, sd2);
+    break;
   }
 
   return 0;
