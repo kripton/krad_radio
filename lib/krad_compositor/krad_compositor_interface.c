@@ -68,7 +68,7 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
   
   uint32_t command;
   uint64_t ebml_data_size;
-  uint64_t element;
+
   uint64_t response;
   uint64_t info_loc;
   uint64_t payload_loc;
@@ -252,23 +252,22 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
   
     case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_PORTS:
 
-      
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
-      krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_LIST, &element);  
-      
-
       for (p = 0; p < KC_MAX_PORTS; p++) {
         if (krad_compositor->port[p].krad_compositor_subunit->active == 1) {
-          //printf("Link %d Active: %s\n", k, krad_linker->krad_link[k]->mount);
+          krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                                 &krad_compositor->port[p].krad_compositor_subunit->address,
+                                                                 EBML_ID_KRAD_SUBUNIT_INFO,
+                                                                 &response);
+          krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
           krad_compositor_port_to_ebml ( krad_ipc, &krad_compositor->port[p]);
+          krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+          krad_ipc_server_response_finish ( krad_ipc, response );
         }
-      }
-      
-      krad_ipc_server_response_list_finish ( krad_ipc, element );
-      krad_ipc_server_response_finish ( krad_ipc, response );  
+      } 
+          
+      return 1;
         
-      break;  
-      
+    
     case EBML_ID_KRAD_COMPOSITOR_CMD_SET_BACKGROUND:
       
       krad_ebml_read_element (krad_ipc->current_client->krad_ebml, &ebml_id, &ebml_data_size);  
@@ -326,20 +325,21 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
       break;
       
   case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_SPRITES:
-    
-    krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
-    krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_SPRITE_LIST, &element);  
 
-    for (s = 0; s < KC_MAX_SPRITES; s++) {
-      if (krad_compositor->krad_sprite[s].krad_compositor_subunit->active) {
-        krad_compositor_sprite_to_ebml ( krad_ipc, &krad_compositor->krad_sprite[s], s);
-      }
-    }
-    
-    krad_ipc_server_response_list_finish ( krad_ipc, element );
-    krad_ipc_server_response_finish ( krad_ipc, response );  
+      for (s = 0; s < KC_MAX_SPRITES; s++) {
+        if (krad_compositor->krad_sprite[s].krad_compositor_subunit->active == 1) {
+          krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                                 &krad_compositor->krad_sprite[s].krad_compositor_subunit->address,
+                                                                 EBML_ID_KRAD_SUBUNIT_INFO,
+                                                                 &response);
+          krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
+          krad_compositor_sprite_to_ebml ( krad_ipc, &krad_compositor->krad_sprite[s], s);
+          krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+          krad_ipc_server_response_finish ( krad_ipc, response );
+        }
+      } 
           
-    break;
+    return 1;
 
   case EBML_ID_KRAD_COMPOSITOR_CMD_ADD_TEXT:
     
@@ -368,24 +368,22 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
       break;
       
     case EBML_ID_KRAD_COMPOSITOR_CMD_LIST_TEXTS:
-    
-      printk ("krad compositor handler: LIST_TEXTS");
-    
-      krad_ipc_server_response_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_MSG, &response);
-      //krad_ipc_server_respond_string ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_TEXT, "this is a test name");
-      krad_ipc_server_response_list_start ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_TEXT_LIST, &element);  
-    
 
       for (s = 0; s < KC_MAX_TEXTS; s++) {
-        if (krad_compositor->krad_text[s].krad_compositor_subunit->active) {
+        if (krad_compositor->krad_text[s].krad_compositor_subunit->active == 1) {
+          krad_ipc_server_response_start_with_address_and_type ( krad_ipc,
+                                                                 &krad_compositor->krad_text[s].krad_compositor_subunit->address,
+                                                                 EBML_ID_KRAD_SUBUNIT_INFO,
+                                                                 &response);
+          krad_ipc_server_payload_start ( krad_ipc, &payload_loc);
           krad_compositor_text_to_ebml ( krad_compositor, krad_ipc, &krad_compositor->krad_text[s], s);
+          krad_ipc_server_payload_finish ( krad_ipc, payload_loc );
+          krad_ipc_server_response_finish ( krad_ipc, response );
         }
       }
-    
-      krad_ipc_server_response_list_finish ( krad_ipc, element );
-      krad_ipc_server_response_finish ( krad_ipc, response );  
-      break;
       
+      return 1;
+
     case EBML_ID_KRAD_COMPOSITOR_CMD_GET_LAST_SNAPSHOT_NAME:
 
       krad_compositor_get_last_snapshot_name (krad_compositor, string);

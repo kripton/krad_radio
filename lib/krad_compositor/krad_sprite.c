@@ -34,6 +34,9 @@ krad_sprite_t *krad_sprite_create_arr (int count) {
   
   for (s = 0; s < count; s++) {
     krad_sprite[s].krad_compositor_subunit = krad_compositor_subunit_create();
+    krad_sprite[s].krad_compositor_subunit->address.path.unit = KR_COMPOSITOR;
+    krad_sprite[s].krad_compositor_subunit->address.path.subunit.compositor_subunit = KR_SPRITE;
+    krad_sprite[s].krad_compositor_subunit->address.id.number = s;
     krad_sprite_reset (&krad_sprite[s]);
   }
   

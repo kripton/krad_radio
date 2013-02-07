@@ -77,6 +77,8 @@ struct krad_compositor_subunit_St {
 	krad_ease_t krad_ease_rotation;
 	krad_ease_t krad_ease_opacity;
 	
+  kr_address_t address;
+	
 };
 
 krad_compositor_subunit_t *krad_compositor_subunit_create ();

@@ -582,14 +582,30 @@ int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag,
   return pos; 
 }
 
+int kr_compositor_response_get_string_from_subunit (unsigned char *ebml_frag, char **string) {
+
+	int pos;
+
+  pos = 0;
+
+  pos += sprintf (*string + pos, "Annoying Placeholder Text\n");
+  
+  return pos; 
+}
+
 int kr_compositor_response_to_string (kr_response_t *kr_response, char **string) {
 
   switch ( kr_response->type ) {
     case EBML_ID_KRAD_UNIT_INFO:
       *string = kr_response_alloc_string (kr_response->size * 4);
       return kr_compositor_response_get_string_from_compositor (kr_response->buffer, string);
+    case EBML_ID_KRAD_SUBUNIT_INFO:
+      *string = kr_response_alloc_string (kr_response->size * 4);
+      return kr_compositor_response_get_string_from_subunit (kr_response->buffer, string);
+    case EBML_ID_KRAD_SUBUNIT_CREATED:
+      *string = kr_response_alloc_string (kr_response->size * 4);
+      return kr_compositor_response_get_string_from_subunit (kr_response->buffer, string);
   }
-  
   return 0;
 }
 

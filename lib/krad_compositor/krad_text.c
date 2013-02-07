@@ -41,6 +41,9 @@ krad_text_t *krad_text_create_arr (int count) {
 
   for (s = 0; s < count; s++) {
     krad_text[s].krad_compositor_subunit = krad_compositor_subunit_create();
+    krad_text[s].krad_compositor_subunit->address.path.unit = KR_COMPOSITOR;
+    krad_text[s].krad_compositor_subunit->address.path.subunit.compositor_subunit = KR_TEXT;
+    krad_text[s].krad_compositor_subunit->address.id.number = s;
     krad_text_reset (&krad_text[s]);
 	}
 	

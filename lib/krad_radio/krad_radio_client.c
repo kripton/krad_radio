@@ -800,6 +800,10 @@ int krad_read_address_from_ebml (krad_ebml_t *ebml, kr_address_t *address) {
       address->path.unit = KR_COMPOSITOR;
       krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
       address->path.subunit.zero = krad_ebml_read_number ( ebml, ebml_data_size );
+      if (address->path.subunit.mixer_subunit != KR_UNIT) {
+        krad_ebml_read_element (ebml, &ebml_id, &ebml_data_size);
+        address->id.number = krad_ebml_read_number ( ebml, ebml_data_size );
+      }
       break;
     case EBML_ID_KRAD_TRANSPONDER_MSG:
       address->path.unit = KR_TRANSPONDER;

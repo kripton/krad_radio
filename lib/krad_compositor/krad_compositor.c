@@ -1500,12 +1500,12 @@ krad_compositor_t *krad_compositor_create (int width, int height,
 	
   for (i = 0; i < KC_MAX_PORTS; i++) {
     krad_compositor->port[i].krad_compositor_subunit = krad_compositor_subunit_create();
+    krad_compositor->port[i].krad_compositor_subunit->address.path.unit = KR_COMPOSITOR;
+    krad_compositor->port[i].krad_compositor_subunit->address.path.subunit.compositor_subunit = KR_VIDEOPORT;
+    krad_compositor->port[i].krad_compositor_subunit->address.id.number = i;
   }
   
-	//krad_compositor->krad_sprite = calloc(KC_MAX_SPRITES, sizeof(krad_sprite_t));
-	krad_compositor->krad_sprite = krad_sprite_create_arr (KC_MAX_SPRITES);	
-
-	//krad_compositor->krad_text = calloc(KC_MAX_TEXTS, sizeof(krad_text_t));
+	krad_compositor->krad_sprite = krad_sprite_create_arr (KC_MAX_SPRITES);
 	krad_compositor->krad_text = krad_text_create_arr (KC_MAX_TEXTS);	
 	
 	for (i = 0; i < KC_MAX_TEXTS; i++) {
