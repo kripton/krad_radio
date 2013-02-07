@@ -188,6 +188,21 @@ int krad_compositor_handler ( krad_compositor_t *krad_compositor, krad_ipc_serve
 
       krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_FPS_DENOMINATOR,
                        krad_compositor->frame_rate_denominator);
+                       
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_SPRITE_COUNT,
+                                       krad_compositor->active_sprites);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_TEXT_COUNT,
+                                       krad_compositor->active_texts);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_VECTOR_COUNT,
+                                       0);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
+                                       krad_compositor->active_input_ports);
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
+                                       krad_compositor->active_output_ports);
+
+      krad_ipc_server_respond_number ( krad_ipc, EBML_ID_KRAD_COMPOSITOR_PORT_COUNT,
+                                       krad_compositor->frame_num);
+                       
       krad_ipc_server_response_finish ( krad_ipc, info_loc);
       
       krad_ipc_server_payload_finish ( krad_ipc, payload_loc );

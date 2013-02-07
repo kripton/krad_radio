@@ -539,6 +539,24 @@ void kr_ebml_to_compositor_rep (unsigned char *ebml_frag, kr_compositor_t **kr_c
 	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
   kr_compositor_rep->fps_denominator = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
 
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->sprites = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->texts = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->vectors = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->inputs = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->outputs = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
+	item_pos += krad_ebml_read_element_from_frag (ebml_frag + item_pos, &ebml_id, &ebml_data_size);	
+  kr_compositor_rep->frames = krad_ebml_read_number_from_frag_add (ebml_frag + item_pos, ebml_data_size, &item_pos);
+
 }
 
 int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag, char **string) {
@@ -552,7 +570,13 @@ int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag,
   kr_ebml_to_compositor_rep (ebml_frag, &kr_compositor);
   pos += sprintf (*string + pos, "Resolution: %ux%u\n", kr_compositor->width, kr_compositor->width);
   pos += sprintf (*string + pos, "Frame Rate: %u / %u\n", kr_compositor->fps_numerator, kr_compositor->fps_denominator);
-
+  pos += sprintf (*string + pos, "Sprites: %u\n", kr_compositor->sprites);
+  pos += sprintf (*string + pos, "Vectors: %u\n", kr_compositor->vectors);
+  pos += sprintf (*string + pos, "Texts: %u\n", kr_compositor->texts);
+  pos += sprintf (*string + pos, "Inputs: %u\n", kr_compositor->inputs);
+  pos += sprintf (*string + pos, "Outputs: %u\n", kr_compositor->outputs);
+  pos += sprintf (*string + pos, "Frames: %"PRIu64"\n", kr_compositor->frames);
+        
   kr_compositor_rep_destroy (kr_compositor);
   
   return pos; 

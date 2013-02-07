@@ -79,8 +79,14 @@ struct krad_compositor_rep_St {
 	uint32_t height;
 	uint32_t fps_numerator;
 	uint32_t fps_denominator;
-	uint64_t current_frame_number;
-	
+
+	uint32_t sprites;
+	uint32_t vectors;
+	uint32_t texts;
+	uint32_t inputs;
+	uint32_t outputs;
+
+	uint64_t frames;
 };
 
 
