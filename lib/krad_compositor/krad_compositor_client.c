@@ -568,7 +568,7 @@ int kr_compositor_response_get_string_from_compositor (unsigned char *ebml_frag,
   kr_compositor = NULL;
 
   kr_ebml_to_compositor_rep (ebml_frag, &kr_compositor);
-  pos += sprintf (*string + pos, "Resolution: %ux%u\n", kr_compositor->width, kr_compositor->width);
+  pos += sprintf (*string + pos, "Resolution: %ux%u\n", kr_compositor->width, kr_compositor->height);
   pos += sprintf (*string + pos, "Frame Rate: %u / %u\n", kr_compositor->fps_numerator, kr_compositor->fps_denominator);
   pos += sprintf (*string + pos, "Sprites: %u\n", kr_compositor->sprites);
   pos += sprintf (*string + pos, "Vectors: %u\n", kr_compositor->vectors);
