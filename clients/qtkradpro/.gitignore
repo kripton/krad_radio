@@ -10,3 +10,5 @@ qtkradgui.config
 qtkradgui.includes
 moc_*
 ui_*
+frametest/krad_frametest
+frametest/*.user
