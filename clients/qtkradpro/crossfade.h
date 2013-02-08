@@ -16,7 +16,7 @@ signals:
 public slots:
 //  void setValue (int value);
   void sliderValueChanged(int value);
-  void updateVolume(kr_mixer_portgroup_control_rep_t *);
+  //void updateVolume(kr_mixer_portgroup_control_rep_t *);
 
 
 private:

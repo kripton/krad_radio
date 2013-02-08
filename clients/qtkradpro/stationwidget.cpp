@@ -74,7 +74,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
   connect(ps, SIGNAL(valueChanged(QString, float)), kradStation, SLOT(setVolume(QString,float)));
 
 
-  if (rep->crossfade_group_rep != NULL) {
+  /*if (rep->crossfade_group_rep != NULL) {
     Crossfade *cf = new Crossfade(tr(rep->crossfade_group_rep->portgroup_rep[0]->sysname),tr("%1 - %2").arg(tr(rep->crossfade_group_rep->portgroup_rep[0]->sysname)).arg(tr(rep->crossfade_group_rep->portgroup_rep[1]->sysname)));
     cf->setValue(rep->crossfade_group_rep->fade);
     mixerLayout->addWidget(cf);
@@ -82,7 +82,7 @@ void StationWidget::portgroupAdded(kr_mixer_portgroup_t *rep)
     connect(kradStation, SIGNAL(crossfadUpdated(kr_mixer_portgroup_control_rep_t*)), cf, SLOT(updateVolume(kr_mixer_portgroup_control_rep_t*)));
     connect(cf, SIGNAL(valueChanged(QString,float)), kradStation, SLOT(setCrossfade(QString,float)));
 
-  }
+  }*/
 
   connect(ps, SIGNAL(addEffects(QString)), this, SLOT(addEffects(QString)));
   connect(ps, SIGNAL(removeEffects(QString)), this, SLOT(removeEffects(QString)));

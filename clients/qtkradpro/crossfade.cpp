@@ -24,7 +24,7 @@ void Crossfade::sliderValueChanged(int value)
   emit valueChanged(portname, (double) 0.1 * value);
 }
 
-void Crossfade::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)
+/*void Crossfade::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)
 {
   if (portname == tr(portgroup_cont->name)) {
     setValue(portgroup_cont->value);
@@ -32,4 +32,4 @@ void Crossfade::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)
     qDebug() << tr("no match <%1> <%2>").arg(portname).arg(tr(portgroup_cont->name));
   }
 
-}
+}*/

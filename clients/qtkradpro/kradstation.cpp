@@ -118,7 +118,7 @@ void KradStation::removeTapeTube(QString portname)
 void KradStation::setTapeTube(QString portname, QString control, float value)
 {
   qDebug() << tr("trying to set tapetube %1 %2 to %3").arg(portname).arg(control).arg(value);
-  kr_mixer_set_effect_control (client, portname.toAscii().data(), 3, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
+  //kr_mixer_set_effect_control (client, portname.toAscii().data(), 3, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 
 void KradStation::addHiPassFilter(QString portname)
@@ -136,13 +136,13 @@ void KradStation::setHiPassFilter(QString portname, QString control, float value
 {
   qDebug() << tr("trying to set hi pass filter %1 %2 %3").arg(portname).arg(control).arg(value);
 //  krad_ease_t blah;
-  kr_mixer_set_effect_control(client, portname.toAscii().data(), 2, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
+  //kr_mixer_set_effect_control(client, portname.toAscii().data(), 2, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 
 void KradStation::setLoPassFilter(QString portname, QString control, float value)
 {
   qDebug() << tr("trying to set lo pass filter %1 %2 %3").arg(portname).arg(control).arg(value);
-  kr_mixer_set_effect_control(client, portname.toAscii().data(), 1, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
+  //kr_mixer_set_effect_control(client, portname.toAscii().data(), 1, control.toAscii().data(), 0, value, 240, EASEINOUTSINE);
 }
 void KradStation::removePassFilter(QString portname)
 {
@@ -165,13 +165,13 @@ void KradStation::rmEq(QString portname)
 void KradStation::setEq(QString portname, int bandId, float value)
 {
   qDebug() << tr("trying to set eq %1 to %2").arg(bandId).arg(value);
-  kr_mixer_set_effect_control (client, portname.toAscii().data(), 0, "db", bandId, value, DEFAULT_DURATION, EASEINOUTSINE);
+  //kr_mixer_set_effect_control (client, portname.toAscii().data(), 0, "db", bandId, value, DEFAULT_DURATION, EASEINOUTSINE);
 }
 
 void KradStation::eqBandAdded(QString portname, int bandId, float freq)
 {
   qDebug() << tr("trying to addband on eq 0, id %2, freq %3").arg(bandId).arg(freq);
-  kr_mixer_set_effect_control (client, portname.toAscii().data_ptr()->data, 0, "hz", bandId, freq, 0, EASEINOUTSINE);
+  //kr_mixer_set_effect_control (client, portname.toAscii().data_ptr()->data, 0, "hz", bandId, freq, 0, EASEINOUTSINE);
 }
 
 void KradStation::xmms2Play(QString portname)
@@ -260,7 +260,7 @@ void KradStation::handleResponse()
     if (response != NULL) {
       kr_response_address (response, &address);
       kr_address_debug_print (address);
-      if (kr_response_is_list (response)) {
+      /*if (kr_response_is_list (response)) {
         items = kr_response_list_length (response);
         qDebug() << tr("Response is a list with %1 items.").arg(items);
         for (i = 0; i < items; i++) {
@@ -273,7 +273,7 @@ void KradStation::handleResponse()
           }
         }
       } else {
-
+*/
         if (kr_response_to_rep(response, &rep)) {
           qDebug() << tr("response is a single rep");
           emitRepType(rep);
@@ -290,7 +290,7 @@ void KradStation::handleResponse()
         }
         kr_response_free (&response);
 
-      }
+ //     }
     } else {
       qDebug() << tr("No response after waiting %1 ms").arg(wait_time_ms);
     }
@@ -304,7 +304,7 @@ void KradStation::emitRepType(kr_rep_t *rep)
 
     switch (rep->type) {
     case EBML_ID_KRAD_MIXER_PORTGROUP:
-    case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
+/*    case EBML_ID_KRAD_MIXER_PORTGROUP_CREATED:
         emit portgroupAdded(rep->rep_ptr.mixer_portgroup);
         qDebug() << tr("signalling portgroup added");
         break;
@@ -319,7 +319,7 @@ void KradStation::emitRepType(kr_rep_t *rep)
             emit crossfadUpdated(rep->rep_ptr.mixer_portgroup_control);
         }
         break;
-
+*/
     case EBML_ID_KRAD_COMPOSITOR_INFO:
         qDebug() << "Got compositor information:" << rep->rep_ptr.compositor->width << "x" << rep->rep_ptr.compositor->height << "Framerate:" << rep->rep_ptr.compositor->fps_numerator << "/" << rep->rep_ptr.compositor->fps_denominator;
         emit frameSizeInformation(QRect(0,0,rep->rep_ptr.compositor->width,rep->rep_ptr.compositor->height));

@@ -53,13 +53,13 @@ void LabelledSlider::sliderValueChanged(int value)
   emit valueChanged(label->text(), 0.1f * value);
 }
 
-void LabelledSlider::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)
+/*void LabelledSlider::updateVolume(kr_mixer_portgroup_control_rep_t *portgroup_cont)
 {
   if (label->text() == tr(portgroup_cont->name)) {
 
     setValue(portgroup_cont->value);
   }
-}
+}*/
 
 QString LabelledSlider::getLabel() {
     return label->text();
