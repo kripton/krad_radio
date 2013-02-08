@@ -10,7 +10,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = qtkradgui
+TARGET = qtkradpro
 TEMPLATE = app
 
 
@@ -46,8 +46,6 @@ HEADERS  += \
     filterwidget.h \
     compositorcontrol.h
 
-
-
 unix:INCLUDEPATH += "../../lib/krad_mixer"
 unix:INCLUDEPATH += "../../lib/krad_sfx"
 unix:INCLUDEPATH += "../../lib/krad_ebml"
@@ -60,6 +58,3 @@ unix:INCLUDEPATH += "../../lib/krad_transponder"
 unix:INCLUDEPATH += "/usr/include/opus"
 unix:INCLUDEPATH += "../../lib/krad_compositor"
 unix:INCLUDEPATH += "../../lib/krad_chronometer/"
-FORMS +=
-
-OTHER_FILES +=
