@@ -30,7 +30,6 @@ static void krad_wayland_pointer_handle_axis(void *data, struct wl_pointer *poin
 static void krad_wayland_seat_handle_capabilities (void *data, struct wl_seat *seat, enum wl_seat_capability caps);
 
 static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t format);
-static int krad_wayland_event_mask_update (uint32_t mask, void *data);
 static void krad_wayland_handle_global (void *data, struct wl_registry *registry, uint32_t id,
                                         const char *interface, uint32_t version);
 
@@ -178,14 +177,6 @@ static void krad_wayland_shm_format (void *data, struct wl_shm *wl_shm, uint32_t
     
     krad_wayland->display->formats |= (1 << format);
     
-}
-
-static int krad_wayland_event_mask_update (uint32_t mask, void *data) {
-    
-    krad_wayland_t *krad_wayland = data;
-    
-    krad_wayland->display->mask = mask;
-    return 0;
 }
 
 static void krad_wayland_handle_global (void *data, struct wl_registry *registry, uint32_t id,
@@ -417,7 +408,7 @@ int krad_wayland_open_window (krad_wayland_t *krad_wayland) {
     return 0;
 }
 
-void krad_wayland_iterate (krad_wayland_t *krad_wayland) {
+void krad_wayland_dispatch (krad_wayland_t *krad_wayland) {
     wl_display_dispatch (krad_wayland->display->display);
 }
 

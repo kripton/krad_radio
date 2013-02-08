@@ -92,7 +92,7 @@ static void *krad_compositor_display_thread (void *arg) {
 	printk("Wayland display running");
 
 	while (krad_compositor->display_open == 1) {
-		krad_wayland_iterate (krad_compositor_wayland_display->krad_wayland);
+		krad_wayland_dispatch (krad_compositor_wayland_display->krad_wayland);
 	}
 
   krad_wayland_close_window (krad_compositor_wayland_display->krad_wayland);
