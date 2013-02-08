@@ -13,10 +13,11 @@ TEMPLATE = app
 
 
 SOURCES +=\
-    resizableframe.cpp \
+    ../resizableframe.cpp \
     frametest_main.cpp
 
 
 HEADERS  += \
-    resizableframe.h
+    ../resizableframe.h
 
+unix:INCLUDEPATH += "../"
