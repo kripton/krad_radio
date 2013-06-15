@@ -667,13 +667,15 @@ void krad_compositor_port_set_comp_params (krad_compositor_port_t *krad_composit
   krad_compositor_port->crop_width = crop_width;
   krad_compositor_port->crop_height = crop_height;
 
-  if (opacity != krad_compositor_port->krad_compositor_subunit->opacity) {
-    krad_compositor_subunit_set_new_opacity (krad_compositor_port->krad_compositor_subunit, opacity);
-  }
+  //if (opacity != krad_compositor_port->krad_compositor_subunit->opacity) {
+  //  krad_compositor_subunit_set_new_opacity (krad_compositor_port->krad_compositor_subunit, opacity);
+  //}
+  krad_compositor_port->krad_compositor_subunit->opacity = opacity;
 
-  if (rotation != krad_compositor_port->krad_compositor_subunit->rotation) {
-    krad_compositor_subunit_set_new_rotation (krad_compositor_port->krad_compositor_subunit, rotation);
-  }  
+  //if (rotation != krad_compositor_port->krad_compositor_subunit->rotation) {
+  //  krad_compositor_subunit_set_new_rotation (krad_compositor_port->krad_compositor_subunit, rotation);
+  //}
+  krad_compositor_port->krad_compositor_subunit->rotation = rotation;
 
   krad_compositor_port->comp_params_updated = 1;
 
