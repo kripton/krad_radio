@@ -2347,22 +2347,30 @@ int krad_ebml_streamio_write(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t 
 
 
 int krad_ebml_streamio_read(krad_ebml_io_t *krad_ebml_io, void *buffer, size_t length) {
+    int bytes;
+    int total_bytes;
+    
+    bytes = 0;
+    total_bytes = 0;
 
-	int bytes;
-	
-	bytes = 0;
+    while (bytes != length) {
 
-	while (bytes != length) {
+        bytes = recv (krad_ebml_io->sd, buffer + total_bytes, length - total_bytes, 0);
 
-		bytes += recv (krad_ebml_io->sd, buffer + bytes, length - bytes, 0);
+        if (bytes == 0) {
+            //printkd ("Krad EBML Source: recv got EOF?");
+            return total_bytes;
+        }
+        else if (bytes < 0)
+        {
+            printkd ("Krad EBML Source: recv got ERROR!");
+            return total_bytes;
+        }
+        
+        total_bytes += bytes;
+    }
 
-		if (bytes <= 0) {
-			failfast ("Krad EBML Source: recv Got Disconnected from server");
-		}
-	}
-	
-	return bytes;
-	
+    return total_bytes;
 }
 
 
